@@ -181,10 +181,9 @@ class PDataConstrDef extends PDefaultProgElem implements PDataDef.Constr {
     this.dataType = type;
   }
 
-  public PTypeSkel.InstanciationRes getType(PTypeSkelBindings bindings) {
+  public PTypeSkel getType(PTypeSkelBindings bindings) {
     PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-    PTypeSkel t = this.dataType.getSkel().instanciate(ib, null);
-    return PTypeSkel.InstanciationRes.create(t, ib.varSlotList);
+    return this.dataType.getSkel().instanciate(ib);
   }
 
   public PDataConstrDef setupScope(PScope scope) throws CompileException {

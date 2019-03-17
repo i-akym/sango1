@@ -242,20 +242,14 @@ class PScope {
     return v;
   }
 
-  PTypeSkel.InstanciationRes getEmptyListType(Parser.SrcInfo srcInfo) {
+  PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
     PVarDef nv = this.getNewTvar(srcInfo);
-    PTypeSkel.InstanciationRes ir = PTypeSkel.InstanciationRes.create(
-      this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel());
-    ir.newvarList.add(nv.varSlot);
-    return ir;
+    return this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel();
   }
 
-  PTypeSkel.InstanciationRes getEmptyStringType(Parser.SrcInfo srcInfo) {
+  PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
     PVarDef nv = this.getNewTvar(srcInfo);
-    PTypeSkel.InstanciationRes ir = PTypeSkel.InstanciationRes.create(
-      this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel());
-    ir.newvarList.add(nv.varSlot);
-    return ir;
+    return this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel();
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {

@@ -51,7 +51,7 @@ public interface PDataDef {
 
     int getAttrIndex(String name);  // -1 if not found
 
-    PTypeSkel.InstanciationRes getType(PTypeSkelBindings bindings);
+    PTypeSkel getType(PTypeSkelBindings bindings);
 
   }
 

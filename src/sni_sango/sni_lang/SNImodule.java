@@ -259,7 +259,7 @@ public class SNImodule {
     }
     RDataConstr dc = helper.getDataConstr(modName, dconName);
     RStructItem data = helper.getStructItem(dc, vs);
-    ConstrObj o = ConstrObj.createWithType(helper, c.getType(b).instance, data);
+    ConstrObj o = ConstrObj.createWithType(helper, c.getType(b), data);
     helper.setReturnValue(o);
 /* DEBUG */ } catch (Exception ex) {
 /* DEBUG */ ex.printStackTrace(System.out);
@@ -286,7 +286,7 @@ public class SNImodule {
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
       PDataDef.Attr a = c.getAttrAt(i);
-      PTypeSkel at = a.getNormalizedType().instanciate(ib, null);
+      PTypeSkel at = a.getNormalizedType().instanciate(ib);
       RListItem.Cell lc = helper.createListCellItem();
       lc.head = wrap(helper, at, s.getFieldAt(i));
       lc.tail = L;
@@ -347,7 +347,7 @@ public class SNImodule {
       return;
     }
     PTypeSkel rt = pts[pts.length - 1]
-      .instanciate(PTypeSkel.InstanciationBindings.create(b), null);
+      .instanciate(PTypeSkel.InstanciationBindings.create(b));
     helper.setReturnValue(RunObj.create(helper, rt, (RClosureItem)co.value, ps));
 /* DEBUG */ } catch (Exception ex) {
   /* DEBUG */ ex.printStackTrace(System.out);

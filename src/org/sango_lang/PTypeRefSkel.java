@@ -118,10 +118,10 @@ public class PTypeRefSkel implements PTypeSkel {
     return this.tconInfo;
   }
 
-  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings, PScope scope) {
+  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].instanciate(iBindings, scope);
+      ps[i] = this.params[i].instanciate(iBindings);
     }
     PTypeRefSkel tr = new PTypeRefSkel();
     tr.srcInfo = this.srcInfo;
