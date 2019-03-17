@@ -1,0 +1,81 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.iter" ;;
+
+eval <*A> *K const_iter @public -> <A iter> {
+  \\ <A iter_res> { K const_next } iter$
+} ;;
+
+eval <*A> *K const_next -> <A iter_res> {
+  (| K,
+    \\ <A iter_res> { K const_next } iter$ |) value$
+} ;;
+
+eval <*A iter> *I <A bool fun> *W add_while @public -> <A iter> {
+  \\ <A iter_res> { I W while_next } iter$
+} ;;
+
+eval <*A iter> *I <A bool fun> *W while_next -> <A iter_res> {
+  I next >> case {
+  ; (| *V, *I' |) value$ ->
+    V &W >> case {
+    ; true$ ->
+      (| V,
+        \\ <A iter_res> { I' W while_next } iter$ |) value$
+    ; ** -> none$
+    }
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A iter> *I <A bool fun> *F add_filter @public -> <A iter> {
+  \\ <A iter_res> { I F filter_next } iter$
+} ;;
+
+eval <*A iter> *I <A bool fun> *F filter_next -> <A iter_res> {
+  I next >> case {
+  ; (| *V, *I' |) value$ ->
+    V &F >> case {
+    ; true$ ->
+      (| V,
+        \\ <A iter_res> { I' F filter_next } iter$ |) value$
+    ; ** ->
+      I' F &&
+    }
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A iter> *I <A *B fun> *M add_modifier @public -> <B iter> {
+  \\ <B iter_res> { I M modify_next } iter$
+} ;;
+
+eval <*A iter> *I <A *B fun> *M modify_next -> <B iter_res> {
+  I next >> case {
+  ; (| *V, *I' |) value$ ->
+    (| V &M,
+      \\ <B iter_res> { I' M modify_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

@@ -1,0 +1,57 @@
+import "sango.cstr" -> cstr ;;
+import "sango.cstr.format" -> fmt ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.simplemap" -> simplemap ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  map001 = *M,
+  M test001,
+  M test002,
+  M test002a,
+  M test003,
+  M test005,
+  M test011,
+  M test012,
+  M test013,
+  M test014,
+  void$
+} ;;
+
+alias type <tab> := <fmt.obj_key fmt.obj map.map> ;;
+eval map001 -> <tab> {
+  simplemap.new_map 
+  [ (| "SSS", "SSS" fmt.cstr_fd$ |),
+    (| "U", 'U' fmt.char_fd$ |),
+    (| "0", 0 fmt.int_fd$ |),
+    (| "345", 345 fmt.int_fd$ |),
+    (| "200", 200~ fmt.byte_fd$ |),
+    (| "-678", -678 fmt.int_fd$ |),
+    (| "-0.25", -2.5e-1 fmt.real_fd$ |) ]
+  map.add_list
+} ;;
+eval <tab> *M test001 -> <cstr> {
+  "abc{SSS:cstr}d{U:cstr}ef" M fmt.format = "abcSSSdUef" } ;;
+eval <tab> *M test002 -> <cstr> {
+  "abc{0:int}def{345:int:s5d}ghi{-678:int}jkl" M fmt.format = "abc0def+00345ghi-678jkl" } ;;
+eval <tab> *M test002a -> <cstr> {
+  "abc{200:int}def" M fmt.format = "abc200def" } ;;
+eval <tab> *M test003 -> <cstr> {
+  "abc{-0.25:real}def" M fmt.format = "abc-0.25def" } ;;
+eval <tab> *M test005 -> <cstr> {
+  "{SSS*ZZZ:cstr}{ZZZ:cstr}" M fmt.format = "SSS" } ;;
+eval <tab> *M test011 -> <cstr> {
+  "{SSS:SEL:SSS;sss|TTT;ttt}" M fmt.format = "sss" } ;;
+eval <tab> *M test012 -> <cstr> {
+  "{SSS:SEL:RRR;rrr|SSS;sss}" M fmt.format = "sss" } ;;
+eval <tab> *M test013 -> <cstr> {
+  "{SSS:SEL:RRR;rrr|TTT;ttt}" M fmt.format = "" } ;;
+eval <tab> *M test014 -> <cstr> {
+  "{SSS:SEL:RRR;rrr|TTT;ttt|*;vvv}" M fmt.format = "vvv" } ;;

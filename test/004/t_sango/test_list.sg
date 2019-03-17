@@ -1,0 +1,126 @@
+import "sango.list" -> list ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  test011,
+  test012,
+  test021,
+  test022,
+  test023,
+  test024,
+  test025,
+  test026,
+  test031,
+  test032,
+  test033,
+  test034,
+  test035,
+  test041,
+  test042,
+  test043,
+  test044,
+  test045,
+  test046,
+  test051,
+  test052,
+  test053,
+  test054,
+  test055,
+  test056,
+  test057,
+  test061,
+  test062,
+  test071,
+  test072,
+  test073,
+  test074,
+  test075,
+  test076,
+  test077,
+  test078,
+  test080,
+  test081,
+  test082,
+  test083,
+  test084,
+  test085,
+  test090,
+  test091,
+  test092,
+  test093,
+  test094,
+  test095,
+  test100,
+  test101,
+  test102,
+  test103,
+  test104,
+  test105,
+  void$
+} ;;
+
+eval test001 -> <bool> { [] list.empty? = true$ } ;;
+eval test002 -> <bool> { [] list.non_empty? = false$ } ;;
+eval test011 -> <int> { [] list.length = 0 } ;;
+eval test012 -> <int> { [ 1, 2, 3 ] list.length = 3 } ;;
+eval test021 -> <int maybe> { [] list.first = none$ } ;;
+eval test022 -> <int maybe> { [ 1, 2, 3 ] list.first = 1 value$ } ;;
+eval test023 -> <<int list> maybe> { [] list.tail = none$ } ;;
+eval test024 -> <<int list> maybe> { [ 1, 2, 3 ] list.tail = [ 2, 3 ] value$ } ;;
+eval test025 -> <int maybe> { [] list.last = none$ } ;;
+eval test026 -> <int maybe> { [ 1, 2, 3 ] list.last = 3 value$ } ;;
+eval test031 -> <int maybe> { [ 1, 2, 3 ]  -1 list.elem = none$ } ;;
+eval test032 -> <int maybe> { [ 1, 2, 3 ]  0 list.elem = 1 value$ } ;;
+eval test033 -> <int maybe> { [ 1, 2, 3 ]  2 list.elem = 3 value$ } ;;
+eval test034 -> <int maybe> { [ 1, 2, 3 ]  3 list.elem = none$ } ;;
+eval test035 -> <int maybe> { []  0 list.elem = none$ } ;;
+eval test041 -> <int maybe> { [ 1, 2, 3, 1, 2, 3 ]  2 list.index = 1 value$ } ;;
+eval test042 -> <int maybe> { [ 1, 2, 3, 1, 2, 3 ]  0 list.index = none$ } ;;
+eval test043 -> <int maybe> { []  2 list.index = none$ } ;;
+eval test044 -> <int maybe> { [ 1, 2, 3, 1, 2, 3 ]  2 list.last_index = 4 value$ } ;;
+eval test045 -> <int maybe> { [ 1, 2, 3, 1, 2, 3 ]  0 list.last_index = none$ } ;;
+eval test046 -> <int maybe> { []  2 list.last_index = none$ } ;;
+eval test051 -> <int list> { []  list.reverse = [] } ;;
+eval test052 -> <int list> { [ 1, 2, 3 ]  list.reverse = [ 3, 2, 1 ] } ;;
+eval test053 -> <int list> { []  [] list.append = [] } ;;
+eval test054 -> <int list> { []  [ 4, 5 ] list.append = [ 4, 5 ] } ;;
+eval test055 -> <int list> { [ 1, 2, 3 ]  [] list.append = [ 1, 2, 3 ] } ;;
+eval test056 -> <int list> { [ 1, 2, 3 ]  [ 4, 5 ] list.append = [ 1, 2, 3, 4, 5 ] } ;;
+eval test057 -> <int list> { [ [ 1, 2, 3 ], [ 4, 5 ],  [ 6, 7 ] ] list.concat = [ 1, 2, 3, 4, 5, 6, 7 ] } ;;
+eval test061 -> <<int int tuple> list> { [ 1, 2, 3 ] \ <*A> *X -> <A A tuple> { (| X, X |) } list.map = [ (| 1, 1 |), (| 2, 2 |), (| 3, 3 |) ] } ;;
+eval test062 -> <int list> { [ 1, -2, 3 ] \ <int> *X -> <bool> { X ge0? } list.filter = [ 1, 3 ] } ;;
+eval test071 -> <int> { 2 [ 1, 0, 3 ] \ <int> *X <int> *Y -> <int> { X Y diff } list.fold = -2 } ;;
+eval test072 -> <int> { [ 1, 0, 3 ] 2 \ <int> *X <int> *Y -> <int> { X Y diff } list.fold_right = 2 } ;;
+eval test073 -> <int maybe> { [] \ <int> *X <int> *Y -> <int> { X Y diff } list.reduce = none$ } ;;
+eval test074 -> <int maybe> { [ 2 ] \ <int> *X <int> *Y -> <int> { X Y diff } list.reduce = 2 value$ } ;;
+eval test075 -> <int maybe> { [ 1, 0, 3 ] \ <int> *X <int> *Y -> <int> { X Y diff } list.reduce = -2 value$ } ;;
+eval test076 -> <int maybe> { [] \ <int> *X <int> *Y -> <int> { X Y diff } list.reduce_right = none$ } ;;
+eval test077 -> <int maybe> { [ 2 ] \ <int> *X <int> *Y -> <int> { X Y diff } list.reduce_right = 2 value$ } ;;
+eval test078 -> <int maybe> { [ 1, 0, 3 ] \ <int> *X <int> *Y -> <int> { X Y diff } list.reduce_right = 4 value$ } ;;
+eval test080 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] -1 list.remove_at = none$ } ;;
+eval test081 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 0 list.remove_at = (| [ 1, 2, 3, 4 ], 0 |) value$ } ;;
+eval test082 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 2 list.remove_at = (| [ 0, 1, 3, 4 ], 2 |) value$ } ;;
+eval test083 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 4 list.remove_at = (| [ 0, 1, 2, 3 ], 4 |) value$ } ;;
+eval test084 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 5 list.remove_at = none$ } ;;
+eval test085 -> <<<int list> int tuple> maybe> { [] 0 list.remove_at = none$ } ;;
+eval test090 -> <int list> { [ 1, 2, 3 ] -1 9 list.insert_at = [ 9, 1, 2, 3 ] } ;;
+eval test091 -> <int list> { [ 1, 2, 3 ] 0 9 list.insert_at = [ 9, 1, 2, 3 ] } ;;
+eval test092 -> <int list> { [ 1, 2, 3 ] 1 9 list.insert_at = [ 1, 9, 2, 3 ] } ;;
+eval test093 -> <int list> { [ 1, 2, 3 ] 2 9 list.insert_at = [ 1, 2, 9, 3 ] } ;;
+eval test094 -> <int list> { [ 1, 2, 3 ] 3 9 list.insert_at = [ 1, 2, 3, 9 ] } ;;
+eval test095 -> <int list> { [ 1, 2, 3 ] 4 9 list.insert_at = [ 1, 2, 3, 9 ] } ;;
+eval test100 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] -1 9 list.replace_at = none$ } ;;
+eval test101 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 0 9 list.replace_at = (| [ 9, 1, 2, 3, 4 ], 0 |) value$ } ;;
+eval test102 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 2 9 list.replace_at = (| [ 0, 1, 9, 3, 4 ], 2 |) value$ } ;;
+eval test103 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 4 9 list.replace_at = (| [ 0, 1, 2, 3, 9 ], 4 |) value$ } ;;
+eval test104 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 5 9 list.replace_at = none$ } ;;
+eval test105 -> <<<int list> int tuple> maybe> { [] 0 9 list.replace_at = none$ } ;;

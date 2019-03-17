@@ -1,0 +1,35 @@
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system" -> sys ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.shell" -> sh ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  void$
+} ;;
+
+eval test001 -> <void> {
+  sys.os_type >> case {
+  ; "unix" -> [ "sh", "-c", "echo foo" ]
+  ; "winnt" -> [ "cmd", "/c", "echo", "foo" ]
+  } = *Command,
+  Command sh.exec >> sh.take_output = "foo",
+  void$
+} ;;
+eval test002 -> <void> {
+  sys.os_type >> case {
+  ; "unix" -> [ "sh", "-c", "echo foo" ]
+  ; "winnt" -> [ "cmd", "/c", "echo", "foo" ]
+  } = *Command,
+  (Command sh.exec) none$ sh.take_lines = [ "foo" ** cstr.line$ ],
+  void$
+} ;;

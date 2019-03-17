@@ -1,0 +1,431 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.shell" ;;
+
+### shell programming utilities ###
+
+import "sango.actor" -> act ;;
+import "sango.char.encoding" -> enc ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.system" -> sys ;;
+import "sango.system.os" -> os ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.simpleset" -> simpleset ;;
+import "sango.util.sort" -> sort ;;
+
+
+# -- program name and arguments --
+
+eval prog_name @public -> <cstr> { runtime.prog_name } ;;
+
+eval args @public -> <cstr list> { runtime.args } ;;
+
+
+# -- path handling --
+
+eval file_separator @public -> <cstr> { fs.file_separator } ;;
+
+eval file_separator_char @public -> <char> { fs.file_separator_char } ;;
+
+eval path_separator @public -> <cstr> { fs.path_separator } ;;
+
+eval path_separator_char @public -> <char> { fs.path_separator_char } ;;
+
+eval current_dir_name @public -> <cstr> { fs.current_dir_name } ;;
+
+eval parent_dir_name @public -> <cstr> { fs.parent_dir_name } ;;
+
+eval <fs.path_struct> *PS path_area @public -> <cstr> { PS fs.path_area } ;;
+
+eval <fs.path_struct> *PS path_base_name @public -> <cstr maybe> { PS fs.path_base_name } ;;
+
+eval <fs.path_struct> *PS path_names @public -> <cstr list> { PS fs.path_names } ;;
+
+eval <cstr> *Area <cstr list> *Names new_path @public -> <fs.path_struct> { Area Names fs.new_path } ;;
+
+eval <fs.path_struct> *PS absolute_path? | absolute? @public -> <bool> { PS fs.absolute_path?  } ;;
+
+eval <fs.path_struct> *PS parent_path @public -> <fs.path_struct maybe> { PS fs.parent_path } ;;
+
+eval <fs.path_struct> *PS <cstr> *Child child_path @public -> <fs.path_struct> { PS Child fs.child_path } ;;
+
+eval <cstr list> *Names new_relative_path @public -> <fs.path_struct> { Names fs.new_relative_path } ;;
+
+eval <cstr> *Path parse_path | parse @public -> <fs.path_struct> { Path fs.parse_path } ;;
+
+eval <fs.path_struct> *PS path_repr | repr @public -> <cstr> { PS fs.path_repr } ;;
+
+eval <fs.path_struct> *PS dir_path_repr @public -> <cstr> { PS fs.dir_path_repr } ;;
+
+eval <cstr> *Name split_ext @public -> <cstr cstr tuple> { Name fs.split_ext } ;;
+
+
+# -- directory entry handling --
+
+eval <cstr> *Path exist? @public -> <bool> { Path fs.exist?  } ;;
+
+eval <cstr> *Path directory? @public -> <bool> { Path fs.directory?  } ;;
+
+eval <cstr> *Path file? @public -> <bool> { Path fs.file?  } ;;
+
+eval <cstr> *Path last_updated @public -> <bi.bigint> { Path fs.last_updated } ;;
+
+eval <cstr> *Path absolute_path | absolute @public -> <cstr> { Path fs.absolute_path } ;;
+
+eval <cstr> *Path delete @public -> <void> { Path fs.delete } ;;
+
+eval <cstr> *Path_cur <cstr> *Path_new move @public -> <cstr> { Path_cur Path_new fs.move } ;;
+
+eval <cstr> *Path dir_entries @public -> <cstr list> { Path fs.dir_entries } ;;
+
+eval <cstr> *Path create_dir @public -> <cstr> { Path fs.create_dir } ;;
+
+eval <cstr> *Path create_dirs @public -> <cstr> { Path fs.create_dirs } ;;
+
+# traversing directories
+
+data <dir_walk_d> :=
+  route: <dir_walk_route>
+  sort_order_: <<cstr ord_fs> maybe>
+  working: <dir_walk_working>
+  parents: <dir_walk_working list>
+  visited: <visited_dir_set>
+  dir_walk_d$ ;;
+
+alias type <visited_dir_set> := <cstr set.set> ;;
+
+data <dir_walk_working> :=
+  cur_: <fs.path_struct maybe>  # none$ at start
+  actions: <dir_walk_action list>
+  dir_walk_working$ ;;
+
+data <dir_walk_action> :=
+| <fs.path_struct> open_dir$
+| <fs.path_struct> toss_nondir$ ;;
+
+data <dir_walk_route> @public :=
+| dir_first$
+| nondir_first$
+| do_not_care$ ;;
+
+data <dir_walk_event> @public :=
+| <fs.path_struct> enter_dir$
+| <fs.path_struct> exit_dir$
+| <fs.path_struct> unreadable_dir$
+| <fs.path_struct> nondir_entry$ ;;
+
+eval <cstr> *Dir <dir_walk_route> *Route <<cstr ord_fs> maybe> *Sort_order_ new_dir_walk @public -> <dir_walk_event iter> {
+  Dir fs.directory? >> case {
+  ; false$ -> bad_arg$ "Not dirctory." new_exception >> throw
+  ; ** ->
+  },
+  route: Route
+    sort_order_: Sort_order_
+    working: (cur_: none$ actions: [ (Dir fs.parse) open_dir$ ] dir_walk_working$)
+    parents: [] 
+    visited: (fs.path_eq_fs simpleset.new_set)
+    dir_walk_d$ = *Seed,
+  \\ <dir_walk_event iter_res> {
+    Seed dir_walk_next_action
+  } iter$
+} ;;
+
+eval <dir_walk_d> *D dir_walk_next_action -> <dir_walk_event iter_res> {
+  D = working: *W parents: *Ps *** dir_walk_d$,
+  W = cur_: *Cur_ actions: *As *** dir_walk_working$,
+  (| As, Ps |) case {
+  ; (| [ *Subdir open_dir$ ; *As' ], ** |) ->
+  # [ "DEBUG open_dir ", Subdir fs.path_repr ] cstr.concat >> stdio.print_and_newline,  # DEBUG
+    \\ <cstr list> { Subdir fs.path_repr >> fs.dir_entries } try >> case {
+    ; *Es fin$ ->
+      actions: As' :: W dir_walk_working$ = *W',
+      Subdir Es D dir_walk_open_dir = (| *New_actions, *V' |),
+      cur_: (Subdir value$) actions: New_actions dir_walk_working$ = *New_dir_working,
+      working: New_dir_working parents: [ W' ; Ps ] visited: V' :: D dir_walk_d$ = *D',
+      (| Subdir enter_dir$,
+        \\ <dir_walk_event iter_res> { D' dir_walk_next_action } iter$ |) value$
+    ; ** exc$ ->
+      actions: As' :: W dir_walk_working$ = *W',
+      working: W' :: D dir_walk_d$ = *D',
+      (| Subdir unreadable_dir$,
+        \\ <dir_walk_event iter_res> { D' dir_walk_next_action } iter$ |) value$
+    }
+  ; (| [ *X toss_nondir$ ; *As' ], ** |) ->
+  # [ "DEBUG toss ", X fs.path_repr ] cstr.concat >> stdio.print_and_newline,  # DEBUG
+    actions: As' :: W dir_walk_working$ = *W',
+    working: W' :: D dir_walk_d$ = *D',
+    (| X nondir_entry$,
+      \\ <dir_walk_event iter_res> { D' dir_walk_next_action } iter$ |) value$
+  ; (| [], [ *P ; *Ps' ] |) ->
+    working: P parents: Ps' :: D dir_walk_d$ = *D',
+    (| (Cur_ value) exit_dir$,
+      \\ <dir_walk_event iter_res> { D' dir_walk_next_action } iter$ |) value$
+  ; (| [], [] |) ->
+    none$
+  }
+} ;;
+
+eval <fs.path_struct> *Dir <cstr list> *Entries <dir_walk_d> *D dir_walk_open_dir -> <<dir_walk_action list> visited_dir_set tuple> {
+  D sort_order_ >> case {
+  ; *O value$ -> Entries O sort.sort
+  ; ** -> Entries
+  } >> list.reverse = *Entries_r,
+  Entries_r [] [] (D visited) &\ <cstr list> *Es_r <dir_walk_action list> *First <dir_walk_action list> *Second <visited_dir_set> *V
+    -> <<dir_walk_action list> visited_dir_set tuple> {
+    D route = *Route,
+    Es_r case {
+    ; [ *E ; *Es_r' ] ->
+      Dir E fs.child_path = *EP,
+      EP path_repr = *EPR,
+      EPR fs.directory? >> case {
+      ; true$ ->
+        V EPR set.put_new = (| *V', *New? |),
+        New? case {
+        ; true$ ->
+          Route case {
+          ; dir_first$ -> Es_r' [ EP open_dir$ ; First ] Second V' &&
+          ; nondir_first$ -> Es_r' First [ EP open_dir$ ; Second ] V' &&
+          ; ** -> Es_r' [ EP open_dir$ ; First ] Second V' &&
+          }
+        ; ** ->Es_r' First Second V &&
+        }
+      ; ** ->
+        Route case {
+        ; dir_first$ -> Es_r' First [ EP toss_nondir$ ; Second ] V &&
+        ; nondir_first$ -> Es_r' [ EP toss_nondir$ ; First ] Second V &&
+        ; ** -> Es_r' [ EP toss_nondir$ ; First ] Second V &&
+        }
+      }
+    ; ** ->
+      (| First Second list.append, V |)
+    }
+  }
+} ;;
+
+
+# -- byte instream/outstream --
+
+eval <cstr> *File open_byte_instream @public -> <byte io.instream_h> { File fs.open_byte_instream } ;;
+
+eval <cstr> *File open_byte_outstream_init | open_byte_outstream @public -> <byte io.outstream_h> { File fs.open_byte_outstream_init } ;;
+
+eval <cstr> *File <bool> *Append open_byte_outstream @public -> <byte io.outstream_h> { File Append fs.open_byte_outstream } ;;
+
+
+# -- char instream/outstream --
+
+eval <byte io.instream_h> *BI open_char_instream_for_default_encoding | open_char_instream @public -> <char io.instream_h> {
+  BI io.open_char_instream_for_default_encoding
+} ;;
+
+eval <byte io.instream_h> *BI <enc.decoder_h> *Decoder open_char_instream @public -> <char io.instream_h> {
+  BI Decoder io.open_char_instream
+} ;;
+
+eval <byte io.outstream_h> *BO open_char_outstream_for_default_encoding | open_char_outstream @public -> <char io.outstream_h> {
+  BO io.open_char_outstream_for_default_encoding
+} ;;
+
+eval <enc.encoder_h> *Encoder <byte io.outstream_h> *BO open_char_outstream @public -> <char io.outstream_h> {
+  Encoder BO open_char_outstream
+} ;;
+
+
+# -- line instream -- 
+
+eval <byte io.instream_h> *BI open_line_instream_for_default_encoding_from_byte_instream | open_line_instream @public -> <io.line_instream_h> {
+  BI io.open_line_instream_for_default_encoding_from_byte_instream
+} ;;
+
+eval <char io.instream_h> *CI open_line_instream_from_char_instream | open_line_instream @public -> <io.line_instream_h> {
+  CI io.open_line_instream_from_char_instream
+} ;;
+
+eval <io.line_instream_h> *In read_line_from_line_instream | read_line @public -> <cstr.line io.instream_read_res> {
+  In io.read_line_from_line_instream
+} ;;
+
+eval <io.line_instream_h> *In close_line_instream | close @public -> <void> {
+  In io.close_line_instream
+} ;;
+
+eval <io.line_instream_h> *In line_instream_status | status @public -> <io.instream_status> {
+  In io.line_instream_status
+} ;;
+
+
+#  -- print stream -- 
+
+eval <byte io.outstream_h> *BO open_print_stream_to_byte_outstream | open_print_stream @public -> <io.print_stream_h> {
+  BO io.open_default_print_stream_to_byte_outstream
+} ;;
+
+eval <char io.outstream_h> *CO open_print_stream @public -> <io.print_stream_h> {
+  CO io.open_print_stream_with_default_line_terminator
+} ;;
+
+eval <io.print_stream_h> *Out <char> *Char print_raw_char | print_raw @public -> <void> {
+  Out Char io.print_raw_char
+} ;;
+
+eval <io.print_stream_h> *Out <cstr> *CharStr print_raw_cstr | print_raw @public -> <void> {
+  Out CharStr io.print_raw_cstr
+} ;;
+
+eval <io.print_stream_h> *Out <cstr> *CharStr <int> *Start <int> *Len print_raw_cstr_part | print_raw @public -> <void> {
+  Out CharStr Start Len io.print_raw_cstr_part
+} ;;
+
+eval <io.print_stream_h> *Out <cstr> *CharStr print_cstr | print @public -> <void> {
+  Out CharStr io.print_cstr
+} ;;
+
+eval <io.print_stream_h> *Out <cstr> *CharStr print_and_newline @public -> <void> {
+  Out CharStr io.print_and_newline
+} ;;
+
+eval <io.print_stream_h> *Out flush_print_stream | flush @public -> <void> {
+  Out io.flush_print_stream
+} ;;
+
+eval <io.print_stream_h> *Out close_print_stream | close @public -> <void> {
+  Out io.close_print_stream
+} ;;
+
+eval <io.print_stream_h> *Out print_stream_status | status @public -> <io.outstream_status> {
+  Out io.print_stream_status
+} ;;
+
+eval <io.print_stream_h> *Out break_print_stream | newline @public -> <void> {
+  Out io.break_print_stream
+} ;;
+
+
+# -- stdin/stdout/stderr --
+
+eval cstdin_read_line | read_line @public -> <cstr.line io.instream_read_res> {
+  stdio.cstdin_read_line
+} ;;
+
+eval <char> *C cstdout_print_raw_char | print_raw @public -> <void> {
+  C stdio.cstdout_print_raw_char
+} ;;
+
+eval <cstr> *S cstdout_print_cstr | print @public -> <void> {
+  S stdio.cstdout_print_cstr
+} ;;
+
+eval <cstr> *S cstdout_print_cstr_and_newline | print_and_newline @public -> <void> {
+  S stdio.cstdout_print_cstr_and_newline
+} ;;
+
+eval <cstr> *S <int> *Start <int> *Len cstdout_print_cstr_raw_part | print_raw @public -> <void> {
+  S Start Len stdio.cstdout_print_cstr_raw_part
+} ;;
+
+eval cstdout_flush | flush @public -> <void> {
+  stdio.cstdout_flush
+} ;;
+
+eval cstdout_newline | newline @public -> <void> {
+  stdio.cstdout_newline
+} ;;
+
+eval <cstr> *S cstderr_print_cstr | e_print @public -> <void> {
+  (stdio.cstderr) S io.print_cstr
+} ;;
+
+eval <cstr> *S cstderr_print_cstr_and_newline | e_print_and_newline @public -> <void> {
+  (stdio.cstderr) S io.print_and_newline
+} ;;
+
+eval cstderr_flush | e_flush @public -> <void> {
+  (stdio.cstderr) io.flush
+} ;;
+
+eval cstderr_newline | e_newline @public -> <void> {
+  (stdio.cstderr) io.newline
+} ;;
+
+# -- system properties --
+
+eval line_terminator @public -> <cstr> { sys.line_terminator } ;;
+
+
+# -- subprocess execution --
+
+eval <cstr list> *Command exec_command | exec @public -> <os.process_h> { Command "" exec_in } ;;
+
+eval <cstr list> *Command <cstr> *Dir exec_command_in | exec_in @public -> <os.process_h> { Command Dir os.default_process_opts os.exec } ;;
+
+eval <os.process_h list> *Processes connect_processes @public -> <void> {
+  Processes case {
+  ; [ *P0, *P1 ; *Ps ] -> P0 P1 os.connect_processes, [ P1 ; Ps ] &&
+  ; ** ->
+  }
+} ;;
+
+eval <os.process_h> *P process_exit_code | exit_code @public -> <int> { P os.exit_code };;
+
+eval <os.process_h> *P take_output @public -> <cstr> {
+  P (1 value$) take_lines >> case {
+  ; [] -> ""
+  ; [ *L ; ** ] -> L cstr.line_text
+  }
+} ;;
+
+eval <os.process_h> *P <int maybe> *Count_ take_lines @public -> <cstr.line list> {
+  Count_ case {
+  ; none$ ->
+  ; *N value$ || N ge0? ->
+  ; ** -> bad_arg$ "Negative count." new_exception >> throw
+  },
+  P os.from_stdout >> io.open_line_instream = *In,
+  Count_ [] &\ <int maybe> *C_ <cstr.line list> *Buf_r -> <cstr.line list> {  # reverse order
+    C_ case {
+    ; 0 value$ -> In start_drainer, Buf_r
+    ; ** ->
+      In read_line >> case {
+      ; *L io.instream_data$ -> (C_ ^int_dec apply_to_something) [ L ; Buf_r] &&
+      ; io.instream_at_end$ -> \\ <void> { In io.close } try, Buf_r
+      }
+    } >> list.reverse
+  }
+} ;;
+
+eval <io.line_instream_h> *In start_drainer -> <void> {
+  \\ <void> {
+    In io.read_line >> case {
+    ; ** io.instream_data$ -> &&
+    ; io.instream_at_end$ -> \\ <void> { In io.close } try >> ignore
+    }
+  } act.spawn >> act.start
+} ;;

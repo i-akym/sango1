@@ -1,0 +1,702 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.lang" ;;
+
+# -- type definitions --
+
+# special types
+
+data <_?_> @opaque := @native ;;  # exposed (out of program context)
+data <_> @opaque := @native ;;  # no return
+
+# void type
+
+data <void> @public := void$ ;;
+
+# boolean type
+
+data <bool> @public := true$ | false$ ;;
+
+eval otherwise @public -> <bool> { true$ } ;;  # alias for conditional branch
+
+# arithmetic types
+
+data <int> @opaque := @native ;;  # 4 byte signed integer
+data <real> @opaque := @native ;;  # 8 byte floating point
+data <byte> @opaque := @native ;;  # 1 byte unsigned integer
+
+# character type
+
+data <char> @opaque := @native ;;  # charset is unicode
+
+# list type
+
+data <*A list> @opaque := @native ;;
+
+# string type
+
+data <*A string> @opaque := @native ;;
+
+alias type <bstr> @public := <byte string> ;;
+alias type <cstr> @public := <char string> ;;
+
+# exception types
+
+data <exception> @protected :=
+  desc: <exc_desc+>
+  msg: <cstr>
+  info: <exc_info>
+  org: <exception maybe>
+  exception$ ;;
+
+data <exc_desc> @public :=
+| assertion_error$
+| intentional$
+| unsupported$
+| security_error$
+| bad_arg$
+| bad_status$
+| <runtime_failure+> runtime_failure$
+| <arith_failure+> arith_failure$
+| sys_error$
+| <exc_desc+> thru$ ;;
+
+data <runtime_failure> @public :=
+| incompat$
+| no_case$
+| no_elem$ ;;
+
+data <arith_failure> @public :=
+| zero_div$
+| overflow$
+| underflow$
+| arith_error$ ;;
+
+data <exc_info> @opaque := @native ;;
+
+# 'independent' type
+
+data <independent> @public := <_?_> exposed$ ;;
+
+data <*A seal_fs> @public :=
+  seal_f: <A independent+ fun>
+  unseal_f: <independent+ <A maybe> fun>
+  seal_fs$ ;;
+
+# miscellaneous types
+
+data <*A result> @public :=
+| fin: <A> fin$
+| <exception> exc$ ;;
+
+data <*A maybe> @public :=
+| <A> value$
+| none$ ;;
+
+data <*A eq_fs> @public :=
+  eq?_f: <A A bool fun>
+  ne?_f_: <<A A bool fun> maybe>
+  eq_fs$ ;;
+
+data <*A hash_fs> @public :=
+  hash_f: <A int fun> hash_fs$ ;;
+
+data <ordering> @public :=
+| lt$
+| eq$
+| gt$ ;;
+
+data <*A ord_fs> @public :=
+  compare_f: <A A ordering fun>
+  eq?_f_: <<A A bool fun> maybe>
+  lt?_f_: <<A A bool fun> maybe>
+  le?_f_: <<A A bool fun> maybe>
+  gt?_f_: <<A A bool fun> maybe>
+  ge?_f_: <<A A bool fun> maybe>
+  ord_fs$ ;;
+
+data <*A iter> @public :=
+  next_f: <<A iter_res> fun>
+  iter$ ;;
+
+alias type <*A iter_res> @public := <<A <A iter> tuple> maybe> ;;
+
+
+# -- functions --
+
+# basic functions
+
+eval <*A> *X0 <A> *X1 hard_eq? @public -> <bool> {
+  X0 case {
+  ; X1 -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A> *X0 <A> *X1 hard_ne? @public -> <bool> {
+  X0 case {
+  ; X1 -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval hard_eq_fs @public -> <*A eq_fs> {
+  eq?_f: ^hard_eq?
+    ne?_f_: (^hard_ne? value$)
+    eq_fs$
+} ;;
+
+eval <*A> *X0 <A> *X1 <A eq_fs> *Funs eqcmp_eq? | eq? @public -> <bool> {
+  X0 X1 &(Funs eq?_f)
+} ;;
+
+eval <*A> *X0 <A> *X1 <A eq_fs> *Funs eqcmp_ne? | ne? @public -> <bool> {
+  X0 X1 &(Funs ne?_f)
+} ;;
+
+eval <*A eq_fs> *Funs eq_fs_ne?_f | ne?_f @public -> <A A bool fun> {
+  Funs ne?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs eq?_f) >> not }
+  }
+} ;;
+
+eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_compare | compare @public -> <ordering> {
+  X0 X1 &(Funs compare_f)
+} ;;
+eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_eq? | eq? @public -> <bool> {
+  X0 X1 &(Funs eq?_f)
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_eq?_f | eq?_f @public -> <A A bool fun> {
+  Funs eq?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> eq? }
+  }
+} ;;
+
+eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_lt? | lt? @public -> <bool> {
+  X0 X1 &(Funs lt?_f)
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_lt?_f | lt?_f @public -> <A A bool fun> {
+  Funs lt?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> lt? }
+  }
+} ;;
+
+eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_le? | le? @public -> <bool> {
+  X0 X1 &(Funs le?_f)
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_le?_f | le?_f @public -> <A A bool fun> {
+  Funs le?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> le? }
+  }
+} ;;
+
+eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_gt? | gt? @public -> <bool> {
+  X0 X1 &(Funs gt?_f)
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_gt?_f | gt?_f @public -> <A A bool fun> {
+  Funs gt?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> gt? }
+  }
+} ;;
+
+eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_ge? | ge? @public -> <bool> {
+  X0 X1 &(Funs ge?_f)
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_ge?_f | ge?_f @public -> <A A bool fun> {
+  Funs ge?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> ge? }
+  }
+} ;;
+
+eval <ordering> *O ordering_eq? | eq? @public -> <bool> {
+  O case {
+  ; eq$ -> true$
+  ; ** -> false$
+  }
+} ;;
+eval <ordering> *O ordering_lt? | lt? @public -> <bool> {
+  O case {
+  ; lt$ -> true$
+  ; ** -> false$
+  }
+} ;;
+eval <ordering> *O ordering_le? | le? @public -> <bool> {
+  O case {
+  ; lt$ | eq$ -> true$
+  ; ** -> false$
+  }
+} ;;
+eval <ordering> *O ordering_gt? | gt? @public -> <bool> {
+  O case {
+  ; gt$ -> true$
+  ; ** -> false$
+  }
+} ;;
+eval <ordering> *O ordering_ge? | ge? @public -> <bool> {
+  O case {
+  ; gt$ | eq$ -> true$
+  ; ** -> false$
+  }
+} ;;
+
+# boolean functions
+
+eval <bool> *B not @public -> <bool> {
+  B case {
+  ; true$ -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval <bool> *B0 <bool> *B1 and @public -> <bool> {
+  (| B0, B1 |) case {
+  ; (| true$, true$ |) -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <bool> *B0 <bool fun> *B1f lazy_and | and @public -> <bool> {
+  B0 case {
+  ; true$ -> &B1f
+  ; ** -> false$
+  }
+} ;;
+
+eval <bool> *B0 <bool> *B1 or @public -> <bool> {
+  (| B0, B1 |) case {
+  ; (| false$, false$ |) -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval <bool> *B0 <bool fun> *B1f lazy_or | or @public -> <bool> {
+  B0 case {
+  ; true$ -> true$
+  ; ** -> &B1f
+  }
+} ;;
+
+eval <bool> *B0 <bool> *B1 xor @public -> <bool> {
+  (| B0, B1 |) case {
+  ; (| true$, false$ |) | (| false$, true$ |) -> true$
+  ; ** -> false$
+  }
+} ;;
+
+# arithmetic functions
+
+eval max_byte @public -> <byte> { 255~ } ;;
+eval min_int @public -> <int> { -2147483648 } ;;
+eval max_int @public -> <int> { 2147483647 } ;;
+eval nan @public -> <real> @native ;;
+eval pos_inf @public -> <real> @native ;;
+eval neg_inf @public -> <real> @native ;;
+eval <real> *R nan? @public -> <bool> @native ;;
+eval <real> *R infinite? @public -> <bool> @native ;;
+
+eval <int> *I0 <int> *I1 int_compare | compare @public -> <ordering> @native ;;
+eval <real> *R0 <real> *R1 real_compare | compare @public -> <ordering> @native ;;
+eval <byte> *B0 <byte> *B1 byte_compare | compare @public -> <ordering> {
+  (B0 to_int) (B1 to_int) compare
+} ;;
+
+eval <int> *I0 <int> *I1 int_eq? | eq? @public -> <bool> {
+  I0 I1 compare >> eq?
+} ;;
+eval <real> *R0 <real> *R1 real_eq? | eq? @public -> <bool> {
+  R0 R1 compare >> eq?
+} ;;
+eval <byte> *B0 <byte> *B1 byte_eq? | eq? @public -> <bool> {
+  (B0 to_int) (B1 to_int) eq?
+} ;;
+
+eval <int> *I0 <int> *I1 int_lt? | lt? @public -> <bool> {
+  I0 I1 compare >> lt?
+} ;;
+eval <real> *R0 <real> *R1 real_lt? | lt? @public -> <bool> {
+  R0 R1 compare >> lt?
+} ;;
+eval <byte> *B0 <byte> *B1 byte_lt? | lt? @public -> <bool> {
+  (B0 to_int) (B1 to_int) lt?
+} ;;
+
+eval <int> *I0 <int> *I1 int_le? | le? @public -> <bool> {
+  I0 I1 compare >> le?
+} ;;
+eval <real> *R0 <real> *R1 real_le? | le? @public -> <bool> {
+  R0 R1 compare >> le?
+} ;;
+eval <byte> *B0 <byte> *B1 byte_le? | le? @public -> <bool> {
+  (B0 to_int) (B1 to_int) le?
+} ;;
+
+eval <int> *I0 <int> *I1 int_gt? | gt? @public -> <bool> {
+  I0 I1 compare >> gt?
+} ;;
+eval <real> *R0 <real> *R1 real_gt? | gt? @public -> <bool> {
+  R0 R1 compare >> gt?
+} ;;
+eval <byte> *B0 <byte> *B1 byte_gt? | gt? @public -> <bool> {
+  (B0 to_int) (B1 to_int) gt?
+} ;;
+
+eval <int> *I0 <int> *I1 int_ge? | ge? @public -> <bool> {
+  I0 I1 compare >> ge?
+} ;;
+eval <real> *R0 <real> *R1 real_ge? | ge? @public -> <bool> {
+  R0 R1 compare >> ge?
+} ;;
+eval <byte> *B0 <byte> *B1 byte_ge? | ge? @public -> <bool> {
+  (B0 to_int) (B1 to_int) ge?
+} ;;
+
+eval <int> *I int_zero? | zero? @public -> <bool> {
+  I 0 eq?
+} ;;
+eval <real> *R real_zero? | zero? @public -> <bool> {
+  R 0.0 eq?
+} ;;
+eval <byte> *B byte_zero? | zero? @public -> <bool> {
+  (B to_int) 0 eq?
+} ;;
+
+eval <int> *I int_lt0? | lt0? @public -> <bool> {
+  I 0 lt?
+} ;;
+eval <real> *R real_lt0? | lt0? @public -> <bool> {
+  R 0.0 lt?
+} ;;
+
+eval <int> *I int_le0? | le0? @public -> <bool> {
+  I 0 le?
+} ;;
+eval <real> *R real_le0? | le0? @public -> <bool> {
+  R 0.0 le?
+} ;;
+
+eval <int> *I int_gt0? | gt0? @public -> <bool> {
+  I 0 gt?
+} ;;
+eval <real> *R real_gt0? | gt0? @public -> <bool> {
+  R 0.0 gt?
+} ;;
+eval <byte> *B byte_gt0? | gt0? @public -> <bool> {
+  (B to_int) 0 gt?
+} ;;
+
+eval <int> *I int_ge0? | ge0? @public -> <bool> {
+  I 0 ge?
+} ;;
+eval <real> *R real_ge0? | ge0? @public -> <bool> {
+  R 0.0 ge?
+} ;;
+
+eval <int> *I0 <int> *I1 int_sum | sum @public -> <int> @native ;;
+eval <real> *R0 <real> *R1 real_sum | sum @public -> <real> @native ;;
+
+eval <int> *X0 <int> *X1 int_diff | diff @public -> <int> @native ;;
+eval <real> *X0 <real> *X1 real_diff | diff @public -> <real> @native ;;
+
+eval <int> *X0 <int> *X1 int_prod | prod @public -> <int> @native ;;
+eval <real> *X0 <real> *X1 real_prod | prod @public -> <real> @native ;;
+
+eval <int> *X0 <int> *X1 int_quot | quot @public -> <int> @native ;;
+eval <real> *X0 <real> *X1 real_quot | quot @public -> <real> @native ;;
+
+eval <int> *I0 <int> *I1 int_div | div @public -> <int int tuple> @native ;;
+
+eval <int> *I int_neg | neg @public -> <int> {
+  0 I diff
+} ;;
+eval <real> *R real_neg | neg @public -> <real> {
+  0.0 R diff
+} ;;
+
+eval <int> *I int_inc | inc | succ @public -> <int> {
+  I 1 sum
+} ;;
+
+eval <int> *I int_dec | dec | pred @public -> <int> {
+  I 1 diff
+} ;;
+
+eval <int> *I int_bit_not | bit_not @public -> <int> @native ;;
+eval <byte> *B byte_bit_not | bit_not @public -> <byte> {
+  (B to_int) bit_not >> byte_part
+} ;;
+
+eval <int> *I0 <int> *I1 int_bit_and | bit_and @public -> <int> @native ;;
+eval <byte> *B0 <byte> *B1 byte_bit_and | bit_and @public -> <byte> {
+  (B0 to_int) (B1 to_int) bit_and >> byte_part
+} ;;
+
+eval <int> *I0 <int> *I1 int_bit_or | bit_or @public -> <int> @native ;;
+eval <byte> *B0 <byte> *B1 byte_bit_or | bit_or @public -> <byte> {
+  (B0 to_int) (B1 to_int) bit_or >> byte_part
+} ;;
+
+eval <int> *I0 <int> *I1 int_bit_xor | bit_xor @public -> <int> @native ;;
+eval <byte> *B0 <byte> *B1 byte_bit_xor | bit_xor @public -> <byte> {
+  (B0 to_int) (B1 to_int) bit_xor >> byte_part
+} ;;
+
+eval <int> *I <int> *Count int_shift_right | shift_right @public -> <int> @native ;;
+eval <byte> *B <int> *Count byte_shift_right | shift_right @public -> <byte> {
+  (B to_int) Count shift_right >> byte_part
+} ;;
+
+eval <int> *I <int> *Count int_shift_right_keep_sign | shift_right_keep_sign @public -> <int> @native ;;
+
+eval <int> *I <int> *Count int_shift_left | shift_left @public -> <int> @native ;;
+eval <byte> *B <int> *Count byte_shift_left | shift_left @public -> <byte> {
+  (B to_int) Count shift_left >> byte_part
+} ;;
+
+eval <byte> *B byte_to_int | to_int | int @public -> <int> @native ;;
+eval <int> *I int_to_byte | to_byte | byte @public -> <byte> @native ;;
+eval <int> *I int_byte_part | byte_part @public -> <byte> @native ;;
+eval <int> *I int_byte_range? | byte_range? @public -> <bool> {
+  (I ge0?) (I 255 le?) and
+} ;;
+eval <int> *I int_to_real | to_real | real @public -> <real> @native ;;
+eval <real> *R real_to_int | to_int | int @public -> <int> @native ;;
+eval <real> *R real_int_convertible? | int_convertible? @public -> <bool> {
+  if {
+  ; R nan? -> false$
+  ; R infinite? -> false$
+  ; otherwise -> (R -2147483649.0 gt?) (R 2147483648.0 lt?) and
+  }
+} ;;
+
+eval int_eq_fs @public -> <int eq_fs> {
+  eq?_f: ^int_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+eval real_eq_fs @public -> <real eq_fs> {
+  eq?_f: ^real_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+eval byte_eq_fs @public -> <byte eq_fs> {
+  eq?_f: ^byte_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+
+eval <*A ord_fs> *Ord ord_fs_inverse | inverse @public -> <A ord_fs> {
+  Ord = 
+    compare_f: *Compare_f
+    eq?_f_: *Eq?_f_
+    lt?_f_: *Lt?_f_
+    le?_f_: *Le?_f_
+    gt?_f_: *Gt?_f_
+    ge?_f_: *Ge?_f_
+    ord_fs$,
+  compare_f: \ <A> *V0 <A> *V1 -> <ordering> { V1 V0 &Compare_f }
+    eq?_f_: Eq?_f_
+    lt?_f_: Gt?_f_
+    le?_f_: Ge?_f_
+    gt?_f_: Lt?_f_ 
+    ge?_f_: Le?_f_
+    ord_fs$
+} ;;
+
+eval int_ord_fs @public -> <int ord_fs> {
+  compare_f: ^int_compare
+    eq?_f_: (^int_eq? value$)
+    lt?_f_: (^int_lt? value$)
+    le?_f_: (^int_le? value$)
+    gt?_f_: (^int_gt? value$)
+    ge?_f_: (^int_ge? value$)
+    ord_fs$
+} ;;
+eval real_ord_fs @public -> <real ord_fs> {
+  compare_f: ^real_compare
+    eq?_f_: (^real_eq? value$)
+    lt?_f_: (^real_lt? value$)
+    le?_f_: (^real_le? value$)
+    gt?_f_: (^real_gt? value$)
+    ge?_f_: (^real_ge? value$)
+    ord_fs$
+} ;;
+eval byte_ord_fs @public -> <byte ord_fs> {
+  compare_f: ^byte_compare
+    eq?_f_: (^byte_eq? value$)
+    lt?_f_: (^byte_lt? value$)
+    le?_f_: (^byte_le? value$)
+    gt?_f_: (^byte_gt? value$)
+    ge?_f_: (^byte_ge? value$)
+    ord_fs$
+} ;;
+
+# character functions
+
+eval <char> *C char_code | code @public -> <int> @native ;;
+eval <int> *I char_value @public -> <char> @native ;;
+
+eval <char> *C0 <char> *C1 char_eq? | eq? @public -> <bool> {
+  (C0 code) (C1 code) eq?
+} ;;
+eval <char> *C0 <char> *C1 char_lt? | lt? @public -> <bool> {
+  (C0 code) (C1 code) lt?
+} ;;
+eval <char> *C0 <char> *C1 char_le? | le? @public -> <bool> {
+  (C0 code) (C1 code) le?
+} ;;
+eval <char> *C0 <char> *C1 char_gt? | gt? @public -> <bool> {
+  (C0 code) (C1 code) gt?
+} ;;
+eval <char> *C0 <char> *C1 char_ge? | ge? @public -> <bool> {
+  (C0 code) (C1 code) ge?
+} ;;
+eval <char> *C0 <char> *C1 char_compare | compare @public -> <ordering> {
+  (C0 code) (C1 code) compare
+} ;;
+
+eval char_eq_fs @public -> <char eq_fs> {
+  eq?_f: ^char_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+
+eval char_ord_fs @public -> <char ord_fs> {
+  compare_f: ^char_compare
+    eq?_f_: (^char_eq? value$)
+    lt?_f_: (^char_lt? value$)
+    le?_f_: (^char_le? value$)
+    gt?_f_: (^char_gt? value$)
+    ge?_f_: (^char_ge? value$)
+    ord_fs$
+} ;;
+
+
+# 'try' functions
+
+eval <*A fun> *F try @public -> <A result> {
+  F catch_all_try = *Res,
+  Res >> case {
+  ; ** fin$ -> Res
+  ; *E exc$ => E = desc: (*D thru$) *** exception$ -> E throw  # pass through
+  ; ** exc$ -> Res
+  }
+} ;;
+eval <*A fun> *F catch_all_try @public -> <A result> @native ;;
+
+# exception functions
+
+eval <exc_desc+> *Desc <cstr> *Msg <exception maybe> *Original_exc_ new_exception @public -> <exception> @native ;;
+
+eval <exc_desc+> *Desc <cstr> *Msg new_original_exception | new_exception @public -> <exception> {
+  Desc Msg none$ new_exception
+} ;;
+
+eval <exc_desc+> *Desc <cstr> *Msg <exception> *Original_exc new_chained_exception | new_exception @public -> <exception> {
+  Desc Msg (Original_exc value$) new_exception
+} ;;
+
+eval <exception> *E renew_exception @public -> <exception> {
+  E = desc: *ED msg: *EM info: *EI org: *EO_ exception$,
+  ED EM E new_chained_exception
+} ;;
+
+eval <exception> *E throw @public -> <_> @native ;;
+
+eval <exception> *E renew_and_throw @public -> <_> {
+  E renew_exception >> throw
+} ;;
+
+eval <exception> *E thru @public -> <exception> {
+  E desc >> case {
+  ; ** thru$ -> E
+  ; *D -> desc: (D thru$) :: E exception$
+  }
+} ;;
+
+eval <exception> *E catchable @public -> <exception> {
+  E desc >> case {
+  ; *D thru$ -> desc: D :: E exception$
+  ; ** -> E
+  }
+} ;;
+
+# miscellaneous functions
+
+eval <*A> *X expose @public -> <_?_> @native ;;
+
+eval <*A> *X itself | id @public -> <A> { X } ;;
+eval <*A> *X to_fun @public -> <A fun> { \\ { X } } ;;
+
+eval <*A> *X ignore @public -> <void> { void$ } ;;
+eval <*A result> *R unwrap @public -> <A> {
+  R case {
+  ; *X fin$ -> X
+  ; *E exc$ -> E renew_and_throw
+  }
+} ;;
+
+eval <*A fun> *F eval @public -> <A> { &F } ;;
+
+eval <*A maybe> *X_ value @public -> <A> {
+  X_ case {
+  ; *V value$ -> V
+  ; ** -> bad_arg$ "No value." new_exception >> throw
+  }
+} ;;
+
+eval <*A maybe> *X_ something? @public -> <bool> {
+  X_ case {
+  ; ** value$ -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A maybe> *X_ nothing? @public -> <bool> {
+  X_ case {
+  ; none$ -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A maybe> *X_ <A *B fun> *F apply_to_something | ats @public -> <B maybe> {
+  X_ case {
+  ; *V value$ -> (V &F) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A iter> *I iter_next | next @public -> <A iter_res> {
+  &(I next_f)
+} ;;

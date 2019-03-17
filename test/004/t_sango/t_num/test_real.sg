@@ -1,0 +1,62 @@
+import "sango.debug" -> debug ;;
+import "sango.num.real" -> real ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test001a,
+  test002,
+  test003,
+  test011,
+  test011a,
+  test012,
+  test013,
+  test013a,
+  test013b,
+  test014,
+  test015,
+  test016,
+  test021,
+  test022,
+  test022a,
+  test023,
+  test023a,
+  test023b,
+  test024,
+  test024a,
+  test024b,
+  test025,
+  test026,
+  void$
+} ;;
+
+eval test001 -> <bool> { "Infinity" real.parse >> infinite? = true$ } ;;
+eval test001a -> <bool> { "+Infinity" real.parse >> infinite? = true$ } ;;
+eval test002 -> <bool> { "-Infinity" real.parse >> infinite? = true$ } ;;
+eval test003 -> <bool> { "NaN" real.parse >> nan? = true$ } ;;
+eval test011 -> <bool> { ("16.25" real.parse) 16.25 eq? = true$ } ;;
+eval test011a -> <bool> { ("+16.25" real.parse) 16.25 eq? = true$ } ;;
+eval test012 -> <bool> { ("-16.25" real.parse) -16.25 eq? = true$ } ;;
+eval test013 -> <bool> { ("0.1625e02" real.parse) 16.25 eq? = true$ } ;;
+eval test013a -> <bool> { ("0.1625e+02" real.parse) 16.25 eq? = true$ } ;;
+eval test013b -> <bool> { ("0.1625E+02" real.parse) 16.25 eq? = true$ } ;;
+eval test014 -> <bool> { ("1625.0e-02" real.parse) 16.25 eq? = true$ } ;;
+eval test015 -> <bool> { ("1625.e-02" real.parse) 16.25 eq? = true$ } ;;
+eval test016 -> <bool> { ("16" real.parse) 16.0 eq? = true$ } ;;
+eval test021 -> <real result> { \\ <real> { "" real.parse } try = ** exc$ } ;;
+eval test022 -> <real result> { \\ <real> { "+" real.parse } try = ** exc$ } ;;
+eval test022a -> <real result> { \\ <real> { "-" real.parse } try = ** exc$ } ;;
+eval test023 -> <real result> { \\ <real> { "abc" real.parse } try = ** exc$ } ;;
+eval test023a -> <real result> { \\ <real> { ".1" real.parse } try = ** exc$ } ;;
+eval test023b -> <real result> { \\ <real> { "1a.2" real.parse } try = ** exc$ } ;;
+eval test024 -> <real result> { \\ <real> { "16.25e" real.parse } try = ** exc$ } ;;
+eval test024a -> <real result> { \\ <real> { "16.25e+" real.parse } try = ** exc$ } ;;
+eval test024b -> <real result> { \\ <real> { "16.25e-" real.parse } try = ** exc$ } ;;
+eval test025 -> <real result> { \\ <real> { "16.25a" real.parse } try = ** exc$ } ;;
+eval test026 -> <real result> { \\ <real> { "16.25e0z" real.parse } try = ** exc$ } ;;

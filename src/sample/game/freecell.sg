@@ -1,0 +1,763 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program of 'Freecell'
+# Usage: sango freecell [ -p ]
+#   -p -- for console which does not support ANSI sequence
+#
+# move command ::= <card> <place>
+# <card>  ::= <suit> <num>
+# <suit>  ::= first letter of suit, "s" | "c" | "d" | "h"
+# <num>   ::= "1" | "2" | .. | "9" | "0" | "j" | "q" | "k"
+# <place> ::= <card>  -- on the card
+#           | "-"     -- free cell
+#           | ">"     -- empty cascade
+#           | "."     -- home
+
+import "sango.arith" -> arith ;;
+import "sango.bool" -> bool ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.int" -> int ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.simplemap" -> simplemap ;;
+import "sango.util.random" -> rand ;;
+
+alias type <card_display_tab> := <card cstr map.map> ;;
+
+data <d> :=
+  all_cards: <card list>
+  color_display: <color_display>
+  card_display_tab: <card_display_tab>
+  d$ ;;
+
+data <suit> :=
+| spade$
+| club$
+| diamond$
+| heart$ ;;
+
+data <color> :=
+| black$
+| red$ ;;
+
+data <card> :=
+  suit: <suit>
+  num: <int>
+  card$ ;;
+
+data <board> :=
+  homes: <card list>
+  frees: <<card maybe> list>
+  cascades: <<card list> list>
+  board$ ;;
+
+data <place> :=
+| home$
+| free$
+| empty$
+| <card> on_card$ ;;
+
+data <move> :=
+  card: <card>
+  to: <place>
+  move$ ;;
+
+data <color_display> :=
+| color_letter$
+| simple_color$ ;;
+
+extend <exc_desc> :=
+| bad_input$ ;;
+
+eval <card> *Card card_color -> <color> {
+  Card suit >> suit_color
+} ;;
+
+eval <suit> *Suit suit_color -> <color> {
+  Suit >> case {
+  ; spade$ | club$ -> black$
+  ; ** -> red$
+  }
+} ;;
+
+eval <card maybe> *Card_ <color_display> *Disp maybe_card_display -> <cstr> {
+  (| Card_, Disp |) case {
+  ; (| *C value$, ** |) -> C Disp card_display
+  ; (| **, color_letter$ |) -> " - "
+  ; (| **, simple_color$ |) -> "- "
+  }
+} ;;
+  
+eval <card> *Card <color_display> *Disp card_display -> <cstr> {
+  Card = suit: *S num: *N card$,
+  (| Disp, S suit_color |) case {
+  ; (| color_letter$, *Color |) -> [| S suit_letter, N num_letter, Color color_letter |]
+  ; (| simple_color$, black$ |) -> [| '`u1b;', '[', '7', 'm', '`u1b;', '[', '7', 'm', S suit_letter, N num_letter, '`u1b;', '[', 'm' |]
+  ; (| simple_color$, red$ |) -> [| S suit_letter, N num_letter |]
+  }
+} ;;
+
+eval <suit> *Suit suit_letter -> <char> {
+  Suit case {
+  ; spade$ -> 's' 
+  ; club$ -> 'c' 
+  ; diamond$ -> 'd' 
+  ; ** -> 'h' 
+  }
+} ;;
+
+eval <int> *Num num_letter -> <char> {
+  Num case {
+  ; 0 -> '.'  # for dummy card
+  ; 10 -> '0'
+  ; 11 -> 'j'
+  ; 12 -> 'q'
+  ; 13 -> 'k'
+  ; ** -> %x30 Num sum >> char_value
+  }
+} ;;
+
+eval <color> *Color color_letter -> <char> {
+  Color case {
+  ; black$ -> '#'
+  ; ** -> '+'
+  }
+} ;;
+
+eval <board> *Board print_board -> <void> {
+  stdio.newline,
+  Board homes >> print_homes,
+  Board frees >> print_frees,
+  Board cascades >> print_cascades,
+  stdio.newline
+} ;;
+
+eval <card list> *Homes print_homes -> <void> {
+  "  Home   (.)  " stdio.print,
+  (Homes
+    \ <card> *C -> { C (_initd_ color_display) card_display }
+    list.map) " " cstr.join_with_cstr >> stdio.print_and_newline
+} ;;
+
+eval <<card maybe> list> *Frees print_frees -> <void> {
+  "  Free   (-)  " stdio.print,
+  (Frees
+    \ <card maybe> *C_ -> { C_ (_initd_ color_display) maybe_card_display }
+    list.map) " " cstr.join_with_cstr >> stdio.print_and_newline
+} ;;
+
+eval <<card list> list> *Cascades print_cascades -> <void> {
+  Cascades ^print_cascade list.map >> ignore
+} ;;
+
+eval <card list> *Cascade print_cascade -> <void> {
+  "  Cascade(>)  " stdio.print,
+  ((Cascade list.reverse)
+    \ <card> *C -> { C (_initd_ color_display) card_display }
+    list.map) " " cstr.join_with_cstr >> stdio.print_and_newline
+} ;;
+
+data <play_state> :=
+| <game> play$
+| idle$
+| to_exit$ ;;
+
+data <game> :=
+  hist_r: <board list>  # first is current, [] not allowed
+  game$ ;;
+
+data <idle_action> :=
+| ia_print_help$
+| ia_new_game$
+| ia_exit$ ;;
+
+data <play_action> :=
+| pa_print_help$
+| pa_end_game$
+| <move> pa_hand$
+| pa_undo$
+| pa_exit$ ;;
+
+eval _main_ -> <void> {
+  print_opening_message,
+  idle$ main_loop
+} ;;
+
+eval <play_state> *P main_loop -> <void> {
+  P case {
+  ; idle$ -> 
+    \\ <play_state> { idle_action = *A, A do_idle_action } try >> case {
+    ; *P' fin$ -> P'
+    ; (desc: bad_input$ msg: *M *** exception$) exc$ -> M stdio.print_and_newline, P
+    ; *E exc$ -> E throw  # bug
+    } = *Q, Q &&
+  ; *G play$ ->
+    \\ <play_state> { G play_action = *A, G A do_play_action } try >> case {
+    ; *P' fin$ -> P'
+    ; (desc: bad_input$ msg: *M *** exception$) exc$ -> M stdio.print_and_newline, P
+    ; *E exc$ -> E throw  # bug
+    } >> case {
+    ; *G play$ || G finished? ->
+      "YOU WIN!" stdio.print_and_newline, idle$
+    ; *PP -> PP
+    } = *Q, Q &&
+  ; to_exit$ ->
+    "Bye." stdio.print_and_newline, stdio.flush,
+    0 runtime.exit
+  }
+} ;;
+
+eval new_game -> <game> {
+  hist_r: [ new_board ] game$
+} ;;
+
+eval <game> *G current_board -> <board> {
+  G hist_r >> list.first >> value  # hist_r is not empty
+} ;;
+
+eval new_board -> <board> {
+  (_initd_ all_cards) 7 setup_cascade = (| *Col0, *Cards1 |),
+  Cards1 7 setup_cascade = (| *Col1, *Cards2 |),
+  Cards2 7 setup_cascade = (| *Col2, *Cards3 |),
+  Cards3 7 setup_cascade = (| *Col3, *Cards4 |),
+  Cards4 6 setup_cascade = (| *Col4, *Cards5 |),
+  Cards5 6 setup_cascade = (| *Col5, *Cards6 |),
+  Cards6 6 setup_cascade = (| *Col6, *Cards7 |),
+  Cards7 6 setup_cascade = (| *Col7, ** |),
+  homes: [ spade$ 0 card$, club$ 0 card$, diamond$ 0 card$, heart$ 0 card$ ]
+  frees: [ none$, none$, none$, none$ ]
+  cascades: [ Col0, Col1, Col2, Col3, Col4, Col5, Col6, Col7 ]
+  board$
+} ;;
+
+eval <card list> *Cards <int> *Count setup_cascade -> <<card list> <card list> tuple> { # returns cascade and remained cards
+  Count [] Cards &\ <int> *N <card list> *Col <card list> *Rem -> <<card list> <card list> tuple> {
+    N case {
+    ; 0 -> (| Col, Rem |)
+    ; ** ->
+      Rem (rand.generate ((Rem list.length) real) prod >> int) list.remove_at >> value = (| *Rem', *C |),
+      (N dec) [ C ; Col ] Rem' &&
+    }
+  }
+} ;;
+
+eval <game> *Game finished? -> <bool> {
+  Game current_board >> case {
+  ; frees: [ none$, none$, none$, none$ ] cascades: [ [], [], [], [], [], [], [], [] ] *** board$ -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval idle_action -> <idle_action> {
+  "Enter 'N' to start a new game or 'X' to exit >> " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.split_by_space >> case {
+    ; [ "N" ] -> ia_new_game$
+    ; [ "X" ] -> ia_exit$
+    ; [ "?" ] -> ia_print_help$
+    ; *SS -> bad_input$ "Error: Unkown command." new_exception >> throw
+    }
+  ; io.instream_at_end$ -> ia_exit$
+  }
+} ;;
+
+eval <game> *G play_action -> <play_action> {
+  G current_board >> print_board,
+  "Enter next hand or 'U' to undo, 'E' to end game >> " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.split_by_space >> case {
+    ; [ "U" ] -> pa_undo$
+    ; [ "E" ] -> pa_end_game$
+    ; [ "?" ] -> pa_print_help$
+    ; *SS -> (SS parse_move) pa_hand$
+    }
+  ; io.instream_at_end$ -> pa_exit$
+  }
+} ;;
+
+eval <idle_action> *A do_idle_action -> <play_state> {
+  A case {
+  ; ia_exit$ -> to_exit$
+  ; ia_new_game$  -> new_game play$
+  ; ia_print_help$ -> print_help, idle$
+  }
+} ;;
+
+eval <game> *G <play_action> *A do_play_action -> <play_state> {
+  A case {
+  ; pa_undo$ ->
+    G hist_r >> case {
+    ; [ **, *Prev ; *PP ] -> (hist_r: [ Prev ; PP ] :: G game$) play$
+    ; ** -> bad_input$ "Error: Cannot undo." new_exception >> throw
+    }
+  ; pa_end_game$  -> idle$
+  ; *Move pa_hand$ -> (G Move do_move) play$
+  ; pa_exit$ -> to_exit$
+  ; pa_print_help$ -> print_help, G play$
+  }
+} ;;
+
+eval <cstr list> *Tokens parse_move -> <move> {
+  Tokens case {
+  ; [ *Card_token, *Place_token ] ->
+    (| Card_token parse_card,  Place_token parse_place |)
+  ; ** ->
+    bad_input$ "Error: Needs card and place to put." new_exception >> throw
+  } = (| *Card, *Place |),
+  (| Card suit, Card num, Place |) case {
+  ; (| *S,  *N, (S     *NN card$) on_card$ |) || (N dec) NN eq? -> card: Card to: home$ move$
+  ; (| **,  **, *Base             on_card$ |) || Card Base card_puttable_on? -> card: Card to: Place move$
+  ; (| **,  **,                      free$ |)                   -> card: Card to: Place move$
+  ; (| **,  **,                     empty$ |)                   -> card: Card to: Place move$
+  ; (| **,  **,                      home$ |)                   -> card: Card to: Place move$
+  ; ** -> bad_input$ "Error: Cannot move." new_exception >> throw
+  }
+} ;;
+
+eval <cstr> *Token parse_card -> <card> {
+  Token case {
+  ; [| *S, *N |] ->
+    S case {
+    ; 's' -> spade$
+    ; 'c' -> club$
+    ; 'd' -> diamond$
+    ; 'h' -> heart$
+    ; ** -> bad_input$ "Error: Invalid card." new_exception >> throw
+    } = *Suit,
+    N case {
+    ; '1' -> 1
+    ; '2' -> 2
+    ; '3' -> 3
+    ; '4' -> 4
+    ; '5' -> 5
+    ; '6' -> 6
+    ; '7' -> 7
+    ; '8' -> 8
+    ; '9' -> 9
+    ; '0' -> 10
+    ; 'j' -> 11
+    ; 'q' -> 12
+    ; 'k' -> 13
+    ; ** -> bad_input$ "Error: Invalid card." new_exception >> throw
+    } = *Num,
+    Suit Num card$
+  ; ** -> bad_input$ "Error: Invalid card." new_exception >> throw
+  }
+} ;;
+
+eval <cstr> *Token parse_place -> <place> {
+  Token case {
+  ; "." -> home$
+  ; "-" -> free$
+  ; ">" -> empty$
+  ; ** ->
+    \\ <card> { Token parse_card } try >> case {
+    ; *C fin$ -> C on_card$
+    ; ** -> bad_input$ "Error: Invalid place." new_exception >> throw
+    }
+  }
+} ;;
+
+eval <game> *G <move> *Move do_move -> <game> {
+  Move = card: *Card to: *Place move$,
+  G hist_r = [ *Board ; *Boards_r ],
+  Board Card take = (| *Board', *Taken_r |),
+  Place case {
+  ; home$ -> Board' Taken_r put_on_home
+  ; free$ -> Board' Taken_r put_on_free
+  ; empty$ -> Board Board' Taken_r put_on_empty
+  ; *C on_card$ -> Board Board' Taken_r C put_on_card
+  } >> move_to_home_auto = *Board'',
+  hist_r: [ Board'', Board ; Boards_r ] :: G game$
+} ;;
+
+eval <board> *Board <card> *Card take -> <board <card list> tuple> {
+  Board case {
+  ; frees: [ Card value$, *F1, *F2, *F3 ] *** board$ ->
+    (| frees: [ F1, F2, F3, none$ ] :: Board board$, [ Card ] |)
+  ; frees: [ *F0, Card value$, *F2, *F3 ] *** board$ ->
+    (| frees: [ F0, F2, F3, none$ ] :: Board board$, [ Card ] |)
+  ; frees: [ *F0, *F1, Card value$, *F3 ] *** board$ ->
+    (| frees: [ F0, F1, F3, none$ ] :: Board board$, [ Card ] |)
+  ; frees: [ *F0, *F1, *F2, Card value$ ] *** board$ ->
+    (| frees: [ F0, F1, F2, none$ ] :: Board board$, [ Card ] |)
+  ; cascades: [ *C0, *C1, *C2, *C3, *C4, *C5, *C6, *C7 ] *** board$ ->
+    if {
+    ; C0 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ Rem, C1, C2, C3, C4, C5, C6, C7] :: Board board$, Taken_r |)
+    ; C1 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, Rem, C2, C3, C4, C5, C6, C7] :: Board board$, Taken_r |)
+    ; C2 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, C1, Rem, C3, C4, C5, C6, C7] :: Board board$, Taken_r |)
+    ; C3 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, C1, C2, Rem, C4, C5, C6, C7] :: Board board$, Taken_r |)
+    ; C4 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, C1, C2, C3, Rem, C5, C6, C7] :: Board board$, Taken_r |)
+    ; C5 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, C1, C2, C3, C4, Rem, C6, C7] :: Board board$, Taken_r |)
+    ; C6 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, C1, C2, C3, C4, C5, Rem, C7] :: Board board$, Taken_r |)
+    ; C7 Card try_take_from_cascade = *R, R something? ->
+      R = (| *Rem, *Taken_r |) value$,
+      (| cascades: [ C0, C1, C2, C3, C4, C5, C6, Rem ] :: Board board$, Taken_r |)
+    ; otherwise -> bad_input$ "Error: Cannot take the card." new_exception >> throw
+    }
+  }
+} ;;
+
+eval <card list> *Cascade <card> *Card try_take_from_cascade -> <<<card list> <card list> tuple> maybe> {  # cascade, ordered taken stack (reverse)
+  \\ <<card list> <card list> tuple> { Cascade Card take_from_cascade } try >> case {
+  ; *R fin$ -> R value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <card list> *Cascade <card> *Card take_from_cascade -> <<card list> <card list> tuple> {  # cascade, ordered taken stack (reverse)
+  Cascade [] &\ <card list> *Rem <card list> *Taken_r -> <<card list> <card list> tuple> {
+    (| Rem, Taken_r |) case {
+    ; (| [ Card ; *CC ], [] |) -> (| CC, [ Card ] |)
+    ; (| [ Card ; *CC ], [ *T ; ** ] |) || T Card card_puttable_on? -> (| CC, [ Card ; Taken_r ] |)
+    ; (| [ Card ; ** ], ** |) -> bad_input$ "Error: Cannot take the card." new_exception >> throw
+    ; (| [ *C ; *CC ], [] |) -> CC  [ C ] &&
+    ; (| [ *C ; *CC ], [ *T ; ** ] |) || T C card_puttable_on? -> CC  [ C ; Taken_r ] &&
+    ; ** -> bad_input$ "Error: Cannot take the card." new_exception >> throw
+    }
+  }
+} ;;
+
+eval <card> *Card <card> *Base card_puttable_on? -> <bool> {
+  (| Card card_color, Card num, Base card_color, Base num |) case {
+  ; (| black$, *N, red$,   *NN |) -> (N inc) NN eq?
+  ; (| red$,   *N, black$, *NN |) -> (N inc) NN eq?
+  ; ** -> false$
+  }
+} ;;
+
+eval <board> *Board <card list> *Cards_r put_on_home -> <board> {
+  Board homes = [ *S, *C, *D, *H ],
+  Cards_r case {
+  ; [ *Card ] -> 
+    Card suit >> case {
+    ; spade$    || (S num >> inc) (Card num) eq? -> [ Card, C, D, H ]
+    ; club$     || (C num >> inc) (Card num) eq? -> [ S, Card, D, H ]
+    ; diamond$  || (D num >> inc) (Card num) eq? -> [ S, C, Card, H ]
+    ; heart$    || (H num >> inc) (Card num) eq? -> [ S, C, D, Card ]
+    ; ** -> bad_input$ "Error: Cannot put the card." new_exception >> throw
+    } = *Homes',
+    homes: Homes' :: Board board$
+  ; ** -> bad_input$ "Error: Cannot move muliple cards to home cell." new_exception >> throw
+  }
+} ;;
+
+eval <board> *Board <card list> *Cards_r put_on_free -> <board> {
+  Cards_r case {
+  ; [ *Card ] -> 
+    Board frees >> case {
+    ; [ none$, *F1, *F2, *F3 ] -> [ Card value$, F1, F2, F3 ]
+    ; [ *F0, none$, *F2, *F3 ] -> [ F0, Card value$, F2, F3 ]
+    ; [ *F0, *F1, none$, *F3 ] -> [ F0, F1, Card value$, F3 ]
+    ; [ *F0, *F1, *F2, none$ ] -> [ F0, F1, F2, Card value$ ]
+    ; ** -> bad_input$ "Error: No free cell." new_exception >> throw
+    } = *Frees',
+    frees: Frees' :: Board board$
+  ; ** -> bad_input$ "Error: Cannot move muliple cards to free cell." new_exception >> throw
+  }
+} ;;
+
+eval <board> *Org_board <board> *Board <card list> *Cards_r put_on_empty -> <board> {
+  if {
+  ; Org_board (Cards_r list.length) can_move_stack_to_empty ->
+  ; otherwise -> bad_input$ "Error: Insufficient available cells." new_exception >> throw
+  },
+  Cards_r list.reverse = *Cards,
+  Board cascades >> case {
+  ; [ [], *C1, *C2, *C3, *C4, *C5, *C6, *C7 ] -> [ Cards, C1, C2, C3, C4, C5, C6, C7 ]
+  ; [ *C0, [], *C2, *C3, *C4, *C5, *C6, *C7 ] -> [ C0, Cards, C2, C3, C4, C5, C6, C7 ]
+  ; [ *C0, *C1, [], *C3, *C4, *C5, *C6, *C7 ] -> [ C0, C1, Cards, C3, C4, C5, C6, C7 ]
+  ; [ *C0, *C1, *C2, [], *C4, *C5, *C6, *C7 ] -> [ C0, C1, C2, Cards, C4, C5, C6, C7 ]
+  ; [ *C0, *C1, *C2, *C3, [], *C5, *C6, *C7 ] -> [ C0, C1, C2, C3, Cards, C5, C6, C7 ]
+  ; [ *C0, *C1, *C2, *C3, *C4, [], *C6, *C7 ] -> [ C0, C1, C2, C3, C4, Cards, C6, C7 ]
+  ; [ *C0, *C1, *C2, *C3, *C4, *C5, [], *C7 ] -> [ C0, C1, C2, C3, C4, C5, Cards, C7 ]
+  ; [ *C0, *C1, *C2, *C3, *C4, *C5, *C6, [] ] -> [ C0, C1, C2, C3, C4, C5, C6, Cards ]
+  ; ** -> bad_input$ "Error: No empty cascade." new_exception >> throw
+  } = *Cascades',
+  cascades: Cascades' :: Board board$
+} ;;
+
+eval <board> *Org_board <board> *Board <card list> *Cards_r <card> *Base put_on_card -> <board> {
+  if {
+  ; Org_board (Cards_r list.length) can_move_stack_on_card ->
+  ; otherwise -> bad_input$ "Error: Insufficient available cells." new_exception >> throw
+  },
+  Board cascades >> case {
+  ; [ [ Base ; *BB ], *C1, *C2, *C3, *C4, *C5, *C6, *C7 ] ->
+    [ Cards_r [ Base ; BB ] put_stack_r_on, C1, C2, C3, C4, C5, C6, C7 ]
+  ; [ *C0, [ Base ; *BB ], *C2, *C3, *C4, *C5, *C6, *C7 ] ->
+    [ C0, Cards_r [ Base ; BB ] put_stack_r_on, C2, C3, C4, C5, C6, C7 ]
+  ; [ *C0, *C1, [ Base ; *BB ], *C3, *C4, *C5, *C6, *C7 ] ->
+    [ C0, C1, Cards_r [ Base ; BB ] put_stack_r_on, C3, C4, C5, C6, C7 ]
+  ; [ *C0, *C1, *C2, [ Base ; *BB ], *C4, *C5, *C6, *C7 ] ->
+    [ C0, C1, C2, Cards_r [ Base ; BB ] put_stack_r_on, C4, C5, C6, C7 ]
+  ; [ *C0, *C1, *C2, *C3, [ Base ; *BB ], *C5, *C6, *C7 ] ->
+    [ C0, C1, C2, C3, Cards_r [ Base ; BB ] put_stack_r_on, C5, C6, C7 ]
+  ; [ *C0, *C1, *C2, *C3, *C4, [ Base ; *BB ], *C6, *C7 ] ->
+    [ C0, C1, C2, C3, C4, Cards_r [ Base ; BB ] put_stack_r_on, C6, C7 ]
+  ; [ *C0, *C1, *C2, *C3, *C4, *C5, [ Base ; *BB ], *C7 ] ->
+    [ C0, C1, C2, C3, C4, C5, Cards_r [ Base ; BB ] put_stack_r_on, C7 ]
+  ; [ *C0, *C1, *C2, *C3, *C4, *C5, *C6, [ Base ; *BB ] ] ->
+    [ C0, C1, C2, C3, C4, C5, C6, Cards_r [ Base ; BB ] put_stack_r_on ]
+  ; ** -> bad_input$ "Error: Cannot put the card." new_exception >> throw
+  } = *Cascades',
+  cascades: Cascades' :: Board board$
+} ;;
+
+eval <card list> *Cards_r <card list> *Base put_stack_r_on -> <card list> {
+  Cards_r Base &\ <card list> *Xs <card list> *Ys -> <card list> {
+    Xs case {
+    ; [ *C ; *CC ] -> CC [ C ; Ys ] &&
+    ; ** -> Ys
+    }
+  }
+} ;;
+
+eval <board> *Board <int> *Stack_length can_move_stack_to_empty -> <bool> {
+  Board free_cell_count = *F,
+  Board empty_cascade_count = *V,
+  #
+  # table : number of movable stack length  -- Is this correct?
+  #
+  # F \ V |   0   1   2   3   4   5   6   7   8
+  # ------+--------------------------------------
+  #     0 |   0   1   2   4   7  12+ 12+ 12+ 12+
+  #     1 |   0   2   4   8  12+ 12+ 12+ 12+ 12+
+  #     2 |   0   3   6  12+ 12+ 12+ 12+ 12+ 12+
+  #     3 |   0   4   8  12+ 12+ 12+ 12+ 12+ 12+
+  #     4 |   0   5  10  12+ 12+ 12+ 12+ 12+ 12+
+  #
+  (| F, V |) case {
+  ; (| **, 0  |) -> 0
+  ; (| 0,  1  |) -> 1
+  ; (| 0,  2  |) -> 2
+  ; (| 0,  3  |) -> 4
+  ; (| 0,  4  |) -> 7
+  ; (| 0,  ** |) -> 12
+  ; (| 1,  1  |) -> 2
+  ; (| 1,  2  |) -> 4
+  ; (| 1,  3  |) -> 8
+  ; (| 1,  ** |) -> 12
+  ; (| 2,  1  |) -> 3
+  ; (| 2,  2  |) -> 6
+  ; (| 2,  ** |) -> 12
+  ; (| 3,  1  |) -> 4
+  ; (| 3,  2  |) -> 8
+  ; (| 3,  ** |) -> 12
+  ; (| 4,  1  |) -> 5
+  ; (| 4,  2  |) -> 10
+  ; (| 4,  ** |) -> 12
+  } = *N,
+  N Stack_length ge?
+} ;;
+
+eval <board> *Board <int> *Stack_length can_move_stack_on_card -> <bool> {
+  Board free_cell_count = *F,
+  Board empty_cascade_count = *V,
+  #
+  # table : number of movable stack length  -- Is this correct?
+  #
+  # F \ V |   0   1   2   3   4   5   6   7   8
+  # ------+--------------------------------------
+  #     0 |   1   2   4   7  12+ 12+ 12+ 12+ 12+
+  #     1 |   2   4   8  12+ 12+ 12+ 12+ 12+ 12+
+  #     2 |   3   6  12+ 12+ 12+ 12+ 12+ 12+ 12+
+  #     3 |   4   8  12+ 12+ 12+ 12+ 12+ 12+ 12+
+  #     4 |   5  10  12+ 12+ 12+ 12+ 12+ 12+ 12+
+  #
+  (| F, V |) case {
+  ; (| 0,  0  |) -> 1
+  ; (| 0,  1  |) -> 2
+  ; (| 0,  2  |) -> 4
+  ; (| 0,  3  |) -> 7
+  ; (| 0,  ** |) -> 12
+  ; (| 1,  0  |) -> 2
+  ; (| 1,  1  |) -> 4
+  ; (| 1,  2  |) -> 8
+  ; (| 1,  ** |) -> 12
+  ; (| 2,  0  |) -> 3
+  ; (| 2,  1  |) -> 6
+  ; (| 2,  ** |) -> 12
+  ; (| 3,  0  |) -> 4
+  ; (| 3,  1  |) -> 8
+  ; (| 3,  ** |) -> 12
+  ; (| 4,  0  |) -> 5
+  ; (| 4,  1  |) -> 10
+  ; (| 4,  ** |) -> 12
+  } = *N,
+  N Stack_length ge?
+} ;;
+
+eval <board> *Board free_cell_count -> <int> {
+  (Board frees) ^nothing? list.filter >> list.length
+} ;;
+
+eval <board> *Board empty_cascade_count -> <int> {
+  (Board cascades) ^list.empty? list.filter >> list.length
+} ;;
+
+eval <board> *Board move_to_home_auto -> <board> {
+  (| Board frees, Board cascades |) >> case {
+  ; (| [ *X value$, *F1, *F2, *F3 ] , ** |) || Board X can_move_to_home_auto? ->
+    (| X, frees: [ F1, F2, F3, none$] :: Board board$ |) value$
+  ; (| [ *F0, *X value$, *F2, *F3 ] , ** |) || Board X can_move_to_home_auto? ->
+    (| X, frees: [ F0, F2, F3, none$] :: Board board$ |) value$
+  ; (| [ *F0, *F1, *X value$, *F3 ] , ** |) || Board X can_move_to_home_auto? ->
+    (| X, frees: [ F0, F1, F3, none$] :: Board board$ |) value$
+  ; (| [ *F0, *F1, *F2, *X value$ ] , ** |) || Board X can_move_to_home_auto? ->
+    (| X, frees: [ F0, F1, F2, none$] :: Board board$ |) value$
+  ; (| ** , [ [ *X ; *BB ], *C1, *C2, *C3, *C4, *C5, *C6, *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ BB, C1, C2, C3, C4, C5, C6, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, [ *X ; *BB ], *C2, *C3, *C4, *C5, *C6, *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, BB, C2, C3, C4, C5, C6, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, *C1, [ *X ; *BB ], *C3, *C4, *C5, *C6, *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, C1, BB, C3, C4, C5, C6, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, *C1, *C2, [ *X ; *BB ], *C4, *C5, *C6, *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, C1, C2, BB, C4, C5, C6, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, *C1, *C2, *C3, [ *X ; *BB ], *C5, *C6, *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, C1, C2, C3, BB, C5, C6, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, *C1, *C2, *C3, *C4, [ *X ; *BB ], *C6, *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, C1, C2, C3, C4, BB, C6, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, *C1, *C2, *C3, *C4, *C5, [ *X ; *BB ], *C7 ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, C1, C2, C3, C4, C5, BB, C7 ] :: Board board$ |) value$
+  ; (| ** , [ *C0, *C1, *C2, *C3, *C4, *C5, *C6, [ *X ; *BB ] ] |) || Board X can_move_to_home_auto? ->
+    (| X, cascades: [ C0, C1, C2, C3, C4, C5, C6, BB ] :: Board board$ |) value$
+  ; ** -> none$
+  } >> case {
+  ; (| *M, *Board' |) value$ -> 
+    [ "Auto: ", M (_initd_ color_display) card_display, " ." ] cstr.concat >> stdio.print_and_newline,
+    (Board' [ M ] put_on_home) &&
+  ; ** -> Board
+  }
+} ;;
+
+eval <board> *Board <card> *Card can_move_to_home_auto? -> <bool> {
+  Board homes = [ *S, *C, *D, *H ],
+  Card num = *N,
+  N dec = *NN,
+  Card suit >> case {
+  ; spade$ ->
+    [ N 1 eq?,
+      [ N 2 eq?, (S num) 1 eq? ] bool.list_and,
+      [ (S num >> inc) N eq?, (D num) NN ge?, (H num) NN ge? ] bool.list_and
+    ] bool.list_or
+  ; club$ ->
+    [ N 1 eq?,
+      [ N 2 eq?, (C num) 1 eq? ] bool.list_and,
+      [ (C num >> inc) N eq?, (D num) NN ge?, (H num) NN ge? ] bool.list_and
+    ] bool.list_or
+  ; diamond$ ->
+    [ N 1 eq?,
+      [ N 2 eq?, (D num) 1 eq? ] bool.list_and,
+      [ (D num >> inc) N eq?, (S num) NN ge?, (C num) NN ge? ] bool.list_and
+    ] bool.list_or
+  ; heart$ ->
+    [ N 1 eq?,
+      [ N 2 eq?, (H num) 1 eq? ] bool.list_and,
+      [ (H num >> inc) N eq?, (S num) NN ge?, (C num) NN ge? ] bool.list_and
+    ] bool.list_or
+  } 
+} ;;
+
+eval _init_ -> <d> {
+  runtime.args >> case {
+  ; [ "-p" ; ** ] -> color_letter$
+  ; ** -> simple_color$
+  } = *Color_display,
+  [ spade$ 1 card$, spade$ 2 card$, spade$ 3 card$, spade$ 4 card$, spade$ 5 card$,
+    spade$ 6 card$, spade$ 7 card$, spade$ 8 card$, spade$ 9 card$, spade$ 10 card$,
+    spade$ 11 card$, spade$ 12 card$, spade$ 13 card$,
+    club$ 1 card$, club$ 2 card$, club$ 3 card$, club$ 4 card$, club$ 5 card$,
+    club$ 6 card$, club$ 7 card$, club$ 8 card$, club$ 9 card$, club$ 10 card$,
+    club$ 11 card$, club$ 12 card$, club$ 13 card$,
+    diamond$ 1 card$, diamond$ 2 card$, diamond$ 3 card$, diamond$ 4 card$, diamond$ 5 card$,
+    diamond$ 6 card$, diamond$ 7 card$, diamond$ 8 card$, diamond$ 9 card$, diamond$ 10 card$,
+    diamond$ 11 card$, diamond$ 12 card$, diamond$ 13 card$,
+    heart$ 1 card$, heart$ 2 card$, heart$ 3 card$, heart$ 4 card$, heart$ 5 card$,
+    heart$ 6 card$, heart$ 7 card$, heart$ 8 card$, heart$ 9 card$, heart$ 10 card$,
+    heart$ 11 card$, heart$ 12 card$, heart$ 13 card$
+  ] = *All_cards,
+  simplemap.new_map
+    (All_cards
+      \ <card> *C -> <card cstr tuple> { (| C, C Color_display card_display |) }
+      list.map)
+    map.add_list = *Card_display_tab,
+  all_cards: All_cards
+    color_display: Color_display
+    card_display_tab: Card_display_tab
+    d$
+} ;;
+
+eval print_opening_message -> <void> {
+  stdio.newline,
+  "Freecell started." stdio.print_and_newline,
+  "If your console does not support ANSI escape sequence, restart with '-p' option." stdio.print_and_newline,
+  "You can enter '?' for help." stdio.print_and_newline
+} ;;
+
+eval print_help -> <void> {
+  stdio.newline,
+  "* Cards" stdio.print_and_newline,
+  "The reresentation of a card consists of 'suit' and 'number'." stdio.print_and_newline,
+  "  examples: s1 = spade ace, c2 = club 2, d9 = diamond 9, h0 = heart 10" stdio.print_and_newline,
+  "            sj = spade jack, cq = club queen, dk = diamond king" stdio.print_and_newline,
+  stdio.newline,
+  "* Hand instructions and game control commands" stdio.print_and_newline,
+  "Hand instruction:" stdio.print_and_newline,
+  "  <card> <place> : Move <card> to <place>" stdio.print_and_newline,
+  "    examples: d4 s5  -- move d4 onto s5" stdio.print_and_newline,
+  "              d4 .   -- move d4 to home cell" stdio.print_and_newline,
+  "              d4 -   -- move d4 to free cell" stdio.print_and_newline,
+  "              d4 >   -- move d4 to empty cascade" stdio.print_and_newline,
+  "    You can move ordered deck (multiple cards) via intermediate spaces if sufficiently." stdio.print_and_newline,
+  "  U : Undo hand" stdio.print_and_newline,
+  "  E : End game" stdio.print_and_newline,
+  "Command:" stdio.print_and_newline,
+  "  X : Exit Freecell" stdio.print_and_newline,
+  "  N : Start new game" stdio.print_and_newline,
+  stdio.newline
+} ;;

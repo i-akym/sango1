@@ -1,0 +1,58 @@
+/***************************************************************************
+ * MIT License                                                             *
+ * Copyright (c) 2018 Isao Akiyama                                         *
+ *                                                                         *
+ * Permission is hereby granted, free of charge, to any person obtaining   *
+ * a copy of this software and associated documentation files (the         *
+ * "Software"), to deal in the Software without restriction, including     *
+ * without limitation the rights to use, copy, modify, merge, publish,     *
+ * distribute, sublicense, and/or sell copies of the Software, and to      *
+ * permit persons to whom the Software is furnished to do so, subject to   *
+ * the following conditions:                                               *
+ *                                                                         *
+ * The above copyright notice and this permission notice shall be          *
+ * included in all copies or substantial portions of the Software.         *
+ *                                                                         *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         *
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      *
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  *
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    *
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    *
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       *
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  *
+ ***************************************************************************/
+package org.sango_lang;
+
+public class RClosureConstr {
+  int modIndex;
+  // Cstr modName;
+  String name;
+  int envCount;
+  RClosureImpl impl;
+
+  RClosureConstr(int modIndex, String name, int envCount) {
+  // RClosureConstr(Cstr modName, String name, int envCount) {
+    this.modIndex = modIndex;
+    // this.modName = modName;
+    this.name = name;
+    this.envCount = envCount;
+  }
+
+  static RClosureConstr create(int modIndex, String name, int envCount) {
+    return new RClosureConstr(modIndex, name, envCount);
+  }
+
+  public boolean equals(Object o) {
+    boolean b;
+    if (o == this) {
+      b = true;
+    } else if (!(o instanceof RClosureConstr)) {
+      b = false;
+    } else {
+      RClosureConstr cc = (RClosureConstr)o;
+      b = (cc.modIndex == this.modIndex) && cc.name.equals(this.name) /* && (cc.envCount == this.envCount) */ ;
+      // b = cc.modName.equals(this.modName) && cc.name.equals(this.name) /* && (cc.envCount == this.envCount) */ ;
+    }
+    return b;
+  }
+}

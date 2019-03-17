@@ -1,0 +1,159 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.random" ;;
+
+### random number generator using xorshift128+ algorithm
+#     generates 0.0 .. <1.0
+
+import "sango.num.bigint" -> bi ;;
+import "sango.util.datetime" -> datetime ;;
+
+data <d> :=
+  i64: <bi.bigint>  # cache 2^64
+  i64_mask: <bi.bigint>  # cache 2^64-1
+  svc: <svc_h>
+  d$ ;;
+
+data <gen_d> :=
+  s0: <bi.bigint>
+  s1: <bi.bigint>
+  gen_d$ ;;
+
+eval _init_ -> <d> {
+  (1 bi.bigint) 64 bi.shift_left = *I64,
+  I64 bi.dec = *I64_mask,
+  datetime.now new_generator >> start_service = *Svc,
+  i64: I64 i64_mask: I64_mask svc: Svc d$
+} ;;
+
+eval <bi.bigint> *Seed new_generator @public -> <real iter> {
+  (1 bi.bigint) 64 bi.shift_left = *I64,
+  if {  # seed must be 1 .. 2^64-1
+  ; Seed bi.lt0? -> bad_arg$ "Invalid seed." new_exception >> throw
+  ; Seed I64 bi.ge? -> bad_arg$ "Invalid seed." new_exception >> throw
+  ; otherwise ->
+  },
+  \\ <real iter_res> { (s0: (I64 bi.dec) s1: Seed gen_d$) iter_next } iter$
+} ;;
+
+eval <gen_d> *Gen_d iter_next -> <real iter_res> {
+  Gen_d generate = (| *R, *Gen_d' |),
+  (| R, \\ <real iter_res> { Gen_d' iter_next } iter$ |) value$
+} ;;
+
+eval <gen_d> *G generate -> <real gen_d tuple> {
+  # uint64_t a = s[0];
+  # uint64_t b = s[1];
+  # s[0] = b;
+  # a ^= a << 23;
+  # a ^= a >> 18;
+  # a ^= b;
+  # a ^= b >>  5;
+  # s[1] = a;
+  # return a + b;
+  G = s0: *A s1: *B gen_d$,
+  A (A 23 u64_shift_left) bi.bit_xor = *A',
+  A' (A' 18 u64_shift_right) bi.bit_xor = *A'',
+  A'' B bi.bit_xor = *A''',
+  A''' (B 5 u64_shift_right) bi.bit_xor = *A'''',
+  B = *S0',
+  A'''' = *S1',
+  (| S0' S1' u64_add_to_real, s0: S0' s1: S1' gen_d$ |)
+} ;;
+
+eval <bi.bigint> *X <bi.bigint> *Y u64_add_to_real -> <real> {
+  (X Y bi.sum) (_initd_ >> i64_mask) bi.bit_and = *Z,
+  # extract 52 bits and convert to 0.0 .. <1.0
+  52 (2 bi.bigint) 0.5 0.0 &\ <int> *I <bi.bigint> *M <real> *D <real> *R -> <real> {
+    I case {
+    ; 0 -> R
+    ; ** ->
+      if {
+      ; Z M bi.bit_and >> bi.gt0? -> R D sum
+      ; otherwise -> R
+      } = *R',
+      (I dec) (M 1 u64_shift_left) (D 2.0 quot) R' &&
+    }
+  }
+} ;;
+
+eval <bi.bigint> *B <int> *I u64_shift_left -> <bi.bigint> {
+  B I bi.shift_left = *B',
+  B' (_initd_ >> i64_mask) bi.bit_and
+} ;;
+ 
+
+eval <bi.bigint> *B <int> *I u64_shift_right -> <bi.bigint> {
+  B I bi.shift_right_keep_sign
+} ;;
+
+
+# -- service --
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.util.iter" -> iter ;;
+
+extend <ent.ent_d> :=
+  gen: <real iter>
+  ent_d$ ;;
+
+data <svc_h> @opaque :=
+  mon: <actu.monitor_h>
+  svc_h$ ;;
+
+eval <real iter> *Gen start_service @public -> <svc_h> {
+  (Gen ent_d$) none$ ent.create_entity >> actu.create_monitor = *M,
+  mon: M svc_h$
+} ;;
+
+eval <svc_h> *Svc <real iter> *New_gen svc_set_generator | set_generator @public -> <void> {
+  (Svc mon)
+    \ <ent.eref> *Ent -> <void> {
+      Ent (New_gen ent_d$) ent.write >> ignore
+    }
+    actu.run
+} ;;
+
+eval <svc_h> *Svc svc_generate | generate @public -> <real> {
+  (Svc mon)
+    \ <ent.eref> *Ent -> <real> {
+      Ent ent.read = gen: *Gen *** ent_d$,
+      Gen next >> value = (| *R, *Gen' |),
+      Ent (Gen' ent_d$) ent.write,
+      R
+    }
+    actu.run
+} ;;
+
+
+# -- built-in service --
+
+eval <real iter> *Gen builtin_set_generator | set_generator @public -> <void> {
+  (_initd_ >> svc) Gen set_generator
+} ;;
+
+eval builtin_generate | generate @public -> <real> {
+  _initd_ >> svc >> generate
+} ;;

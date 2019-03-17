@@ -1,0 +1,63 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This program solves 'Tower of Hanoi' for N disks.
+# Usage: sango -m sample_dir hanoi N
+
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.num.int" -> int ;;
+import "sango.system.runtime" -> runtime ;;
+
+data <move> :=
+| <int>  # disk number; top is 1
+  <cstr> # from
+  <cstr> # to
+  single$
+| <int> # number of disks
+  <cstr> # from
+  <cstr> # via
+  <cstr> # to
+  multiple$ ;;
+
+eval _main_ -> <void> {
+  runtime.args = [ *N ; ** ],
+  N int.parse = *Disks,
+  if {
+  ; Disks 1 lt? -> bad_arg$ "Bad number of disks." new_exception >> throw
+  ; otherwise ->
+  },
+  [ Disks "A" "C" "B" multiple$ ] &\ <move list> *Ms -> <void> {
+    Ms case {
+    ; [ 0 ** ** ** multiple$ ; *Ms' ] -> Ms' &&
+    ; [ *X *F *V *T multiple$ ; *Ms' ] -> [ (X dec) F T V multiple$, X F T single$, (X dec) V F T multiple$ ; Ms' ] &&
+    ; [ *X *F *T single$ ; *Ms' ] ->
+      [ "Move ", X int.format, " from ", F, " to ", T, "." ] cstr.concat >> stdio.print_and_newline,
+      Ms' &&
+    ; [] ->
+    }
+  },
+  stdio.flush
+} ;;

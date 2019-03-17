@@ -1,0 +1,140 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program, which emulates entities.
+# Usage: sango -m sample_dir entemu
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+data <ee_h> @opaque := svr_h: <act.post_h> ee_h$ ;;
+
+eval <ent.ent_d+> *Data <<void fun> maybe> *Invalidator_ start_emulator @public -> <ee_h> {
+  (Data Invalidator_ startup_svr) ee_h$
+} ;;
+
+eval <ee_h> *E read @public -> <ent.ent_d+> {
+  act.open_mbox = (| *B, *P |),
+  (E svr_h) (P read_req$) act.send,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = *Data read_res$,
+  Data
+} ;;
+
+eval <ee_h> *E <ent.ent_d+> *New_data write @public -> <ent.ent_d+> {
+  act.open_mbox = (| *B, *P |),
+  (E svr_h) (P New_data write_req$) act.send,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = *Old_data write_res$,
+  Old_data
+} ;;
+
+extend <act.msg> :=
+| <act.post_h> read_req$
+| <ent.ent_d+> read_res$
+| <act.post_h> <ent.ent_d+> write_req$
+| <ent.ent_d+> write_res$ ;;
+
+eval <ent.ent_d+> *Data <<void fun> maybe> *Invalidator_ startup_svr -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R Data Invalidator_ svr } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <ent.ent_d+> *Data <<void fun> maybe> *Invalidator_ svr -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  Data &\ <ent.ent_d+> *ED -> <void> {  # this is the main loop
+    Box act.wait_forever$ act.listen,
+    Box act.receive >> value = *Msg,
+    ED Msg svr_dispatch >> case {
+    ; *ED' value$ -> ED' &&
+    ; ** -> Invalidator_ svr_end
+    }
+  }
+} ;;
+
+eval <ent.ent_d+> *ED <act.msg+> *Msg svr_dispatch -> <ent.ent_d+ maybe> {
+  Msg case {
+  ; *Ret read_req$ -> ED Ret svr_read
+  ; *Ret *New_data write_req$ -> ED Ret New_data svr_write
+  ; act.no_post$ -> none$
+  ; ** -> ED value$
+  }
+} ;;
+
+eval <ent.ent_d+> *ED <act.post_h> *Ret svr_read -> <ent.ent_d+ maybe> {
+  Ret (ED read_res$) act.send,
+  ED value$
+} ;;
+
+eval <ent.ent_d+> *ED <act.post_h> *Ret <ent.ent_d+> *New_data svr_write -> <ent.ent_d+ maybe> {
+  Ret (ED write_res$) act.send,
+  New_data value$
+} ;;
+
+eval <<void fun> maybe> *Invalidator_ svr_end -> <void> {
+  Invalidator_ case {
+  ; *I value$ -> \\ <void> { &I } try >> ignore
+  ; ** ->
+  }
+} ;;
+
+# -- test --
+
+extend <ent.ent_d> -> test_d := <cstr> test_d$ ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  act.open_mbox = (| *B, *P |),
+  P test1,
+  B test2,
+  stdio.flush
+} ;;
+
+eval <act.post_h> *P test1 -> <void> {
+  "Hop!" = *D,
+  "Step!!" = *D',
+  "Jump!!!" = *D'',
+  (D test_d$)
+  (\\ <void> { P act.signal$ act.send } value$)  # invalidator, which will send signal$ to mbox
+  start_emulator = *E,
+  E read = D test_d$, D stdio.print_and_newline,
+  E (D' test_d$) write = D test_d$, E read = D' test_d$, D' stdio.print_and_newline,
+  E (D'' test_d$) write = D' test_d$, E read = D'' test_d$, D'' stdio.print_and_newline
+} ;;
+
+eval <act.mbox_h> *B test2 -> <void> {
+  runtime.gc,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = act.signal$,
+  "Entity is purged." stdio.print_and_newline
+} ;;

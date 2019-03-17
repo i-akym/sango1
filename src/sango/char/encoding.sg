@@ -1,0 +1,205 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.char.encoding" ;;
+
+import "sango.actor" -> act ;;
+import "sango.cstr" -> cstr ;;
+import "sango.entity" -> ent ;;
+import "sango.lang.module" -> mod ;;
+import "sango.string" -> str ;;
+import "sango.system" -> sys ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.avltree" -> avl ;;
+
+data <d> :=
+  encoder_impl_tab: <cstr cstr avl.tree>
+  decoder_impl_tab: <cstr cstr avl.tree>
+  d$ ;;
+
+extend <exc_desc> @public := decode_failure$ ;;
+
+data <encoder_h> @public :=
+  encode_f: <char bstr fun>
+  end_f: <bstr fun>
+  encoder_h$ ;;
+
+data <decoder_h> @public :=
+  decode_f: <byte cstr fun>
+  end_f: <cstr fun>
+  decoder_h$ ;;
+
+data <decode_error_action> @public :=
+| ignore_decode_error_input$
+| recover_decoding$
+| abort_decoding$ ;;
+
+data <decode_props> @public :=
+  error_seq_action: <decode_error_action>
+  mapping_error_action: <decode_error_action>
+  replace_with: <cstr>
+  decode_props$ ;;
+
+eval default_decode_props @public -> <decode_props> {
+  error_seq_action: recover_decoding$
+  mapping_error_action: recover_decoding$
+  replace_with: "`uFFFD;"
+  decode_props$
+} ;;
+
+data <encoder_impl_fs> @public :=
+  start_f: <cstr encoder_h fun>
+  encoder_impl_fs$ ;;
+
+data <decoder_impl_fs> @public :=
+  start_f: <cstr decode_props decoder_h fun>
+  decoder_impl_fs$ ;;
+
+extend <sys.prop> :=
+| <encoder_impl_fs> encoder_impl_fs_prop$
+| <decoder_impl_fs> decoder_impl_fs_prop$ ;;
+
+eval _init_ -> <d> {
+  encoder_impl_tab: encoder_module_tab decoder_impl_tab: decoder_module_tab d$
+} ;;
+
+eval default_encoding @public -> <cstr> {
+  "file.encoding" sys.cstr_property >> value
+} ;;
+
+
+# -- encoding framework --
+
+eval <cstr> *Encoding start_encoder @public -> <encoder_h> {
+  [ "char.encoding.encoder_impl.", Encoding ] cstr.concat = *IK,
+  IK sys.property >> case {
+  ; (*Fs encoder_impl_fs_prop$) value$ -> Fs
+  ; ** ->
+    (_initd_ >> encoder_impl_tab) Encoding avl.assoc >> case {
+    ; *IM value$ -> IM
+    ; ** -> bad_arg$ "Unknown encoding." new_exception >> throw
+    } = *M,
+    M mod.require_module,
+    M mod.wait_module_initialized,
+    IK sys.property >> case {
+    ; (*Fs encoder_impl_fs_prop$) value$ -> Fs
+    ; ** -> bad_arg$ "Encoder implementation missing." new_exception >> throw
+    }
+  } >> start_f = *Start_f,
+  Encoding &Start_f
+} ;;
+
+eval start_default_encoder @public -> <encoder_h> {
+  default_encoding start_encoder
+} ;;
+
+eval <encoder_h> *E <char> *C encoder_encode | encode_char | encode @public -> <bstr> {
+  C &(E encode_f)
+} ;;
+
+eval <encoder_h> *E encoder_end | end_encode | end @public -> <bstr> {
+  &(E end_f)
+} ;;
+
+
+# -- decoding framework --
+
+eval <cstr> *Encoding <decode_props> *Ps start_decoder @public -> <decoder_h> {
+  [ "char.encoding.decoder_impl.", Encoding ] cstr.concat = *IK,
+  IK sys.property >> case {
+  ; (*Fs decoder_impl_fs_prop$) value$ -> Fs
+  ; ** ->
+    (_initd_ >> decoder_impl_tab) Encoding avl.assoc >> case {
+    ; *IM value$ -> IM
+    ; ** -> bad_arg$ "Unknown encoding." new_exception >> throw
+    } = *M,
+    M mod.require_module,
+    M mod.wait_module_initialized,
+    IK sys.property >> case {
+    ; (*Fs decoder_impl_fs_prop$) value$ -> Fs
+    ; ** -> bad_arg$ "Decoder implementation missing." new_exception >> throw
+    }
+  } >> start_f = *Start_f,
+  Encoding Ps &Start_f
+} ;;
+
+eval <decode_props> *Ps start_default_decoder @public -> <decoder_h> {
+  default_encoding Ps start_decoder
+} ;;
+
+eval <decoder_h> *D <byte> *B decoder_decode | decode_byte | decode @public -> <cstr> {
+  B &(D decode_f)
+} ;;
+
+eval <decoder_h> *D decoder_end | end_decode | end @public -> <cstr> {
+  &(D end_f)
+} ;;
+
+eval <decode_props> *Ps _recover_decode_seq_err @public -> <cstr> {
+  Ps error_seq_action >> case {
+  ; ignore_decode_error_input$ -> ""
+  ; recover_decoding$ -> Ps replace_with
+  ; ** -> decode_failure$ "Sequence error." new_exception >> throw
+  }
+} ;;
+
+
+# -- installation --
+
+eval <cstr> *Encoding <encoder_impl_fs> *Fs install_encoder_impl @public -> <void> {
+  ([ "char.encoding.encoder_impl.", Encoding ] cstr.concat) (Fs encoder_impl_fs_prop$) sys.add_property
+} ;;
+
+eval <cstr> *Encoding <decoder_impl_fs> *Fs install_decoder_impl @public -> <void> {
+  ([ "char.encoding.decoder_impl.", Encoding ] cstr.concat) (Fs decoder_impl_fs_prop$) sys.add_property
+} ;;
+
+eval encoder_module_tab -> <cstr cstr avl.tree> {
+  (cstr.ord_fs avl.new_tree)
+  [
+    (| "UTF-8", "sango.char.encoding.utf" |),
+    (| "UTF-16", "sango.char.encoding.utf" |),
+    (| "UTF-16BE", "sango.char.encoding.utf" |),
+    (| "UTF-16LE", "sango.char.encoding.utf" |),
+    (| "EUC-JP", "sango.char.encoding.euc" |),
+    (| "Windows-31J", "sango.char.encoding.win31j" |),
+    (| "MS932", "sango.char.encoding.win31j" |),
+    (| "CP932", "sango.char.encoding.win31j" |)
+  ]
+  avl.add_list
+} ;;
+
+eval decoder_module_tab -> <cstr cstr avl.tree> {
+  (cstr.ord_fs avl.new_tree)
+  [
+    (| "UTF-8", "sango.char.encoding.utf" |),
+    (| "UTF-16", "sango.char.encoding.utf" |),
+    (| "UTF-16BE", "sango.char.encoding.utf" |),
+    (| "UTF-16LE", "sango.char.encoding.utf" |),
+    (| "EUC-JP", "sango.char.encoding.euc" |),
+    (| "Windows-31J", "sango.char.encoding.win31j" |),
+    (| "MS932", "sango.char.encoding.win31j" |),
+    (| "CP932", "sango.char.encoding.win31j" |)
+  ]
+  avl.add_list
+} ;;

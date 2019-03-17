@@ -1,0 +1,527 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.io.stdio" ;;
+
+# Standard input/output implementation.
+# Binary in/out is pending.
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.system" -> sys ;;
+
+data <dict> :=
+  stdin_svr: <act.post_h>
+  stdin_h: <io.line_instream_h>
+  stdout_svr: <act.post_h>
+  stdout_h: <io.print_stream_h>
+  stderr_svr: <act.post_h>
+  stderr_h: <io.print_stream_h>
+  dict$ ;;
+
+eval _init_ -> <dict> {
+  cstdin_org_impl startup_reader = *StdinSvr,
+
+  \\ <cstr.line io.instream_read_res> { StdinSvr _read_line }
+  # \\ <<cstr io.instream_read_res> io.trial_res> { StdinSvr _try_read_line }
+  \\ <void> { StdinSvr _close }
+  \\ <io.instream_status> { StdinSvr _istatus }
+  io.line_instream_h$ = *Stdin,
+
+  cstdout_org_impl startup_writer = *StdoutSvr,
+
+  \ <char> *C -> <void> { StdoutSvr C _write }
+  \ <cstr> *S <int> *Start <int> *Len -> <void> { StdoutSvr S Start Len _write_cstr_part }
+  \\ <void> { StdoutSvr _flush }
+  \\ <void> { StdoutSvr _close }
+  \\ <io.outstream_status> { StdoutSvr _ostatus }
+  \\ <void> { StdoutSvr _newline }
+  io.print_stream_h$ = *Stdout,
+
+  cstderr_org_impl startup_writer = *StderrSvr,
+
+  \ <char> *C -> <void> { StderrSvr C _write }
+  \ <cstr> *S <int> *Start <int> *Len -> <void> { StderrSvr S Start Len _write_cstr_part }
+  \\ <void> { StderrSvr _flush }
+  \\ <void> { StderrSvr _close }
+  \\ <io.outstream_status> { StderrSvr _ostatus }
+  \\ <void> { StderrSvr _newline }
+  io.print_stream_h$ = *Stderr,
+
+  stdin_svr: StdinSvr
+  stdin_h: Stdin
+  stdout_svr: StdoutSvr
+  stdout_h: Stdout
+  stderr_svr: StderrSvr
+  stderr_h: Stderr
+  dict$ 
+} ;;
+
+eval cstdin_org_impl @public -> <io.line_instream_h> @native ;;
+eval cstdout_org_impl @public -> <io.print_stream_h> @native ;;
+eval cstderr_org_impl @public -> <io.print_stream_h> @native ;;
+
+eval cstdin @public -> <io.line_instream_h> {
+  _initd_ stdin_h
+} ;;
+
+eval cstdout @public -> <io.print_stream_h> {
+  _initd_ stdout_h
+} ;;
+
+eval cstderr @public -> <io.print_stream_h> {
+  _initd_ stderr_h
+} ;;
+
+
+# -- stdin shortcut functions --
+
+eval cstdin_read_line | read_line @public -> <cstr.line io.instream_read_res> {
+  cstdin io.read_line
+} ;;
+
+# eval cstdin_try_read_line | try_read_line @public -> <<cstr.line io.instream_read_res> io.trial_res> {
+  # cstdin io.try_read_line
+# } ;;
+
+
+# -- stdout shortcut functions --
+
+eval <char> *C cstdout_print_raw_char | print_raw @public -> <void> {
+  cstdout C io.print_raw
+} ;;
+
+eval <cstr> *S cstdout_print_cstr | print @public -> <void> {
+  cstdout S io.print
+} ;;
+
+eval <cstr> *S cstdout_print_cstr_and_newline | print_and_newline @public -> <void> {
+  cstdout S io.print_and_newline
+} ;;
+
+eval <cstr> *S <int> *Start <int> *Len cstdout_print_cstr_raw_part | print_raw @public -> <void> {
+  cstdout S Start Len io.print_raw
+} ;;
+
+eval <cstr.line> *L cstdout_print_line | print_line | print @public -> <void> {
+  cstdout L io.print_line
+} ;;
+
+eval <cstr.line> *L cstdout_print_raw_line | print_raw_line | print_raw @public -> <void> {
+  cstdout L io.print_raw_line
+} ;;
+
+eval cstdout_flush | flush @public -> <void> {
+  cstdout io.flush
+} ;;
+
+eval cstdout_newline | newline @public -> <void> {
+  cstdout io.newline
+} ;;
+
+
+# -- client/server implementaion --
+
+extend <act.msg> :=
+# reader, writer
+| <act.post_h> status_req$
+| <act.post_h> close_req$
+| <void result> close_res$
+| <act.post_h> impl_req$
+# reader
+| <act.post_h> read_line_req$
+| <<cstr.line io.instream_read_res> result> read_line_res$
+# | <act.post_h> try_read_line_req$
+| <<<cstr.line io.instream_read_res> io.trial_res> result> try_read_line_res$
+| <io.instream_status result> istatus_res$
+| <io.line_instream_h result> iimpl_res$
+| <act.post_h> <io.line_instream_h> set_iimpl_req$
+| <io.line_instream_h result> set_iimpl_res$
+# writer
+| <char> write_req$
+| <cstr> <int> <int> write_chars_req$
+| <act.post_h> flush_req$
+| <void result> flush_res$
+| <io.outstream_status result> ostatus_res$
+| newline_req$
+| <io.print_stream_h result> oimpl_res$
+| <act.post_h> <io.print_stream_h> set_oimpl_req$
+| <io.print_stream_h result> set_oimpl_res$ ;;
+
+
+# -- reader's and writer's common client --
+
+eval <act.post_h> *H _close -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post close_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res close_res$,
+  Res unwrap
+} ;;
+
+
+# -- reader's client --
+
+eval <act.post_h> *H _read_line -> <cstr.line io.instream_read_res> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post read_line_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res read_line_res$,
+  Res unwrap
+} ;;
+
+# eval <act.post_h> *H _try_read_line -> <<cstr io.instream_read_res> io.trial_res> {
+  # act.open_mbox = (| *Box, *Post |),
+  # H (Post try_read_line_req$) act.send,
+  # Box act.wait_forever$ act.listen,
+  # Box act.receive >> value = *Res try_read_line_res$,
+  # Res unwrap
+# } ;;
+
+eval <act.post_h> *H _istatus -> <io.instream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post status_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res istatus_res$,
+  Res unwrap
+} ;;
+
+
+# -- writer's client --
+
+eval <act.post_h> *H <char> *C _write -> <void> {
+  H (C write_req$) act.send
+} ;;
+
+eval <act.post_h> *H <cstr> *S <int> *Start <int> *Len _write_cstr_part -> <void> {
+  H (S Start Len write_chars_req$) act.send
+} ;;
+
+eval <act.post_h> *H _flush -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post flush_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res flush_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _ostatus -> <io.outstream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post status_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res ostatus_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _newline -> <void> {
+  H newline_req$ act.send
+} ;;
+
+eval <io.print_stream_h> *Impl set_cstdout -> <io.print_stream_h> {
+  act.open_mbox = (| *Box, *Post |),
+  (_initd_ stdout_svr) (Post Impl set_oimpl_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res set_oimpl_res$,
+  Res unwrap
+} ;;
+
+
+# -- reader implementation --
+
+data <reader_data> :=
+  r_config: <reader_config>
+  r_status: <reader_status>
+  reader_data$ ;;
+
+data <reader_config> :=
+  rc_impl: <io.line_instream_h>
+  reader_config$ ;;
+
+data <reader_status> :=
+  # nothing needed now
+  reader_status$ ;;
+
+eval <io.line_instream_h> *IH startup_reader -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R IH reader } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <io.line_instream_h> *In reader -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (r_config: (rc_impl: In reader_config$)
+   r_status: reader_status$
+   reader_data$)
+  &\ <reader_data> *RD -> <void> {  # this is the main loop
+    Box act.wait_forever$ act.listen,
+    RD (Box act.receive >> value) reader_dispatch >> case {
+    ; *RD' value$ -> RD' &&
+    ; ** -> RD reader_end
+    }
+  }
+} ;;
+
+eval <reader_data> *RD <act.msg+> *Msg reader_dispatch -> <reader_data maybe> {
+  Msg case {
+  ; *Ret read_line_req$ -> RD Ret reader_read_line
+  # ; *Ret try_read_line_req$ -> RD Ret reader_try_read_line
+  ; *Ret close_req$ -> RD Ret reader_close
+  ; *Ret status_req$ -> RD Ret reader_status
+  ; *Ret impl_req$ -> RD Ret reader_impl
+  ; *Ret *IH set_iimpl_req$ -> RD Ret IH reader_set_impl
+  ; act.no_post$ -> none$
+  ; ** -> RD value$
+  }
+} ;;
+
+eval <reader_data> *RD <act.post_h> *Ret reader_read_line -> <reader_data maybe> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { &(Impl io.read_line_f) } try = *Res,
+  Ret (Res read_line_res$) act.send,
+  RD value$
+} ;;
+
+# eval <reader_data> *RD <act.post_h> *Ret reader_try_read_line -> <reader_data maybe> {
+  # RD r_config >> rc_impl = *Impl,
+  # \\ { &(Impl io.try_read_line_f) } try = *Res,
+  # Ret (Res try_read_line_res$) act.send,
+  # RD value$
+# } ;;
+
+eval <reader_data> *RD <act.post_h> *Ret reader_close -> <reader_data maybe> {
+  RD reader_do_close = *Res,
+  Ret (Res close_res$) act.send,
+  RD value$
+} ;;
+
+eval <reader_data> *RD reader_do_close -> <void result> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { &(Impl io.close_f) } try
+} ;;
+
+eval <reader_data> *RD <act.post_h> *Ret reader_status -> <reader_data maybe> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { &(Impl io.status_f) } try = *Res,
+  Ret (Res istatus_res$) act.send,
+  RD value$
+} ;;
+
+eval <reader_data> *RD <act.post_h> *Ret reader_impl -> <reader_data maybe> {
+  RD r_config >> rc_impl = *Impl,
+  Ret ((Impl fin$) iimpl_res$) act.send,
+  RD value$
+} ;;
+
+eval <reader_data> *RD <act.post_h> *Ret <io.line_instream_h> *IH reader_set_impl -> <reader_data maybe> {
+  RD r_config = *Conf,
+  Conf rc_impl = *Impl,
+  Ret ((Impl fin$) set_iimpl_res$) act.send,
+  rc_impl: IH :: Conf reader_config$ = *Conf',
+  r_config: Conf' :: RD reader_data$ = *RD',
+  RD' value$
+} ;;
+
+eval <reader_data> *RD reader_end -> <void> {
+  RD reader_do_close >> ignore
+} ;;
+
+
+# -- writer implementation --
+
+data <writer_data> :=
+  w_config: <writer_config>
+  w_status: <writer_status>
+  writer_data$ ;;
+
+data <writer_config> :=
+  wc_impl: <io.print_stream_h>
+  writer_config$ ;;
+
+data <writer_status> :=
+| ws_received$
+| ws_written$
+| ws_after_short_stop$
+| ws_msg_queued$ ;;
+
+eval <io.print_stream_h> *OH startup_writer -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R OH writer } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <io.print_stream_h> *Out writer -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (w_config: (wc_impl: Out writer_config$)
+   w_status: ws_after_short_stop$
+   writer_data$)
+  &\ <writer_data> *WD -> <void> {  # this is the main loop
+    WD w_status = *WS,
+    Box act.receive >> case {
+    ; *Msg value$ ->
+      (w_status: ws_received$ :: WD writer_data$) Msg writer_dispatch >> case {
+      ; *WD' value$ -> WD' &&
+      ; ** -> WD writer_end
+      }
+    ; ** ->
+      WS case {
+      ; ws_received$ ->
+        act.yield,
+        (w_status: ws_after_short_stop$ :: WD writer_data$) &&
+      ; ws_written$ ->
+        WD writer_flush_internally = *WD' value$,
+        act.yield,
+        (w_status: ws_after_short_stop$ :: WD' writer_data$) &&
+      ; ws_after_short_stop$ ->
+        Box act.wait_forever$ act.listen,
+        (w_status: ws_msg_queued$ :: WD writer_data$) &&
+      # else internal error
+      }
+    }
+  }
+} ;;
+
+eval <writer_data> *WD <act.msg+> *Msg writer_dispatch -> <writer_data maybe> {
+  Msg case {
+  ; *Char write_req$ -> WD Char writer_write
+  ; *Str *Start *Len write_chars_req$ -> WD Str Start Len writer_write_chars
+  ; newline_req$ -> WD writer_newline
+  ; *Ret flush_req$ -> WD Ret writer_flush
+  ; *Ret close_req$ -> WD Ret writer_close
+  ; *Ret status_req$ -> WD Ret writer_status
+  ; *Ret impl_req$ -> WD Ret writer_impl
+  ; *Ret *OH set_oimpl_req$ -> WD Ret OH writer_set_impl
+  ; act.no_post$ -> none$
+  ; ** -> WD value$
+  }
+} ;;
+
+eval <writer_data> *WD <char> *Char writer_write -> <writer_data maybe> {
+  WD w_status = *WS,
+  WD w_config >> wc_impl = *Impl,
+  \\ { Char &(Impl io.write_f) } try >> case {
+  ; ** fin$ -> w_status: ws_written$ :: WD writer_data$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <writer_data> *WD <cstr> *Str <int> *Start <int> *Len writer_write_chars -> <writer_data maybe> {
+  WD w_status = *WS,
+  WD w_config >> wc_impl = *Impl,
+  \\ { Str Start Len &(Impl io.write_string_part_f) } try >> case {
+  ; ** fin$ -> w_status: ws_written$ :: WD writer_data$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <writer_data> *WD writer_newline -> <writer_data maybe> {
+  WD w_status = *WS,
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.newline_f) } try >> case {
+  ; ** fin$ -> w_status: ws_written$ :: WD writer_data$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <writer_data> *WD <act.post_h> *Ret writer_flush -> <writer_data maybe> {
+  WD writer_do_flush = (| *Res, *WD' |),
+  Ret (Res flush_res$) act.send,
+  WD' value$
+} ;;
+
+eval <writer_data> *WD writer_flush_internally -> <writer_data maybe> {
+  WD writer_do_flush = (| **, *WD' |), WD' value$
+} ;;
+
+eval <writer_data> *WD writer_do_flush -> <<void result> writer_data tuple> {
+  WD w_status = *WS,
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.flush_f) } try = *Res,
+  w_status: ws_received$ :: WD writer_data$ = *WD',  # even on error
+  (| Res, WD'|)
+} ;;
+
+eval <writer_data> *WD <act.post_h> *Ret writer_close -> <writer_data maybe> {
+  WD writer_do_oclose = (| *Res, *WD' |),
+  Ret (Res close_res$) act.send,
+  WD' value$
+} ;;
+
+eval <writer_data> *WD writer_do_oclose -> <<void result> writer_data tuple> {
+  WD w_status = *WS,
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.close_f) } try = *Res,
+  w_status: ws_received$ :: WD writer_data$ = *WD',  # even on error
+  (| Res, WD'|)
+} ;;
+
+eval <writer_data> *WD <act.post_h> *Ret writer_status -> <writer_data maybe> {
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.status_f) } try = *Res,
+  Ret (Res ostatus_res$) act.send,
+  WD value$
+} ;;
+
+eval <writer_data> *WD <act.post_h> *Ret writer_impl -> <writer_data maybe> {
+  WD w_config >> wc_impl = *Impl,
+  Ret ((Impl fin$) oimpl_res$) act.send,
+  WD value$
+} ;;
+
+eval <writer_data> *WD <act.post_h> *Ret <io.print_stream_h> *OH writer_set_impl -> <writer_data maybe> {
+  WD w_config = *Conf,
+  Conf wc_impl = *Impl,
+  Ret ((Impl fin$) set_oimpl_res$) act.send,
+  wc_impl: OH :: Conf writer_config$ = *Conf',
+  w_config: Conf' :: WD writer_data$ = *WD',
+  WD' value$
+} ;;
+
+eval <writer_data> *WD writer_end -> <void> {
+  WD writer_do_oclose >> ignore
+} ;;
+
+
+# -- routines for debugging this module --
+
+eval <cstr> *S debug_print -> <void> {
+  cstdout_org_impl S io.print, 
+  cstdout_org_impl io.flush 
+} ;;
+
+eval <cstr> *S debug_print_and_newline -> <void> {
+  cstdout_org_impl S io.print_and_newline,
+  cstdout_org_impl io.flush 
+} ;;
+
+eval debug_newline -> <void> {
+  cstdout_org_impl io.newline,
+  cstdout_org_impl io.flush 
+} ;;

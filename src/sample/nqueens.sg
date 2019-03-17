@@ -1,0 +1,166 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This program solves 'N Queens' by multiple actors.
+# Usage: sango -m sample_dir nqueens N
+
+import "sango.actor" -> act ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.int" -> int ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.simpleset" -> simpleset ;;
+
+alias type <candidates_d> := <int set.set> ;;
+
+extend <act.msg> :=
+| new_trial$
+| no_answer$
+| <int list> answer$ ;;
+
+data <board> :=
+  placed_r: <int list>
+  unplaced: <candidates_d list>
+  board$ ;;
+
+eval _main_ -> <void> {
+  runtime.args = [ *N ; ** ],
+  N int.parse = *Queens,
+  if {
+  ; Queens 4 lt? -> bad_arg$ "Too few queens." new_exception >> throw
+  ; otherwise -> Queens solve
+  }
+} ;;
+
+eval <int> *Queens solve -> <void> {
+  act.my_actor_h (act.default_priority inc) act.set_priority,
+
+  # setup initial board
+  Queens candidates = *Cs,
+  [] Queens &\ <candidates_d list> *L <int> *I -> <candidates_d list> {
+    I case {
+    ; 0 -> L
+    ; ** -> [ Cs ; L ] (I dec) &&
+    }
+  } = *Css,
+  placed_r: [] unplaced: Css board$ = *Board,
+
+  # start master and initial board
+  act.open_mbox = (| *Box, *Post |),
+  \\ <void> { Post Board board } act.spawn >> act.start,
+
+  # receive answers
+  Box receive_answers
+} ;;
+
+eval <int> *Width candidates -> <candidates_d> {
+  simpleset.new_set (Width dec) &\ <candidates_d> *Cs <int> *I -> <candidates_d> {
+    I case {
+    ; 0 -> Cs I set.add
+    ; ** -> (Cs I set.add) (I dec) &&
+    }
+  }
+} ;;
+
+eval <act.mbox_h> *Box receive_answers -> <void> {
+  0 1 &\ <int> *Answer_count <int> *Trial_count -> <void> {
+    Trial_count case {
+    ; 0 ->  # end
+    ; ** ->
+      Box act.receive >> case {
+      ; none$ ->
+        Box act.wait_forever$ act.listen,
+        Answer_count Trial_count &&
+      ; *M value$ -> M case {
+        ; new_trial$ -> 
+          Answer_count (Trial_count inc) &&
+        ; no_answer$ -> 
+          Answer_count (Trial_count dec) &&
+        ; *Answer answer$ -> 
+          Answer_count inc = *Answer_count',
+          Answer_count' Answer print_answer,
+          Answer_count' (Trial_count dec) &&
+        ; ** ->
+          Answer_count Trial_count &&
+        }
+      }
+    }
+  },
+  stdio.flush
+} ;;
+
+eval <int> *Number <int list> *Answer print_answer -> <void> {
+  [ "Answer ", Number int.format ] cstr.concat >> stdio.print_and_newline,
+  Answer list.length = *Width,
+  Answer \ <int> *Pos -> <void> { Width Pos print_answer_row } list.map >> ignore
+} ;;
+
+eval <int> *Width <int> *Pos print_answer_row -> <void> {
+  Pos 1 (Width Pos diff >> dec) str.new_string_buf &\ <int> *L <int> *P <int> *F <char str.string_buf> *B -> <void> {
+    (| L, P, F |) case {
+    ; (| 0, 0, 0 |) -> B str.pack_all >> stdio.print_and_newline
+    ; (| 0, 0, ** |) -> 0 0 (F dec) (B ". " str.append) &&
+    ; (| 0, **, ** |) -> 0 0 F (B "Q " str.append) &&
+    ; (| **, **, ** |) -> (L dec) P F (B ". " str.append) &&
+    }
+  }
+} ;;
+
+eval <act.post_h> *Master <board> *Board board -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  Board = placed_r: *Placed_r unplaced: *Unplaced board$,
+  Unplaced case {
+  ; [] ->  # all queens are placed
+    Master ((Placed_r list.reverse) answer$) act.send
+  ; [ *Cs ; *Unplaced' ] ->
+    Cs set.take >> case {
+    ; none$ -> Master no_answer$ act.send
+    ; (| *C, *Cs' |) value$ ->
+      Master new_trial$ act.send,  # notify new trial in advance
+      placed_r: [ C ; Placed_r ] unplaced: (Unplaced' C place) board$ = *Board',
+      \\ <void> { Master Board' board } act.spawn = *A,  # continue by new actor
+      A act.start,
+      (A act.actor_h) act.wait_forever$ act.join,
+      placed_r: Placed_r unplaced: [ Cs' ; Unplaced' ] board$ = *New_trial,
+      \\ <void> { Master New_trial board } act.spawn >> act.start
+    }
+  }
+} ;;
+
+eval <candidates_d list> *Css <int> *Pos place -> <candidates_d list> {
+  Css (Pos dec) Pos (Pos inc) [] &\ <candidates_d list> *CL <int> *Left <int> *Center <int> *Right <candidates_d list> *New_CL_r -> <candidates_d list> {
+    CL case {
+    ; [] -> New_CL_r list.reverse
+    ; [ *Cs ; *CL' ] ->
+      Cs Left set.delete = *Cs',
+      Cs' Center set.delete = *Cs'',
+      Cs'' Right set.delete = *Cs''',
+      CL' (Left dec) Center (Right inc) [ Cs''' ; New_CL_r ] &&
+    }
+  }
+} ;;

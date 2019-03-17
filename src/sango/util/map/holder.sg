@@ -1,0 +1,218 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.map.holder" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.map" -> map ;;
+
+extend <ent.ent_d> := <independent+> ent_d$ ;;
+
+# -- framework --
+
+data <*A *B holder_h> @opaque :=
+  seal_fs: <<A B map.map> seal_fs>
+  mon: <actu.monitor_h>
+  holder_h$ ;;
+
+eval <*A *B map.map> *Map <<A B map.map> seal_fs> *Seal_fs create_holder @public -> <A B holder_h> {
+  ((Map &(Seal_fs seal_f)) ent_d$) none$ ent.create_entity = *Ent,
+  Ent actu.create_monitor = *M,
+  seal_fs: Seal_fs mon: M holder_h$
+} ;;
+
+eval <*A *B holder_h> *Map_h empty? @public -> <bool> {
+  (Map_h read) map.empty?
+} ;;
+
+eval <*A *B holder_h> *Map_h size @public -> <int> {
+  (Map_h read) map.size
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
+  (Map_h read) Key map.get
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key assoc @public -> <B maybe> {
+  (Map_h read) Key map.assoc
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key contain_key? @public -> <bool> {
+  (Map_h read) Key map.contain_key?
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key <B> *Assoc put @public -> <<A B tuple> maybe> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <<A B tuple> maybe> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Key Assoc map.put = (| *Map', *Replaced_ |),
+      Ref (Map' &(Seal_fs seal_f)) write_store,
+      Replaced_
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key <B> *Assoc put_new @public -> <bool> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <bool> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Key Assoc map.put_new = (| *Map', *Succeeded? |),
+      Ref (Map' &(Seal_fs seal_f)) write_store,
+      Succeeded?
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key <B> *Assoc add @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Key Assoc map.add = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <<A B tuple> maybe> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Key map.remove = (| *Map', *Removed_ |),
+      Ref (Map' &(Seal_fs seal_f)) write_store,
+      Removed_
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A> *Key delete @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Key map.delete = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h take @public -> <<A B tuple> maybe> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <<A B tuple> maybe> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map map.take >> case {
+      ; (| *KV, *Map' |) value$ -> Ref (Map' &(Seal_fs seal_f)) write_store, KV value$
+      ; ** -> none$
+      }
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h clear @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map map.clear = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map KVs map.add_list = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Iter map.add_iter = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A list> *Keys delete_list @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Keys map.delete_list = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Map,
+      Map Iter map.delete_iter = *Map',
+      Ref (Map' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h read @public -> <A B map.map> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A B map.map> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value
+    }
+    actu.run
+} ;;
+
+eval <*A *B holder_h> *Map_h <A B map.map> *Map write @public -> <A B map.map> {
+  Map_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A B map.map> {
+      Ref (Map &(Seal_fs seal_f)) write_store >> &(Seal_fs unseal_f) >> value
+    }
+    actu.run
+} ;;
+
+eval <ent.eref> *Ref read_store -> <independent+> {
+  Ref ent.read = *S ent_d$,
+  S
+} ;;
+
+eval <ent.eref> *Ref <independent+> *D write_store -> <independent+> {
+  Ref (D ent_d$) ent.write = *S ent_d$,
+  S
+} ;;

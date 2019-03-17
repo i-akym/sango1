@@ -1,0 +1,98 @@
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  test003,
+  test004,
+  test004a,
+  test004b,
+  test004c,
+  test004d,
+  test004e,
+  test004f,
+  test004g,
+  test004h,
+  test011,
+  test012,
+  test013,
+  test021,
+  test021a,
+  test022,
+  test022a,
+  test030,
+  test031,
+  test032,
+  test033,
+  test034,
+  test100,
+  test101,
+  test110,
+  test110a,
+  test110b,
+  test110c,
+  test111,
+  test111a,
+  test111b,
+  test111c,
+  test112,
+  test112a,
+  test112b,
+  test112c,
+  test113,
+  test113a,
+  test113b,
+  test113c,
+  void$
+} ;;
+
+eval test001 -> <cstr> { "" cstr.repr = "\"\"" } ;;
+eval test002 -> <cstr> { "abc" cstr.repr = "\"abc\"" } ;;
+eval test003 -> <cstr.line list> { "abc" cstr.lines = [ "abc" "" cstr.line$ ] } ;;
+eval test004 -> <cstr.line list> { "abc\ndef" cstr.lines = [ "abc" "\n" cstr.line$, "def" "" cstr.line$ ] } ;;
+eval test004a -> <cstr.line list> { "abc\rdef" cstr.lines = [ "abc" "\r" cstr.line$, "def" "" cstr.line$ ] } ;;
+eval test004b -> <cstr.line list> { "abc\r\ndef" cstr.lines = [ "abc" "\r\n" cstr.line$, "def" "" cstr.line$ ] } ;;
+eval test004c -> <cstr.line list> { "abc\n\ndef" cstr.lines = [ "abc" "\n" cstr.line$, "" "\n" cstr.line$, "def" "" cstr.line$ ] } ;;
+eval test004d -> <cstr.line list> { "abc\r\rdef" cstr.lines = [ "abc" "\r" cstr.line$, "" "\r" cstr.line$, "def" "" cstr.line$ ] } ;;
+eval test004e -> <cstr.line list> { "abc\r\n\r\ndef" cstr.lines = [ "abc" "\r\n" cstr.line$, "" "\r\n" cstr.line$, "def" "" cstr.line$ ] } ;;
+eval test004f -> <cstr.line list> { "" cstr.lines = [] } ;;
+eval test004g -> <cstr.line list> { "\n\n" cstr.lines = [ "" "\n" cstr.line$, "" "\n" cstr.line$ ] } ;;
+eval test004h -> <cstr.line list> { "abc\ndef\n" cstr.lines = [ "abc" "\n" cstr.line$, "def" "\n" cstr.line$ ] } ;;
+eval test011 -> <cstr> { "" cstr.trim_spaces = "" } ;;
+eval test012 -> <cstr> { "abc" cstr.trim_spaces = "abc" } ;;
+eval test013 -> <cstr> { "  abc def  " cstr.trim_spaces = "abc def" } ;;
+eval test021 -> <bool> { "abcdefg" "abcdefg" cstr.eq_ignore_case? = true$ } ;;
+eval test021a -> <bool> { "abcdefg" "abcdef" cstr.eq_ignore_case? = false$ } ;;
+eval test022 -> <bool> { "abCDEfg" "abcdefg" cstr.eq_ignore_case? = true$ } ;;
+eval test022a -> <bool> { "abcdefg" "abCDEfg" cstr.eq_ignore_case? = true$ } ;;
+eval test030 -> <cstr list> { "abc  def ghi" cstr.split_by_space = [ "abc", "def", "ghi" ] } ;;
+eval test031 -> <cstr list> { "  abc  def ghi  " cstr.split_by_space = [ "abc", "def", "ghi" ] } ;;
+eval test032 -> <cstr list> { "" cstr.split_by_space = [] } ;;
+eval test033 -> <cstr list> { "  " cstr.split_by_space = [] } ;;
+eval test034 -> <cstr list> { "abc" cstr.split_by_space = [ "abc" ] } ;;
+eval test100 -> <cstr> { "abc" cstr.format = "abc" } ;;
+eval test101 -> <cstr> { "abc" "s" cstr.format = "abc" } ;;
+eval test110 -> <cstr> { "abc" "5<s" cstr.format = "abc  " } ;;
+eval test110a -> <cstr> { "abc" "5>s" cstr.format = "  abc" } ;;
+eval test110b -> <cstr> { "abc" "5.<s" cstr.format = "abc.." } ;;
+eval test110c -> <cstr> { "abc" "5.>s" cstr.format = "..abc" } ;;
+eval test111 -> <cstr> { "abc" "2<s" cstr.format = "abc" } ;;
+eval test111a -> <cstr> { "abc" "2>s" cstr.format = "abc" } ;;
+eval test111b -> <cstr> { "abc" "2/0<s" cstr.format = "ab" } ;;
+eval test111c -> <cstr> { "abc" "2/0>s" cstr.format = "bc" } ;;
+eval test112 -> <cstr> { "ab" "5/3.<s" cstr.format = "ab." } ;;
+eval test112a -> <cstr> { "abc" "5/3.<s" cstr.format = "abc" } ;;
+eval test112b -> <cstr> { "abcde" "5/3.<s" cstr.format = "abcde" } ;;
+eval test112c -> <cstr> { "abcdef" "5/3.<s" cstr.format = "abcde" } ;;
+eval test113 -> <cstr> { "ab" "5/3.>s" cstr.format = ".ab" } ;;
+eval test113a -> <cstr> { "abc" "5/3.>s" cstr.format = "abc" } ;;
+eval test113b -> <cstr> { "abcde" "5/3.>s" cstr.format = "abcde" } ;;
+eval test113c -> <cstr> { "abcdef" "5/3.>s" cstr.format = "bcdef" } ;;

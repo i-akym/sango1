@@ -1,0 +1,87 @@
+import "sango.cstr.format" -> fmt ;;
+import "sango.debug" -> debug ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.simplemap" -> simplemap ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  map001 = *M,
+  test001,
+  test002,
+  test002a,
+  test101,
+  test102,
+  test102a,
+  test103,
+  test104,
+  test104a,
+  test106,
+  test107,
+  test107a,
+  test108,
+  M test201,
+  M test201a,
+  M test202,
+  M test202a,
+  M test203,
+  M test203a,
+  test301,
+  test302,
+  test303,
+  test304,
+  test311,
+  test311a,
+  test312,
+  test312a,
+  test321,
+  test322,
+  test323,
+  void$
+} ;;
+
+alias type <tab> := <fmt.obj_key fmt.obj map.map> ;;
+eval map001 -> <tab> {
+  simplemap.new_map 
+  [
+    (| "B", ("9999999999" bi.parse) bi.bigint_fd$ |),
+    (| "b", ("-9999999999" bi.parse) bi.bigint_fd$ |)
+  ]
+  map.add_list
+} ;;
+eval test001 -> <int> { 0 bi.bigint >> bi.int = 0 } ;;
+eval test002 -> <bool> { max_int bi.bigint = *Imax, Imax bi.int_range? = true$, Imax bi.inc >> bi.int_range? = false$ } ;;
+eval test002a -> <bool> { min_int bi.bigint = *Imin, Imin bi.int_range? = true$, Imin bi.dec >> bi.int_range? = false$ } ;;
+eval test101 -> <bi.bigint> { "0" bi.parse = *B, 0 bi.bigint = B } ;;
+eval test102 -> <bi.bigint> { "123" bi.parse = *B, 123 bi.bigint = B } ;;
+eval test102a -> <bi.bigint> { "+123" bi.parse = *B, 123 bi.bigint = B } ;;
+eval test103 -> <bi.bigint> { "-456" bi.parse = *B, -456 bi.bigint = B } ;;
+eval test104 -> <bi.bigint> { "8888888888" bi.parse = *B, ((88888 bi.bigint) (100000 bi.bigint) bi.prod) (88888 bi.bigint) bi.sum = B } ;;
+eval test104a -> <bi.bigint> { "-8888888888" bi.parse = *B, ((88888 bi.bigint) (100000 bi.bigint) bi.prod) (88888 bi.bigint) bi.sum >> bi.neg = B } ;;
+eval test106 -> <bi.bigint result> { \\ { "" bi.parse } try = ** exc$ } ;;
+eval test107 -> <bi.bigint result> { \\ { "+" bi.parse } try = ** exc$ } ;;
+eval test107a -> <bi.bigint result> { \\ { "-" bi.parse } try = ** exc$ } ;;
+eval test108 -> <bi.bigint result> { \\ { "7a9" bi.parse } try = ** exc$ } ;;
+eval <tab> *M test201 -> <cstr> { "{B:sango.num.bigint:,gd}" M fmt.format = "9,999,999,999" } ;;
+eval <tab> *M test201a -> <cstr> { "{b:sango.num.bigint:,gd}" M fmt.format = "-9,999,999,999" } ;;
+eval <tab> *M test202 -> <cstr> { "{B:sango.num.bigint:3 go}" M fmt.format = "112 402 761 777" } ;;
+eval <tab> *M test202a -> <cstr result> { \\ <cstr> { "{b:sango.num.bigint:3 go}" M fmt.format } try = ** exc$ } ;;
+eval <tab> *M test203 -> <cstr> { "{B:sango.num.bigint:4 gx}" M fmt.format = "2 540b e3ff" } ;;
+eval <tab> *M test203a -> <cstr result> { \\ <cstr> { "{b:sango.num.bigint:4 gx}" M fmt.format } try = ** exc$ } ;;
+eval test301 -> <bi.bigint> { (511 bi.bigint) bi.bit_not = *B, (-512 bi.bigint) = B } ;;
+eval test302 -> <bi.bigint> { (510 bi.bigint) (127 bi.bigint) bi.bit_and = *B, (126 bi.bigint) = B } ;;
+eval test303 -> <bi.bigint> { (255 bi.bigint) (256 bi.bigint) bi.bit_or = *B, (511 bi.bigint) = B } ;;
+eval test304 -> <bi.bigint> { (256 bi.bigint) (254 bi.bigint) bi.bit_xor = *B, (510 bi.bigint) = B } ;;
+eval test311 -> <bi.bigint> { (1 bi.bigint) 10 bi.shift_left = *B, (1024 bi.bigint) = B } ;;
+eval test311a -> <bi.bigint> { (-1 bi.bigint) 10 bi.shift_left = *B, (-1024 bi.bigint) = B } ;;
+eval test312 -> <bi.bigint> { (1025 bi.bigint) 2 bi.shift_right_keep_sign = *B, (256 bi.bigint) = B } ;;
+eval test312a -> <bi.bigint> { (-1023 bi.bigint) 2 bi.shift_right_keep_sign = *B, (-256 bi.bigint) = B } ;;
+eval test321 -> <int> { 1023 bi.bigint >> bi.bit_length = 10 } ;;
+eval test322 -> <int> { 0 bi.bigint >> bi.bit_length = 0 } ;;
+eval test323 -> <int> { -1024 bi.bigint >> bi.bit_length = 10 } ;;

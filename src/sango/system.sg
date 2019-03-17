@@ -1,0 +1,184 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.system" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.cstr" -> cstr ;;
+import "sango.entity" -> ent ;;
+import "sango.list" -> list ;;
+import "sango.util.avltree" -> avl ;;
+import "sango.util.prop" -> prop ;;
+
+alias type <prop_tab> := <cstr prop+ avl.tree> ;;
+
+extend <ent.ent_d> := <prop_tab> prop_tab$ ;;
+
+data <d> :=
+  prop_tab_ent: <ent.eref>
+  prop_tab_monitor: <actu.monitor_h>
+  worker: <actu.serializer_h>
+  d$ ;;
+
+
+# -- system properties --
+
+data <prop> @public :=
+| <int> int_prop$
+| <real> real_prop$
+| <char> char_prop$
+| <cstr> cstr_prop$ ;;
+
+data <byte_order> @public :=
+| big_endian$
+| little_endian$ ;;
+
+eval <cstr> *Key property @public -> <prop+ maybe> {
+  _initd_ = prop_tab_ent: *Ent *** d$,
+  Ent ent.read = *Tab prop_tab$,
+  Tab Key avl.assoc
+} ;;
+
+eval <cstr> *Key <int> *Default int_property_with_default_value | int_property @public -> <int> {
+  Key int_property >> case {
+  ; *V value$ -> V
+  ; ** -> Default
+  }
+} ;;
+
+eval <cstr> *Key int_property @public -> <int maybe> {
+  Key property >> case {
+  ; (*I int_prop$) value$ -> I value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <cstr> *Key <char> *Default char_property_with_default_value | char_property @public -> <char> {
+  Key char_property >> case {
+  ; *V value$ -> V
+  ; ** -> Default
+  }
+} ;;
+
+eval <cstr> *Key char_property @public -> <char maybe> {
+  Key property >> case {
+  ; (*C char_prop$) value$ -> C value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <cstr> *Key <cstr> *Default cstr_property_with_default_value | cstr_property @public -> <cstr> {
+  Key cstr_property >> case {
+  ; *V value$ -> V
+  ; ** -> Default
+  }
+} ;;
+
+eval <cstr> *Key cstr_property @public -> <cstr maybe> {
+  Key property >> case {
+  ; (*S cstr_prop$) value$ -> S value$
+  ; ** -> none$
+  }
+} ;;
+
+eval line_terminator @public -> <cstr> {
+  "line.terminator" cstr_property >> value
+} ;;
+
+eval os_type @public -> <cstr> {
+  "os.type" cstr_property >> value
+} ;;
+
+eval byte_order @public -> <byte_order> {
+  "byte_order" cstr_property >> value >> case {
+  ; "big endian" -> big_endian$
+  ; "little endian" -> little_endian$
+  }
+} ;;
+
+eval <cstr> *Key <prop+> *Value add_property @public -> <void> {
+  _initd_ = prop_tab_monitor: *Mon *** d$,
+  Mon
+    \ <ent.eref> *Prop_tab_ent -> <void> {
+      Prop_tab_ent ent.read = *Prop_tab prop_tab$,
+      Prop_tab_ent ((Prop_tab Key Value avl.add) prop_tab$) ent.write >> ignore
+    }
+    actu.run
+} ;;
+
+eval <cstr> *Key <prop+ prop+ fun> *Upd update_property @public -> <prop+> {
+  _initd_ = prop_tab_monitor: *Mon *** d$,
+  Mon
+    \ <ent.eref> *Prop_tab_ent -> <prop+> {
+      Prop_tab_ent ent.read = *Prop_tab prop_tab$,
+      Prop_tab Key avl.assoc = *Old value$,
+      Old &Upd = *New,
+      Prop_tab_ent ((Prop_tab Key New avl.add) prop_tab$) ent.write,
+      New
+    }
+    actu.run
+} ;;
+
+
+# -- initialization --
+
+eval _init_ -> <d> {
+  init_props (cstr.ord_fs avl.new_tree) &\ <<cstr prop+ tuple> list> *KVs <prop_tab> *M -> <prop_tab> {
+    KVs case {
+    ; [ (| *K, *V |) ; *T ] -> M K V avl.add = *M', T M' &&
+    ; ** -> M
+    }
+  } = *Ptab,
+  (Ptab prop_tab$) none$ ent.create_entity = *Ptab_ent,
+
+  prop_tab_ent: Ptab_ent
+    prop_tab_monitor: (Ptab_ent actu.create_monitor)
+    worker: actu.start_serializer
+    d$
+} ;;
+
+eval init_props -> <<cstr prop+ tuple> list> {
+  sys_props_from_conf sys_props_from_env list.append >> parse_sys_prop_descs
+} ;;
+
+eval sys_props_from_conf -> <<cstr <prop.prop_desc list> tuple> list> @native ;;
+eval sys_props_from_env -> <<cstr <prop.prop_desc list> tuple> list> @native ;;
+
+eval <<cstr <prop.prop_desc list> tuple> list> *Descs parse_sys_prop_descs -> <<cstr prop+ tuple> list> {
+  Descs ^parse_sys_prop_desc list.map
+} ;;
+
+eval <cstr <prop.prop_desc list> tuple> *Desc parse_sys_prop_desc -> <cstr prop+ tuple> {
+  Desc case {
+  ; (| "os.type", [ *S prop.cstr_prop$ ] |) -> (| "os.type", S cstr_prop$ |)
+  ; (| "line.terminator", [ *S prop.cstr_prop$ ] |) -> (| "line.terminator", S cstr_prop$ |)
+  ; (| "file.separator_char", [ *C prop.char_prop$ ] |) -> (| "file.separator_char", C char_prop$ |)
+  ; (| "path.separator_char", [ *C prop.char_prop$ ] |) -> (| "path.separator_char", C char_prop$ |)
+  ; (| "file.encoding", [ *S prop.cstr_prop$ ] |) -> (| "file.encoding", S cstr_prop$ |)
+  ; (| "byte_order", [ *S prop.cstr_prop$ ] |) -> (| "byte_order", S cstr_prop$ |)
+  ; (| "io.temp_dir", [ *S prop.cstr_prop$ ] |) -> (| "io.temp_dir", S cstr_prop$ |)
+  ; (| "user.name", [ *S prop.cstr_prop$ ] |) -> (| "user.name", S cstr_prop$ |)
+  ; (| "user.home_dir", [ *S prop.cstr_prop$ ] |) -> (| "user.home_dir", S cstr_prop$ |)
+  ; (| *K, ** |) -> sys_error$ ([ "Invalid property definition. - ", K ] cstr.concat) new_exception >> throw
+  }
+} ;;

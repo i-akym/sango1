@@ -1,0 +1,121 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program to solve polynomial equation with Newton-Raphson method
+# Usage: sango -m sample_dir newton a[0] a[1] .. a[n] x[0] epsilon max-trial-count
+#   => solve a[0]x^n + a[1]x^(n-1) + .. + a[n] = 0
+#        initial x is x[0], until |y| < epsilon
+
+import "sango.arith" -> arith ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.int" -> int ;;
+import "sango.num.real" -> real ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  parse_args = (| *Ks, *X0, *E, *T |),
+  Ks f = *F,
+  Ks f' = *F',
+  F F' X0 E T newton
+} ;;
+
+eval parse_args -> <<real list> real real int tuple> {
+  runtime.args >> list.reverse >> case {
+  ; [ *AT, *AE, *AX0, *AKn, *AKn1 ; *AKs_r ] ->
+    # parse
+    AKs_r ^real.parse list.map = *Ks_r,
+    AKn1 real.parse = *Kn1,
+    AKn real.parse = *Kn,
+    AX0 real.parse = *X0,
+    AE real.parse = *E,
+    AT int.parse = *T,
+    if {
+    ; E gt0? ->
+    ; otherwise -> bad_arg$ "Invalid epsilon." new_exception >> throw
+    },
+
+    # print equation and condition
+    2 Ks_r [] &\ <int> *D <real list> *KKs <cstr list> *L -> <cstr> {
+      KKs case {
+      ; [] -> L " + " cstr.join_with_cstr,
+      ; [ *K ; *KKs' ] -> (D inc) KKs' [ [ K real.format, "x^", D int.format ] cstr.concat ; L ] &&
+      }
+    } >> stdio.print,
+    [ " + ", Kn1 real.format, "x",
+      " + ", Kn real.format,
+      " = 0",
+      ", initial = ", X0 real.format,
+      ", e = ", E real.format,
+      ", max trials = ", T int.format ] cstr.concat >> stdio.print_and_newline,
+
+    # return
+    (| [ Kn, Kn1 ; Ks_r ] list.reverse, X0, E, T |)
+  ; ** -> bad_arg$ "Insufficient arguments." new_exception >> throw
+  }
+} ;;
+
+eval <real list> *Ks f -> <real real fun> {
+  \ <real> *X -> <real> { Ks X p }
+} ;;
+
+eval <real list> *Ks f' -> <real real fun> {
+  (Ks list.reverse >> list.tail >> value) 1 [] &\ <real list> *L <int> *N <real list> *LL -> <real list> {
+    L case {
+    ; [ *A ; *As ] -> As (N inc) [ A (N real) prod ; LL ] &&
+    ; ** -> LL
+    }
+  } = *Ks',
+  # Ks' debug.repr >> stdio.print_and_newline,
+  \ <real> *X -> <real> { Ks' X p }
+} ;;
+
+eval <real list> *Ks <real> *X p -> <real> {
+  0.0 Ks &\ <real> *Y <real list> *L -> <real> {
+    L case {
+    ; [ *A ; *As ] -> ((Y X prod) A sum) As &&
+    ; ** -> Y
+    }
+  }
+} ;;
+
+eval <real real fun> *F <real real fun> *F' <real> *X0 <real> *E <int> *T newton -> <void> {
+  if {
+  ; X0 nan? -> (arith_error$ arith_failure$) "Calculation failed." new_exception >> throw
+  ; X0 infinite? -> (arith_error$ arith_failure$) "Calculation failed." new_exception >> throw
+  ; T le0? -> (arith_error$ arith_failure$) "Exhausted." new_exception >> throw
+  ; otherwise ->
+  },
+  X0 &F = *Y,
+  X0 real.format >> stdio.print,
+  "  " stdio.print,
+  Y real.format >> stdio.print_and_newline,
+  if {
+  ; (Y arith.abs) E lt? ->
+  ; otherwise -> F F' (X0 (Y (X0 &F') quot) diff) E (T dec) &&
+  }
+} ;;

@@ -1,0 +1,180 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.bag" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
+
+# -- bag framework --
+
+data <*A bag> @public :=
+  d: <A bag_d+>
+  fs: <A bag_fs>
+  bag$ ;;
+
+data <*A bag_d> @public := _dummy_bag_d$ ;;
+
+data <*A bag_fs> @public :=
+  empty?_f: <<A bag_d+> bool fun>
+  size_f: <<A bag_d+> int fun>
+  contain?_f: <<A bag_d+> A bool fun>
+  get_all_f: <<A bag_d+> A <A list> fun>
+  add_f: <<A bag_d+> A <A bag_d+> fun>
+  remove_f: <<A bag_d+> A <<A bag_d+> <A maybe> tuple> fun>
+  remove_all_f: <<A bag_d+> A <<A bag_d+> <A list> tuple> fun>
+  delete_f_: <<<A bag_d+> A <A bag_d+> fun> maybe>
+  delete_all_f_: <<<A bag_d+> A <A bag_d+> fun> maybe>
+  take_f: <<A bag_d+> <<A <A bag_d+> tuple> maybe> fun>
+  clear_f: <<A bag_d+> <A bag_d+> fun>
+  bag_fs$ ;;
+
+eval <*A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <<A bag_d+> A <A bag_d+> fun> {
+  Fs delete_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A bag_d+> *D <A> *Elem -> <A bag_d+> {
+      D Elem &(Fs remove_f) = (| *D', ** |),
+      D'
+    }
+  }
+} ;;
+
+eval <*A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <<A bag_d+> A <A bag_d+> fun> {
+  Fs delete_all_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A bag_d+> *D <A> *Elem -> <A bag_d+> {
+      D Elem &(Fs remove_all_f) = (| *D', ** |),
+      D'
+    }
+  }
+} ;;
+
+
+# -- bag framework --
+
+eval <*A bag> *Bag empty? @public -> <bool> {
+  Bag = d: *D fs: *Fs bag$,
+  D &(Fs empty?_f)
+} ;;
+
+eval <*A bag> *Bag size @public -> <int> {
+  Bag = d: *D fs: *Fs bag$,
+  D &(Fs size_f)
+} ;;
+
+eval <*A bag> *Bag <A> *Elem contain? @public -> <bool> {
+  Bag = d: *D fs: *Fs bag$,
+  D Elem &(Fs contain?_f)
+} ;;
+
+eval <*A bag> *Bag <A> *Elem get_all @public -> <A list> {
+  Bag = d: *D fs: *Fs bag$,
+  D Elem &(Fs get_all_f)
+} ;;
+
+eval <*A bag> *Bag <A> *Elem add @public -> <A bag> {
+  Bag = d: *D fs: *Fs bag$,
+  d: (D Elem &(Fs add_f)) :: Bag bag$
+} ;;
+
+eval <*A bag> *Bag <A> *Elem remove @public -> <<A bag> <A maybe> tuple> {
+  Bag = d: *D fs: *Fs bag$,
+  D Elem &(Fs remove_f) = (| *Data', *Removed_ |),
+  (| d: Data' :: Bag bag$, Removed_ |)
+} ;;
+
+eval <*A bag> *Bag <A> *Elem remove_all @public -> <<A bag> <A list> tuple> {
+  Bag = d: *D fs: *Fs bag$,
+  D Elem &(Fs remove_all_f) = (| *Data', *Removed_list |),
+  (| d: Data' :: Bag bag$, Removed_list |)
+} ;;
+
+eval <*A bag> *Bag <A> *Elem delete @public -> <A bag> {
+  Bag = d: *D fs: *Fs bag$,
+  d: (D Elem &(Fs delete_f)) :: Bag bag$
+} ;;
+
+eval <*A bag> *Bag <A> *Elem delete_all @public -> <A bag> {
+  Bag = d: *D fs: *Fs bag$,
+  d: (D Elem &(Fs delete_all_f)) :: Bag bag$
+} ;;
+
+eval <*A bag> *Bag take @public -> <<A <A bag> tuple> maybe> {
+  Bag = d: *D fs: *Fs bag$,
+  D  &(Fs take_f) >> case {
+  ; (| *E, *D' |) value$ -> (| E, d: D' :: Bag bag$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A bag> *Bag clear @public -> <A bag> {
+  Bag = d: *D fs: *Fs bag$,
+  d: (D &(Fs clear_f)) :: Bag bag$
+} ;;
+
+eval <*A bag> *Bag <A list> *Elems add_list @public -> <A bag> {
+  Bag (Elems list.iter) add_iter
+} ;;
+
+eval <*A bag> *Bag <A iter> *Iter add_iter @public -> <A bag> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Bag E add) Iter' &&
+  ; ** -> Bag
+  }
+} ;;
+
+eval <*A bag> *Bag <A list> *Elems delete_list @public -> <A bag> {
+  Bag (Elems list.iter) delete_iter
+} ;;
+
+eval <*A bag> *Bag <A iter> *Iter delete_iter @public -> <A bag> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Bag E delete) Iter' &&
+  ; ** -> Bag
+  }
+} ;;
+
+eval <*A bag> *Bag <A list> *Elems delete_all_list @public -> <A bag> {
+  Bag (Elems list.iter) delete_all_iter
+} ;;
+
+eval <*A bag> *Bag <A iter> *Iter delete_all_iter @public -> <A bag> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Bag E delete_all) Iter' &&
+  ; ** -> Bag
+  }
+} ;;
+
+eval <*A bag> *Bag iter @public -> <A iter> {
+  \\ <A iter_res> { Bag iter_next } iter$
+} ;;
+
+eval <*A bag> *Bag iter_next -> <A iter_res> {
+  Bag take >> case {
+  ; (| *E, *Bag' |) value$ ->
+    (| E, \\ <A iter_res> { Bag' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

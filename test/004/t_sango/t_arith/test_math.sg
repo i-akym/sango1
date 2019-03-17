@@ -1,0 +1,75 @@
+import "sango.arith" -> arith ;;
+import "sango.arith.math" -> math ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  test001,
+  test010,
+  test020,
+  test021,
+  test030,
+  test031,
+  test040,
+  test041,
+  test042,
+  test050,
+  test060,
+  test061,
+  test062,
+  test070,
+  test071,
+  test072,
+  test080,
+  # test081,
+  test082,
+  test090,
+  test091,
+  test092,
+  test100,
+  test101,
+  test102,
+  test110,
+  test111,
+  test112,
+  void$
+} ;;
+
+eval <real> *X <real> *Y nearly_eq? -> <bool> { (X Y diff >> arith.abs) 0.001 lt? } ;;
+
+eval test000 -> <bool> { math.pi 3.1416 nearly_eq? = true$ } ;;
+eval test001 -> <bool> { math.e 2.718 nearly_eq? = true$ } ;;
+eval test010 -> <bool> { (2.0 3.0 math.pow) 8.0 nearly_eq? = true$ } ;;
+eval test020 -> <bool> { (0.0 math.exp) 1.0 nearly_eq? = true$ } ;;
+eval test021 -> <bool> { (1.0 math.exp) math.e nearly_eq? = true$ } ;;
+eval test030 -> <bool> { (1.0 math.log) 0.0 nearly_eq? = true$ } ;;
+eval test031 -> <bool> { (math.e math.log) 1.0 nearly_eq? = true$ } ;;
+eval test040 -> <bool> { (1.0 math.log10) 0.0 nearly_eq? = true$ } ;;
+eval test041 -> <bool> { (10.0 math.log10) 1.0 nearly_eq? = true$ } ;;
+eval test042 -> <bool> { (2.0 math.log10) 0.301 nearly_eq? = true$ } ;;
+eval test050 -> <bool> { (2.0 math.sqrt) 1.41421356 nearly_eq? = true$ } ;;
+eval test060 -> <bool> { (0.0 math.sin) 0.0 nearly_eq? = true$ } ;;
+eval test061 -> <bool> { ((math.pi 2.0 quot) math.sin) 1.0 nearly_eq? = true$ } ;;
+eval test062 -> <bool> { (math.pi math.sin) 0.0 nearly_eq? = true$ } ;;
+eval test070 -> <bool> { (0.0 math.cos) 1.0 nearly_eq? = true$ } ;;
+eval test071 -> <bool> { ((math.pi 2.0 quot) math.cos) 0.0 nearly_eq? = true$ } ;;
+eval test072 -> <bool> { (math.pi math.cos) -1.0 nearly_eq? = true$ } ;;
+eval test080 -> <bool> { (0.0 math.tan) 0.0 nearly_eq? = true$ } ;;
+# eval test081 -> <bool> { ((math.pi 2.0 quot) math.tan) ... = true$ } ;;
+eval test082 -> <bool> { (math.pi math.tan) 0.0 nearly_eq? = true$ } ;;
+eval test090 -> <bool> { (0.0 math.asin) 0.0 nearly_eq? = true$ } ;;
+eval test091 -> <bool> { (1.0 math.asin) (math.pi 2.0 quot) nearly_eq? = true$ } ;;
+eval test092 -> <bool> { (-1.0 math.asin) (math.pi 2.0 quot >> neg) nearly_eq? = true$ } ;;
+eval test100 -> <bool> { (0.0 math.acos) (math.pi 2.0 quot) nearly_eq? = true$ } ;;
+eval test101 -> <bool> { (1.0 math.acos) 0.0 nearly_eq? = true$ } ;;
+eval test102 -> <bool> { (-1.0 math.acos) math.pi nearly_eq? = true$ } ;;
+eval test110 -> <bool> { (0.0 math.atan) 0.0 nearly_eq? = true$ } ;;
+eval test111 -> <bool> { (1.0 math.atan) (math.pi 4.0 quot) nearly_eq? = true$ } ;;
+eval test112 -> <bool> { (-1.0 math.atan) (math.pi 4.0 quot >> neg) nearly_eq? = true$ } ;;

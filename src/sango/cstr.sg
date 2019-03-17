@@ -1,0 +1,378 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.cstr" ;;
+
+import "sango.char" -> char ;;
+import "sango.string" -> str ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.locale" -> loc ;;
+
+data <line> @public := line_text: <cstr> line_term: <cstr> line$ ;;
+
+eval <char> *C char_to_string | string @public -> <cstr> { [| C |] } ;;
+
+eval <char list> *Cs char_list_to_string | to_string | string @public -> <cstr> {
+  Cs str.to_string
+} ;;
+
+eval <cstr> *S length @public -> <int> {
+  S str.length
+} ;;
+
+eval <cstr> *S <int> *Pos char | elem @public -> <char> {
+  S Pos str.elem
+} ;;
+
+eval <cstr> *S <int> *Start <int> *Count slice @public -> <cstr> {
+  S Start Count str.slice
+} ;;
+
+eval <cstr> *S <int> *Start <int> *Count chars | elems @public -> <char list> {
+  S Start Count str.elems
+} ;;
+
+eval <cstr> *S all_chars | all_elems @public -> <char list> {
+  S str.all_elems
+} ;;
+
+eval <cstr list> *Ss concat @public -> <cstr> {
+  Ss str.concat
+} ;;
+
+eval <cstr> *S <cstr> *SS start_with_cstr? | start_with? @public -> <bool> {
+  S SS str.start_with?
+} ;;
+
+eval <cstr> *S <char> *C char_first_index | first_index @public -> <int maybe> {
+  S C str.first_index
+} ;;
+
+eval <cstr> *S <cstr> *SS cstr_first_index | first_index @public -> <int maybe> {
+  S SS str.first_index
+} ;;
+
+eval <cstr> *S <char> *C <int> *Range_start <int> *Range_ended char_first_index_in_region | first_index_in_region @public -> <int maybe> {
+  S C Range_start Range_ended str.first_index_in_region
+} ;;
+
+eval <cstr> *S <cstr> *SS end_with_cstr? | end_with? @public -> <bool> {
+  S SS str.end_with?
+} ;;
+
+eval <cstr> *S <char> *C <int> *Range_start <int> *Range_ended char_last_index_in_region | last_index_in_region @public -> <int maybe> {
+  S C Range_start Range_ended str.last_index_in_region
+} ;;
+
+eval <cstr> *S <char> *C char_last_index | last_index @public -> <int maybe> {
+  S C str.last_index
+} ;;
+
+eval <cstr> *S <cstr> *SS cstr_last_index | last_index @public -> <int maybe> {
+  S SS str.last_index
+} ;;
+
+eval <cstr> *S <int> *Count take @public -> <cstr> {
+  S Count str.take
+} ;;
+
+eval <cstr> *S <int> *Count drop @public -> <cstr> {
+  S Count str.drop
+} ;;
+
+eval <cstr> *S0 <cstr> *S1 append @public -> <cstr> {
+  S0 S1 str.append
+} ;;
+
+eval <cstr> *S <char> *Sep split_by_char @public -> <cstr list> {
+  S Sep str.split_by_elem
+} ;;
+
+eval <cstr> *S <cstr> *Sep split_by_cstr @public -> <cstr list> {
+  S Sep str.split_by_seq
+} ;;
+
+eval <cstr> *S split_by_space @public -> <cstr list> {
+  (S length >> dec) 0 [] &\ <int> *Index <int> *Len <cstr list> *Cstrs -> <cstr list> {
+    (| Index ge0?, Len gt0? |) case {
+    ; (| false$, false$ |) -> Cstrs
+    ; (| false$, true$ |) -> [ S Len take ; Cstrs ]
+    ; (| **, *Len_gt0? |) ->  # Index >= 0
+      (| S Index char >> char.space?, Len_gt0? |) case {
+      ; (| false$, false$ |) -> (Index dec) 1 Cstrs &&
+      ; (| false$, true$ |) -> (Index dec) (Len inc) Cstrs &&
+      ; (| true$, false$ |) -> (Index dec) 0 Cstrs &&
+      ; (| true$, true$ |) -> (Index dec) 0 [ S (Index inc) Len slice ; Cstrs ] &&
+      }
+    }
+  }
+} ;;
+
+eval <cstr list> *Ss <char> *Sep join_with_char @public -> <cstr> {
+  Ss Sep str.join_with_elem
+} ;;
+
+eval <cstr list> *Ss <cstr> *Sep join_with_cstr @public -> <cstr> {
+  Ss Sep str.join_with_seq
+} ;;
+
+eval <cstr> *S <cstr> *Seq <cstr> *New replace_first_cstr @public -> <cstr> {
+  S Seq New str.replace_first_seq
+} ;;
+
+eval <cstr> *S <cstr> *Seq <cstr> *New replace_last_cstr @public -> <cstr> {
+  S Seq New str.replace_last_seq
+} ;;
+
+eval <cstr> *S <cstr> *Seq <cstr> *New replace_all_cstr @public -> <cstr> {
+  S Seq New str.replace_all_seq
+} ;;
+
+eval <cstr> *S0 <cstr> *S1 compare @public -> <ordering> {
+  S0 length = *L0,
+  S1 length = *L1,
+  0 &\ <int> *Pos -> {
+    (| L0, L1 |) case {
+    ; (| Pos, Pos |) -> eq$
+    ; (| Pos, ** |) -> lt$
+    ; (| **, Pos |) -> gt$
+    ; ** ->
+      (S0 Pos char) (S1 Pos char) compare >> case {
+      ; eq$ -> (Pos inc) &&
+      ; *R -> R
+      }
+    }
+  }
+} ;;
+
+eval <cstr> *S0 <cstr> *S1 eq? @public -> <bool> {
+  S0 S1 compare >> eq?
+} ;;
+eval <cstr> *S0 <cstr> *S1 lt? @public -> <bool> {
+  S0 S1 compare >> lt?
+} ;;
+eval <cstr> *S0 <cstr> *S1 le? @public -> <bool> {
+  S0 S1 compare >> le?
+} ;;
+eval <cstr> *S0 <cstr> *S1 gt? @public -> <bool> {
+  S0 S1 compare >> gt?
+} ;;
+eval <cstr> *S0 <cstr> *S1 ge? @public -> <bool> {
+  S0 S1 compare >> ge?
+} ;;
+
+eval ord_fs @public -> <cstr ord_fs> {
+  compare_f: ^compare
+    eq?_f_: (^eq? value$)
+    lt?_f_: (^lt? value$)
+    le?_f_: (^le? value$)
+    gt?_f_: (^gt? value$)
+    ge?_f_: (^ge? value$)
+    ord_fs$
+} ;;
+
+eval <cstr> *S0 <cstr> *S1 eq_ignore_case? @public -> <bool> {
+  S0 length = *S0_len,
+  S1 length >> case {
+  ; S0_len ->
+    (S0_len dec) &\ <int> *I -> <bool> {
+      if {
+      ; I lt0? -> true$
+      ; otherwise ->
+        if {
+        ; (S0 I char) (S1 I char) char.eq_ignore_case? -> (I dec) &&
+        ; otherwise -> false$
+        }
+      }
+    }
+  ; ** -> false$
+  }
+} ;;
+
+eval <cstr> *Str repr @public -> <cstr> {
+  str.new_string_buf = *Buf,
+  Buf "\"" str.append = *Buf',
+  Buf' 0 &\ <char str.string_buf> *B <int> *Pos -> {
+    if {
+    ; Pos (Str length) lt? -> B ((Str Pos char) char.in_cstr$ char.raw_repr) str.append = *B', B' (Pos inc) &&
+    ; otherwise -> B
+    }
+  } = *Buf'',
+  Buf'' "\"" str.append >> str.pack_all
+} ;;
+
+eval <cstr> *CharStr split_into_lines | lines @public -> <line list> {
+  (CharStr length >> dec) -1 "" [] &\ <int> *Pos <int> *Text_last_pos <cstr> *Term <line list> *Lines -> <line list> {
+    if {
+    ; Pos ge0? ->
+      (| CharStr Pos char, Text_last_pos, Term |) case {
+      ; (| '\n', -1, "" |) -> (Pos dec) -1 "\n" Lines &&  # last line w/o terminator
+      ; (| '\n', -1, ** |) -> (Pos dec) -1 "\n" [ "" Term line$ ; Lines ] &&
+      ; (| '\n', **, ** |) -> (Pos dec) -1 "\n" [ (CharStr (Pos inc) (Text_last_pos Pos diff) slice) Term line$ ; Lines ] &&
+      ; (| '\r', -1, "" |) -> (Pos dec) -1 "\r" Lines &&  # last line w/o terminator
+      ; (| '\r', -1, "\n" |) -> (Pos dec) -1 "\r\n" Lines &&
+      ; (| '\r', -1, ** |) -> (Pos dec) -1 "\r" [ "" Term line$ ; Lines ] &&
+      ; (| '\r', **, ** |) -> (Pos dec) -1 "\r" [ (CharStr (Pos inc) (Text_last_pos Pos diff) slice) Term line$ ; Lines ] &&
+      ; (| **, -1, ** |) -> (Pos dec) Pos Term Lines &&
+      ; (| **, **, ** |) -> (Pos dec) Text_last_pos Term Lines &&
+      }
+    ; otherwise ->
+      (| Text_last_pos, Term |) case {
+      ; (| -1, "" |) -> Lines
+      ; (| -1, ** |) -> [ "" Term line$ ; Lines ]
+      ; (| **, ** |) -> [ (CharStr (Text_last_pos inc) take) Term line$ ; Lines ]
+      }
+    }
+  }
+} ;;
+
+eval <cstr> *S trim_spaces @public -> <cstr> {
+  S length = *L,
+  0 &\ <int> *Pos -> <int> {
+    if {
+    ; Pos L lt? ->
+      if {
+      ; S Pos char >> char.space? -> (Pos inc) &&
+      ; otherwise -> Pos
+      }
+    ; otherwise -> Pos
+    }
+  } = *Pos1,
+  (L dec) &\ <int> *Pos -> <int> {
+    if {
+    ; Pos Pos1 ge? ->
+      if {
+      ; S Pos char >> char.space? -> (Pos dec) &&
+      ; otherwise -> Pos
+      }
+    ; otherwise -> Pos
+    }
+  } = *Pos2,
+  S Pos1 (Pos2 Pos1 diff >> inc) slice
+} ;;
+
+
+#  -- format --
+
+# format param       ::= [ <align> ] <indicator>
+#  <align>           ::= [ <max_width> ] <min_width> ">"  -- justify right
+#                      | [ <max_width> ] <min_width> "<"  -- justify left
+#  <max_width>       ::= <digits> "/"
+#  <min_width>       ::= <digits> [ <padding> ]
+#  <padding>         ::= padding character, default is space
+#  <indicator>       := "s"
+
+eval <cstr> *S default_format | format @public -> <cstr> {
+  S "" format_with_param
+} ;;
+
+eval <cstr> *S <cstr> *Param format_with_param | format @public -> <cstr> {
+  Param case {
+  ; "" -> S "s" do_format
+  ; ** -> S Param do_format
+  }
+} ;;
+
+eval <cstr> *S <cstr> *Param <loc.locale> *Loc format_with_param_for_locale | format @public -> <cstr> {
+  Param case {
+  ; "" -> S "s" do_format
+  ; ** -> S Param do_format
+  }
+} ;;
+
+eval <cstr> *S <cstr> *Param  do_format -> <cstr> {
+  Param parse_param = f_align: *Align f$,
+  Align case {
+  ; (| *N, **, **, '<' |) || (S length) N gt? ->
+    S N take
+  ; (| **, *N, *P, '<' |) || (S length) N lt? ->
+    [ S, (N (S length) diff) (P iter.const_iter) str.new_string ] concat
+  ; (| *N, **, **, '>' |) || (S length) N gt? ->
+    S ((S length) N diff) drop
+  ; (| **, *N, *P, '>' |) || (S length) N lt? ->
+    [ (N (S length) diff) (P iter.const_iter) str.new_string, S ] concat
+  ; ** -> S
+  }
+} ;;
+
+data <f> :=
+  f_align: <int int char char tuple>  # max width, min width, padding, justify '<' or '>'
+  f$ ;;
+
+data <f_param_token> :=
+| <char> fpt_char$
+| <int> fpt_num$ ;;
+
+eval <cstr> *Param parse_param -> <f> {
+  Param tokenize_r = *Ts_r,
+  Ts_r case {
+  ; [ 's' fpt_char$ ; *T ] -> T
+  ; ** -> bad_arg$ "No indicator." new_exception >> throw
+  } >> case {
+  ; [ '<' fpt_char$, *P fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, P, '<' |)
+  ; [ '<' fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, ' ', '<' |)
+  ; [ '<' fpt_char$, *P fpt_char$, *N fpt_num$ ] -> (| max_int, N, P, '<' |)
+  ; [ '<' fpt_char$, *N fpt_num$ ] -> (| max_int, N, ' ', '<' |)
+  ; [ '>' fpt_char$, *P fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, P, '>' |)
+  ; [ '>' fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, ' ', '>' |)
+  ; [ '>' fpt_char$, *P fpt_char$, *N fpt_num$ ] -> (| max_int, N, P, '>' |)
+  ; [ '>' fpt_char$, *N fpt_num$ ] -> (| max_int, N, ' ', '>' |)
+  ; [] -> (| max_int, 0, ' ', '<' |)
+  ; ** -> bad_arg$ Param new_exception >> throw
+  } = *Align,
+  f_align: Align f$
+} ;;
+
+eval <cstr> *Param tokenize_r -> <f_param_token list> {
+  Param length = *Len,
+  0 0 0 [] &\ <int> *Index <int> *State <int> *Num <f_param_token list> *Tokens_r -> <f_param_token list> {
+    # State: 0 -> normal, 1 -> parsing number
+    if {
+    ; Index Len lt? ->
+      Param Index char = *C,
+      State case {
+      ; 0 ->
+        if {
+        ; C digit? -> (Index inc) 1 ((C code) %x30 diff) Tokens_r &&
+        ; otherwise -> (Index inc) 0 Num [ C fpt_char$ ; Tokens_r ] &&
+        }
+      ; 1 ->
+        if {
+        ; C digit? -> (Index inc) 1 ((Num 10 prod) ((C code) %x30 diff) sum) Tokens_r &&
+        ; otherwise -> (Index inc) 0 0 [ C fpt_char$, Num fpt_num$ ; Tokens_r ] &&
+        }
+      }
+    ; otherwise ->
+      State case {
+      ; 0 -> Tokens_r
+      ; 1 -> [ Num fpt_num$ ; Tokens_r ]
+      }
+    }
+  }
+} ;;
+
+eval <char> *C digit? -> <bool> {
+  C code = *CC,
+  (CC %x30 ge?) (CC %x39 le?) and
+} ;;
+

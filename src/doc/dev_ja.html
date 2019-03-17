@@ -1,0 +1,1168 @@
+<html lang="ja">
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=UTF-8">
+<style>
+<!--
+table {
+  caption-side : top }
+code, samp, kbd {
+  font-family : Consolas, 'Courier New', Courier, Monaco, monospace }
+kbd {
+  font-weight : bolder }
+.toc, .run-sample, .code-sample, .def, .usage {
+  white-space : pre }
+.toc-ref {
+  text-align : right }
+.check-mark {
+  text-align : center }
+.note-ref {
+  vertical-align : super }
+-->
+</style>
+<title>Sango 1.0.0 Developer Notes</title>
+</head>
+<body>
+<h1>はじめに</h1>
+<p>本書はプログラミング言語「Sango」の開発者向けの解説書です。</p>
+<p>SangoはMIT Licenseに基いて配布されています。</p>
+<table border><tr><td>
+<p>MIT License </p>
+<p>Copyright (c) 2019 Isao Akiyama </p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+</td></tr></table>
+
+<h1 id="toc">目次</h1>
+
+<div class="toc"><a href="#1">1. はじめに</a>
+<a href="#2">2. リポジトリ</a>
+<a href="#3">3. モジュールファイル</a>
+  <a href="#3.1">3.1 外部参照情報</a>
+  <a href="#3.2">3.2 定義情報</a>
+  <a href="#3.3">3.3 生成コード</a>
+<a href="#4">4. コンパイラ</a>
+<a href="#5">5. 実行エンジン</a>
+  <a href="#5.1">5.1 Sangoオブジェクトの実装</a>
+  <a href="#5.2">5.2 クロージャの実行環境</a>
+<a href="#6">6. 標準ライブラリ</a>
+<a href="#7">7. ネイティブコード実装</a>
+  <a href="#7.1">7.1 クラス定義</a>
+  <a href="#7.2">7.2 メソッド定義</a>
+  <a href="#7.3">7.3 実行環境</a>
+  <a href="#7.4">7.4 結果の設定</a>
+  <a href="#7.5">7.5 クロージャの呼び出し</a>
+<a href="#8">8. ビルド</a>
+<a href="#9">9. テスト</a>
+  <a href="#9.1">9.1 テストの実行</a>
+<a href="#10">10. リリースパッケージ</a>
+  <a href="#10.1">10.1 バージョン命名規則</a>
+  <a href="#10.2">10.2 新バージョンの作成</a>
+  <a href="#10.3">10.3 リリースパッケージの作成</a>
+<a href="#A">A. 仮想機械命令</a>
+<a href="#B">B. Javaプログラミングインタフェース</a>
+  <a href="#B.1">B.1 <code>AbortException</code></a>
+  <a href="#B.2">B.2 <code>Compiler</code></a>
+  <a href="#B.3">B.3 <code>Cstr</code></a>
+  <a href="#B.4">B.4 <code>RArrayItem</code></a>
+  <a href="#B.5">B.5 <code>RDataConstr</code></a>
+  <a href="#B.6">B.6 <code>RFrame</code></a>
+  <a href="#B.7">B.7 <code>RIntItem</code></a>
+  <a href="#B.8">B.8 <code>RListItem</code></a>
+    <a href="#B.8.a"><code>Cell</code></a>
+    <a href="#B.8.b"><code>Nil</code></a>
+  <a href="#B.9">B.9 <code>RNativeImplHelper</code></a>
+  <a href="#B.10">B.10 <code>RObjItem</code></a>
+  <a href="#B.11">B.11 <code>RRealItem</code></a>
+  <a href="#B.12">B.12 <code>RResult</code></a>
+  <a href="#B.13">B.13 <code>RStructItem</code></a>
+  <a href="#B.14">B.14 <code>RuntimeEngine</code></a>
+  <a href="#B.15">B.15 <code>Version</code></a>
+</div>
+
+<hr/>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="1">1. 概観</h1>
+<p>Sangoは，システムプログラム（コンパイラ，実行エンジン）と標準ライブラリから成ります。</p>
+<p>システムプログラムは現在Javaで実装されていますが，そうしたのは，プラットフォームフリーであること，ライブラリが充実していること，メモリ管理を気にしなくていいこと，開発環境・実行環境にライセンス料がかからないなどの理由からです。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="2">2. リポジトリ</h1>
+<p>リポジトリの構造は以下のとおりです。</p>
+<table border>
+  <caption></caption>
+  <tr><th>パス</th><th>内容</th></tr>
+  <tr><td><code>./</code></td><td>ビルドツール等</td></tr>
+  <tr><td><code>./src/bin/</code></td><td>実行ファイルのソースコード</td></tr>
+  <tr><td><code>./src/doc/</code></td><td>ドキュメント</td></tr>
+  <tr><td><code>./src/etc/</code></td><td>インストールに必要なファイル等</td></tr>
+  <tr><td><code>./src/org/sango_lang/</code></td><td>コンパイラ，実行エンジンのソースコード</td></tr>
+  <tr><td><code>./src/sample/</code></td><td>サンプルプログラムのソースコード</td></tr>
+  <tr><td><code>./src/sango/</code></td><td>標準ライブラリのソースコード</td></tr>
+  <tr><td><code>./src/sni_sango/</code></td><td>標準ライブラリのネイティブコードのソースコード</td></tr>
+  <tr><td><code>./test/</code></td><td>テスト環境</td></tr>
+  <tr><td><code>./tool/</code></td><td>ツール部品</td></tr>
+  <tr><td><code>./attic/</code></td><td>物置</td></tr>
+</table>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="3">3. モジュールファイル</h1>
+<p>モジュールファイル(<code>.sgm</code>)は，コンパイル結果であるmoduleエントリをzip圧縮したファイルです。</p>
+<p>moduleエントリは，外部参照情報，定義情報，生成コードをXML形式で保持しています。
+モジュールファイルをzip解凍し，moduleエントリをXMLビューア(ブラウザでも可)で表示すると，内容を確認できます。</p>
+<table border>
+  <caption></caption>
+  <tr><th>タグ</th><th>内容</th></tr>
+  <tr><td><code>module</code></td><td>モジュールファイル情報，モジュール情報</td></tr>
+  <tr><td><code>module - mod_refs</code></td><td>外部参照情報</td></tr>
+  <tr><td><code>module - data_defs</code></td><td><code>data</code>定義，<code>extend</code>定義</td></tr>
+  <tr><td><code>module - alias_type_defs</code></td><td><code>alias type</code>定義</td></tr>
+  <tr><td><code>module - fun_defs</code></td><td>関数シグネチャ</td></tr>
+  <tr><td><code>module - closure_impls</code></td><td>生成コード，デバッグ情報</td></tr>
+  <tr><td><code>module - data_constrs</code></td><td>被構築データの構築情報</td></tr>
+  <tr><td><code>module - closure_constrs</code></td><td>クロージャの生成情報</td></tr>
+  <tr><td><code>module - consts</code></td><td>定数</td></tr>
+</table>
+<p><code>data_constrs</code>以降は，生成コードから参照されます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.1">3.1 外部参照情報</h2>
+<p>参照した外部モジュールの定義を，次節と同様の形式で持ちます。
+この情報は，モジュールのロード時の整合性検査，連結に使用されます。
+整合性検査では，シグネチャ，アクセス許可をチェックします。
+関数の参照では，解決された公式名が残り，別名は捨てられています。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.2">3.2 定義情報</h2>
+<p><code>data_defs</code>は，<code>data</code>定義，<code>extend</code>定義の情報を持ちます。型パラメタは先頭を0とする番号に変換されます。<code>data</code>定義と<code>extend</code>定義の違いは，拡張の元になる定義の有無です。</p>
+<p><code>alias_type_defs</code>は，<code>alias type</code>定義の情報を持ちます。型パラメタは先頭を0とする番号に変換されます。</p>
+<p><code>fun_defs</code>は，関数定義の情報を持ちます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.3">3.3 生成コード</h2>
+<p>コンパイルして生成されるコードは，特定のCPUの命令セットではなく，独自の抽象機械の命令セットで，アセンブリ言語のようなシンボリック表現です。
+実行エンジンはこれを読み込み，内部表現に変えて実行します。
+抽象機械の詳細は，付録を参照してください。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="4">4. コンパイラ</h1>
+<p>コンパイラのメインルーチンは<code>Compiler.java</code>です。</p>
+<p>コンパイラは，字句解析ルーチン，構文解析ルーチン，型検査ルーチン，コード生成ルーチン，モジュールファイル生成ルーチンから成ります。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="5">5. 実行エンジン</h1>
+<p>実行エンジンのメインルーチンは<code>RuntimeEngine.java</code>です。</p>
+<p>実行エンジンは，パラメタ解析など開始処理の後，メモリマネジャ，モジュールマネジャ，タスクマネジャを開始し，メインスレッドはシステムワーカになります。</p>
+<p>メモリマネジャは，オブジェクトの作成，弱参照の管理などを行います。
+不要オブジェクトの回収はJavaのメモリ管理に任せています。
+小さな整数など一部のオブジェクトは，キャッシュすることによって毎回の生成をやめ，実行パフォーマンスの向上を図っています。</p>
+<p>モジュールマネジャは，必要なモジュールをロードし，リンクします。
+その際，定義情報と参照情報の整合性を検査します。</p>
+<p>タスクマネジャは，アクタを管理します。
+複数のスレッドをタスクワーカとして起動させ，それらにタスクを割り当てることによって，並行動作を実現しています。
+タスクワーカはJavaのスレッドです。
+アクタが増えるにしたがってタスクワーカも増加させますが，限りなく増加することがないように制御します（現在は最大数100）。
+また，メッセージングを実装しています。</p>
+<p>システムワーカは，シングルスレッドで，実行エンジン内のメンテナンスを行います。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="5.1">5.1 Sangoオブジェクトの実装</h2>
+<p>Sangoオブジェクトは<code>RObjItem</code>の派生クラスで実装されています。
+基本型を実装するクラスには以下のものがあります。</p>
+<table border>
+<caption></caption>
+<tr><th>クラス</th><th>Sangoオブジェクト型</th><th>補足</th></tr>
+<tr><td><code>RIntItem</code></td><td><code>&lt;int&gt;</code>，<code>&lt;byte&gt;</code>，<code>&lt;char&gt;</code></td><td>内部区分をそれぞれ0，1，2として区別</td></tr>
+<tr><td><code>RRealItem</code></td><td><code>&lt;real&gt;</code></td><td>&nbsp;</td></tr>
+<tr><td><code>RListItem</code></td><td><code>&lt;A list&gt;</code></td><td>空でないリスト（リストセル）は<code>RListItem.Cell</code>，空のリスト（リストの終端）は<code>RListItem.Nil</code></td></tr>
+<tr><td><code>RArrayItem</code></td><td><code>&lt;A string&gt;</code></td><td>&nbsp;</td></tr>
+<tr><td><code>RStructItem</code></td><td><code>&lt;... tuple&gt;</code>，被構築型</td><td>データ構築子は<code>RDataConstr</code>によって表現。タプルのデータ構築子は擬似値</td></tr>
+<tr><td><code>RClosureItem</code></td><td><code>&lt;... fun&gt;</code></td><td>&nbsp;</td></tr>
+</table>
+
+<p>データのネイティブコード実装は，プログラマが定義するクラスによってSangoオブジェクトを実装します。
+その際，以下の条件を満たす必要があります。</p>
+<ul>
+<li><code>RObjItem</code>を継承し，抽象メソッドを実装すること。</li>
+<li>不変（immutable）であること。</li>
+</ul>
+<p>以上を守れば，更新される他のオブジェクトを参照してもかまいません。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="5.2">5.2 クロージャの実行環境</h2>
+<p>モジュールにはクロージャやデータの生成情報に加え，スロットと呼ぶSangoオブジェクトのホルダがあります。
+第0スロットは当該モジュールの名前を，第1スロットは初期化ルーチン<code>_init_</code>の結果を保持します。</p>
+<p>クロージャの呼び出しごとに，フレーム（<code>RFrame</code>）が割り当てられます。
+フレームは，code index，env tab（外部変数テーブル），var tab（ローカル変数テーブル），operand stackを持ちます。</p>
+<p>code indexは，次に実行する命令を指し示しています。</p>
+<p>env tabは，クロージャから参照している外部変数の値を保持します。
+env tabは参照するだけで更新しません。</p>
+<p>var tabは，ローカル変数の値を保持します。
+クロージャが呼び出された時点では，第0要素にクロージャ自身が，第1要素以降に渡されたパラメタが設定されています。
+実行中に順次更新します。</p>
+<p>operand stackは，仮想機械が扱う値を適宜積み上げます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="6">6. 標準ライブラリ</h1>
+<p>標準ライブラリは，Sangoによる実装と，必要に応じてネイティブコード（Java）でも実装されています。
+ネイティブコード実装を示すためには，関数の実装に<code>@native</code>を指定します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="7">7. ネイティブコード実装</h1>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="7.1">7.1 クラス定義</h2>
+<p>ライブラリ名が<code>xx.yy.zz</code>の場合，ネイティブコード実装のクラスは<code>sni_xx.sni_yy.SNIzz</code>になります。</p>
+<p>実行エンジンは，モジュールをロードする際，そのモジュールがネイティブコード実装を持っている場合にクラスファイルをロードし，スタティックメソッド<code>getInstance</code>を呼び出してネイティブコード実装オブジェクトを得ます。
+ネイティブコード実装の呼び出しは，このオブジェクトを介して行われます。
+ネイティブコード実装はこの<code>getInstance</code>を実装する必要があります。</p>
+<blockquote class="code-sample">例：<code>sni_sango.SNIlang</code>内のコード
+<code>public static SNIlang getInstance(RuntimeEngine e) { ... }</code></blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="7.2">7.2 メソッド定義</h2>
+<p>関数の公式名が<code>fff</code>の場合，メソッド名を<code>sni_fff</code>にします。その際，「<code>@</code>」を「<code>_A_</code>」に，「<code>?</code>」を「<code>_Q_</code>」に，「<code>$</code>」を「「<code>_D_</code>」に，「<code>'</code>」を「<code>_P_</code>」にそれぞれ置き換えます。</p>
+<p>メソッドの引数は<code>RNativeImplHelper</code>，<code>RClosureItem</code>に引き続き，関数のパラメタ数だけ<code>RObjItem</code>を宣言します。</p>
+<blockquote class="code-sample">例：<code>sango.lang.nan?</code>の実装メソッド定義
+<code>public void sni_nan_Q_(RNativeImplHelper helper, RClosureItem self, RObjItem r) { ... }</code></blockquote>
+<p><code>RNativeImplHelper</code>は，ネイティブコード実装を支援するオブジェクトです。
+これを使用して，Sangoオブジェクトの生成，結果の設定等を行います。
+このオブジェクトは状態を保持しているため，別呼び出しへの使いまわしはしないでください。</p>
+<p><code>RClosureItem</code>には，呼び出されたクロージャオブジェクトが渡されます。</p>
+<p><code>RObjItem</code>には，各引数が渡されます。
+<code>RObjItem</code>はSangoオブジェクトの基底クラスであり，必要に応じてキャストし，扱うオブジェクトに変換します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="7.3">7.3 実行環境</h2>
+
+<p>クロージャの呼び出しごとに，フレーム（<code>RFrame</code>）が割り当てられます。
+フレームに対して<code>RNativeImplHelper</code>経由で，返り値の設定などを行います。
+また，必要に応じ，operand stackを使用することができます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="7.4">7.4 結果の設定</h2>
+<p>クロージャから返す値は，<code>RNativeImplHelper#setReturnValue</code>で設定します。
+<code>void$</code>を返す場合は，呼び出しを省略できます。
+例外を送出する場合は，<code>RNativeImplHelper#setException</code>を呼び出します。
+実装メソッド内で発生した例外は返り値あるいはSangoの例外に変換して処理し，そのまま上位に送出してはなりません。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="7.5">7.5 クロージャの呼び出し</h2>
+<p>ネイティブコード実装クロージャの中から別クロージャを呼び出すことができます。
+呼び出しは，以下のシーケンスになります。
+●印が，当クロージャで実行するコードです。</p>
+<ol>
+<li>●呼び出すクロージャとそのパラメタ，および当クロージャの再開情報を登録する。</li>
+<li>●当クロージャから復帰する。</li>
+<li>実行エンジンが登録されたクロージャを実行し，結果を当フレームに設定する。</li>
+<li>実行エンジンが当クロージャを再度呼び出す。</li>
+<li>●再開情報をもとに，呼び出し結果を処理する。</li>
+<li>●当クロージャの結果を登録し，復帰する。</li>
+</ol>
+<p>このシーケンスを実現するため，当クロージャの構造を次のようにします。</p>
+<blockquote class="code-sample">1. <code>RNativeImplHelper#getAndClearResumeInfo()</code>を呼び出す。
+2.1 結果が<code>null</code>の場合  // 1回目の呼び出し
+  パラメタ作成など，クロージャ呼び出しの準備を行う。
+  再開情報を作成する。
+  <code>RNativeImplHelper#scheduleInvocation()</code>を呼び出し，
+  呼び出し先クロージャ，パラメタ，再開情報を登録する。
+2.2 結果が<code>null</code>でない場合  // 2回目の呼び出し
+  <code>RNativeImplHelper#getInvocationResult()</code>を呼び出し，クロージャ呼び出しの結果を取得する。
+  再開情報を使用し，結果を処理する。
+  当クロージャの結果を登録する。
+3. 復帰する。</blockquote>
+<p>クロージャを複数回呼び出す場合は，一つずつ呼び出します。
+それには，それぞれ再開情報を変えて呼び出しを登録し，<code>RNativeImplHelper#getAndClearResumeInfo()</code>の結果で分岐します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="8">8. ビルド</h1>
+<p>LinuxでもWindowsでもビルドすることができます。</p>
+<p>Java1.8以上がインストールされている必要があります。</p>
+<p><code>build.sh</code>（Windowsでは<code>build.bat</code>）を下記のいずれかの形式で実行します。</p>
+<table border>
+  <caption></caption>
+  <tr><th>引数</th><th>処理</th></tr>
+  <tr><td><code>-all</code></td><td>全てをコンパイルします。<br/>次の4つを実行するのと同じです。</td></tr>
+  <tr><td><code>-sys</code></td><td>システムプログラムをコンパイルします</td></tr>
+  <tr><td><code>-lib</code></td><td>標準ライブラリをコンパイルします</td></tr>
+  <tr><td><code>-sample</code></td><td>サンプルプログラムをコンパイルします</td></tr>
+  <tr><td><code>-misc</code></td><td>ツール等をコンパイルします</td></tr>
+  <tr><td>&lt;標準ライブラリファイルのパス&gt;</td><td>指定された標準ライブラリのファイルをコンパイルします。<br/>対応するネイティブコード実装があれば，それもコンパイルします。<br/><code>src/sango/...</code>の形式で指定します。</td></tr>
+</table>
+
+<p>標準ライブラリ，サンプルプログラムのコンパイルにはSangoコンパイラが必要ですので，先立ってシステムプログラムをコンパイルしておかなければなりません。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="9">9. テスト</h1>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="9.1">9.1 テストの実行</h2>
+<p>標準ライブラリのテストは，自動化されています。
+実行手順は以下のとおりです。</p>
+<ol>
+<li><code>test</code>に移動し，<code>setup.sh</code>（Windowsでは<code>setup.bat</code>）を実行します。
+<code>setup.sh</code>は，<code>test/inst</code>に開発中のプログラムをインストールします。</li>
+<li><code>004</code>に移動し，<code>setup.sh</code>（Windowsでは<code>setup.bat</code>）を実行します。<code>setup.sh</code>は，テストに必要なディレクトリ作成を行います。</li>
+<li>全てのライブラリをテストするには，<code>test.sh -all</code>（Windowsでは<code>test.bat -all</code>）を実行します。
+特定のライブラリをテストするには，<code>-all</code>に替えてライブラリ名（例：<code>sango.util.avltree</code>）を指定します。</li>
+</ol>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="10">10. リリースパッケージ</h1>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="10.1">10.1 バージョン命名規則</h2>
+<p>バージョンは以下の形式をしています。</p>
+<blockquote>{メジャー番号}<code>.</code>{マイナー番号}<code></code>.{マイクロ番号}[{レベル}]_{ビルド番号} </blockquote>
+<p>メジャー番号は，言語仕様などが大きく変わった場合に更新します。</p>
+<p>マイナー番号は，機能追加があった場合に更新します。</p>
+<p>マイクロ番号は，軽微な機能追加や安定性向上があった場合に更新します。</p>
+<p>レベルは，リリースの位置づけを示し，省略は安定版を意味します。表示する場合は，「alpha」「beta」「rc」「hotfix」などを想定しています。</p>
+<p>ビルド番号は，メジャー番号とマイナー番号の範囲で，変更に応じて昇順に割り振ります。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="10.2">10.2 新バージョンの作成</h2>
+<p>以下の手順で行います。</p>
+<ol>
+<li><code>src/org/sango_lang/Version.java</code>を修正しビルドします。</li>
+<li><code>test/004/t_sango/t_system/test_runtime.sg</code>内のバージョン情報を修正し，テストします。</li>
+<li><code>src/doc/lang*.html</code>，<code>lib*.html</code>，<code>dev*.html</code>内のバージョン情報を修正します。</li>
+</ol>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="10.3">10.3 リリースパッケージの作成</h2>
+<p><code>./make-release.sh</code>（Windowsでは<code>make_release.bat</code>）に作業ディレクトリを指定して実行します。
+作業ディレクトリは，<code>.</code>でも構いません。
+実行すると，指定したディレクトリ配下に<code>release</code>というディレクトリが作成されます。
+これを適宜圧縮してリリースパッケージにします。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="A">A. 仮想機械命令</h1>
+<p>ここではoperand stackの状態を以下のように示します。</p>
+<p><code>] * a b c</code></p>
+<blockquote><table>
+<tr><td><code>]</code></td><td>：スタックの底</td></tr>
+<tr><td><code>*</code></td><td>：変化しないオブジェクト（0個以上）</td></tr>
+<tr><td><code>a b c</code></td><td>：操作されるオブジェクト</td></tr>
+</table></blockquote>
+
+<p>命令はvar tab，env tab，operand stack，モジュールスロット，および，以下のテーブルを参照します。</p>
+<blockquote><table>
+<tr><td>データ構築テーブル</td><td>：モジュールファイルの<code>data_constrs</code>情報</td></tr>
+<tr><td>クロージャ構築テーブル</td><td>：モジュールファイルの<code>closure_constrs</code>情報</td></tr>
+<tr><td>定数テーブル</td><td>：モジュールファイルの<code>consts</code>情報</td></tr>
+</table></blockquote>
+
+<table border>
+<tr>
+<th>命令形式</th>
+<th>命令名称</th>
+<th>事前operand stack</th>
+<th>事後operand stack</th>
+<th>動作</th>
+</tr>
+<tr>
+<td><code>BRBF p</code></td>
+<td>branch bool false</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>が<code>false$</code>の場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRBT p</code></td>
+<td>branch bool true</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>が<code>true$</code>の場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRDEQ p,q</code></td>
+<td>branch data constructor equal</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>がデータ構築テーブルの第<code>p</code>要素に従って構築されている（データ構築子が一致する）場合に，code indexに<code>q</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRDNE p,q</code></td>
+<td>branch data constructor not equal</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>がデータ構築テーブルの第<code>p</code>要素に従って構築されていない（データ構築子が一致しない）場合に，code indexに<code>q</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRLC p</code></td>
+<td>branch list cell</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>が<code>RListItem.Cell</code>の場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRLN p</code></td>
+<td>branch list nil</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>が<code>RListItem.Nil</code>の場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BROEQ p</code></td>
+<td>branch object equal</td>
+<td><code>] * a b</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>と<code>b</code>が等価の場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRONE p</code></td>
+<td>branch object not equal</td>
+<td><code>] * a b</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>と<code>b</code>が等価でない場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRTSCO p</code></td>
+<td>branch type signature compatible</td>
+<td><code>] * a b c d</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>のモジュール名が<code>b</code>に，型構築子が<code>c</code>に，型パラメタ数が<code>d</code>に等しい場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>BRTSIC p</code></td>
+<td>branch type signature incompatible</td>
+<td><code>] * a b c d</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>のモジュール名が<code>b</code>に，型構築子が<code>c</code>に，型パラメタ数が<code>d</code>に等しくない場合に，code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>CLL p</code></td>
+<td>clear local</td>
+<td><code>] *</code></td>
+<td><code>] *</code></td>
+<td>var tabの第<code>p</code>要素をクリアする。</td>
+</tr>
+<tr>
+<td><code>DU</code></td>
+<td>duplicate</td>
+<td><code>] * a</code></td>
+<td><code>] * a a</code></td>
+<td>operand stackの一番上の値<code>a</code>を複製する。</td>
+</tr>
+<tr>
+<td><code>EX</code></td>
+<td>exception</td>
+<td><code>] * </code></td>
+<td><code>破棄される</code></td>
+<td>例外を送出する。<code>p</code>が0の場合は<code>incompat$</code>，1の場合は<code>no_case$</code>，2の場合は<code>no_elem$</code>，それ以外の場合は<code>sys_err$</code>が発生する。</td>
+</tr>
+<tr>
+<td><code>IV</code></td>
+<td>invoke</td>
+<td><code>] * a1 .. aN b</code></td>
+<td><code>] * c</code></td>
+<td>クロージャ<code>b</code>にパラメタ<code>a1</code>～<code>aN</code>を渡して呼び出します。返り値<code>c</code>がoperand stackに積まれる。</td>
+</tr>
+<tr>
+<td><code>IVG</code></td>
+<td>invoke goto</td>
+<td><code>] * a1 .. aN b</code></td>
+<td><code>破棄される</code></td>
+<td>このクロージャの呼び出し元をクロージャ<code>b</code>の呼び出し元として設定し，パラメタ<code>a1</code>～<code>aN</code>を渡して呼び出す。このクロージャのフレームは破棄される。</td>
+</tr>
+<tr>
+<td><code>JU p</code></td>
+<td>jump</td>
+<td><code>] *</code></td>
+<td><code>] *</code></td>
+<td>code indexに<code>p</code>を加算する。</td>
+</tr>
+<tr>
+<td><code>LCL p</code></td>
+<td>load and clear local</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td>var tabの第<code>p</code>要素<code>a</code>をoperand stackに積み，var tab上をクリアする。</td>
+</tr>
+<tr>
+<td><code>LDAE</code></td>
+<td>load array element</td>
+<td><code>] * a b</code></td>
+<td><code>] * c</code></td>
+<td><code>a</code>（<code>RArrayItem）</code>の第<code>b</code>要素<code>c</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDAL</code></td>
+<td>load array length</td>
+<td><code>] * a</code></td>
+<td><code>] * b</code></td>
+<td><code>a</code>（<code>RArrayItem）</code>の長さ（要素数）<code>b</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDC p</code></td>
+<td>load constant</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td>定数テーブルの第<code>p</code>要素<code>a</code>をoperand stackに積む。</td>
+</tr>
+<td><code>LDE p</code></td>
+<td>load environment</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td>env tabの第<code>p</code>要素<code>a</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDF p</code></td>
+<td>load field</td>
+<td><code>] * a</code></td>
+<td><code>] * b</code></td>
+<td><code>a</code>（<code>RStructItem）</code>の第<code>p</code>要素<code>b</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDH</code></td>
+<td>load head</td>
+<td><code>] * a</code></td>
+<td><code>] * b</code></td>
+<td><code>a</code>（<code>RListItem.Cell）</code>の頭部<code>b</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDI p,q</code></td>
+<td>load integer</td>
+<td><code>] *</code></td>
+<td><code>] * q</code></td>
+<td>整数<code>q</code>をoperand stackに積む。<code>p</code>が0の場合は&lt;int&gt;，1の場合は&lt;byte&gt;，2の場合は&lt;char&gt;として扱われる。</td>
+</tr>
+<tr>
+<td><code>LDL p</code></td>
+<td>load local</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td>var tabの第<code>p</code>要素<code>a</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDM p</code></td>
+<td>load module slot</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td>モジュールスロットの第<code>p</code>要素<code>a</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDN</code></td>
+<td>load nil</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td><code>RListItem.Nil</code>のインスタンス<code>a</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDT</code></td>
+<td>load tail</td>
+<td><code>] * a</code></td>
+<td><code>] * b</code></td>
+<td><code>a</code>（<code>RListItem.Cell）</code>の尾部<code>b</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>LDZ</code></td>
+<td>load stack pointer</td>
+<td><code>] *</code></td>
+<td><code>] * a</code></td>
+<td>operand stackのスタックポインタ<code>a</code>をoperand stackに積む。</td>
+</tr>
+<tr>
+<td><code>NO</code></td>
+<td>no operation</td>
+<td><code>] *</code></td>
+<td><code>] *</code></td>
+<td>何もしない。</td>
+</tr>
+<tr>
+<td><code>NWA</code></td>
+<td>new array</td>
+<td><code>] * a</code></td>
+<td><code>] * b</code></td>
+<td>長さ（要素数）が<code>a</code>の<code>RArrayItem</code>インスタンス<code>b</code>を生成し，operand stackに積む。</td>
+</tr>
+<tr>
+<td><code>NWC p</code></td>
+<td>new closure</td>
+<td><code>] * a1 .. aN</code></td>
+<td><code>] * b</code></td>
+<td>クロージャ構築テーブルの第<code>p</code>要素に従い，<code>a1</code>～<code>aN</code>をenv tabとするクロージャ<code>b</code>を生成し，operand stackに積む。初期化が終了していない他モジュールのクロージャを生成する場合は，本命令から再開始するよう設定して初期化を待ち合わせる。</td>
+</tr>
+<tr>
+<td><code>NWD p</code></td>
+<td>new data</td>
+<td><code>] * a1 .. aN</code></td>
+<td><code>] * b</code></td>
+<td>データ構築テーブルの第<code>p</code>要素に従い，<code>a1</code>～<code>aN</code>を属性とする被構築データ<code>b</code>を生成し，operand stackに積む。</td>
+</tr>
+<tr>
+<td><code>NWL</code></td>
+<td>new list</td>
+<td><code>] * a b</code></td>
+<td><code>] * c</code></td>
+<td><code>a</code>を頭部，<code>b</code>を尾部とする<code>RListItem.Cell</code>インスタンス<code>c</code>を生成し，operand stackに積む。</td>
+</tr>
+<tr>
+<td><code>NWT p</code></td>
+<td>new tuple</td>
+<td><code>] * a1 .. ap</code></td>
+<td><code>] * b</code></td>
+<td><code>a1</code>～<code>ap</code>を要素とするタプル<code>b</code>を生成し，operand stackに積む。</td>
+</tr>
+<tr>
+<td><code>PO</code></td>
+<td>pop</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td>operand stackからオブジェクトを一つ取り除く。</td>
+</tr>
+<tr>
+<td><code>RE</code></td>
+<td>return</td>
+<td><code>] * a</code></td>
+<td><code>破棄される</code></td>
+<td><code>a</code>を返り値として，呼び出し元に復帰する。</td>
+</tr>
+<tr>
+<td><code>RW</code></td>
+<td>rewind</td>
+<td><code>] * a1 .. aN b</code></td>
+<td><code>] *</code></td>
+<td>スタックポインタ<code>b</code>までoperand stack上のオブジェクトを取り除く。</td>
+</tr>
+<tr>
+<td><code>STAE</code></td>
+<td>store array element</td>
+<td><code>] * a b c</code></td>
+<td><code>] *</code></td>
+<td><code>a</code>（RArrayItem）の第<code>b</code>要素に<code>c</code>を設定する。</td>
+</tr>
+<tr>
+<td><code>STL p</code></td>
+<td>store local</td>
+<td><code>] * a</code></td>
+<td><code>] *</code></td>
+<td>var tabの第<code>p</code>要素に<code>a</code>を設定する。</td>
+</tr>
+</table>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="B">B. Javaプログラミングインタフェース</h1>
+<p>提供されているクラスのパッケージは<code>org.sango_lang</code>です。
+本章では<code>org.sango_lang</code>パッケージの表記を省略します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.1">B.1 <code>AbortException</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class AbortException extends Exception<code></td></tr></table>
+<p>異常終了を表すクラスです。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.2">B.2 <code>Compiler</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class Compiler<code></td></tr></table>
+<p>コンパイラです。
+主に，コンパイラをJavaプログラムに組み込む場合に使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static Compiler newInstance()<code></td></tr></table>
+<p>新たなインスタンスを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static Version getVersion()<code></td></tr></table>
+<p>バージョン情報を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.io.PrintStream getMessageOut()<code></td></tr></table>
+<p>コンパイラのメッセージの出力先を返します。
+初期値は<code>System.out</code>です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.io.PrintStream getMessageOut()<code></td></tr></table>
+<p>コンパイラのメッセージの出力先を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean isVerboseModule()<code></td></tr></table>
+<p>処理対象のモジュール情報を出力するか否かを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setVerboseModule(boolean sw)<code></td></tr></table>
+<p>処理対象のモジュール情報を出力するか否かを設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;java.io.File&gt; getSysLibPaths()<code></td></tr></table>
+<p>システムライブラリの探索パスのリストを返します。
+初期値は{"lib"}です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setSysLibPaths(java.util.List&lt;java.io.File&gt; paths)<code></td></tr></table>
+<p>システムライブラリの探索パスのリストを設定します。
+Sangoをインストールしたディレクトリ配下の<code>lib</code>を指定してください。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;java.io.File&gt; getUserModPaths()<code></td></tr></table>
+<p>モジュール探索パスのリストを返します。
+初期値は{"."}です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setUserModPaths(java.util.List&lt;java.io.File&gt; paths)<code></td></tr></table>
+<p>モジュール探索パスのリストを設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.io.File getModOutPath()<code></td></tr></table>
+<p>モジュールファイルの出力先を返します。
+<code>null</code>は，ソースファイルのディレクトリに出力することを意味します。
+初期値は<code>null</code>です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setModOutPath(java.io.File path)<code></td></tr></table>
+<p>モジュールファイルの出力先を設定します。
+<code>null</code>は，ソースファイルのディレクトリに出力することを意味します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;String&gt; getSourceFileNames()<code></td></tr></table>
+<p>コンパイル対象のソースファイル名を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setSourceFileNames(java.util.List&lt;String&gt; fileNames)<code></td></tr></table>
+<p>コンパイル対象のソースファイル名を設定します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.3">B.3 <code>Cstr</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class Cstr<code></td></tr></table>
+<p>文字列をUnicodeコードポイント単位で操作するクラスです。</p>
+
+<table border width="100%"><tr><td class="def">コンストラクタ
+<code>public Cstr()<code></td></tr></table>
+<p></p>
+
+<table border width="100%"><tr><td class="def">コンストラクタ
+<code>public Cstr(String s)<code></td></tr></table>
+<p></p>
+
+<table border width="100%"><tr><td class="def"><code>public String repr()<code></td></tr></table>
+<p>Sangoプログラムソース表現（二重引用符に囲まれ，必要なエスケープ表現されたもの）を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean equalsToString(String s)<code></td></tr></table>
+<p><code>s</code>と等価かどうか判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int getLength()<code></td></tr></table>
+<p>要素の個数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int getCharAt(int i)<code></td></tr></table>
+<p>指標<code>i</code>（先頭は0）の文字のUnicodeを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int lastIndexOf(int c)<code></td></tr></table>
+<p>文字<code>c</code>が最後に出現する指標を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void append(int c)
+public void append(char c)
+public void append(String s)<code></td></tr></table>
+<p>後ろに連結します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr append(Cstr s)<code></td></tr></table>
+<p>後ろに<code>s</code>を連結した<code>Cstr</code>を返します。
+元のオブジェクトは変化しません。</p>
+
+<table border width="100%"><tr><td class="def"><code>public String toJavaString()<code></td></tr></table>
+<p>Javaの<code>String</code>に変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr substring(int start, int end)<code></td></tr></table>
+<p>指標<code>start</code>から指標(<code>end</code>-1)の<code>Cstr</code>を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static String codePointToJavaString(int c)<code></td></tr></table>
+<p>文字<code>c</code>をJavaの<code>String</code>に変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static String codePointToRawRepr(int c, boolean inString)<code></td></tr></table>
+<p>文字<code>c</code>をSangoプログラムソース表現に変換します。
+文字列内（二重引用符の中）の場合には<code>inString</code>に<code>true</code>を，文字（単引用符の中）の場合は<code>false</code>を指定します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.4">B.4 <code>RArrayItem</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RArrayItem extends RObjItem<code></td></tr></table>
+<p>ストリングを実装するクラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int getElemCount()<code></td></tr></table>
+<p>要素の個数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RObjItem getElemAt(int index)<code></td></tr></table>
+<p>指標<code>index</code>の要素を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setElemAt(int index, RObjItem elem)<code></td></tr></table>
+<p>指標<code>index</code>の要素を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setCharElemAt(int index, int c)<code></td></tr></table>
+<p><code>&lt;cstr&gt;</code>オブジェクトの指標<code>index</code>に，文字オブジェクト（<code>RIntItem</code>）を設定します。
+プログラマは，型の整合性を保証する必要があります。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean equalsToCstr(Cstr cstr)<code></td></tr></table>
+<p><code>&lt;cstr&gt;</code>オブジェクトが文字列<code>cstr</code>に等価かどうか判定します。
+プログラマは，型の整合性を保証する必要があります。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.5">B.5 <code>RDataConstr</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RDataConstr<code></td></tr></table>
+<p>データ構築情報です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static final RDataConstr pseudoOfTuple<code></td></tr></table>
+<p>タプルを示す擬似情報です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean equals(Object o)<code></td></tr></table>
+<p>等価判定を行います。
+モジュール名とデータ構築子名が一致すれば真になります。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr getModName()<code></td></tr></table>
+<p>モジュール名を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public String getName()<code></td></tr></table>
+<p>データ構築子名を返します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.6">B.6 <code>RFrame</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RFrame<code></td></tr></table>
+<p>クロージャに割り当てられたフレームです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RVMItem popOstack()<code></td></tr></table>
+<p>operand stackからオブジェクトを一つ取り除いて返します。
+<code>RVMItem</code>は，<code>RObjItem</code>の基底クラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void pushOstack(RVMItem item)<code></td></tr></table>
+<p>operand stackにオブジェクトを積みます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.7">B.7 <code>RIntItem</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>abstract public class RIntItem extends RObjItem<code></td></tr></table>
+<p>整数，バイト，文字を実装するクラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int getValue()<code></td></tr></table>
+<p>値を返します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.8">B.8 <code>RListItem</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>abstract public class RListItem extends RObjItem<code></td></tr></table>
+<p>リストを実装するクラスです。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="B.8.a"><code>Cell</code></h3>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public static class Cell extends RListItem<code></td></tr></table>
+<p>リストセル（要素を連結するオブジェクト）のクラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RObjItem head<code></td></tr></table>
+<p>頭部のオブジェクトです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RListItem tail<code></td></tr></table>
+<p>尾部のオブジェクトです。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="B.8.b"><code>Nil</code></h3>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public static class Nil extends RListItem<code></td></tr></table>
+<p>空リスト（リストの終端）のクラスです。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.9">B.9 <code>RNativeImplHelper</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RNativeImplHelper<code></td></tr></table>
+<p>ネイティブコード実装から使用可能な機能を提供します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RuntimeEngine getRuntimeEngine()<code></td></tr></table>
+<p>実行中の<code>RuntimeEngine</code>インスタンスを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.Locale getLocale()<code></td></tr></table>
+<p>ロケールを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr getProgName()<code></td></tr></table>
+<p>メインプログラムのモジュール名を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;Cstr&gt; getArgs()<code></td></tr></table>
+<p>プログラムの引数を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;java.io.File&gt; getSysLibPaths()<code></td></tr></table>
+<p>システムライブラリ探索パスのリストを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RStructItem getBoolItem(boolean b)<code></td></tr></table>
+<p><code>b</code>に応じた<code>&lt;bool&gt;</code>オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean boolItemToBoolean(RStructItem b)<code></td></tr></table>
+<p><code>&lt;bool&gt; b</code>を<code>boolean</code>に変換します。
+プログラマは，型の整合性を保証する必要があります。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RIntItem getByteItem(int b)<code></td></tr></table>
+<p><code>b</code>に応じた<code>&lt;byte&gt;</code>オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RIntItem getCharItem(int c)<code></td></tr></table>
+<p><code>c</code>に応じた<code>&lt;char&gt;</code>オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RIntItem getIntItem(int i)<code></td></tr></table>
+<p><code>i</code>に応じた<code>&lt;int&gt;</code>オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RRealItem getRealItem(double d)<code></td></tr></table>
+<p><code>d</code>に応じた<code>&lt;real&gt;</code>オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RRealItem getNaNItem()<code></td></tr></table>
+<p>非数（NaN）オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RRealItem getPosInfItem()<code></td></tr></table>
+<p>正の無限大オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RRealItem getNegInfItem()<code></td></tr></table>
+<p>負の無限大オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RStructItem getVoidItem()<code></td></tr></table>
+<p><code>void$</code>オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RListItem.Nil getListNilItem()<code></td></tr></table>
+<p>空リスト（リストの終端）オブジェクトを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RListItem.Cell createListCellItem()<code></td></tr></table>
+<p>リスト（リストセル）を生成します。
+この段階では，頭部も尾部も設定されていません。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RDataConstr getDataConstr(Cstr modName, String name)<code></td></tr></table>
+<p>データ構築子を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RStructItem getStructItem(RDataConstr dataConstr, RObjItem[] attrs)<code></td></tr></table>
+<p>データを構築します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RStructItem getTupleItem(RObjItem[] elems)<code></td></tr></table>
+<p>タプルを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RArrayItem createArrayItem(int size)<code></td></tr></table>
+<p>ストリングを生成します。
+この段階では，要素が設定されていません。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RArrayItem cstrToArrayItem(Cstr cstr)<code></td></tr></table>
+<p><code>cstr</code>を<code>&lt;cstr&gt;</code>オブジェクトに変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr arrayItemToCstr(RArrayItem array)<code></td></tr></table>
+<p><code>&lt;cstr&gt;</code>オブジェクトを<code>Cstr</code>に変換します。
+プログラマは，型の整合性を保証する必要があります。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RClosureItem createClosureOfNativeImplHere(
+  String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl)<code></td></tr></table>
+<p>実行中のモジュール上で，ネイティブコードで実装されたクロージャを生成します。
+<code>name</code>には，クロージャ名を指定します。
+クロージャ名は，例外情報に使われます。
+<code>paramCount</code>には，実装上のパラメタ数ではなく，Sangoプログラム上でのパラメタ数を指定します。
+<code>nativeImplTargetObject</code>には，クロージャ呼び出し時のターゲットオブジェクトを指定します。
+<code>nativeImpl</code>には，クロージャ呼び出し時のメソッドを指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean objEquals(RObjItem item0, RObjItem item1)<code></td></tr></table>
+<p>オブジェクトの等価判定を行います。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RVMItem popOstack()<code></td></tr></table>
+<p>operand stackからオブジェクトを一つ取り除いて返します。
+<code>RVMItem</code>は，<code>RObjItem</code>の基底クラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void pushOstack(RVMItem item)<code></td></tr></table>
+<p>operand stackにオブジェクトを積みます。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RObjItem[] popOStackMultipleObjItemsPushOrder(int count)<code></td></tr></table>
+<p>operand stackから<code>count</code>個のオブジェクトを取り除いて返します。
+配列内での順序は，先に積まれていたオブジェクトからになります。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setCatchException(boolean b)<code></td></tr></table>
+<p>このフレームで例外を捕捉するかどうかを設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RResult getResult()<code></td></tr></table>
+<p>このフレームの結果を格納しているインスタンスを取得します。
+返り値も例外も設定されていない場合は，<code>void$</code>を返すものと仮定されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setReturnValue(RObjItem v)<code></td></tr></table>
+<p>このクロージャからの返り値を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RExcInfoItem getExcInfo()<code></td></tr></table>
+<p>このフレームを対象に例外情報オブジェクトを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RStructItem createException(RObjItem excDesc, Cstr msg, RObjItem org)<code></td></tr></table>
+<p>このフレームを対象に例外オブジェクトを生成します。
+<code>org</code>には，必要に応じ，オリジナルの例外オブジェクトを指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setException(RObjItem e)<code></td></tr></table>
+<p>このクロージャの結果として，例外を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void scheduleInvocation(RClosureItem c, RObjItem[] params, Object resumeInfo)<code></td></tr></table>
+<p>クロージャを呼び出すよう登録します。
+登録されたクロージャは，当クロージャの復帰後に呼び出され，その後，当モジュールが再度呼び出されます。
+<code>resumeInfo</code>には，再開情報を指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Object getAndClearResumeInfo()<code></td></tr></table>
+<p>登録した再開情報を取得し，登録をクリアします。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RResult getInvocationResult()<code></td></tr></table>
+<p>呼び出したクロージャの結果を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Version getVersion()<code></td></tr></table>
+<p>バージョン情報を取得します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.10">B.10 <code>RObjItem</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>abstract public class RObjItem extends RVMItem<code></td></tr></table>
+<p>全てのSangoオブジェクトの基底クラスです。
+オブジェクトをネイティブコード実装する場合は，このクラスを継承し，抽象メソッドを実装します。</p>
+
+<table border width="100%"><tr><td class="def">コンストラクタ
+<code>public RObjItem(RuntimeEngine e)<code></td></tr></table>
+<p></p>
+
+<table border width="100%"><tr><td class="def"><code>abstract public boolean objEquals(RFrame frame, RObjItem item)<code></td></tr></table>
+<p>Sangoオブジェクトの等価判定を行います。
+内部のSangoオブジェクトの等価判定を呼び出し側に依頼する場合は，対象のSangoオブジェクトを<code>RFrame</code>のoperand stackに積んで復帰します（<code>RListCellItem</code>や<code>RStructItem</code>のソースコードを参照してください）。</p>
+
+<table border width="100%"><tr><td class="def"><code>abstract public RType.Sig getTsig()<code></td></tr></table>
+<p>型シグネチャ（型構築子と型パラメタ数）を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>abstract public Cstr debugReprOfContents()<code></td></tr></table>
+<p><code>&quot;sango.debug&quot;.repr</code>の結果に埋め込まれる，内部情報の表現を返します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.11">B.11 <code>RRealItem</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RRealItem extends RObjItem<code></td></tr></table>
+<p>実数を実装するクラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public double getValue()<code></td></tr></table>
+<p>値を返します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.12">B.12 <code>RResult</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RResult<code></td></tr></table>
+<p>クロージャ呼び出しの結果のホルダです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static final int NORMAL_END
+public static final int EXIT_END
+public static final int ABNORMAL_END<code></td></tr></table>
+<p>結果の区分を示します。
+<code>NORMAL_END</code>は正常復帰，<code>EXIT_END</code>は<code>exit$</code>例外あるいは<code>(exit$ thru$)</code>例外の発生，<code>ABNORMAL_END</code>はそれ以外の例外の発生を示します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int endCondition()<code></td></tr></table>
+<p>結果の区分を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RObjItem toResultItem()<code></td></tr></table>
+<p>結果を<code>&lt;A result&gt;</code>オブジェクトに変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RObjItem getReturnValue()<code></td></tr></table>
+<p>登録されている返り値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setReturnValue(RObjItem ret)<code></td></tr></table>
+<p>クロージャの結果として，返り値を登録します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RStructItem getException()<code></td></tr></table>
+<p>登録されている例外を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setException(RObjItem exc)<code></td></tr></table>
+<p>クロージャの結果として，例外を登録します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.13">B.13 <code>RStructItem</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RStructItem extends RObjItem<code></td></tr></table>
+<p>タプル，被構築型データを実装するクラスです。
+このクラスにおいては，構成要素をフィールドと呼びます。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RDataConstr getDataConstr()<code></td></tr></table>
+<p>構築情報を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int getFieldCount()<code></td></tr></table>
+<p>フィールドの個数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public RObjItem getFieldAt(int index)<code></td></tr></table>
+<p>指標<code>index</code>のフィールドを返します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.14">B.14 <code>RuntimeEngine</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class RuntimeEngine<code></td></tr></table>
+<p>実行エンジンとのインタフェースを提供します。
+主に，実行エンジンをJavaプログラムに組み込む場合に使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static RuntimeEngine newInstance()<code></td></tr></table>
+<p>新たなインスタンスを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static Version getVersion()<code></td></tr></table>
+<p>バージョン情報を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.io.PrintStream getMessageOut()<code></td></tr></table>
+<p>実行エンジン内部メッセージの出力先を返します。
+初期値は<code>System.err</code>です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setMessageOut(java.io.PrintStream o)<code></td></tr></table>
+<p>実行エンジン内部メッセージの出力先を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.Locale getLocale()<code></td></tr></table>
+<p>ロケールを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setLocale(java.util.Locale lcl)<code></td></tr></table>
+<p>ロケールを設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public boolean isVerboseModule()<code></td></tr></table>
+<p>モジュールのロード情報を出力するか否かを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setVerboseModule(boolean sw)<code></td></tr></table>
+<p>モジュールのロード情報を出力するか否かを設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;java.io.File&gt; getSysLibPaths()<code></td></tr></table>
+<p>システムライブラリの探索パスのリストを返します。
+初期値は{"lib"}です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setSysLibPaths(java.util.List&lt;java.io.File&gt; paths)<code></td></tr></table>
+<p>システムライブラリの探索パスのリストを設定します。
+Sangoをインストールしたディレクトリ配下の<code>lib</code>を指定してください。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;java.io.File&gt; getUserModPaths()<code></td></tr></table>
+<p>モジュール探索パスのリストを返します。
+初期値は{"."}です。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setUserModPaths(java.util.List&lt;java.io.File&gt; paths)<code></td></tr></table>
+<p>モジュール探索パスのリストを設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr getProgName()<code></td></tr></table>
+<p>メインプログラムのモジュール名を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setProgName(Cstr prog)<code></td></tr></table>
+<p>メインプログラムのモジュール名を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public java.util.List&lt;Cstr&gt; getArgs()<code></td></tr></table>
+<p>プログラムの引数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void setArgs(java.util.List&lt;Cstr&gt; args)<code></td></tr></table>
+<p>プログラムの引数を設定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int run() throws AbortException<code></td></tr></table>
+<p>実行エンジンを開始します。
+プログラムが終了すると，終了コードを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static void printException(java.io.PrintStream ps, RStructItem exc)<code></td></tr></table>
+<p>Sangoの例外を印書します。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.15">B.15 <code>Version</code></h2>
+
+<table border width="100%"><tr><td class="def">クラス定義
+<code>public class Version<code></td></tr></table>
+<p>バージョン情報を表すクラスです。</p>
+
+<table border width="100%"><tr><td class="def"><code>public static Version getInstance()<code></td></tr></table>
+<p>インスタンスを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public int major
+public int minor
+public int micro
+public String level
+public int build<code></td></tr></table>
+<p>それぞれ，メジャー番号，マイナー番号，マイクロ番号，レベル，ビルド番号を示します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public String full<code></td></tr></table>
+<p>バージョン記述の全体を示します。</p>
+
+</body>
+</html>
+

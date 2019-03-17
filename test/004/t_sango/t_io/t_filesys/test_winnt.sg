@@ -1,0 +1,42 @@
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.io.filesys.winnt" -> wfs ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test031a,
+  test031b,
+  test032a,
+  test032b,
+  test033a,
+  test033b,
+  test034a,
+  test035a,
+  test036a,
+  test037a,
+  test051a,
+  test052a,
+  void$
+} ;;
+
+eval test031a -> <cstr> { "c:\\" wfs.parse_path = *P, P wfs.absolute? = true$, P fs.path_area = "c:\\", P fs.path_names = [], P wfs.path_repr = "c:\\" } ;;
+eval test031b -> <cstr> { "\\\\host\\shared\\" wfs.parse_path = *P, P wfs.absolute? = true$, P fs.path_area = "\\\\host\\shared\\", P fs.path_names = [], P wfs.path_repr = "\\\\host\\shared\\" } ;;
+eval test032a -> <cstr> { "c:\\foo\\bar" wfs.parse_path = *P, P wfs.absolute? = true$, P fs.path_area = "c:\\", P fs.path_names = [ "foo", "bar" ], P wfs.path_repr = "c:\\foo\\bar" } ;;
+eval test032b -> <cstr> { "\\\\host\\shared\\foo\\bar" wfs.parse_path = *P, P wfs.absolute? = true$, P fs.path_area = "\\\\host\\shared\\", P fs.path_names = [ "foo", "bar" ], P wfs.path_repr = "\\\\host\\shared\\foo\\bar" } ;;
+eval test033a -> <cstr> { "foo\\bar" wfs.parse_path = *P, P wfs.absolute? = false$, P fs.path_area = "", P fs.path_names = [ "foo", "bar" ], P wfs.path_repr = "foo\\bar" } ;;
+eval test033b -> <cstr> { "c:foo\\bar" wfs.parse_path = *P, P wfs.absolute? = false$, P fs.path_area = "c:", P fs.path_names = [ "foo", "bar" ], P wfs.path_repr = "c:foo\\bar" } ;;
+eval test034a -> <cstr> { "..\\..\\hoge" wfs.parse_path = *P, P fs.path_names = [ "..", "..", "hoge" ], P wfs.path_repr = "..\\..\\hoge" } ;;
+eval test035a -> <cstr> { "foo\\bar\\.." wfs.parse_path = *P, P fs.path_names = [ "foo" ], P wfs.path_repr = "foo" } ;;
+eval test036a -> <cstr> { "foo\\.." wfs.parse_path = *P, P fs.path_names = [], P wfs.path_repr = "." } ;;
+eval test037a -> <fs.path_struct result> { \\ { "c:\\foo\\..\\.." wfs.parse_path } try = ** exc$ } ;;
+eval test051a -> <cstr list> { 'c' [ "foo" ] wfs.new_absolute_local_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "foo", "bar" ] } ;;
+eval test052a -> <cstr list> { [ "..", "..", "foo" ] wfs.new_relative_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "..", "..", "foo", "bar" ] } ;;

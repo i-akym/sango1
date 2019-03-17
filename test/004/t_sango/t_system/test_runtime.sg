@@ -1,0 +1,33 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  ^test try >> case {
+  ; ** fin$ -> 0
+  ; *E exc$ -> E stdio.cstdout debug.dump_to, 9
+  } = *Exit,
+  stdio.flush,
+  Exit case {
+  ; 0 ->
+  ; ** -> Exit runtime.exit
+  }
+} ;;
+
+eval test -> <void> {
+  test001,
+  test011,
+  test121,
+  void$
+} ;;
+
+eval version_test -> <cstr> { "1.0.0" } ;;  # VERSION
+
+eval test001 -> <void> { _name_ = *Name, runtime.prog_name = Name, runtime.args = [ "foo", "bar" ], void$ } ;;
+eval test011 -> <bool> { (runtime.version >> runtime.ver_full) version_test str.start_with? = true$ } ;;
+eval test121 -> <void> {
+  \\ <void> { (stdio.cstdout_org_impl) "test121 succeeded." io.print_and_newline } runtime.add_action_to_shutdown
+} ;;

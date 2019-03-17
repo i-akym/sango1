@@ -1,0 +1,127 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.io.util" -> iou ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  runtime.args = [ *Cur_dir, *Data_dir ; ** ],
+  test000,
+  test010,
+  test020,
+  test030,
+  test040,
+  test050,
+  Cur_dir "test_util.sg" file001 >> fs.open_byte_instream = *Li100,
+  Data_dir "d100.txt" file001 >> fs.open_byte_outstream = *Lo100,
+  Li100 Lo100 test100,
+  test200,
+  test300,
+  test350,
+  void$
+} ;;
+
+eval <cstr> *DD <cstr> *F file001 -> <cstr> { (DD fs.parse_path) F fs.child_path >> fs.path_repr } ;;
+
+eval test000 -> <void> {
+  iou.open_null_byte_outstream = *O,
+  O io.status = io.outstream_open$,
+  O 3~ io.write,
+  O [| 5~, 7~ |] io.write,
+  O io.flush,
+  O io.close,
+  O io.status = io.outstream_closed$,
+  void$
+} ;;
+eval test010 -> <void> {
+  iou.open_null_char_outstream = *O,
+  O io.status = io.outstream_open$,
+  O 'c' io.write,
+  O "str" io.write,
+  O io.flush,
+  O io.close,
+  O io.status = io.outstream_closed$,
+  void$
+} ;;
+eval test020 -> <void> {
+  iou.open_null_print_stream = *O,
+  O io.status = io.outstream_open$,
+  O 'c' io.print_raw,
+  O "str" io.print,
+  O io.newline,
+  O io.flush,
+  O io.close,
+  O io.status = io.outstream_closed$,
+  void$
+} ;;
+eval test030 -> <void> {
+  iou.open_null_byte_instream = *I,
+  I io.status = io.instream_eof$,
+  I io.read = io.instream_at_end$,
+  I 3 io.read_string = io.instream_at_end$,
+  I io.close,
+  I io.status = io.instream_closed$,
+  void$
+} ;;
+eval test040 -> <void> {
+  iou.open_null_char_instream = *I,
+  I io.status = io.instream_eof$,
+  I io.read = io.instream_at_end$,
+  I 3 io.read_string = io.instream_at_end$,
+  I io.close,
+  I io.status = io.instream_closed$,
+  void$
+} ;;
+eval test050 -> <void> {
+  iou.open_null_line_instream = *I,
+  I io.status = io.instream_eof$,
+  I io.read_line = io.instream_at_end$,
+  I io.close,
+  I io.status = io.instream_closed$,
+  void$
+} ;;
+eval <byte io.instream_h> *I <byte io.outstream_h> *O test100 -> <void result> {
+  I O iou.new_default_pump_conf >> iou.start_pump >> act.sync = void$ fin$
+} ;;
+eval test200 -> <void> {
+  "abcdefg" iou.open_string_instream = *In,
+  In io.status = io.instream_open$,
+  In io.read = 'a' io.instream_data$,
+  In 2 io.read_string = "bc" io.instream_data$,
+  In 10 io.read_string = "defg" io.instream_data$,
+  In io.status = io.instream_eof$,
+  In io.read = io.instream_at_end$,
+  In io.close,
+  In io.status = io.instream_closed$,
+  void$
+} ;;
+eval test300 -> <void> {
+  iou.open_byte_stream_appender = (| *Out, *Getter |),
+  Out io.status = io.outstream_open$,
+  Out 5~ io.write,
+  Out io.flush,
+  Out [| 7~, 9~ |] io.write,
+  Out io.close,
+  Out io.status = io.outstream_closed$,
+  &Getter >> str.pack_all = [| 5~, 7~, 9~ |],
+  void$
+} ;;
+eval test350 -> <void> {
+  iou.open_char_stream_appender = (| *Out, *Getter |),
+  Out io.status = io.outstream_open$,
+  Out 'a' io.write,
+  Out io.flush,
+  Out "bc" io.write,
+  Out io.close,
+  Out io.status = io.outstream_closed$,
+  &Getter >> str.pack_all = "abc",
+  void$
+} ;;

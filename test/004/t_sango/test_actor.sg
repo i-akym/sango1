@@ -1,0 +1,167 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002 = *A,
+  A test003,
+  A test004,
+  A test005,
+  A test006,
+  test010,
+  test050,
+  test101 = (| *B, *P |),
+  B P test102,
+  B P test103,
+  B P test104,
+  B P test105,
+  test106,
+  test111,
+  # test112,  # changing myself into background will cause program stop.
+  test121,
+  test122,
+  test123,
+  test125,
+  test131,
+  test401,
+  test401a,
+  test402,
+  test402a,
+  test403,
+  void$
+} ;;
+
+eval act001 -> <void> {} ;;
+eval <act.post_h> *P act002 -> <void> { P act.signal$ act.send } ;;
+
+eval test001 -> <act.actor_h> { act.my_actor_h } ;;
+eval test002 -> <act.actor_h> { ^act001 act.spawn_actor >> act.actor_h } ;;
+eval <act.actor_h> *A test003 -> <bool> { A (0 act.wait_ms$) act.join = false$ } ;;
+eval <act.actor_h> *A test004 -> <bool> { A (100 act.wait_ms$) act.join = false$ } ;;
+eval <act.actor_h> *A test005 -> <void> { A act.start, act.yield } ;;
+eval <act.actor_h> *A test006 -> <bool> { A act.wait_forever$ act.join = true$ } ;;
+eval test010 -> <void> {
+  ^act001 act.spawn_actor >> act.actor_h = *A0,
+  ^act001 act.spawn_actor >> act.actor_h = *A1,
+  [ A0, A1 ] (0 act.wait_ms$) act.join = [],
+  A1 act.start,
+  [ A0, A1 ] act.wait_forever$ act.join = [ A1 ],
+  A0 act.start,
+  A0 act.wait_forever$ act.join,
+  [ A0, A1 ] act.wait_forever$ act.join >> case {
+  ; [ A0, A1 ] ->
+  ; [ A1, A0 ] ->
+  }
+} ;;
+eval test050 -> <act.actor_state> { act.my_actor_h act.state = run: act.actor_started$ prio: 4 bg: false$ act.actor_state$ } ;;
+eval test101 -> <act.mbox_h act.post_h tuple> { act.open_mbox } ;;
+eval <act.mbox_h> *B <act.post_h> *P test102 -> <bool> { B (0 act.wait_ms$) act.listen = false$ } ;;
+eval <act.mbox_h> *B <act.post_h> *P test103 -> <bool> { B (100 act.wait_ms$) act.listen = false$ } ;;
+eval <act.mbox_h> *B <act.post_h> *P test104 -> <act.msg+ maybe> { B act.receive = none$ } ;;
+eval <act.mbox_h> *B <act.post_h> *P test105 -> <act.msg+> { P act.signal$ act.send, B act.wait_forever$ act.listen = true$, B act.receive >> value = act.signal$ } ;;
+eval test106 -> <void> {
+  act.open_mbox = (| *B0, *P0 |),
+  act.open_mbox = (| *B1, *P1 |),
+  [ B0, B1 ] (0 act.wait_ms$) act.listen = [],
+  \\ <void> { P1 act002 } act.spawn >> act.actor_h = *A1,
+  A1 act.start,
+  A1 act.wait_forever$ act.join,
+  [ B0, B1 ] (0 act.wait_ms$) act.listen = [ B1 ],
+  \\ <void> { P0 act002 } act.spawn >> act.actor_h = *A0,
+  A0 act.start,
+  A0 act.wait_forever$ act.join,
+  [ B0, B1 ] (0 act.wait_ms$) act.listen >> case {
+  ; [ B0, B1 ] ->
+  ; [ B1, B0 ] ->
+  }
+} ;;
+eval test111 -> <bool> { act.my_actor_h >> act.background? = false$ } ;;
+# eval test112 -> <bool> { act.my_actor_h true$ act.run_background, act.my_actor_h >> act.background? = true$ } ;;
+eval test121 -> <int> { act.highest_priority = 9 } ;;
+eval test122 -> <int> { act.default_priority = 4 } ;;
+eval test123 -> <int> { act.lowest_priority = 0 } ;;
+eval test125 -> <int> { act.my_actor_h act.priority = 4 } ;;
+eval test131 -> <int> { act.my_actor_h 6 act.set_priority, act.my_actor_h act.priority = 6 } ;;
+eval test401 -> <void> {
+  \\ <void> {} act.spawn_actor >> act.actor_h = *A,
+  act.open_mbox = (| *B, *P |),
+  A P act.start_monitoring,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S act.actor_state_changed$,
+  S = run: act.actor_born$ *** act.actor_state$,
+  A act.start,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S' act.actor_state_changed$,
+  S' = run: act.actor_started$ *** act.actor_state$,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S'' act.actor_state_changed$,
+  S'' = run: (none$ act.actor_ended$) *** act.actor_state$,
+  void$
+} ;;
+eval test401a -> <void> {
+  \\ <void> {} act.spawn_actor >> act.actor_h = *A,
+  act.open_mbox = (| *B, *P |),
+  A act.start,
+  A act.wait_forever$ act.join,
+  A P act.start_monitoring,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S act.actor_state_changed$,
+  S = run: (none$ act.actor_ended$) *** act.actor_state$,
+  void$
+} ;;
+eval test402 -> <void> {
+  \\ <void> { intentional$ "" new_exception >> throw } act.spawn_actor >> act.actor_h = *A,
+  act.open_mbox = (| *B, *P |),
+  A P act.start_monitoring,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S act.actor_state_changed$,
+  S = run: act.actor_born$ *** act.actor_state$,
+  A act.start,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S' act.actor_state_changed$,
+  S' = run: act.actor_started$ *** act.actor_state$,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S'' act.actor_state_changed$,
+  S'' = run: (((*** exception$) value$) act.actor_ended$) *** act.actor_state$,
+  void$
+} ;;
+eval test402a -> <void> {
+  \\ <void> { intentional$ "" new_exception >> throw } act.spawn_actor >> act.actor_h = *A,
+  act.open_mbox = (| *B, *P |),
+  A act.start,
+  A act.wait_forever$ act.join,
+  A P act.start_monitoring,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S act.actor_state_changed$,
+  S = run: (((*** exception$) value$) act.actor_ended$) *** act.actor_state$,
+  void$
+} ;;
+eval test403 -> <void> {
+  \\ <void> { act.my_actor_h 5 act.set_priority, act.my_actor_h true$ act.run_background } act.spawn_actor >> act.actor_h = *A,
+  act.open_mbox = (| *B, *P |),
+  A P act.start_monitoring,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S act.actor_state_changed$,
+  S = run: act.actor_born$ *** act.actor_state$,
+  A act.start,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S' act.actor_state_changed$,
+  S' = run: act.actor_started$ *** act.actor_state$,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S'' act.actor_state_changed$,
+  S'' = run: act.actor_started$ prio: 5 *** act.actor_state$,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S''' act.actor_state_changed$,
+  S''' = run: act.actor_started$ bg: true$ *** act.actor_state$,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = A *S'''' act.actor_state_changed$,
+  S'''' = run: (none$ act.actor_ended$) *** act.actor_state$,
+  void$
+} ;;

@@ -1,0 +1,61 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.holder" -> set_holder ;;
+import "sango.util.set.simpleset" -> simpleset ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  new_set seal_fs set_holder.create_holder = *S,
+  S test001,
+  void$
+} ;;
+
+eval new_set -> <int set.set> {
+  simpleset.new_set
+} ;;
+
+extend <independent> -> shared_set := <int set.set> s$ ;;
+
+eval seal_fs -> <<int set.set> seal_fs> {
+  seal_f: \ <int set.set> *S -> <shared_set> { S s$ }
+    unseal_f: \ <independent+> *I -> <<int set.set> maybe> { I case { *S s$ -> S value$ ; ** -> none$ } }
+    seal_fs$
+} ;;
+
+eval <int set_holder.holder_h> *S test001 -> <void> {
+  S set_holder.empty? = true$,
+  S 1 set_holder.put = none$,
+  S 1 set_holder.put_new = false$,
+  S 2 set_holder.put_new = true$,
+  S 2 set_holder.put = 2 value$,
+  S set_holder.size = 2,
+  S 2 set_holder.contain? = true$,
+  S 3 set_holder.contain? = false$,
+  S 3 set_holder.put = none$,
+  S 2 set_holder.remove = 2 value$,
+  S set_holder.take >> case {
+  ; 1 value$ ->
+    S set_holder.take = 3 value$,
+    S set_holder.take = none$
+  ; 3 value$ ->
+    S set_holder.take = 1 value$,
+    S set_holder.take = none$
+  },
+  S set_holder.clear,
+  S set_holder.empty? = true$,
+  S [ 4, 5 ] set_holder.add_list,
+  S set_holder.read = *SD,
+  SD set.size = 2,
+  S 5 set_holder.delete,
+  S set_holder.size = 1,
+  S SD set_holder.write,
+  S set_holder.size = 2,
+  void$
+} ;;

@@ -1,0 +1,442 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample code for object-oriented programming.
+
+import "sango.io.stdio" -> stdio ;;
+import "sango.cstr" -> cstr ;;
+
+eval _main_ -> <void> {
+  "This is a sample code for object-oriented programming." stdio.print_and_newline,
+  "Please read my source code." stdio.print_and_newline,
+  "----" stdio.print_and_newline,
+  "Alice" "0003" new_officer = *Alice,
+  Alice greeting >> stdio.print_and_newline,
+  Alice work,
+  "Bob" "1007" "sales division" new_employee = *Bob,
+  Bob as_company_person >> as_person >> greeting >> stdio.print_and_newline,
+  Bob work,
+  Bob "trading divrsion" set_org = *Bob',
+  Bob' as_company_person >> work,
+  stdio.flush
+} ;;
+
+###
+### class person 
+###
+
+eval <cstr> *Name new_person @public -> <person> {
+  Name init_person = *Person_impl,
+  i: Person_impl
+    person_ms: (Person_impl person_sms)
+    x: just_person$
+    person$
+} ;;
+
+eval <person> *Person person_greeting | greeting @public -> <cstr> {
+  Person &(Person person_ms >> greeting_f_ >> value)
+} ;;
+
+## implementation
+
+data <person> @public :=
+  i: <person_impl>  # impl
+  person_ms: <person_fs>  # instance methods
+  x: <person_x+>  # derived class
+  person$ ;;
+
+data <person_impl> @protected :=
+  person_sms: <person_fs>  # super methods for derived classes
+  d: <person_d>  # data
+  person_impl$ ;;
+
+data <person_x> @public :=
+| just_person$
+| <company_person> person_x_company_person$ ;;  # extension when in another file
+
+data <person_fs> @public :=
+  greeting_f_: <<person cstr fun> maybe>
+  person_fs$ ;;
+
+eval person_person_ms -> <person_fs> {
+  greeting_f_: (^person_impl_greeting value$)
+    person_fs$
+} ;;
+
+eval <person_fs> *Ms0 <person_fs> *Ms1 override_person_ms @public -> <person_fs> {
+  Ms1 greeting_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 greeting_f_ } = *Greeting_f_,
+  greeting_f_: Greeting_f_
+    person_fs$
+} ;;
+
+data <person_d> @protected :=
+  name: <cstr>
+  person_d$ ;;
+
+eval <cstr> *Name init_person @public -> <person_impl> {
+  person_sms: person_person_ms
+    d: (Name person_d$)
+    person_impl$
+} ;;
+
+eval <person> *Person person_impl_greeting -> <cstr> {
+  Person i >> d = *D,
+  [ "Hi, I'm ", D name, "." ] cstr.concat
+} ;;
+
+eval <person> *Person person_super_greeting @public -> <cstr> {
+  Person &(Person i >> person_sms >> greeting_f_ >> value)
+} ;;
+
+###
+### abstract class company_person which inherits person
+###
+
+# no public constructor because this class is abstract
+# eval <cstr> *Name <cstr> *Id new_company_person -> <company_person> ;;
+
+eval <company_person> *Company_person company_person_as_person | as_person @public -> <person> {
+  Company_person = i: *I person_ms: *Person_ms *** company_person$,
+  i: (I >> s)
+    person_ms: Person_ms
+    x: (Company_person person_x_company_person$)
+    person$
+} ;;
+
+eval <person> *Person cast_to_company_person @public -> <company_person maybe> {
+  Person x >> case {
+  ; *X person_x_company_person$ -> X value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <company_person> *Company_person company_person_work | work @public -> <void> {
+  Company_person &(Company_person company_person_ms >> work_f_ >> value)
+} ;;
+
+eval <company_person> *Company_person company_person_greeting | greeting @public -> <cstr> {
+  (Company_person as_person) greeting
+} ;;
+
+## implementation
+
+data <company_person> @public :=
+  i: <company_person_impl>
+  person_ms: <person_fs>
+  company_person_ms: <company_person_fs>
+  x: <company_person_x+>
+  company_person$ ;;
+
+data <company_person_impl> @protected :=
+  s: <person_impl>  # super class
+  person_sms: <person_fs>
+  company_person_sms: <company_person_fs>
+  d: <company_person_d>
+  company_person_impl$ ;;
+
+data <company_person_x> @public :=
+| just_company_person$
+| <officer> company_person_x_officer$  # extension when in another file
+| <employee> company_person_x_employee$ ;;  # extension when in another file
+
+eval company_person_person_ms -> <person_fs> {
+  greeting_f_: none$
+    person_fs$
+} ;;
+
+data <company_person_fs> @public :=
+  work_f_: <<company_person void fun> maybe>
+  company_person_fs$ ;;
+
+eval company_perso_company_person_ms -> <company_person_fs> {
+  work_f_: (^company_person_work value$)
+    company_person_fs$
+} ;;
+
+eval <company_person_fs> *Ms0 <company_person_fs> *Ms1 override_company_person_ms @public -> <company_person_fs> {
+  Ms1 work_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 work_f_ } = *Work_f_,
+  work_f_: Work_f_
+    company_person_fs$
+} ;;
+
+data <company_person_d> @protected :=
+  id: <cstr>
+  company_person_d$ ;;
+
+eval <cstr> *Name <cstr> *Id init_company_person @public -> <company_person_impl> {
+  Name init_person = *Person_impl,
+  s: Person_impl
+    person_sms: ((Person_impl person_sms) company_person_person_ms override_person_ms)
+    company_person_sms: company_person_company_person_ms
+    d: (Id company_person_d$)
+    company_person_impl$
+} ;;
+
+eval company_person_company_person_ms -> <company_person_fs> {
+  work_f_: (^company_person_impl_work value$)
+    company_person_fs$ = *Company_person_sms,
+} ;;
+
+eval <company_person> *Company_person company_person_super_greeting @public -> <cstr> {
+  (Company_person as_person) person_super_greeting
+} ;;
+
+eval <company_person> *Company_person company_person_impl_work -> <void> {
+  "Working..." stdio.print_and_newline
+} ;;
+
+eval <company_person> *Company_person company_person_super_work @public -> <void> {
+  Company_person &(Company_person i >> company_person_sms >> work_f_ >> value)
+} ;;
+
+###
+###  class officer which inherits company_person
+###
+
+eval <cstr> *Name <cstr> *Id new_officer @public -> <officer> {
+  Name Id init_officer = *Officer_impl,
+  i: Officer_impl
+    person_ms: (Officer_impl person_sms)
+    company_person_ms: (Officer_impl company_person_sms)
+    x: just_officer$
+    officer$
+} ;;
+
+data <officer> @public :=
+  i: <officer_impl>
+  person_ms: <person_fs>
+  company_person_ms: <company_person_fs>
+  # officer_ms: <officer_ms>  # no additional methods
+  x: <officer_x+>
+  officer$ ;;
+
+eval <officer> *Officer officer_as_company_person | as_company_person @public -> <company_person> {
+  Officer = i: *I person_ms: *Person_ms company_person_ms: *Company_person_ms *** officer$,
+  i: (I s)
+    person_ms: Person_ms
+    company_person_ms: Company_person_ms
+    x: (Officer company_person_x_officer$)
+    company_person$
+} ;;
+
+eval <company_person> *Company_person cast_to_officer @public -> <officer maybe> {
+  Company_person x >> case {
+  ; *X company_person_x_officer$ -> X value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <officer> *Officer officer_greeting | greeting @public -> <cstr> {
+  (Officer as_company_person >> as_person) greeting
+} ;;
+
+eval <officer> *Officer officer_work | work @public -> <void> {
+  (Officer as_company_person) work
+} ;;
+
+## implementation
+
+data <officer_impl> @protected :=
+  s: <company_person_impl>
+  person_sms: <person_fs>
+  company_person_sms: <company_person_fs>
+  # officer_sms: <officer_fs>  # no additional methods
+  # d: <officer_d>  # no data
+  officer_impl$ ;;
+
+data <officer_x> @public :=
+| just_officer$ ;;
+
+eval <cstr> *Name <cstr> *Id init_officer @public -> <officer_impl> {
+  Name Id init_company_person = *Company_person_impl,
+  s: Company_person_impl
+    person_sms: ((Company_person_impl person_sms) officer_person_ms override_person_ms)
+    company_person_sms: ((Company_person_impl company_person_sms) officer_company_person_ms override_company_person_ms)
+    # officer_sms: <officer_ms>  # no additional methods
+    # d: <officer_d>  # no data
+    officer_impl$
+} ;;
+
+eval officer_person_ms -> <person_fs> {
+  greeting_f_: (^officer_impl_greeting value$)
+    person_fs$
+} ;;
+
+eval officer_company_person_ms -> <company_person_fs> {
+  work_f_: none$
+    company_person_fs$
+} ;;
+
+eval <person> *Person officer_impl_greeting -> <cstr> {
+  [ Person person_super_greeting, " I'm an officer." ] cstr.concat
+} ;;
+
+eval <officer> *Officer officer_super_greeting @public -> <cstr> {
+  (Officer as_company_person >> as_person) &(Officer i >> person_sms >> greeting_f_ >> value)
+} ;;
+
+eval <officer> *Officer officer_super_work @public -> <void> {
+  (Officer as_company_person) &(Officer i >> company_person_sms >> work_f_ >> value)
+} ;;
+
+###
+### class employee which inherits company_person
+###
+
+eval <cstr> *Name <cstr> *Id <cstr> *Org new_employee @public -> <employee> {
+  Name Id Org init_employee = *Employee_impl,
+  i: Employee_impl
+    person_ms: (Employee_impl person_sms)
+    company_person_ms: (Employee_impl company_person_sms)
+    employee_ms: employee_employee_ms
+    x: just_employee$
+    employee$
+} ;;
+
+data <employee> @public :=
+  i: <employee_impl>
+  person_ms: <person_fs>
+  company_person_ms: <company_person_fs>
+  employee_ms: <employee_fs>
+  x: <employee_x>
+  employee$ ;;
+
+eval <employee> *Employee employee_as_company_person | as_company_person @public -> <company_person> {
+  Employee = i: *I person_ms: *Person_ms company_person_ms: *Company_person_ms *** employee$,
+  i: (I s)
+    person_ms: Person_ms
+    company_person_ms: Company_person_ms
+    x: (Employee company_person_x_employee$)
+    company_person$
+} ;;
+
+eval <company_person> *Company_person cast_to_employee @public -> <employee maybe> {
+  Company_person x >> case {
+  ; *X company_person_x_employee$ -> X value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <employee> *Employee employee_greeting | greeting @public -> <cstr> {
+  (Employee as_company_person >> as_person) greeting
+} ;;
+
+eval <employee> *Employee employee_work | work @public -> <void> {
+  (Employee as_company_person) work
+} ;;
+
+eval <employee> *Employee employee_org | org @public -> <cstr> {
+  Employee &(Employee employee_ms >> org_f_ >> value)
+} ;;
+
+eval <employee> *Employee <cstr> *New_org employee_set_org | set_org @public -> <employee> {
+  Employee New_org &(Employee employee_ms >> set_org_f_ >> value)
+} ;;
+
+## implementation
+
+data <employee_impl> @protected :=
+  s: <company_person_impl>
+  person_sms: <person_fs>
+  company_person_sms: <company_person_fs>
+  employee_sms: <employee_fs>
+  d: <employee_d>
+  employee_impl$ ;;
+
+data <employee_x> @public :=
+| just_employee$ ;;
+
+eval employee_person_ms -> <person_fs> {
+  greeting_f_: none$
+    person_fs$
+} ;;
+
+eval employee_company_person_ms -> <company_person_fs> {
+  work_f_: (^employee_impl_work value$)
+    company_person_fs$
+} ;;
+
+data <employee_d> @protected :=
+  org: <cstr>
+  employee_d$ ;;
+
+data <employee_fs> @public :=
+  org_f_: <<employee cstr fun> maybe>
+  set_org_f_: <<employee cstr employee fun> maybe>
+  employee_fs$ ;;
+
+eval employee_employee_ms -> <employee_fs> {
+  org_f_: (^employee_impl_org value$)
+    set_org_f_: (^employee_impl_set_org value$)
+    employee_fs$
+} ;;
+
+eval <employee_fs> *Ms0 <employee_fs> *Ms1 override_employee_ms @public -> <employee_fs> {
+  Ms1 org_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 org_f_ } = *Org_f_,
+  Ms1 set_org_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 set_org_f_ } = *Set_org_f_,
+  org_f_: Org_f_
+    set_org_f_: Set_org_f_
+    employee_fs$
+} ;;
+
+eval <cstr> *Name <cstr> *Id <cstr> *Org init_employee @public -> <employee_impl> {
+  Name Id init_company_person = *Company_person_impl,
+  s: Company_person_impl
+    person_sms: ((Company_person_impl person_sms) employee_person_ms override_person_ms)
+    company_person_sms: ((Company_person_impl company_person_sms) employee_company_person_ms override_company_person_ms)
+    employee_sms: employee_employee_ms
+    d: (Org employee_d$)
+    employee_impl$
+} ;;
+
+eval <employee> *Employee employee_super_greeting @public -> <cstr> {
+  (Employee as_company_person >> as_person) &(Employee i >> person_sms >> greeting_f_ >> value)
+} ;;
+
+eval <company_person> *Company_person employee_impl_work -> <void> {
+  Company_person x = *Employee company_person_x_employee$,
+  [ "Working in ", Employee i >> d >> org, "..." ] cstr.concat >> stdio.print_and_newline
+} ;;
+
+eval <employee> *Employee employee_super_work -> <void> {
+  (Employee as_company_person) &(Employee i >> company_person_sms >> work_f_ >> value)
+} ;;
+
+eval <employee> *Employee employee_impl_org -> <cstr> {
+  Employee i >> d >> org
+} ;;
+
+eval <employee> *Employee employee_super_org -> <cstr> {
+  Employee &(Employee i >> employee_sms >> org_f_ >> value)
+} ;;
+
+eval <employee> *Employee <cstr> *New_org employee_impl_set_org -> <employee> {
+  d: (org: New_org employee_d$) :: (Employee i) employee_impl$ = *Employee_impl',
+  i: Employee_impl' :: Employee employee$
+} ;;
+
+eval <employee> *Employee <cstr> *New_org employee_super_set_org -> <employee> {
+  Employee New_org &(Employee i >> employee_sms >> set_org_f_ >> value)
+} ;;
+

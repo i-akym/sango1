@@ -1,0 +1,937 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.io" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.bool" -> bool ;;
+import "sango.char" -> char ;;
+import "sango.char.encoding" -> enc ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.string" -> str ;;
+import "sango.system" -> sys ;;
+
+extend <exc_desc> @public := <io_failure+> io_failure$ ;;
+
+data <io_failure> @public :=
+| not_exist$
+| not_available$
+| not_allowed$
+| bad_param$
+| bad_data$
+| timeout$
+| interrupted$
+| error$ ;;
+
+data <*A trial_res> @public :=
+| <A> done$
+| not_ready$ ;;
+
+
+#  -- generic instream --
+
+data <*A instream_h> @public :=
+  read_f: <<A instream_read_res> fun>
+  read_string_f: <int <<A string> instream_read_res> fun>
+  try_read_f_: <<<<A instream_read_res> trial_res> fun> maybe>  # optional feature
+  try_read_string_f_: <<int <<<A string> instream_read_res> trial_res> fun> maybe>  # optional feature
+  close_f: <void fun>
+  status_f: <instream_status fun>
+  instream_h$ ;;
+
+data <instream_status> @public :=
+| instream_open$
+| instream_eof$
+| <exception> instream_error$
+| instream_closed$ ;;
+
+data <*A instream_read_res> @public :=
+| <A> instream_data$
+| instream_at_end$ ;;
+
+eval <*A instream_h> *In <cstr> *Feature instream_feature_available? | feature_available? @public -> <bool> {
+  Feature case {
+  ; "try_read" -> In try_read_f_ >> something?
+  ; "try_read_string" -> In try_read_string_f_ >> something?
+  ; ** -> bad_arg$ ([ "Unknown feature. - ", Feature ] cstr.concat) new_exception >> throw
+  }
+} ;;
+
+eval <*A instream_h> *In read_from_instream | read @public -> <A instream_read_res> {
+  &(In read_f)
+} ;;
+
+eval <*A instream_h> *In <int> *Len read_string_from_instream | read_string @public -> <<A string> instream_read_res> {
+  if {
+  ; Len gt0? -> Len &(In read_string_f)
+  ; otherwise -> [||] instream_data$
+  }
+} ;;
+
+eval <*A instream_h> *In try_read_from_instream | try_read @public -> <<A instream_read_res> trial_res> {
+  In try_read_f_ >> case {
+  ; *F value$ -> &F
+  ; ** -> unsupported$ "try_read not supported." new_exception >> throw
+  }
+} ;;
+
+eval <*A instream_h> *In <int> *Len try_read_string_from_instream | try_read_string @public -> <<<A string> instream_read_res> trial_res> {
+  In try_read_string_f_ >> case {
+  ; *F value$ ->
+    if {
+    ; Len gt0? -> Len &F
+    ; otherwise -> ([||] instream_data$) done$
+    }
+  ; ** -> unsupported$ "try_read_string not supported." new_exception >> throw
+  }
+} ;;
+
+eval <*A instream_h> *In close_instream | close @public -> <void> {
+  &(In close_f)
+} ;;
+
+eval <*A instream_h> *In instream_status | status @public -> <instream_status> {
+  &(In status_f)
+} ;;
+
+
+#  -- generic outstream -- 
+
+data <outstream_status> @public :=
+| outstream_open$
+| <exception> outstream_error$
+| outstream_closed$ ;;
+
+data <*A outstream_h> @public :=
+  write_f: <A void fun>
+  write_string_part_f: <<A string> int int void fun>
+  flush_f: <void fun>
+  close_f: <void fun>
+  status_f: <outstream_status fun>
+  outstream_h$ ;;
+
+eval <*A outstream_h> *Out <A> *Data write_data_to_outstream | write @public -> <void> {
+  Data &(Out write_f)
+} ;;
+
+eval <*A outstream_h> *Out <A string> *DataStr <int> *Start <int> *Len write_string_part_to_outstream | write @public -> <void> {
+  if {
+  ; [ Start ge0?, Len ge0?, (Start Len sum) (DataStr str.length) le? ] bool.and ->
+  ; otherwise -> bad_arg$ "Invalid start position and/or length." new_exception >> throw
+  },
+  DataStr Start Len &(Out write_string_part_f)
+} ;;
+
+eval <*A outstream_h> *Out <A string> *DataStr write_string_to_outstream | write @public -> <void> {
+  Out DataStr 0 (DataStr str.length) write
+} ;;
+
+eval <*A outstream_h> *Out flush_outstream | flush @public -> <void> {
+  &(Out flush_f)
+} ;;
+
+eval <*A outstream_h> *Out close_outstream | close @public -> <void> {
+  &(Out close_f)
+} ;;
+
+eval <*A outstream_h> *Out outstream_status | status @public -> <outstream_status> {
+  &(Out status_f)
+} ;;
+
+
+# -- char instream/outstream --
+
+eval <byte instream_h> *BI open_char_instream_for_default_encoding | open_char_instream @public -> <char instream_h> {
+  enc.default_decode_props enc.start_default_decoder = *Decoder,
+  BI Decoder open_char_instream
+} ;;
+
+eval <byte instream_h> *BI <enc.decoder_h> *Decoder open_char_instream @public -> <char instream_h> {
+  BI Decoder startup_char_reader = *Svr,
+  \\ <char instream_read_res> { Svr _read_char }
+    \ <int> *Len -> <cstr instream_read_res> { Svr Len _read_cstr }
+    none$  # \\ <<char instream_read_res> trial_res> { Svr _try_read_char }  # temporal
+    none$  # \\ <<cstr instream_read_res> trial_res> { Svr _try_read_cstr }  # temporal
+    \\ <void> { Svr _close }
+    \\ <instream_status> { Svr _istatus }
+    instream_h$
+} ;;
+
+eval <byte outstream_h> *BO open_char_outstream_for_default_encoding | open_char_outstream @public -> <char outstream_h> {
+  enc.start_default_encoder = *Encoder,
+  Encoder BO open_char_outstream
+} ;;
+
+eval <enc.encoder_h> *Encoder <byte outstream_h> *BO open_char_outstream @public -> <char outstream_h> {
+  Encoder BO startup_char_writer = *Svr,
+  \ <char> *C -> <void> { Svr C _write_char }
+    \ <cstr> *S <int> *Start <int> *Len -> <void> { Svr S Start Len _write_cstr_part }
+    \\ <void> { Svr _flush }
+    \\ <void> { Svr _close }
+    \\ <outstream_status> { Svr _ostatus }
+    outstream_h$
+} ;;
+
+extend <act.msg> :=
+# common for char reader, line reader, char writer
+| <act.post_h> status_req$
+| <act.post_h> close_req$
+| <void result> close_res$
+# for char reader
+| <act.post_h> read_char_req$
+| <<char instream_read_res> result> read_char_res$
+| <act.post_h> <int> read_cstr_req$
+| <<cstr instream_read_res> result> read_cstr_res$
+# for line reader
+| <act.post_h> read_line_req$
+| <<cstr.line instream_read_res> result> read_line_res$
+# for char reader, line reader
+| <instream_status result> istatus_res$
+# for char writer
+| <char> write_char_req$
+| <cstr> <int> <int> write_cstr_part_req$
+| <act.post_h> flush_req$
+| <void result> flush_res$
+| <outstream_status result> ostatus_res$ ;;
+
+eval <act.post_h> *H _read_char -> <char instream_read_res> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post read_char_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res read_char_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H <int> *Len _read_cstr -> <cstr instream_read_res> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post Len read_cstr_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res read_cstr_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _istatus -> <instream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post status_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res istatus_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H <char> *C _write_char -> <void> {
+  H (C write_char_req$) act.send
+} ;;
+
+eval <act.post_h> *H <cstr> *S <int> *Start <int> *Len _write_cstr_part -> <void> {
+  H (S Start Len write_cstr_part_req$) act.send
+} ;;
+
+eval <act.post_h> *H _flush -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post flush_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res flush_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _ostatus -> <outstream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post status_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res ostatus_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _close -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post close_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res close_res$,
+  Res unwrap
+} ;;
+
+data <char_reader_d> :=
+  cr_decoder: <enc.decoder_h>
+  cr_in: <byte instream_h>
+  cr_status: <reader_status>
+  cr_in_status: <instream_status>
+  cr_buf: <char str.string_buf>
+  cr_reading: <<<bstr instream_read_res> act.async_h> maybe>
+  char_reader_d$ ;;
+
+data <reader_status> :=
+| rs_received$
+| rs_after_short_stop$
+| rs_msg_queued$ ;;
+
+eval <byte instream_h> *In <enc.decoder_h> *Decoder startup_char_reader -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R In Decoder char_reader } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 7 act.set_priority,  # tentative
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <byte instream_h> *In <enc.decoder_h> *Decoder char_reader -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (cr_decoder: Decoder
+    cr_in: In
+    cr_status: rs_after_short_stop$
+    cr_in_status: instream_open$
+    cr_buf: str.new_string_buf
+    cr_reading: none$
+    char_reader_d$)
+    &\ <char_reader_d> *RD -> <void> {  # this is the main loop
+      RD char_reader_start_reading = *RD',
+      RD' cr_status = *RS,
+      Box act.receive >> case {
+      ; *Msg value$ ->
+        (cr_status: rs_received$ :: RD' char_reader_d$) Msg char_reader_dispatch >> case {
+        ; *RD'' value$ -> RD'' &&
+        ; ** -> RD' char_reader_end
+        }
+      ; ** ->
+        RS case {
+        ; rs_received$ ->
+          act.yield,
+          (cr_status: rs_after_short_stop$ :: RD' char_reader_d$) &&
+        ; rs_after_short_stop$ ->
+          Box act.wait_forever$ act.listen,
+          (cr_status: rs_msg_queued$ :: RD' char_reader_d$) &&
+        # else internal error
+        }
+      }
+    }
+} ;;
+
+eval <char_reader_d> *RD <act.msg+> *Msg char_reader_dispatch -> <<char_reader_d> maybe> {
+  Msg case {
+  ; *Ret read_char_req$ -> RD Ret char_reader_read
+  ; *Ret *Len read_cstr_req$ -> RD Ret Len char_reader_read_cstr
+  ; *Ret close_req$ -> RD Ret char_reader_close
+  ; *Ret status_req$ -> RD Ret char_reader_status
+  ; act.no_post$ -> none$
+  ; ** -> RD value$
+  }
+} ;;
+
+eval <char_reader_d> *RD char_reader_start_reading -> <char_reader_d> {
+  (| RD cr_reading, RD cr_in_status |) case {
+  ; (| none$, instream_open$ |) ->
+    \\ { (RD cr_in) 8192 read_string } act.spawn = *Async,
+    Async act.start,
+    cr_reading: (Async value$) :: RD char_reader_d$
+  ; ** -> RD
+  }
+} ;;
+
+eval <char_reader_d> *RD char_reader_fill_buffer -> <char_reader_d> {
+  (| RD cr_buf >> str.empty?, RD cr_reading, RD cr_in_status |) case {
+  ; (| true$, *A value$, ** |) ->
+    (A act.actor_h) act.wait_forever$ act.join,
+    (RD char_reader_update_buffer) &&
+  ; (| true$, none$, instream_open$ |) ->
+    (RD char_reader_start_reading) &&
+  ; ** -> RD
+  }
+} ;;
+
+eval <char_reader_d> *RD char_reader_update_buffer -> <char_reader_d> {
+  RD cr_reading >> value >> act.async_result_h  >> act.peek >> case {
+  ; ((*Data instream_data$) fin$) value$ ->
+    \\ <cstr> { (RD cr_decoder) Data decode_bstr } try >> case {
+    ; *Cz fin$ -> cr_buf: ((RD cr_buf) Cz str.append) cr_reading: none$ :: RD char_reader_d$
+    ; *E exc$ -> cr_in_status: (E instream_error$) cr_reading: none$ :: RD char_reader_d$
+    }
+  ; ((instream_at_end$) fin$) value$ ->
+    \\ <cstr> { (RD cr_decoder) enc.end } try >> case {
+    ; *Cz fin$ -> cr_buf: ((RD cr_buf) Cz str.append) cr_in_status: instream_eof$ cr_reading: none$ :: RD char_reader_d$
+    ; *E exc$ -> cr_in_status: (E instream_error$) cr_reading: none$ :: RD char_reader_d$
+    }
+  ; (*E exc$) value$ -> cr_in_status: (E instream_error$) cr_reading: none$ :: RD char_reader_d$
+  ; none$ -> RD
+  }
+} ;;
+
+eval <enc.decoder_h> *D <bstr> *Bz decode_bstr -> <cstr> {
+  Bz str.length = *Len,
+  0 str.new_string_buf &\ <int> *I <char str.string_buf> *Buf -> <char str.string_buf> {
+    if {
+    ; I Len lt? -> (I inc) (Buf (D (Bz I str.elem) enc.decode) str.append) &&
+    ; otherwise -> Buf
+    }
+  } >> str.pack_all
+} ;;
+
+eval <char_reader_d> *RD <act.post_h> *Ret char_reader_read -> <<char_reader_d> maybe> {
+  RD char_reader_fill_buffer = *RD',
+  RD' cr_buf = *Buf,
+  Buf 1 str.pack = (| *Packed, *Buf' |),
+  Packed case {
+  ; "" ->
+    RD' cr_in_status >> case {
+    ; instream_eof$ -> instream_at_end$ fin$
+    ; *E instream_error$ -> E exc$
+    ; instream_closed$ -> ((not_available$ io_failure$) "Closed." new_exception) exc$
+    }
+  ; [| *C |] -> (C instream_data$) fin$
+  } = *R,
+  Ret (R read_char_res$) act.send,
+  (cr_buf: Buf' :: RD' char_reader_d$) value$
+} ;;
+
+eval <char_reader_d> *RD <act.post_h> *Ret <int> *Len char_reader_read_cstr -> <<char_reader_d> maybe> {
+  RD char_reader_fill_buffer = *RD',
+  RD' cr_buf = *Buf,
+  Buf Len str.pack = (| *Packed, *Buf' |),
+  Packed case {
+  ; "" ->
+    RD' cr_in_status >> case {
+    ; instream_eof$ -> instream_at_end$ fin$
+    ; *E instream_error$ -> E exc$
+    ; instream_closed$ -> ((not_available$ io_failure$) "Closed." new_exception) exc$
+    }
+  ; *S -> (S instream_data$) fin$
+  } = *R,
+  Ret (R read_cstr_res$) act.send,
+  (cr_buf: Buf' :: RD' char_reader_d$) value$
+} ;;
+
+eval <char_reader_d> *RD <act.post_h> *Ret char_reader_close -> <<char_reader_d> maybe> {
+  RD char_reader_do_iclose = (| *Res, *RD' |),
+  Ret (Res close_res$) act.send,
+  RD' value$
+} ;;
+
+eval <char_reader_d> *RD char_reader_do_iclose -> <<void result> char_reader_d tuple> {
+  RD cr_reading >> case {
+  ; *A value$ -> (A act.actor_h) act.wait_forever$ act.join >> ignore
+  ; ** ->
+  },
+  \\ { RD cr_in >> close } try = *Res,
+  Res case {
+  ; ** fin$ -> cr_in_status: instream_closed$ :: RD char_reader_d$
+  ; *E exc$ -> cr_in_status: (E instream_error$) :: RD char_reader_d$
+  } = *RD',
+  (| Res, RD' |)
+} ;;
+
+eval <char_reader_d> *RD <act.post_h> *Ret char_reader_status -> <<char_reader_d> maybe> {
+  RD char_reader_fill_buffer = *RD',
+  if {
+  ; RD' cr_buf >> str.empty? -> RD' cr_in_status
+  ; otherwise -> instream_open$
+  } = *S,
+  Ret ((S fin$) istatus_res$) act.send,
+  RD' value$
+} ;;
+
+eval <char_reader_d> *RD char_reader_end -> <void> {
+  RD char_reader_do_iclose >> ignore
+} ;;
+
+data <char_writer_d> :=
+  cw_encoder: <enc.encoder_h>
+  cw_out: <byte outstream_h>
+  cw_status: <writer_status>
+  char_writer_d$ ;;
+
+data <writer_status> :=
+| ws_received$
+| ws_written$
+| ws_after_short_stop$
+| ws_msg_queued$ ;;
+
+eval <enc.encoder_h> *Encoder <byte outstream_h> *Out startup_char_writer -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R Encoder Out char_writer } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 7 act.set_priority,  # tentative
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <enc.encoder_h> *Encoder <byte outstream_h> *Out char_writer -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (cw_encoder: Encoder
+    cw_out: Out
+    cw_status: ws_after_short_stop$
+    char_writer_d$)
+    &\ <char_writer_d> *WD -> <void> {  # this is the main loop
+      WD cw_status = *WS,
+      Box act.receive >> case {
+      ; *Msg value$ ->
+        (cw_status: ws_received$ :: WD char_writer_d$) Msg char_writer_dispatch >> case {
+        ; *WD' value$ -> WD' &&
+        ; ** -> WD char_writer_end
+        }
+      ; ** ->
+        WS case {
+        ; ws_received$ ->
+          act.yield,
+          (cw_status: ws_after_short_stop$ :: WD char_writer_d$) &&
+        ; ws_written$ ->
+          WD char_writer_flush_internally = *WD' value$,
+          act.yield,
+          (cw_status: ws_after_short_stop$ :: WD' char_writer_d$) &&
+        ; ws_after_short_stop$ ->
+          Box act.wait_forever$ act.listen,
+          (cw_status: ws_msg_queued$ :: WD char_writer_d$) &&
+        # else internal error
+        }
+      }
+    }
+} ;;
+
+eval <char_writer_d> *WD <act.msg+> *Msg char_writer_dispatch -> <<char_writer_d> maybe> {
+  Msg case {
+  ; *Char write_char_req$ -> WD Char char_writer_write
+  ; *Str *Start *Len write_cstr_part_req$ -> WD Str Start Len char_writer_write_string_part
+  ; *Ret flush_req$ -> WD Ret char_writer_flush
+  ; *Ret close_req$ -> WD Ret char_writer_close
+  ; *Ret status_req$ -> WD Ret char_writer_status
+  ; act.no_post$ -> none$
+  ; ** -> WD value$
+  }
+} ;;
+
+eval <char_writer_d> *WD <char> *Char char_writer_write -> <<char_writer_d> maybe> {
+  WD cw_status = *WS,
+  WD cw_out = *BO,
+  WD cw_encoder = *Encoder,
+  Encoder Char enc.encode = *Bz,
+  \\ { BO Bz write } try >> case {
+  ; ** fin$ -> cw_status: ws_written$ :: WD char_writer_d$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <char_writer_d> *WD <cstr> *Str <int> *Start <int> *Len char_writer_write_string_part -> <<char_writer_d> maybe> {
+  WD cw_status = *WS,
+  WD cw_out = *BO,
+  WD cw_encoder = *Encoder,
+  Len Start str.new_string_buf &\ <int> *Remain <int> *Pos <byte str.string_buf> *Buf -> <bstr> {
+    if {
+    ; Remain gt0? ->
+      Encoder (Str Pos str.elem) enc.encode = *Bz,
+      (Remain dec) (Pos inc) (Buf Bz str.append) &&
+    ; otherwise -> Buf str.pack_all
+    }
+  } = *Bstr,
+  \\ { BO Bstr write } try >> case {
+  ; ** fin$ -> cw_status: ws_written$ :: WD char_writer_d$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <char_writer_d> *WD <act.post_h> *Ret char_writer_flush -> <<char_writer_d> maybe> {
+  WD char_writer_do_flush = (| *Res, *WD' |),
+  Ret (Res flush_res$) act.send,
+  WD' value$
+} ;;
+
+eval <char_writer_d> *WD char_writer_flush_internally -> <<char_writer_d> maybe> {
+  WD char_writer_do_flush = (| **, *WD' |), WD' value$
+} ;;
+
+eval <char_writer_d> *WD char_writer_do_flush -> <<void result> <char_writer_d> tuple> {
+  WD cw_status = *WS,
+  WD cw_out = *BO,
+  \\ { BO flush } try = *Res,
+  cw_status: ws_received$ :: WD char_writer_d$ = *WD',  # even on error
+  (| Res, WD'|)
+} ;;
+
+eval <char_writer_d> *WD <act.post_h> *Ret char_writer_close -> <<char_writer_d> maybe> {
+  WD char_writer_do_oclose = (| *Res, *WD' |),
+  Ret (Res close_res$) act.send,
+  WD' value$
+} ;;
+
+eval <char_writer_d> *WD char_writer_do_oclose -> <<void result> char_writer_d tuple> {
+  WD cw_out = *BO,
+  WD cw_encoder = *Encoder,
+  Encoder enc.end = *Bz,
+  \\ { BO Bz write, BO close } try = *Res,
+  (| Res, cw_status: ws_received$ :: WD char_writer_d$ |)
+} ;;
+
+eval <char_writer_d> *WD <act.post_h> *Ret char_writer_status -> <<char_writer_d> maybe> {
+  WD cw_out = *BO,
+  \\ { BO status } try = *Res,
+  Ret (Res ostatus_res$) act.send,
+  WD value$
+} ;;
+
+eval <char_writer_d> *WD char_writer_end -> <void> {
+  WD char_writer_do_oclose >> ignore
+} ;;
+
+
+# -- line instream -- 
+
+data <line_instream_h> @public :=
+  read_line_f: <<cstr.line instream_read_res> fun>
+  # try_read_line_f: <<<cstr instream_read_res> trial_res> fun>
+  close_f: <void fun>
+  status_f: <instream_status fun>
+  line_instream_h$ ;;
+
+eval <line_instream_h> *In read_line_from_line_instream | read_line @public -> <cstr.line instream_read_res> {
+  &(In read_line_f)
+} ;;
+
+# eval <line_instream_h> *In try_read_line_from_line_instream | try_read_line @public -> <<cstr instream_read_res> trial_res> {
+  # &(In try_read_line_f)
+# } ;;
+
+eval <line_instream_h> *In close_line_instream | close @public -> <void> {
+  &(In close_f)
+} ;;
+
+eval <line_instream_h> *In line_instream_status | status @public -> <instream_status> {
+  &(In status_f)
+} ;;
+
+eval <byte instream_h> *BI open_line_instream_for_default_encoding_from_byte_instream | open_line_instream @public -> <line_instream_h> {
+  BI open_char_instream_for_default_encoding >> open_line_instream
+} ;;
+
+eval <char instream_h> *CI open_line_instream_from_char_instream | open_line_instream @public -> <line_instream_h> {
+  CI startup_line_reader = *Svr,
+  \\ <cstr.line instream_read_res> { Svr _read_line }
+    # try_read_line_f: <<<cstr instream_read_res> trial_res> fun>
+    \\ <void> { Svr _close }
+    \\ <instream_status> { Svr _istatus }
+    line_instream_h$
+} ;;
+
+eval <act.post_h> *H _read_line -> <cstr.line instream_read_res> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post read_line_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res read_line_res$,
+  Res unwrap
+} ;;
+
+eval <char instream_h> *In startup_line_reader -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R In line_reader } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 7 act.set_priority,  # tentative
+  P
+} ;;
+
+data <line_reader_d> :=
+  lr_in: <char instream_h>
+  lr_status: <reader_status>
+  lr_in_status: <instream_status>
+  lr_in_data: <cstr>
+  lr_next: <int>
+  lr_text_r: <char list>
+  lr_term_r: <char list>
+  lr_complete: <bool>  # ready to supply line
+  lr_reading: <<<cstr instream_read_res> act.async_h> maybe>
+  line_reader_d$ ;;
+
+eval <act.post_h void fun> *Reply <char instream_h> *In line_reader -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (lr_in: In
+    lr_status: rs_after_short_stop$
+    lr_in_status: instream_open$
+    lr_in_data: ""
+    lr_next: 0
+    lr_text_r: []
+    lr_term_r: []
+    lr_complete: false$
+    lr_reading: none$
+    line_reader_d$)
+    &\ <line_reader_d> *RD -> <void> {  # this is the main loop
+      RD line_reader_start_reading = *RD',
+      RD' lr_status = *RS,
+      Box act.receive >> case {
+      ; *Msg value$ ->
+        (lr_status: rs_received$ :: RD' line_reader_d$) Msg line_reader_dispatch >> case {
+        ; *RD'' value$ -> RD'' &&
+        ; ** -> RD' line_reader_end
+        }
+      ; ** ->
+        RS case {
+        ; rs_received$ ->
+          act.yield,
+          (lr_status: rs_after_short_stop$ :: RD' line_reader_d$) &&
+        ; rs_after_short_stop$ ->
+          Box act.wait_forever$ act.listen,
+          (lr_status: rs_msg_queued$ :: RD' line_reader_d$) &&
+        # else internal error
+        }
+      }
+    }
+} ;;
+
+eval <line_reader_d> *RD <act.msg+> *Msg line_reader_dispatch -> <<line_reader_d> maybe> {
+  Msg case {
+  ; *Ret read_line_req$ -> RD Ret line_reader_read
+  ; *Ret close_req$ -> RD Ret line_reader_close
+  ; *Ret status_req$ -> RD Ret line_reader_status
+  ; act.no_post$ -> none$
+  ; ** -> RD value$
+  }
+} ;;
+
+eval <line_reader_d> *RD line_reader_start_reading -> <line_reader_d> {
+  (| RD lr_reading, RD lr_in_status |) case {
+  ; (| none$, instream_open$ |) ->
+    \\ { (RD lr_in) 8192 read_string } act.spawn = *Async,
+    Async act.start,
+    lr_reading: (Async value$) :: RD line_reader_d$
+  ; ** -> RD
+  }
+} ;;
+
+eval <line_reader_d> *RD line_reader_fill_line -> <line_reader_d> {
+# RD debug.repr >> stdio.print_and_newline,
+  (| RD lr_complete, (RD lr_next) (RD lr_in_data >> str.length) lt?, RD lr_reading, RD lr_in_status |) case {
+  ; (| true$, **, **, ** |) -> RD
+  ; (| false$, true$, **, ** |) ->
+    (RD line_reader_new_data) &&
+  ; (| false$, false$, *A value$, ** |) ->
+    (A act.actor_h) act.wait_forever$ act.join,
+    (RD line_reader_update_line) &&
+  ; (| false$, false$, none$, instream_open$ |) ->
+    (RD line_reader_start_reading) &&
+  ; ** -> RD
+  }
+} ;;
+
+eval <line_reader_d> *RD line_reader_update_line -> <line_reader_d> {
+  RD lr_reading >> value >> act.async_result_h  >> act.peek >> case {
+  ; ((*Data instream_data$) fin$) value$ ->
+    (lr_in_data: Data lr_next: 0 lr_reading: none$ :: RD line_reader_d$) line_reader_new_data
+  ; ((instream_at_end$) fin$) value$ ->
+    (lr_in_status: instream_eof$ lr_reading: none$ :: RD line_reader_d$) line_reader_data_ended
+  ; (*E exc$) value$ -> lr_in_status: (E instream_error$) lr_reading: none$ :: RD line_reader_d$
+  ; none$ -> RD  # impl in advance for try-read
+  }
+} ;;
+
+eval <line_reader_d> *RD line_reader_new_data -> <line_reader_d> {
+  RD lr_in_data = *Data,
+  Data str.length = *Len,
+  RD &\ <line_reader_d> *S -> <line_reader_d> {
+    S lr_next = *I,
+    if {
+    ; I Len lt? ->
+      (| S lr_term_r, Data I str.elem |) case {
+      ; (| [], '\r' |) -> (lr_next: (I inc) lr_term_r: [ '\r' ] :: S line_reader_d$) &&  # wait next
+      ; (| [], '\n' |) -> (lr_next: (I inc) lr_term_r: [ '\n' ] lr_complete: true$ :: S line_reader_d$)  # completed
+      ; (| [], *C |) -> (lr_next: (I inc) lr_text_r: [ C ; S lr_text_r ] :: S line_reader_d$) &&  # add and go next
+      ; (| [ '\r' ], '\r' |) -> (lr_complete: true$ :: S line_reader_d$)  # completed, and restart
+      ; (| [ '\r' ], '\n' |) -> (lr_next: (I inc) lr_term_r: [ '\n', '\r' ] lr_complete: true$ :: S line_reader_d$)  # completed
+      ; (| [ '\r' ], *C |) -> S  # completed, and restart
+      }
+    ; otherwise ->
+      S
+    }
+  }
+} ;;
+
+eval <line_reader_d> *RD line_reader_data_ended -> <line_reader_d> {
+  RD case {
+  ; lr_text_r: [] lr_term_r: [] *** line_reader_d$ -> RD
+  ; ** -> lr_complete: true$ :: RD line_reader_d$
+  }
+} ;;
+
+eval <line_reader_d> *RD <act.post_h> *Ret line_reader_read -> <<line_reader_d> maybe> {
+  RD line_reader_fill_line = *RD',
+  RD' lr_complete >> case {
+  ; true$ ->
+    (| ((line_text: (RD' lr_text_r >> list.reverse >> str.to_string)
+         line_term: (RD' lr_term_r >> list.reverse >> str.to_string) cstr.line$) instream_data$) fin$,
+       lr_text_r: [] lr_term_r: [] lr_complete: false$ :: RD' line_reader_d$ |)
+  ; ** ->
+    RD' lr_in_status >> case {
+    ; instream_eof$ -> instream_at_end$ fin$
+    ; *E instream_error$ -> E exc$
+    ; instream_closed$ -> ((not_available$ io_failure$) "Closed." new_exception) exc$
+    } = *Res,
+    (| Res, RD' |)
+  } = (| *R, *RD'' |),
+  Ret (R read_line_res$) act.send,
+  RD'' value$
+} ;;
+
+eval <line_reader_d> *RD <act.post_h> *Ret line_reader_close -> <<line_reader_d> maybe> {
+  RD line_reader_do_iclose = (| *Res, *RD' |),
+  Ret (Res close_res$) act.send,
+  RD' value$
+} ;;
+
+eval <line_reader_d> *RD line_reader_do_iclose -> <<void result> line_reader_d tuple> {
+  RD lr_reading >> case {
+  ; *A value$ -> (A act.actor_h) act.wait_forever$ act.join >> ignore
+  ; ** ->
+  },
+  \\ { RD lr_in >> close } try = *Res,
+  Res case {
+  ; ** fin$ -> lr_in_status: instream_closed$ :: RD line_reader_d$
+  ; *E exc$ -> lr_in_status: (E instream_error$) :: RD line_reader_d$
+  } = *RD',
+  (| Res, RD' |)
+} ;;
+
+eval <line_reader_d> *RD <act.post_h> *Ret line_reader_status -> <<line_reader_d> maybe> {
+  RD line_reader_fill_line = *RD',
+  RD' lr_complete >> case {
+  ; true$ -> instream_open$
+  ; ** -> RD' lr_in_status
+  } = *S,
+  Ret ((S fin$) istatus_res$) act.send,
+  RD' value$
+} ;;
+
+eval <line_reader_d> *RD line_reader_end -> <void> {
+  RD line_reader_do_iclose >> ignore
+} ;;
+
+
+#  -- print stream -- 
+
+data <print_stream_h> @public :=
+  write_f: <char void fun>
+  write_string_part_f: <cstr int int void fun>
+  flush_f: <void fun>
+  close_f: <void fun>
+  status_f: <outstream_status fun>
+  newline_f: <void fun>
+  print_stream_h$ ;;
+
+eval <byte outstream_h> *BO open_default_print_stream_to_byte_outstream | open_print_stream @public -> <print_stream_h> {
+  BO open_char_outstream_for_default_encoding >> open_print_stream_with_default_line_terminator
+} ;;
+
+eval <char outstream_h> *CO open_print_stream_with_default_line_terminator | open_print_stream @public -> <print_stream_h> {
+  sys.line_terminator CO open_print_stream
+} ;;
+
+eval <cstr> *Line_terminator <char outstream_h> *CO open_print_stream @public -> <print_stream_h> {
+  CO = 
+    write_f: *Write_f  # <char void fun>
+    write_string_part_f: *Write_string_part_f  # <cstr int int void fun>
+    flush_f: *Flush_f  # <void fun>
+    close_f: *Close_f  # <void fun>
+    status_f: *Status_f  # <outstream_status fun>
+    outstream_h$,
+  write_f: Write_f
+    write_string_part_f: Write_string_part_f
+    flush_f: Flush_f
+    close_f: Close_f
+    status_f: Status_f
+    newline_f: \\ <void> { Line_terminator 0 (Line_terminator cstr.length) &Write_string_part_f }
+    print_stream_h$
+} ;;
+
+eval <print_stream_h> *Out <char> *Char print_raw_char | print_raw @public -> <void> {
+  Char &(Out write_f)
+} ;;
+
+eval <print_stream_h> *Out <cstr> *CharStr print_raw_cstr | print_raw @public -> <void> {
+  Out CharStr 0 (CharStr cstr.length) print_raw
+} ;;
+
+eval <print_stream_h> *Out <cstr.line> *Line print_line | print @public -> <void> {
+  Out (Line cstr.line_text) print_raw,
+  Line cstr.line_term >> case {
+  ; "" ->
+  ; ** -> Out newline
+  }
+} ;;
+
+eval <print_stream_h> *Out <cstr.line> *Line print_raw_line | print_raw @public -> <void> {
+  Out (Line cstr.line_text) print_raw,
+  Out (Line cstr.line_term) print_raw
+} ;;
+
+eval <print_stream_h> *Out <cstr> *CharStr <int> *Start <int> *Len print_raw_cstr_part | print_raw @public -> <void> {
+  if {
+  ; [ Start ge0?, Len ge0?, (Start Len sum) (CharStr str.length) le? ] bool.and ->
+  ; otherwise -> bad_arg$ "Invalid start position and/or length." new_exception >> throw
+  },
+  CharStr Start Len &(Out write_string_part_f),
+} ;;
+
+eval <print_stream_h> *Out <cstr> *CharStr print_cstr | print @public -> <void> {
+  0 -1 false$ &\ <int> *Current <int> *Processed <bool> *After_CR -> <void> {
+    if {
+    ; Current (CharStr str.length) lt? ->
+      CharStr Current str.elem = *C,
+      After_CR case {
+      ; false$ ->  # in line
+        C case {
+        ; '\r' -> Out CharStr (Processed inc) ((Current dec) Processed diff) print_raw, Out newline, (Current inc) Current true$ &&
+        ; '\n' -> Out CharStr (Processed inc) ((Current dec) Processed diff) print_raw, Out newline, (Current inc) Current false$ &&
+        ; ** -> (Current inc) Processed false$ &&
+        }
+      ; ** ->  # last char is CR, already newline'd
+        C case {
+        ; '\r' -> Out newline, (Current inc) Current true$ &&  # CR CR -> empty line
+        ; '\n' -> (Current inc) Current false$ &&  # CR LF -> ignore LF
+        ; ** -> (Current inc) Processed false$ &&
+        }
+      }
+    ; otherwise ->
+      (Current dec) Processed diff = *Remained,
+      Remained case {
+      ; 0 ->
+      ; ** -> Out CharStr (Processed inc) Remained print_raw
+      }
+    }
+  }
+} ;;
+
+eval <print_stream_h> *Out <cstr> *Line print_and_newline @public -> <void> {
+  Out Line print,
+  Out newline
+} ;;
+
+eval <print_stream_h> *Out flush_print_stream | flush @public -> <void> {
+  &(Out flush_f)
+} ;;
+
+eval <print_stream_h> *Out close_print_stream | close @public -> <void> {
+  &(Out close_f)
+} ;;
+
+eval <print_stream_h> *Out print_stream_status | status @public -> <outstream_status> {
+  &(Out status_f)
+} ;;
+
+eval <print_stream_h> *Out break_print_stream | newline @public -> <void> {
+  &(Out newline_f)
+} ;;

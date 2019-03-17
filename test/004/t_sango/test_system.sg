@@ -1,0 +1,21 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.string" -> str ;;
+import "sango.system" -> sys ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test002,
+  test003,
+  test004,
+  void$
+} ;;
+
+eval test002 -> <void> { "os.type" sys.property = (*Os sys.cstr_prop$) value$, Os case { "unix" | "winnt" -> } } ;;
+eval test003 -> <sys.prop+ maybe> { "TEST" ("testtest" sys.cstr_prop$) sys.add_property, "TEST" sys.property = ("testtest" sys.cstr_prop$) value$ } ;;
+eval test004 -> <sys.prop+ maybe> { "TEST" \ <sys.prop+> *P -> <sys.prop+> { "updated" sys.cstr_prop$ } sys.update_property, "TEST" sys.property = ("updated" sys.cstr_prop$) value$ } ;;

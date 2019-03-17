@@ -1,0 +1,53 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.char.encoding.euc" ;;
+
+import "sango.char.encoding" -> enc ;;
+import "sango.cstr" -> cstr ;;
+
+eval _init_ -> <void> {
+  start_f: ^start_encoder enc.encoder_impl_fs$ = *E,
+  start_f: ^start_decoder enc.decoder_impl_fs$ = *D,
+  "EUC-JP" E enc.install_encoder_impl,
+  "EUC-JP" D enc.install_decoder_impl
+} ;;
+
+eval <cstr> *Encoding start_encoder @public -> <enc.encoder_h> {
+  Encoding case {
+  ; "EUC-JP" -> start_encoder_impl
+  ; ** -> unsupported$ ([ "Unknown encoding. - ", Encoding ] cstr.concat) new_exception >> throw
+  }
+} ;;
+
+eval start_encoder_impl -> <enc.encoder_h> @native ;;
+
+eval <cstr> *Encoding <enc.decode_props> *Ps start_decoder @public -> <enc.decoder_h> {
+  Encoding case {
+  ; "EUC-JP" -> Ps start_decoder_impl
+  ; ** -> unsupported$ ([ "Unknown encoding. - ", Encoding ] cstr.concat) new_exception >> throw
+  }
+} ;;
+
+eval <enc.decode_props> *Ps start_decoder_impl -> <enc.decoder_h> @native ;;
+

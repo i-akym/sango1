@@ -1,0 +1,594 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program of 'Tic Tac Toe'
+# Usage: sango tictactoe
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.arith" -> arith ;;
+import "sango.bool" -> bool ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.simplemap" -> simplemap ;;
+
+data <d> :=
+  board_dict: <act.post_h>
+  d$ ;;
+
+data <turn> :=
+| user$
+| me$ ;;
+
+data <place> :=
+| <turn> hand$
+| empty$ ;;
+
+eval <place> *P empty? -> <bool> {
+  P case {
+  ; empty$ -> true$
+  ; ** -> false$
+  }
+} ;;
+
+alias type <board> := <place list> ;;  # 3 x 3 -> 9 elem list
+
+eval <board> *B0 <board> *B1 board_eq? | eq? -> <bool> {
+  B0 B1 hard_eq?
+} ;;
+
+eval board_eq_fs -> <board eq_fs> {
+  hard_eq_fs
+} ;;
+
+eval <board> *B rotate_left -> <board> {
+  B = [ *P1, *P2, *P3, *P4, *P5, *P6, *P7, *P8, *P9 ],
+  [ P3, P6, P9, P2, P5, P8, P1, P4, P7 ]
+} ;;
+
+eval <board> *B rotate_right -> <board> {
+  B = [ *P1, *P2, *P3, *P4, *P5, *P6, *P7, *P8, *P9 ],
+  [ P7, P4, P1, P8, P5, P2, P9, P6, P3 ]
+} ;;
+
+eval <board> *B reverse -> <board> {
+  B = [ *P1, *P2, *P3, *P4, *P5, *P6, *P7, *P8, *P9 ],
+  [ P7, P8, P9, P4, P5, P6, P1, P2, P3 ]
+} ;;
+
+eval <board> *B turn -> <turn> {
+  B
+    \ <place> *P -> <bool> { P case { user$ hand$ -> true$ ; ** -> false$ } }
+    list.filter >> list.length = *U,
+  B
+    \ <place> *P -> <bool> { P case { me$ hand$ -> true$ ; ** -> false$ } }
+    list.filter >> list.length = *M,
+  if {
+  ; U M gt? -> me$
+  ; otherwise -> user$
+  }
+} ;;
+
+data <board_state> :=
+| user_win$
+| user_lose$
+| draw$
+| play_on$ ;;
+
+eval <board> *B board_state -> <board_state> {
+  B case {
+  ; [ user$ hand$, user$ hand$, user$ hand$,
+      **,          **,          **,
+      **,          **,          ** ] -> user_win$
+  ; [ me$ hand$,   me$ hand$,   me$ hand$,
+      **,          **,          **,
+      **,          **,          ** ] -> user_lose$
+  ; [ **,          **,          **,
+      user$ hand$, user$ hand$, user$ hand$,
+      **,          **,          ** ] -> user_win$
+  ; [ **,          **,          **,
+      me$ hand$,   me$ hand$,   me$ hand$,
+      **,          **,          ** ] -> user_lose$
+  ; [ **,          **,          **,
+      **,          **,          **,
+      user$ hand$, user$ hand$, user$ hand$ ] -> user_win$
+  ; [ **,          **,          **,
+      **,          **,          **,
+      me$ hand$,   me$ hand$,   me$ hand$ ] -> user_lose$
+  ; [ user$ hand$, **,          **,
+      user$ hand$, **,          **,
+      user$ hand$, **,          ** ] -> user_win$
+  ; [ me$ hand$,   **,          **,
+      me$ hand$,   **,          **,
+      me$ hand$,   **,          ** ] -> user_lose$
+  ; [ **,          user$ hand$, **,
+      **,          user$ hand$, **,
+      **,          user$ hand$, ** ] -> user_win$
+  ; [ **,          me$ hand$,   **,
+      **,          me$ hand$,   **,
+      **,          me$ hand$,   ** ] -> user_lose$
+  ; [ **,          **,          user$ hand$,
+      **,          **,          user$ hand$,
+      **,          **,          user$ hand$ ] -> user_win$
+  ; [ **,          **,          me$ hand$,
+      **,          **,          me$ hand$,
+      **,          **,          me$ hand$ ] -> user_lose$
+  ; [ user$ hand$, **,          **,
+      **,          user$ hand$, **,
+      **,          **,          user$ hand$ ] -> user_win$
+  ; [ me$ hand$,   **,          **,
+      **,          me$ hand$,   **,
+      **,          **,          me$ hand$ ] -> user_lose$
+  ; [ **,          **,          user$ hand$,
+      **,          user$ hand$, **,
+      user$ hand$, **,          ** ] -> user_win$
+  ; [ **,          **,          me$ hand$,
+      **,          me$ hand$,   **,
+      me$ hand$,   **,          ** ] -> user_lose$
+  ; ** -> B ^empty? list.map >> bool.list_or >> case {
+    ; true$ -> play_on$
+    ; ** -> draw$
+    }
+  }
+} ;;
+
+alias type <board_display> := <cstr list> ;;
+
+eval <board> *B board_display -> <board_display> {
+  B 1 [] &\ <board> *BB <int> *II <cstr list> *DD -> <board_display> {
+    BB case {
+    ; [ user$ hand$ ; *BB' ] -> BB' (II inc) [ "[X]" ; DD ] &&
+    ; [ me$ hand$ ; *BB' ] -> BB' (II inc) [ "[O]" ; DD ] &&
+    ; [ empty$ ; *BB' ] -> BB' (II inc) [ [| ' ', %x30 II sum >> char_value, ' ' |] ; DD ] &&
+    ; [] -> DD list.reverse
+    }
+  }
+} ;;
+
+eval <board_display> *BD print -> <void> {
+  BD = [ *P1, *P2, *P3, *P4, *P5, *P6, *P7, *P8, *P9 ],
+  P1 stdio.print, '|' stdio.print_raw,
+  P2 stdio.print, '|' stdio.print_raw,
+  P3 stdio.print, stdio.newline,
+  "---+---+---" stdio.print_and_newline,
+  P4 stdio.print, '|' stdio.print_raw,
+  P5 stdio.print, '|' stdio.print_raw,
+  P6 stdio.print, stdio.newline,
+  "---+---+---" stdio.print_and_newline,
+  P7 stdio.print, '|' stdio.print_raw,
+  P8 stdio.print, '|' stdio.print_raw,
+  P9 stdio.print, stdio.newline
+} ;;
+
+eval init_board -> <board> {
+  [ empty$, empty$, empty$ , empty$, empty$, empty$ , empty$, empty$, empty$ ]
+} ;;
+
+eval make_board_transitions -> <void> {
+  init_board register,  # make transitions
+  init_board board_score >> ignore  # initialize transitions
+} ;;
+
+eval <board> *B register -> <void> {
+  (_initd_ board_dict) (B register_req$) act.send
+} ;;
+
+eval _init_ -> <d> {
+  ^board_dict actu.startup_svr = (| **, *Svr_post |),
+  board_dict: Svr_post d$
+} ;;
+
+extend <act.msg> :=
+# for board dict
+| <board> register_req$
+| <act.post_h> <board> lookup_req$
+| <board board fun> <act.post_h> lookup_ret$  # revert, holder's post_h
+# for board holder
+| <act.post_h> get_score_req$
+| <real> get_score_ret$
+| <act.post_h> next_req$
+| <board> next_ret$ ;;
+
+alias type <bd_dict> := <bd_map list> ;;  # indexed by empty place count
+alias type <bd_map> := <board act.post_h map.map> ;;
+
+eval <board> *B holder -> <<board board fun> act.post_h tuple> {
+  act.open_mbox = (| *Box, *Post |),
+  (_initd_ board_dict) (Post B lookup_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *R *P lookup_ret$,
+  (| R, P |)
+} ;;
+
+data <bdd> :=
+  box: <act.mbox_h>
+  dict: <bd_dict>
+  bdd$ ;;
+
+eval <act.post_h void fun> *Started board_dict -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  act.my_actor_h true$ act.run_background,
+  board_eq_fs simplemap.new_map = *Empty_map,
+  [ Empty_map, Empty_map, Empty_map, Empty_map, Empty_map,
+    Empty_map, Empty_map, Empty_map, Empty_map, Empty_map ] = *Dict,
+  act.open_mbox = (| *Box, *Post |),
+  Post &Started,
+  ((box: Box dict: Dict bdd$) value$) bd_loop
+} ;;
+
+eval <bdd maybe> *D_ bd_loop -> <void> {
+  D_ case {
+  ; *D value$ ->
+    D box >> act.receive >> case {
+    ; *Msg value$ -> (D Msg bd_dispatch) &&
+    ; ** -> (D box) act.wait_forever$ act.listen, D_ &&
+    }
+  ; ** ->  # exit
+  }
+} ;;
+
+eval <bdd> *D <act.msg+> *Msg bd_dispatch -> <bdd maybe> {
+  Msg case {
+  ; *B register_req$ -> (D B bd_register) value$
+  ; *R *B lookup_req$ -> (D R B bd_lookup) value$
+  ; ** -> D value$
+  }
+} ;;
+
+eval <bdd> *D <board> *B bd_register -> <bdd> {
+  D dict = *Dict,
+  Dict B bd_dict_lookup >> case {
+  ; ** value$ -> D  # already registered
+  ; ** ->
+    \ <act.post_h void fun> *Started -> <void> { Started B board_holder } actu.startup_svr = (| **, *P |),
+    dict: (Dict B P bd_dict_register) :: D bdd$
+  }
+} ;;
+
+eval <bdd> *D <act.post_h> *R <board> *B bd_lookup -> <bdd> {
+  (D dict) B bd_dict_lookup >> value = (| *Rev, *P |),
+  R (Rev P lookup_ret$) act.send,
+  D
+} ;;
+
+eval <bd_dict> *Dict <board> *B bd_dict_lookup -> <<<board board fun> act.post_h tuple> maybe> {
+  B ^empty? list.filter >> list.length = *I,
+  (Dict I list.elem >> value) = *Map,
+  B
+  [ (| ^itself, ^itself |),
+    (| ^rotate_left, ^rotate_right |),
+    (| ^rotate_left, ^rotate_right |),
+    (| ^rotate_left, ^rotate_right |),
+    (| ^reverse, ^reverse |),
+    (| ^rotate_left, ^rotate_right |),
+    (| ^rotate_left, ^rotate_right |),
+    (| ^rotate_left, ^rotate_right |) ]
+  []
+  &\
+    <board> *BB
+    <<<board board fun> <board board fun> tuple> list> *Convert
+    <<board board fun> list> *Revert
+    -> <<<board board fun> act.post_h tuple> maybe> {
+    Convert case {
+    ; [ (| *C, *R |) ; *CC ] ->
+      BB &C = *BB',
+      Map BB' map.assoc >> case {
+      ; *V value$ -> (| [ R ; Revert ] revert_fun, V |) value$
+      ; ** -> BB' CC [ R ; Revert ] &&
+      }
+    ; ** -> none$
+    }
+  }
+} ;;
+
+eval <<board board fun> list> *Rs revert_fun -> <board board fun> {
+  \ <board> *B -> <board> {
+    B Rs &\ <board> *BB <<board board fun> list> *RR -> <board> {
+      RR case {
+      ; [ *R ; *RR' ] -> (BB &R) RR' &&
+      ; ** -> BB
+      }
+    }
+  }
+} ;;
+
+eval <bd_dict> *Dict <board> *B <act.post_h> *P bd_dict_register -> <bd_dict> {
+  B ^empty? list.filter >> list.length = *I,
+  Dict I list.elem >> value = *Map,
+  Map B P map.add = *Map',
+  I [] Dict &\ <int> *II <bd_map list> *BLr <bd_map list> *AL -> <bd_dict> {
+    (| II, BLr, AL |) case {
+    ; (| -1, [ *BLrH ; *BLrT ], ** |) -> -1 BLrT [ BLrH ; AL ] &&
+    ; (| -1, [], ** |) -> AL
+    ; (| 0, **, [ ** ; *ALT ] |) -> -1 BLr [ Map' ; ALT] &&
+    ; (| **, **, [ *ALH ; *ALT ] |) -> (II dec) [ ALH ; BLr ] ALT &&
+    # ; ** ->
+      # II debug.repr >> stdio.print_and_newline,
+      # BLr debug.repr >> stdio.print_and_newline,
+      # AL debug.repr >> stdio.print_and_newline,
+      # assertion_err$ "" new_exception >> throw
+    }
+  }
+} ;;
+
+data <bhd> :=
+  box: <act.mbox_h>
+  the_board: <board>
+  turn: <turn>
+  score_: <real maybe>
+  options: <board list>
+  bhd$ ;;
+
+eval <act.post_h void fun> *Started <board> *B board_holder -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  act.my_actor_h true$ act.run_background,
+  act.open_mbox = (| *Box, *Post |),
+  Post &Started,
+  B turn = *Turn,
+  B board_state >> case {
+  ; user_win$ -> (| 0.0 value$, [] |)
+  ; user_lose$ -> (| 1.0 value$, [] |)
+  ; draw$ -> (| 0.5 value$, [] |)
+  ; play_on$ ->
+    B Turn options = *Opts,
+    Opts ^register list.map,
+    (| none$, Opts |)
+  } = (| *Score_, *Options |),
+  ((box: Box
+    the_board: B
+    turn: Turn
+    score_: Score_
+    options: Options bhd$) value$) bh_loop
+} ;;
+
+eval <bhd maybe> *D_ bh_loop -> <void> {
+  D_ case {
+  ; *D value$ ->
+    D box >> act.receive >> case {
+    ; *Msg value$ -> (D Msg bh_dispatch) &&
+    ; ** -> (D box) act.wait_forever$ act.listen, D_ &&
+    }
+  ; ** ->  # exit
+  }
+} ;;
+
+eval <bhd> *D <act.msg+> *Msg bh_dispatch -> <bhd maybe> {
+  Msg case {
+  ; *R get_score_req$ -> (D R bh_get_score) value$
+  ; *R next_req$ -> (D R bh_next) value$
+  ; ** -> D value$
+  }
+} ;;
+
+eval <bhd> *D <act.post_h> *R bh_get_score -> <bhd> {
+  D score_ >> case {
+  ; *S value$ ->
+    R (S get_score_ret$) act.send,
+    D
+  ; ** ->
+    D turn >> case {
+    ; user$ -> (D options) bh_get_score_user_turn
+    ; ** -> (D options) bh_get_score_my_turn
+    } = (| *S, *Bs |),
+    R (S get_score_ret$) act.send,
+    score_: (S value$) options: Bs :: D bhd$
+  }
+} ;;
+
+eval <board list> *Opts  bh_get_score_user_turn -> <real <board list> tuple> {
+  (Opts ^board_score list.map) arith.min >> value = *S,
+  (| S, Opts |)
+} ;;
+
+eval <board list> *Opts  bh_get_score_my_turn -> <real <board list> tuple> {
+  Opts = [ *O ; *OO ],
+  O board_score = *S,
+  OO S O &\ <board list> *Bs <real> *Max <board> *B -> <real <board list> tuple> {
+    Bs case {
+    ; [ *X ; *XX ] ->
+      X board_score = *Y,
+      if {
+      ; Y Max gt? -> XX Y X &&
+      ; otherwise -> XX Max B &&
+      }
+    ; ** ->
+      (| Max, [ B ] |)
+    }
+  }
+} ;;
+
+eval <bhd> *D <act.post_h> *R bh_next -> <bhd> {
+  D options = [ *B ],
+  R (B next_ret$) act.send,
+  D
+} ;;
+
+eval <board> *B board_score -> <real> {
+  B holder = (| **, *P |),
+  act.open_mbox = (| *Box, *Post |),
+  P (Post get_score_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *S get_score_ret$,
+  S
+} ;;
+
+eval <board> *B board_next -> <board> {
+  B holder = (| *R, *P |),
+  act.open_mbox = (| *Box, *Post |),
+  P (Post next_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *N next_ret$,
+  N &R
+} ;;
+
+eval <board> *B <turn> *T options -> <board list> {
+  [] B [] &\ <place list> *Before_r <place list> *After <board list> *Opts -> <board list> {
+    After case {
+    ; [ empty$ ; *After' ] -> [ empty$ ; Before_r ] After' [ Before_r [ T hand$ ; After' ] reverse_append ; Opts ] &&
+    ; [ *H ; *After' ] -> [ H ; Before_r ] After' Opts &&
+    ; [] -> Opts
+    }
+  }
+} ;;
+
+eval <*A list> *Xs <int> *I <A> *New_elem replace_at -> <A list> {
+  [] I Xs &\ <A list> *Before_r <int> *II <A list> *After -> <A list> {
+    (| II, After |) case {
+    ; (| 0, [ *E ; *EE ] |) -> Before_r [ New_elem ; EE ] reverse_append
+    ; (| **, [ *E ; *EE ] |) -> [ E ; Before_r ] (II dec) EE &&
+    }
+  }
+} ;;
+
+eval <*A list> *Before_r <A list> *After reverse_append -> <A list> {
+  Before_r case {
+  ; [ *X ; *XX ] -> XX [ X ; After ] &&
+  ; [] -> After
+  }
+} ;;
+
+data <game> :=
+  current_board_: <board maybe>
+  game$ ;;
+
+data <action> :=
+| <int> put_hand$
+| new_game$
+| exit$ ;;
+
+eval _main_ -> <void> {
+  "Starting..." stdio.print_and_newline,
+  make_board_transitions,
+  (new_game value$) main_loop
+} ;;
+
+eval new_game -> <game> {
+  current_board_: (init_board value$) game$
+} ;;
+
+eval <game maybe> *G_ main_loop -> <void> {
+  G_ case {
+  ; *G value$ => G = current_board_: (*B value$) *** game$ ->
+    G action_in_play = *A,
+    (G A do_action) &&
+  ; *G value$  ->
+    G action_after_play = *A,
+    (G A do_action) &&
+  ; ** ->  # exit
+  }
+} ;;
+
+eval <game> *G action_in_play -> <action> {
+  G current_board_ >> value >> board_display >> print,
+  "This is your turn. Enter place number (or command: x -> exit, n -> new game) " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.trim_spaces = *Command,
+    Command case {
+    ; "x" -> exit$
+    ; "n" -> new_game$
+    ; "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ->
+      ((Command 0 cstr.char >> char_code) %x30 diff) put_hand$
+    ; ** ->
+      "?" stdio.print_and_newline,
+      G &&
+    }
+  ; io.instream_at_end$ -> exit$
+  }
+} ;;
+
+eval <game> *G action_after_play -> <action> {
+  "Enter command: x -> exit, n -> new game " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.trim_spaces >> case {
+    ; "x" -> exit$
+    ; "n" -> new_game$
+    ; ** ->
+      "?" stdio.print_and_newline,
+      G &&
+    }
+  ; io.instream_at_end$ -> exit$
+  }
+} ;;
+
+eval <game> *G <action> *A do_action -> <game maybe> {
+  A case {
+  ; *P put_hand$ -> G P put_user_hand
+  ; exit$ -> "Bye." stdio.print_and_newline, stdio.flush, none$
+  ; new_game$  -> new_game value$
+  }
+} ;;
+
+eval <game> *G <int> *P put_user_hand -> <game maybe> {
+  G current_board_ >> value = *B,
+  B P valid_hand? >> case {
+  ; true$ ->
+    B P put_hand = *B',
+    B' board_state >> case {
+    ; user_win$ ->
+      "YOU WIN!" stdio.print_and_newline,
+      B' board_display >> print,
+      (current_board_:none$ :: G game$) value$
+    ; draw$ ->
+      "DRAW!" stdio.print_and_newline,
+      B' board_display >> print,
+      (current_board_:none$ :: G game$) value$
+    ; play_on$ ->
+      B' board_next = *B'',
+      B'' board_state >> case {
+      ; user_lose$ ->
+        "YOU LOSE!" stdio.print_and_newline,
+        B'' board_display >> print,
+        (current_board_:none$ :: G game$) value$
+      ; draw$ ->
+        "DRAW!" stdio.print_and_newline,
+        B'' board_display >> print,
+        (current_board_:none$ :: G game$) value$
+      ; play_on$ ->
+        (current_board_: (B'' value$) :: G game$) value$
+      }
+    }
+  ; ** -> "?" stdio.print_and_newline, G value$
+  }
+} ;;
+
+eval <board> *B <int> *P valid_hand? -> <bool> {
+  B P place >> empty?
+} ;;
+
+eval <board> *B <int> *P place -> <place> {
+  B (P dec) list.elem >> value
+} ;;
+
+eval <board> *B <int> *P put_hand -> <board> {
+  B (P dec) (user$ hand$) replace_at
+} ;;

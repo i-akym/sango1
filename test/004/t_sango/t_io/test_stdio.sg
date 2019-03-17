@@ -1,0 +1,38 @@
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  ^test try >> case {
+  ; ** fin$ -> 0
+  ; *E exc$ -> E stdio.cstdout_org_impl debug.dump_to, 9
+  } = *Exit,
+  stdio.cstdout_org_impl io.flush,
+  Exit case {
+  ; 0 ->
+  ; ** -> Exit runtime.exit
+  }
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  test003,
+  test004,
+  test004a,
+  test004b,
+  test004c,
+  test004d,
+  void$
+} ;;
+
+eval test001 -> <void> { stdio.read_line = *L io.instream_data$, L cstr.line_text >> stdio.print_and_newline } ;;
+eval test002 -> <void> { stdio.read_line = io.instream_at_end$, void$ } ;;
+eval test003 -> <void> { "Hello, world!" stdio.print_and_newline };;
+eval test004 -> <void> { "1. Hi, guys!\n(new line started...)I'm Sango." stdio.print, stdio.newline } ;;
+eval test004a -> <void> { "2. Hi, guys!\r(new line started...)I'm Sango." stdio.print, stdio.newline } ;;
+eval test004b -> <void> { "3. Hi, guys!\r\n(new line started...)I'm Sango." stdio.print, stdio.newline } ;;
+eval test004c -> <void> { "4. Hi, guys!\r\r(empty line, new line started...)I'm Sango." stdio.print, stdio.newline } ;;
+eval test004d -> <void> { "5. Hi, guys!\n\n(empty line, new line started...)I'm Sango." stdio.print, stdio.newline } ;;

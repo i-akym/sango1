@@ -1,0 +1,65 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This program displays prime numbers under N. (N > 2)
+# Usage: sango -m sample_dir primes N
+
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.int" -> int ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.tuple" -> tuple ;;
+
+eval _main_ -> <void> {
+  runtime.args = [ *N ; ** ],
+  N int.parse = *Upper,
+  if {
+  ; Upper 3 lt? -> bad_arg$ "Too small upper." new_exception >> throw
+  ; otherwise ->
+  },
+  3 [] &\ <int> *Candidate <int list> *Primes_r -> <int list> {
+    if {
+    ; Candidate Upper lt? ->
+      Candidate Primes_r prime? >> case {
+      ; true$ -> (Candidate 2 sum) [ Candidate ; Primes_r ] &&
+      ; false$ -> (Candidate 2 sum) Primes_r &&
+      }
+    ; otherwise -> Primes_r list.reverse
+    }
+  } = *Primes,
+  "2" stdio.print,
+  Primes
+    \ <int> *P -> <void> { "  " stdio.print, P int.format >> stdio.print }
+    list.map,
+  stdio.newline, stdio.flush
+} ;;
+
+eval <int> *N <int list> *Ps prime? -> <bool> {
+  Ps case {
+  ; [] -> true$
+  ; [ *P ; *Ps' ] || N P div >> tuple.pair_second >> zero? -> false$
+  ; [ ** ; *Ps' ] -> N Ps' &&
+  }
+} ;;

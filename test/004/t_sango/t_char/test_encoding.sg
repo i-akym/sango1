@@ -1,0 +1,143 @@
+import "sango.char.encoding" -> enc ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system" -> sys ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.tuple" -> tuple ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  "UTF-16LE" enc.start_encoder = *E101,
+  E101 test103,
+  E101 test104,
+  E101 test104z,
+  "UTF-16BE" enc.start_encoder = *E111,
+  E111 test113,
+  E111 test114,
+  E111 test114z,
+  "UTF-8" enc.start_encoder = *E121,
+  E121 test123,
+  E121 test124,
+  E121 test125,
+  E121 test126,
+  E121 test127,
+  "EUC-JP" enc.start_encoder = *E131,
+  E131 test131,
+  E131 test132,
+  E131 test133,
+  E131 test134,
+  "Windows-31J" enc.start_encoder = *E141,
+  E141 test141,
+  E141 test142,
+  E141 test143,
+  "UTF-8" enc.default_decode_props enc.start_decoder = *D221,
+  D221 test223,
+  D221 test224,
+  D221 test225,
+  D221 test226,
+  D221 test227,
+  "EUC-JP" enc.default_decode_props enc.start_decoder = *D231,
+  D231 test231,
+  D231 test232,
+  D231 test233,
+  D231 test234,
+  "Windows-31J" enc.default_decode_props enc.start_decoder = *D241,
+  D241 test241,
+  D241 test242,
+  D241 test243,
+  void$
+} ;;
+
+# eval utf16_encoder_bom_le -> <enc.encoder_h> {
+  # (byte_order: sys.little_endian$ start_with_bom: true$ enc.utf16_encode_props$) enc.start_utf16_encoder } ;;
+# eval utf16_encoder_bom_be -> <enc.encoder_h> {
+  # (byte_order: sys.big_endian$ start_with_bom: true$ enc.utf16_encode_props$) enc.start_utf16_encoder } ;;
+
+eval <enc.encoder_h> *E test103 -> <bstr> {
+  E 'a' enc.encode = [| %x61~, %x00~ |] } ;;
+eval <enc.encoder_h> *E test104 -> <bstr> {
+  E '`u10FFFF;' enc.encode = [| %xFF~, %xDB~, %xFF~, %xDF~ |] } ;;
+eval <enc.encoder_h> *E test104z -> <bstr> {
+  E enc.end = [||] } ;;
+eval <enc.encoder_h> *E test113 -> <bstr> {
+  E 'a' enc.encode = [| %x00~, %x61~ |] } ;;
+eval <enc.encoder_h> *E test114 -> <bstr> {
+  E '`u10FFFF;' enc.encode = [| %xDB~, %xFF~, %xDF~, %xFF~ |] } ;;
+eval <enc.encoder_h> *E test114z -> <bstr> {
+  E enc.end = [||] } ;;
+eval <enc.encoder_h> *E test123 -> <bstr> {
+  E '`u7F;' enc.encode = [| %x7F~ |]
+} ;;
+eval <enc.encoder_h> *E test124 -> <bstr> {
+  E '`u7FF;' enc.encode = [| %xDF~, %xBF~ |]
+} ;;
+eval <enc.encoder_h> *E test125 -> <bstr> {
+  E '`uFFFF;' enc.encode = [| %xEF~, %xBF~, %xBF~ |]
+} ;;
+eval <enc.encoder_h> *E test126 -> <bstr> {
+  E '`u10FFFF;' enc.encode = [| %xF4~, %x8F~, %xBF~, %xBF~ |]
+} ;;
+eval <enc.encoder_h> *E test127 -> <bstr> {
+  E enc.end = [||]
+} ;;
+eval <enc.encoder_h> *E test131 -> <bstr> {
+  E 'a' enc.encode = [| %x61~ |]
+} ;;
+eval <enc.encoder_h> *E test132 -> <bstr> {
+  E '`u3042;' enc.encode = [| %xA4~, %xA2~ |]
+} ;;
+eval <enc.encoder_h> *E test133 -> <bstr> {
+  E '`u0100;' enc.encode = [| %x8F~, %xAA~, %xA7~ |]
+} ;;
+eval <enc.encoder_h> *E test134 -> <bstr> {
+  E enc.end = [||]
+} ;;
+eval <enc.encoder_h> *E test141 -> <bstr> {
+  E 'a' enc.encode = [| %x61~ |]
+} ;;
+eval <enc.encoder_h> *E test142 -> <bstr> {
+  E '`u3042;' enc.encode = [| %x82~, %xA0~ |]
+} ;;
+eval <enc.encoder_h> *E test143 -> <bstr> {
+  E enc.end = [||]
+} ;;
+eval <enc.decoder_h> *D test223 -> <cstr> {
+  D %x7F~ enc.decode = "`u7F;"
+} ;;
+eval <enc.decoder_h> *D test224 -> <cstr> {
+  D %xDF~ enc.decode = "", D %xBF~ enc.decode = "`u7FF;"
+} ;;
+eval <enc.decoder_h> *D test225 -> <cstr> {
+  D %xEF~ enc.decode = "", D %xBF~ enc.decode = "", D %xBF~ enc.decode = "`uFFFF;"
+} ;;
+eval <enc.decoder_h> *D test226 -> <cstr> {
+  D %xF4~ enc.decode = "", D %x8F~ enc.decode = "", D %xBF~ enc.decode = "", D %xBF~ enc.decode = "`u10FFFF;"
+} ;;
+eval <enc.decoder_h> *D test227 -> <cstr> {
+  D enc.end = ""
+} ;;
+eval <enc.decoder_h> *D test231 -> <cstr> {
+  D %x61~ enc.decode = "a"
+} ;;
+eval <enc.decoder_h> *D test232 -> <cstr> {
+  D %xA4~ enc.decode = "", D %xA2~ enc.decode = "`u3042;"
+} ;;
+eval <enc.decoder_h> *D test233 -> <cstr> {
+  D %x8F~ enc.decode = "", D %xAA~ enc.decode = "", D %xA7~ enc.decode = "`u0100;"
+} ;;
+eval <enc.decoder_h> *D test234 -> <cstr> {
+  D enc.end = ""
+} ;;
+eval <enc.decoder_h> *D test241 -> <cstr> {
+  D %x61~ enc.decode = "a"
+} ;;
+eval <enc.decoder_h> *D test242 -> <cstr> {
+  D %x82~ enc.decode = "", D %xA0~ enc.decode = "`u3042;"
+} ;;
+eval <enc.decoder_h> *D test243 -> <cstr> {
+  D enc.end = ""
+} ;;

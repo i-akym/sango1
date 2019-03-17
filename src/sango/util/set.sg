@@ -1,0 +1,194 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.set" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
+
+# -- set framework --
+
+data <*A set> @public :=
+  d: <A set_d+>
+  fs: <A set_fs>
+  set$ ;;
+
+data <*A set_d> @public := _dummy_set_d$ ;;
+
+data <*A set_fs> @public :=
+  empty?_f: <<A set_d+> bool fun>
+  size_f: <<A set_d+> int fun>
+  get_f: <<A set_d+> A <A maybe> fun>
+  contain?_f_: <<<A set_d+> A bool fun> maybe>
+  put_f: <<A set_d+> A <<A set_d+> <A maybe> tuple> fun>
+  put_new_f_: <<<A set_d+> A <<A set_d+> bool tuple> fun> maybe>
+  add_f_: <<<A set_d+> A <A set_d+> fun>  maybe>
+  remove_f: <<A set_d+> A <<A set_d+> <A maybe> tuple> fun>
+  delete_f_: <<<A set_d+> A <A set_d+> fun> maybe>
+  take_f: <<A set_d+> <<A <A set_d+> tuple> maybe> fun>
+  clear_f: <<A set_d+> <A set_d+> fun>
+  set_fs$ ;;
+
+eval <*A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <<A set_d+> A bool fun> {
+  Fs contain?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A set_d+> *D <A> *Elem -> <bool> {
+      D Elem &(Fs get_f) >> something? 
+    }
+  }
+} ;;
+
+eval <*A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <<A set_d+> A <<A set_d+> bool tuple> fun> {
+  Fs put_new_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A set_d+> *D <A> *Elem -> <<A set_d+> bool tuple> {
+      D Elem &(Fs contain?_f) >> case {
+      ; true$ -> (| D, false$ |)
+      ; ** -> (| D Elem &(Fs add_f), true$ |)
+      }
+    }
+  }
+} ;;
+
+eval <*A set_fs> *Fs set_fs_add_f | add_f @public -> <<A set_d+> A <A set_d+> fun> {
+  Fs add_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A set_d+> *D <A> *Elem -> <A set_d+> {
+      D Elem &(Fs put_f) = (| *D', ** |),
+      D'
+    }
+  }
+} ;;
+
+eval <*A set_fs> *Fs set_fs_delete_f | delete_f @public -> <<A set_d+> A <A set_d+> fun> {
+  Fs delete_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A set_d+> *D <A> *Elem -> <A set_d+> {
+      D Elem &(Fs remove_f) = (| *D', ** |),
+      D'
+    }
+  }
+} ;;
+
+
+# -- framework --
+
+eval <*A set> *Set empty? @public -> <bool> {
+  Set = d: *D fs: *Fs set$,
+  D &(Fs empty?_f)
+} ;;
+
+eval <*A set> *Set size @public -> <int> {
+  Set = d: *D fs: *Fs set$,
+  D &(Fs size_f)
+} ;;
+
+eval <*A set> *Set <A> *Elem get @public -> <A maybe> {
+  Set = d: *D fs: *Fs set$,
+  D Elem &(Fs get_f)
+} ;;
+
+eval <*A set> *Set <A> *Elem contain? @public -> <bool> {
+  Set = d: *D fs: *Fs set$,
+  D Elem &(Fs contain?_f)
+} ;;
+
+eval <*A set> *Set <A> *Elem put @public -> <<A set> <A maybe> tuple> {
+  Set = d: *D fs: *Fs set$,
+  D Elem &(Fs put_f) = (| *D', *Old_ |),
+  (| d: D' :: Set set$, Old_ |)
+} ;;
+
+eval <*A set> *Set <A> *Elem put_new @public -> <<A set> bool tuple> {
+  Set = d: *D fs: *Fs set$,
+  D Elem &(Fs put_new_f) = (| *D', *Succeeded? |),
+  (| d: D' :: Set set$, Succeeded? |)
+} ;;
+
+eval <*A set> *Set <A> *Elem add @public -> <A set> {
+  Set = d: *D fs: *Fs set$,
+  d: (D Elem &(Fs add_f)) :: Set set$
+} ;;
+
+eval <*A set> *Set <A> *Elem remove @public -> <<A set> <A maybe> tuple> {
+  Set = d: *D fs: *Fs set$,
+  D Elem &(Fs remove_f) = (| *D', *Removed_ |),
+  (| d: D' :: Set set$, Removed_ |)
+} ;;
+
+eval <*A set> *Set <A> *Elem delete @public -> <A set> {
+  Set = d: *D fs: *Fs set$,
+  d: (D Elem &(Fs delete_f)) :: Set set$
+} ;;
+
+
+eval <*A set> *Set take @public -> <<A <A set> tuple> maybe> {
+  Set = d: *D fs: *Fs set$,
+  D &(Fs take_f) >> case {
+  ; (| *E, *D' |) value$ -> (| E, d: D' :: Set set$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A set> *Set clear @public -> <A set> {
+  Set = d: *D fs: *Fs set$,
+  d: (D &(Fs clear_f)) :: Set set$
+} ;;
+
+eval <*A set> *Set <A list> *Elems add_list @public -> <A set> {
+  Set (Elems list.iter) add_iter
+} ;;
+
+eval <*A set> *Set <A iter> *Iter add_iter @public -> <A set> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Set E add) Iter' &&
+  ; ** -> Set
+  }
+} ;;
+
+eval <*A set> *Set <A list> *Elems delete_list @public -> <A set> {
+  Set (Elems list.iter) delete_iter
+} ;;
+
+eval <*A set> *Set <A iter> *Iter delete_iter @public -> <A set> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Set E delete) Iter' &&
+  ; ** -> Set
+  }
+} ;;
+
+eval <*A set> *Set iter @public -> <A iter> {
+  \\ <A iter_res> { Set iter_next } iter$
+} ;;
+
+eval <*A set> *Set iter_next -> <A iter_res> {
+  Set take >> case {
+  ; (| *E, *Set' |) value$ ->
+    (| E, \\ <A iter_res> { Set' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

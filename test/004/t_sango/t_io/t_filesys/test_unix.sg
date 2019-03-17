@@ -1,0 +1,36 @@
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.io.filesys.unix" -> ufs ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test031,
+  test032,
+  test033,
+  test034,
+  test035,
+  test036,
+  test037,
+  test051,
+  test052,
+  void$
+} ;;
+
+eval test031 -> <cstr> { "/" ufs.parse_path = *P, P ufs.absolute? = true$, P fs.path_area = "/", P fs.path_names = [], P ufs.path_repr = "/" } ;;
+eval test032 -> <cstr> { "/foo/bar" ufs.parse_path = *P, P ufs.absolute? = true$, P fs.path_area = "/", P fs.path_names = [ "foo", "bar" ], P ufs.path_repr = "/foo/bar" } ;;
+eval test033 -> <cstr> { "foo/bar" ufs.parse_path = *P, P ufs.absolute? = false$, P fs.path_area = "", P fs.path_names = [ "foo", "bar" ], P ufs.path_repr = "foo/bar" } ;;
+eval test034 -> <cstr> { "../../hoge" ufs.parse_path = *P, P fs.path_names = [ "..", "..", "hoge" ], P ufs.path_repr = "../../hoge" } ;;
+eval test035 -> <cstr> { "foo/bar/.." ufs.parse_path = *P, P fs.path_names = [ "foo" ], P ufs.path_repr = "foo" } ;;
+eval test036 -> <cstr> { "foo/.." ufs.parse_path = *P, P fs.path_names = [], P ufs.path_repr = "." } ;;
+eval test037 -> <fs.path_struct result> { \\ { "/foo/../.." ufs.parse_path } try = ** exc$ } ;;
+eval test051 -> <cstr list> { [ "foo" ] ufs.new_absolute_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "foo", "bar" ] } ;;
+eval test052 -> <cstr list> { [ "..", "..", "foo" ] ufs.new_relative_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "..", "..", "foo", "bar" ] } ;;

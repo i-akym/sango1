@@ -1,0 +1,218 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.num.bigint" ;;
+
+import "sango.cstr" -> cstr ;;
+import "sango.cstr.format" -> fmt ;;
+import "sango.num.int" -> int ;;
+import "sango.string" -> str ;;
+import "sango.util.locale" -> lc ;;
+
+data <bigint> @opaque := @native ;;
+
+eval _init_ -> <void> {
+  "sango.num.bigint" ^format fmt.install_formatter
+} ;;
+
+eval <int> *I to_bigint | bigint @public -> <bigint> @native ;;
+eval <bigint> *B bit_length @public -> <int> @native ;;  # bit length exclusing sign bit
+
+eval <bigint> *B0 <bigint> *B1 compare @public -> <ordering> @native ;;
+
+eval <bigint> *B0 <bigint> *B1 eq? @public -> <bool> {
+  B0 B1 compare >> eq?
+} ;;
+
+eval <bigint> *B0 <bigint> *B1 lt? @public -> <bool> {
+  B0 B1 compare >> lt?
+} ;;
+
+eval <bigint> *B0 <bigint> *B1 le? @public -> <bool> {
+  B0 B1 compare >> le?
+} ;;
+
+eval <bigint> *B0 <bigint> *B1 gt? @public -> <bool> {
+  B0 B1 compare >> gt?
+} ;;
+
+eval <bigint> *B0 <bigint> *B1 ge? @public -> <bool> {
+  B0 B1 compare >> ge?
+} ;;
+
+eval <bigint> *B zero? @public -> <bool> {
+  B (0 bigint) eq?
+} ;;
+
+eval <bigint> *B lt0? @public -> <bool> {
+  B (0 bigint) lt?
+} ;;
+
+eval <bigint> *B le0? @public -> <bool> {
+  B (0 bigint) le?
+} ;;
+
+eval <bigint> *B gt0? @public -> <bool> {
+  B (0 bigint) gt?
+} ;;
+
+eval <bigint> *B ge0? @public -> <bool> {
+  B (0 bigint) ge?
+} ;;
+
+eval <bigint> *B0 <bigint> *B1 sum @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 diff @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 prod @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 quot @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 div @public -> <bigint bigint tuple> @native ;;
+
+eval <bigint> *B neg @public -> <bigint> {
+  (0 bigint) B diff
+} ;;
+
+eval <bigint> *B inc | succ @public -> <bigint> {
+  B (1 bigint) sum
+} ;;
+
+eval <bigint> *B dec | pred @public -> <bigint> {
+  B (1 bigint) diff
+} ;;
+
+eval <bigint> *B int_range? @public -> <bool> {
+  (B (-2147483648 bigint) ge?) (B (2147483647 bigint) le?) and
+} ;;
+
+eval <bigint> *B to_int | int @public -> <int> @native ;;
+
+eval eq_fs @public -> <bigint eq_fs> {
+  eq?_f: ^eq?
+  ne?_f_: none$
+  eq_fs$
+} ;;
+
+eval ord_fs @public -> <bigint ord_fs> {
+  compare_f: ^compare
+  eq?_f_: (^eq? value$)
+  lt?_f_: (^lt? value$)
+  le?_f_: (^le? value$)
+  gt?_f_: (^gt? value$)
+  ge?_f_: (^ge? value$)
+  ord_fs$
+} ;;
+
+eval <bigint> *B bit_not @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 bit_and @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 bit_or @public -> <bigint> @native ;;
+eval <bigint> *B0 <bigint> *B1 bit_xor @public -> <bigint> @native ;;
+eval <bigint> *B <int> *I shift_left @public -> <bigint> @native ;;
+eval <bigint> *B <int> *I shift_right_keep_sign @public -> <bigint> @native ;;
+
+
+# -- parse --
+
+data <p_sign> := p_sign_none$ | p_sign_plus$ | p_sign_minus$ ;;
+
+eval <cstr> *Str parse @public -> <bigint> {
+  # '+' = %x2B
+  # '-' = %x2D
+  # '0' = %x30
+  # '9' = %x39
+  Str cstr.trim_spaces = *S,
+  S case {
+  ; "" -> bad_arg$  "Empty." new_exception >> throw
+  ; "+" | "-" -> bad_arg$  "No digit follows sign." new_exception >> throw
+  ; ** ->
+  },
+  S cstr.length = *L,
+  10 bigint = *Ten,
+  0 p_sign_none$ (0 bigint) &\ <int> *Pos <p_sign> *Sign <bigint> *Acc -> <bigint> {
+    if {
+    ; Pos L lt? ->
+      S Pos cstr.char >> char_code = *CC,
+      (| Sign, CC |) case {
+      ; (| p_sign_none$, %x2B |) -> (Pos inc) p_sign_plus$ Acc &&
+      ; (| p_sign_none$, %x2D |) -> (Pos inc) p_sign_minus$ Acc &&
+      ; ** || (CC %x30 ge?) (CC %x39 le?) and -> (Pos inc) Sign ((Acc Ten prod) (CC %x30 diff >> bigint) sum) &&
+      ; ** -> bad_arg$ "Invalid integer format." new_exception >> throw
+      }
+    ; otherwise ->
+      Sign case {
+      ; p_sign_minus$ -> Acc neg
+      ; ** -> Acc
+      }
+    }
+  }
+} ;;
+
+
+# -- formatting --
+
+extend <fmt.fd> @public := <bigint> bigint_fd$ ;;
+
+eval <bigint> *B default_format | format @public -> <cstr> {
+  B "" format_bigint
+} ;;
+
+eval <fmt.obj> *Obj <fmt.format_param> *Param <lc.locale> *Locale format -> <cstr> {
+  Obj case {
+  ; *B fmt.byte_fd$ -> (B int >> bigint) Param format_bigint
+  ; *I fmt.int_fd$ -> (I bigint) Param format_bigint
+  ; *B bigint_fd$ -> B Param format_bigint
+  }
+} ;;
+
+eval <bigint> *B <fmt.format_param> *Param format_bigint -> <cstr> {
+  Param case {
+  ; "" -> B "d" do_format
+  ; ** -> B Param do_format
+  }
+} ;;
+
+eval <bigint> *B <cstr> *Param do_format -> <cstr> {
+  B Param bigint_format_fs int._do_format
+} ;;
+
+eval bigint_format_fs -> <bigint int._format_fs> {
+  signum_f:
+      \ <bigint> *B -> <int> { if { B gt0? -> 1 ; B zero? -> 0 ; otherwise -> -1 } }
+    neg_f:
+      ^neg
+    decimal_last_digit_f:
+      \ <bigint> *B -> <int bigint tuple> { B (10 bigint) div = (| *Q, *R |), (| (R int), Q |) }
+    octal_last_digit_f:
+      \ <bigint> *B -> <int bigint tuple> {
+        if {
+        ; B ge0? -> (| B (7 bigint) bit_and >> int, B 3 shift_right_keep_sign |)
+        ; otherwise -> bad_arg$ "Negative." new_exception >> throw
+        }
+      }
+    hex_last_digit_f:
+      \ <bigint> *B -> <int bigint tuple> {
+        if {
+        ; B ge0? -> (| B (15 bigint) bit_and >> int, B 4 shift_right_keep_sign |)
+        ; otherwise -> bad_arg$ "Negative." new_exception >> throw
+        }
+      }
+    int._format_fs$
+} ;;
+

@@ -1,0 +1,108 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.avltree.set" ;;
+
+import "sango.tuple" -> tuple ;;
+import "sango.util.avltree" -> avl ;;
+import "sango.util.set" -> set ;;
+
+extend <*A set.set_d> := tree: <A A avl.tree> set_d$ ;;
+
+eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
+  d: ((Ord avl.new_tree) set_d$) fs: set_fs set.set$
+} ;;
+
+eval set_fs -> <*A set.set_fs> {
+  empty?_f: ^empty?
+    size_f: ^size
+    get_f: ^get
+    contain?_f_: (^contain? value$)
+    put_f: ^put
+    put_new_f_: (^put_new value$)
+    add_f_: (^add value$)
+    remove_f: ^remove
+    delete_f_: (^delete value$)
+    take_f: ^take
+    clear_f: ^clear
+    set.set_fs$
+} ;;
+
+eval <*A set.set_d+> *Set_d empty? -> <bool> {
+  Set_d = *Tree set_d$,
+  Tree avl.empty?
+} ;;
+
+eval <*A set.set_d+> *Set_d size -> <int> {
+  Set_d = *Tree set_d$,
+  Tree avl.size
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem get -> <A maybe> {
+  Set_d = *Tree set_d$,
+  (Tree Elem avl.get) ^tuple.pair_first apply_to_something
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem contain? -> <bool> {
+  Set_d = *Tree set_d$,
+  Tree Elem avl.contain_key?
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
+  Set_d = *Tree set_d$,
+  Tree Elem Elem avl.put = (| *Tree', *Replaced_ |),
+  (| tree: Tree' :: Set_d set_d$, Replaced_ ^tuple.pair_first apply_to_something |)
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem put_new -> <<A set.set_d+> bool tuple> {
+  Set_d = *Tree set_d$,
+  Tree Elem Elem avl.put_new = (| *Tree', *Added? |),
+  (| tree: Tree' :: Set_d set_d$, Added? |)
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem add -> <A set.set_d+> {
+  Set_d Elem put >> tuple.pair_first
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple> {
+  Set_d = *Tree set_d$,
+  Tree Elem avl.remove = (| *Tree', *Removed_ |),
+  (| tree: Tree' :: Set_d set_d$, Removed_ ^tuple.pair_first apply_to_something |)
+} ;;
+
+eval <*A set.set_d+> *Set_d <A> *Elem delete -> <A set.set_d+> {
+  Set_d Elem remove >> tuple.pair_first
+} ;;
+
+eval <*A set.set_d+> *Set_d take -> <<A <A set.set_d+> tuple> maybe> {
+  Set_d = *Tree set_d$,
+  Tree avl.take >> case {
+  ; (| (| *E, E |), *Tree' |) value$ -> (| E, tree: Tree' :: Set_d set_d$ |) value$
+  ; none$ -> none$
+  }
+} ;;
+
+eval <*A set.set_d+> *Set_d clear -> <A set.set_d+> {
+  Set_d = *Tree set_d$,
+  (Tree avl.clear) set_d$
+} ;;

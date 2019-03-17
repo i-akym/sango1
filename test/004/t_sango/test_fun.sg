@@ -1,0 +1,34 @@
+import "sango.fun" -> fun ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  test001,
+  test002,
+  test003,
+  test004,
+  test005,
+  void$
+} ;;
+
+eval f0 -> <int> { 3 } ;;
+eval <int> *I f1 -> <int> { I } ;;
+eval <int> *I <byte> *B f2 -> <int byte tuple> { (| I, B |) } ;;
+eval <int> *I <byte> *B <bool> *T f3 -> <int byte bool tuple> { (| I, B, T |) } ;;
+eval <int> *I <byte> *B <bool> *T <real> *R f4 -> <int byte bool real tuple> { (| I, B, T, R |) } ;;
+eval <int> *I <byte> *B <bool> *T <real> *R <char> *C f5 -> <int byte bool real char tuple> { (| I, B, T, R, C |) } ;;
+
+eval test000 -> <int> { 9 itself >> &(^f0 fun.unary) = 3 } ;;
+eval test001 -> <int> { 9 itself >> &(^f1 fun.unary) = 9 } ;;
+eval test002 -> <int byte tuple> { (| 9, 11~ |) itself >> &(^f2 fun.unary) } ;;
+# eval test002 -> <int byte tuple> { (| 9, 11~ |) itself >> &(^f2 fun.unary) = (| 9, 11~ |) } ;;
+eval test003 -> <int byte bool tuple> { (| 9, 11~, true$ |) itself >> &(^f3 fun.unary) = (| 9, 11~, true$ |) } ;;
+eval test004 -> <int byte bool real tuple> { (| 9, 11~, true$, -13.0 |) itself >> &(^f4 fun.unary) = (| 9, 11~, true$, ** |) } ;;  # real litteral cannot be specified in pattern...
+eval test005 -> <int byte bool real char tuple> { (| 9, 11~, true$, -13.0, 'c' |) itself >> &(^f5 fun.unary) = (| 9, 11~, true$, **, 'c' |) } ;;  # real litteral cannot be specified in pattern...

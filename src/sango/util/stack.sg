@@ -1,0 +1,123 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.stack" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
+
+data <*A stack> @public :=
+  d: <A stack_d+>
+  fs: <A stack_fs>
+  stack$ ;;
+
+data <*A stack_d> @public := _dummy_stack_d$ ;;
+
+data <*A stack_fs> @public :=
+  empty?_f: <<A stack_d+> bool fun>
+  depth_f: <<A stack_d+> int fun>
+  push_f: <<A stack_d+> A <A stack_d+> fun>
+  top_f: <<A stack_d+> <A maybe> fun>
+  pop_f: <<A stack_d+> <<A <A stack_d+> tuple> maybe> fun>
+  to_list_f_: <<<A stack_d+> <A list> fun> maybe>
+  clear_f: <<A stack_d+> <A stack_d+> fun>
+  stack_fs$ ;;
+
+eval <*A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <<A stack_d+> <A list> fun> {
+  Fs to_list_f_ >> case {
+  ; *F value$ -> F
+  ; ** ->
+    \ <A stack_d+> *Stack_d -> <A list> {
+      Stack_d [] &\ <A stack_d+> *D <A list> *L_r -> <A list> {
+        D &(Fs pop_f) >> case {
+        ; (| *E, *D' |) value$ -> D' [ E ; L_r ] &&
+        ; ** -> L_r list.reverse
+        }
+      }
+    }
+  }
+} ;;
+
+
+# -- framework --
+
+eval <*A stack> *Stack empty? @public -> <bool> {
+  Stack = d: *D fs: *Fs stack$,
+  D &(Fs empty?_f)
+} ;;
+
+eval <*A stack> *Stack depth @public -> <int> {
+  Stack = d: *D fs: *Fs stack$,
+  D &(Fs depth_f)
+} ;;
+
+eval <*A stack> *Stack <A> *Elem push @public -> <A stack> {
+  Stack = d: *D fs: *Fs stack$,
+  d: (D Elem &(Fs push_f)) :: Stack stack$
+} ;;
+
+eval <*A stack> *Stack top @public -> <A maybe> {
+  Stack = d: *D fs: *Fs stack$,
+  D &(Fs top_f)
+} ;;
+
+eval <*A stack> *Stack pop @public -> <<A <A stack> tuple> maybe> {
+  Stack = d: *D fs: *Fs stack$,
+  D &(Fs pop_f) >> case {
+  ; (| *E, *D' |) value$ -> (| E, d: D' :: Stack stack$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A stack> *Stack to_list @public -> <A list> {
+  Stack = d: *D fs: *Fs stack$,
+  D &(Fs to_list_f)
+} ;;
+
+eval <*A stack> *Stack clear @public -> <A stack> {
+  Stack = d: *D fs: *Fs stack$,
+  d: (D &(Fs clear_f)) :: Stack stack$
+} ;;
+
+eval <*A stack> *Stack <A list> *Elems push_list @public -> <A stack> {
+  Stack (Elems list.iter) push_iter
+} ;;
+
+eval <*A stack> *Stack <A iter> *Iter push_iter @public -> <A stack> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Stack E push) Iter' &&
+  ; ** -> Stack
+  }
+} ;;
+
+eval <*A stack> *Stack iter @public -> <A iter> {
+  \\ <A iter_res> { Stack iter_next } iter$
+} ;;
+
+eval <*A stack> *Stack iter_next -> <A iter_res> {
+  Stack pop >> case {
+  ; (| *E, *Stack' |) value$ ->
+    (| E, \\ <A iter_res> { Stack' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

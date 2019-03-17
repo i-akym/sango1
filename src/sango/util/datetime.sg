@@ -1,0 +1,432 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.datetime" ;;
+
+import "sango.arith" -> arith ;;
+import "sango.list" -> list ;;
+import "sango.num.bigint" -> bi ;;
+
+data <d> :=
+  min_year: <int>
+  max_year: <int>
+  days_in_4_years: <bi.bigint>
+  days_in_100_years: <bi.bigint>
+  days_in_400_years: <bi.bigint>
+  millisecs_to_1970: <bi.bigint>
+  month_days_normal: <int list>
+  month_days_leap: <int list>
+  month_days_acc_normal: <int list>
+  month_days_acc_leap: <int list>
+  d$ ;;
+
+eval _init_ -> <d> {
+  (365 4 prod) 1 sum >> bi.bigint = *Days_in_4_years,  # normal case
+  (365 100 prod) 24 sum >> bi.bigint = *Days_in_100_years,  # normal case
+  (365 400 prod) 97 sum >> bi.bigint = *Days_in_400_years,
+  (
+    (
+      (Days_in_400_years (4 bi.bigint) bi.prod)  # 1..1600
+      (Days_in_100_years (3 bi.bigint) bi.prod)  # 1601..1900
+      bi.sum
+    )
+    (
+      Days_in_4_years (17 bi.bigint) bi.prod  # 1901..1968
+    )
+    bi.sum
+  )
+  (365 bi.bigint) # 1969
+  bi.sum = *Days_to_1970,
+  Days_to_1970 (86400000 bi.bigint) bi.prod = *Millisecs_to_1970,
+  min_year: 1
+    max_year: 9999
+    days_in_4_years: Days_in_4_years
+    days_in_100_years: Days_in_100_years
+    days_in_400_years: Days_in_400_years
+    millisecs_to_1970: Millisecs_to_1970
+    month_days_normal: [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+    month_days_leap: [ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+    month_days_acc_normal: [ 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 ]
+    month_days_acc_leap: [ 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 ]
+    d$
+} ;;
+
+# -- constants --
+
+eval min_year @public -> <int> { _initd_ >> min_year } ;;
+eval max_year @public -> <int> { _initd_ >> max_year } ;;
+
+
+# -- current time --
+
+eval millisecs_from_1970 | now @public -> <bi.bigint> @native ;;
+
+
+# -- date and time --
+
+data <date> @protected :=
+  year: <int>
+  month: <int>
+  day: <int>
+  date$ ;;
+
+data <time> @protected :=
+  hour: <int>
+  minute: <int>
+  second: <int>
+  millisec: <int>
+  time$ ;;
+
+data <date_time> @public :=
+  date: <date>
+  time: <time>
+  date_time$ ;;
+
+eval <int> *Year <int> *Month <int> *Day date @public -> <date> {
+  if {
+  ; Year (_initd_ >> min_year) lt? -> bad_arg$ "Too small year." new_exception >> throw
+  ; Year (_initd_ >> max_year) gt? -> bad_arg$ "Too large year." new_exception >> throw
+  ; otherwise ->
+  },
+  if {
+  ; Month le0? -> bad_arg$ "Too small month." new_exception >> throw
+  ; Month 12 gt? -> bad_arg$ "Too large month." new_exception >> throw
+  ; otherwise ->
+  },
+  Year leap_year? >> case {
+  ; true$ -> _initd_ >> month_days_leap
+  ; ** -> _initd_ >> month_days_normal
+  } = *Month_days,
+  if {
+  ; Day le0? -> bad_arg$ "Too small day." new_exception >> throw
+  ; Day (Month_days (Month dec) list.elem >> value) gt? -> bad_arg$ "Too large day." new_exception >> throw
+  ; otherwise ->
+  },
+  year: Year month: Month day: Day date$
+} ;;
+
+eval <int> *Hour <int> *Minute <int> *Second <int> *Millisec time @public -> <time> {
+  if {
+  ; Hour lt0? -> bad_arg$ "Too small hour." new_exception >> throw
+  ; Hour 24 gt? -> bad_arg$ "Too large hour." new_exception >> throw
+  ; otherwise ->
+  },
+  if {
+  ; Minute lt0? -> bad_arg$ "Too small minute." new_exception >> throw
+  ; Minute 60 gt? -> bad_arg$ "Too large minute." new_exception >> throw
+  ; otherwise ->
+  },
+  if {
+  ; Second lt0? -> bad_arg$ "Too small second." new_exception >> throw
+  ; Second 60 gt? -> bad_arg$ "Too large second." new_exception >> throw
+  ; otherwise ->
+  },
+  if {
+  ; Millisec lt0? -> bad_arg$ "Too small millisecond." new_exception >> throw
+  ; Millisec 999 gt? -> bad_arg$ "Too large millisecond." new_exception >> throw
+  ; otherwise ->
+  },
+  hour: Hour minute: Minute second: Second millisec: Millisec time$
+} ;;
+
+eval <bi.bigint> *Millisecs millisecs_to_date_time | date_time @public -> <date_time> {
+  Millisecs (_initd_ >> millisecs_to_1970) bi.sum = *Millisecs_from_start,
+  if {
+  ; Millisecs_from_start bi.lt0? -> bad_arg$ "Too small." new_exception >> throw
+  ; otherwise ->
+  },
+  Millisecs_from_start (86400000 bi.bigint) bi.div = (| *Days, *Millisecs_from_midnight |),
+  Days (_initd_ >> days_in_400_years) bi.div = (| *N400, *D |), N400 bi.int = *Y400_count,
+  D (_initd_ >> days_in_100_years) bi.div = (| *N100, *DD |),
+  (| N100 bi.int, DD |) case {
+  ; (| 4, ** |) -> (| 3, 36525 bi.bigint |)
+  ; *X -> X
+  } = (| *Y100_count, *DD' |),
+  DD' (_initd_ >> days_in_4_years) bi.div = (| *N4, *DDD |), N4 bi.int = *Y4_count,
+  DDD (365 bi.bigint) bi.div = (| *N1, *DDDD |),
+  (| N1 bi.int, DDDD |) >> case {
+  ; (| 4, ** |) -> (| 3, 366 |)
+  ; (| *P, *Q |) -> (| P, Q bi.int |)
+  } = (| *Year_count_1, *Day_in_year |),
+  1 (Y400_count 400 prod) (Y100_count 100 prod) (Y4_count 4 prod) Year_count_1 arith.sum = *Year_value,
+  if {
+  ; Year_value (_initd_ >> max_year) gt? -> bad_arg$ "Too large." new_exception >> throw
+  ; otherwise ->
+  },
+  date: (Year_value Day_in_year date_in_year)
+    time: ((Millisecs_from_midnight bi.int) millisecs_from_midnight_to_time)
+    date_time$
+} ;;
+
+eval <int> *Year <int> *Day date_in_year | date @public -> <date> {
+  Year leap_year? >> case {
+  ; true$ -> _initd_ >> month_days_acc_leap
+  ; ** -> _initd_ >> month_days_acc_normal
+  } = [ *Jan, *Feb, *Mar, *Apr, *May, *Jun, *Jul, *Aug, *Sep, *Oct, *Nov, ** ],
+  if {
+  ; Day Jan lt? -> (| 1, 1 Day sum |)
+  ; Day Feb lt? -> (| 2, 1 (Day Jan diff) sum |)
+  ; Day Mar lt? -> (| 3, 1 (Day Feb diff) sum |)
+  ; Day Apr lt? -> (| 4, 1 (Day Mar diff) sum |)
+  ; Day May lt? -> (| 5, 1 (Day Apr diff) sum |)
+  ; Day Jun lt? -> (| 6, 1 (Day May diff) sum |)
+  ; Day Jul lt? -> (| 7, 1 (Day Jun diff) sum |)
+  ; Day Aug lt? -> (| 8, 1 (Day Jul diff) sum |)
+  ; Day Sep lt? -> (| 9, 1 (Day Aug diff) sum |)
+  ; Day Oct lt? -> (| 10, 1 (Day Sep diff) sum |)
+  ; Day Nov lt? -> (| 11, 1 (Day Oct diff) sum |)
+  ; otherwise -> (| 12, 1 (Day Nov diff) sum |)
+  } = (| *Month_value, *Day_value |),
+  year: Year month: Month_value day: Day_value date$
+} ;;
+
+eval <date> *Date day_in_year @public -> <int> {
+  Date = year: *Y month: *M day: *D date$,
+  Y leap_year? >> case {
+  ; true$ -> _initd_ >> month_days_acc_leap
+  ; ** -> _initd_ >> month_days_acc_normal
+  } = *MD,
+  ([ 0 ; MD ] (M dec) list.elem >> value) (D dec) sum
+} ;;
+
+eval <int> *Millisecs millisecs_from_midnight_to_time | time @public -> <time> {
+  if {
+  ; Millisecs 86400000 ge? -> bad_arg$ "Too large milliseconds." new_exception >> throw
+  ; otherwise ->
+  },
+  Millisecs 1000 div = (| *Seconds, *Millisec_value |),
+  Seconds 60 div = (| *Minutes, *Second_value |),
+  Minutes 60 div = (| *Hour_value, *Minute_value |),
+  hour: Hour_value minute: Minute_value second: Second_value millisec: Millisec_value time$
+} ;;
+
+eval <time> *Time millisecs_from_midnight @public -> <int> {
+  Time = hour: *H minute: *M second: *S millisec: *MS time$,
+  (H 3600000 prod) (M 60000 prod) (S 1000 prod) MS arith.sum
+} ;;
+
+eval <int> *Year leap_year? @public -> <bool> {
+  Year 400 div = (| **, *R400 |),
+  Year 100 div = (| **, *R100 |),
+  Year 4 div = (| **, *R4 |),
+  (| R400, R100, R4 |) case {
+  ; (| 0, **, ** |) -> true$
+  ; (| **, 0, ** |) -> false$
+  ; (| **, **, 0 |) -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval date_eq_fs @public -> <date eq_fs> {
+  eq?_f: ^date_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+
+eval time_eq_fs @public -> <time eq_fs> {
+  eq?_f: ^time_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+
+eval date_time_eq_fs @public -> <date_time eq_fs> {
+  eq?_f: ^date_time_eq?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+
+eval date_ord_fs @public -> <date ord_fs> {
+  compare_f: ^date_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
+eval time_ord_fs @public -> <time ord_fs> {
+  compare_f: ^time_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
+eval date_time_ord_fs @public -> <date_time ord_fs> {
+  compare_f: ^date_time_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
+eval <date> *D0 <date> *D1 date_compare | compare @public -> <ordering> {
+  D0 = year: *Year0 month: *Month0 day: *Day0 date$,
+  D1 = year: *Year1 month: *Month1 day: *Day1 date$,
+  if {
+  ; Year0 Year1 lt? -> lt$
+  ; Year0 Year1 gt? -> gt$
+  ; otherwise ->
+    if {
+    ; Month0 Month1 lt? -> lt$
+    ; Month0 Month1 gt? -> gt$
+    ; otherwise ->
+      if {
+      ; Day0 Day1 lt? -> lt$
+      ; Day0 Day1 gt? -> gt$
+      ; otherwise -> eq$
+      }
+    }
+  }
+} ;;
+
+eval <date> *D0 <date> *D1 date_eq? | eq? @public -> <bool> {
+  D0 D1 compare >> eq?
+} ;;
+
+eval <date> *D0 <date> *D1 date_lt? | lt? @public -> <bool> {
+  D0 D1 compare >> lt?
+} ;;
+
+eval <date> *D0 <date> *D1 date_le? | le? @public -> <bool> {
+  D0 D1 compare >> le?
+} ;;
+
+eval <date> *D0 <date> *D1 date_gt? | gt? @public -> <bool> {
+  D0 D1 compare >> gt?
+} ;;
+
+eval <date> *D0 <date> *D1 date_ge? | ge? @public -> <bool> {
+  D0 D1 compare >> ge?
+} ;;
+
+eval <time> *T0 <time> *T1 time_compare | compare @public -> <ordering> {
+  T0 = hour: *Hour0 minute: *Minute0 second: *Second0 millisec: *Millisec0 time$,
+  T1 = hour: *Hour1 minute: *Minute1 second: *Second1 millisec: *Millisec1 time$,
+  if {
+  ; Hour0 Hour1 lt? -> lt$
+  ; Hour0 Hour1 gt? -> gt$
+  ; otherwise ->
+    if {
+    ; Minute0 Minute1 lt? -> lt$
+    ; Minute0 Minute1 gt? -> gt$
+    ; otherwise ->
+      if {
+      ; Second0 Second1 lt? -> lt$
+      ; Second0 Second1 gt? -> gt$
+      ; otherwise ->
+        if {
+        ; Millisec0 Millisec1 lt? -> lt$
+        ; Millisec0 Millisec1 gt? -> gt$
+        ; otherwise -> eq$
+        }
+      }
+    }
+  }
+} ;;
+
+eval <time> *T0 <time> *T1 time_eq? | eq? @public -> <bool> {
+  T0 T1 compare >> eq?
+} ;;
+
+eval <time> *T0 <time> *T1 time_lt? | lt? @public -> <bool> {
+  T0 T1 compare >> lt?
+} ;;
+
+eval <time> *T0 <time> *T1 time_le? | le? @public -> <bool> {
+  T0 T1 compare >> le?
+} ;;
+
+eval <time> *T0 <time> *T1 time_gt? | gt? @public -> <bool> {
+  T0 T1 compare >> gt?
+} ;;
+
+eval <time> *T0 <time> *T1 time_ge? | ge? @public -> <bool> {
+  T0 T1 compare >> ge?
+} ;;
+
+eval <date_time> *DT0 <date_time> *DT1 date_time_compare | compare @public -> <ordering> {
+  DT0 = date: *Date0 time: *Time0 date_time$,
+  DT1 = date: *Date1 time: *Time1 date_time$,
+  if {
+  ; Date0 Date1 lt? -> lt$
+  ; Date0 Date1 gt? -> gt$
+  ; otherwise ->
+    if {
+    ; Time0 Time1 lt? -> lt$
+    ; Time0 Time1 gt? -> gt$
+    ; otherwise -> eq$
+    }
+  }
+} ;;
+
+eval <date_time> *DT0 <date_time> *DT1 date_time_eq? | eq? @public -> <bool> {
+  DT0 DT1 compare >> eq?
+} ;;
+
+eval <date_time> *DT0 <date_time> *DT1 date_time_lt? | lt? @public -> <bool> {
+  DT0 DT1 compare >> lt?
+} ;;
+
+eval <date_time> *DT0 <date_time> *DT1 date_time_le? | le? @public -> <bool> {
+  DT0 DT1 compare >> le?
+} ;;
+
+eval <date_time> *DT0 <date_time> *DT1 date_time_gt? | gt? @public -> <bool> {
+  DT0 DT1 compare >> gt?
+} ;;
+
+eval <date_time> *DT0 <date_time> *DT1 date_time_ge? | ge? @public -> <bool> {
+  DT0 DT1 compare >> ge?
+} ;;
+
+
+# -- loacal time --
+
+data <local_date_time> @protected :=
+  zone_id: <cstr>
+  zone_offset: <int>
+  # dst?: <bool>
+  date: <date>
+  time: <time>
+  local_date_time$ ;;
+
+eval default_time_zone_id @public -> <cstr> @native ;;
+eval <cstr> *TZ_id <bi.bigint> *Millisecs time_zone_offset -> <int> @native ;;
+
+eval <bi.bigint> *Millisecs <cstr> *TZ_id millisecs_to_local_date_time | date_time @public -> <local_date_time> {
+  TZ_id Millisecs time_zone_offset = *Offset,
+  Millisecs (Offset bi.bigint) bi.sum >> date_time = date: *D time: *T date_time$,
+  zone_id: TZ_id
+    zone_offset: Offset
+    date: D
+    time: T
+    local_date_time$
+} ;;
+
+# eval <local_date_time> *LDT universal @public -> <date_time> {} ;;

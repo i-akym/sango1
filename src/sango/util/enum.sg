@@ -1,0 +1,120 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.enum" ;;
+
+data <*A context> @public :=
+  d: <A context_d+>
+  fs: <A context_fs>
+  context$ ;;
+
+data <*A context_d> @public := _dummy_context_d$ ;;
+
+data <*A context_fs> @public :=
+  min_ge: <<A context_d+> A <A maybe> fun>
+  min_gt: <<A context_d+> A <A maybe> fun>
+  max_le: <<A context_d+> A <A maybe> fun>
+  max_lt: <<A context_d+> A <A maybe> fun>
+  contain?_f: <<A context_d+> A bool fun>
+  count_f: <<A context_d+> <A A tuple> int fun>
+  ord_fs: <A ord_fs>
+  context_fs$ ;;
+
+data <*A enum> @public :=
+  context: <A context>
+  bounds: <A A tuple>
+  enum$ ;;
+
+eval <*A enum> *Enum count @public -> <int> {
+  Enum = context: (d: *D fs: *Fs context$) bounds: *Bounds enum$,
+  D Bounds &(Fs count_f)
+} ;;
+
+eval <*A enum> *Enum first @public -> <A maybe> {
+  Enum = context: (d: *D fs: *Fs context$) bounds: (| *L, ** |) enum$,
+  D L &(Fs min_ge)
+} ;;
+
+eval <*A enum> *Enum last @public -> <A maybe> {
+  Enum = context: (d: *D fs: *Fs context$) bounds: (| **, *U |) enum$,
+  D U &(Fs max_le)
+} ;;
+
+eval <*A enum> *Enum <A> *X contain? @public -> <bool> {
+  Enum = context: (d: *D fs: *Fs context$) bounds: (| *L, *U |) enum$,
+  Fs ord_fs = *Ord_fs,
+  D X &(Fs contain?_f) >> case {
+  ; true$ || (X L &(Ord_fs ge?_f)) (X U &(Ord_fs le?_f)) and -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A enum> *Enum <A> *X succ @public -> <A maybe> {
+  Enum = context: (d: *D fs: *Fs context$) bounds: (| *L, *U |) enum$,
+  if {
+  ; Enum X contain? ->
+  ; otherwise -> bad_arg$ "" new_exception >> throw
+  },
+  Fs ord_fs = *Ord_fs,
+  D X &(Fs min_gt) >> case {
+  ; *X' value$ || (X' L &(Ord_fs >> ge?_f)) (X' U &(Ord_fs >> le?_f)) and -> X' value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A enum> *Enum <A> *X pred @public -> <A maybe> {
+  Enum = context: (d: *D fs: *Fs context$) bounds: (| *L, *U |) enum$,
+  if {
+  ; Enum X contain? ->
+  ; otherwise -> bad_arg$ "" new_exception >> throw
+  },
+  Fs ord_fs = *Ord_fs,
+  D X &(Fs max_lt) >> case {
+  ; *X' value$ || (X' L &(Ord_fs >> ge?_f)) (X' U &(Ord_fs >> le?_f)) and -> X' value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A enum> *Enum iter @public -> <A iter> {
+  \\ <A iter_res> { Enum (Enum first) iter_next } iter$
+} ;;
+
+eval <*A enum> *Enum <A maybe> *X_ iter_next -> <A iter_res> {
+  X_ case {
+  ; *X value$ || Enum X contain? ->
+    (| X, \\ <A iter_res> { Enum (Enum X succ) iter_next } iter$|) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A enum> *Enum reverse_iter @public -> <A iter> {
+  \\ <A iter_res> { Enum (Enum last) reverse_iter_next } iter$
+} ;;
+
+eval <*A enum> *Enum <A maybe> *X_ reverse_iter_next -> <A iter_res> {
+  X_ case {
+  ; *X value$ || Enum X contain? ->
+    (| X, \\ <A iter_res> { Enum (Enum X pred) reverse_iter_next } iter$|) value$
+  ; ** -> none$
+  }
+} ;;

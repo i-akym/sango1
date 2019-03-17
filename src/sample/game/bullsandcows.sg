@@ -1,0 +1,194 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program of 'Bulls and Cows' for 4 digits
+# Usage: sango bullsandcows
+
+import "sango.arith" -> arith ;;
+import "sango.bool" -> bool ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.num.int" -> int ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.util.random" -> rand ;;
+
+data <game> :=
+  secret: <cstr>
+  trials_r: <trial list>
+  game$ ;;
+
+data <trial> :=
+  guess: <cstr>
+  bulls: <int>
+  cows: <int>
+  trial$ ;;
+
+data <action> :=
+| exit$
+| new_game$
+| print_trials$
+| <cstr> judge$ ;;
+
+eval _main_ -> <void> {
+  (new_game value$) main_loop
+} ;;
+
+eval <game maybe> *G_ main_loop -> <void> {
+  G_ case {
+  ; *G value$ ->
+    G finished? >> case {
+    ; true$ -> G action_after_game = *A, (G A do_action) &&
+    ; ** -> G action_in_game = *A, (G A do_action) &&
+    }
+  ; ** ->  # exit
+  }
+} ;;
+
+eval <game> *G finished? -> <bool> {
+  G trials_r >> case {
+  ; [ bulls: 4 *** trial$ ; ** ] -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <game> *G action_in_game -> <action> {
+  "Guess (or Enter command: x -> exit, n -> new game, t -> print trials) " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.trim_spaces >> case {
+    ; "x" -> exit$
+    ; "n" -> new_game$
+    ; "t" -> print_trials$
+    ; *Ds => Ds = [| *D1, *D2, *D3, *D4 |] || ([ D1, D2, D3, D4 ] ^digit? list.map) bool.list_and ->
+      Ds judge$
+    ; ** ->
+      "?" stdio.print_and_newline,
+      G &&
+    }
+  ; io.instream_at_end$ -> exit$
+  }
+} ;;
+
+eval <game> *G action_after_game -> <action> {
+  "Enter command: x -> exit, n -> new game " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.trim_spaces >> case {
+    ; "x" -> exit$
+    ; "n" -> new_game$
+    ; ** ->
+      "?" stdio.print_and_newline,
+      G &&
+    }
+  ; io.instream_at_end$ -> exit$
+  }
+} ;;
+
+eval <game> *G <action> *A do_action -> <game maybe> {
+  A case {
+  ; exit$ || G finished? -> none$
+  ; exit$ -> G print_secret, none$
+  ; new_game$ || G finished? -> new_game value$
+  ; new_game$  -> G print_secret, new_game value$
+  ; print_trials$ -> G print_trials, G value$
+  ; *Ds judge$ -> (G Ds judge) value$
+  }
+} ;;
+
+eval new_game -> <game> {
+  [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ] = *L0,
+  L0 (rand.generate 10.0 prod >> int) list.elem >> value = *D1,
+  L0 (D1 ne?_f) list.filter = *L2,
+  L2 (rand.generate 9.0 prod >> int) list.elem >> value = *D2,
+  L2 (D2 ne?_f) list.filter = *L3,
+  L3 (rand.generate 8.0 prod >> int) list.elem >> value = *D3,
+  L3 (D3 ne?_f) list.filter = *L4,
+  L4 (rand.generate 7.0 prod >> int) list.elem >> value = *D4,
+  [| D1, D2, D3, D4 |] = *Secret,
+  "Guess the 4-digit secret number. (The digits are all different and the first digit may or may not be '0')" stdio.print_and_newline,
+  secret: Secret trials_r: [] game$
+} ;;
+
+eval <char> *N ne?_f -> <char bool fun> {
+  \ <char> *X -> <bool> { X N hard_ne? }
+} ;;
+
+eval <game> *G <cstr> *Ds judge -> <game> {
+  Ds = [| *D1, *D2, *D3, *D4 |],
+  G secret = *S,
+  [ S case { [| D1, **, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, D2, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, D3, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, **, D4 |] -> 1 ; ** -> 0 } ] arith.int_sum_list = *Bulls,
+  [ S case { [| **, D1, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, D1, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, **, D1 |] -> 1 ; ** -> 0 },
+    S case { [| D2, **, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, D2, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, **, D2 |] -> 1 ; ** -> 0 },
+    S case { [| D3, **, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, D3, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, **, D3 |] -> 1 ; ** -> 0 },
+    S case { [| D4, **, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, D4, **, ** |] -> 1 ; ** -> 0 },
+    S case { [| **, **, D4, ** |] -> 1 ; ** -> 0 } ] arith.int_sum_list = *Cows,
+  guess: Ds bulls: Bulls cows: Cows trial$ = *T,
+  T trial_format >> stdio.print_and_newline,
+  trials_r: [ T ; G trials_r ] :: G game$
+} ;;
+
+eval <trial> *Trial trial_format -> <cstr> {
+  Trial bulls >> case {
+  ; 4 -> "YOU WIN!"
+  ; *Bulls -> [ Bulls int.format, "B", Trial cows >> int.format, "C" ] cstr.concat
+  } = *Result,
+  [ Trial guess, " ==> ", Result ] cstr.concat
+} ;;
+
+eval <game> *G print_secret -> <void> {
+  [ "The secret number is ",
+    G secret,
+    "."] cstr.concat >> stdio.print_and_newline
+} ;;
+
+eval <game> *G print_trials -> <void> {
+  1 (G trials_r >> list.reverse) &\ <int> *N <trial list> *Ts -> <void> {
+    Ts case {
+    ; [ *T ; *TT ] -> N T print_trial, (N inc) TT &&
+    ; ** ->
+    }
+  }
+} ;;
+
+eval <int> *N <trial> *Trial print_trial -> <void> {
+  [ N int.format, " ", Trial trial_format ] cstr.concat >> stdio.print_and_newline
+} ;;
+
+eval <char> *D digit? -> <bool> {
+  (D '0' ge?) (D '9' le?) and
+} ;;

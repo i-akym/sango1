@@ -1,0 +1,196 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.actor" ;;
+
+import "sango.entity" -> ent ;;
+
+extend <exc_desc> @public :=
+| exit$ ;;  # actor should end quickly
+
+data <actor_h> @opaque := @native ;;
+data <*A async_result_h> @opaque := @native ;;
+data <*A async_h> @opaque := <actor_h> <A async_result_h> async_h$ ;;
+data <wait> @public :=
+| wait_forever$
+| <int> wait_ms$ ;;
+
+eval my_actor_h @public -> <actor_h> @native ;;
+eval <actor_h> *Actor actor_state | state @public -> <actor_state> @native ;;
+
+eval yield @public -> <void> @native ;;
+
+eval <*A fun> *F spawn_actor | spawn @public -> <A async_h> @native ;;
+eval <actor_h> *Actor start_actor | start @public -> <void> @native ;;
+
+eval highest_priority @public -> <int> { 9 } ;;
+eval default_priority @public -> <int> { 4 } ;;
+eval lowest_priority @public -> <int> { 0 } ;;
+eval <actor_h> *Actor priority @public -> <int> {
+  Actor state >> prio
+} ;;
+eval <actor_h> *Actor <int> *Priority set_priority @public -> <void> @native ;;
+
+eval <actor_h> *Actor background_actor? | background? @public -> <bool> {
+  Actor state >> bg
+} ;;
+eval <actor_h> *Actor <bool> *Bg actor_run_background | run_background @public -> <void> @native ;;
+
+eval <actor_h list> *Actors <wait> *Wait wait_some_actors_ended | join @public -> <actor_h list> @native ;;
+eval <*A async_result_h> *Result async_result_peek | peek @public -> <<A result> maybe> @native ;;
+
+eval <*A async_h> *Async actor_h @public -> <actor_h> {
+  Async = *Actor ** async_h$,
+  Actor
+} ;;
+
+eval <*A async_h> *Async async_result_h @public -> <A async_result_h> {
+  Async = ** *Result async_h$,
+  Result
+} ;;
+
+eval <*A async_h> *Async start_async | start @public -> <void> {
+  Async actor_h >> start
+} ;;
+
+eval <actor_h> *Actor <wait> *Wait wait_actor_ended | join @public -> <bool> {
+  [ Actor ] Wait join >> case {
+  ; [] -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval <*A async_h> *Async sync @public -> <A result> {
+  (Async actor_h) wait_forever$ join,
+  Async async_result_h >> peek >> value
+} ;;
+
+eval <*A async_h> *Async async_peek_result | peek @public -> <<A result> maybe> {
+  Async async_result_h >> peek
+} ;;
+
+
+#  -- messaging --
+
+extend <independent> -> msg @public :=
+| signal$
+| no_post$
+| <sys_msg> sys_msg$
+| <actor_h> <actor_state> actor_state_changed$ ;;
+
+data <sys_msg> @public :=
+| shutdown$ ;;
+
+data <actor_state> @public :=
+  run: <run_state>
+  prio: <int>
+  bg: <bool>
+  actor_state$ ;;
+
+data <run_state> @public :=
+| actor_born$
+| actor_started$
+| <exception maybe> actor_ended$ ;;
+
+data <mbox_p> := @native ;;  # pointer of mbox
+extend <ent.ent_d> :=
+| <mbox_p> mbox_p_ent_d$
+| <ent.wref> mbox_p_eref_wref_ent_d$ ;;
+
+data <mbox_h> @opaque := <ent.eref> mbox_h$ ;;  # eref = mbox_p -> ent_d -> eref
+data <post_h> @opaque := <ent.eref> post_h$ ;;  # eref = mbox_p -> ent_d -> eref -> wref -> ent_d -> eref
+
+data <mbox_opts> @public :=
+  notify_nopost: <bool>
+  notify_sysmsg: <bool>
+  mbox_opts$ ;;
+
+eval default_mbox_opts @public -> <mbox_opts> {
+  notify_nopost: true$
+    notify_sysmsg: false$
+    mbox_opts$
+} ;;
+
+eval open_mbox_with_default_opts | open_mbox @public -> <mbox_h post_h tuple> {
+  default_mbox_opts open_mbox
+} ;;
+
+eval <mbox_opts> *Opts open_mbox @public -> <mbox_h post_h tuple> {
+  Opts =
+    notify_nopost: *Notify_nopost
+    notify_sysmsg: *Notify_sysmsg
+    mbox_opts$,
+  mbox_create = *H,
+  H = *BpE mbox_h$,
+  BpE none$ ent.create_weak_holder = *BpEW,
+  Notify_nopost case {
+  ; true$ -> \\ { BpEW no_post$ try_put_msg } value$
+  ; ** -> none$
+  } = *F_,
+  Notify_sysmsg case {
+  ; true$ -> BpEW notify_sysmsg
+  ; ** ->
+  },
+  (BpEW mbox_p_eref_wref_ent_d$) F_ ent.create_entity = *BpEWE,
+  (| H, BpEWE post_h$ |)
+} ;;
+
+eval mbox_create -> <mbox_h> @native ;; 
+eval <ent.wref> *BpEW notify_sysmsg -> <void> @native ;;
+
+eval <mbox_h> *B mbox_owner | owner -> <actor_h> @native ;;
+
+eval <post_h> *P <msg+> *M mbox_send_msg | send_msg | send @public -> <void> {
+  P = *BpEWE post_h$,
+  BpEWE ent.read = *BpEW mbox_p_eref_wref_ent_d$,
+  BpEW M try_put_msg
+} ;;
+
+eval <ent.wref> *BpEW <msg+> *M try_put_msg -> <void> {
+  BpEW ent.get >> case {
+  ; *BpE value$ ->
+    BpE ent.read = *Bp mbox_p_ent_d$,
+    Bp M mbox_put_msg
+  ; ** ->  # if no receiver, dispose msg
+  }
+} ;;
+
+eval <mbox_p> *Bp <msg+> *M mbox_put_msg -> <void> @native ;;
+
+eval <mbox_h list> *Bs <wait> *Wait mbox_listen_multiple | listen_mboxes | listen @public -> <mbox_h list> @native ;;
+
+eval <mbox_h> *B <wait> *Wait listen_mbox | listen @public -> <bool> {
+  [ B ] Wait listen >> case {
+  ; [] -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval <mbox_h> *B mbox_receive_msg | receive_msg | receive @public -> <msg+ maybe> @native ;;
+
+
+# -- monitoring --
+
+eval <actor_h> *A <post_h> *P start_monitoring @public -> <void> @native ;;
+eval <actor_h> *A <post_h> *P stop_monitoring @public -> <void> @native ;;
+

@@ -1,0 +1,35 @@
+import "sango.debug" -> debug ;;
+import "sango.entity" -> ent ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001 = *IE,
+  IE test002,
+  IE 5 test003,
+  test004,
+  IE test005,
+  IE test006 = *IW,
+  IW test007,
+  IW test008,
+  void$
+} ;;
+
+extend <ent.ent_d> :=
+| <int> int_ent_d$ ;;
+
+eval inv001 -> <void> {} ;;  # do something...
+eval <ent.wref> *IW lis001 -> <void> {} ;;  # do something...
+eval test001 -> <ent.eref> { (3 int_ent_d$) none$ ent.create_entity } ;;
+eval <ent.eref> *E test002 -> <ent.ent_d+> { E ent.read = 3 int_ent_d$ } ;;
+eval <ent.eref> *E <int> *U test003 -> <ent.ent_d+> { E (U int_ent_d$) ent.write = 3 int_ent_d$, E ent.read = U int_ent_d$ } ;;
+eval test004 -> <ent.eref> { (7 int_ent_d$) (^inv001 value$) ent.create_entity } ;;
+eval <ent.eref> *E test005 -> <ent.wref> { E none$ ent.create_weak_holder } ;;
+eval <ent.eref> *E test006 -> <ent.wref> { E (^lis001 value$) ent.create_weak_holder } ;;
+eval <ent.wref> *W test007 -> <ent.eref maybe> { W ent.get } ;;
+eval <ent.wref> *W test008 -> <ent.eref maybe> { W ent.clear, W ent.get = none$ } ;;

@@ -1,0 +1,659 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.io.util" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.cstr" -> cstr ;;
+import "sango.entity" -> ent ;;
+import "sango.io" -> io ;;
+import "sango.string" -> str ;;
+
+extend <ent.ent_d> :=
+| <io.instream_status> instream_status$
+| <io.outstream_status> outstream_status$
+| <int> string_instream_d$ ;;  # next read position, -1 means closed
+
+extend <act.msg> :=
+| <act.post_h> started$
+| <bstr> bstr_write_req$
+| <cstr> cstr_write_req$
+| <act.post_h> flush_req$
+| <void result> flush_res$
+| <act.post_h> close_req$
+| <void result> close_res$
+| <act.post_h> ostatus_req$
+| <io.outstream_status result> ostatus_res$
+| <<byte str.string_buf> result> byte_appended$
+| <<char str.string_buf> result> char_appended$ ;;
+
+eval open_null_byte_instream @public -> <byte io.instream_h> {
+  (io.instream_eof$ instream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+
+  \\ <byte io.instream_read_res> { M null_read } = *Read_f,
+  \ <int> *Len -> <bstr io.instream_read_res> { M null_read_string } = *Read_string_f,
+  none$ = *Try_read_f_,
+  none$ = *Try_read_string_f_,
+  \\ <void> { M null_iclose } = *Close_f,
+  \\ <io.instream_status> { M null_istatus } = *Status_f,
+
+  read_f: Read_f
+    read_string_f: Read_string_f
+    try_read_f_: Try_read_f_
+    try_read_string_f_: Try_read_string_f_
+    close_f: Close_f
+    status_f: Status_f
+    io.instream_h$
+} ;;
+
+eval open_null_char_instream @public -> <char io.instream_h> {
+  (io.instream_eof$ instream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+
+  \\ <char io.instream_read_res> { M null_read } = *Read_f,
+  \ <int> *Len -> <cstr io.instream_read_res> { M null_read_string } = *Read_string_f,
+  none$ = *Try_read_f_,
+  none$ = *Try_read_string_f_,
+  \\ <void> { M null_iclose } = *Close_f,
+  \\ <io.instream_status> { M null_istatus } = *Status_f,
+
+  read_f: Read_f
+    read_string_f: Read_string_f
+    try_read_f_: Try_read_f_
+    try_read_string_f_: Try_read_string_f_
+    close_f: Close_f
+    status_f: Status_f
+    io.instream_h$
+} ;;
+
+eval open_null_line_instream @public -> <io.line_instream_h> {
+  (io.instream_eof$ instream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+
+  \\ <cstr.line io.instream_read_res> { M null_read_line } = *Read_line_f,
+  \\ <void> { M null_iclose } = *Close_f,
+  \\ <io.instream_status> { M null_istatus } = *Status_f,
+
+  read_line_f: Read_line_f
+    close_f: Close_f
+    status_f: Status_f
+    io.line_instream_h$
+} ;;
+
+eval open_null_byte_outstream @public -> <byte io.outstream_h> {
+  (io.outstream_open$ outstream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  
+  \ <byte> *Data -> <void> { M Data null_write } = *Write_f,
+  \ <bstr> *Str <int> *Start <int> *Len -> <void> { M Str Start Len null_write_string_part } = *Write_string_part_f,
+  \\ <void> { M null_flush } = *Flush_f,
+  \\ <void> { M null_oclose } = *Close_f,
+  \\ <io.outstream_status> { M null_ostatus } = *Status_f,
+
+  write_f: Write_f
+    write_string_part_f: Write_string_part_f
+    flush_f: Flush_f
+    close_f: Close_f
+    status_f: Status_f
+    io.outstream_h$
+} ;;
+
+eval open_null_char_outstream @public -> <char io.outstream_h> {
+  (io.outstream_open$ outstream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  
+  \ <char> *Data -> <void> { M Data null_write } = *Write_f,
+  \ <cstr> *Str <int> *Start <int> *Len -> <void> { M Str Start Len null_write_string_part } = *Write_string_part_f,
+  \\ <void> { M null_flush } = *Flush_f,
+  \\ <void> { M null_oclose } = *Close_f,
+  \\ <io.outstream_status> { M null_ostatus } = *Status_f,
+
+  write_f: Write_f
+    write_string_part_f: Write_string_part_f
+    flush_f: Flush_f
+    close_f: Close_f
+    status_f: Status_f
+    io.outstream_h$
+} ;;
+
+eval open_null_print_stream @public -> <io.print_stream_h> {
+  (io.outstream_open$ outstream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  
+  \ <char> *Data -> <void> { M Data null_write } = *Write_f,
+  \ <cstr> *Str <int> *Start <int> *Len -> <void> { M Str Start Len null_write_string_part } = *Write_string_part_f,
+  \\ <void> { M null_flush } = *Flush_f,
+  \\ <void> { M null_oclose } = *Close_f,
+  \\ <io.outstream_status> { M null_ostatus } = *Status_f,
+  \\ <void> { M null_newline } = *Newline_f,
+
+  write_f: Write_f
+    write_string_part_f: Write_string_part_f
+    flush_f: Flush_f
+    close_f: Close_f
+    status_f: Status_f
+    newline_f: Newline_f
+    io.print_stream_h$
+} ;;
+
+eval <actu.monitor_h> *Mon null_read -> <*A io.instream_read_res> {
+  Mon
+  \ <ent.eref> *E -> <*B io.instream_read_res> {
+    E ent.read >> case {
+    ; io.instream_eof$ instream_status$ -> io.instream_at_end$
+    ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_read_string -> <<*A string> io.instream_read_res> {
+  Mon
+  \ <ent.eref> *E -> <<*B string> io.instream_read_res> {
+    E ent.read >> case {
+    ; io.instream_eof$ instream_status$ -> io.instream_at_end$
+    ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_read_line -> <cstr.line io.instream_read_res> {
+  Mon
+  \ <ent.eref> *E -> <cstr.line io.instream_read_res> {
+    E ent.read >> case {
+    ; io.instream_eof$ instream_status$ -> io.instream_at_end$
+    ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_iclose -> <void> {
+  Mon
+  \ <ent.eref> *E -> <void> {
+    E (io.instream_closed$ instream_status$) ent.write >> case {
+    ; io.instream_eof$ instream_status$ ->
+    ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_istatus -> <io.instream_status> {
+  Mon
+  \ <ent.eref> *E -> <io.instream_status> {
+    E ent.read = *S instream_status$,
+    S
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon <*A> *Data null_write -> <void> {} ;;
+
+eval <actu.monitor_h> *Mon <*A> *Str <int> *Start <int> *Len  null_write_string_part -> <void> {} ;;
+
+eval <actu.monitor_h> *Mon null_flush -> <void> {
+  Mon
+  \ <ent.eref> *E -> <void> {
+    E ent.read >> case {
+    ; io.outstream_open$ outstream_status$ ->
+    ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_oclose -> <void> {
+  Mon
+  \ <ent.eref> *E -> <void> {
+    E (io.outstream_closed$ outstream_status$) ent.write >> case {
+    ; io.outstream_open$ outstream_status$ ->
+    ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_ostatus -> <io.outstream_status> {
+  Mon
+  \ <ent.eref> *E -> <io.outstream_status> {
+    E ent.read = *S outstream_status$,
+    S
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon null_newline -> <void> {} ;;
+
+
+# -- instream from string --
+
+eval <*A string> *Data open_string_instream @public -> <A io.instream_h> {
+  (0 string_instream_d$) none$ ent.create_entity >> actu.create_monitor = *M,
+
+  \\ <A io.instream_read_res> { M Data string_instream_read } = *Read_f,
+  \ <int> *Len -> <<A string> io.instream_read_res> { M Data Len string_instream_read_string } = *Read_string_f,
+  none$ = *Try_read_f_,
+  none$ = *Try_read_string_f_,
+  \\ <void> { M Data string_instream_close } = *Close_f,
+  \\ <io.instream_status> { M Data string_instream_status } = *Status_f,
+
+  read_f: Read_f
+    read_string_f: Read_string_f
+    try_read_f_: Try_read_f_
+    try_read_string_f_: Try_read_string_f_
+    close_f: Close_f
+    status_f: Status_f
+    io.instream_h$
+} ;;
+
+eval <actu.monitor_h> *Mon <*A string> *Data string_instream_read -> <A io.instream_read_res> {
+  Mon
+  \ <ent.eref> *E -> <A io.instream_read_res> {
+    E ent.read = *Index string_instream_d$,
+    if {
+    ; Index lt0? -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    ; Index (Data str.length) ge? -> io.instream_at_end$
+    ; otherwise -> E ((Index inc) string_instream_d$) ent.write, (Data Index str.elem) io.instream_data$
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon <*A string> *Data <int> *Len string_instream_read_string -> <<A string> io.instream_read_res> {
+  Mon
+  \ <ent.eref> *E -> <<A string> io.instream_read_res> {
+    E ent.read = *Index string_instream_d$,
+    if {
+    ; Index lt0? -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    ; Index (Data str.length) ge? -> io.instream_at_end$
+    ; otherwise ->
+      (Data str.length) Index diff = *Remain,
+      if {
+      ; Len Remain le? ->
+        E ((Index Len sum) string_instream_d$) ent.write,
+        (Data Index Len str.slice) io.instream_data$
+      ; otherwise ->
+        E ((Data str.length) string_instream_d$) ent.write,
+        (Data Index Remain str.slice) io.instream_data$
+      }
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon <*A string> *Data string_instream_close -> <void> {
+  Mon
+  \ <ent.eref> *E -> <void> {
+    E (-1 string_instream_d$) ent.write >> case {
+    ; -1 string_instream_d$ -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+    ; ** ->
+    }
+  }
+  actu.run
+} ;;
+
+eval <actu.monitor_h> *Mon <*A string> *Data string_instream_status -> <io.instream_status> {
+  Mon
+  \ <ent.eref> *E -> <io.instream_status> {
+    E ent.read = *Index string_instream_d$,
+    if {
+    ; Index lt0? -> io.instream_closed$
+    ; Index (Data str.length) ge? -> io.instream_eof$
+    ; otherwise -> io.instream_open$
+    }
+  }
+  actu.run
+} ;;
+
+
+# -- stream appender --
+
+eval open_byte_stream_appender @public -> <<byte io.outstream_h> <<byte str.string_buf> fun> tuple> {
+  act.open_mbox = (| *Box, *Post |),
+  \\ <byte str.string_buf> { Post byte_stream_append_result_keeper } act.spawn = *K,
+  K act.actor_h = *KA,
+  KA true$ act.run_background,
+  KA 7 act.set_priority,  # tentative
+  KA act.start,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *KP started$,
+
+  \\ <void> { Post KP byte_stream_appender } act.spawn = *A,
+  A act.actor_h = *AA,
+  AA true$ act.run_background,
+  AA 7 act.set_priority,  # tentative
+  AA act.start,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *AP started$,
+  \\ <byte str.string_buf> { K act.sync >> unwrap } = *Get_f,
+
+  \ <byte> *Data -> <void> { AP Data byte_stream_append_write } = *Write_f,
+  \ <bstr> *Data <int> *Start <int> *Len -> <void> { AP Data Start Len byte_stream_append_write_string_part } = *Write_string_part_f,
+  \\ <void> { AP x_stream_append_flush } = *Flush_f,
+  \\ <void> { AP x_stream_append_close } = *Close_f,
+  \\ <io.outstream_status> { AP x_stream_append_ostatus } = *Status_f,
+  write_f: Write_f
+    write_string_part_f: Write_string_part_f
+    flush_f: Flush_f
+    close_f: Close_f
+    status_f: Status_f
+    io.outstream_h$ = *Out_h,
+
+  (| Out_h, Get_f |)
+} ;;
+
+eval open_char_stream_appender @public -> <<char io.outstream_h> <<char str.string_buf> fun> tuple> {
+  act.open_mbox = (| *Box, *Post |),
+  \\ <char str.string_buf> { Post char_stream_append_result_keeper } act.spawn = *K,
+  K act.actor_h = *KA,
+  KA true$ act.run_background,
+  KA 7 act.set_priority,  # tentative
+  KA act.start,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *KP started$,
+
+  \\ <void> { Post KP char_stream_appender } act.spawn = *A,
+  A act.actor_h = *AA,
+  AA true$ act.run_background,
+  AA 7 act.set_priority,  # tentative
+  AA act.start,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *AP started$,
+  \\ <char str.string_buf> { K act.sync >> unwrap } = *Get_f,
+
+  \ <char> *Data -> <void> { AP Data char_stream_append_write } = *Write_f,
+  \ <cstr> *Data <int> *Start <int> *Len -> <void> { AP Data Start Len char_stream_append_write_string_part } = *Write_string_part_f,
+  \\ <void> { AP x_stream_append_flush } = *Flush_f,
+  \\ <void> { AP x_stream_append_close } = *Close_f,
+  \\ <io.outstream_status> { AP x_stream_append_ostatus } = *Status_f,
+  write_f: Write_f
+    write_string_part_f: Write_string_part_f
+    flush_f: Flush_f
+    close_f: Close_f
+    status_f: Status_f
+    io.outstream_h$ = *Out_h,
+
+  (| Out_h, Get_f |)
+} ;;
+
+eval <act.post_h> *Appender <byte> *Data byte_stream_append_write -> <void> {
+  Appender ([| Data |] bstr_write_req$) act.send
+} ;;
+
+eval <act.post_h> *Appender <char> *Data char_stream_append_write -> <void> {
+  Appender ([| Data |] cstr_write_req$) act.send
+} ;;
+
+eval <act.post_h> *Appender <bstr> *Data <int> *Start <int> *Len byte_stream_append_write_string_part -> <void> {
+  Appender ((Data Start Len str.slice) bstr_write_req$) act.send
+} ;;
+
+eval <act.post_h> *Appender <cstr> *Data <int> *Start <int> *Len char_stream_append_write_string_part -> <void> {
+  Appender ((Data Start Len str.slice) cstr_write_req$) act.send
+} ;;
+
+eval <act.post_h> *Appender x_stream_append_flush -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Appender (Post flush_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res flush_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Appender x_stream_append_close -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Appender (Post close_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res close_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Appender x_stream_append_ostatus -> <io.outstream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  Appender (Post ostatus_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res ostatus_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Kicker byte_stream_append_result_keeper -> <byte str.string_buf> {
+  act.open_mbox = (| *Box, *Post |),
+  Kicker (Post started$) act.send,
+  &\\ <byte str.string_buf> {
+    Box act.receive >> case {
+    ; *M value$ => M = *Res byte_appended$ -> Res unwrap
+    ; *M value$ => M = act.no_post$ -> (io.error$ io.io_failure$) "Abnormally ended." new_exception >> throw
+    ; ** value$ -> &&
+    ; none$ -> Box act.wait_forever$ act.listen, &&
+    }
+  }
+} ;;
+
+eval <act.post_h> *Kicker char_stream_append_result_keeper -> <char str.string_buf> {
+  act.open_mbox = (| *Box, *Post |),
+  Kicker (Post started$) act.send,
+  &\\ <char str.string_buf> {
+    Box act.receive >> case {
+    ; *M value$ => M = *Res char_appended$ -> Res unwrap
+    ; *M value$ => M = act.no_post$ -> (io.error$ io.io_failure$) "Abnormally ended." new_exception >> throw
+    ; ** value$ -> &&
+    ; none$ -> Box act.wait_forever$ act.listen, &&
+    }
+  }
+} ;;
+
+data <*A stream_appender_d> :=
+  keeper: <act.post_h>
+  box: <act.mbox_h>
+  status: <io.outstream_status>
+  buf: <A str.string_buf>
+  stream_appender_d$ ;;
+
+eval <act.post_h> *Kicker <act.post_h> *Keeper byte_stream_appender -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Kicker (Post started$) act.send,
+  (keeper: Keeper
+    box: Box
+    status: io.outstream_open$
+    buf: str.new_string_buf
+    stream_appender_d$
+  ) byte_stream_appender_main_loop
+} ;;
+
+eval <act.post_h> *Kicker <act.post_h> *Keeper char_stream_appender -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Kicker (Post started$) act.send,
+  (keeper: Keeper
+    box: Box
+    status: io.outstream_open$
+    buf: str.new_string_buf
+    stream_appender_d$
+  ) char_stream_appender_main_loop
+} ;;
+
+eval <byte stream_appender_d> *D byte_stream_appender_main_loop -> <void> {
+  (D box) act.receive >> case {
+  ; *M value$ -> M case {
+    ; *Bz bstr_write_req$ -> (D Bz x_stream_appender_write) &&
+    ; *P flush_req$ -> (D P  x_stream_appender_flush) &&
+    ; *P close_req$ -> (D P  byte_stream_appender_close) &&
+    ; *P ostatus_req$ -> (D P  x_stream_appender_status) &&
+    ; act.no_post$ -> D byte_stream_appender_end
+    ; ** -> D &&
+    }
+  ; none$ -> (D box) act.wait_forever$ act.listen, D &&
+  }
+} ;;
+
+eval <char stream_appender_d> *D char_stream_appender_main_loop -> <void> {
+  (D box) act.receive >> case {
+  ; *M value$ -> M case {
+    ; *Cz cstr_write_req$ -> (D Cz x_stream_appender_write) &&
+    ; *P flush_req$ -> (D P  x_stream_appender_flush) &&
+    ; *P close_req$ -> (D P  char_stream_appender_close) &&
+    ; *P ostatus_req$ -> (D P  x_stream_appender_status) &&
+    ; act.no_post$ -> D char_stream_appender_end
+    ; ** -> D &&
+    }
+  ; none$ -> (D box) act.wait_forever$ act.listen, D &&
+  }
+} ;;
+
+eval <*A stream_appender_d> *D <A string> *Data x_stream_appender_write -> <A stream_appender_d> {
+  D status >> case {
+  ; io.outstream_open$ -> buf: ((D buf) Data str.append) :: D stream_appender_d$
+  ; ** -> D  # dispose
+  }
+} ;;
+
+eval <*A stream_appender_d> *D <act.post_h> *P x_stream_appender_flush -> <A stream_appender_d> {
+  D status >> case {
+  ; io.outstream_open$ ->
+    P ((void$ fin$) flush_res$) act.send,
+    D
+  ; ** ->
+    P ((((io.not_available$ io.io_failure$) "Closed." new_exception) exc$) flush_res$) act.send,
+    D
+  }
+} ;;
+
+eval <byte stream_appender_d> *D <act.post_h> *P byte_stream_appender_close -> <byte stream_appender_d> {
+  D status >> case {
+  ; io.outstream_open$ ->
+    P ((void$ fin$) close_res$) act.send,
+    (D keeper) (((D buf) fin$) byte_appended$) act.send,
+    status: io.outstream_closed$ :: D stream_appender_d$
+  ; ** ->
+    P ((((io.not_available$ io.io_failure$) "Closed." new_exception) exc$) flush_res$) act.send,
+    D
+  }
+} ;;
+
+eval <char stream_appender_d> *D <act.post_h> *P char_stream_appender_close -> <char stream_appender_d> {
+  D status >> case {
+  ; io.outstream_open$ ->
+    P ((void$ fin$) close_res$) act.send,
+    (D keeper) (((D buf) fin$) char_appended$) act.send,
+    status: io.outstream_closed$ :: D stream_appender_d$
+  ; ** ->
+    P ((((io.not_available$ io.io_failure$) "Closed." new_exception) exc$) flush_res$) act.send,
+    D
+  }
+} ;;
+
+eval <*A stream_appender_d> *D <act.post_h> *P x_stream_appender_status -> <A stream_appender_d> {
+  P (((D status) fin$) ostatus_res$) act.send, D
+} ;;
+
+eval <byte stream_appender_d> *D byte_stream_appender_end -> <void> {
+  D status >> case {
+  ; io.outstream_closed$ ->
+  ; ** ->
+    (D keeper) ((((io.not_available$ io.io_failure$) "Abnormally ended." new_exception) exc$) byte_appended$) act.send
+  }
+} ;;
+
+eval <char stream_appender_d> *D char_stream_appender_end -> <void> {
+  D status >> case {
+  ; io.outstream_closed$ ->
+  ; ** ->
+    (D keeper) ((((io.not_available$ io.io_failure$) "Abnormally ended." new_exception) exc$) char_appended$) act.send
+  }
+} ;;
+
+
+# -- pump --
+
+data <*A pump_conf> @public :=
+  src: <A io.instream_h>
+  dst: <A io.outstream_h>
+  read_at_end_action: <<A pump_conf> void fun>
+  read_error_action: <<A pump_conf> <exception> void fun>
+  write_error_action: <<A pump_conf> <exception> void fun>
+  pump_conf$ ;;
+
+eval <*A io.instream_h> *Src <A io.outstream_h> *Dst new_default_pump_conf @public -> <A pump_conf> {
+  src: Src
+    dst: Dst
+    read_at_end_action: ^pump_default_action_on_read_at_end
+    read_error_action: ^pump_default_action_on_read_error
+    write_error_action: ^pump_default_action_on_write_error
+    pump_conf$
+} ;;
+
+eval <*A pump_conf> *Conf start_pump @public -> <void act.async_h> {
+  \\ <void> { Conf pump } act.spawn = *Act,
+  Act act.start,
+  Act
+} ;;
+
+eval <*A pump_conf> *Conf pump -> <void> {
+  Conf =
+    src: *Src
+    dst: *Dst
+    read_at_end_action: *Read_at_end_action
+    read_error_action: *Read_error_action
+    write_error_action: *Write_error_action
+    pump_conf$,
+  \\ <<A string> io.instream_read_res> { Src 8192 io.read_string } try >> case {
+  ; (*D io.instream_data$) fin$ ->
+    \\ <void> { Dst D io.write } try >> case {
+    ; *E exc$ -> Conf E &Write_error_action, E throw
+    ; ** -> Conf &&
+    }
+  ; io.instream_at_end$ fin$ -> Conf &Read_at_end_action
+  ; *E exc$ -> Conf E &Read_error_action, E throw
+  }
+} ;;
+
+eval <*A pump_conf> *Conf pump_default_action_on_read_at_end @public -> <void> {
+  Conf =
+    src: *Src
+    dst: *Dst
+    write_error_action: *Write_error_action
+    ***
+    pump_conf$,
+  \\ <void> { Src io.close } try,
+  \\ <void> { Dst io.flush, Dst io.close } try >> case {
+  ; *E exc$ -> Conf E &Write_error_action
+  ; ** ->
+  }
+} ;;
+
+eval <*A pump_conf> *Conf <exception> *E pump_default_action_on_read_error @public -> <void> {
+  Conf =
+    src: *Src
+    dst: *Dst
+    ***
+    pump_conf$,
+  \\ <void> { Src io.close } try,
+  \\ <void> { Dst io.flush, Dst io.close } try >> ignore
+} ;;
+
+eval <*A pump_conf> *Conf <exception> *E pump_default_action_on_write_error @public -> <void> {
+  Conf =
+    src: *Src
+    dst: *Dst
+    ***
+    pump_conf$,
+  \\ <void> { Src io.close } try,
+  \\ <void> { Dst io.close } try >> ignore
+} ;;

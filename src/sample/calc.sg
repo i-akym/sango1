@@ -1,0 +1,231 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program of interactive calculator which uses push-down stack
+# Usage: sango -m sample_dir calc
+
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.real" -> real ;;
+
+eval _main_ -> <void> {
+  print_help,
+  [] process_lines,
+  print_bye
+} ;;
+
+data <s> :=
+| <real list> succeeded$
+| <real list> failed$
+| to_end$ ;;
+
+eval <real list> *Values process_lines -> <void> {
+  ">> " stdio.print, stdio.flush,
+  stdio.read_line >> case {
+  ; *Line io.instream_data$ ->
+    Values (Line tokens) process_line >> case {
+    ; *Values' succeeded$ ->  Values' print_values, Values' &&
+    ; *Values' failed$ ->  Values' print_values, Values' &&
+    ; to_end$ ->
+    }
+  ; io.instream_at_end$ ->
+  }
+} ;;
+
+eval <cstr.line> *Line tokens -> <cstr list> {
+  ((Line cstr.line_text) ' ' cstr.split_by_char)
+    \ <cstr> *T -> <bool> { T cstr.length >> gt0? }
+    list.filter
+} ;;
+
+eval <real list> *Values <cstr list> *Tokens process_line -> <s> {
+  (Values succeeded$) Tokens process_token_list
+} ;;
+
+eval <s> *State <cstr list> *Tokens process_token_list -> <s> {
+  (| State, Tokens |) case {
+  ; (| *Vs succeeded$, [ *T ; *TT ] |) -> (Vs &(T action)) TT &&
+  ; ** -> State  # no tokens or failed or to-end
+  }
+} ;;
+
+eval <cstr> *Token action -> <<real list> s fun> {
+  Token case {
+  ; "+" -> ^add_action
+  ; "-" -> ^sub_action
+  ; "*" -> ^mul_action
+  ; "/" -> ^div_action
+  ; "+-" -> ^rev_sign_action
+  ; "clear" -> ^clear_action
+  ; "rot" -> ^rot_action
+  ; "dup" -> ^dup_action
+  ; "drop" -> ^drop_action
+  ; "end" -> ^end_action
+  ; "help" -> ^help_action
+  ; ** -> Token number_to_action
+  }
+} ;;
+
+eval <real list> *Values add_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *Y, *X ; *Vs ] -> [ X Y sum ; Vs ]
+    ; ** -> "Cannot add." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values sub_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *Y, *X ; *Vs ] -> [ X Y diff ; Vs ]
+    ; ** -> "Cannot subtract." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values mul_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *Y, *X ; *Vs ] -> [ X Y prod ; Vs ]
+    ; ** -> "Cannot multiply." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values div_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *Y, *X ; *Vs ] -> [ X Y quot ; Vs ]
+    ; ** -> "Cannot divide." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values rev_sign_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *X ; *Vs ] -> [ X neg ; Vs ]
+    ; ** -> "Cannot reverse sign." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values clear_action -> <s> {
+  [] succeeded$
+} ;;
+
+eval <real list> *Values rot_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *Y, *X ; *Vs ] -> [ X, Y ; Vs ]
+    ; ** -> "Cannot rotate." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values dup_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *X ; *Vs ] -> [ X, X ; Vs ]
+    ; ** -> "Cannot duplicate." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values drop_action -> <s> {
+  \\ <real list> {
+    Values case {
+    ; [ *X ; *Vs ] -> Vs
+    ; ** -> "Cannot drop." stdio.print_and_newline, stdio.flush, bad_status$ "" new_exception >> throw
+    }
+  } try >> case {
+  ; *Values' fin$ -> Values' succeeded$
+  ; ** -> Values failed$
+  }
+} ;;
+
+eval <real list> *Values end_action -> <s> {
+  to_end$
+} ;;
+
+eval <real list> *Values help_action -> <s> {
+  print_help,
+  Values succeeded$
+} ;;
+
+eval <cstr> *Token number_to_action -> <<real list> s fun> {
+  \\ <real> {
+    Token real.parse
+  } try >> case {
+  ; *R fin$ -> \ <real list> *Vs -> <s> { [ R ; Vs ] succeeded$ }
+  ; ** ->
+    \ <real list> *Vs -> <s> {
+      "Invalid command. - " stdio.print, Token stdio.print_and_newline, stdio.flush,
+      Vs failed$
+    }
+  }
+} ;;
+
+eval <real list> *Values print_values -> <void> {
+  ((Values list.reverse) ^real.default_format list.map) "  " cstr.join_with_cstr >> stdio.print_and_newline, stdio.flush
+} ;;
+
+eval print_bye -> <void> {
+  "Bye." stdio.print_and_newline, stdio.flush
+} ;;
+
+eval print_help -> <void> {
+  "Enter one or more numbers or commands split by space.\n\
+  "  number -> push it on stack.\n\
+  "  command -> pop number(s) and operate.\n\
+  "  examples: '32 57 +' => 89.0, '5 3 2 * -' => -1.0, '3.5 dup *' => 12.25\n\
+  "command: +, -, *, /, +-(reverse sign), clear, rot, dup, drop, end, help" stdio.print_and_newline,
+  stdio.flush
+} ;;
+

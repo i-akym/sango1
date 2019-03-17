@@ -1,0 +1,34 @@
+import "sango.arith" -> arith ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test101,
+  test101a,
+  test102,
+  test102a,
+  test103,
+  test103a,
+  test111,
+  test112,
+  test121,
+  test122,
+  void$
+} ;;
+
+eval test101 -> <int> { 0 arith.abs = 0 } ;;
+eval test101a -> <real> { 0.0 arith.abs = *R, 0.0 = R } ;;
+eval test102 -> <int> { 3 arith.abs = 3 } ;;
+eval test102a -> <real> { 3.0 arith.abs = *R, 3.0 = R } ;;
+eval test103 -> <int> { -5 arith.abs = 5 } ;;
+eval test103a -> <real> { -5.0 arith.abs = *R, 5.0 = R } ;;
+eval test111 -> <real> { 5.0 arith.floor = *R, 5.0 = R } ;;
+eval test112 -> <real> { 5.5 arith.floor = *R, 5.0 = R } ;;
+eval test121 -> <real> { 5.0 arith.ceil = *R, 5.0 = R } ;;
+eval test122 -> <real> { 5.5 arith.ceil = *R, 6.0 = R } ;;

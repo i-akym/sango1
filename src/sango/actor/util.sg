@@ -1,0 +1,151 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.actor.util" ;;
+
+import "sango.actor" -> act ;;
+import "sango.entity" -> ent ;;
+
+extend <act.msg> :=
+| <act.post_h> started$  # startup response
+| <act.post_h maybe> <act.actor_h> run_serial_req$ ;;  # for serializer
+
+
+# -- actor startup --
+
+eval <<void fun> void fun> *F startup_actor @public -> <act.actor_h> {
+  act.open_mbox = (| *B, *P |),
+  \\ { \\ { P act.signal$ act.send } &F } act.spawn = *A,
+  A act.start,
+  B act.wait_forever$ act.listen,
+  B act.receive,
+  A act.actor_h
+} ;;
+
+eval <<act.post_h void fun> void fun> *F startup_svr @public -> <act.actor_h act.post_h tuple> {
+  act.open_mbox = (| *B, *P |),
+  \\ { \ <act.post_h> *PP -> { P (PP started$) act.send } &F } act.spawn = *A,
+  A act.start,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = *Svr started$,
+  (| A act.actor_h, Svr |)
+} ;;
+
+
+# -- serializer --
+
+data <serializer_h> @opaque := svr_h: <act.post_h> serializer_h$ ;;
+
+eval start_serializer @public -> <serializer_h> {
+  startup_serialize_svr serializer_h$
+} ;;
+
+eval <serializer_h> *S <*A fun> *F run_serialized @public -> <A> {
+  act.open_mbox = (| *B, *P |),
+  F act.spawn = *Async,
+  (S svr_h) ((P value$) (Async act.actor_h) run_serial_req$) act.send,
+  B act.wait_forever$ act.listen,
+  B act.receive >> value = act.signal$,
+  Async act.peek >> value >> unwrap
+} ;;
+
+eval <serializer_h> *S <*A fun> *F run_serialized_async @public -> <void> {
+  F act.spawn = *Async,
+  (S svr_h) (none$ (Async act.actor_h) run_serial_req$) act.send
+} ;;
+
+data <svr_status> :=
+| ss_received$
+| ss_after_short_stop$
+| ss_msg_queued$ ;;
+
+data <serialize_svr_d> :=
+  status: <svr_status>
+  serialize_svr_d$ ;;
+
+eval startup_serialize_svr -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R serialize_svr } startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 8 act.set_priority,  # tentative
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply serialize_svr -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (status: ss_after_short_stop$ serialize_svr_d$)
+    &\ <serialize_svr_d> *SD -> <void> {  # this is the main loop
+      SD status = *SS,
+      Box act.receive >> case {
+      ; *Msg value$ ->
+        (status: ss_received$ :: SD serialize_svr_d$) Msg serialize_svr_dispatch >> case {
+        ; *SD' value$ -> SD' &&
+        ; ** -> SD serialize_svr_end
+        }
+      ; ** ->
+        SS case {
+        ; ss_received$ ->
+          act.yield,
+          (status: ss_after_short_stop$ :: SD serialize_svr_d$) &&
+        ; ss_after_short_stop$ ->
+          Box act.wait_forever$ act.listen,
+          (status: ss_msg_queued$ :: SD serialize_svr_d$) &&
+        # else internal error
+        }
+      }
+    }
+} ;;
+
+eval <serialize_svr_d> *SD <act.msg+> *Msg serialize_svr_dispatch -> <<serialize_svr_d> maybe> {
+  Msg case {
+  ; *Ret_ *Actor run_serial_req$ -> SD Ret_ Actor serialize_svr_run
+  ; act.no_post$ -> none$
+  ; ** -> SD value$
+  }
+} ;;
+
+eval <serialize_svr_d> *SD <act.post_h maybe> *Ret_ <act.actor_h> *Actor serialize_svr_run -> <serialize_svr_d maybe> {
+  Actor act.start,
+  Actor act.wait_forever$ act.join,
+  Ret_ case {
+  ; *R value$ -> R act.signal$ act.send
+  ; ** ->
+  },
+  SD value$
+} ;;
+
+eval <serialize_svr_d> *SD serialize_svr_end -> <void> {} ;;
+
+
+# -- entity monitor --
+
+data <monitor_h> @opaque := <ent.eref> <serializer_h> monitor_h$ ;;
+
+eval <ent.eref> *E create_monitor @public -> <monitor_h> {
+  E start_serializer monitor_h$
+} ;;
+
+eval <monitor_h> *M <ent.eref *A fun> *F run_monitor | run @public -> <A> {
+  M = *Entity *Serializer monitor_h$,
+  Serializer \\ <A> { Entity &F } run_serialized
+} ;;

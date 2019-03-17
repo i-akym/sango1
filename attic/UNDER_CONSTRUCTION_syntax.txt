@@ -1,0 +1,145 @@
+<empty> ::=
+
+<module> ::= <module_header> <module_body>
+
+<end_of_stmt> ::= ";;"
+
+<module_header> := <module_dcl_stmt>
+
+<module_dcl_stmt> := <module_dcl> <end_of_stmt>
+
+<module_dcl> := "module" <module_name>
+
+<module_name> ::= <chars_literal>
+
+<module_body> ::= <module_body_stmt>*
+
+<module_body_stmt> ::= <empty_stmt>
+                     | <import_stmt>
+                     | <fun_def_stmt>
+                     | <data_def_stmt>
+        
+<empty_stmt> ::= <empty> <end_of_stmt>
+
+<import_stmt> := <import> <end_of_stmt>
+
+<import> ::= "import" <module_name> "->" <module_ref>
+
+<module_ref> ::= <identifier>
+
+<fun_def_stmt> ::= <static_fun_def> <end_of_stmt>
+
+<static_fun_def> ::= "eval" <param_dcl>* <fun_name> <fun_dcl_opt>? "->" <fun_body>
+
+<dyn_fun_def> ::= "\" <fun_body>
+                | "\" <param_full_dcl>* "->" <fun_body>
+
+<param_full_dcl> ::= <type> <param_dcl>
+
+<param_dcl> ::= "*" <var>
+              | "**"
+
+<var> ::= <identifier>
+
+<fun_name> ::= <identifier>
+
+<fun_dcl_opt> ::= "@public"
+                | "@private"
+
+<fun_body> ::= <noname_block>
+
+<noname_block> ::= "{" <expr_seq> <catch>* <finally>? "}"
+
+<case_block> ::= <term> "case" <type>? "{" <case_clause_seq> "}"
+
+<expr_seq> ::= <expr>
+             | <expr_seq> "," <expr>
+
+<case_clause_seq> ::= <case_clause>
+                     | <case_clause_seq> ";" <case_clause>
+
+<case_clause> ::= <empty>
+                 | <case_clause_guard> "->" <case_clause_body>
+
+<case_clause_guard> ::= <ptn_seq> <guard_cond>?
+
+<guard_cond> ::= "||" <expr>
+
+<case_clause_body> ::= <expr_seq>
+
+<expr> ::= <simple_expr>
+         | <match_expr>
+         | <assertion>
+
+<assertion> ::= ###
+
+<match_expr> ::= <expr> "=" <match_target>
+
+<simple_expr> ::= <data_obj>
+                | <fun_obj>
+                | <static_fun_call>
+                | <dyn_fun_call>
+
+<data_obj> ::= ###
+
+<fun_obj> ::= <fun_ref>
+            | <dyn_fun_def>
+
+<fun_ref> ::= "^" <fun>
+            | "^^"
+
+<match_taget> ::= <match_ptn>
+
+<static_fun_call_with_args> ::= <terms> <fun>
+
+<static_fun_call_no_args> ::= <fun>
+
+<dyn_fun_call_with_args> ::= <terms> "&" <term>
+
+<dyn_fun_call_no_args> ::= & <term>
+
+<term> ::= <prim_data_literal>
+        | <constr_data_no_attr>
+        | <fun_obj>
+        | <static_fun_call_no_args>
+        | <dyn_fun_call_no_args>
+        | <named_block>
+        | <tuple>
+        | <list>
+        | <string>
+        | <array>
+        | "(" <expr> ")"
+
+<prim_data_literal> ::= ###
+
+<constr_data_no_attr> ::= ###
+
+<tuple> ::= "(|" <expr_seq> "|)
+
+<list> ::= ###
+
+<string> ::= ###
+
+<array> ::= ###
+
+<named_block> ::= <case_block>
+                | <if_block>
+
+<type> ::= "<" <type_spec> ">"
+
+<type_spec> ::= <type_param>* <type_constr>
+
+<type_param> ::= <type_var>
+	       | <type_constr>
+               | "<" <type_spec> ">"
+
+<type_var> ::= "*"? <identifier>
+             | "**"
+
+<type_constr> ::= <type_org_def_qual>? <module_qual>? <identifier> <type_ext>?
+
+<type_org_def_qual> ::= <module_ref> "/"
+
+<module_qual> ::= <module_ref> "."
+
+<type_ext> ::= "+"

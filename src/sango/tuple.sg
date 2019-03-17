@@ -1,0 +1,40 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.tuple" ;;
+
+eval <*A *B tuple> *X pair_first @public -> <A> { X = (| *X0, ** |), X0 } ;;
+eval <*A *B tuple> *X pair_second @public -> <B> { X = (| **, *X1 |), X1 } ;;
+eval <*A *B *C tuple> *X triple_frist @public -> <A> { X = (| *X0, **, ** |), X0 } ;;
+eval <*A *B *C tuple> *X triple_second @public -> <B> { X = (| **, *X1, ** |), X1 } ;;
+eval <*A *B *C tuple> *X triple_third @public -> <C> { X = (| **, **, *X2 |), X2 } ;;
+eval <*A *B *C *D tuple> *X quadruple_frist @public -> <A> { X = (| *X0, **, **, ** |), X0 } ;;
+eval <*A *B *C *D tuple> *X quadruple_second @public -> <B> { X = (| **, *X1, **, ** |), X1 } ;;
+eval <*A *B *C *D tuple> *X quadruple_third @public -> <C> { X = (| **, **, *X2, ** |), X2 } ;;
+eval <*A *B *C *D tuple> *X quadruple_forth @public -> <D> { X = (| **, **, **, *X3 |), X3 } ;;
+eval <*A *B *C *D *E tuple> *X quintuple_frist @public -> <A> { X = (| *X0, **, **, **, ** |), X0 } ;;
+eval <*A *B *C *D *E tuple> *X quintuple_second @public -> <B> { X = (| **, *X1, **, **, ** |), X1 } ;;
+eval <*A *B *C *D *E tuple> *X quintuple_third @public -> <C> { X = (| **, **, *X2, **, ** |), X2 } ;;
+eval <*A *B *C *D *E tuple> *X quintuple_forth @public -> <D> { X = (| **, **, **, *X3, ** |), X3 } ;;
+eval <*A *B *C *D *E tuple> *X quintuple_fifth @public -> <E> { X = (| **, **, **, **, *X4 |), X4 } ;;
+

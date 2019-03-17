@@ -1,0 +1,606 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.io.filesys" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.cstr" -> cstr ;;
+import "sango.entity" -> ent ;;
+import "sango.io" -> io ;;
+import "sango.list" -> list ;;
+import "sango.lang.module" -> mod ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.system" -> sys ;;
+import "sango.system.runtime" -> runtime ;;
+
+# -- implementation --
+
+data <filesys_fs> @public :=
+  new_path_f: <cstr <cstr list> path_struct fun>
+  absolute_path_area?_f: <cstr bool fun>
+  parse_path_f: <cstr path_struct fun>
+  path_repr_f: <path_struct cstr fun>
+  exist?_f: <cstr bool fun>
+  directory?_f: <cstr bool fun>
+  file?_f: <cstr bool fun>
+  last_updated_f: <cstr bi.bigint fun>
+  same_path?_f: <cstr cstr bool fun>
+  absolute_path_f: <cstr cstr fun>
+  delete_f: <cstr void fun>
+  move_f: <cstr cstr cstr fun>
+  dir_entries_f: <cstr <cstr list> fun>
+  create_dir_f: <cstr cstr fun>
+  create_dirs_f: <cstr cstr fun>
+  create_temp_file_f: <cstr cstr cstr cstr fun>
+  create_byte_instream_impl_f: <cstr <byte io.instream_h> fun>
+  create_byte_outstream_impl_f: <cstr bool <byte io.outstream_h> fun>
+  filesys_fs$ ;;
+
+extend <ent.ent_d> := filesys_fs_: <filesys_fs maybe> filesys_fs__d$ ;;
+
+data <d> := impl_holder: <ent.eref> d$ ;;
+
+eval _init_ -> <d> {
+  (filesys_fs_: none$ filesys_fs__d$) none$ ent.create_entity = *IH,
+  impl_holder: IH d$
+} ;;
+
+eval <cstr> *Os_type <filesys_fs> *Fs install_impl @public -> <void> {
+  sys.os_type case {
+  ; Os_type ->
+    (_initd_ >> impl_holder) (filesys_fs_: (Fs value$) filesys_fs__d$) ent.write >> ignore
+  ; ** ->
+  }
+} ;;
+
+eval filesys_fs -> <filesys_fs> {
+  _initd_ >> impl_holder = *IH,
+  IH >> ent.read >> case {
+  ; (*Fs value$) filesys_fs__d$ -> Fs
+  ; ** ->
+    [ "sango.io.filesys.", sys.os_type ] cstr.concat = *M,
+    M mod.require_module,
+    M mod.wait_module_initialized,
+    IH >> ent.read = (*Fs' value$) filesys_fs__d$,
+    Fs'
+  }
+} ;;
+
+
+# -- path handling --
+
+data <path_struct> @opaque := area: <cstr> names_r: <cstr list> path_struct$ ;;
+
+eval file_separator @public -> <cstr> {
+ [| file_separator_char |]
+} ;;
+
+eval file_separator_char @public -> <char> {
+  "file.separator_char" sys.char_property >> value
+} ;;
+
+eval path_separator @public -> <cstr> {
+  [| path_separator_char |]
+} ;;
+
+eval path_separator_char @public -> <char> {
+  "path.separator_char" sys.char_property >> value
+} ;;
+
+eval current_dir_name @public -> <cstr> { "." } ;;
+eval parent_dir_name @public -> <cstr> { ".." } ;;
+
+eval <path_struct> *PS path_area @public -> <cstr> { PS area } ;;
+
+eval <path_struct> *PS path_base_name @public -> <cstr maybe> {
+  PS names_r >> list.first
+} ;;
+
+eval <path_struct> *PS path_names @public -> <cstr list> {
+  PS names_r >> list.reverse
+} ;;
+
+eval <cstr> *Area <cstr list> *Names new_path @public -> <path_struct> {
+  Area Names &(filesys_fs >> new_path_f)
+} ;;
+
+# called by filesys impl
+eval <cstr> *Area <cstr list> *Names <bool> *Absolute? _new_path @public -> <path_struct> {
+  Area (Names Absolute? internalize_for_path) path_struct$
+} ;;
+
+eval <path_struct> *PS absolute_path? | absolute? @public -> <bool> {
+  (PS area) &(filesys_fs >> absolute_path_area?_f)
+} ;;
+
+eval <path_struct> *PS parent_path @public -> <path_struct maybe> {
+  PS names_r >> case {
+  ; [] -> 
+    PS absolute? >> case {
+    ; false$ -> (names_r: [ ".." ] :: PS path_struct$) value$
+    ; ** -> none$
+    }
+  ; [ ".." ; *Nrs ] -> (names_r: [ "..", ".." ; Nrs ] :: PS path_struct$) value$
+  ; [ ** ; *Nrs ] -> (names_r: Nrs :: PS path_struct$) value$
+  }
+} ;;
+
+eval <path_struct> *PS <cstr> *Child child_path @public -> <path_struct> {
+  Child case {
+  ; "" | "." |  ".." -> bad_arg$ "Invalid child." new_exception >> throw
+  ; ** ->
+  },
+  names_r: [ Child ; PS names_r ] :: PS path_struct$
+} ;;
+
+eval <cstr list> *Names <bool> *Absolute? internalize_for_path -> <cstr list> {
+  Names [] &\ <cstr list> *Children <cstr list> *Parents_r -> <cstr list> {
+    (| Children, Parents_r |) case {
+    ; (| [ "" ; ** ], ** |) -> bad_arg$ "Empty name is included." new_exception >> throw
+    ; (| [ "." ; *Cs ], *Prs |) -> Cs Prs &&  # cut "."
+    ; (| [ ".." ; *Cs ], [] |) ->
+      Absolute? case {
+      ; false$ -> Cs [ ".." ] &&  # retain parent reference at top
+      ; ** -> bad_arg$ "Over the root." new_exception >> throw
+      }
+    ; (| [ ".." ; *Cs ], [ ".." ; *Prs ] |) -> Cs [ "..", ".." ; Prs ] &&  # retain parent reference from top when relative
+    ; (| [ ".." ; *Cs ], [ *P ; *Prs ] |) -> Cs Prs &&  # resolve parent if exists
+    ; (| [ *C ; *Cs ], *Prs |) -> Cs [ C ; Prs ] &&  # push reverse
+    ; (| [], *Prs |) -> Prs
+    }
+  }
+} ;;
+
+eval <cstr list> *Names new_relative_path @public -> <path_struct> {
+  "" (Names false$ internalize_for_path) path_struct$  # no checks
+} ;;
+
+eval <cstr> *Path parse_path | parse @public -> <path_struct> {
+  Path &(filesys_fs >> parse_path_f)
+} ;;
+
+eval <path_struct> *PS path_repr | repr @public -> <cstr> {
+  PS &(filesys_fs >> path_repr_f)
+} ;;
+
+eval <path_struct> *PS dir_path_repr @public -> <cstr> {
+  (PS path_repr) file_separator cstr.append
+} ;;
+
+eval <cstr> *Name split_ext @public -> <cstr cstr tuple> {
+  Name case {
+  ; "" -> bad_arg$ "Empty name." new_exception >> throw
+  ; "." | ".." -> (| Name, "" |)
+  ; ** ->
+    Name '.' cstr.last_index >> case {
+    ; none$ -> (| Name, "" |)
+    ; 0 value$ -> (| Name, "" |)  # special name; ignore first dot
+    ; *I value$ -> (| Name I cstr.take, Name I cstr.drop |)
+    }
+  }
+} ;;
+
+
+# -- directory entry handling --
+
+eval <cstr> *Path exist? @public -> <bool> {
+  Path &(filesys_fs >> exist?_f)
+} ;;
+
+eval <cstr> *Path directory? @public -> <bool> {
+  Path &(filesys_fs >> directory?_f)
+} ;;
+
+eval <cstr> *Path file? @public -> <bool> {
+  Path &(filesys_fs >> file?_f)
+} ;;
+
+eval <cstr> *Path last_updated @public -> <bi.bigint> {
+  Path &(filesys_fs >> last_updated_f)
+} ;;
+
+eval <cstr> *Path0 <cstr> *Path1 same_path? @public -> <bool> {
+  Path0 Path1 &(filesys_fs >> same_path?_f)
+} ;;
+
+eval <cstr> *Path absolute_path | absolute @public -> <cstr> {
+  Path &(filesys_fs >> absolute_path_f)
+} ;;
+
+eval <cstr> *Path delete @public -> <void> {
+  Path &(filesys_fs >> delete_f)
+} ;;
+
+eval <cstr> *Path_cur <cstr> *Path_new move @public -> <cstr> {
+  Path_cur Path_new &(filesys_fs >> move_f)
+} ;;
+
+eval <cstr> *Path dir_entries @public -> <cstr list> {
+  Path &(filesys_fs >> dir_entries_f)
+} ;;
+
+eval <cstr> *Path create_dir @public -> <cstr> {
+  Path &(filesys_fs >> create_dir_f)
+} ;;
+
+eval <cstr> *Path create_dirs @public -> <cstr> {
+  Path &(filesys_fs >> create_dirs_f)
+} ;;
+
+eval path_eq_fs @public -> <cstr eq_fs> {
+  eq?_f: ^same_path?
+    ne?_f_: none$
+    eq_fs$
+} ;;
+
+
+# -- byte instream/outstream --
+
+extend <act.msg> :=
+# reader, writer
+| <act.post_h> status_req$
+| <act.post_h> close_req$
+| <void result> close_res$
+# byte reader
+| <act.post_h> read_byte_req$
+| <<byte io.instream_read_res> result> read_byte_res$
+| <act.post_h> <int> read_bstr_req$
+| <<bstr io.instream_read_res> result> read_bstr_res$
+# | <act.post_h> try_read_byte_req$
+# | <<<byte io.instream_read_res> io.trial_res> result> try_read_byte_res$
+# | <act.post_h> <int> try_read_bstr_req$
+# | <<<bstr io.instream_read_res> io.trial_res> result> try_read_bstr_res$
+| <io.instream_status result> istatus_res$
+# byte writer
+| <byte> write_byte_req$
+| <bstr> <int> <int> write_bstr_part_req$
+| <act.post_h> flush_req$
+| <void result> flush_res$
+| <io.outstream_status result> ostatus_res$ ;;
+
+eval <cstr> *File open_byte_instream @public -> <byte io.instream_h> {
+  File &(filesys_fs >> create_byte_instream_impl_f) >> startup_byte_reader = *Svr,
+  \\ <byte io.instream_read_res> { Svr _read_byte }
+  \ <int> *Len -> <bstr io.instream_read_res> { Svr Len _read_bstr }
+  none$
+  none$
+  \\ <void> { Svr _close }
+  \\ <io.instream_status> { Svr _istatus }
+  io.instream_h$
+} ;;
+
+eval <cstr> *File open_byte_outstream_init | open_byte_outstream @public -> <byte io.outstream_h> {
+  File false$ open_byte_outstream
+} ;;
+
+eval <cstr> *File <bool> *Append open_byte_outstream @public -> <byte io.outstream_h> {
+  File Append &(filesys_fs >> create_byte_outstream_impl_f) >> startup_byte_writer = *Svr,
+  \ <byte> *B -> <void> { Svr B _write_byte }
+  \ <bstr> *S <int> *Start <int> *Len -> <void> { Svr S Start Len _write_bstr_part }
+  \\ <void> { Svr _flush }
+  \\ <void> { Svr _close }
+  \\ <io.outstream_status> { Svr _ostatus }
+  io.outstream_h$
+} ;;
+
+eval <act.post_h> *H _close -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post close_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res close_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _read_byte -> <byte io.instream_read_res> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post read_byte_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res read_byte_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H <int> *Len _read_bstr -> <bstr io.instream_read_res> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post Len read_bstr_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res read_bstr_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _istatus -> <io.instream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post status_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res istatus_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H <byte> *B _write_byte -> <void> {
+  H (B write_byte_req$) act.send
+} ;;
+
+eval <act.post_h> *H <bstr> *S <int> *Start <int> *Len _write_bstr_part -> <void> {
+  H (S Start Len write_bstr_part_req$) act.send
+} ;;
+
+eval <act.post_h> *H _flush -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post flush_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res flush_res$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *H _ostatus -> <io.outstream_status> {
+  act.open_mbox = (| *Box, *Post |),
+  H (Post status_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = *Res ostatus_res$,
+  Res unwrap
+} ;;
+
+data <*A reader_data> :=
+  r_config: <A reader_config>
+  r_status: <reader_status>
+  reader_data$ ;;
+
+data <*A reader_config> :=
+  rc_impl: <A io.instream_h>
+  reader_config$ ;;
+
+data <reader_status> :=
+| rs_received$
+# | rs_read$
+| rs_after_short_stop$
+| rs_msg_queued$ ;;
+
+eval <byte io.instream_h> *IH startup_byte_reader -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R IH byte_reader } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <byte io.instream_h> *In byte_reader -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (r_config: (rc_impl: In reader_config$)
+   r_status: rs_after_short_stop$
+   reader_data$)
+  &\ <byte reader_data> *RD -> <void> {  # this is the main loop
+    RD r_status = *RS,
+    Box act.receive >> case {
+    ; *Msg value$ ->
+      (r_status: rs_received$ :: RD reader_data$) Msg byte_reader_dispatch >> case {
+      ; *RD' value$ -> RD' &&
+      ; ** -> RD byte_reader_end
+      }
+    ; ** ->
+      RS case {
+      ; rs_received$ ->
+        act.yield,
+        (r_status: rs_after_short_stop$ :: RD reader_data$) &&
+      # ; rs_read$ ->
+        # act.yield,
+        # (r_status: rs_after_short_stop$ :: RD reader_data$) &&
+      ; rs_after_short_stop$ ->
+        Box act.wait_forever$ act.listen,
+        (r_status: rs_msg_queued$ :: RD reader_data$) &&
+      # else internal error
+      }
+    }
+  }
+} ;;
+
+eval <byte reader_data> *RD <act.msg+> *Msg byte_reader_dispatch -> <<byte reader_data> maybe> {
+  Msg case {
+  ; *Ret read_byte_req$ -> RD Ret byte_reader_read_byte
+  ; *Ret *Len read_bstr_req$ -> RD Ret Len byte_reader_read_bstr
+  ; *Ret close_req$ -> RD Ret byte_reader_close
+  ; *Ret status_req$ -> RD Ret byte_reader_status
+  ; act.no_post$ -> none$
+  ; ** -> RD value$
+  }
+} ;;
+
+eval <byte reader_data> *RD <act.post_h> *Ret byte_reader_read_byte -> <<byte reader_data> maybe> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { &(Impl io.read_f) } try = *Res,
+  Ret (Res read_byte_res$) act.send,
+  (r_status: rs_received$ :: RD reader_data$) value$
+} ;;
+
+eval <byte reader_data> *RD <act.post_h> *Ret <int> *Len byte_reader_read_bstr -> <<byte reader_data> maybe> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { Len &(Impl io.read_string_f) } try = *Res,
+  Ret (Res read_bstr_res$) act.send,
+  (r_status: rs_received$ :: RD reader_data$) value$
+} ;;
+
+eval <byte reader_data> *RD <act.post_h> *Ret byte_reader_close -> <<byte reader_data> maybe> {
+  RD byte_reader_do_oclose = (| *Res, *RD' |),
+  Ret (Res close_res$) act.send,
+  RD' value$
+} ;;
+
+eval <byte reader_data> *RD byte_reader_do_oclose -> <<void result> <byte reader_data> tuple> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { &(Impl io.close_f) } try = *Res,
+  r_status: rs_received$ :: RD reader_data$ = *RD',  # even on error
+  (| Res, RD'|)
+} ;;
+
+eval <byte reader_data> *RD <act.post_h> *Ret byte_reader_status -> <<byte reader_data> maybe> {
+  RD r_config >> rc_impl = *Impl,
+  \\ { &(Impl io.status_f) } try = *Res,
+  Ret (Res istatus_res$) act.send,
+  RD value$
+} ;;
+
+eval <byte reader_data> *RD byte_reader_end -> <void> {
+  RD byte_reader_do_oclose >> ignore
+} ;;
+
+data <*A writer_data> :=
+  w_config: <A writer_config>
+  w_status: <writer_status>
+  writer_data$ ;;
+
+data <*A writer_config> :=
+  wc_impl: <A io.outstream_h>
+  writer_config$ ;;
+
+data <writer_status> :=
+| ws_received$
+| ws_written$
+| ws_after_short_stop$
+| ws_msg_queued$ ;;
+
+eval <byte io.outstream_h> *OH startup_byte_writer -> <act.post_h> {
+  \ <act.post_h void fun> *R -> { R OH byte_writer } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  P
+} ;;
+
+eval <act.post_h void fun> *Reply <byte io.outstream_h> *Out byte_writer -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  (w_config: (wc_impl: Out writer_config$)
+   w_status: ws_after_short_stop$
+   writer_data$)
+  &\ <byte writer_data> *WD -> <void> {  # this is the main loop
+    WD w_status = *WS,
+    Box act.receive >> case {
+    ; *Msg value$ ->
+      (w_status: ws_received$ :: WD writer_data$) Msg byte_writer_dispatch >> case {
+      ; *WD' value$ -> WD' &&
+      ; ** -> WD byte_writer_end
+      }
+    ; ** ->
+      WS case {
+      ; ws_received$ ->
+        act.yield,
+        (w_status: ws_after_short_stop$ :: WD writer_data$) &&
+      ; ws_written$ ->
+        WD byte_writer_flush_internally = *WD' value$,
+        act.yield,
+        (w_status: ws_after_short_stop$ :: WD' writer_data$) &&
+      ; ws_after_short_stop$ ->
+        Box act.wait_forever$ act.listen,
+        (w_status: ws_msg_queued$ :: WD writer_data$) &&
+      # else internal error
+      }
+    }
+  }
+} ;;
+
+eval <byte writer_data> *WD <act.msg+> *Msg byte_writer_dispatch -> <<byte writer_data> maybe> {
+  Msg case {
+  ; *Byte write_byte_req$ -> WD Byte byte_writer_write
+  ; *Str *Start *Len write_bstr_part_req$ -> WD Str Start Len byte_writer_write_string_part
+  ; *Ret flush_req$ -> WD Ret byte_writer_flush
+  ; *Ret close_req$ -> WD Ret byte_writer_close
+  ; *Ret status_req$ -> WD Ret byte_writer_status
+  ; act.no_post$ -> none$
+  ; ** -> WD value$
+  }
+} ;;
+
+eval <byte writer_data> *WD <byte> *Byte byte_writer_write -> <<byte writer_data> maybe> {
+  WD w_config >> wc_impl = *Impl,
+  \\ { Byte &(Impl io.write_f) } try >> case {
+  ; ** fin$ -> w_status: ws_written$ :: WD writer_data$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <byte writer_data> *WD <bstr> *Str <int> *Start <int> *Len byte_writer_write_string_part -> <<byte writer_data> maybe> {
+  WD w_config >> wc_impl = *Impl,
+  \\ { Str Start Len &(Impl io.write_string_part_f) } try >> case {
+  ; ** fin$ -> w_status: ws_written$ :: WD writer_data$
+  ; *E exc$ -> WD
+  } = *WD',
+  WD' value$
+} ;;
+
+eval <byte writer_data> *WD <act.post_h> *Ret byte_writer_flush -> <<byte writer_data> maybe> {
+  WD byte_writer_do_flush = (| *Res, *WD' |),
+  Ret (Res flush_res$) act.send,
+  WD' value$
+} ;;
+
+eval <byte writer_data> *WD byte_writer_flush_internally -> <<byte writer_data> maybe> {
+  WD byte_writer_do_flush = (| **, *WD' |), WD' value$
+} ;;
+
+eval <byte writer_data> *WD byte_writer_do_flush -> <<void result> <byte writer_data> tuple> {
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.flush_f) } try = *Res,
+  w_status: ws_received$ :: WD writer_data$ = *WD',  # even on error
+  (| Res, WD'|)
+} ;;
+
+eval <byte writer_data> *WD <act.post_h> *Ret byte_writer_close -> <<byte writer_data> maybe> {
+  WD byte_writer_do_oclose = (| *Res, *WD' |),
+  Ret (Res close_res$) act.send,
+  WD' value$
+} ;;
+
+eval <byte writer_data> *WD byte_writer_do_oclose -> <<void result> <byte writer_data> tuple> {
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.close_f) } try = *Res,
+  w_status: ws_received$ :: WD writer_data$ = *WD',  # even on error
+  (| Res, WD'|)
+} ;;
+
+eval <byte writer_data> *WD <act.post_h> *Ret byte_writer_status -> <<byte writer_data> maybe> {
+  WD w_config >> wc_impl = *Impl,
+  \\ { &(Impl io.status_f) } try = *Res,
+  Ret (Res ostatus_res$) act.send,
+  WD value$
+} ;;
+
+eval <byte writer_data> *WD byte_writer_end -> <void> {
+  WD byte_writer_do_oclose >> ignore
+} ;;
+
+
+# -- temp dir and file --
+
+eval temp_dir @public -> <cstr> {
+   "io.temp_dir" sys.cstr_property >> value
+} ;;
+
+eval <cstr> *Prefix <cstr> *Suffix <bool> *Delete_on_exit create_temp_file @public -> <cstr> {
+  Prefix Suffix Delete_on_exit temp_dir create_temp_file_in
+} ;;
+
+eval <cstr> *Prefix <cstr> *Suffix <bool> *Delete_on_exit <cstr> *Dir create_temp_file_in | create_temp_file @public -> <cstr> {
+  Prefix Suffix Dir &(filesys_fs >> create_temp_file_f) = *F,
+  Delete_on_exit case {
+  ; true$ -> \\ <void> { F delete } runtime.add_action_to_shutdown
+  ; ** ->
+  },
+  F
+} ;;

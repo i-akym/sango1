@@ -1,0 +1,85 @@
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  runtime.args = [ *Cur_dir, *Data_dir ; ** ],
+  test033,
+  test034,
+  Data_dir test101,
+  Data_dir test102,
+  Data_dir test103,
+  Cur_dir test104,
+  Cur_dir test105,
+  Cur_dir test106,
+  Cur_dir test111,
+  Data_dir test121,
+  Data_dir test122,
+  test131,
+  test132,
+  test133,
+  test134,
+  test135,
+  test136,
+  test137,
+  test138,
+  Data_dir test201,
+  Data_dir test201a,
+  Data_dir test202,
+  Data_dir test202a,
+  Data_dir test202b,
+  Data_dir test203,
+  Data_dir test204,
+  Data_dir test204_,
+  Data_dir test204a,
+  test300,
+  void$
+} ;;
+
+eval <cstr> *DD <cstr> *F file001 -> <cstr> { (DD fs.parse_path) F fs.child_path >> fs.path_repr } ;;
+eval test033 -> <bool> { [ "foo", "bar" ] fs.new_relative_path >> fs.path_repr >> fs.absolute_path >> fs.parse_path >> fs.absolute_path? = true$ } ;;
+eval test034 -> <bool> { [ "foo", "bar" ] fs.new_relative_path >> fs.dir_path_repr = *Rep, Rep fs.file_separator cstr.end_with? = true$ } ;;
+eval <cstr> *DD test101 -> <bool> { DD fs.exist? = true$ } ;;
+eval <cstr> *DD test102 -> <bool> { DD fs.directory? = true$ } ;;
+eval <cstr> *DD test103 -> <bool> { DD fs.file? = false$ } ;;
+eval <cstr> *CD test104 -> <bool> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.exist? = true$ } ;;
+eval <cstr> *CD test105 -> <bool> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.directory? = false$ } ;;
+eval <cstr> *CD test106 -> <bool> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.file? = true$ } ;;
+eval <cstr> *CD test107 -> <bi.bigint> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.last_updated } ;;
+eval <cstr> *CD test111 -> <bool> { (CD fs.dir_entries) \ <cstr> *F -> { F ".bat" str.end_with? } list.filter >> list.length >> gt0? = true$ } ;;
+eval <cstr> *DD test121 -> <bool> { DD "dd121" file001 = *D, \\ <void> { D fs.delete } try, D fs.create_dir, D fs.exist? = true$ } ;;
+eval <cstr> *DD test122 -> <bool> { DD "dd122" file001 = *D, D "ddd122" file001 = *D', \\ <void> { D' fs.delete } try, \\ <void> { D fs.delete } try, D' fs.create_dirs, D' fs.exist? = true$ } ;;
+eval test131 -> <void> { "." fs.split_ext = (| ".", "" |), void$ } ;;
+eval test132 -> <void> { ".." fs.split_ext = (| "..", "" |), void$ } ;;
+eval test133 -> <void> { "foo" fs.split_ext = (| "foo", "" |), void$ } ;;
+eval test134 -> <void> { "foo." fs.split_ext = (| "foo", "." |), void$ } ;;
+eval test135 -> <void> { "foo.bar" fs.split_ext = (| "foo", ".bar" |), void$ } ;;
+eval test136 -> <void> { "foo.bar.hoge" fs.split_ext = (| "foo.bar", ".hoge" |), void$ } ;;
+eval test137 -> <void> { ".foo" fs.split_ext = (| ".foo", "" |), void$ } ;;
+eval test138 -> <void> { ".foo.bar" fs.split_ext = (| ".foo", ".bar" |), void$ } ;;
+eval <cstr> *DD test201 -> <void> { DD "d201.bin" file001 >> fs.open_byte_outstream = *H, H io.close } ;;
+eval <cstr> *DD test201a -> <void> { DD "d201.bin" file001 >> fs.open_byte_instream = *H, H io.read = io.instream_at_end$, H io.close } ;;
+eval <cstr> *DD test202 -> <void> { DD "d202.bin" file001 >> fs.open_byte_outstream = *H, H 0~ io.write, H 1~ io.write, H io.flush, H io.close } ;;
+eval <cstr> *DD test202a -> <void> { DD "d202.bin" file001 >> fs.open_byte_instream = *H, H io.read = 0~ io.instream_data$, H io.read = 1~ io.instream_data$, H io.read = io.instream_at_end$, H io.close } ;;
+eval <cstr> *DD test202b -> <void> { DD "d202.bin" file001 >> fs.open_byte_instream = *H, H 3 io.read_string = [| 0~, 1~ |] io.instream_data$, H 3 io.read_string = io.instream_at_end$, H io.close } ;;
+eval <cstr> *DD test203 -> <bool> {
+  DD "d203.bin" file001 = *D,
+  DD "d203a.bin" file001 = *D', \\ <void> { D' fs.delete } try,
+  D fs.open_byte_outstream = *H, H [| 2~, 10~, 3~ |] io.write, H io.flush, H io.close,
+  D D' fs.move,
+  D fs.exist? = false$, D' fs.exist? = true$ } ;;
+eval <cstr> *DD test204 -> <io.outstream_status> { DD "d204.bin" file001 >> fs.open_byte_outstream = *H, H [| 2~, 10~, 3~ |] io.write, H io.status = io.outstream_open$, H io.close, H io.status = io.outstream_closed$ } ;;
+eval <cstr> *DD test204_ -> <io.outstream_status> { (DD "d204.bin" file001) true$ fs.open_byte_outstream = *H, H [| 22~, 110~, 33~ |] io.write, H io.status = io.outstream_open$, H io.close, H io.status = io.outstream_closed$ } ;;
+eval <cstr> *DD test204a -> <io.instream_status> { DD "d204.bin" file001 >> fs.open_byte_instream = *H, H io.read, H io.status = io.instream_open$, H 6 io.read_string, H io.status = io.instream_open$, H io.read = io.instream_at_end$, H io.status = io.instream_eof$, H io.close, H io.status = io.instream_closed$ } ;;
+eval test300 -> <bool> { "foo" ".bar" true$ fs.create_temp_file = *F, F fs.parse >> fs.path_base_name >> value = *N, N "foo" str.start_with? = true$, N ".bar" str.end_with? = true$, F fs.exist? = true$ } ;;

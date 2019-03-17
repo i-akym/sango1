@@ -1,0 +1,194 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2019 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.lang.module" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.list" -> list ;;
+
+data <d> :=
+  worker: <actu.serializer_h>
+  d$ ;;
+
+
+# -- dynamic module loading --
+
+eval <cstr> *Module_name require_module @public -> <void> {
+  (_initd_ >> worker)
+    \\ <void> { Module_name load_module_on_demand }
+    actu.run_serialized
+} ;;
+
+eval <cstr> *Module_name load_module_on_demand -> <void> @native ;;  # MT-unsafe
+
+eval <cstr> *Module_name module_init_actor_h @public -> <act.actor_h maybe> @native ;;
+
+eval <cstr> *Module_name wait_module_initialized @public -> <void> {
+  Module_name module_init_actor_h >> case {
+  ; *A value$ -> A act.wait_forever$ act.join >> ignore
+  ; ** ->
+  }
+} ;;
+
+
+# -- meta programming feature --
+
+### UNDER CONSTRUCTION ###
+
+data <obj> @public :=
+| <int> int_obj$
+| <byte> byte_obj$
+| <char> char_obj$
+| <real> real_obj$
+| <tuple_obj> tuple_obj$
+| <list_obj> list_obj$
+| <string_obj> string_obj$
+| <constr_obj> constr_obj$
+| <closure_obj> closure_obj$
+| <capsule_obj> capsule_obj$ ;;
+
+data <tuple_obj> @opaque := @native ;;
+data <list_obj> @opaque := @native ;;
+data <string_obj> @opaque := @native ;;
+data <constr_obj> @opaque := @native ;;
+data <closure_obj> @opaque := @native ;;
+data <capsule_obj> @opaque := @native ;;
+data <run_obj> := @native ;;
+
+# MT-unsafe implementations
+eval <obj list> *Elems do_new_tuple -> <tuple_obj> @native ;;
+eval <tuple_obj> *Tuple do_tuple_elems -> <obj list> @native ;;
+eval do_empty_list -> <list_obj> @native ;;
+eval <obj> *Head <list_obj> *Tail do_list_cons -> <list_obj> @native ;;
+eval <list_obj> *List do_list_empty? -> <bool> @native ;;
+eval <list_obj> *List do_list_head -> <obj maybe> @native ;;
+eval <list_obj> *List do_list_tail -> <list_obj maybe> @native ;;
+eval <list_obj> *List do_list_to_string -> <string_obj> @native ;;
+eval <string_obj> *String do_string_length -> <int> @native ;;
+eval <string_obj> *String <int> *Pos do_string_elem -> <obj> @native ;;
+eval <obj list> *Attrs <cstr> *Mod <cstr> *Dcon do_new_data -> <constr_obj> @native ;;
+eval <constr_obj> *Constr do_constr_attrs -> <obj list> @native ;;
+eval <cstr> *Mod <cstr> *Official do_closure -> <closure_obj> @native ;;
+eval <obj list> *Params <closure_obj> *Closure prepare_apply -> <run_obj> @native ;;
+
+# MT-safe implementation
+eval <run_obj> *Run do_apply -> <obj result> @native ;;
+
+eval <obj list> *Elems new_tuple @public -> <tuple_obj> {
+  (_initd_ >> worker)
+    \\ <tuple_obj> { Elems do_new_tuple }
+    actu.run_serialized
+} ;;
+
+eval <tuple_obj> *Tuple tuple_elems | elems @public -> <obj list> {
+  (_initd_ >> worker)
+    \\ <obj list> { Tuple do_tuple_elems }
+    actu.run_serialized
+} ;;
+
+eval empty_list @public -> <list_obj> {
+  (_initd_ >> worker)
+    \\ <list_obj> { do_empty_list }
+    actu.run_serialized
+} ;;
+
+eval <list_obj> *List list_empty? | empty? @public -> <bool> {
+  (_initd_ >> worker)
+    \\ <bool> { List do_list_empty? }
+    actu.run_serialized
+} ;;
+
+eval <obj> *Head <list_obj> *Tail list_cons | cons @public -> <list_obj> {
+  (_initd_ >> worker)
+    \\ <list_obj> { Head Tail do_list_cons }
+    actu.run_serialized
+} ;;
+
+eval <obj list> *List new_list @public -> <list_obj> {
+  List empty_list ^list_cons list.fold_right
+} ;;
+
+eval <list_obj> *List list_head | head | first @public -> <obj maybe> {
+  (_initd_ >> worker)
+    \\ <obj maybe> { List do_list_head }
+    actu.run_serialized
+} ;;
+
+eval <list_obj> *List list_tail | tail @public -> <list_obj maybe> {
+  (_initd_ >> worker)
+    \\ <list_obj maybe> { List do_list_tail }
+    actu.run_serialized
+} ;;
+
+eval <list_obj> *List list_to_string | to_string @public -> <string_obj> {
+  (_initd_ >> worker)
+    \\ <string_obj> { List do_list_to_string }
+    actu.run_serialized
+} ;;
+
+eval <string_obj> *String string_length | length @public -> <int> {
+  (_initd_ >> worker)
+    \\ <int> { String do_string_length }
+    actu.run_serialized
+} ;;
+
+eval <string_obj> *String <int> *Pos string_elem | elem @public -> <obj> {
+  (_initd_ >> worker)
+    \\ <obj> { String Pos do_string_elem }
+    actu.run_serialized
+} ;;
+
+eval <obj list> *Attrs <cstr> *Mod <cstr> *Dcon new_data @public -> <constr_obj> {
+  (_initd_ >> worker)
+    \\ <constr_obj> { Attrs Mod Dcon do_new_data }
+    actu.run_serialized
+} ;;
+
+eval <constr_obj> *Constr constr_attrs | attrs @public -> <obj list> {
+  (_initd_ >> worker)
+    \\ <obj list> { Constr do_constr_attrs }
+    actu.run_serialized
+} ;;
+
+eval <cstr> *Mod <cstr> *Official closure @public -> <closure_obj> {
+  (_initd_ >> worker)
+    \\ <closure_obj> { Mod Official do_closure }
+    actu.run_serialized
+} ;;
+
+eval <obj list> *Params <closure_obj> *Closure apply @public -> <obj result> {
+  (_initd_ >> worker)
+    \\ <run_obj> { Params Closure prepare_apply }
+    actu.run_serialized
+  >> do_apply
+} ;;
+
+
+# -- initialization --
+
+eval _init_ -> <d> {
+  worker: actu.start_serializer
+    d$
+} ;;
+

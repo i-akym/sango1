@@ -1,0 +1,411 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.num.int" ;;
+
+import "sango.arith" -> arith ;;
+import "sango.cstr" -> cstr ;;
+import "sango.string" -> str ;;
+import "sango.util.enum" -> enum ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.locale" -> loc ;;
+
+data <p_sign> := p_sign_none$ | p_sign_plus$ | p_sign_minus$ ;;
+
+eval <cstr> *Str parse @public -> <int> {
+  # '+' = %x2B
+  # '-' = %x2D
+  # '0' = %x30
+  # '9' = %x39
+  Str cstr.trim_spaces = *S,
+  S case {
+  ; "" -> bad_arg$  "Empty." new_exception >> throw
+  ; "+" | "-" -> bad_arg$  "No digit follows sign." new_exception >> throw
+  ; ** ->
+  },
+  S cstr.length = *L,
+  0 p_sign_none$ 0 &\ <int> *Pos <p_sign> *Sign <int> *Acc -> <int> {
+    if {
+    ; Pos L lt? ->
+      S Pos cstr.char >> char_code = *CC,
+      (| Sign, CC |) case {
+      ; (| p_sign_none$, %x2B |) -> (Pos inc) p_sign_plus$ Acc &&
+      ; (| p_sign_none$, %x2D |) -> (Pos inc) p_sign_minus$ Acc &&
+      ; ** || (CC %x30 ge?) (CC %x39 le?) and -> (Pos inc) Sign ((Acc 10 prod) (CC %x30 diff) sum) &&
+      ; ** -> bad_arg$ "Invalid integer format." new_exception >> throw
+      }
+    ; otherwise ->
+      Sign case {
+      ; p_sign_minus$ -> Acc neg
+      ; ** -> Acc
+      }
+    }
+  }
+} ;;
+
+
+# -- enum --
+
+extend <*A enum.context_d> := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
+
+eval <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> {
+  if {
+  ; Step gt0? -> (| Step, 1, int_ord_fs |)
+  ; Step lt0? -> (| Step neg, -1, int_ord_fs inverse |)
+  ; otherwise -> bad_arg$ "Step is zero." new_exception >> throw
+  } = (| *Stepw, *Dir, *Ord_fs |),
+  d: (origin: Start stepw: Stepw dir: Dir step_ec_d$) fs: (Ord_fs step_ec_f) enum.context$ = *Context,
+  Context (| Start, End |) enum.enum$
+} ;;
+
+eval <int ord_fs> *Ord_fs step_ec_f -> <int enum.context_fs> {
+  min_ge:
+    \ <int enum.context_d+> *D <int> *B -> <int maybe> {
+      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
+      Origin Stepw Dir B step_ec_min_ge
+    }
+  min_gt:
+    \ <int enum.context_d+> *D <int> *B -> <int maybe> {
+      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
+      Origin Stepw Dir (B Dir sum) step_ec_min_ge
+    }
+  max_le:
+    \ <int enum.context_d+> *D <int> *B -> <int maybe> {
+      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
+      Origin Stepw Dir B step_ec_max_le
+    }
+  max_lt:
+    \ <int enum.context_d+> *D <int> *B -> <int maybe> {
+      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
+      Origin Stepw Dir (B Dir diff) step_ec_max_le
+    }
+  contain?_f:
+    \ <int enum.context_d+> *D <int> *X -> <bool> {
+      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
+      (X Origin diff) Stepw div >> case { (| **, 0 |) -> true$ ; ** -> false$ }
+    }
+  count_f:
+    \ <int enum.context_d+> *D <int int tuple> *R -> <int> {
+      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
+      R = (| *L, *U |),
+      Origin Stepw Dir L step_ec_min_ge >> value = *Min,
+      Origin Stepw Dir U step_ec_max_le >> value = *Max,
+      if {
+      ; Max Min Ord_fs ge? -> (Max Min diff >> arith.abs) Stepw quot >> inc
+      ; otherwise -> 0
+      }
+    }
+  ord_fs:
+    Ord_fs
+  enum.context_fs$
+} ;;
+
+eval <int> *Origin <int> *Stepw <int> *Dir <int> *B step_ec_min_ge -> <int maybe> {
+  Dir case {
+  ; 1 ->
+    \\ <int> { Origin ((B Origin diff) Stepw step_ceil) sum }
+      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
+  ; -1 ->
+    \\ <int> { Origin ((B Origin diff) Stepw step_floor) sum }
+      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
+  }
+} ;;
+
+eval <int> *Origin <int> *Stepw <int> *Dir <int> *B step_ec_max_le -> <int maybe> {
+  Dir case {
+  ; 1 ->
+    \\ <int> { Origin ((B Origin diff) Stepw step_floor) sum }
+      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
+  ; -1 ->
+    \\ <int> { Origin ((B Origin diff) Stepw step_ceil) sum }
+      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
+  }
+} ;;
+
+eval <int> *I <int> *Stepw step_floor -> <int> {
+  if {
+  ; I ge0? -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> Q Stepw prod }
+  ; otherwise -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> (Q dec) Stepw prod }
+  }
+} ;;
+
+eval <int> *I <int> *Stepw step_ceil -> <int> {
+  if {
+  ; I ge0? -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> (Q inc) Stepw prod }
+  ; otherwise -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> Q Stepw prod }
+  }
+} ;;
+
+
+# -- format --
+
+# format param       ::= [ <align> ] [ <sign> ] [ <grouping> ] [ <min_digit_count> ] <radix>
+#  <align>           ::= [ <max_width> ] <min_width> ">"  -- justify right
+#                      | [ <max_width> ] <min_width> "<"  -- justify left
+#  <max_width>       ::= <digits> "/"
+#  <min_width>       ::= <digits> [ <padding> ]
+#  <padding>         ::= padding character, default is space
+#  <sign>            ::= "s"  -- add sign to positive number as well as negative, for decimal only
+#  <grouping>        ::= [ <digits> ] <sep> "g"  -- if no <digits>, "3" assumed
+#  <sep>             ::= separator  eg. comma, blank
+#  <min_digit_count> ::= <digits>  -- pad "0" left
+#  <radix>           ::= "d"  -- decimal
+#                      | "o"  -- octal
+#                      | "x"  -- hex (lower char)
+#                      | "X"  -- hex (upper char)
+#  <digits>          ::= decimal number
+
+eval <int> *I default_format | format @public -> <cstr> {
+  I "" format_with_param
+} ;;
+
+eval <int> *I <cstr> *Param format_with_param | format @public -> <cstr> {
+  Param case {
+  ; "" -> I "d" int_format_fs _do_format
+  ; ** -> I Param int_format_fs _do_format
+  }
+} ;;
+
+eval <int> *I <cstr> *Param <loc.locale> *Loc format_with_param_for_locale | format @public -> <cstr> {
+  Param case {
+  ; "" -> I "d" int_format_fs _do_format
+  ; ** -> I Param int_format_fs _do_format
+  }
+} ;;
+
+data <*A _format_fs> @public :=
+  signum_f: <A int fun>  # judge sign; pos -> 1, zero -> 0, neg -> -1
+  neg_f: <A A fun>
+  decimal_last_digit_f: <A <int A tuple> fun>  # last digit and remainder
+  octal_last_digit_f: <A <int A tuple> fun>  # last digit and remainder
+  hex_last_digit_f: <A <int A tuple> fun>  # last digit and remainder
+  _format_fs$ ;;
+
+eval int_format_fs -> <int _format_fs> {
+  signum_f:
+      \ <int> *I -> <int> { if { I gt0? -> 1 ; I zero? -> 0 ; otherwise -> -1 } }
+    neg_f:
+      ^int_neg
+    decimal_last_digit_f:
+      \ <int> *I -> <int int tuple> { I 10 div = (| *Q, *R |), (| R, Q |) }
+    octal_last_digit_f:
+      \ <int> *I -> <int int tuple> { (| I 7 bit_and, I 3 shift_right |) }
+    hex_last_digit_f:
+      \ <int> *I -> <int int tuple> { (| I 15 bit_and, I 4 shift_right |) }
+    _format_fs$
+} ;;
+
+eval <*A> *I <cstr> *Param <A _format_fs> *Fs _do_format @public -> <cstr> {
+  Param parse_param = f_align: *Align f_sign: *Sign f_grouping: *Grouping f_min_digits: *Min_digits f_radix: *Radix f$,
+  Radix case {
+  ; decimal$ || (I &(Fs signum_f)) 1 hard_eq? -> (| 1, I |)
+  ; decimal$ || (I &(Fs signum_f)) 0 hard_eq? -> (| 0, I |)
+  ; decimal$ -> (| -1, I &(Fs neg_f) |)
+  ; ** || (I &(Fs signum_f)) 0 hard_eq? -> (| 0, I |)
+  ; ** -> (| 1, I |)
+  } = (| *Signum, *Val |),
+  Radix case {
+  ; decimal$ -> Val (Fs signum_f) (Fs decimal_last_digit_f) ^decimal_digit_char format_sub
+  ; octal$ -> Val (Fs signum_f) (Fs octal_last_digit_f) ^octal_digit_char format_sub
+  ; true$ hex$ -> Val (Fs signum_f) (Fs hex_last_digit_f) ^hex_upper_digit_char format_sub
+  ; false$ hex$ -> Val (Fs signum_f) (Fs hex_last_digit_f) ^hex_lower_digit_char format_sub
+  } = *X,
+  if {
+  ; (X cstr.length) Min_digits lt? ->
+    [ (Min_digits (X cstr.length) diff) ('0' iter.const_iter) str.new_string, X ] cstr.concat
+  ; otherwise -> X
+  } = *X',
+  Grouping case {
+  ; (| 0, ** |) -> X'
+  ; (| *N, *S |) -> (X' N groups) S cstr.join_with_char
+  } = *X'',
+  (| Signum, Sign |) case {
+  ; (| -1, ** |) -> [ "-", X'' ] cstr.concat
+  ; (| 1, positive_and_negative$ |) -> [ "+", X'' ] cstr.concat
+  ; ** -> X''
+  } = *X''',
+  Align case {
+  ; (| *N, **, **, '<' |) || (X''' cstr.length) N gt? ->
+    X''' N cstr.take
+  ; (| **, *N, *P, '<' |) || (X''' cstr.length) N lt? ->
+    [ X''', (N (X''' cstr.length) diff) (P iter.const_iter) str.new_string ] cstr.concat
+  ; (| *N, **, **, '>' |) || (X''' cstr.length) N gt? ->
+    X''' ((X''' cstr.length) N diff) cstr.drop
+  ; (| **, *N, *P, '>' |) || (X''' cstr.length) N lt? ->
+    [ (N (X''' cstr.length) diff) (P iter.const_iter) str.new_string, X''' ] cstr.concat
+  ; ** -> X'''
+  }
+} ;;
+
+data <f> :=
+  f_align: <int int char char tuple>  # max width, min width, padding, justify '<' or '>'
+  f_sign: <f_sign>
+  f_grouping: <int char tuple>  # length and separator; length = 0 means not to make group
+  f_min_digits: <int>
+  f_radix: <f_radix>
+  f$ ;;
+
+data <f_sign> :=
+| negative_only$
+| positive_and_negative$ ;;
+
+data <f_radix> :=
+| decimal$
+| octal$
+| <bool> hex$ ;;  # switch means upper char
+
+data <f_param_token> :=
+| <char> fpt_char$
+| <int> fpt_num$ ;;
+
+eval <cstr> *Param parse_param -> <f> {
+  Param tokenize_r = *Ts_r,
+  Ts_r case {
+  ; [ 'd' fpt_char$ ; *T ] -> (| decimal$, T |)
+  ; [ 'o' fpt_char$ ; *T ] -> (| octal$, T |)
+  ; [ 'x' fpt_char$ ; *T ] -> (| false$ hex$, T |)
+  ; [ 'X' fpt_char$ ; *T ] -> (| true$ hex$, T |)
+  ; ** -> bad_arg$ "No radix indicator." new_exception >> throw
+  } = (| *Radix, *Ts_r' |),
+  Ts_r' case {
+  ; [ *N fpt_num$ ; *T ] -> (| N, T |)
+  ; *T -> (| 0, T |)
+  } = (| *Min_digits, *Ts_r'' |),
+  Ts_r'' case {
+  ; [ 'g' fpt_char$, *S fpt_char$, *N fpt_num$ ; *T ] -> (| (| N, S |), T |)
+  ; [ 'g' fpt_char$, *S fpt_char$ ; *T ] -> (| (| 3, S |), T |)
+  ; *T -> (| (| 0, ' ' |), T |)
+  } = (| *Grouping, *Ts_r''' |),
+  Ts_r''' case {
+  ; [ 's' fpt_char$ ; *T ] -> (| positive_and_negative$, T |)
+  ; *T -> (| negative_only$, T |)
+  } = (| *Sign, *Ts_r'''' |),
+  Ts_r'''' case {
+  ; [ '<' fpt_char$, *P fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, P, '<' |)
+  ; [ '<' fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, ' ', '<' |)
+  ; [ '<' fpt_char$, *P fpt_char$, *N fpt_num$ ] -> (| max_int, N, P, '<' |)
+  ; [ '<' fpt_char$, *N fpt_num$ ] -> (| max_int, N, ' ', '<' |)
+  ; [ '>' fpt_char$, *P fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, P, '>' |)
+  ; [ '>' fpt_char$, *N fpt_num$, '/' fpt_char$, *W fpt_num$ ] -> (| W, N, ' ', '>' |)
+  ; [ '>' fpt_char$, *P fpt_char$, *N fpt_num$ ] -> (| max_int, N, P, '>' |)
+  ; [ '>' fpt_char$, *N fpt_num$ ] -> (| max_int, N, ' ', '>' |)
+  ; [] -> (| max_int, 0, ' ', '<' |)
+  ; ** -> bad_arg$ Param new_exception >> throw
+  } = *Align,
+  (| Radix, Sign |) case {
+  ; (| decimal$, ** |) ->
+  ; (| **, negative_only$ |) ->
+  ; ** ->  bad_arg$ "Invalid combination of radix and sign." new_exception >> throw
+  },
+  f_align: Align
+    f_sign: Sign
+    f_grouping: Grouping
+    f_min_digits: Min_digits
+    f_radix: Radix
+    f$
+} ;;
+
+eval <cstr> *Param tokenize_r -> <f_param_token list> {
+  Param cstr.length = *Len,
+  0 0 0 [] &\ <int> *Index <int> *State <int> *Num <f_param_token list> *Tokens_r -> <f_param_token list> {
+    # State: 0 -> normal, 1 -> parsing number
+    if {
+    ; Index Len lt? ->
+      Param Index cstr.char = *C,
+      State case {
+      ; 0 ->
+        if {
+        ; C digit? -> (Index inc) 1 ((C code) %x30 diff) Tokens_r &&
+        ; otherwise -> (Index inc) 0 Num [ C fpt_char$ ; Tokens_r ] &&
+        }
+      ; 1 ->
+        if {
+        ; C digit? -> (Index inc) 1 ((Num 10 prod) ((C code) %x30 diff) sum) Tokens_r &&
+        ; otherwise -> (Index inc) 0 0 [ C fpt_char$, Num fpt_num$ ; Tokens_r ] &&
+        }
+      }
+    ; otherwise ->
+      State case {
+      ; 0 -> Tokens_r
+      ; 1 -> [ Num fpt_num$ ; Tokens_r ]
+      }
+    }
+  }
+} ;;
+
+eval <char> *C digit? -> <bool> {
+  C code = *CC,
+  (CC %x30 ge?) (CC %x39 le?) and
+} ;;
+
+eval <*A> *I <A int fun> *Signum_f <A <int A tuple> fun> *Last_digit_f <int char fun> *Digit_char_f format_sub -> <cstr> {
+  if {
+  ; (I &Signum_f) 0 hard_eq? -> "0"
+  ; otherwise -> I Signum_f Last_digit_f Digit_char_f format_sub2
+  }
+} ;;
+
+eval <*A> *I <A int fun> *Signum_f <A <int A tuple> fun> *Last_digit_f <int char fun> *Digit_char_f format_sub2 -> <cstr> {
+  I [] &\ <A> *N <char list> *Digits -> <cstr> {
+    if {
+    ; (N &Signum_f) 0 hard_eq? -> Digits str.to_string
+    ; otherwise ->
+      N &Last_digit_f = (| *D, *DD |),
+      DD [ D &Digit_char_f ; Digits ] &&
+    }
+  }
+} ;;
+
+eval <int> *D decimal_digit_char -> <char> {
+  %x30 D sum >> char_value
+} ;;
+
+eval <int> *D octal_digit_char -> <char> {
+  (D 7 bit_and) %x30 sum >> char_value
+} ;;
+
+eval <int> *D hex_upper_digit_char -> <char> {
+  if {
+  ; D 10 lt? -> %x30
+  ; otherwise -> %x37
+  } = *B,
+  D B sum >> char_value
+} ;;
+
+eval <int> *D hex_lower_digit_char -> <char> {
+  if {
+  ; D 10 lt? -> %x30
+  ; otherwise -> %x57
+  } = *B,
+  D B sum >> char_value
+} ;;
+
+eval <cstr> *S <int> *N groups -> <cstr list> {
+  ((S cstr.length) N diff) [] &\ <int> *Start <cstr list> *Gs -> <cstr list> {
+    if {
+    ; Start gt0? -> (Start N diff) [ S Start N cstr.slice ; Gs ] &&
+    ; Start zero? -> [ S 0 N cstr.slice ; Gs ]
+    ; otherwise ->[ S 0 (Start N sum) cstr.slice ; Gs ]
+    }
+  }
+} ;;

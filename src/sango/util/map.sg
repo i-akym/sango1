@@ -1,0 +1,208 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.map" ;;
+
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.iter" -> iter ;;
+
+# -- map framework --
+
+data <*A *B map> @public :=
+  d: <A B map_d+>
+  fs: <A B map_fs>
+  map$ ;;
+
+data <*A *B map_d> @public := _dummy_map_d$ ;;
+
+data <*A *B map_fs> @public :=
+  empty?_f: <<A B map_d+> bool fun>
+  size_f: <<A B map_d+> int fun>
+  get_f: <<A B map_d+> A <<A B tuple> maybe> fun>
+  assoc_f_: <<<A B map_d+> A <B maybe> fun> maybe>
+  contain_key?_f_: <<<A B map_d+> A bool fun> maybe>
+  put_f: <<A B map_d+> A B <<A B map_d+> <<A B tuple> maybe> tuple> fun>
+  put_new_f_: <<<A B map_d+> A B <<A B map_d+> bool tuple> fun> maybe>
+  add_f_: <<<A B map_d+> A B <A B map_d+> fun> maybe>
+  remove_f: <<A B map_d+> A <<A B map_d+> <<A B tuple> maybe> tuple> fun>
+  delete_f_: <<<A B map_d+> A <A B map_d+> fun> maybe>
+  take_f: <<A B map_d+> <<<A B tuple> <A B map_d+> tuple> maybe> fun>
+  clear_f: <<A B map_d+> <A B map_d+> fun>
+  map_fs$ ;;
+
+eval <*A *B map_fs> *Fs map_fs_assoc_f | assoc_f @public -> <<A B map_d+> A <B maybe> fun> {
+  Fs assoc_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A B map_d+> *D <A> *Key -> <B maybe> {
+      (D Key &(Fs get_f)) ^tuple.pair_second apply_to_something
+    }
+  }
+} ;;
+
+eval <*A *B map_fs> *Fs map_fs_contain_key?_f | contain_key?_f @public -> <<A B map_d+> A bool fun> {
+  Fs contain_key?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A B map_d+> *D <A> *Key -> <bool> {
+      D Key &(Fs get_f) >> something?
+    }
+  }
+} ;;
+
+eval <*A *B map_fs> *Fs map_fs_put_new_f | put_new_f @public -> <<A B map_d+> A B <<A B map_d+> bool tuple> fun> {
+  Fs put_new_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A B map_d+> *D <A> *Key <B> *Value -> <<A B map_d+> bool tuple> {
+      D Key &(Fs contain_key?_f) >> case {
+      ; true$ -> (| D, false$ |)
+      ; ** -> (| D Key Value &(Fs add_f), true$ |)
+      }
+    }
+  }
+} ;;
+
+eval <*A *B map_fs> *Fs map_fs_add_f | add_f @public -> <<A B map_d+> A B <A B map_d+> fun> {
+  Fs add_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A B map_d+> *D <A> *Key <B> *Value -> <A B map_d+> {
+      D Key Value &(Fs put_f) >> tuple.pair_first
+    }
+  }
+} ;;
+
+eval <*A *B map_fs> *Fs map_fs_delete_f | delete_f @public -> <<A B map_d+> A <A B map_d+> fun> {
+  Fs delete_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A B map_d+> *D <A> *Key -> <A B map_d+> {
+      D Key &(Fs remove_f) >> tuple.pair_first
+    }
+  }
+} ;;
+
+
+# -- framwork --
+
+eval <*A *B map> *Map empty? @public -> <bool> {
+  Map = d: *D fs: *Fs map$,
+  D &(Fs empty?_f)
+} ;;
+
+eval <*A *B map> *Map size @public -> <int> {
+  Map = d: *D fs: *Fs map$,
+  D &(Fs size_f)
+} ;;
+
+eval <*A *B map> *Map <A> *Key get @public -> <<A B tuple> maybe> {
+  Map = d: *D fs: *Fs map$,
+  D Key &(Fs get_f)
+} ;;
+
+eval <*A *B map> *Map <A> *Key assoc @public -> <B maybe> {
+  Map = d: *D fs: *Fs map$,
+  D Key &(Fs assoc_f)
+} ;;
+
+eval <*A *B map> *Map <A> *Key contain_key? @public -> <bool> {
+  Map = d: *D fs: *Fs map$,
+  D Key &(Fs contain_key?_f)
+} ;;
+
+eval <*A *B map> *Map <A> *Key <B> *Value put @public -> <<A B map> <<A B tuple> maybe> tuple> {
+  Map = d: *D fs: *Fs map$,
+  D Key Value &(Fs put_f) = (| *D', *Replaced_kv_ |),
+  (| d: D' :: Map map$, Replaced_kv_ |)
+} ;;
+
+eval <*A *B map> *Map <A> *Key <B> *Value put_new @public -> <<A B map> bool tuple> {
+  Map = d: *D fs: *Fs map$,
+  D Key Value &(Fs put_new_f) = (| *D', *Succeeded? |),
+  (| d: D' :: Map map$, Succeeded? |)
+} ;;
+
+eval <*A *B map> *Map <A> *Key <B> *Value add @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  d: (D Key Value &(Fs add_f)) :: Map map$
+} ;;
+
+eval <*A *B map> *Map <A> *Key remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
+  Map = d: *D fs: *Fs map$,
+  D Key &(Fs remove_f) = (| *D', *Removed_kv_ |),
+  (| d: D' :: Map map$, Removed_kv_ |)
+} ;;
+
+eval <*A *B map> *Map <A> *Key delete @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  d: (D Key &(Fs delete_f)) :: Map map$
+} ;;
+
+eval <*A *B map> *Map take @public -> <<<A B tuple> <A B map> tuple> maybe> {
+  Map = d: *D fs: *Fs map$,
+  D &(Fs take_f) >> case {
+  ; (| *KV, *D' |) value$ -> (| KV, d: D' :: Map map$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A *B map> *Map clear @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  d: (D &(Fs clear_f)) :: Map map$
+} ;;
+
+eval <*A *B map> *Map <<A B tuple> list> *KVs add_list @public -> <A B map> {
+  Map (KVs list.iter) add_iter
+} ;;
+
+eval <*A *B map> *Map <<A B tuple> iter> *Iter add_iter @public -> <A B map> {
+  Iter next >> case {
+  ; (| (| *K, *V |), *Iter' |) value$ -> (Map K V add) Iter' &&
+  ; ** -> Map
+  }
+} ;;
+
+eval <*A *B map> *Map <A list> *Ks delete_list @public -> <A B map> {
+  Map (Ks list.iter) delete_iter
+} ;;
+
+eval <*A *B map> *Map <A iter> *Iter delete_iter @public -> <A B map> {
+  Iter next >> case {
+  ; (| *K, *Iter' |) value$ -> (Map K delete) Iter' &&
+  ; ** -> Map
+  }
+} ;;
+
+eval <*A *B map> *Map iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Map iter_next } iter$
+} ;;
+
+eval <*A *B map> *Map iter_next -> <<A B tuple> iter_res> {
+  Map take >> case {
+  ; (| *KV, *Map' |) value$ ->
+    (| KV, \\ <<A B tuple> iter_res> { Map' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

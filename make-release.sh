@@ -1,0 +1,205 @@
+#!/bin/sh
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# Make release directory in <target_dir>.
+# Usage:
+#   (enable execution if needed)
+#   ./make-release.sh <target_dir>
+# Caution:
+#   <target_dir>/release must not exist.
+
+print_usage() {
+  echo "Usage: make-release <target_dir>"
+  exit 1
+}
+
+no_target_dir() {
+  echo "** ERROR: $TARGET_DIR does not exist."
+  exit 1
+}
+
+release_dir_already_exists() {
+  echo "** ERROR: $RELEASE_DIR already exists."
+  exit 1
+}
+
+copy_error() {
+  echo "** ERROR: Failed to copy files."
+  exit 1
+}
+
+# -- start --
+
+test "$1" != "" || print_usage
+
+TARGET_DIR=${1%/}
+RELEASE_DIR=$TARGET_DIR/release
+
+test -e $TARGET_DIR || no_target_dir
+test ! -e $RELEASE_DIR || release_dir_already_exists
+
+echo "mkdir $RELEASE_DIR"
+mkdir $RELEASE_DIR || copy_error
+
+# setup src
+
+echo "mkdir $RELEASE_DIR/src"
+mkdir $RELEASE_DIR/src || copy_error
+
+echo "find src/org -type d -exec mkdir $RELEASE_DIR/{} \;"
+find src/org -type d -exec mkdir $RELEASE_DIR/{} \; || copy_error
+echo "find src/org -name '*.java' -exec cp {} $RELEASE_DIR/{} \;"
+find src/org -name '*.java' -exec cp {} $RELEASE_DIR/{} \; || copy_error
+
+echo "find src/sango -type d -exec mkdir $RELEASE_DIR/{} \;"
+find src/sango -type d -exec mkdir $RELEASE_DIR/{} \; || copy_error
+echo "find src/sango -name '*.sg' -exec cp {} $RELEASE_DIR/{} \;"
+find src/sango -name '*.sg' -exec cp {} $RELEASE_DIR/{} \; || copy_error
+
+echo "find src/sni_sango -type d -exec mkdir $RELEASE_DIR/{} \;"
+find src/sni_sango -type d -exec mkdir $RELEASE_DIR/{} \; || copy_error
+echo "find src/sni_sango -name '*.java' -exec cp {} $RELEASE_DIR/{} \;"
+find src/sni_sango -name '*.java' -exec cp {} $RELEASE_DIR/{} \; || copy_error
+
+echo "mkdir $RELEASE_DIR/src/bin"
+mkdir $RELEASE_DIR/src/bin || copy_error
+echo "mkdir $RELEASE_DIR/src/bin/unix"
+mkdir $RELEASE_DIR/src/bin/unix || copy_error
+echo "cp src/bin/unix/sango $RELEASE_DIR/src/bin/unix/"
+cp src/bin/unix/sango $RELEASE_DIR/src/bin/unix/ || copy_error
+echo "cp src/bin/unix/sangoc $RELEASE_DIR/src/bin/unix/"
+cp src/bin/unix/sangoc $RELEASE_DIR/src/bin/unix/ || copy_error
+echo "mkdir $RELEASE_DIR/src/bin/win"
+mkdir $RELEASE_DIR/src/bin/win || copy_error
+echo "cp src/bin/win/*.bat $RELEASE_DIR/src/bin/win/"
+cp src/bin/win/*.bat $RELEASE_DIR/src/bin/win/ || copy_error
+
+# setup lib 
+
+echo "mkdir $RELEASE_DIR/lib"
+mkdir $RELEASE_DIR/lib || copy_error
+
+echo "mkdir $RELEASE_DIR/tmp"
+mkdir $RELEASE_DIR/tmp || copy_error
+echo "mkdir $RELEASE_DIR/tmp/src"
+mkdir $RELEASE_DIR/tmp/src || copy_error
+
+echo "find src/org -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
+find src/org -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
+echo "find src/org -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \;"
+find src/org -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
+echo "mv $RELEASE_DIR/tmp/src/org $RELEASE_DIR/lib/org"
+mv $RELEASE_DIR/tmp/src/org $RELEASE_DIR/lib/org || copy_error
+
+echo "find src/sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
+find src/sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
+echo "find src/sango -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \;"
+find src/sango -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
+echo "mv $RELEASE_DIR/tmp/src/sango $RELEASE_DIR/lib/sango"
+mv $RELEASE_DIR/tmp/src/sango $RELEASE_DIR/lib/sango || copy_error
+
+echo "find src/sni_sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
+find src/sni_sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
+echo "find src/sni_sango -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \;"
+find src/sni_sango -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
+echo "mv $RELEASE_DIR/tmp/src/sni_sango $RELEASE_DIR/lib/sni_sango"
+mv $RELEASE_DIR/tmp/src/sni_sango $RELEASE_DIR/lib/sni_sango || copy_error
+
+# setup bin 
+
+echo "cp -R $RELEASE_DIR/src/bin $RELEASE_DIR/bin"
+cp -R $RELEASE_DIR/src/bin $RELEASE_DIR/bin
+
+# setup doc 
+
+echo "mkdir $RELEASE_DIR/doc"
+mkdir $RELEASE_DIR/doc || copy_error
+echo "cp src/doc/*.html $RELEASE_DIR/doc/"
+cp src/doc/*.html $RELEASE_DIR/doc/ || copy_error
+
+# setup sample 
+
+echo "find src/sample -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
+find src/sample -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
+echo "src/sample -name '*.sg' -exec cp {} $RELEASE_DIR/tmp/{} \;"
+find src/sample -name '*.sg' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
+echo "src/sample -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \;"
+find src/sample -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
+echo "mv $RELEASE_DIR/tmp/src/sample $RELEASE_DIR/sample"
+mv $RELEASE_DIR/tmp/src/sample $RELEASE_DIR/sample || copy_error
+
+# setup etc 
+
+echo "mkdir $RELEASE_DIR/etc"
+mkdir $RELEASE_DIR/etc || copy_error
+echo "mkdir $RELEASE_DIR/etc/unix"
+mkdir $RELEASE_DIR/etc/unix || copy_error
+echo "cp src/etc/unix/*.sh $RELEASE_DIR/etc/unix/"
+cp src/etc/unix/*.sh $RELEASE_DIR/etc/unix/ || copy_error
+echo "mkdir $RELEASE_DIR/etc/win"
+mkdir $RELEASE_DIR/etc/win || copy_error
+echo "cp src/etc/win/*.bat $RELEASE_DIR/etc/win"
+cp src/etc/win/*.bat $RELEASE_DIR/etc/win || copy_error
+
+# setup tool
+
+echo "mkdir $RELEASE_DIR/tool"
+mkdir $RELEASE_DIR/tool || copy_error
+echo "cp tool/*.sh $RELEASE_DIR/tool/"
+cp tool/*.sh $RELEASE_DIR/tool/ || copy_error
+echo "cp tool/*.class $RELEASE_DIR/tool/"
+cp tool/*.class $RELEASE_DIR/tool/ || copy_error
+
+# setup root 
+
+echo "cp LICENSE.txt $RELEASE_DIR/"
+cp LICENSE.txt $RELEASE_DIR/ || copy_error
+
+echo "cp src/etc/README*.txt $RELEASE_DIR/"
+cp src/etc/README*.txt $RELEASE_DIR/ || copy_error
+
+echo "cp src/etc/win/win_configure.bat $RELEASE_DIR/"
+cp src/etc/win/win_configure.bat $RELEASE_DIR/ || copy_error
+echo "copy src/etc/unix/unix-configure.sh $RELEASE_DIR/"
+cp src/etc/unix/unix-configure.sh $RELEASE_DIR/ || copy_error
+
+# set permission
+
+echo "find $RELEASE_DIR -type d | xargs chmod 755"
+find $RELEASE_DIR -type d | xargs chmod 755 || copy_error
+echo "find $RELEASE_DIR -type f | xargs chmod 644"
+find $RELEASE_DIR -type f | xargs chmod 644 || copy_error
+echo "chmod a+x $RELEASE_DIR/bin/*"
+chmod a+x $RELEASE_DIR/bin/* || copy_error
+echo "chmod a+x $RELEASE_DIR/*.sh"
+chmod a+x $RELEASE_DIR/*.sh || copy_error
+
+# end
+
+echo "rm -R $RELEASE_DIR/tmp"
+rm -R $RELEASE_DIR/tmp || copy_error
+
+exit 0
+

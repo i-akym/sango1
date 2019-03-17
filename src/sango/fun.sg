@@ -1,0 +1,48 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.fun" ;;
+
+eval <*T fun> *F0 unary0 | unary @public -> <*A T fun> {
+  \ <*Z> *X -> <T> { &F0 }
+} ;;
+
+eval <*A *T fun> *F1 unary1 | unary @public -> <A T fun> {
+  F1
+} ;;
+
+eval <*A *B *T fun> *F2 unary2 | unary @public -> <<A B tuple> T fun> {
+  \ <A B tuple> *X -> <T> { X = (| *X0, *X1 |), X0 X1 &F2 }
+} ;;
+
+eval <*A *B *C *T fun> *F3 unary3 | unary @public -> <<A B C tuple> T fun> {
+  \ <A B C tuple> *X -> <T> { X = (| *X0, *X1, *X2 |), X0 X1 X2 &F3 }
+} ;;
+
+eval <*A *B *C *D *T fun> *F4 unary4 | unary @public -> <<A B C D tuple> T fun> {
+  \ <A B C D tuple> *X -> <T> { X = (| *X0, *X1, *X2, *X3 |), X0 X1 X2 X3 &F4 }
+} ;;
+
+eval <*A *B *C *D *E *T fun> *F5 unary5 | unary @public -> <<A B C D E tuple> T fun> {
+  \ <A B C D E tuple> *X -> <T> { X = (| *X0, *X1, *X2, *X3, *X4 |), X0 X1 X2 X3 X4 &F5 }
+} ;;

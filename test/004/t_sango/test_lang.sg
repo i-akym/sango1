@@ -1,0 +1,260 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+data <d001> := d001_1: <int> d001_2: <char> d001$ ;;
+
+extend <exc_desc> := test_exc$ ;;
+alias type <cs> := <cstr> ;;
+
+data <*A d002> := <A> d002$ ;;
+alias type <d003> := <<cstr d002> d002> ;;
+eval fun001 -> <void> { (("abc" d002$) d002$) fun002 } ;;
+eval <d003> *X fun002 -> <void> {} ;;
+alias type <*A d004> := <A list> ;;
+eval <cs d004> *II fun003 -> <void> {} ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  _initd_,
+  test001,
+  test002,
+  test003,
+  test003a,
+  test004,
+  test004a,
+  test005,
+  test006,
+  test007,
+  test007a,
+  test008,
+  test009,
+  test010,
+  test011,
+  test012,
+  -9 test013,
+  -3 test014,
+  -5 -6 -7 test015,
+  -11 test016,
+  23 test017,
+  -23 test017,
+  [ 2, 25, 25 ] test018,
+  [ 2, 25 ] test018,
+  [ 25, 25, 25 ] test018,
+  (27 value$) test019,
+  29 test020,
+  31 test021,
+  (33 value$) test022,
+  ('z' value$) test023,
+  [ 35 ] = *IL, IL IL test024,
+  [] = *NIL, NIL NIL test024,
+  NIL NIL test025,
+  NIL NIL test026,
+  37 test027,
+  test028,
+  test029,
+  test030,
+  test031,
+  test032,
+  test033,
+  test034,
+  "abc" test035,
+  test036,
+  test036a,
+  test037,
+  test037a,
+  test037b,
+  test037c,
+  test038,
+  test039,
+  test040,
+  test041,
+  test042,
+  test043,
+  test044,
+  test045,
+  test046,
+  test047,
+  test048,
+  test048a,
+  test049,
+  test050,
+  test051,
+  test055,
+  test055a,
+  test056,
+  test060,
+  test070,
+  test070a,
+  test080,
+  test081,
+  test082,
+  test082a,
+  test083,
+  test083a,
+  test200,
+  test200a,
+  test201,
+  test201a,
+  test202,
+  test202a,
+  test203,
+  test204,
+  test205,
+  test300,
+  test300a,
+  test500,
+  test501,
+  test600,
+  test600a,
+  test610,
+  test610a,
+  test620,
+  test621,
+  test621a,
+  test625,
+  test627,
+  test630,
+  test630a,
+  test631,
+  test631a,
+  test632,
+  test632a,
+  test632b,
+  test633,
+  test634,
+  void$
+} ;;
+
+eval _init_ -> <int> { +3 } ;;
+eval test001 | testfoo | testbar -> <int> { _initd_ } ;;
+eval test002 -> <int> { ^^, 7 } ;;
+eval test003 -> <<int int tuple> result> { \\ { (| -3, -5 |) } try = ** fin$ } ;;
+eval test003a -> <<int int tuple> result> { \\ { (| -3, -5 |) } try = (| **, ** |) fin$ } ;;
+eval test004 -> <int list> { [ -7, -9 ] = [ ** ; ** ] } ;;
+eval test004a -> <<int list> result> { \\ { [ -7, -9 ] = [ ** ] } try = ** exc$ } ;;
+eval test005 -> <int> { 9 itself = 9 } ;;
+eval test006 -> <int> { 11 = *X } ;;
+eval test007 -> <int> { 13 = 13 } ;;
+eval test007a -> <int result> { \\ { -13 = 13 } try = ** exc$ } ;;
+eval test008 -> <int> { (| 15, 15, 15, 15, 15 |) = (| *PPP, PPP, *QQQ, **, *RRR |), QQQ = 15 } ;;
+eval test009 -> <int> { [ 17, -17 ] &\ <int list> *X -> { X = [ 17, *Y ], Y } } ;;
+eval test010 -> <int> { [ 19, -19, 20, -20 ] &\ <int list> *X -> { X = [ 19, *Y ; *Z ], Y } = -19 } ;;
+eval test011 -> <int> { (20 value$) &\ <int maybe> *X -> { X = *I value$, I } = 20 } ;;
+eval test012 -> <int maybe> { (21 value$) &\ <int maybe> *X -> { X = 21 value$ } } ;;
+eval <int> *X test013 -> <int> { X case { 0 -> 0 ; 1 -> 1 ; ** -> -1 } } ;;
+eval <int> *X test014 -> <int> { if { X gt0? -> X inc ; X zero? -> 0 ; otherwise -> -1 } } ;;
+eval <int> *X <int> *Y <int> *Z test015 -> <int> { if { X gt0? -> Y inc ; X zero? -> Z ; otherwise -> -1 } } ;;
+eval <int> *X test016 -> <int> { X case { 0 | 1 | 2 -> 0 ; 3 -> 1 ; ** -> -1 } } ;;
+eval <int> *X test017 -> <int> { X case { ** || X ge0? -> 1 ; ** -> -1 } } ;;
+eval <int list> *X test018 -> <int> { X case { [ 2 , *Y, *Z ; ** ] -> Y Z sum ; [ 1, *Y ; ** ] -> Y ; ** -> 0 } } ;;
+eval <int maybe> *X test019 -> <int maybe> { X itself } ;;
+eval <int> *X test020 -> <int> { X &\ *Y -> { Y } } ;;
+eval <int> *X test021 -> <int> { X &\ <*A> *Y -> <A> { Y } } ;;
+eval <int maybe> *X test022 -> <int maybe> { X &\ <*A> *Y -> <A> { Y } } ;;
+eval <*A maybe> *X test023 -> <A maybe> { X &\ <*B maybe> *Y -> { Y } } ;;
+eval <*A> *X <A> *Y test024 -> <bool> { Y case { X -> true$ ; ** -> false$ } } ;;
+eval <*A> *X <*B list> *Y test025 -> <void> { void$ } ;;
+eval <*A> *X <<*B list> list> *Y test026 -> <void> { void$ } ;;
+eval <*A> *X test027 -> <bool> { [ X ] [] test024 } ;;
+eval test028 -> <bool> { "028028" "820820" test024 } ;;
+eval test029 -> <bool> { [| 291, 292 |] [| %x123, %o444|] test024 } ;;
+eval test030 -> <bool> { "" "" test024 } ;;
+eval test031 -> <*A list> { [] itself } ;;
+eval test032 -> <*A string> { [||] itself } ;;
+eval test033 -> <bool> { [] [] test024 } ;;
+eval test034 -> <bool> { [||] [||] test024 } ;;
+eval <cstr> *S test035 -> <char> { S case { [| *C, 'y', 'z' |] -> C ; [| 'a', 'b', *C |] -> C ; ** -> 'Z' } } ;;
+eval test036 -> <int> { 35 expose = *R, R = <int> == *I, I } ;;
+eval test036a -> <real> { 0.36e-2 expose = *R, R = <real> == *X, X } ;;
+eval test037 -> <_?_ list> { [ -37, -39 ] expose = *R, R = <_?_ list> == *L, L } ;;
+eval test037a -> <_?_ list> { [] expose = *R, R = <_?_ list> == *L, L } ;;
+eval test037b -> <int> { (| -37, -39 |) expose = *R, R case { <_?_ _?_ _?_ tuple> == *T3 -> 3 ; <_?_ _?_ tuple> == *T2 -> 2 ; ** -> 0 } = 2 } ;;
+eval test037c -> <_?_ string> { "test string" expose = *R, R = <_?_ string> == *S, S } ;;
+eval test038 -> <int result> { \\ <int> { test_exc$ "test exception" new_exception >> throw } try = ** exc$ } ;;
+eval test039 -> <*A A fun> { ^itself itself } ;;
+eval test040 -> <d001> { 40 'd' d001$ } ;;
+eval test041 -> <d001> { d001_2: 'd' d001_1:40 d001$ } ;;
+eval test042 -> <d001> { test040 = *X, 41 :: X d001$ } ;;
+eval test043 -> <d001> { test040 = *X, d001_2: 'e' :: X d001$ } ;;
+eval test044 -> <int list> { [] = <int list> *L, L itself } ;;
+eval test045 -> <int> { ^itself expose = *R, R case { <_?_ fun> == *F1 -> 1 ; <_?_ _?_ fun> == *F2 -> 2 ; ** -> 0 } = 2 } ;;
+eval test046 -> <int int fun> { ^itself } ;;
+eval test047 -> <cs> { _name_ = "test_lang" } ;;
+eval test048 -> <d001> { (48 't' d001$) expose = *X, X = <d001> == *D, D } ;;
+eval test048a -> <int> { (-48 value$) expose = *X, X = <_?_ maybe> == *V value$, V = <int> == *I, I } ;;
+eval test049 -> <_?_ list> { [ 49 expose ] } ;;
+eval test050 -> <bool> { (| true$, true$ |) case { (| true$, true$ |) -> true$ ; ** -> false$ } = true$ } ;;
+eval test051 -> <bool> { (| [ 51, 51 ], [ -51, -51 ] |) case { (| [ *X, X ], [ *Y, Y ] |) -> true$ ; ** -> false$ } = true$ } ;;
+eval test055 -> <void> { ^itself = *Id, ^itself = Id, void$ } ;;
+eval test055a -> <void> { \ <int> *I -> <int> { I 2 prod } = *F, \ <int> *I -> <int> { I 2 prod } = *F', F = F', void$ } ;;
+eval test056 -> <void> {
+  3 = *X,
+  5 = *Y,
+  \ <int> *I -> <int> { I X sum } = *F,
+  \ <int> *I -> <int> { I Y sum } = *F',
+  F case {
+  ; F' -> assertion_error$ "" new_exception >> throw
+  ; ** ->
+  }
+} ;;
+eval test060 -> <void> {
+  "abc" case {
+  ; *S => S = [| *C0 |] -> assertion_error$ "" new_exception >> throw
+  ; *S => S = [| *C0, *C1 |] -> assertion_error$ "" new_exception >> throw
+  ; *S => S = [| *C0, *C1, *C2 |], C1 = 'z' -> assertion_error$ "" new_exception >> throw
+  ; *S => S = [| *C0, *C1, *C2 |], C1 = 'b' ->
+  ; ** -> assertion_error$ "" new_exception >> throw
+  }
+} ;;
+eval test070 -> <<*A list> list> { [ [], [], [] ] } ;;
+eval test070a -> <<*A list> list> { [] = *L, [ L, L, L ] } ;;
+eval test080 -> <void result> {
+  \\ <void> { intentional$ "" new_exception >> thru >> throw }
+  catch_all_try = ((intentional$ thru$) *** exception$) exc$
+} ;;
+eval test081 -> <void result> {
+  \\ <void> {
+    \\ <void> { intentional$ "" new_exception >> thru >> throw } try,
+    void$
+  } catch_all_try = ((intentional$ thru$) *** exception$) exc$
+} ;;
+eval test082 -> <exception> { intentional$ "" new_exception >> thru = desc: (intentional$ thru$) *** exception$ } ;;
+eval test082a -> <exception> { intentional$ "" new_exception >> thru >> thru = desc: (intentional$ thru$) *** exception$ } ;;
+eval test083 -> <exception> { (intentional$ thru$) "" new_exception >> catchable = desc: intentional$ *** exception$ } ;;
+eval test083a -> <exception> { (intentional$ thru$) "" new_exception >> catchable >> catchable = desc: intentional$ *** exception$ } ;;
+eval test200 -> <int> { 201 312 sum = 513 } ;;
+eval test200a -> <void> { \\ <int> { max_int inc } try = *E exc$, E desc = overflow$ arith_failure$, void$ } ;;
+eval test201 -> <int> { 202 313 diff = -111 } ;;
+eval test201a -> <void> { \\ <int> { min_int dec } try = *E exc$, E desc = overflow$ arith_failure$, void$ } ;;
+eval test202 -> <int> { 11 12 prod = 132 } ;;
+eval test202a -> <void> { \\ <int> { min_int min_int prod } try = *E exc$, E desc = overflow$ arith_failure$, void$ } ;;
+eval test203 -> <int> { 25 3 quot = 8 } ;;
+eval test204 -> <int int tuple> { 25 3 div = (| 8, 1 |) } ;;
+eval test205 -> <void> { \\ { 25 0 quot } try = *E exc$, E desc = zero_div$ arith_failure$, void$ } ;;
+eval test300 -> <int> { %xffffffff = -1 } ;;
+eval test300a -> <int> { %o37777777777 = -1 } ;;
+eval test500 -> <int> { 'a' code = %x61 } ;;
+eval test501 -> <char> { %x62 char_value = 'b' } ;;
+eval test600 -> <bool> { nan >> nan? = true$ } ;;
+eval test600a -> <void> { nan = *Nan, \\ <real> { nan = Nan } try = ** exc$, void$ } ;;
+eval test610 -> <bool> { pos_inf = *Pos_inf, Pos_inf infinite? = true$, Pos_inf gt0? = true$ } ;;
+eval test610a -> <bool> { neg_inf = *Nos_inf, Nos_inf infinite? = true$, Nos_inf lt0? = true$ } ;;
+eval test620 -> <byte> { 3 byte = 3~ } ;;
+eval test621 -> <void> { \\ <byte> { 511 byte } try = ** exc$, void$ } ;;
+eval test621a -> <byte> { 511 byte_part = 255~ } ;;
+eval test625 -> <int> { 3~ int = 3 } ;;
+eval test627 -> <bool> { (2 real) 2.0e0 eq? = true$ } ;;
+eval test630 -> <bool> { -2147483649.0 int_convertible? = false$ } ;;
+eval test630a -> <bool> { -2147483648.9 int_convertible? = true$ } ;;
+eval test631 -> <bool> { 2147483648.0 int_convertible? = false$ } ;;
+eval test631a -> <bool> { 2147483647.9 int_convertible? = true$ } ;;
+eval test632 -> <bool> { nan int_convertible? = false$ } ;;
+eval test632a -> <bool> { pos_inf int_convertible? = false$ } ;;
+eval test632b -> <bool> { neg_inf int_convertible? = false$ } ;;
+eval test633 -> <int> { -2147483648.0 int = -2147483648 } ;;
+eval test634 -> <int> { 2147483647.0 int = 2147483647 } ;;

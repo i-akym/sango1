@@ -1,0 +1,76 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.locale" ;;
+
+import "sango.cstr" -> cstr ;;
+import "sango.system" -> sys ;;
+
+data <locale> @protected :=
+  language: <cstr>
+  country: <cstr>
+  variant: <cstr>
+  locale$ ;;
+
+extend <sys.prop> := <locale> locale_prop$ ;;
+
+eval <cstr> *Language <cstr> *Country locale @public -> <locale> {
+  Language Country "" locale
+} ;;
+
+eval <cstr> *Language <cstr> *Country <cstr> *Variant locale_with_variant | locale @public -> <locale> {
+  (| Language, Country |) case {
+  ; (| "", "" |) -> bad_arg$ "Neither language nor country." new_exception >> throw
+  ; ** ->
+  },
+  language: Language country: Country variant: Variant locale$
+} ;;
+
+eval <locale> *Locale repr @public -> <cstr> {
+  Locale = language: *L country: *C variant: *V locale$,
+  V case {
+  ; "" -> []
+  ; ** -> [ "_", V ]
+  } = *VR,
+  (| L, C |) case {
+  ; (| "", ** |) -> [ C ; VR ]
+  ; (| **, "" |) -> [ L ; VR ]
+  ; **  -> [ L, "_", C ; VR ]
+  } >> cstr.concat
+} ;;
+
+eval _locale -> <cstr cstr cstr tuple> @native ;;
+
+eval _init_ -> <void> {
+  _locale = (| *L, *C, *V |),
+  "l10n.locale" ((L C V locale) locale_prop$) sys.add_property
+} ;;
+
+eval default_locale @public -> <locale> {
+  "l10n.locale" sys.property >> value = *Locale locale_prop$,
+  Locale
+} ;;
+
+eval <locale> *Locale set_default_locale @public -> <void> {
+  "l10n.locale" (Locale locale_prop$) sys.add_property
+} ;;

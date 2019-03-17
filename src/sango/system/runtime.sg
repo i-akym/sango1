@@ -1,0 +1,154 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.system.runtime" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+
+extend <act.msg> :=
+| <act.post_h> <act.actor_h> monitor_by_terminator_req$
+| monitor_by_terminator_res$
+| <act.post_h> <void fun> add_action_req$
+| add_action_res$ ;;
+
+data <d> :=
+  shutdown_action_launcher_post_h: <act.post_h>
+  d$ ;;
+
+
+# -- runtime engine --
+
+data <version> @public :=
+  ver_major: <int>
+  ver_minor: <int>
+  ver_micro: <int>
+  ver_level_: <cstr maybe>
+  ver_build: <int>
+  ver_full: <cstr>
+  version$ ;;
+
+eval version @public -> <version> @native ;;
+eval prog_name @public -> <cstr> @native ;;
+eval args @public -> <cstr list> @native ;;
+
+
+# -- memory management --
+
+eval gc @public -> <void> @native ;;
+
+
+# -- exit --
+
+eval <int> *Exit_code exit @public -> <_> {
+  Exit_code 10000 shutdown,
+  (act.exit$ thru$) "" new_exception >> throw
+} ;;
+
+eval <int> *Exit_code <int> *Timeout shutdown @public -> <void> @native ;;
+
+eval <act.actor_h> *Actor terminate_on_abnormal_end @public -> <void> @native ;;
+
+eval terminate_on_my_abnormal_end @public -> <void> {
+  act.my_actor_h terminate_on_abnormal_end
+} ;;
+
+# -- shutdown action launcher
+
+eval <void fun> *Action add_action_to_shutdown @public -> <void> {
+  _initd_ = shutdown_action_launcher_post_h: *Launcher *** d$,
+  act.open_mbox = (| *Box, *Post |),
+  Launcher (Post Action add_action_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive >> value = add_action_res$,
+  void$
+} ;;
+
+eval start_shutdown_action_launcher -> <act.post_h> {
+  ^shutdown_action_launcher actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 7 act.set_priority,  # tentative
+  P
+} ;;
+
+data <sal_state> :=
+| <<void fun> list> sal_in_running$
+| sal_in_shutdown$
+| sal_end$ ;;
+
+eval <act.post_h void fun> *Reply shutdown_action_launcher -> <void> {
+  (notify_sysmsg: true$ :: act.default_mbox_opts act.mbox_opts$) act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  ([] sal_in_running$) &\ <sal_state> *S -> <void> {  # this is the main loop
+    S case {
+    ; sal_end$ ->
+    ; ** ->
+      Box act.receive >> case {
+      ; *Msg value$ ->
+        (S Msg shutdown_action_launcher_dispatch) &&
+      ; ** ->
+        Box act.wait_forever$ act.listen,
+        S &&
+      # else internal error
+      }
+    }
+  }
+} ;;
+
+eval <sal_state> *S <act.msg+> *Msg shutdown_action_launcher_dispatch -> <sal_state> {
+  Msg case {
+  ; *P *A add_action_req$ ->
+    P add_action_res$ act.send,  # send ack
+    S case {
+    ; *As sal_in_running$ -> [ A ; As ] sal_in_running$
+    ; sal_in_shutdown$ -> A act.spawn >> act.start, sal_in_shutdown$
+    }
+  ; act.shutdown$ act.sys_msg$ ->
+    S = *Actions sal_in_running$,
+    Actions shutdown_action_launcher_start_all,
+    sal_in_shutdown$
+  ; act.no_post$ -> sal_end$
+  ; ** -> S
+  }
+} ;;
+
+eval <<void fun> list> *Actions shutdown_action_launcher_start_all -> <void> {
+  Actions case {
+  ; [] ->
+  ; [ *A ; *Actions' ] ->
+    A act.spawn >> act.start,
+    act.yield,
+    Actions' &&
+  }
+} ;;
+
+
+# -- initialization --
+
+eval _init_ -> <d> {
+  start_shutdown_action_launcher = *Shutdown,
+
+  shutdown_action_launcher_post_h: Shutdown
+    d$
+} ;;
+

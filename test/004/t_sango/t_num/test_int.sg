@@ -1,0 +1,214 @@
+import "sango.debug" -> debug ;;
+import "sango.num.int" -> int ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.enum" -> enum ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  test002a,
+  test003,
+  test006,
+  test007,
+  test007a,
+  test008,
+  test101,
+  test101a,
+  test101b,
+  test102,
+  test102a,
+  test102b,
+  test111,
+  test111a,
+  test112,
+  test112a,
+  test113,
+  test113a,
+  test121,
+  test122,
+  test123,
+  test123a,
+  test131,
+  test131a,
+  test131b,
+  test131c,
+  test132,
+  test140,
+  test140a,
+  test141,
+  test141a,
+  test142,
+  test142a,
+  test143,
+  test143a,
+  test144,
+  test144a,
+  test201,
+  test202,
+  test203,
+  test211,
+  test211a,
+  test212,
+  test212a,
+  test213,
+  test213a,
+  test215,
+  test215a,
+  test216,
+  test216a,
+  -2 3 1 int.enum = *E,
+  E test300,
+  E test301,
+  E test302,
+  E test303,
+  E test304,
+  # E test305,
+  3 -1 -2 int.enum = *E2,
+  E2 test310,
+  E2 test311,
+  E2 test312,
+  E2 test313,
+  E2 test314,
+  E2 test314a,
+  # test320,
+  test321,
+  test322,
+  test323,
+  void$
+} ;;
+
+eval test001 -> <int> { "0" int.parse = 0 } ;;
+eval test002 -> <int> { "123" int.parse = 123 } ;;
+eval test002a -> <int> { "+123" int.parse = 123 } ;;
+eval test003 -> <int> { "-456" int.parse = -456 } ;;
+eval test006 -> <int result> { \\ { "" int.parse } try = ** exc$ } ;;
+eval test007 -> <int result> { \\ { "+" int.parse } try = ** exc$ } ;;
+eval test007a -> <int result> { \\ { "-" int.parse } try = ** exc$ } ;;
+eval test008 -> <int result> { \\ { "7a9" int.parse } try = ** exc$ } ;;
+eval test101 -> <cstr> { 1234 "d" int.format = "1234" } ;;
+eval test101a -> <cstr> { 0 "d" int.format = "0" } ;;
+eval test101b -> <cstr> { -1234 "d" int.format = "-1234" } ;;
+eval test102 -> <cstr> { 1234 "sd" int.format = "+1234" } ;;
+eval test102a -> <cstr> { 0 "sd" int.format = "0" } ;;
+eval test102b -> <cstr> { -1234 "sd" int.format = "-1234" } ;;
+eval test111 -> <cstr> { -123 ",gd" int.format = "-123" } ;;
+eval test111a -> <cstr> { 123 "4 gd" int.format = "123" } ;;
+eval test112 -> <cstr> { -1234 ",gd" int.format = "-1,234" } ;;
+eval test112a -> <cstr> { 1234 "4 gd" int.format = "1234" } ;;
+eval test113 -> <cstr> { -12345 ",gd" int.format = "-12,345" } ;;
+eval test113a -> <cstr> { 12345 "4 gd" int.format = "1 2345" } ;;
+eval test121 -> <cstr> { -123 "5d" int.format = "-00123" } ;;
+eval test122 -> <cstr> { -12345 "3d" int.format = "-12345" } ;;
+eval test123 -> <cstr> { -123 ",g5d" int.format = "-00,123" } ;;
+eval test123a -> <cstr> { 123 "s,g5d" int.format = "+00,123" } ;;
+eval test131 -> <cstr> { 123 "10<s,g5d" int.format = "+00,123   " } ;;
+eval test131a -> <cstr> { 123 "10>s,g5d" int.format = "   +00,123" } ;;
+eval test131b-> <cstr> { 123 "10#<s,g5d" int.format = "+00,123###" } ;;
+eval test131c -> <cstr> { 123 "10#>s,g5d" int.format = "###+00,123" } ;;
+eval test132 -> <cstr> { 123 "5<s,g5d" int.format = "+00,123" } ;;
+eval test140 -> <cstr> { 123 "2/0<d" int.format = "12" } ;;
+eval test140a -> <cstr> { 123 "2/0>d" int.format = "23" } ;;
+eval test141 -> <cstr> { 12 "5/3#<d" int.format = "12#" } ;;
+eval test141a -> <cstr> { 12 "5/3#>d" int.format = "#12" } ;;
+eval test142 -> <cstr> { 123 "5/3#<d" int.format = "123" } ;;
+eval test142a -> <cstr> { 123 "5/3#>d" int.format = "123" } ;;
+eval test143 -> <cstr> { 12345 "5/3#<d" int.format = "12345" } ;;
+eval test143a -> <cstr> { 12345 "5/3#>d" int.format = "12345" } ;;
+eval test144 -> <cstr> { 123456 "5/3#<d" int.format = "12345" } ;;
+eval test144a -> <cstr> { 123456 "5/3#>d" int.format = "23456" } ;;
+eval test201 -> <cstr> { 255 "o" int.format = "377" } ;;
+eval test202 -> <cstr> { -1 "o" int.format = "37777777777" } ;;
+eval test203 -> <cstr result> { \\ <cstr> { 255 "so" int.format } try = ** exc$ } ;;
+eval test211 -> <cstr> { 255 "x" int.format = "ff" } ;;
+eval test211a -> <cstr> { 255 "X" int.format = "FF" } ;;
+eval test212 -> <cstr> { -1 "x" int.format = "ffffffff" } ;;
+eval test212a -> <cstr> { -1 "X" int.format = "FFFFFFFF" } ;;
+eval test213 -> <cstr result> { \\ <cstr> { 255 "sx" int.format } try = ** exc$ } ;;
+eval test213a -> <cstr result> { \\ <cstr> { 255 "sX" int.format } try = ** exc$ } ;;
+eval test215 -> <cstr> { 153 "x" int.format = "99" } ;;
+eval test215a -> <cstr> { 153 "X" int.format = "99" } ;;
+eval test216 -> <cstr> { 170 "x" int.format = "aa" } ;;
+eval test216a -> <cstr> { 170 "X" int.format = "AA" } ;;
+eval <int enum.enum> *E test300 -> <int> { E enum.count = 6 } ;;
+eval <int enum.enum> *E test301 -> <bool> {
+  E -3 enum.contain? = false$,
+  E -2 enum.contain? = true$,
+  E 3 enum.contain? = true$,
+  E 4 enum.contain? = false$ } ;;
+eval <int enum.enum> *E test302 -> <int maybe> {
+  E -2 enum.pred = none$,
+  E -2 enum.succ = -1 value$,
+  E -1 enum.pred = -2 value$ } ;;
+eval <int enum.enum> *E test303 -> <int maybe> {
+  E 2 enum.succ = 3 value$,
+  E 3 enum.pred = 2 value$,
+  E 3 enum.succ = none$} ;;
+eval <int enum.enum> *E test304 -> <int iter_res> {
+  E enum.iter = *I,
+  I next = (| -2, *I' |) value$,
+  I' next = (| -1, *I'' |) value$,
+  I'' next = (| 0, *I''' |) value$,
+  I''' next = (| 1, *I'''' |) value$,
+  I'''' next = (| 2, *I''''' |) value$,
+  I''''' next = (| 3, *I'''''' |) value$,
+  I'''''' next = none$
+} ;;
+# eval <int enum.enum> *E test305 -> <int iter_res> {
+  # E (| -1, 2 |) enum.inner >> enum.iter = *I,
+  # I next = (| -1, *I' |) value$,
+  # I' next = (| 0, *I'' |) value$,
+  # I'' next = (| 1, *I''' |) value$,
+  # I''' next = (| 2, *I'''' |) value$,
+  # I'''' next = none$
+# } ;;
+eval <int enum.enum> *E test310 -> <int> { E enum.count = 3 } ;;
+eval <int enum.enum> *E test311 -> <bool> {
+  E 4 enum.contain? = false$,
+  E 3 enum.contain? = true$,
+  E 2 enum.contain? = false$,
+  E 0 enum.contain? = false$,
+  E -1 enum.contain? = true$,
+  E -2 enum.contain? = false$ } ;;
+eval <int enum.enum> *E test312 -> <int maybe> {
+  E 3 enum.pred = none$,
+  E 3 enum.succ = 1 value$,
+  E 1 enum.pred = 3 value$ } ;;
+eval <int enum.enum> *E test313 -> <int maybe> {
+  E 1 enum.succ = -1 value$,
+  E -1 enum.pred = 1 value$,
+  E -1 enum.succ = none$} ;;
+eval <int enum.enum> *E test314 -> <int iter_res> {
+  E enum.iter = *I,
+  I next = (| 3, *I' |) value$,
+  I' next = (| 1, *I'' |) value$,
+  I'' next = (| -1, *I''' |) value$,
+  I''' next = none$
+} ;;
+eval <int enum.enum> *E test314a -> <int iter_res> {
+  E enum.reverse_iter = *I,
+  I next = (| -1, *I' |) value$,
+  I' next = (| 1, *I'' |) value$,
+  I'' next = (| 3, *I''' |) value$,
+  I''' next = none$
+} ;;
+# eval test320 -> <<int enum.enum> result> {
+  # \\ <int enum.enum> { 3 -2 -2 int.enum } try = ** exc$
+# } ;;
+eval test321 -> <int> {
+  5 5 1 int.enum >> enum.count = 1,
+  5 5 -1 int.enum >> enum.count = 1
+} ;;
+eval test322 -> <int> {
+  5 3 1 int.enum >> enum.count = 0,
+  3 5 -1 int.enum >> enum.count = 0
+} ;;
+eval test323 -> <bool> {
+  (5 3 1 int.enum) 4 enum.contain? = false$,
+  (3 5 -1 int.enum) 4 enum.contain? = false$
+} ;;

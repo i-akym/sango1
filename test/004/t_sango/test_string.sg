@@ -1,0 +1,123 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  test003,
+  test004,
+  test005,
+  test006,
+  test007,
+  test008,
+  test009,
+  test010,
+  test011,
+  test011a,
+  test012,
+  test012a,
+  test013,
+  test013a,
+  test014,
+  test014a,
+  test015,
+  test015a,
+  test016,
+  test016a,
+  test017,
+  test017a,
+  test018,
+  test018a,
+  test019,
+  test019a,
+  test020,
+  test021,
+  test022,
+  test023,
+  test023a,
+  test024,
+  test024a,
+  test025,
+  test025a,
+  test026,
+  test026a,
+  test027,
+  test027a,
+  test028,
+  test029,
+  test030,
+  test031,
+  test041,
+  test042,
+  test043,
+  test044,
+  test045,
+  str.new_string_buf = *B, B "abc" str.append = *B', B' "def" str.append = *B'', B'' "ghi" str.append = *B''',
+  B''' test051,
+  B''' test052,
+  B''' test053,
+  B''' test054,
+  void$
+} ;;
+
+eval test001 -> <int> { [| 1, 2, 3 |] str.length = 3 } ;;
+eval test002 -> <int> { "abc" str.length = 3 } ;;
+eval test003 -> <int> { [||] str.length = 0 } ;;
+eval test004 -> <int> { "" str.length = 0 } ;;
+eval test005 -> <cstr> { "abc" = [| 'a', 'b', 'c' |] } ;;
+eval test006 -> <cstr> { "" = [||] } ;;
+eval test007 -> <char> { "abc" 1 str.elem = 'b' } ;;
+eval test008 -> <cstr> { "abcde" 1 2 str.slice = "bc" } ;;
+eval test009 -> <cstr> { "abcde" 1 0 str.slice = "" } ;;
+eval test010 -> <cstr> { [ 'a', 'b', 'c' ] str.to_string = "abc" } ;;
+eval test011 -> <int maybe> { "abcdefabcdef" 'z' str.first_index = none$ } ;;
+eval test011a -> <int maybe> { "abcdefabcdef" 'z' str.last_index = none$ } ;;
+eval test012 -> <int maybe> { "abcdefabcdef" 'a' str.first_index = 0 value$ } ;;
+eval test012a -> <int maybe> { "abcdefabcdef" 'a' str.last_index = 6 value$ } ;;
+eval test013 -> <int maybe> { "abcdef" 'f' str.first_index = 5 value$ } ;;
+eval test013a -> <int maybe> { "abcdef" 'f' str.last_index = 5 value$ } ;;
+eval test014 -> <int maybe> { "" 'z' str.first_index = none$ } ;;
+eval test014a -> <int maybe> { "" 'z' str.last_index = none$ } ;;
+eval test015 -> <bool> { "abcdef" "" str.start_with? = true$ } ;;
+eval test015a -> <bool> { "abcdef" "" str.end_with? = true$ } ;;
+eval test016 -> <bool> { "" "" str.start_with? = true$ } ;;
+eval test016a -> <bool> { "" "" str.end_with? = true$ } ;;
+eval test017 -> <bool> { "abcdef" "abc" str.start_with? = true$ } ;;
+eval test017a -> <bool> { "abcdef" "def" str.end_with? = true$ } ;;
+eval test018 -> <bool> { "abcdef" "cde" str.start_with? = false$ } ;;
+eval test018a -> <bool> { "abcdef" "bcd" str.end_with? = false$ } ;;
+eval test019 -> <bool> { "abcdef" "abcdefg" str.start_with? = false$ } ;;
+eval test019a -> <bool> { "abcdef" "_abcdef" str.end_with? = false$ } ;;
+eval test020 -> <cstr list> { "" '.' str.split_by_elem = [ "" ] } ;;
+eval test021 -> <cstr list> { "abc.de.f" '.' str.split_by_elem = [ "abc", "de", "f" ] } ;;
+eval test022 -> <cstr list> { ".abc..de." '.' str.split_by_elem = [ "", "abc", "", "de", "" ] } ;;
+eval test023 -> <int maybe> { "abcdefabcdef" "" str.first_index = 0 value$ } ;;
+eval test023a -> <int maybe> { "abcdefabcdef" "" str.last_index = 12 value$ } ;;
+eval test024 -> <int maybe> { "abcdefabcdef" "bc" str.first_index = 1 value$ } ;;
+eval test024a -> <int maybe> { "abcdefabcdef" "bc" str.last_index = 7 value$ } ;;
+eval test025 -> <int maybe> { "abcdefabcdef" "zzz" str.first_index = none$ } ;;
+eval test025a -> <int maybe> { "abcdefabcdef" "zzz" str.last_index = none$ } ;;
+eval test026 -> <int maybe> { "abcdef" "abcdef" str.first_index = 0 value$ } ;;
+eval test026a -> <int maybe> { "abcdef" "abcdef" str.last_index = 0 value$ } ;;
+eval test027 -> <int maybe> { "abcdef" "abcdefg" str.first_index = none$ } ;;
+eval test027a -> <int maybe> { "abcdef" "_abcdef" str.last_index = none$ } ;;
+eval test028 -> <cstr> { [] '.' str.join_with_elem = "" } ;;
+eval test029 -> <cstr> { [ "abc", "def", "ghi" ] '.' str.join_with_elem = "abc.def.ghi" } ;;
+eval test030 -> <cstr> { [] "zz" str.join_with_seq = "" } ;;
+eval test031 -> <cstr> { [ "abc", "def", "ghi" ] "zz" str.join_with_seq = "abczzdefzzghi" } ;;
+eval test041 -> <cstr> { "abcabcabc" "ca" "zzz" str.replace_first_seq = "abzzzbcabc" } ;;
+eval test042 -> <cstr> { "abcabcabc" "ca" "zzz" str.replace_last_seq = "abcabzzzbc" } ;;
+eval test043 -> <cstr> { "abcabcabc" "ca" "zzz" str.replace_all_seq = "abzzzbzzzbc" } ;;
+eval test044 -> <cstr> { "abcabcabc" 3 'z' str.replace = "abczbcabc" } ;;
+eval test045 -> <cstr> { "abcabcabc" 3 "zzz" str.replace_slice = "abczzzabc" } ;;
+eval <char str.string_buf> *B test051 -> <cstr> { B 0 str.pack = (| "", *B' |), B' str.pack_all = "abcdefghi" } ;;
+eval <char str.string_buf> *B test052 -> <cstr> { B 4 str.pack = (| "abcd", *B' |), B' str.pack_all = "efghi" } ;;
+eval <char str.string_buf> *B test053 -> <cstr> { B 6 str.pack = (| "abcdef", *B' |), B' str.pack_all = "ghi" } ;;
+eval <char str.string_buf> *B test054 -> <cstr> { B 10 str.pack = (| "abcdefghi", *B' |), B' str.pack_all = "" } ;;

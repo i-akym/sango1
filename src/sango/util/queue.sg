@@ -1,0 +1,102 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.queue" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
+
+data <*A queue> @public :=
+  d: <A queue_d+>
+  fs: <A queue_fs>
+  queue$ ;;
+
+data <*A queue_d> @public := _dummy_queue_d$ ;;
+
+data <*A queue_fs> @public :=
+  empty?_f: <<A queue_d+> bool fun>
+  length_f: <<A queue_d+> int fun>
+  enqueue_f: <<A queue_d+> A <A queue_d+> fun>
+  head_f: <<A queue_d+> <A maybe> fun>
+  dequeue_f: <<A queue_d+> <<A <A queue_d+> tuple> maybe> fun>
+  clear_f: <<A queue_d+> <A queue_d+> fun>
+  queue_fs$ ;;
+
+
+# -- framework --
+
+eval <*A queue> *Queue empty? @public -> <bool> {
+  Queue = d: *D fs: *Fs queue$,
+  D &(Fs empty?_f)
+} ;;
+
+eval <*A queue> *Queue length @public -> <int> {
+  Queue = d: *D fs: *Fs queue$,
+  D &(Fs length_f)
+} ;;
+
+eval <*A queue> *Queue <A> *Elem enqueue @public -> <A queue> {
+  Queue = d: *D fs: *Fs queue$,
+  d: (D Elem &(Fs enqueue_f)) :: Queue queue$
+} ;;
+
+eval <*A queue> *Queue head @public -> <A maybe> {
+  Queue = d: *D fs: *Fs queue$,
+  D &(Fs head_f)
+} ;;
+
+eval <*A queue> *Queue dequeue @public -> <<A <A queue> tuple> maybe> {
+  Queue = d: *D fs: *Fs queue$,
+  D &(Fs dequeue_f) >> case {
+  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' :: Queue queue$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A queue> *Queue clear @public -> <A queue> {
+  Queue = d: *D fs: *Fs queue$,
+  d: (D &(Fs clear_f)) :: Queue queue$
+} ;;
+
+eval <*A queue> *Queue <A list> *Elems enqueue_list @public -> <A queue> {
+  Queue (Elems list.iter) enqueue_iter
+} ;;
+
+eval <*A queue> *Queue <A iter> *Iter enqueue_iter @public -> <A queue> {
+  Iter next >> case {
+  ; (| *E, *Iter' |) value$ -> (Queue E enqueue) Iter' &&
+  ; ** -> Queue
+  }
+} ;;
+
+eval <*A queue> *Queue iter @public -> <A iter> {
+  \\ <A iter_res> { Queue iter_next } iter$
+} ;;
+
+eval <*A queue> *Queue iter_next -> <A iter_res> {
+  Queue dequeue >> case {
+  ; (| *E, *Queue' |) value$ ->
+    (| E, \\ <A iter_res> { Queue' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

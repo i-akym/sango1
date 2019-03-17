@@ -1,0 +1,199 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.io.filesys.winnt" ;;
+
+import "sango.cstr" -> cstr ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.num.bigint" -> bi ;;
+
+# -- path handling --
+
+# area:
+#   "\\\\host\\shared"  -- abs(UNC)
+#   "d:\\"  -- abs
+#   "d:"    -- rel
+#   ""      -- rel
+
+eval <cstr> *Area absolute_path_area? @public -> <bool> {
+  Area >> case {
+  ; "" -> false$
+  ; [| **, ':' |] -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval <fs.path_struct> *PS absolute_path? | absolute? @public -> <bool> {
+  PS fs.path_area >> absolute_path_area?
+} ;;
+
+eval <char> *Drive valid_drive_letter? @public -> <bool> {
+  if {
+  ; (Drive 'A' ge?) (Drive 'Z' le?) and -> true$
+  ; (Drive 'a' ge?) (Drive 'z' le?) and -> true$
+  ; otherwise -> false$
+  }
+} ;;
+
+eval <cstr> *Area <cstr list> *Names new_path @public -> <fs.path_struct> {
+  # cheking area needed...
+  Area Names (Area absolute_path_area?) fs._new_path
+} ;;
+
+eval <char> *Drive <cstr list> *Names new_absolute_local_path @public -> <fs.path_struct> {
+  # checking names needed...
+  if {
+  ; Drive valid_drive_letter? ->
+  ; otherwise -> bad_arg$ ([ "Invalid drive letter. - ", [| Drive |] ] cstr.concat) new_exception >> throw
+  },
+  [| Drive, ':', '\\' |] Names true$ fs._new_path
+} ;;
+
+eval <cstr> *Host <cstr> *Shared <cstr list> *Names new_absolute_UNC_path @public -> <fs.path_struct> {
+  # cheking host, name seq needed...
+  ([ "\\\\", Host, "\\", Shared ] cstr.concat) Names true$ fs._new_path
+} ;;
+
+eval <cstr list> *Names new_relative_path @public -> <fs.path_struct> {
+  # checks needed...
+  "" Names false$ fs._new_path
+} ;;
+
+eval <cstr> *Path parse_path | parse @public -> <fs.path_struct> {
+  if {
+  ; Path "\\\\" cstr.start_with? -> (Path 2 cstr.drop) parse_UNC_path
+  ; Path "\\" cstr.start_with? -> Path parse_relative_path  # no drive spec
+  ; (Path cstr.length) 3 lt? -> Path parse_relative_path
+  ; otherwise ->
+    Path 1 cstr.char >> case {
+    ; ':' -> (Path 0 cstr.char) (Path 2 cstr.drop) parse_drive_specified_path
+    ; ** -> Path parse_relative_path
+    }
+  }
+} ;;
+
+eval <cstr> *Path_body parse_UNC_path -> <fs.path_struct> {
+  if {
+  ; Path_body "\\" cstr.end_with? -> Path_body (Path_body cstr.length >> dec) cstr.take
+  ; otherwise -> Path_body
+  } = *Path_body',
+  Path_body' '\\' cstr.split_by_char = [ *H, *S ; *P ],
+  if {
+  ; (H cstr.length) (S cstr.length) prod >> zero? -> bad_arg$ "Host or shared name is empty." new_exception >> throw
+  ; otherwise ->
+  },
+  # several checks needed...
+  ([ "\\\\", H, "\\", S, "\\" ] cstr.concat) P true$ fs._new_path
+} ;;
+
+eval <char> *Drive <cstr> *Path_body parse_drive_specified_path -> <fs.path_struct> {
+  if {
+  ; (Drive 'A' ge?) (Drive 'Z' le?) and ->
+  ; (Drive 'a' ge?) (Drive 'z' le?) and ->
+  ; otherwise -> bad_arg$ ([ "Invalid drive letter. - ", [| Drive |] ] cstr.concat) new_exception >> throw
+  },
+  Path_body parse_path_name_seq >> case {
+  ; [ "" ; *Ns ] -> (| [| Drive, ':', '\\' |], Ns, true$ |)  # path body starts with '\\'
+  ; *Ns -> (| [| Drive, ':' |], Ns, false$ |)
+  } = (| *Area, *Names, *Absolute? |),
+  Area Names Absolute? fs._new_path
+} ;;
+
+eval <cstr> *Path parse_relative_path | parse_relative -> <fs.path_struct> {
+  if {
+  ; Path cstr.length >> zero? -> bad_arg$ "Empty path." new_exception >> throw
+  ; Path "\\" cstr.start_with? -> bad_arg$ "Not relative." new_exception >> throw
+  ; otherwise ->
+  },
+  Path parse_path_name_seq = *Names,
+  "" Names false$ fs._new_path
+} ;;
+
+eval <cstr> *Name_seq parse_path_name_seq -> <cstr list> {
+  Name_seq case {
+  ; "" -> []
+  ; ** ->
+    if {
+    ; Name_seq "\\" cstr.end_with? -> Name_seq (Name_seq cstr.length >> dec) cstr.take
+    ; otherwise -> Name_seq
+    } = *Name_seq',
+    Name_seq' '\\' cstr.split_by_char
+    # several checks needed...
+  }
+} ;;
+
+eval <fs.path_struct> *PS path_repr | repr @public -> <cstr> {
+  [ PS fs.path_area, (PS fs.path_names) '\\' cstr.join_with_char ] cstr.concat >> case {
+  ; "" -> "."
+  ; *R -> R
+  }
+} ;;
+
+
+# -- directory entry handling --
+
+eval <cstr> *Path exist? @public -> <bool> @native ;;
+eval <cstr> *Path directory? @public -> <bool> @native ;;
+eval <cstr> *Path file? @public -> <bool> @native ;;
+eval <cstr> *Path last_updated @public -> <bi.bigint> @native ;;
+eval <cstr> *Path0 <cstr> *Path1 same_path? @public -> <bool> @native ;;
+eval <cstr> *Path absolute_path | absolute @public -> <cstr> @native ;;
+eval <cstr> *Path delete @public -> <void> @native ;;
+eval <cstr> *Path_cur <cstr> *Path_new move @public -> <cstr> @native ;;
+eval <cstr> *Path dir_entries @public -> <cstr list> @native ;;
+eval <cstr> *Path create_dir @public -> <cstr> @native ;;
+eval <cstr> *Path create_dirs @public -> <cstr> @native ;;
+eval <cstr> *Prefix <cstr> *Suffix <cstr> *Dir create_temp_file @public -> <cstr> @native ;;
+
+
+# -- byte instream/outstream --
+
+eval <cstr> *File create_byte_instream_impl @public -> <byte io.instream_h> @native ;;
+eval <cstr> *File <bool> *Append create_byte_outstream_impl @public -> <byte io.outstream_h> @native ;;
+
+
+# -- initialization --
+
+eval _init_ -> <void> {
+  new_path_f: ^new_path
+  absolute_path_area?_f: ^absolute_path_area?
+  parse_path_f: ^parse_path
+  path_repr_f: ^path_repr
+  exist?_f: ^exist?
+  directory?_f: ^directory?
+  file?_f: ^file?
+  last_updated_f: ^last_updated
+  same_path?_f: ^same_path?
+  absolute_path_f: ^absolute_path
+  delete_f: ^delete
+  move_f: ^move
+  dir_entries_f: ^dir_entries
+  create_dir_f: ^create_dir
+  create_dirs_f: ^create_dirs
+  create_temp_file_f: ^create_temp_file
+  create_byte_instream_impl_f: ^create_byte_instream_impl
+  create_byte_outstream_impl_f: ^create_byte_outstream_impl
+  fs.filesys_fs$ = *Fs,
+  "winnt" Fs fs.install_impl
+} ;;

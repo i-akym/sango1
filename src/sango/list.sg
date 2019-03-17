@@ -1,0 +1,237 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.list" ;;
+
+import "sango.util.iter" -> iter ;;
+
+eval <*A iter> *Iter new_list @public -> <A list> {
+  Iter [] &\ <A iter> *I <A list> *Xs -> {
+    I next >> case {
+    ; (| *Y, *I' |) value$ -> I' [ Y ; Xs ] &&
+    ; none$ -> Xs reverse
+    }
+  }
+} ;;
+
+eval <*A list> *Xs iter @public -> <A iter> {
+  \\ <<A <A iter> tuple> maybe> { Xs iter_next } iter$
+} ;;
+
+eval <*A list> *Xs iter_next -> <<A <A iter> tuple> maybe> {
+  Xs case {
+  ; [ *X ; *Xs' ] ->
+    (| X, \\ <<A <A iter> tuple> maybe> { Xs' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A list> *Xs empty? @public -> <bool> {
+  Xs case {
+  ; [] -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A list> *Xs non_empty? @public -> <bool> {
+  Xs case {
+  ; [] -> false$
+  ; ** -> true$
+  }
+} ;;
+
+eval <*A list> *Xs length @public -> <int> {
+  0 Xs \ <int> *N <A> *X -> { N inc } fold
+} ;;
+
+eval <*A list> *Xs head | first @public -> <A maybe> {
+  Xs case {
+  ; [ *XsH ; ** ] -> XsH value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A list> *Xs tail @public -> <<A list> maybe> {
+  Xs case {
+  ; [ ** ; *XsT ] -> XsT value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A list> *Xs last @public -> <A maybe> {
+  Xs case {
+  ; [ *XsL ] -> XsL value$
+  ; [ ** ; *XsT ] -> XsT &&
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A list> *Xs <int> *Index elem @public -> <A maybe> {
+  if {
+  ; Index ge0? ->
+    Xs Index &\ <A list> *XXs <int> *II -> <A maybe> {
+      (| XXs, II |) case {
+      ; (| [], ** |) -> none$
+      ; (| [ *XXsH ; ** ], 0 |) -> XXsH value$
+      ; (| [ ** ; *XXsT ], ** |) -> XXsT (II dec) &&
+      }
+    }
+  ; otherwise -> none$
+  }
+} ;;
+
+eval <*A list> *Xs <A> *Y elem_index | index @public -> <int maybe> {
+  Xs 0 &\ <A list> *XXs <int> *I -> <int maybe> {
+    XXs case {
+    ; [ Y ; ** ] -> I value$
+    ; [ ** ; *XXsT] -> XXsT (I inc) &&
+    ; ** -> none$
+    }
+  }
+} ;;
+
+eval <*A list> *Xs <A> *Y elem_last_index | last_index @public -> <int maybe> {
+  Xs 0 none$ &\ <A list> *XXs <int> *I <int maybe> *J_ -> <int maybe> {
+    XXs case {
+    ; [ Y ; *XXsT ] -> XXsT (I inc) (I value$) &&
+    ; [ ** ; *XXsT] -> XXsT (I inc) J_ &&
+    ; ** -> J_
+    }
+  }
+} ;;
+
+eval <*A list> *Xs <int> *Index <A> *Y insert_at @public -> <A list> {
+  if {
+  ; Index lt0? -> 0
+  ; otherwise -> Index
+  } = *Pos,
+  Pos [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <A list> {
+    (| I, Following |) case {
+    ; (| 0, ** |) -> Leading_r [ Y ; Following ] append_leading_reverse
+    ; (| **, [ *P ; *Qs ] |) -> (I dec) [ P ; Leading_r ] Qs &&
+    ; (| **, [] |) -> Leading_r [ Y ] append_leading_reverse
+    }
+  }
+} ;;
+
+eval <*A list> *Xs <int> *Index remove_at @public -> <<<A list> A tuple> maybe> {
+  if {
+  ; Index lt0? -> none$
+  ; otherwise ->
+    Index [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <<<A list> A tuple> maybe> {
+      (| I, Following |) case {
+      ; (| 0, [ *E ; *T ] |) -> (| Leading_r T append_leading_reverse, E |) value$
+      ; (| **, []  |) -> none$
+      ; (| **, [ *E ; *T ] |) -> (I dec) [ E ; Leading_r ] T &&
+      }
+    }
+  }
+} ;;
+
+eval <*A list> *Xs <int> *Index <A> *Y replace_at @public -> <<<A list> A tuple> maybe> {
+  if {
+  ; Index lt0? -> none$
+  ; otherwise ->
+    Index [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <<<A list> A tuple> maybe> {
+      (| I, Following |) case {
+      ; (| 0, [ *E ; *T ] |) -> (| Leading_r [ Y ; T ] append_leading_reverse, E |) value$
+      ; (| **, []  |) -> none$
+      ; (| **, [ *E ; *T ] |) -> (I dec) [ E ; Leading_r ] T &&
+      }
+    }
+  }
+} ;;
+
+eval <*A list> *Leading_r <A list> *Following append_leading_reverse -> <A list> {
+  Leading_r case {
+  ; [ *X ; *Ys ] -> Ys [ X ; Following ] &&
+  ; [] -> Following
+  }
+} ;;
+
+eval <*A list> *Xs <A *B fun> *F map @public -> <B list> {
+  (Xs iter) F iter.add_modifier >> new_list
+} ;;
+
+eval <*A list> *Xs <A bool fun> *F filter @public -> <A list> {
+  (Xs iter) F iter.add_filter >> new_list
+} ;;
+
+eval <*A> *X <*B list> *Ys <A B A fun> *F fold @public -> <A> {
+  Ys case {
+  ; [ *YsH ; *YsT ] -> (X YsH &F) YsT F &&
+  ; [] -> X
+  }
+} ;;
+
+eval <*A list> *Xs <*B> *Y <A B B fun> *F fold_right @public -> <B> {
+  (Xs reverse) Y &\ <A list> *XXs <B> *YY -> <B> {
+    XXs case {
+    ; [ *XXsH ; *XXsT ] -> XXsT (XXsH YY &F) &&
+    ; [] -> YY
+    }
+  }
+} ;;
+
+eval <*A list> *Xs <A A A fun> *F reduce @public -> <A maybe> {
+  Xs case {
+  ; [ *XsH ; *XsT ] -> (XsH XsT F fold ) value$
+  ; [] -> none$
+  }
+} ;;
+
+eval <*A list> *Xs <A A A fun> *F reduce_right @public -> <A maybe> {
+  (Xs reverse) case {
+  ; [ *H ; *T ] ->
+    T H &\ <A list> *XXs <A> *YY -> <A maybe> {
+      XXs case {
+      ; [] -> YY value$
+      ; [ *XXsH ; *XXsT ] -> XXsT (XXsH YY &F) &&
+      }
+    }
+  ; [] -> none$
+  }
+} ;;
+
+eval <*A list> *Xs reverse @public -> <A list> {
+  Xs [] &\ <A list> *XXs <A list> *RRs -> {
+    XXs case {
+    ; [ *XXsH ; *XXsT ] -> XXsT [ XXsH ; RRs ] &&
+    ; [] -> RRs
+    }
+  }
+} ;;
+
+eval <*A list> *Xs0 <A list> *Xs1 append @public -> <A list> {
+  Xs0 [] Xs1 &\ <A list> *XXs <A list> *RRs <A list> *AAs -> {
+    (| XXs, RRs |) case {
+    ; (| [ *XXH ; *XXT ], RRs |) -> XXT [ XXH ; RRs ] AAs &&
+    ; (| [], [ *RRH ; *RRT ] |) -> [] RRT [ RRH ; AAs ] &&
+    ; (| [], [] |) -> AAs
+    }
+  }
+} ;;
+
+eval <<*A list> list> *Xss concat @public -> <A list> {
+  Xss [] ^append fold_right
+} ;;

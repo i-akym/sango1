@@ -1,0 +1,72 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.avltree.array" ;;
+
+import "sango.util.array" -> array ;;
+import "sango.util.avltree" -> avl ;;
+import "sango.util.enum" -> enum ;;
+
+extend <*A *B array.array_d> :=
+  tree: <A B avl.tree>
+  compact_: <<B <B bool fun> tuple> maybe>
+  array_d$ ;;
+
+eval <*A enum.enum> *Enum <A *B fun> *Supplier <<B <B bool fun> tuple> maybe> *Compact_ 
+    new_array @public -> <A B array.array> {
+  Compact_ case {
+  ; none$ ->
+  ; (| *C, *C?_f |) value$ || C &C?_f ->
+  ; ** -> bad_arg$ "Invalid compaction spec." new_exception >> throw
+  },
+  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avl.new_tree) &\ <A iter> *I <A B avl.tree> *T -> <A B avl.tree> {
+    I next >> case {
+    ; (| *Idx, *I' |) value$ ->
+      Idx &Supplier = *Val,
+      Compact_ case {
+      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' T &&
+      ; ** -> I' (T Idx Val avl.add) &&
+      }
+    ; ** -> T
+    }
+  } = *Tree,
+  tree: Tree compact_: Compact_ array_d$ = *D,
+  get_f: ^get set_f: ^set array.array_fs$ = *Fs,
+  d: D ix: Enum fs: Fs array.array$
+} ;;
+
+eval <*A *B array.array_d+> *D <A> *Idx get -> <B> {
+  D = tree: *Tree compact_: *Compact_ array_d$,
+  Tree Idx avl.assoc >> case {
+  ; *V value$ -> V
+  ; ** -> Compact_ = (| *C, ** |) value$, C
+  }
+} ;;
+
+eval <*A *B array.array_d+> *D <A> *Idx <B> *Val set -> <A B array.array_d+> {
+  D = tree: *Tree compact_: *Compact_ array_d$,
+  Compact_ case {
+  ; (| **, *C?_f |) value$ || Val &C?_f -> tree: (Tree Idx avl.delete) :: D array_d$
+  ; ** -> tree: (Tree Idx Val avl.add) :: D array_d$
+  }
+} ;;

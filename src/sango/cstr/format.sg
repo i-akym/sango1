@@ -1,0 +1,220 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.cstr.format" ;;
+
+import "sango.actor" -> act ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.entity" -> ent ;;
+import "sango.num.int" -> int ;;
+import "sango.num.real" -> real ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.string" -> str ;;
+import "sango.system" -> sys ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.locale" -> lc ;;
+import "sango.util.map" -> map ;;
+
+data <fd> @public :=
+| none_fd$
+| <byte> byte_fd$
+| <int> int_fd$
+| <real> real_fd$
+| <char> char_fd$
+| <cstr> cstr_fd$ ;;
+
+alias type <obj> @public := <fd+> ;;
+alias type <obj_key> @public := <cstr> ;;
+alias type <format_method> @public := <cstr> ;;
+alias type <format_param> @public := <cstr> ;;
+alias type <formatter> @public := <obj format_param lc.locale cstr fun> ;;
+alias type <formatter_tab> := <format_method formatter map.map> ;;
+
+extend <sys.prop> := <formatter_tab> formatter_tab$ ;;
+
+eval _init_ -> <void> {
+  (cstr.ord_fs avlmap.new_map)
+    [ (| "cstr", ^format_cstr |),
+      (| "int", ^format_int |),
+      (| "real", ^format_real |),
+      (| "SEL", ^format_selection |) ]
+    map.add_list = *Tab,
+  "sango.cstr.format.formatter_tab" (Tab formatter_tab$) sys.add_property
+} ;;
+
+eval <cstr> *Method formatter -> <formatter> {
+  "sango.cstr.format.formatter_tab" sys.property = (*Tab formatter_tab$) value$,
+  Tab Method map.assoc >> case {
+  ; *F value$ -> F
+  ; ** -> bad_arg$ ([ "Bad formatting method. - ", Method ] str.concat) new_exception >> throw
+  }
+} ;;
+
+eval <format_method> *Method <formatter> *Formatter install_formatter @public -> <void> {
+  "sango.cstr.format.formatter_tab"
+  \ <sys.prop+> *Old_prop -> <prop+> {
+    Old_prop = *Old formatter_tab$,
+    (Old Method Formatter map.add) formatter_tab$
+  }
+  sys.update_property >> ignore
+} ;;
+
+data <token> :=
+| <cstr> t_str$
+| t_open$
+| t_sep$
+| t_close$ ;;
+
+data <action> :=
+| <cstr> imm_append_to_buf$
+| <obj_key> <format_param> <formatter> append_to_buf$
+| <obj_key> <format_param> <formatter> <obj_key> put_to_tab$ ;;
+
+eval <cstr> *Format <obj_key obj map.map> *Tab format @public -> <cstr> {
+  Format Tab lc.default_locale format_for_locale
+} ;;
+
+eval <cstr> *Format <obj_key obj map.map> *Tab <lc.locale> *Locale format_for_locale | format @public -> <cstr> {
+  Format compile = *Actions,
+  Actions str.new_string_buf Tab Locale exec = (| *Buf, ** |),
+  Buf str.pack_all
+} ;;
+
+eval <cstr> *Format compile -> <action list> {
+  (Format parse) [] &\ <token list> *Tokens <action list> *Actionsr -> <action list> {
+    Tokens case {
+    ; [ *S t_str$ ; *Tokens' ] -> Tokens' [ S imm_append_to_buf$ ; Actionsr ] &&
+    ; [ t_open$, *K t_str$, t_sep$, *M t_str$, t_sep$, *P t_str$, t_close$ ; *Tokens' ] -> Tokens' [ K M P new_action ; Actionsr ] &&
+    ; [ t_open$, *K t_str$, t_sep$, *M t_str$, t_close$ ; *Tokens' ] -> Tokens' [ K M "" new_action ; Actionsr ] &&
+    ; [] -> Actionsr list.reverse
+    ; ** -> bad_arg$ "Invalid format instruction." new_exception >> throw
+    }
+  }
+} ;;
+
+eval <cstr> *Format parse -> <token list> {
+  0 false$ [] [] &\ <int> *Pos <bool> *Esc <char list> *Bufr <token list> *Tokenr -> <token list> {
+    Format cstr.length = *L,
+    if {
+    ; Pos L lt? ->
+      (| Esc, Format Pos cstr.char |) case {
+      ; (| false$, '%' |) -> (Pos inc) true$ Bufr Tokenr &&
+      ; (| false$, '{' |) -> (Pos inc) false$ [] [ t_open$, (Bufr list.reverse >> str.to_string) t_str$ ; Tokenr ] &&
+      ; (| false$, ':' |) -> (Pos inc) false$ [] [ t_sep$, (Bufr list.reverse >> str.to_string) t_str$ ; Tokenr ] &&
+      ; (| false$, '}' |) -> (Pos inc) false$ [] [ t_close$, (Bufr list.reverse >> str.to_string) t_str$ ; Tokenr ] &&
+      ; (| false$, *C |) -> (Pos inc) false$ [ C ; Bufr ] Tokenr &&
+      ; (| true$, '%' |) -> (Pos inc) false$ [ '%' ; Bufr ] Tokenr &&
+      ; (| true$, '{' |) -> (Pos inc) false$ [ '{' ; Bufr ] Tokenr &&
+      ; (| true$, ':' |) -> (Pos inc) false$ [ ':' ; Bufr ] Tokenr &&
+      ; (| true$, '}' |) -> (Pos inc) false$ [ '}' ; Bufr ] Tokenr &&
+      ; (| true$, *C |) -> bad_arg$ (["Invalid escape character. - ", [| C |] ] str.concat) new_exception >> throw
+      }
+    ; otherwise ->
+      Esc case {
+      ; false$ -> [ (Bufr list.reverse >> str.to_string) t_str$ ; Tokenr ] list.reverse
+      ; true$ -> bad_arg$ "Incomplete escape sequence." new_exception >> throw
+      }
+    }
+  }
+} ;;
+
+eval <cstr> *Key <cstr> *Method <cstr> *Param new_action -> <action> {
+  Key '*' str.split_by_elem >> case {
+  ; [ *K0 ] -> K0 Param (Method formatter) append_to_buf$
+  ; [ *K0, "" ] -> bad_arg$ "No key to store. - " new_exception >> throw
+  ; [ *K0, *K1 ] -> K0 Param (Method formatter) K1 put_to_tab$
+  ; ** -> bad_arg$ (["Invalid key(s). - ", Key ] str.concat) new_exception >> throw
+  }
+} ;;
+
+eval <obj_key obj map.map> *Tab <cstr> *Key get_obj -> <obj> {
+  Key case {
+  ; "" -> none_fd$
+  ; ** ->
+    Tab Key map.assoc >> case {
+    ; *O value$ -> O
+    ; ** -> bad_arg$ (["Invalid key. - ", Key ] str.concat) new_exception >> throw
+    }
+  }
+} ;;
+
+eval <action list> *Actions <char str.string_buf> *Buf <obj_key obj map.map> *Tab <lc.locale> *Locale exec -> <<char str.string_buf> <obj_key obj map.map> tuple> {
+  Actions case {
+  ; [ *S imm_append_to_buf$ ; *Actions' ] ->
+    Buf S str.append = *Buf',
+    Actions' Buf' Tab Locale &&
+  ; [ *K *P *F append_to_buf$ ; *Actions' ] ->
+    Tab K get_obj = *O,
+    O P Locale &F = *S,
+    Buf S str.append = *Buf',
+    Actions' Buf' Tab Locale &&
+  ; [ *K *P *F *KK put_to_tab$ ; *Actions' ] ->
+    Tab K get_obj = *O,
+    O P Locale &F = *S,
+    Tab KK (S cstr_fd$) map.add = *Tab',
+    Actions' Buf Tab' Locale &&
+  ; [] -> (| Buf, Tab |)
+  }
+} ;;
+
+eval <obj> *Obj <format_param> *Param <lc.locale> *Locale format_cstr -> <cstr> {
+  Obj case {
+  ; *S cstr_fd$ -> S
+  ; *C char_fd$ -> [| C |]
+  } = *V,
+  V Param Locale cstr.format
+} ;;
+
+eval <obj> *Obj <format_param> *Param <lc.locale> *Locale format_int -> <cstr> {
+  Obj case {
+  ; *I int_fd$ -> I
+  ; *B byte_fd$ -> B int
+  } = *V,
+  V Param Locale int.format
+} ;;
+
+eval <obj> *Obj <format_param> *Param <lc.locale> *Locale format_real -> <cstr> {
+  Obj = *R real_fd$,
+  R format_real_default
+} ;;
+
+eval <real> *R format_real_default | format @public -> <cstr> {
+  R real.default_format
+} ;;
+
+# utility formatter for selection -- {key:SEL:selector0;value0|selector1;value1| ..|*;default} where selectorN is cstr
+eval <obj> *Obj <format_param> *Param <lc.locale> *Locale format_selection -> <cstr> {
+  Obj = *S cstr_fd$,
+  Param '|' str.split_by_elem = *Selections,
+  S ";" str.append = *Sel,
+  Selections &\ <cstr list> *SS -> <cstr> {
+    SS case {
+    ; [ *X ; ** ] || X S str.start_with? -> X (Sel str.length) str.drop
+    ; [ *X ; ** ] || X "*;" str.start_with? -> X 2 str.drop
+    ; [ ** ; *SS' ] -> SS' &&
+    ; [] -> ""
+    }
+  }
+} ;;

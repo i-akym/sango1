@@ -1,0 +1,63 @@
+]  LOAD_INT int_item  ->  ] int_item
+
+] item  POP  ->  ]
+
+] item  DUP  ->  ] item item
+
+] item1 item2  ROT  ->  ] item2 item1
+
+param1 param2 .. paramN closure  INVOKE  ->  (invoke closure)  ->  ] result
+
+] param1 param2 .. paramN closure  INVOKE_GOTO  ->  (invoke closure)  ->  ] result
+
+] result  RETURN  ->  (return from function)
+
+]  JSR addr  ->  (call subroutine)  ->  ]
+
+]  RET  ->  (return from subroutine)  ->  ]
+
+]  GOTO target  -> (jump to target instruction)
+
+] exception  THROW  ->  (throw exception)
+
+] int1 int2  ADD_INT  ->  ] result
+
+] int1 int2  SUB_INT  ->  ] result
+
+] int1 int2  MUL_INT  ->  ] result
+
+] int1 int2  DIV_INT  ->  ] ratio remainder
+
+] item1 item2 .. itemN  NEW_TUPLE item_count  ->  ] tuple
+
+] attr1 attr2 .. attrN  NEW_DATA index  ->  ] constructed_data
+
+] tuple_or_constructed_data  GET_ITEM item_index  ->  ] item
+
+] constructed_data item  SET_ITEM item_index  ->  ]
+
+] constructed_data  GET_DCON  ->  ] dcon
+
+] env1 env2 .. envN  NEW_CLOSURE index  ->  ] closure
+
+]  LOAD_CONST index  ->  ] item
+
+#  ]  LOAD_SELF  ->  ] closure  ?  ] LOAD_LOCAL 0
+
+]  LOAD_LOCAL index  ->  ] item
+
+] item  STORE_LOCAL index  ->  ]
+
+]  LOAD_ENV index  ->  ] item
+
+] head tail  NEW_LIST  ->  ] cell
+
+] cell  LOAD_HEAD  ->  ] item
+
+] cell  LOAD_TAIL  ->  ] item
+
+]  LOAD_NIL  ->  ] nil
+
+]  LOAD_MOD_SLOT index  ->  ] item
+
+] item  STORE_MOD_SLOT index  ->  ]

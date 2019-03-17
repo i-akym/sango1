@@ -1,0 +1,30 @@
+import "sango.char" -> char ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test001a,
+  test002,
+  test002a,
+  test011,
+  test011a,
+  test011b,
+  test011c,
+  void$
+} ;;
+
+eval test001 -> <char> { 'a' char.upper_case = 'A' } ;;
+eval test001a -> <char> { 'A' char.upper_case = 'A' } ;;
+eval test002 -> <char> { 'a' char.lower_case = 'a' } ;;
+eval test002a -> <char> { 'A' char.lower_case = 'a' } ;;
+eval test011 -> <bool> { 'A' 'A' char.eq_ignore_case? = true$ } ;;
+eval test011a -> <bool> { 'A' 'a' char.eq_ignore_case? = true$ } ;;
+eval test011b -> <bool> { 'a' 'a' char.eq_ignore_case? = true$ } ;;
+eval test011c -> <bool> { 'A' 'b' char.eq_ignore_case? = false$ } ;;

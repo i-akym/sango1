@@ -1,0 +1,46 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.avltree.map" -> avlmap ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  int_ord_fs avlmap.new_map >> test100,
+  void$
+} ;;
+
+eval <int cstr map.map> *M0 test100 -> <void> {
+  M0 map.empty? = true$,
+  M0 1 "abc" map.put = (| *M1, none$ |),
+  M1 1 "ABC" map.put_new = (| M1, false$ |),
+  M1 2 "def" map.put_new = (| *M2, true$ |),
+  M2 2 "DEF" map.put = (| *M3, (| 2, "def" |) value$ |),
+  M3 map.size = 2,
+  M3 2 map.assoc = "DEF" value$,
+  M3 3 "ghi" map.put = (| *M4, none$ |),
+  M4 2 map.remove = (| *M5, (| 2, "DEF" |) value$ |),
+  M5 map.take >> case {
+  ; (| (| 1, "abc" |), *M5' |) value$ ->
+    M5' map.take = (| (| 3, "ghi" |), *M5'' |) value$,
+    M5'' map.take = none$
+  ; (| (| 3, "ghi" |), *M5' |) value$ ->
+    M5' map.take = (| (| 1, "abc" |), *M5'' |) value$,
+    M5'' map.take = none$
+  },
+  M5 map.clear >> map.empty? = true$,
+  M5 [ (| 4, "jkl" |), (| 5, "mno" |) ] map.add_list = *M6,
+  M6 map.size = 4,
+  M6 map.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  void$
+} ;;

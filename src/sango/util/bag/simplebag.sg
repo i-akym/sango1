@@ -1,0 +1,135 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.bag.simplebag" ;;
+
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.bag" -> bag ;;
+import "sango.util.iter" -> iter ;;
+
+extend <*A bag.bag_d> := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
+
+eval new_bag @public -> <*A bag.bag> {
+  hard_eq_fs new_bag
+} ;;
+
+eval <*A eq_fs> *Eq new_bag_eq | new_bag @public -> <A bag.bag> {
+  d: (Eq [] simple_bag_d$) fs: bag_fs bag.bag$
+} ;;
+
+eval bag_fs -> <*A bag.bag_fs> {
+  empty?_f: ^empty?
+    size_f: ^size
+    contain?_f: ^contain?
+    get_all_f: ^get_all
+    add_f: ^add
+    remove_f: ^remove
+    remove_all_f: ^remove_all
+    delete_f_: (^delete value$)
+    delete_all_f_: (^delete_all value$)
+    take_f: ^take
+    clear_f: ^clear
+    bag.bag_fs$
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d empty? -> <bool> {
+  Bag_d = col: *Col *** simple_bag_d$,
+  Col list.empty?
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d size -> <int> {
+  Bag_d = col: *Col *** simple_bag_d$,
+  Col list.length
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem contain? -> <bool> {
+  Bag_d = *Eq *Col simple_bag_d$,
+  Col &\ <A list> *Xs -> <bool> {
+    Xs case {
+    ; [ *H ; *T ] || H Elem Eq eq? -> true$
+    ; [ ** ; *T ] -> T &&
+    ; [] -> false$
+    }
+  }
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem get_all -> <A list> {
+  Bag_d = *Eq *Col simple_bag_d$,
+  Col [] &\ <A list> *Xs <A list> *Found -> <A list> {
+    Xs case {
+    ; [ *H ; *T ] || H Elem Eq eq? -> T [ H ; Found] &&
+    ; [ ** ; *T ] -> T Found &&
+    ; [] -> Found
+    }
+  }
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem add -> <A bag.bag_d+> {
+  Bag_d = col: *Col *** simple_bag_d$,
+  col: [ Elem ; Col] :: Bag_d simple_bag_d$
+
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem remove -> <<A bag.bag_d+> <A maybe> tuple> {
+  Bag_d = *Eq *Col simple_bag_d$,
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A bag.bag_d+> <A maybe> tuple> {
+    Xs case {
+    ; [ *H ; *T ] || H Elem Eq eq? -> (| col: (T Nes list.append) :: Bag_d simple_bag_d$, H value$ |)
+    ; [ *H ; *T ] -> T [ H ; Nes ] &&
+    ; [] -> (| col: Nes :: Bag_d simple_bag_d$, none$ |)
+    }
+  }
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem remove_all -> <<A bag.bag_d+> <A list> tuple> {
+  Bag_d = *Eq *Col simple_bag_d$,
+  Col [] [] &\ <A list> *Xs <A list> *Nes <A list> *Removed -> <<A bag.bag_d+> <A list> tuple> {
+    Xs case {
+    ; [ *H ; *T ] || H Elem Eq eq? -> T Nes [ H ; Removed] &&
+    ; [ *H ; *T ] -> T [ H ; Nes ] Removed &&
+    ; [] -> (| col: Nes :: Bag_d simple_bag_d$, Removed |)
+    }
+  }
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem delete -> <A bag.bag_d+> {
+  Bag_d Elem remove >> tuple.pair_first
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem delete_all -> <A bag.bag_d+> {
+  Bag_d Elem remove_all >> tuple.pair_first
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d take -> <<A <A bag.bag_d+> tuple> maybe> {
+  Bag_d = col: *Col *** simple_bag_d$,
+  Col case {
+  ; [ *E ; *Col' ] -> (| E, col: Col' :: Bag_d simple_bag_d$ |) value$
+  ; [] -> none$
+  }
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d clear -> <A bag.bag_d+> {
+  col: [] :: Bag_d simple_bag_d$
+} ;;
+

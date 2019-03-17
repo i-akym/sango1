@@ -1,0 +1,201 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.set.holder" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.set" -> set ;;
+
+extend <ent.ent_d> := <independent+> ent_d$ ;;
+
+# -- framework --
+
+data <*A holder_h> @opaque :=
+  seal_fs: <<A set.set> seal_fs>
+  mon: <actu.monitor_h>
+  holder_h$ ;;
+
+eval <*A set.set> *Set <<A set.set> seal_fs> *Seal_fs create_holder @public -> <A holder_h> {
+  ((Set &(Seal_fs seal_f)) ent_d$) none$ ent.create_entity = *Ent,
+  Ent actu.create_monitor = *M,
+  seal_fs: Seal_fs mon: M holder_h$
+} ;;
+
+eval <*A holder_h> *Set_h empty? @public -> <bool> {
+  (Set_h read) set.empty?
+} ;;
+
+eval <*A holder_h> *Set_h size @public -> <int> {
+  (Set_h read) set.size
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem get @public -> <A maybe> {
+  (Set_h read) Elem set.get
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem contain? @public -> <bool> {
+  (Set_h read) Elem set.contain?
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem put @public -> <A maybe> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A maybe> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Elem set.put = (| *Set', *Replaced_ |),
+      Ref (Set' &(Seal_fs seal_f)) write_store,
+      Replaced_
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem put_new @public -> <bool> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <bool> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Elem set.put_new = (| *Set', *Succeeded? |),
+      Ref (Set' &(Seal_fs seal_f)) write_store,
+      Succeeded?
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem add @public -> <void> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Elem set.add = *Set',
+      Ref (Set' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem remove @public -> <A maybe> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A maybe> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Elem set.remove = (| *Set', *Removed_ |),
+      Ref (Set' &(Seal_fs seal_f)) write_store,
+      Removed_
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A> *Elem delete @public -> <void> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Elem set.delete = *Set',
+      Ref (Set' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h take @public -> <A maybe> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A maybe> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set set.take >> case {
+      ; (| *K, *Set' |) value$ -> Ref (Set' &(Seal_fs seal_f)) write_store, K value$
+      ; ** -> none$
+      }
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h clear @public -> <void> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set set.clear = *Set',
+      Ref (Set' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A list> *Elems add_list @public -> <void> {
+  Set_h (Elems list.iter) add_iter
+} ;;
+
+eval <*A holder_h> *Set_h <A iter> *Iter add_iter @public -> <void> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Iter set.add_iter = *Set',
+      Ref (Set' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A list> *Elems delete_list @public -> <void> {
+  Set_h (Elems list.iter) delete_iter
+} ;;
+
+eval <*A holder_h> *Set_h <A iter> *Iter delete_iter @public -> <void> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <void> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value = *Set,
+      Set Iter set.delete_iter = *Set',
+      Ref (Set' &(Seal_fs seal_f)) write_store >> ignore
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h read @public -> <A set.set> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A set.set> {
+      (Ref read_store) &(Seal_fs unseal_f) >> value
+    }
+    actu.run
+} ;;
+
+eval <*A holder_h> *Set_h <A set.set> *Set write @public -> <A set.set> {
+  Set_h = seal_fs: *Seal_fs mon: *Monitor holder_h$,
+  Monitor
+    \ <ent.eref> *Ref -> <A set.set> {
+      Ref (Set &(Seal_fs seal_f)) write_store >> &(Seal_fs unseal_f) >> value
+    }
+    actu.run
+} ;;
+
+eval <ent.eref> *Ref read_store -> <independent+> {
+  Ref ent.read = *S ent_d$,
+  S
+} ;;
+
+eval <ent.eref> *Ref <independent+> *D write_store -> <independent+> {
+  Ref (D ent_d$) ent.write = *S ent_d$,
+  S
+} ;;

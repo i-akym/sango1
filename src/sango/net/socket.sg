@@ -1,0 +1,67 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.net.socket" ;;
+
+import "sango.io" -> io ;;
+
+data <*A socket_h> @public := 
+  instream_f: <<A io.instream_h> fun>
+  outstream_f: <<A io.outstream_h> fun>
+  close_f: <void fun>
+  open?_f: <bool fun>
+  opt_f: <cstr socket_opt_value+ fun>
+  set_opt_f: <cstr socket_opt_value+ void fun>
+  opt_keys_f: <<cstr list> fun>
+  socket_h$ ;;
+
+data <socket_opt_value> @public :=
+  <int> int_value$ ;;
+
+eval <*A socket_h> *Socket instream @public -> <A io.instream_h> {
+  &(Socket instream_f)
+} ;;
+
+eval <*A socket_h> *Socket outstream @public -> <A io.outstream_h> {
+  &(Socket outstream_f)
+} ;;
+
+eval <*A socket_h> *Socket close @public -> <void> {
+  &(Socket close_f)
+} ;;
+
+eval <*A socket_h> *Socket open? @public -> <bool> {
+  &(Socket open?_f)
+} ;;
+
+eval <*A socket_h> *Socket <cstr> *Key opt @public -> <socket_opt_value+> {
+  Key &(Socket opt_f)
+} ;;
+
+eval <*A socket_h> *Socket <cstr> *Key <socket_opt_value> *Value set_opt @public -> <void> {
+  Key Value &(Socket set_opt_f)
+} ;;
+
+eval <*A socket_h> *Socket opt_keys @public -> <cstr list> {
+  &(Socket opt_keys_f)
+} ;;

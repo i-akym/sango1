@@ -1,0 +1,77 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.array" ;;
+
+import "sango.util.enum" -> enum ;;
+
+data <*A *B array> @public :=
+  d: <A B array_d+>
+  ix: <A enum.enum>
+  fs: <A B array_fs>
+  array$ ;;
+
+data <*A *B array_d> @public := _dummy_array_d$ ;;
+
+data <*A *B array_fs> @public :=
+  get_f: <<A B array_d+> A B fun>
+  set_f: <<A B array_d+> A B <A B array_d+> fun>
+  array_fs$ ;;
+
+
+# -- framework --
+
+eval <*A *B array> *Array length @public -> <int> {
+  Array ix >> enum.count
+} ;;
+
+eval <*A *B array> *Array <A> *Index get @public -> <B> {
+  Array = d: *D ix: *Ix fs: *Fs array$,
+  Ix Index enum.contain? >> case {
+  ; true$ ->
+  ; ** -> bad_arg$ "Invalid index." new_exception >> throw
+  },
+  D Index &(Fs get_f)
+} ;;
+
+eval <*A *B array> *Array <A> *Index <B> *Value set @public -> <A B array> {
+  Array = d: *D ix: *Ix fs: *Fs array$,
+  Ix Index enum.contain? >> case {
+  ; true$ ->
+  ; ** -> bad_arg$ "Invalid index." new_exception >> throw
+  },
+  d: (D Index Value &(Fs set_f)) :: Array array$
+} ;;
+
+eval <*A *B array> *Array iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Array (Array ix >> enum.iter) iter_next } iter$
+} ;;
+
+eval <*A *B array> *Array <A iter> *Index_iter iter_next -> <<A B tuple> iter_res> {
+  Index_iter next >> case {
+  ; (| *I, *Index_iter' |) value$ ->
+    (| (| I ,(Array d) I &(Array fs >> get_f) |),
+      \\ <<A B tuple> iter_res> { Array Index_iter' iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;

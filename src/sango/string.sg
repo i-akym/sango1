@@ -1,0 +1,312 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.string" ;;
+
+import "sango.list" -> list ;;
+
+# -- string --
+
+eval <int> *Count <*A iter> *Iter new_string @public -> <A string> @native ;;
+eval <*A string> *Xz length @public -> <int> @native ;;
+eval <*A string> *Xz <int> *Pos elem @public -> <A> @native ;;
+eval <*A string> *Xz <int> *Start <int> *Count slice @public -> <A string> @native ;;
+eval <<*A string> list> *Xzs concat @public -> <A string> @native ;;
+
+eval <*A> *X elem_to_string | string @public -> <A string> {
+  [| X |]
+} ;;
+
+eval <*A list> *Xs list_to_string | to_string | string @public -> <A string> {
+  (Xs list.length) (Xs list.iter) new_string
+} ;;
+
+eval <*A string> *Xz iter @public -> <A iter> {
+  \\ <<A <A iter> tuple> maybe> { Xz 0 iter_next } iter$
+} ;;
+
+eval <*A string> *Xz <int> *Index iter_next -> <<A <A iter> tuple> maybe> {
+  if {
+  ; Index (Xz length) lt? ->
+    (| Xz Index elem, \\ <<A <A iter> tuple> maybe> { Xz (Index inc) iter_next } iter$ |) value$
+  ; otherwise -> none$
+  }
+} ;;
+
+eval <*A string> *Xz <int> *Start <int> *Count elems @public -> <A list> {
+  (Xz Start Count slice >> iter) list.new_list
+} ;;
+
+eval <*A string> *Xz all_elems @public -> <A list> {
+  Xz 0 (Xz length) elems
+} ;;
+
+eval <*A string> *Xz <A string> *Yz start_with_seq? | start_with? @public -> <bool> {
+  Xz Yz 0 (Xz length) start_with_in_region?
+} ;;
+
+eval <*A string> *Xz <A string> *Yz <int> *Range_start <int> *Range_ended start_with_seq_in_region? | start_with_in_region? @public -> <bool> {
+  if {
+  ; Range_start lt0? -> bad_arg$ "Negative start index." new_exception >> throw
+  ; Range_ended Range_start lt? -> bad_arg$ "Too small end index." new_exception >> throw
+  ; Range_ended (Xz length) gt? -> bad_arg$ "Too large end index." new_exception >> throw
+  ; otherwise ->
+  },
+  Yz length >> dec = *Yz_last,
+  (Range_start Yz_last sum) Yz_last &\ <int> *PX <int> *PY -> <bool> {
+    if {
+    ; PX Range_ended lt? ->
+      if {
+      ; PY ge0? ->
+        (| Xz PX elem, Yz PY elem |) case {
+        ; (| *E, E |) -> (PX dec) (PY dec) &&
+        ; ** -> false$
+        }
+      ; otherwise -> true$
+      }
+    ; otherwise -> false$
+    }
+  }
+} ;;
+
+eval <*A string> *Xz <A> *X elem_first_index | first_index @public -> <int maybe> {
+  Xz [| X |] seq_first_index
+} ;;
+
+eval <*A string> *Xz <A> *X <int> *Range_start <int> *Range_ended elem_first_index_in_region | first_index_in_region @public -> <int maybe> {
+  Xz [| X |] Range_start Range_ended seq_first_index_in_region
+} ;;
+
+eval <*A string> *Xz <A string> *Yz seq_first_index | first_index @public -> <int maybe> {
+  Xz Yz 0 (Xz length) seq_first_index_in_region
+} ;;
+
+eval <*A string> *Xz <A string> *Yz <int> *Range_start <int> *Range_ended seq_first_index_in_region | first_index_in_region @public -> <int maybe> {
+  Range_start &\ <int> *Xz_base -> <int maybe> {
+    if {
+    ; (Range_ended Xz_base diff) (Yz length) ge? ->
+      Xz Yz Xz_base Range_ended start_with_seq_in_region? >> case {
+      ; true$ -> Xz_base value$
+      ; ** ->  (Xz_base inc) &&
+      }
+    ; otherwise -> none$
+    }
+  }
+} ;;
+
+eval <*A string> *Xz <A string> *Yz end_with_seq? | end_with? @public -> <bool> {
+  Xz Yz 0 (Xz length) end_with_in_region?
+} ;;
+
+eval <*A string> *Xz <A string> *Yz <int> *Range_start <int> *Range_ended end_with_seq_in_region? | end_with_in_region? @public -> <bool> {
+  if {
+  ; Range_start lt0? -> bad_arg$ "Negative start index." new_exception >> throw
+  ; Range_ended Range_start lt? -> bad_arg$ "Too small end index." new_exception >> throw
+  ; Range_ended (Xz length) gt? -> bad_arg$ "Too large end index." new_exception >> throw
+  ; otherwise ->
+  },
+  Yz length >> dec = *Yz_last,
+  (Range_ended (Yz length) diff) 0 &\ <int> *PX <int> *PY -> <bool> {
+    if {
+    ; PX Range_start ge? ->
+      if {
+      ; PY Yz_last le? ->
+        (| Xz PX elem, Yz PY elem |) case {
+        ; (| *E, E |) -> (PX inc) (PY inc) &&
+        ; ** -> false$
+        }
+      ; otherwise -> true$
+      }
+    ; otherwise -> false$
+    }
+  }
+} ;;
+
+eval <*A string> *Xz <A> *X elem_last_index | last_index @public -> <int maybe> {
+  Xz [| X |] seq_last_index
+} ;;
+
+eval <*A string> *Xz <A> *X <int> *Range_start <int> *Range_ended elem_last_index_in_region | last_index_in_region @public -> <int maybe> {
+  Xz [| X |] Range_start Range_ended seq_last_index_in_region
+} ;;
+
+eval <*A string> *Xz <A string> *Yz seq_last_index | last_index @public -> <int maybe> {
+  Xz Yz 0 (Xz length) seq_last_index_in_region
+} ;;
+
+eval <*A string> *Xz <A string> *Yz <int> *Range_start <int> *Range_ended seq_last_index_in_region | last_index_in_region @public -> <int maybe> {
+  Range_ended &\ <int> *Xz_ended -> <int maybe> {
+    if {
+    ; (Xz_ended Range_start diff) (Yz length) ge? ->
+      Xz Yz Range_start Xz_ended end_with_seq_in_region? >> case {
+      ; true$ -> (Xz_ended (Yz length) diff) value$
+      ; ** -> (Xz_ended dec) &&
+      }
+    ; otherwise -> none$
+    }
+  }
+} ;;
+
+eval <*A string> *Xz <int> *Count take @public -> <A string> {
+  Xz 0 Count slice
+} ;;
+
+eval <*A string> *Xz <int> *Count drop @public -> <A string> {
+  Xz Count ((Xz length) Count diff) slice
+} ;;
+
+eval <*A string> *Xz0 <A string> *Xz1 append @public -> <A string> {
+  [ Xz0, Xz1 ] concat
+} ;;
+
+eval <*A string> *Xz <int> *Pos <A> *X replace_elem | replace @public -> <A string> {
+  Xz Pos [| X |]  replace_slice
+} ;;
+
+eval <*A string> *Xz <int> *Pos <A string> *Yz replace_slice @public -> <A string> {
+  [ Xz Pos take, Yz , Xz (Pos (Yz length) sum) drop ] concat
+} ;;
+
+eval <*A string> *Xz <A> *Sep split_by_elem @public -> <<A string> list> {
+  Xz [| Sep |] split_by_seq
+} ;;
+
+eval <*A string> *Xz <A string> *Sep split_by_seq @public -> <<A string> list> {
+  Sep case {
+  ; [||] -> bad_arg$ "Empty separator." new_exception >> throw
+  ; ** ->
+  },
+  Sep length = *Sep_length,
+  (Xz length) [] &\ <int> *Ended <<A string> list> *Splits -> <<A string> list> {
+    Xz Sep 0 Ended last_index_in_region >> case {
+    ; none$ -> [ Xz 0 Ended slice ; Splits ]
+    ; *I value$ -> I [ Xz (I Sep_length sum) ((Ended I diff) Sep_length diff) slice ; Splits ] &&
+    }
+  }
+} ;;
+
+eval <<*A string> list> *Xzs <A> *Sep join_with_elem @public -> <A string> {
+  Xzs [| Sep |] join_with_seq
+} ;;
+
+eval <<*A string> list> *Xzs <A string> *Sep join_with_seq @public -> <A string> {
+  Xzs new_string_buf &\ <<A string> list> *L <A string_buf> *B -> <A string> {
+    L case {
+    ; [ *S ] -> [] (B S append) &&
+    ; [ *S ; *T ] -> B S append = *B', T (B' Sep append) &&
+    ; [] -> B pack_all
+    }
+  }
+} ;;
+
+eval <*A string> *Xz <A string> *Seq <A string> *New replace_first_seq @public -> <A string> {
+  Xz Seq first_index >> case {
+  ; none$ -> Xz
+  ; *I value$ -> [ Xz I take, New, Xz (I (Seq length) sum) drop ] concat
+  }
+} ;;
+
+eval <*A string> *Xz <A string> *Seq <A string> *New replace_last_seq @public -> <A string> {
+  Xz Seq last_index >> case {
+  ; none$ -> Xz
+  ; *I value$ -> [ Xz I take, New, Xz (I (Seq length) sum) drop ] concat
+  }
+} ;;
+
+eval <*A string> *Xz <A string> *Seq <A string> *New replace_all_seq @public -> <A string> {
+  (Xz Seq split_by_seq) New join_with_seq
+} ;;
+
+
+# -- string buffer --
+
+data <*A string_buf> @opaque := <<A string> list> sbuf$ ;;
+
+eval new_string_buf @public -> <*A string_buf> {
+  [] sbuf$
+} ;;
+
+eval <*A string_buf> *Buf <A string> *Az sbuf_append_string | append @public -> <A string_buf> {
+  Az case {
+  ; [||] -> Buf  # discard empty string
+  ; ** -> Buf = *Xs sbuf$, [ Az ; Xs ] sbuf$
+  }
+} ;;
+
+eval <*A string_buf> *Buf sbuf_empty? | empty? @public -> <bool> {
+  Buf = *Azs sbuf$,
+  Azs case {
+  ; [] -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A string_buf> *Buf sbuf_length | length @public -> <int> {
+  Buf = *AL sbuf$,
+  0
+  AL
+  \ <int> *N <A string> *As -> { N (As length) sum }
+  list.fold
+} ;;
+
+eval <*A string_buf> *Buf sbuf_pack_all | pack_all @public -> <A string> {
+  Buf = *Azs sbuf$,
+  Azs list.reverse >> concat
+} ;;
+
+eval <*A string_buf> *Buf <int> *Len sbuf_pack | pack @public -> <<A string> <A string_buf> tuple> {
+  Buf = *Azs sbuf$,
+  if {
+  ; Len ge0? -> Len
+  ; otherwise -> 0
+  } = *L,
+  (Azs list.reverse) L [] &\ <<A string> list> *Xzs <int> *Req <<A string> list> *To_pack -> <<A string> <A string_buf> tuple> {
+    (| Xzs, Req |) case {
+    ; (| [], ** |) -> (| To_pack list.reverse >> concat, [] sbuf$ |)
+    ; (| **, 0 |) -> (| To_pack list.reverse >> concat, (Xzs list.reverse) sbuf$ |)
+    ; (| [ *H ; *T ], ** |) ->
+      H length = *HL,
+      if {
+      ; HL Req le? -> T (Req HL diff) [ H ; To_pack ] &&
+      ; otherwise -> [ H Req drop ; T] 0 [ H Req take ; To_pack ] &&
+      }
+    }
+  }
+} ;;
+
+
+# -- multidimensional string --
+
+eval <<*A string> string> *Xzz <int> *I0 <int> *I1 d2string_elem | elem @public -> <A> {
+  (Xzz I0 elem) I1 elem
+} ;;
+eval <<*A string> string> *Xzz <int> *I0 <int> *I1 <A> *X d2string_replace | replace @public -> <<A string> string> {
+  Xzz I0 ((Xzz I0 elem) I1 X replace) replace
+} ;;
+eval <<<*A string> string> string> *Xzzz <int> *I0 <int> *I1 <int> *I2 d3string_elem | elem @public -> <A> {
+  (Xzzz I0 I1 elem) I2 elem
+} ;;
+eval <<<*A string> string> string> *Xzzz <int> *I0 <int> *I1 <int> *I2 <A> *X d3string_replace | replace @public -> <<<A string> string> string> {
+  Xzzz I0 ((Xzzz I0 elem) I1 I2 X replace) replace
+} ;;
+

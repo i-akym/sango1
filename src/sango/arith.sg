@@ -1,0 +1,99 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.arith" ;;
+
+import "sango.list" -> list ;;
+
+eval <int> *I0 <int> *I1 <int> *I2 int_sum_3 | sum @public -> <int> {
+  (I0 I1 sum) I2 sum
+} ;;
+eval <int> *I0 <int> *I1 <int> *I2 <int> *I3 int_sum_4 | sum @public -> <int> {
+  (I0 I1 I2 sum) I3 sum
+} ;;
+eval <int> *I0 <int> *I1 <int> *I2 <int> *I3 <int> *I4 int_sum_5 | sum @public -> <int> {
+  (I0 I1 I2 I3 sum) I4 sum
+} ;;
+eval <int list> *Is int_sum_list | sum @public -> <int> {
+  0 Is ^int_sum list.fold
+} ;;
+
+eval <real> *R0 <real> *R1 <real> *R2 real_sum_3 | sum @public -> <real> {
+  (R0 R1 sum) R2 sum
+} ;;
+eval <real> *R0 <real> *R1 <real> *R2 <real> *R3 real_sum_4 | sum @public -> <real> {
+  (R0 R1 R2 sum) R3 sum
+} ;;
+eval <real> *R0 <real> *R1 <real> *R2 <real> *R3 <real> *R4 real_sum_5 | sum @public -> <real> {
+  (R0 R1 R2 R3 sum) R4 sum
+} ;;
+eval <real list> *Rs real_sum_list | sum @public -> <real> {
+  0.0 Rs ^real_sum list.fold
+} ;;
+
+eval <byte list> *Bs byte_max | max @public -> <byte maybe> {
+  Bs
+    \ <byte> *B0 <byte> *B1 -> <byte> { if { B0 B1 gt? -> B0 ; otherwise -> B1 } }
+    list.reduce
+} ;;
+eval <int list> *Is int_max | max @public -> <int maybe> {
+  Is
+    \ <int> *I0 <int> *I1 -> <int> { if { I0 I1 gt? -> I0 ; otherwise -> I1 } }
+    list.reduce
+} ;;
+eval <real list> *Rs real_max | max @public -> <real maybe> {
+  Rs
+    \ <real> *R0 <real> *R1 -> <real> { if { R0 R1 gt? -> R0 ; otherwise -> R1 } }
+    list.reduce
+} ;;
+eval <byte list> *Bs byte_min | min @public -> <byte maybe> {
+  Bs
+    \ <byte> *B0 <byte> *B1 -> <byte> { if { B0 B1 lt? -> B0 ; otherwise -> B1 } }
+    list.reduce
+} ;;
+eval <int list> *Is int_min | min @public -> <int maybe> {
+  Is
+    \ <int> *I0 <int> *I1 -> <int> { if { I0 I1 lt? -> I0 ; otherwise -> I1 } }
+    list.reduce
+} ;;
+eval <real list> *Rs real_min | min @public -> <real maybe> {
+  Rs
+    \ <real> *R0 <real> *R1 -> <real> { if { R0 R1 lt? -> R0 ; otherwise -> R1 } }
+    list.reduce
+} ;;
+
+eval <int> *I int_abs | abs @public -> <int> {
+  if {
+  ; I lt0? -> I neg
+  ; otherwise -> I
+  }
+} ;;
+eval <real> *R real_abs | abs @public -> <real> {
+  if {
+  ; R lt0? -> R neg
+  ; otherwise -> R
+  }
+} ;;
+
+eval <real> *R real_floor | floor @public -> <real> @native ;;
+eval <real> *R real_ceil | ceil @public -> <real> @native ;;

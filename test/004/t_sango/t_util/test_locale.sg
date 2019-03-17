@@ -1,0 +1,43 @@
+import "sango.debug" -> debug ;;
+import "sango.list" -> list ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.locale" -> lc ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test011,
+  test011a,
+  test012,
+  test012a,
+  test013,
+  test013a,
+  void$
+} ;;
+
+eval test001 -> <lc.locale> {
+  "en" "US" lc.locale = "en" "US" "" lc.locale$
+} ;;
+eval test011 -> <cstr> {
+  "en" "" lc.locale >> lc.repr = "en"
+} ;;
+eval test011a -> <cstr> {
+  "en" "" "v" lc.locale >> lc.repr = "en_v"
+} ;;
+eval test012 -> <cstr> {
+  "" "US" lc.locale >> lc.repr = "US"
+} ;;
+eval test012a -> <cstr> {
+  "" "US" "v" lc.locale >> lc.repr = "US_v"
+} ;;
+eval test013 -> <cstr> {
+  "en" "US" lc.locale >> lc.repr = "en_US"
+} ;;
+eval test013a -> <cstr> {
+  "en" "US" "v" lc.locale >> lc.repr = "en_US_v"
+} ;;

@@ -1,0 +1,141 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.datetime" -> datetime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test021,
+  test051,
+  test052,
+  test053,
+  test054,
+  test055,
+  test056,
+  test057,
+  test101,
+  test101a,
+  test101b,
+  test151,
+  test201,
+  test202,
+  test211,
+  test212,
+  test212a,
+  test301,
+  test302,
+  test302a,
+  test303,
+  test303a,
+  test304,
+  test304a,
+  test331,
+  test332,
+  test332a,
+  test333,
+  test333a,
+  test334,
+  test334a,
+  test401,
+  test411,
+  void$
+} ;;
+
+eval test021 -> <void> { datetime.now >> ignore } ;;
+eval test051 -> <bool> { 2000 datetime.leap_year? = true$ } ;;
+eval test052 -> <bool> { 2100 datetime.leap_year? = false$ } ;;
+eval test053 -> <bool> { 2200 datetime.leap_year? = false$ } ;;
+eval test054 -> <bool> { 2300 datetime.leap_year? = false$ } ;;
+eval test055 -> <bool> { 2400 datetime.leap_year? = true$ } ;;
+eval test056 -> <bool> { 2401 datetime.leap_year? = false$ } ;;
+eval test057 -> <bool> { 2404 datetime.leap_year? = true$ } ;;
+eval test101 -> <datetime.date_time> {
+  (1970 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = *DT, 
+  (0 bi.bigint) datetime.date_time = DT
+} ;;
+eval test101a -> <datetime.date_time> {
+  (1969 12 31 datetime.date) (23 59 59 999 datetime.time) datetime.date_time$ = *DT, 
+  (-1 bi.bigint) datetime.date_time = DT
+} ;;
+eval test101b -> <datetime.date_time> {
+  (1970 1 1 datetime.date) (0 0 0 1 datetime.time) datetime.date_time$ = *DT, 
+  (1 bi.bigint) datetime.date_time = DT
+} ;;
+eval test151 -> <datetime.date_time> {
+  (86400000 bi.bigint) (365 bi.bigint) bi.prod = *Millisecs_normal,
+  (86400000 bi.bigint) (366 bi.bigint) bi.prod = *Millisecs_leap,
+  0 bi.bigint = *Y1970_start,
+  Y1970_start Millisecs_normal bi.sum = *Y1971_start, Y1971_start datetime.date_time = *DT1971_start, (1971 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1971_start, 
+  Y1971_start Millisecs_normal bi.sum = *Y1972_start, Y1972_start datetime.date_time = *DT1972_start, (1972 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1972_start, 
+  Y1972_start Millisecs_leap bi.sum = *Y1973_start, Y1973_start datetime.date_time = *DT1973_start, (1973 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1973_start, 
+  Y1973_start Millisecs_normal bi.sum = *Y1974_start, Y1974_start datetime.date_time = *DT1974_start, (1974 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1974_start, 
+  Y1974_start Millisecs_normal bi.sum = *Y1975_start, Y1975_start datetime.date_time = *DT1975_start, (1975 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1975_start, 
+  Y1975_start Millisecs_normal bi.sum = *Y1976_start, Y1976_start datetime.date_time = *DT1976_start, (1976 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1976_start, 
+  Y1976_start Millisecs_leap bi.sum = *Y1977_start, Y1977_start datetime.date_time = *DT1977_start, (1977 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1977_start, 
+  Y1977_start Millisecs_normal bi.sum = *Y1978_start, Y1978_start datetime.date_time = *DT1978_start, (1978 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1978_start, 
+  Y1978_start Millisecs_normal bi.sum = *Y1979_start, Y1979_start datetime.date_time = *DT1979_start, (1979 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1979_start, 
+  Y1979_start Millisecs_normal bi.sum = *Y1980_start, Y1980_start datetime.date_time = *DT1980_start, (1980 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1980_start, 
+  Y1980_start Millisecs_leap bi.sum = *Y1981_start, Y1981_start datetime.date_time = *DT1981_start, (1981 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1981_start, 
+  Y1981_start Millisecs_normal bi.sum = *Y1982_start, Y1982_start datetime.date_time = *DT1982_start, (1982 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1982_start, 
+  Y1982_start Millisecs_normal bi.sum = *Y1983_start, Y1983_start datetime.date_time = *DT1983_start, (1983 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1983_start, 
+  Y1983_start Millisecs_normal bi.sum = *Y1984_start, Y1984_start datetime.date_time = *DT1984_start, (1984 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1984_start, 
+  Y1984_start Millisecs_leap bi.sum = *Y1985_start, Y1985_start datetime.date_time = *DT1985_start, (1985 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1985_start, 
+  Y1985_start Millisecs_normal bi.sum = *Y1986_start, Y1986_start datetime.date_time = *DT1986_start, (1986 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1986_start, 
+  Y1986_start Millisecs_normal bi.sum = *Y1987_start, Y1987_start datetime.date_time = *DT1987_start, (1987 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1987_start, 
+  Y1987_start Millisecs_normal bi.sum = *Y1988_start, Y1988_start datetime.date_time = *DT1988_start, (1988 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1988_start, 
+  Y1988_start Millisecs_leap bi.sum = *Y1989_start, Y1989_start datetime.date_time = *DT1989_start, (1989 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1989_start, 
+  Y1989_start Millisecs_normal bi.sum = *Y1990_start, Y1990_start datetime.date_time = *DT1990_start, (1990 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1990_start, 
+  Y1990_start Millisecs_normal bi.sum = *Y1991_start, Y1991_start datetime.date_time = *DT1991_start, (1991 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1991_start, 
+  Y1991_start Millisecs_normal bi.sum = *Y1992_start, Y1992_start datetime.date_time = *DT1992_start, (1992 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1992_start, 
+  Y1992_start Millisecs_leap bi.sum = *Y1993_start, Y1993_start datetime.date_time = *DT1993_start, (1993 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1993_start, 
+  Y1993_start Millisecs_normal bi.sum = *Y1994_start, Y1994_start datetime.date_time = *DT1994_start, (1994 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1994_start, 
+  Y1994_start Millisecs_normal bi.sum = *Y1995_start, Y1995_start datetime.date_time = *DT1995_start, (1995 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1995_start, 
+  Y1995_start Millisecs_normal bi.sum = *Y1996_start, Y1996_start datetime.date_time = *DT1996_start, (1996 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1996_start, 
+  Y1996_start Millisecs_leap bi.sum = *Y1997_start, Y1997_start datetime.date_time = *DT1997_start, (1997 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1997_start, 
+  Y1997_start Millisecs_normal bi.sum = *Y1998_start, Y1998_start datetime.date_time = *DT1998_start, (1998 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1998_start, 
+  Y1998_start Millisecs_normal bi.sum = *Y1999_start, Y1999_start datetime.date_time = *DT1999_start, (1999 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT1999_start, 
+  Y1999_start Millisecs_normal bi.sum = *Y2000_start, Y2000_start datetime.date_time = *DT2000_start, (2000 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT2000_start, 
+  Y2000_start Millisecs_leap bi.sum = *Y2001_start, Y2001_start datetime.date_time = *DT2001_start, (2001 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT2001_start, 
+  Y2001_start Millisecs_normal bi.sum = *Y2002_start, Y2002_start datetime.date_time = *DT2002_start, (2002 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT2002_start, 
+  Y2002_start Millisecs_normal bi.sum = *Y2003_start, Y2003_start datetime.date_time = *DT2003_start, (2003 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT2003_start, 
+  Y2003_start Millisecs_normal bi.sum = *Y2004_start, Y2004_start datetime.date_time = *DT2004_start, (2004 1 1 datetime.date) (0 0 0 0 datetime.time) datetime.date_time$ = DT2004_start, 
+} ;;
+eval test201 -> <datetime.time> {
+  0 0 0 0 datetime.time = *T, T datetime.millisecs_from_midnight = 0, 0 datetime.time = T
+} ;;
+eval test202 -> <datetime.time> {
+  23 59 59 999 datetime.time = *T, T datetime.millisecs_from_midnight = 86399999, 86399999 datetime.time = T
+} ;;
+eval test211 -> <datetime.date> {
+  2000 1 1 datetime.date = *D, D datetime.day_in_year = 0, 2000 0 datetime.date = D
+} ;;
+eval test212 -> <datetime.date> {
+  2000 12 31 datetime.date = *D, D datetime.day_in_year = 365, 2000 365 datetime.date = D
+} ;;
+eval test212a -> <datetime.date> {
+  2001 12 31 datetime.date = *D, D datetime.day_in_year = 364, 2001 364 datetime.date = D
+} ;;
+eval test301 -> <ordering> { 2000 5 7 datetime.date = *D0, 2000 5 7 datetime.date = *D1, D0 D1 datetime.compare = eq$ } ;;
+eval test302 -> <ordering> { 2000 5 7 datetime.date = *D0, 2001 5 7 datetime.date = *D1, D0 D1 datetime.compare = lt$ } ;;
+eval test302a -> <ordering> { 2000 5 7 datetime.date = *D0, 1999 5 7 datetime.date = *D1, D0 D1 datetime.compare = gt$ } ;;
+eval test303 -> <ordering> { 2000 5 7 datetime.date = *D0, 2000 6 7 datetime.date = *D1, D0 D1 datetime.compare = lt$ } ;;
+eval test303a -> <ordering> { 2000 5 7 datetime.date = *D0, 2000 4 7 datetime.date = *D1, D0 D1 datetime.compare = gt$ } ;;
+eval test304 -> <ordering> { 2000 5 7 datetime.date = *D0, 2000 5 8 datetime.date = *D1, D0 D1 datetime.compare = lt$ } ;;
+eval test304a -> <ordering> { 2000 5 7 datetime.date = *D0, 2000 5 6 datetime.date = *D1, D0 D1 datetime.compare = gt$ } ;;
+eval test331 -> <ordering> { 2 4 6 888 datetime.time = *T0, 2 4 6 888 datetime.time = *T1, T0 T1 datetime.compare = eq$ } ;;
+eval test332 -> <ordering> { 2 4 6 888 datetime.time = *T0, 3 4 6 888 datetime.time = *T1, T0 T1 datetime.compare = lt$ } ;;
+eval test332a -> <ordering> { 2 4 6 888 datetime.time = *T0, 1 4 6 888 datetime.time = *T1, T0 T1 datetime.compare = gt$ } ;;
+eval test333 -> <ordering> { 2 4 6 888 datetime.time = *T0, 2 4 7 888 datetime.time = *T1, T0 T1 datetime.compare = lt$ } ;;
+eval test333a -> <ordering> { 2 4 6 888 datetime.time = *T0, 2 4 5 888 datetime.time = *T1, T0 T1 datetime.compare = gt$ } ;;
+eval test334 -> <ordering> { 2 4 6 888 datetime.time = *T0, 2 4 6 889 datetime.time = *T1, T0 T1 datetime.compare = lt$ } ;;
+eval test334a -> <ordering> { 2 4 6 888 datetime.time = *T0, 2 4 6 887 datetime.time = *T1, T0 T1 datetime.compare = gt$ } ;;
+eval test401 -> <void> { "default time zone id = " stdio.print, datetime.default_time_zone_id stdio.print_and_newline } ;;
+eval test411 -> <void> {
+  (0 bi.bigint) "Asia/Tokyo" datetime.date_time = date: *D time: *T *** datetime.local_date_time$,
+  D = 1970 1 1 datetime.date$, T = 9 0 0 0 datetime.time$, void$ } ;;

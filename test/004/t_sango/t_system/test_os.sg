@@ -1,0 +1,77 @@
+import "sango.actor" -> act ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.string" -> str ;;
+import "sango.system" -> sys ;;
+import "sango.system.os" -> os ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  sys.os_type >> case { "winnt" -> test111w ; "unix" -> test111u ; ** -> },
+  sys.os_type >> case { "winnt" -> test112w ; "unix" -> test112u ; ** -> },
+  void$
+} ;;
+
+eval test111w -> <void> { [ "findstr", "/c:\"zzz\"" ] "" os.default_process_opts os.exec = *P,
+  P os.to_stdin >> io.open_print_stream = *In, P os.from_stdout >> io.open_line_instream = *Out, 
+  \\ <void> {
+    In "abc" io.print_and_newline,
+    In "zzz" io.print_and_newline,
+    In "def" io.print_and_newline,
+    In io.flush,
+    In io.close,
+    Out io.read_line = ("zzz" ** cstr.line$) io.instream_data$,
+    Out io.read_line = io.instream_at_end$,
+    Out io.close,
+    P os.exit_code = 0,
+    void$
+  } try = *R,
+  P os.kill,
+  R unwrap,
+  void$ } ;;
+eval test111u -> <void> { [ "grep", "zzz" ] "" os.default_process_opts os.exec = *P,
+  P os.to_stdin >> io.open_print_stream = *In, P os.from_stdout >> io.open_line_instream = *Out, 
+  \\ <void> {
+    In "abc" io.print_and_newline,
+    In "zzz" io.print_and_newline,
+    In "def" io.print_and_newline,
+    In io.flush,
+    In io.close,
+    Out io.read_line = ("zzz" ** cstr.line$) io.instream_data$,
+    Out io.read_line = io.instream_at_end$,
+    Out io.close,
+  } try = *R,
+  P os.kill,
+  R unwrap,
+  void$ } ;;
+eval test112w -> <void> {
+  [ "cmd", "/c", "dir" ] "." os.default_process_opts os.exec = *P,
+  [ "findstr", "<DIR>" ] "." os.default_process_opts os.exec = *Q,
+  P Q os.connect_processes,
+  Q os.from_stdout >> io.open_line_instream = *Out, 
+  \\ <bool> {
+    Out io.read_line = (*D ** cstr.line$) io.instream_data$, D " ." str.end_with? = true$
+  } try = *R,
+  P os.kill,
+  Q os.kill,
+  R unwrap,
+  void$ } ;;
+eval test112u -> <void> {
+  [ "sh", "-c", "ls -laF" ] "." os.default_process_opts os.exec = *P,
+  [ "grep", "/" ] "." os.default_process_opts os.exec = *Q,
+  P Q os.connect_processes,
+  Q os.from_stdout >> io.open_line_instream = *Out, 
+  \\ <bool> {
+    Out io.read_line = (*D ** cstr.line$) io.instream_data$, D " ./" str.end_with? = true$
+  } try = *R,
+  P os.kill,
+  Q os.kill,
+  R unwrap,
+  void$ } ;;

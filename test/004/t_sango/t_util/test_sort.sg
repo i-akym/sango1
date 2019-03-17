@@ -1,0 +1,38 @@
+import "sango.debug" -> debug ;;
+import "sango.list" -> list ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.sort" -> sort ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test002,
+  void$
+} ;;
+
+eval ord_fs -> <int ord_fs> {
+  compare_f: \ <int> *I <int> *J -> <ordering> { (I 10 quot) (J 10 quot) int_compare }
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
+eval test001 -> <void> {
+  [ 13, 12, 11, 1, 2, 3, 23, 22, 21 ] ord_fs sort.sort =
+    [ 1, 2, 3, 13, 12, 11, 23, 22, 21 ],
+  void$
+} ;;
+eval test002 -> <void> {
+  [| 23, 22, 21, 13, 12, 11, 1, 2, 3 |] ord_fs sort.sort =
+    [| 1, 2, 3, 13, 12, 11, 23, 22, 21 |],
+  void$
+} ;;

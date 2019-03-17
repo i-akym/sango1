@@ -1,0 +1,445 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2018 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.char.encoding.utf" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.char.encoding" -> enc ;;
+import "sango.cstr" -> cstr ;;
+import "sango.entity" -> ent ;;
+import "sango.string" -> str ;;
+import "sango.system" -> sys ;;
+import "sango.tuple" -> tuple ;;
+
+extend <ent.ent_d> :=
+| <utf8_decode_d> utf8_decode_d_ent_d$
+| <utf16_encode_d> utf16_encode_d_ent_d$
+| <utf16_decode_d> utf16_decode_d_ent_d$ ;;
+
+eval _init_ -> <void> {
+  start_f: ^start_encoder enc.encoder_impl_fs$ = *E,
+  start_f: ^start_decoder enc.decoder_impl_fs$ = *D,
+  "UTF-8" E enc.install_encoder_impl,
+  "UTF-8" D enc.install_decoder_impl,
+  "UTF-16" E enc.install_encoder_impl,
+  "UTF-16" D enc.install_decoder_impl,
+  "UTF-16BE" E enc.install_encoder_impl,
+  "UTF-16BE" D enc.install_decoder_impl,
+  "UTF-16LE" E enc.install_encoder_impl,
+  "UTF-16LE" D enc.install_decoder_impl
+} ;;
+
+
+# -- encoding --
+
+eval <cstr> *Encoding start_encoder @public -> <enc.encoder_h> {
+  Encoding case {
+  ; "UTF-8" -> start_utf8_encoder
+  ; "UTF-16" -> (byte_order: sys.byte_order start_with_bom: true$ utf16_encode_props$) start_utf16_encoder
+  ; "UTF-16BE" -> (byte_order: sys.big_endian$ start_with_bom: false$ utf16_encode_props$) start_utf16_encoder
+  ; "UTF-16LE" -> (byte_order: sys.little_endian$ start_with_bom: false$ utf16_encode_props$) start_utf16_encoder
+  ; ** -> unsupported$ ([ "Unknown encoding. - ", Encoding ] cstr.concat) new_exception >> throw
+  }
+} ;;
+
+eval start_utf8_encoder @public -> <enc.encoder_h> {
+  encode_f: ^utf8_encode
+  end_f: ^utf8_end_encoding
+  enc.encoder_h$
+} ;;
+
+eval <char> *C utf8_encode -> <bstr> {
+  C char_code = *I,
+  if {
+  ; I %x80 lt? ->
+    I byte_part = *B0,
+    [| B0 |]
+  ; I %x800 lt? ->
+    (I %x3F bit_and) %x80 bit_or >> byte_part = *B1,
+    (I 6 shift_right) %xC0 bit_or >> byte_part = *B0,
+    [| B0, B1 |]
+  ; I %x10000 lt? ->
+    (I %x3F bit_and) %x80 bit_or >> byte_part = *B2,
+    ((I 6 shift_right) %x3F bit_and) %x80 bit_or >> byte_part = *B1,
+    (I 12 shift_right) %xE0 bit_or >> byte_part = *B0,
+    [| B0, B1, B2 |]
+  ; otherwise ->
+    (I %x3F bit_and) %x80 bit_or >> byte_part = *B3,
+    ((I 6 shift_right) %x3F bit_and) %x80 bit_or >> byte_part = *B2,
+    ((I 12 shift_right) %x3F bit_and) %x80 bit_or >> byte_part = *B1,
+    (I 18 shift_right) %xF0 bit_or >> byte_part = *B0,
+    [| B0, B1, B2, B3 |]
+  }
+} ;;
+
+eval utf8_end_encoding -> <bstr> {
+  [||]
+} ;;
+
+data <utf16_encode_props> @public :=
+  byte_order: <sys.byte_order>
+  start_with_bom: <bool>
+  utf16_encode_props$ ;;
+
+data <utf16_encode_d> :=
+  byte_order: <sys.byte_order>
+  serializer_: <actu.serializer_h maybe>
+  leading_bom: <bstr>
+  utf16_encode_d$ ;;
+
+eval <utf16_encode_props> *Ps start_utf16_encoder @public -> <enc.encoder_h> {
+  Ps byte_order = *Byte_order,
+  (| Ps start_with_bom, Byte_order |) case {
+  ; (| true$, sys.big_endian$ |) -> (| [| %xFE~, %xFF~ |], actu.start_serializer  value$ |)
+  ; (| true$, ** |) -> (| [| %xFF~, %xFE~ |], actu.start_serializer  value$ |)
+  ; ** -> (| [||], none$ |)
+  } = (| *BOM, *Serializer_ |),
+  ((byte_order: Byte_order
+    serializer_: Serializer_
+    leading_bom: BOM utf16_encode_d$)
+   utf16_encode_d_ent_d$)
+  none$ ent.create_entity = *DE,
+  encode_f: \ <char> *C -> <bstr> { DE C utf16_encode }
+  end_f: \\ <bstr> { DE utf16_end_encoding }
+  enc.encoder_h$
+} ;;
+
+eval <ent.eref> *DE <char> *C utf16_encode -> <bstr> {
+  DE ent.read = *D utf16_encode_d_ent_d$,
+  D = byte_order: *Byte_order serializer_: *Serializer_ leading_bom: *Leading_BOM *** utf16_encode_d$,
+  Leading_BOM >> case {
+  ; [||] -> [||]  # no more updation of control data
+  ; *BB ->  # get latest data and update
+    (Serializer_ value)
+    \\ <bstr> {
+      DE ent.read = *DD utf16_encode_d_ent_d$,
+      DD leading_bom >> case {
+      ; [||] -> [||]  # already updated
+      ; *BB -> DE ((serializer_: none$ leading_bom: [||] :: D utf16_encode_d$) utf16_encode_d_ent_d$) ent.write, BB
+      }
+    }
+    actu.run_serialized
+  } = *BOM,
+  C char_code = *I,
+  if {
+  ; I %x10000 lt? ->
+    I 8 shift_right >> byte_part = *B0,
+    I byte_part = *B1,
+    (| [| B0, B1 |], [||] |)
+  ; otherwise ->
+    I %x10000 diff = *I',
+    ((I' 10 shift_right) %x3FF bit_and) %xD800 bit_or = *U16,
+    U16 8 shift_right >> byte_part = *B00,
+    U16 byte_part = *B01,
+    (I' %x3FF bit_and) %xDC00 bit_or = *L16,
+    L16 8 shift_right >> byte_part = *B10,
+    L16 byte_part = *B11,
+    (| [| B00, B01 |], [| B10, B11 |] |)
+  } = (| *DB0, *DB1 |),
+  Byte_order >> case {
+  ; sys.big_endian$ -> [ BOM, DB0, DB1 ] str.concat
+  ; ** -> [ BOM, DB0 swap_bytes, DB1 swap_bytes ] str.concat
+  }
+} ;;
+
+eval <ent.eref> *DE utf16_end_encoding -> <bstr> {
+  DE ent.read = *D utf16_encode_d_ent_d$,
+  D = serializer_: *Serializer_ leading_bom: *Leading_BOM *** utf16_encode_d$,
+  Leading_BOM >> case {
+  ; [||] -> [||]  # no more updation of control data
+  ; *BB ->  # get latest data and update
+    (Serializer_ value)
+    \\ <bstr> {
+      DE ent.read = *DD utf16_encode_d_ent_d$,
+      DD leading_bom >> case {
+      ; [||] -> [||]  # already updated
+      ; *BB -> DE ((serializer_: none$ leading_bom: [||] :: D utf16_encode_d$) utf16_encode_d_ent_d$) ent.write, BB
+      }
+    }
+    actu.run_serialized
+  }
+} ;;
+
+
+# -- decoding --
+
+eval <cstr> *Encoding <enc.decode_props> *Ps start_decoder @public -> <enc.decoder_h> {
+  Encoding case {
+  ; "UTF-8" -> Ps start_utf8_decoder
+  ; "UTF-16" -> Ps utf16_detect_byte_order$ start_utf16_decoder
+  ; "UTF-16BE" -> Ps utf16_big_endian$ start_utf16_decoder
+  ; "UTF-16LE" -> Ps utf16_little_endian$ start_utf16_decoder
+  ; ** -> unsupported$ ([ "Unknown encoding. - ", Encoding ] cstr.concat) new_exception >> throw
+  }
+} ;;
+
+data <utf8_decode_d> :=
+  props: <enc.decode_props>
+  serializer: <actu.serializer_h>
+  state: <int>
+  acc: <int>
+  utf8_decode_d$ ;;
+
+eval <enc.decode_props> *Ps start_utf8_decoder @public -> <enc.decoder_h> {
+  ((props: Ps
+    serializer: actu.start_serializer
+    state: 0
+    acc: 0
+    utf8_decode_d$)
+   utf8_decode_d_ent_d$)
+  none$ ent.create_entity = *DE,
+  decode_f: \ <byte> *B -> <cstr> { DE B utf8_decode }
+  end_f: \\ <cstr> { DE utf8_end_decoding }
+  enc.decoder_h$
+} ;;
+
+eval <ent.eref> *DE <byte> *B utf8_decode -> <cstr> {
+  DE ent.read = *D utf8_decode_d_ent_d$,
+  (D serializer)
+  \\ <cstr> {
+    DE ent.read = *DD utf8_decode_d_ent_d$,
+    DD state = *S,
+    S case {
+    ; 0 ->
+      if {
+      ; B 127~ le? -> (| [| B to_int >> char_value |], DD |)
+      ; (B %xE0~ bit_and) %xC0~ eq? -> (| "", state: 1 acc: (B %x1F~ bit_and >> to_int) :: DD utf8_decode_d$ |)
+      ; (B %xF0~ bit_and) %xE0~ eq? -> (| "", state: 2 acc: (B %x0F~ bit_and >> to_int) :: DD utf8_decode_d$ |)
+      ; (B %xF8~ bit_and) %xF0~ eq? -> (| "", state: 3 acc: (B %x07~ bit_and >> to_int) :: DD utf8_decode_d$ |)
+      ; otherwise -> (| DD props >> enc._recover_decode_seq_err, state: 0 acc: 0 :: DD utf8_decode_d$ |)
+      }
+    ; ** ->
+      if {
+      ;(B %xC0~ bit_and) %x80~ eq? ->
+        ((DD acc) 6 shift_left) (B %x3F~ bit_and >> to_int) sum = *Acc',
+        S dec = *S',
+        S' case {
+        ; 0 -> (| [| Acc' char_value |], state: 0 acc: 0 :: DD utf8_decode_d$ |)
+        ; ** ->  (| "", state: S' acc: Acc' :: DD utf8_decode_d$ |)
+        }
+      ; otherwise -> (| DD props >> enc._recover_decode_seq_err, state: 0 acc: 0 :: DD utf8_decode_d$ |)
+      }
+    } = (| *Cz, *DD' |),
+    DE (DD' utf8_decode_d_ent_d$) ent.write,
+    Cz
+  }
+  actu.run_serialized
+} ;;
+
+eval <ent.eref> *DE utf8_end_decoding -> <cstr> {
+  DE ent.read = *D utf8_decode_d_ent_d$,
+  (D serializer)
+  \\ <cstr> {
+    DE ent.read = *DD utf8_decode_d_ent_d$,
+    DD state >> case {
+    ; 0 -> ""
+    ; ** -> DD props >> enc._recover_decode_seq_err
+    }
+  }
+  actu.run_serialized
+} ;;
+
+data <utf16_decode_byte_order> @public :=
+| utf16_detect_byte_order$  # UTF-16
+| utf16_big_endian$  # UTF-16BE
+| utf16_little_endian$ ;;  # UTF-16LE
+
+data <utf16_decode_d> :=
+  serializer: <actu.serializer_h>
+  props: <enc.decode_props>
+  bo: <sys.byte_order>
+  state: <utf16_decode_state>
+  code: <int>
+  utf16_decode_d$ ;;
+
+data <utf16_decode_state> :=
+| utf16_decode_expect_bom_1$
+| utf16_decode_expect_bom_2_FF$
+| utf16_decode_expect_bom_2_FE$
+| utf16_decode_expect_code_1U$
+| utf16_decode_expect_code_1L$
+| utf16_decode_expect_code_2U$
+| utf16_decode_expect_code_2L$
+| <int> utf16_decode_skip$ ;;
+
+eval <enc.decode_props> *Ps <utf16_decode_byte_order> *BO start_utf16_decoder @public -> <enc.decoder_h> {
+  BO case {
+  ; utf16_detect_byte_order$ -> (| sys.big_endian$, utf16_decode_expect_bom_1$ |)  # endian is temporal
+  ; utf16_big_endian$ -> (| sys.big_endian$, utf16_decode_expect_code_1U$ |)
+  ; utf16_little_endian$ -> (| sys.little_endian$, utf16_decode_expect_code_1L$ |)
+  } = (| *ByteOrder, *State |),
+  actu.start_serializer = *Serializer,
+  ((serializer: Serializer
+    props: Ps
+    bo: ByteOrder
+    state: State
+    code: 0
+    utf16_decode_d$)
+   utf16_decode_d_ent_d$)
+  none$ ent.create_entity = *DE,
+  decode_f: \ <byte> *B -> <cstr> { DE B utf16_decode }
+  end_f: \\ <cstr> { DE utf16_end_decoding }
+  enc.decoder_h$
+} ;;
+
+eval <ent.eref> *DE <byte> *B utf16_decode -> <cstr> {
+  DE ent.read = *D utf16_decode_d_ent_d$,
+  (D serializer)
+  \\ <cstr> {
+    DE ent.read = *DD utf16_decode_d_ent_d$,
+    DD state = *S,
+    (| S, DD bo |) case {
+    ; (| utf16_decode_expect_code_1U$, sys.big_endian$ |) ->
+      B utf16_first_upper_bits >> case {
+      ; *C value$ ->
+        (| "", code: ((DD code) C sum) state: utf16_decode_expect_code_1L$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        DD props >> enc._recover_decode_seq_err = *X,
+        (| X, state: (3 utf16_decode_skip$) :: DD utf16_decode_d$ |)
+      }
+    ; (| utf16_decode_expect_code_1U$, sys.little_endian$ |) ->
+      B utf16_first_upper_bits >> case {
+      ; *C value$ ->
+        (| "", code: ((DD code) C sum) state: utf16_decode_expect_code_2L$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        DD props >> enc._recover_decode_seq_err = *X,
+        (| X, state: (2 utf16_decode_skip$) :: DD utf16_decode_d$ |)
+      }
+    ; (| utf16_decode_expect_code_1L$, sys.big_endian$ |) ->
+      (| "", code: ((DD code) ((B to_int) 10 shift_left) sum) state: utf16_decode_expect_code_2L$ :: DD utf16_decode_d$ |)
+    ; (| utf16_decode_expect_code_1L$, sys.little_endian$ |) ->
+      (| "", code: ((DD code) ((B to_int) 10 shift_left) sum) state: utf16_decode_expect_code_2U$ :: DD utf16_decode_d$ |)
+    ; (| utf16_decode_expect_code_2U$, sys.big_endian$ |) ->
+      B utf16_second_upper_bits >> case {
+      ; *C value$ ->
+        (| "", code: ((DD code) C sum) state: utf16_decode_expect_code_2L$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        DD props >> enc._recover_decode_seq_err = *X,
+        (| X, state: (1 utf16_decode_skip$) :: DD utf16_decode_d$ |)
+      }
+    ; (| utf16_decode_expect_code_2U$, sys.little_endian$ |) ->
+      B utf16_second_upper_bits >> case {
+      ; *C value$ ->
+        (| [| (DD code) C sum >> char_value |], code: ((DD code) C sum) state: utf16_decode_expect_code_1L$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        DD props >> enc._recover_decode_seq_err = *X,
+        (| X, code: 0 state: utf16_decode_expect_code_1L$ :: DD utf16_decode_d$ |)
+      }
+    ; (| utf16_decode_expect_code_2L$, sys.big_endian$ |) ->
+      (| [| (DD code) (B to_int) sum >> char_value |], code: 0 state: utf16_decode_expect_code_1U$ :: DD utf16_decode_d$ |)
+    ; (| utf16_decode_expect_code_2L$, sys.little_endian$ |) ->
+      (| "", code: ((DD code) (B to_int) sum) state: utf16_decode_expect_code_2U$ :: DD utf16_decode_d$ |)
+    ; (| utf16_decode_expect_bom_1$, ** |) ->
+      B case {
+      ; %xFE~ -> (| "", state: utf16_decode_expect_bom_2_FF$ :: DD utf16_decode_d$ |)
+      ; %xFF~ -> (| "", bo: sys.little_endian$ state: utf16_decode_expect_bom_2_FE$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        B utf16_first_upper_bits >> case {  # BOM not detected, so big endian assumed
+        ; *C value$ ->
+          (| "", code: C state: utf16_decode_expect_code_1L$ :: DD utf16_decode_d$ |)
+        ; ** ->
+          DD props >> enc._recover_decode_seq_err = *X,
+          (| X, state: (3 utf16_decode_skip$) :: DD utf16_decode_d$ |)
+        }
+      }
+    ; (| utf16_decode_expect_bom_2_FF$, ** |) ->
+      B case {
+      ; %xFF~ -> (| "", state: utf16_decode_expect_code_1U$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        DD props >> enc._recover_decode_seq_err = *X,
+        (| X, state: utf16_decode_expect_code_1U$ :: DD utf16_decode_d$ |)
+      }
+    ; (| utf16_decode_expect_bom_2_FE$, ** |) ->
+      B case {
+      ; %xFF~ -> (| "", state: utf16_decode_expect_code_1L$ :: DD utf16_decode_d$ |)
+      ; ** ->
+        DD props >> enc._recover_decode_seq_err = *X,
+        (| X, bo: sys.big_endian$ state: utf16_decode_expect_code_1U$ :: DD utf16_decode_d$ |)
+      }
+    ; (| *Skip utf16_decode_skip$, sys.big_endian$ |) ->
+      Skip dec >> case {
+      ; 0 -> (| "", code: 0 state: utf16_decode_expect_code_1U$ :: DD utf16_decode_d$ |)
+      ; *Z -> (| "", state: (Z utf16_decode_skip$) :: DD utf16_decode_d$ |)
+      }
+    ; (| *Skip utf16_decode_skip$, sys.little_endian$ |) ->
+      Skip dec >> case {
+      ; 0 -> (| "", code: 0 state: utf16_decode_expect_code_1L$ :: DD utf16_decode_d$ |)
+      ; *Z -> (| "", state: (Z utf16_decode_skip$) :: DD utf16_decode_d$ |)
+      }
+    } = (| *Cz, *DD' |),
+    DE (DD' utf16_decode_d_ent_d$) ent.write,
+    Cz
+  }
+  actu.run_serialized
+} ;;
+
+eval <ent.eref> *DE utf16_end_decoding -> <cstr> {
+  DE ent.read = *D utf16_decode_d_ent_d$,
+  (D serializer)
+  \\ <cstr> {
+    DE ent.read = *DD utf16_decode_d_ent_d$,
+    (| DD state, DD bo |) case {
+    ; (| utf16_decode_expect_bom_1$, ** |) ->
+      ""
+    ; (| utf16_decode_expect_bom_2_FF$, ** |) | (| utf16_decode_expect_bom_2_FE$, ** |) ->
+      DD props >> enc._recover_decode_seq_err
+    ; (| utf16_decode_expect_code_1U$, sys.big_endian$ |) ->
+      ""
+    ; (| utf16_decode_expect_code_1U$, sys.little_endian$ |) ->
+      DD props >> enc._recover_decode_seq_err
+    ; (| utf16_decode_expect_code_1L$, sys.big_endian$ |) ->
+      DD props >> enc._recover_decode_seq_err
+    ; (| utf16_decode_expect_code_1L$, sys.little_endian$ |) ->
+      ""
+    ; (| utf16_decode_expect_code_2U$, ** |) | (| utf16_decode_expect_code_2L$, ** |) ->
+      DD props >> enc._recover_decode_seq_err
+    ; (| ** utf16_decode_skip$, ** |) ->
+      ""
+    }
+  }
+  actu.run_serialized
+} ;;
+
+eval <byte> *B utf16_first_upper_bits -> <int maybe> {
+  B to_int = *BB,
+  BB %xFC bit_and >> case {
+  ; %xD8 -> ((BB %x3 bit_and) 18 shift_left) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <byte> *B utf16_second_upper_bits -> <int maybe> {
+  B to_int = *BB,
+  BB %xFC bit_and >> case {
+  ; %xDC -> ((BB %x3 bit_and) 8 shift_left) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <bstr> *DoubleBytesOrEmpty swap_bytes -> <bstr> {
+  DoubleBytesOrEmpty case {
+  ; [||] -> [||]
+  ; [| *U, *L |] -> [| L, U |]
+  }
+} ;;
+

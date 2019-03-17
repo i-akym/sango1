@@ -1,0 +1,2018 @@
+<html lang="ja">
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=UTF-8">
+<style>
+<!--
+table {
+  caption-side : top }
+code, samp, kbd {
+  font-family : Consolas, 'Courier New', Courier, Monaco, monospace }
+kbd {
+  font-weight : bolder }
+.toc, .run-sample, .code-sample, .def, .usage {
+  white-space : pre }
+.toc-ref {
+  text-align : right }
+.check-mark {
+  text-align : center }
+.note-ref {
+  vertical-align : super }
+-->
+</style>
+<title>Sango 1.0.0言語解説</title>
+</head>
+<body>
+<h1>はじめに</h1>
+<p>本書はプログラミング言語「Sango」の解説書です。本書は，コンピュータはなぜ動くのか，プログラミング言語とはどのようなものなのかを知っている読者を対象に書かれています。
+これらのことを知るためには，プログラミングの入門書をお読みください。</p>
+<p>現在，Sangoの処理系はWindowsプラットフォーム，Unix（現実的にはLinux）プラットフォーム上で動作すること目指し，Javaで実装されています。
+SangoのインストールやSangoプログラムの実行に関して，Windows，Linux上でのJava実行環境について知っていることを前提にしています。</p>
+<p>SangoはMIT Licenseに基いて配布されています。</p>
+<table border><tr><td>
+<p>MIT License </p>
+<p>Copyright (c) 2018 Isao Akiyama </p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+</td></tr></table>
+
+<h1 id="toc">目次</h1>
+
+<div class="toc"><a href="#1">1. Sangoとは</a>
+<a href="#2">2. Sangoを動かしてみる</a>
+  <a href="#2.1">2.1. Windows環境へのインストール</a>
+  <a href="#2.2">2.2. Linux環境へのインストール</a>
+  <a href="#2.3">2.3. hello.sgを読んでみる</a>
+<a href="#3">3. 基本的なデータ</a>
+  <a href="#3.1">3.1. 整数 <code>&lt;int&gt;</code></a>
+  <a href="#3.2">3.2. バイト <code>&lt;byte&gt;</code></a>
+  <a href="#3.3">3.3. 実数 <code>&lt;real&gt;</code></a>
+  <a href="#3.4">3.4. 文字 <code>&lt;char&gt;</code></a>
+    <a href="#3.4.a">ソースコード文字エンティティ</a>
+  <a href="#3.5">3.5. タプル <code>&lt;～ tuple&gt;</code></a>
+  <a href="#3.6">3.6. リスト <code>&lt;A list&gt;</code></a>
+  <a href="#3.7">3.7. ストリング <code>&lt;A string&gt;</code></a>
+  <a href="#3.8">3.8. 文脈外 <code>&lt;_?_&gt;</code></a>
+<a href="#4">4. 新しい型を定義する</a>
+    <a href="#4.a">例：論理型</a>
+    <a href="#4.b">例：X-Y座標値</a>
+    <a href="#4.c">例：<code>&lt;A maybe&gt;</code></a>
+    <a href="#4.d">例：多くの属性を持つ場合</a>
+<a href="#5">5. 型に別名を付ける</a>
+<a href="#6">6. 関数を呼び出す</a>
+<a href="#7">7. 他のモジュールを使う</a>
+<a href="#8">8. パターンマッチを使う</a>
+    <a href="#8.a">例：値をそのまま局所変数に束縛する</a>
+    <a href="#8.b">例：タプルの要素を取り出す</a>
+    <a href="#8.c">例：リストの要素を取り出す</a>
+    <a href="#8.d">例：ストリングの要素を取り出す</a>
+    <a href="#8.e">例：被構築データの属性を取り出す</a>
+    <a href="#8.f">例：パターンの入れ子</a>
+    <a href="#8.g">例：文脈外オブジェクトの取り込み</a>
+    <a href="#8.h">パターンマッチの留意点</a>
+<a href="#9">9. 関数を定義する</a>
+  <a href="#9.1">9.1. パラメタ定義</a>
+  <a href="#9.2">9.2. 関数名</a>
+  <a href="#9.3">9.3. 結果型</a>
+  <a href="#9.4">9.4. 式の並び</a>
+<a href="#10">10.  動かして結果を見る</a>
+<a href="#11">11.  場合分けする</a>
+  <a href="#11.1">11.1. <code>if</code>ブロック</a>
+  <a href="#11.2">11.2. <code>case</code>ブロック</a>
+<a href="#12">12.  関数オブジェクトを使う</a>
+  <a href="#12.1">12.1. クロージャを取得する</a>
+  <a href="#12.2">12.2. クロージャを適用する</a>
+  <a href="#12.3">12.3. クロージャを動的に定義する</a>
+  <a href="#12.4">12.4. 高階関数</a>
+    <a href="#12.4.a">マップ</a>
+    <a href="#12.4.b">フィルタ</a>
+    <a href="#12.4.c">畳み込み</a>
+<a href="#13">13.  繰り返しをうまくプログラミングする</a>
+<a href="#14">14.  被構築型，再び</a>
+  <a href="#14.1">14.1. 属性取得関数</a>
+  <a href="#14.2">14.2. 一部の属性を変更する</a>
+  <a href="#14.3">14.3. 型を拡張する</a>
+<a href="#15">15. 例外に備える</a>
+  <a href="#15.1">15.1. 例外を送出する</a>
+  <a href="#15.2">15.2. 例外を捕捉する</a>
+  <a href="#15.3">15.3. 例外情報を扱う</a>
+  <a href="#15.4">15.4. 新しい例外を定義する</a>
+  <a href="#15.5">15.5. <code>thru$</code>例外</a>
+<a href="#16">16. モジュールを作る</a>
+  <a href="#16.1">16.1. モジュール名</a>
+  <a href="#16.2">16.2. 初期化</a>
+<a href="#17">17. モデリング ― 「記述」と「実体」</a>
+  <a href="#17.1">17.1. 「実体」に「記述」を紐づける</a>
+  <a href="#17.2">17.2. 「実体」消滅後の後処理</a>
+  <a href="#17.3">17.3. 弱参照</a>
+<a href="#18">18. 並行プログラミング ― アクタにタスクを実行させる</a>
+  <a href="#18.1">18.1. アクタの生成・開始</a>
+  <a href="#18.2">18.2. アクタの終了</a>
+  <a href="#18.3">18.3. アクタの終了待ち合わせ</a>
+  <a href="#18.4">18.4. アクタの結果取得</a>
+  <a href="#18.5">18.5. アクタの優先度</a>
+<a href="#19">19. 並行プログラミング ― メッセージ交換</a>
+  <a href="#19.1">19.1. メッセージ</a>
+  <a href="#19.2">19.2. メッセージボックス</a>
+  <a href="#19.3">19.3. メッセージの送信</a>
+  <a href="#19.4">19.4. メッセージの受信</a>
+  <a href="#19.5">19.5. メッセージがポストされないことの検出</a>
+<a href="#20">20. コレクションを使う</a>
+  <a href="#20.1">20.1. ストリング，文字列</a>
+  <a href="#20.2">20.2. セット</a>
+  <a href="#20.3">20.3. バッグ</a>
+  <a href="#20.4">20.4. マップ</a>
+  <a href="#20.5">20.5. キュー</a>
+  <a href="#20.6">20.6. スタック</a>
+  <a href="#20.7">20.7. 配列</a>
+<a href="#21">21. 表示可能な文字列に変換する</a>
+  <a href="#21.1">21.1. フォーマット関数</a>
+  <a href="#21.2">21.2. テンプレート</a>
+    <a href="#21.2.a">フォーマット結果の参照</a>
+    <a href="#21.2.b">場合分け</a>
+    <a href="#21.2.c">フォーマット関数の登録</a>
+<a href="#22">22. 入出力</a>
+  <a href="#22.1">22.1. ストリーム入出力</a>
+  <a href="#22.2">22.2. 標準入出力</a>
+  <a href="#22.3">22.3. ファイルシステム【整備中】</a>
+  <a href="#22.4">22.4. ネットワーク【整備中】</a>
+<a href="#A">A. 仕様</a>
+  <a href="#A.1">A.1. 識別子</a>
+    <a href="#A.1.a">慣習</a>
+  <a href="#A.2">A.2. モジュール名</a>
+  <a href="#A.3">A.3.  コンパイラ（<code>sangoc</code>）</a>
+    <a href="#A.3.a">実行形式</a>
+  <a href="#A.4">A.4. 実行エンジン（<code>sango</code>）</a>
+    <a href="#A.4.a">実行形式</a>
+    <a href="#A.4.b">メッセージ出力先</a>
+    <a href="#A.4.c">終了</a>
+    <a href="#A.4.d">終了シーケンス</a>
+<a href="#B">B. 型について</a>
+  <a href="#B.1">B.1. 型の扱い</a>
+  <a href="#B.2">B.2. 型と型との関係</a>
+  <a href="#B.3">B.3. narrowとcast</a>
+<a href="#C">C. Known bugs and restrictions</a></div>
+
+<hr/>
+
+<h1 id="1">1. Sangoとは</h1>
+<p>Sangoは，以下の特徴をもつプログラミング言語です。
+<ul>
+  <li>関数型言語，遅延評価でなく即時評価</li>
+  <li>オブジェクトは不変（immutable）</li>
+  <li>強い静的な型付け</li>
+  <li>関数名やデータ構築子を後ろに書く，つまり書いてある順番どおりに実行される</li>
+  <li>メッセージ交換による並行処理</li>
+</ul>
+Sangoは開発中です。
+事前の断りなく，仕様などが変更になることがあります。</p>
+
+<p>■Sangoという名前の由来</p>
+<p>Sangoは「珊瑚」から名前を取りました。
+珊瑚は，「サンゴ虫」という殻を作る小さな生き物の集合体です。
+珊瑚礁は，多様な生き物が集まり生活する場になります。
+プログラムも小さな単位の寄せ集めです。
+プログラム断片が集まって大きなシステムを作るイメージを珊瑚礁に重ねています。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="2">2. Sangoを動かしてみる</h1>
+<p>このバージョンのSangoは，Javaプラットフォーム上で動作します。
+Java1.8以上がインストールされている必要があります。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="2.1">2.1. Windows環境へのインストール</h2>
+<p>以下の手順でインストールします。</p>
+<ol>
+  <li>リリースファイルを解凍し「<code>release</code>」ディレクトリを取り出します。
+    ここではそれを「<code>D:\work\release</code>」とします。</li>
+  <li>インストール先のディレクトリを削除あるいは移動して，存在しない状態にします。
+    存在すると，この後の手順でエラーになります。</li>
+  <li>コマンドプロンプトを起動し，「<code>D:\work\release</code>」をカレントディレクトリにします。</li>
+  <li>「<code>win_configure.bat</code>」にインストール先ディレクトリを，「ドライブ文字<code>:\</code>」で始まる絶対パスで指定して実行します。
+	  ここでは「<code>D:\sango</code>」をインストールディレクトリとします<span class="note-ref">*1</span>。
+    正常終了後，「<code>install.bat</code>」を実行します。
+    <blockquote class="run-sample">実行例
+<samp>D:\work\release&gt; </samp><kbd>.\win_configure -install-to D:\sango</kbd>
+<samp>D:\work\release&gt; </samp><kbd>.\install</kbd> </blockquote>
+  </li>
+  <li>「<code>D:\sango\bin</code>」ディレクトリにパス（PATH）を通します。
+    Windowsの設定方法にしたがってください。
+    あるいは，パスが通っているフォルダに，「<code>D:\sango\bin</code>」の中の「<code>sangoc.bat</code>」「<code>sango.bat</code>」をコピーします。</li>
+  <li>動作確認をします。
+    「<code>D:\sango\sample\hello.sg</code>」をカレントディレクトリにコピーし，コンパイルして実行します<span class="note-ref">*2</span>。
+    エラーなく終了し，「<samp>Hello, world!</samp>」が表示されればOKです。
+    <blockquote class="run-sample">実行例
+<samp>D:\work\release&gt; </samp><kbd>copy D:\sango\sample\hello.sg</kbd>
+<samp>D:\work\release&gt; </samp><kbd>sangoc hello.sg</kbd>
+<samp>Sango version x.y.z_nnn</samp>
+<samp>Compiling &quot;hello&quot; = D:\sango_x_y\hello.sg ...</samp>
+<samp>Importing &quot;sango.lang&quot; = D:\sango\lib\sango\lang.sgm ...</samp>
+<samp>Importing &quot;sango.io.stdio&quot; = D:\sango\lib\sango\io\stdio.sgm ...</samp>
+<samp>Generating &quot;hello&quot; = D:\sango_x_y\hello.sgm ...</samp>
+<samp>D:\sango_x\release&gt; </samp><kbd>sango hello</kbd>
+<samp>Sango version x.y.z_nnn</samp>
+<samp>Loading &quot;hello&quot; = D:\sango_x_y\hello.sgm ...</samp>
+<samp>Loading &quot;sango.lang&quot; = D:\sango\lib\sango\lang.sgm ...</samp>
+<samp>Loading &quot;sango.io.stdio&quot; = D:\sango\lib\sango\io\stdio.sgm ...</samp>
+　…
+<samp>Checking modules ... Done.</samp>
+<samp>Hello, world!</samp>
+<samp>D:\work\release&gt;</samp></blockquote>
+  </li>
+  <li>解凍してできたディレクトリは不要ですので，削除します。</li>
+</ol>
+ 
+<blockquote class="note">*1：「<code>C:\Program Files</code>」のような空白を含むパスを持つディレクトリへのインストールはテストしていませんので，自己責任で行ってください。少なくとも短いパス名（<code>C:\progra~1</code>など）を指定しないと動きません。</blockquote>
+<blockquote class="note">*2：同ディレクトリにコンパイル結果（<code>hello.sgm</code>）がありますが，ここでは自分でコンパイルします。</blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="2.2">2.2. Linux環境へのインストール</h2>
+<p>以下の手順でインストールします。</p>
+<ol>
+  <li>インストール先のディレクトリを削除あるいは移動して，存在しない状態にします。
+    存在すると，この後の手順でエラーになります。</li>
+  <li>リリースファイルを解凍し「<code>release</code>」ディレクトリに移動します。</li>
+  <li>「<code>unix_configure.sh</code>」にインストール先ディレクトリを絶対パスで指定して実行します。
+    ここでは「<code>/opt/sango</code>」をインストールディレクトリとします。
+    正常終了後，「<code>install.sh</code>」を実行します。</li>
+    <blockquote class="run-sample">実行例
+<samp>$ </samp><kbd>tar xvfz sango0.1.tgz</kbd>
+<samp>$ </samp><kbd>cd release</kbd>
+<samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
+<samp>$ </samp><kbd>sudo ./install.sh</kbd></blockquote></li>
+  <li>必要に応じ，実行ファイル「<code>sangoc</code>」「<code>sango</code>」をPATH上に設定します。
+    <blockquote class="run-sample">実行例
+<samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sangoc /usr/bin/sangoc</kbd>
+<samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sango /usr/bin/sango</kbd></blockquote></li>
+  <li>動作確認をします。
+    「<code>/opt/sango/sample/hello.sg</code>」をカレントディレクトリにコピーし，コンパイルして実行します<span class="note-ref">*1</span>。
+    エラーなく終了し，「<samp>Hello, world!</samp>」が表示されればOKです。
+    <blockquote class="run-sample">実行例
+<samp>$ </samp><kbd>cp /opt/sango/sample\hello.sg .</kbd>
+<samp>$ </samp><kbd>sangoc hello.sg</kbd>
+<samp>Sango version x.y.z_nnn
+Compiling &quot;hello&quot; = /tmp/work/sango_x_y\hello.sg ...
+Importing &quot;sango.lang&quot; = /opt/sango/lib/sango\lang.sgm ...
+Importing &quot;sango.io.stdio&quot; = /opt/sango/lib/sango/io/stdio.sgm ...
+Generating &quot;hello&quot; = /tmp/work/hello.sgm ...</samp>
+<samp>$ </samp><kbd>sango hello</kbd>
+<samp>Sango version x.y.z_nnn
+Loading &quot;hello&quot; = /tmp/work/hello.sgm ...
+Loading &quot;sango.lang&quot; = /opt/sango/lib/sango/lang.sgm ...
+Loading &quot;sango.io.stdio&quot; = /opt/sango/lib/sango/io/stdio.sgm ...</samp>
+　…
+<samp>Checking modules ... Done.</samp>
+<samp>Hello, world!</samp>
+<samp>$</samp></blockquote></li>
+  <li>解凍してできたディレクトリは不要ですので，削除します。</li>
+</ol>
+
+<blockquote class="note">*1：同ディレクトリにコンパイル結果（<code>hello.sgm</code>）がありますが，ここでは自分でコンパイルします。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="2.3">2.3. hello.sgを読んでみる</h2>
+<p>Sangoのソースプログラムの拡張子は「.sg」です。
+  Sangoプログラムはどんなものなのか，<code>hello.sg</code>を例題に読んでみましょう。
+  <code>hello.sg</code>は「<samp>Hello, world!</samp>」を標準出力に出力するプログラムです。
+  ソースコードにしたがって解説します。</p>
+<blockquote class="code-sample">コード例
+<code>1: # This is a sample program, which displays &quot;Hello, world!&quot;.</code><span class="note-ref">*1</span>
+<code>2: import &quot;sango.io.stdio&quot; -&gt; stdio ;;</code>
+<code>3: eval _main_ -&gt; &lt;void&gt; {</code>
+<code>4:   &quot;Hello, world!&quot; stdio.print_and_newline,</code>
+<code>5:   stdio.flush</code>
+<code>6: } ;;</code></blockquote>
+<p>1:「<code>#</code>」から行末まではコメントです。<br/>
+  2:標準入出力には「<code>sango.io.stdio</code>」というモジュールを使います。
+  モジュールを使う宣言をインポートと言い，<code>import</code>文によって示します。
+  ここでは「<code>stdio</code>」という名前でアクセスすること宣言しています。
+  文の最後は「<code>;;</code>」で終わります。<br/>
+  3:メインルーチンを定義します。
+  メインルーチンは，引数が無い「<code>_main_</code>」という名前の関数です。
+  関数の定義を<code>eval</code>文で行います。
+  「<code>{ }</code>」の内部に実行するコードを記述します。
+  「<code>{ }</code>」の前の「<code>&lt;void&gt;</code>」は返り値の型ですが，ここでは説明を省略します。
+  コード内のインデントや改行は，読みやすくするため，適宜入れることができます。<br/>
+  4:標準出力に文字列を出力し改行します。
+  引数を並べた後に呼び出す関数名を指定します。
+  式の最後に関数名を置くのがSangoの特徴です。
+  複数の処理を続ける場合には，「<code>,</code>」（カンマ）でつなげていきます。<br/>
+  5:標準出力を強制書き出し（フラッシュ，flush）します。
+  出力関数を呼び出すと出力ルーチンにデータが渡りますが，実際の書き出し処理はその後に非同期に行われます。
+  書き出し処理の前にプログラム全体が終了すると書き出しが行われない可能性がありますので，強制書き出しして，その終了を待ってからメインルーチンを終了します。<br/>
+  6:関数の最後の処理が終わると，関数全体が終了します。
+  関数の結果の値は，関数の最後の処理の結果になります。
+  メインルーチンが返した値は捨てられます。
+  プログラムをエラー終了させたい場合（終了コードに0以外を設定したい場合）には，そのための関数を呼び出します（説明は別の箇所に譲ります）。
+  <code>eval</code>文の最後も「<code>;;</code>」で終わります。</p>
+<p>インストールディレクトリの<code>src\sango</code>の下に標準ライブラリのソースコードがありますので，眺めてみてください。</p>
+ 
+<blockquote class="note">*1：実際にはこの前にライセンス表示がありますが，省略します。</blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="3">3. 基本的なデータ</h1>
+<p>まず，Sangoで広く使われる基本的なデータについて解説します。
+  その他については，後述の章の中で，用途に応じて説明します。</p>
+<p>Sangoのオブジェクトには，他の多くの言語と同様に「型」があります。
+  Sangoでは，型を「<code>&lt; &gt;</code>」に入れて示します。
+  型はパラメタ（型パラメタ）を持つことができ，型の表現は，型パラメタを並べた後に型構築子を置きます<span class="note-ref">*1</span>。
+  パラメタを持つ型を別の型に埋め込む（型パラメタとして使う）場合は「<code>&lt; &gt;</code>」でくくります。
+  今後，<code><var>M</var></code>モジュールの<code>&lt;<var>T</var>&gt;</code>を<code>&lt;&quot;<var>M</var>&quot;.<var>T</var>&gt;</code>と表現します。</p>
+
+<blockquote class="note">*1：識別子の文法および慣習は「仕様」を参照。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.1">3.1. 整数 <code>&lt;int&gt;</code></h2>
+<p>例：<code>0</code>，<code>125</code>，<code>-57</code>，<code>%x3FC</code>，<code>%o327</code></p>
+<p>-21474836487（-2<sup>31</sup>）～ 0 ～+2147483647（+2<sup>31</sup>-1） の整数を表します。
+  10進数で表現するほか，8進数，16進数でも表現できます。
+  8進数表示は，「<code>%o</code>」に<code>0</code>～<code>7</code>を続けます。
+  16進数表示は，「<code>%x</code>」に<code>0</code>～<code>9</code>，<code>A</code>～<code>F</code>（あるいは<code>a</code>～<cdoe>f</code>）を続けます。
+  いずれも小数点を付けてはいけません。
+  8進数，16進数の場合は，2の補数表現のビットパターンを指定し，符号は付けません。</p>
+<p>整数が上記範囲を超える可能性がある場合は，<code>&lt;"sango.num.bigint".bigint&gt;</code>を使います。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.2">3.2. バイト <code>&lt;byte&gt;</code></h2>
+<p>例：<code>0~</code>，<code>125~</code>，<code>%xFF~</code>，<code>%o377~</code></p>
+<p>0 ～ +255 を表します。
+  数の表現は整数と同様ですが，数字の後ろに「<code>~</code>」を加えて整数と区別します。
+  <code>0</code>は<code>&lt;int&gt;</code>のゼロ，<code>0~</code>は<code>&lt;byte&gt;</code>のゼロで，異なるものです。</p>
+<p>バイト型は主に入出力処理で使われます。
+  値の範囲にしたがって，整数型と相互に変換することができますが，型変換はプログラマの責任です。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.3">3.3. 実数 <code>&lt;real&gt;</code></h2>
+<p>例：<code>0.0</code>，<code>-13.579</code>，<code>2.46e-8</code></p>
+<p>実数を表します。
+  内部表現は，IEEE754の64ビット浮動小数点数です。
+  小数点の付いた数に10進の指数部を付けることができます。
+  <code>0</code>は<code>&lt;int&gt;</code>のゼロ，<code>0.0</code>は<code>&lt;real&gt;</code>のゼロで，異なるものです。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.4">3.4. 文字 <code>&lt;char&gt;</code></h2>
+<p>例：<code>'a'</code>，<code>'う'</code>，<code>'\n'</code></p>
+<p>1個の文字を表します。シングルクオーテーション（単引用符）で文字を囲んで表現します。
+  内部表現はUnicodeです。
+  改行，単引用符は以下のようにエスケープ表現します。</p>
+<blockquote>CR → <code>\r</code>，LF → <code>\n</code>，「<code>'</code>」 → <code>\'</code></blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="3.4.a">ソースコード文字エンティティ</h3>
+<p>ソースコードを構成するそれぞれの文字を「ソースコード文字エンティティ」と呼びます。
+  ソースコード文字エンティティは，直接書くか（これが通常の方法）と，Unicodeで指定します。
+  Unicode指定の場合は，「<code>`u<var>UUUUUU</var>;</code>」という形式，すなわち，バッククォートと小文字の「<code>u</code>」に続いてUnicodeを必要桁数の16進数で指定しセミコロンで閉じて表現します。
+  バッククォートがエスケープ文字になるため，バッククォート自体は「<code>``</code>」で書きます<span class="note-ref">*1</span>。
+  ソースコード文字エンティティはソースコード解析の最初のステップで処理されますので，Unicode指定方式は文字や文字列内のマルチバイト文字の表現だけでなく，ソースコードのどこの位置でも書けます<span class="note-ref">*2</span>。</p>
+ 
+<blockquote class="note">*1：Unicodeを指定して「<code>`u60;</code>」でも構いません。</blockquote>
+<blockquote class="note">*2：極端には，ソースコードを全部，Unicode指定方式で書くこともできます。</blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.5">3.5. タプル <code>&lt;～ tuple&gt;</code></h2>
+<p>例：<code>(| 1.0, -3.2 |)</code>，<code>(| 1, 'a', &quot;foo&quot; |)</code></p>
+<p>2個以上のデータを一括りにしたもので「対（つい）」あるいは「順序対」とも呼ばれます。
+  「<code>(| |)</code>」の中に要素を「<code>,</code>」（カンマ）で区切って表現します。
+  要素の型は異なっていても構いません。</p>
+<p>型は，要素の型を並べ，最後に「<code>tuple</code>」を置いて表現します。
+  <code>(| 1.0, -3.2 |)</code>は<code>&lt;real real tuple&gt;</code>，<code>(| 1, 'a', &quot;foo&quot; |)</code>は<code>&lt;int char cstr tuple&gt;</code>です。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.6">3.6. リスト <code>&lt;A list&gt;</code></h2>
+<p>例：<code>[ 1, -3, 5 ]</code>，<code>[ [ 'a', 'b' ], [ 'c', 'd', 'e' ], [], [ 'f' ] ]</code><p>
+<p>同じ型<code>&lt;A&gt;</code>の要素を0個以上並べたものです。型を混在させてはなりません。
+  「<code>[ ]</code>」の中に要素を「<code>,</code>」（カンマ）で区切って表現します。
+  空のリストは「<code>[]</code>」です。</p>
+<p><code>[ 1, -3, 5 ]</code>は<code>&lt;int list&gt;</code>，<code>[ [ 'a', 'b' ], [ 'c', 'd', 'e' ], [], [ 'f' ] ]</code>は<code>&lt;&lt;char list&gt; list&gt;</code>です。</p>
+<p>リストは再帰的な構造をしています。<code>[ <var>α</var> ; <var>Β</var> ]</code>を構成単位として<span class="note-ref">*1</span>，<code><var>Β</var></code>にリストあるいは空リストが入ります。
+<code>[ <var>α</var>, <var>β</var> ; <var>Γ</var> ]</code>は<code>[ <var>α</var> ; [ <var>β</var> ; <var>Γ</var> ]]</code>の，<code>[ <var>α</var>, <var>β</var>, <var>γ</var>, …, <var>ω</var> ]</code>は<code>[ <var>α</var>, <var>β</var>, <var>γ</var>, …, <var>ω</var> ; [] ]</code>の省略記法です。</p>
+
+<blockquote class="note">*1：LISPのドット対に相当します。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.7">3.7. ストリング <code>&lt;A string&gt;</code></h2>
+<p>例：<code>[| 1, -3, 5 |]</code>，<code>[| [| 'a', 'b' |], [| 'c', 'd', 'e' |], [||], [| 'f' |] ]</code></p>
+<p>同じ型<code>&lt;A&gt;</code>の要素を0個以上並べたものです。型の混在はできません。
+  「<code>[| |]</code>」の中に要素を「<code>,</code>」（カンマ）で区切って表現します。
+  リストと似ていますが，ストリング型は，指標（インデックス）によって高速かつ一定時間で要素を参照できます。</p>
+<p><code>[| 1, -3, 5 |]</code>は<code>&lt;int string&gt;</code>，<code>[| [| 'a', 'b' |], [| 'c', 'd', 'e' |], [||], [| 'f' |] ]</code>は<code>&lt;&lt;char string&gt; string&gt;</code>です。</p>
+<p>文字のストリングを文字列と呼びます。
+  <code>&lt;char string&gt;は&lt;cstr&gt;</code>という別名を持ちます<span class="note-ref">*1</span>。文字列はダブルクオーテーション（二重引用符）で文字を囲んで表現することもできます。
+  <code>[| 'c', 'd', 'e' |]</code>は，<code>&quot;cde&quot;</code>と同じ，<code>[| [| 'a', 'b' |], [| 'c', 'd', 'e' |], [||], [| 'f' |] ]</code>は<code>[| &quot;ab&quot;, &quot;cde&quot;, &quot;&quot;, &quot;f&quot; |]</code>と同じで，<code>&lt;cstr string&gt;</code>です。</p>
+<p>文字列内で，改行，タブ，二重引用符は次のようにエスケープ表現します。</p>
+<blockquote>CR → <code>\r</code>，LF → <code>\n</code>，タブ → <code>\t</code>，「<code>&quot;</code>」 → <code>\&quot;</code><span class="note-ref">*2</span></blockquote>
+<p>長い文字列の途中でソースコードを改行したい場合は，改行前に「<code>\</code>」を，次の行に二重引用符を置いてから文字列の続きを書きます。<span class="note-ref">*3</span></p>
+<blockquote class="code-sample">コード例
+<code>&quot;This is a \
+  &quot;long cstr.&quot;</code></blockquote>
+
+<blockquote class="note">*1：別名の<code>&lt;cstr&gt;</code>のほうが単純で短いので，通常は別名を使います。</blockquote>
+<blockquote class="note">*2：単引用符は文字列の中でエスケープ表現しません。二重引用符は文字リテラルの中でエスケープ表現しません。</blockquote>
+<blockquote class="note">*3：「<code>\</code>」に空白あるいは改行が続く場合，次に二重引用符が出現するまで，空白および改行を無視します。それまでにこれら以外の文字が出現するとエラーになります。</blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="3.8">3.8. 文脈外 <code>&lt;_?_&gt;</code></h2>
+<p>Sangoプログラム内では，複数のプログラム文脈（スレッド＝アクタ）が並行して実行されます。
+  プログラム文脈外のオブジェクトを扱う場合，この型にすることがあります。
+  オブジェクト自身が持つ型情報とパターンマッチすることで型を復元することができます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="4">4. 新しい型を定義する</h1>
+<p>いくつかのデータを組み合わせて，新しい型を作ることができます。
+  この機能はライブラリでも多く使われています。作られた型を「被構築型」（constructed type）と呼びます。
+  以下，いくつか例で説明します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="4.a">例：論理型</h3>
+<p>「真」「偽」を表す論理型<code>&lt;bool&gt;</code>は，「真」を意味する「<code>true$</code>」と，「偽」を意味する「<code>false$</code>」として標準ライブラリで定義されています。
+  この「<code>true$</code>」「<code>false$</code>」を「データ構築子」と呼びます。
+  <code>&lt;bool&gt;</code>は，データ構築子のみの構成二つの選択として定義されています<span class="note-ref">*1</span>。</p>
+<blockquote class="def">定義
+<code>data &lt;bool&gt; := true$ | false$ ;;</code></blockquote>
+<p>被構築型の定義を示す「<code>data</code>」キーワードに続き，型名，「<code>:=</code>」と続き，それぞれのデータ構築子を定義しています。
+「<code>|</code>」は選択を示します。選択肢ごとに改行する場合には，次のような書き方も多く用いられます。</p>
+<blockquote class="def">定義
+<code>data &lt;bool&gt; :=
+| true$
+| false$ ;;</code></blockquote>
+
+<blockquote class="note">*1：実際には，アクセス範囲を示すキーワードが付いていますが，ここでは省略します。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="4.b">例：X-Y座標値</h3>
+<p>X-Y座標を表すためには，例えば以下のように定義します。</p>
+<blockquote class="code-sample">コード例
+<code>data &lt;xy&gt; := &lt;real&gt; &lt;real&gt; xy$ ;;</code></blockquote>
+<p>X座標，Y座標それぞれの<code>&lt;real&gt;</code>をデータ構築子xy$でくくって，<code>&lt;xy&gt;</code>という型を構築します。
+  型構築子とデータ構築子を一致させる必要はありせんが，型構築子に「<code>$</code>」を付けてデータ構築子にすることがしばしば行われます。
+  データ構築子によってくくられる個々の要素を「属性」（attribute）と呼びます。</p>
+<p>実際にデータを構築するコードは以下のようになります。</p>
+<blockquote class="code-sample">コード例
+<code>3.5e2 -0.2e-1 xy$</code></blockquote>
+<p>属性を指定するために関数を呼び出したり被構築型を使う場合などで，文法上の要素が2個以上になる場合は，「<code>( )</code>」（カッコ）で括る必要があります。</p>
+<blockquote class="code-sample">コード例
+<code>(P Q sum) (P Q diff) xy$
+P Q sum P Q diff xy$</code>  # コンパイルエラー</blockquote>
+<p>上の例では，<code>P</code>，<code>Q</code>が局所変数（後述）で，<code>sum</code>，<code>diff</code>が関数だと理解しておけば十分です。
+  カッコを使わないと，6個の属性があると解釈され，定義上の属性の個数と一致しないので，コンパイルエラーになります。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="4.c">例：<code>&lt;A maybe&gt;</code></h3>
+<p>標準ライブラリで定義されている型で，<code>&lt;A&gt;</code>の値がある場合と，無い場合を表します。</p>
+<blockquote class="def">定義
+<code>data &lt;*A maybe&gt; := &lt;A&gt; value$ | none$ ;;</code></blockquote>
+<p>data文の中で型パラメタが初めて現れるときは，それぞれ前に「<code>*</code>」を付けます。
+定義本体は，<code>&lt;A&gt;</code>の値がある場合にはその値と「<code>value$</code>」，無い場合は「<code>none$</code>」で表現することを意味しています。</p>
+<blockquote class="code-sample">コード例
+<code>&quot;some data&quot; value$</code>  # 値ありの場合。型は<code>&lt;cstr maybe&gt;</code>
+<code>((P Q sum) (P Q diff) xy$) value$</code>  # 値ありの場合。型は<code>&lt;xy maybe&gt;</code>
+<code>none$</code>  # 値無しの場合。型は<code>&lt;A maybe&gt;</code>（Aは未束縛）</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="4.d">例：多くの属性を持つ場合</h3>
+<p>属性はその位置（順序）で区別されますが，属性が多くなると間違いが起きやすくなります。
+  ISBN，タイトル，著者，ページ数から成る書籍のデータを考えてみましょう。</p>
+<blockquote class="code-sample">コード例
+<code>data &lt;book&gt; :=
+&lt;cstr&gt;  # ISBN
+&lt;cstr&gt;  # title
+&lt;cstr&gt;  # author
+&lt;int&gt;   # pages
+book$ ;;</code></blockquote>
+<p><code>&lt;cstr&gt;</code>の属性が連続し，順序を間違えやすくなっています。
+  <code>&lt;cstr&gt;</code>から<code>&lt;isbn&gt;</code>，<code>&lt;title&gt;</code>などの型を作れば型の整合性検査で取り違えが検出されますが，手間がかかることは否めません。</p>
+<p>別の方法として，「ラベル」を付けることによって属性を区別することができます。
+  ラベルを付けた属性は，値の構築の際に指定順序が入れ替わっても構いません。
+  定義は以下のように行います。</p>
+<blockquote class="code-sample">コード例
+<code>data &lt;book&gt; := isbn: &lt;cstr&gt; title: &lt;cstr&gt; author: &lt;cstr&gt; pages: &lt;int&gt; book$ ;;</code></blockquote>
+<p>属性の型に先行する「<code>isbn</code>」「<code>title</code>」などがラベルで，ラベルと属性の型の間には「<code>:</code>」（コロン）を置きます。
+  ラベル付き属性とラベル無し属性を混在させることもできます。
+  その場合は，ラベル無し属性を先に並べ，その後にラベル付き属性を並べます。</p>
+<blockquote class="code-sample">コード例
+<code>data &lt;book&gt; := &lt;cstr&gt; &lt;cstr&gt; author: &lt;cstr&gt; pages: &lt;int&gt; book$ ;;</code></blockquote>
+<p>値の構築は以下のように行います。</p>
+<blockquote class="code-sample">コード例
+<code>&quot;1-234-5678-9&quot; &quot;Ouch!&quot; &quot;who am i&quot; 512 book$</code>  # OK：ラベル不使用
+<code>isbn: &quot;1-234-5678-9&quot; title: Ouch!&quot; author: &quot;who am i&quot; pages: 512 book$</code>
+  # OK：ラベル使用
+<code>title: &quot;Ouch!&quot; author: &quot;who am i&quot; pages: 512 isbn: &quot;1-234-5678-9&quot; book$</code>
+  # OK：順序入替え
+<code>&quot;1-234-5678-9&quot; &quot;Ouch!&quot; &quot;who am i&quot; pages: 512 book$</code>  # OK：ラベルの一部を使用
+<code>isbn: &quot;1-234-5678-9&quot; &quot;Ouch!&quot; &quot;who am i&quot; 512 book$</code>
+  # NG：ラベル付きの後にラベル無し</blockquote>
+<p>ラベル付きで定義されている属性を，ラベル無しで指定してもかまいません。
+  その場合は，位置（順序）で属性が区別されます。</p>
+<p>なお，ラベル付き属性は，ラベル名を使ってデータ全体からその属性値を取り出すことができます（後述）。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="5">5. 型に別名を付ける</h1>
+<p>主に型の表現を簡単にするため，型に別名を付けることができます。
+  例として文字列<code>&lt;cstr&gt;</code>の定義を示します。</p>
+<blockquote class="def">定義
+<code>alias type &lt;cstr&gt; := &lt;char string&gt; ;;</code></blockquote>
+<p>型パラメタを持つ定義は以下のように行います。</p>
+<blockquote class="code-sample">コード例
+<code>alias type &lt;*A *B pair&gt; := &lt;A B tuple&gt; ;;</code></blockquote>
+<p> 同じ型パラメタが「<code>:=</code>」の右側で何度も出現しても構いませんが，左側で定義されていない型パラメタを使うことはできません。</p>
+<p>別名定義は，新たな型を生成するわけではありません。
+  型が一致しているかどうかの判定は，別名をすべて解決してから行われます。
+  以下の二つの別名<code>triple</code>と<code>trio</code>は同じ型と判定されます。</p>
+<blockquote class="code-sample">コード例
+<code>alias type &lt;*A *B *C triple&gt; := &lt;A B C tuple&gt; ;;</code>
+<code>alias type &lt;*A *B *C trio&gt; := &lt;A B C tuple&gt; ;;</code></blockquote>
+<p>別名定義は，循環定義にならないように注意してください。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="6">6. 関数を呼び出す</h1>
+<p>関数を呼び出すには，必要なパラメタを並べ，最後に関数名を書きます。パラメタがゼロ個の場合は関数名だけ書きます。</p>
+<blockquote class="code-sample">コード例
+<code>P Q add</code>  # PとQの和
+<code>(P Q diff) R prod</code>  # （PとQの差）とRの積
+<code>max_int</code>  # 整数の最大値</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="7">7. 他のモジュールを使う</h1>
+<p>ライブラリなどの他のモジュールで定義されている関数を呼び出したりデータを構築したりするには，そのモジュールを使用する宣言（インポート）を行います。
+  <code>&quot;sango.lang&quot;</code>モジュールを参照する場合は，インポートは不要です<span class="note-ref">*1</span>。</p>
+<p>インポートには，モジュール名と，それを参照する名前（モジュール識別子）を指定します。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.actor&quot; -&gt; act ;;</code></blockquote>
+<p>参照する場合は，モジュール識別子，「<code>.</code>」（ピリオド）を対象の識別子（型構築子，関数名，データ構築子）の直前に置きます<span class="note-ref">*2</span>。</p>
+<blockquote class="code-sample">コード例
+<code>Mbox (1000 act.wait_ms$) act.listen</code></blockquote>
+<p>モジュール内の定義は，他のモジュールからの使用を制限することができます。
+  許可されていない定義は他のモジュールから使用できません。
+  関数と型のアクセス制約は以下のようになっています。</p>
+<table border>
+  <caption>関数への他モジュールからのアクセス</caption>
+  <tr><th>アクセス制約</th><th>参照（呼び出し，クロージャ取得）</th></tr>
+  <tr><td>public</td><td class="check-mark">〇</td></tr>
+  <tr><td>private</td><td class="check-mark">－</td></tr>
+</table>
+<p></p>
+<table border> 
+  <caption>型への他モジュールからのアクセス</caption>
+  <tr><th>アクセス制約</th><th>型／値の参照</th><th>パターンマッチ</th><th>データ構築</th></tr>
+  <tr><td>public</td><td class="check-mark">〇</td><td class="check-mark">〇</td><td class="check-mark">〇</td></tr>
+  <tr><td>protected</td><td class="check-mark">〇</td><td class="check-mark">〇</td><td class="check-mark">－</td></tr>
+  <tr><td>opaque</td><td class="check-mark">〇</td><td class="check-mark">－</td><td class="check-mark">－</td></tr>
+  <tr><td>private</td><td class="check-mark">－</td><td class="check-mark">－</td><td class="check-mark">－</td></tr>
+</table> 
+<p>アクセス制約は，定義文にて，名前の後に「@」を先頭につけたキーワードで指定します。
+  指定しない場合は@privateが指定されているとみなされます。</p>
+
+<blockquote class="note">*1：明示的にインポートすることもできます。自分で定義した識別子で<code>&quot;sango.lang&quot;</code>の識別子がシャドーされてしまう場合は，この方法を使います。</blockquote> 
+<blockquote class="note">*2：本書の中でモジュール名を明示して識別子を示す場合は，便宜的に<code>&quot;<var>foo.bar</var>&quot;.<var>hoge</var></code>という形式で示します。プログラム中にこの形式で書くとコンパイルエラーとなります。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="8">8. パターンマッチを使う</h1>
+<p>処理中に値を保持しておきたいとか，リストや被構築データの一部を取り出したい場合には，パターンマッチを使用します。
+  パターンマッチには，(1)値の分解，(2)局所変数への束縛，(3)別の値との一致検査，の機能があります。</p>
+<p>局所変数に束縛するとは，値に名前を付けることです。以降，関数が終わるまで<span class="note-ref">*1</span>，その名前で束縛した値を参照できます。本書では，局所変数を単に変数と呼ぶことがあります。</p>
+<p>本章では主に(1)と(2)を説明します。
+  (3)は「条件分岐」を参照してください。</p>
+
+<blockquote class="note">*1：正確には，スコープが終了するまで。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.a">例：値をそのまま局所変数に束縛する</h3>
+<blockquote class="code-sample">コード例
+<code>P Q add = *X</code></blockquote>
+<p>「<code>=</code>」の左側の計算結果を局所変数<code>X</code>に束縛します。
+  <code>X</code>を宣言するため，その前に「<code>*</code>」を付けます。この後は，<code>X</code>と書けば束縛した値を参照できます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.b">例：タプルの要素を取り出す</h3>
+<p><code>Three_elem_tuple</code>は3要素のタプルに束縛された局所変数とします。
+  それぞれの要素を<code>X</code>，<code>Y</code>，<code>Z</code>に束縛するには，以下のようにします。</p>
+<blockquote class="code-sample">コード例
+<code>Three_elem_tuple = (| *X, *Y, *Z |)</code></blockquote>
+<p>「<code>=</code>」の左側は，関数呼び出しなど，値を供給するものです。
+  「<code>=</code>」の右側を一般に「パターン」と呼びます<span class="note-ref">*1</span>。
+  タプルにマッチさせるパターンは，タプルの記法にしたがい，要素数を一致させます。
+  もし必要なのが最初の要素だけの場合は，以下のようにマッチングします。</p>
+<blockquote class="code-sample">コード例
+<code>three_elem_tuple = (| *X, **, ** |)</code>
+<code>three_elem_tuple = (| *X |)</code>　　# コンパイルエラー</blockquote>
+<p>「<code>**</code>」は「匿名局所変数」です。
+  匿名局所変数はダミーの局所変数で，束縛されるべき値は捨てられます。</p>
+
+<blockquote class="note">*1：前の例の右辺「<code>*X</code>」もパターンです。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.c">例：リストの要素を取り出す</h3>
+<p>リストにマッチさせるパターンは，リストの記法にしたがいます。
+  「<code>;</code>」を使うと，それ以降の可変長のリストをマッチさせることができます。</p>
+<blockquote class="code-sample">コード例
+<code>[ 2, 3, 5 ] = *X</code>  # 成功。<code>X</code>は<code>[ 2, 3, 5 ]</code>
+<code>[ 2, 3, 5 ] = []</code>  # 失敗
+<code>[ 2, 3, 5 ] = [ *X ]</code>  # 失敗
+<code>[ 2, 3, 5 ] = [ *X, *Y ]</code>  # 失敗
+<code>[ 2, 3, 5 ] = [ *X ; *Y ]</code>  # 成功。<code>Y</code>は<code>[ 3, 5 ]</code>
+<code>[ 2, 3, 5 ] = [ *X, *Y ; *Z ]</code>  # 成功。<code>Z</code>は<code>[ 5 ]</code>
+<code>[ 2, 3, 5 ] = [ *X, *Y, *Z ]</code>  # 成功。<code>Z</code>は<code>5</code>
+<code>[ 2, 3, 5 ] = [ *X, *Y, *Z ; *V ]</code>  # 成功。<code>V</code>は<code>[]</code>
+<code>[ 2, 3, 5 ] = [ *X, *Y, *Z, *V ]</code>  # 失敗</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.d">例：ストリングの要素を取り出す</h3>
+<p>ストリングにマッチさせるパターンは，ストリングの記法にしたがいます。
+  リストと異なり，可変個の要素とマッチさせることはできません。
+  また，要素数が一致しないと，マッチングは失敗します。</p>
+<blockquote class="code-sample">コード例
+<code>[| 2, 3, 5 |] = *X</code>  # 成功。<code>X</code>は<code>[| 2, 3, 5 |]</code>
+<code>[| 2, 3, 5 |] = [||]</code>  # 失敗
+<code>[| 2, 3, 5 |] = [| *X |]</code>  # 失敗
+<code>[| 2, 3, 5 |] = [| *X, *Y |]</code>  # 失敗
+<code>[| 2, 3, 5 |] = [ *X, *Y, *Z ]</code>  # 成功
+<code>[| 2, 3, 5 |] = [ *X, *Y, *Z, *V ]</code>  # 失敗</blockquote>
+<p>文字列（&lt;cstr&gt;）のパターンを「&quot;…&quot;」の記法で示す場合は，文字単位の取り出しはできず，全体でのマッチングのみが可能です。</p>
+<p>ストリングの要素は，関数によっても取り出すことができます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.e">例：被構築データの属性を取り出す</h3>
+<p>被構築データにマッチさせるパターンは，構築の記法にしたがいます。</p>
+<blockquote class="code-sample">コード例
+<code>Book = *ISBN *Title *Authjor *Pages book$</code>  # ラベル不使用
+<code>Book = isbn: *ISBN title: *Title author: *Author pages: *Pages book$</code>
+  # ラベル使用
+<code>Book = title: *Title author: *Author pages: *Pages isbn: *ISBN book$</code>
+  # 順序入替え
+<code>Book = *ISBN *Title *Author pages: *Pages book$</code>  # 一部のラベルを使用</blockquote>
+<p>属性の一部のみでマッチングする場合は，マッチング不要な属性に匿名局所変数を使うか，データ構築子の直前に「<code>***</code>」を置きます。</p>
+<blockquote class="code-sample">コード例
+<code>Book = isbn: ** title: *Title author: *Author pages: ** book$</code>
+  # タイトルと著者のみマッチング
+<code>Book = title: *Title author: *Author *** book$</code>  # 同上</blockquote>
+<p>「<code>***</code>」は，ゼロ個あるいは1個以上の属性と無条件にマッチします。
+  属性を指定せず，データ構築子だけのマッチングも可能です。
+  これは条件分岐の際に意味を持ちます。</p>
+<blockquote class="code-sample">コード例
+<code>Book = title: *Title author: *Author *** book$</code>
+<code>Book = *ISBN *Title *Authjor *Pages *** book$</code>  # 「<code>***</code>」は形式的にマッチ<span class="note-ref">*1</span>
+<code>Book = *** book$</code>  # データ構築子のみのマッチング</blockquote>
+
+<blockquote class="note">*1：属性追加の定義変更に備えて入れておくといった使い方もあります。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.f">例：パターンの入れ子</h3>
+<p>パターンは入れ子にできます。</p>
+<p>解説のため，<code>&lt;book&gt;</code>の定義を修正します。
+  ISBMは無くてもよいことにし，著者は複数を可能とします。</p>
+<blockquote class="code-sample">コード例
+<code>data &lt;book&gt; := isbn: &lt;cstr maybe&gt; title: &lt;cstr&gt;</code>
+<code>authors: &lt;cstr list&gt; pages: &lt;int&gt; book$ ;;</code>
+<code>Book = isbn: (*ISBN value$) title: *Title *** book$</code>
+  # ISBNがある場合に，ISBNとタイトルを取り出す。ISBNが無い場合は失敗
+  # <code>( )</code>で括ることに注意
+<code>Book = author: [ *First_author, ** ; ** ] *** book$</code>
+  # 著者が複数の場合に限り最初の著者を取り出す。著者データが1個以下の場合は失敗
+  # <code>[ *First_author ; ** ]</code>とすると，著者データが1個以上のとき成功</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.g">例：文脈外オブジェクトの取り込み</h3>
+<p>文脈外から取り込まれ<code>&lt;_?_&gt;</code>になっているオブジェクトは型構築子の情報を持っており，これとパターンマッチすることにより，文脈内の型を復元することができます。</p>
+<blockquote class="code-sample">コード例
+<code>Some_object case {</code>
+<code>; &lt;foo&gt; == *X -&gt; X do_something_foo</code>  # <code>X</code>は<code>&lt;foo&gt;</code>
+<code>; &lt;_?_ _?_ bar&gt; == *X -&gt; X do_something_bar</code>  # <code>X</code>は<code>&lt;_?_ _?_ bar&gt;</code>
+<code>}</code></blockquote>
+<p>パターンの前に，マッチさせる型と「<code>==</code>」を置きます。型パラメタに指定できるのは<code>_?_</code>のみです。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="8.h">パターンマッチの留意点</h3>
+<ul>
+  <li>実数型のリテラル（<code>1.25e-3</code>など）はパターンとして記述できません。
+    実数は内部表現上の誤差を生じるため，同値かどうかは，誤差を意識して比較することにより判定するものだからです<span class="note-ref">*1</span>。</li>
+  <li>クロージャ（後述）の定義もパターンには記述できません。</li>
+  <li>実行時に「<code>=</code>」にてマッチングが失敗すると<code>incompat</code>$例外が発生します。</li>
+</ul>
+
+<blockquote class="note">*1：実数に束縛された変数をパターンに使用することはできます。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="9">9. 関数を定義する</h1>
+<p>関数は以下の形式で定義します。</p>
+<blockquote>文法<br/>
+  <code>eval</code> パラメタ定義 関数名 <code>-&gt;</code> 結果型 <code>{</code> 式の並び <code>} ;;</code></blockquote>
+<p>定義の中には仮引数変数や型パラメタを使用しますが，最初の出現時に「<code>*</code>」を付けます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="9.1">9.1. パラメタ定義</h2>
+<p>パラメタの数だけ，型と仮引数変数の組を並べます。
+  仮引数変数は初めての出現なので，必ず「<code>*</code>」を付けることになります。</p>
+<blockquote class="code-sample">コード例
+<code>&lt;int&gt; *I &lt;int&gt; *J</code>
+<code>&lt;*A list&gt; *List &lt;A&gt; *Elem</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="9.2">9.2. 関数名</h2>
+<p>関数名には「公式名」と「別名」があります。
+  関数は必ず一つの公式名と，ゼロ個以上の別名を持ちます。
+    関数の呼び出しには，公式名も別名も使用できます。</p>
+<p>公式名は，そのソースファイル（モジュール）において，関数公式名とデータ構築子の中で一意でなければなりません。
+  別名は，他の関数の公式名，別名と同じでも構いません。</p>
+<p>関数名は，公式名を最初に宣言し，引き続いて「<code>|</code>」をはさんで別名を必要数だけ宣言します。</p>
+<blockquote class="code-sample">コード例
+<code>write</code>  # 公式名のみ
+<code>write | put | store</code>  # 公式名と二つの別名</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="9.3">9.3. 結果型</h2>
+<p>関数が返す値の型を宣言します。
+  値を返す意味を持たない場合は，<code>&lt;void&gt;</code>を返すようにします。 </p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="9.4">9.4. 式の並び</h2>
+<p>関数の処理である「式」を「<code>,</code>」（カンマ）でつなげて書きます<span class="note-ref">*1</span>。
+  式は，次のいずれかの形式です。</p>
+<blockquote>文法<br/>
+  評価部<br/>
+  評価部 <code>=</code> パターン</blockquote>
+<p>評価部は，リテラル，関数呼び出し，データ構築，条件分岐，クロージャ定義の組み合わせで，値を供給します。
+  式の結果は，評価部の結果に一致します。</p>
+<p>評価部に続いて「<code>=</code>」とパターンを指定すると，パターンマッチが行われます。
+  評価部の結果を変数に束縛するのが主な目的です。
+  クロージャ呼び出し，データ構築，リスト／タプル／ストリングの要素にも使用可能です。</p>
+<blockquote class="code-sample">コード例
+<code>X Y Z recompute = *X' *Y' xy$
+(X f = *XX) Y foo
+[ foo = *X, bar = *Y ]</code></blockquote>
+<p>関数の呼び出し結果をパラメタが一つの関数にそのまま渡す場合は，「<code>&gt;&gt;</code>」を使うことができます。
+  連続させることも可能です。</p>
+<blockquote class="code-sample">コード例
+<code>X Y Z f &gt;&gt; g &gt;&gt; h</code>  # <code>((X Y Z f) g) h</code>と同じ</blockquote>
+
+<blockquote class="note">*1：空の場合は，<code>void$</code>が書かれているとみなされます。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="10">10.  動かして結果を見る</h1>
+<p>これまでで，データ構築，関数呼出し，パターンマッチ，関数定義ができるようになりました。
+  条件分岐や繰り返しの無い簡単なプログラムなら組んで動かすことができます。</p>
+<p>動かすには，プログラムを開始する「メイン関数」が必要です。
+  メイン関数は，引数無しで「<code>_main_</code>」という名前の関数です。
+  結果型は問いません<span class="note-ref">*1</span>。</p>
+<blockquote class="code-sample">コード例
+<code>eval _main_ -&gt; &lt;void&gt; { … } ;;</code></blockquote>
+<p>結果をとりあえず表示させるなら，オブジェクトをダンプする<code>&quot;sango.debug&quot;.repr</code>が手軽です。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.io.stdio&quot; -&gt; stdio ;;</code>
+<code>import &quot;sango.debug&quot; -&gt; debug ;;</code>
+<code>do_something &gt;&gt; debug.repr &gt;&gt; stdio.print,</code>
+  # あるいは<code>stdio.print_and_newline</code>
+<code>stdio.flush</code>  # 終了するまでのどこかで実行</blockquote>
+<p>プログラム実行の引数を取り込むには，<code>&quot;sango.system.runtime&quot;.args</code>を使います。
+  結果は，<code>&lt;cstr list&gt;</code>です。
+  整数の場合は，文字列を整数型に変換するために，<code>&quot;sango.num.int&quot;.parse</code>が使えます。</p>
+<p>例として，プログラムの実行引数に二つの整数を取り，その合計値を出力するプログラムadd.sgを作ってみます<span class="note-ref">*3</span>。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.debug&quot; -&gt; debug ;;
+import &quot;sango.io.stdio&quot; -&gt; stdio ;;
+import &quot;sango.num.int&quot; -&gt; int ;;
+import &quot;sango.system.runtime&quot; -&gt; runtime ;;
+eval _main_ -&gt; &lt;void&gt; {
+  runtime.args = [ *M, *N ; ** ],
+  M int.parse = *IM,
+  N int.parse = *IN,
+  M stdio.print,
+  &quot; + &quot; stdio.print,
+  N stdio.print,
+  &quot; = &quot; stdio.print,
+  IM IN sum &gt;&gt; debug.repr &gt;&gt; stdio.print_and_newline,
+  stdio.flush
+} ;;</code></blockquote>
+<p>ソースコードが完成したら，コンパイルし，実行します。</p>
+<blockquote class="run-sample">実行例
+<samp>D:\work&gt; </samp><kbd>sangoc add.sg</kbd>
+<samp>D:\work&gt; </samp><kbd>sango add 23 506</kbd></blockquote>
+<p>実行するとSangoのバージョン，ロードされたモジュール名の後に結果が表示されます。
+  バージョン情報，モジュール情報が不要の場合は，<code>-quiet</code>オプションで表示を抑制します。</p>
+<blockquote class="run-sample">実行例
+<samp>D:\work&gt; </samp><kbd>sango -quiet all add 23 506</kbd>
+<samp>23 + 506 = {&quot;sango.lang&quot;.int|529}</samp>
+<samp>D:\work&gt;</samp></blockquote>
+<p>例外が発生した場合は，次のような出力になります。
+  引数を整数へ変換する関数で失敗し，例外が発生した結果です。</p>
+<blockquote class="run-sample">実行例
+<samp>D:\work&gt; <kbd>sango -quiet all add foo bar</kbd>
+Exception {&quot;sango.lang&quot;.exc_desc|bad_arg$} Invalid integer format.
+Call stack:
+  * &quot;sango.lang&quot;.new_exception
+  * &quot;sango.num.int&quot;.parse:@@0 at L27
+    &quot;add&quot;._main_ at L9
+D:\work&gt;</samp></blockquote>
+<p>例外情報に続いてコールスタック情報が出力されます。
+  コールスタック情報は，関数の呼び出しの深さを表しており，下が呼び出した関数，上が呼び出された関数です。
+  「<samp>at Lnnn</samp>」の<samp>nnn</samp>はソースコードの行番号です<span class="note-ref">*4</span>。
+  関数名の前の「<samp>*</samp>」は，下の行との間に別の関数呼び出しが隠れていることを示しています<span class="note-ref">*5</span>。</p>
+
+<blockquote class="note">*1：メイン関数としてではなく，別の関数から呼び出すことも可能です。</blockquote>
+<blockquote class="note">*2：厳密には，これを呼び出したアクタが例外により終了した場合です。呼び出さないアクタの終了は関知しません。</blockquote>
+<blockquote class="note">*3：サンプルプログラムとして提供されています。</blockquote>
+<blockquote class="note">*4：関数がネイティブ実装（現在はJavaでの実装）の場合，行番号は出力されません。</blockquote>
+<blockquote class="note">*5：末尾呼び出しが最適化された場合にこうなります。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="11">11.  場合分けする</h1>
+<p>値によって処理を変える場合には，<code>if</code>ブロック，<code>case</code>ブロックを使用します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="11.1">11.1. <code>if</code>ブロック</h2>
+<p>いくつかの選択肢のうち，ガードの条件が真（<code>true$</code>）になったアクションを実行し，結果を返します。</p>
+<blockquote>文法<br/>
+  <code>if {</code> ガード <code>-&gt;</code> アクション <code>;</code> ガード <code>-&gt;</code> アクション <code>;</code> … }<br/>
+  <code>if {</code>  # 改行する場合は次のように書くことが多い<br/>
+  <code>;</code> ガード <code>-&gt;</code> アクション<br/>
+  <code>;</code> ガード <code>-&gt;</code> アクション<br/>
+  　…<br/>
+  <code>}</code></blockquote>
+<p>全体を「<code>if</code>ブロック」，「<code>;</code>」で区切られたそれぞれを「<code>if</code>節」と呼びます。
+  <code>if</code>節の「<code>-&gt;</code>」の前が「ガード」，後が「アクション」です。
+  ガードは最終的に論理型を返す式の並び，アクションは式の並びです<span class="note-ref">*1</span>。
+  <code>if</code>ブロックは，一つの文法要素（項）として扱われます。</p>
+<p>まず先頭の<code>if</code>節のガードを実行し，真が返された場合はそのアクションを実行し，最後に実行した式の結果を返して終了します。
+  ガードが偽を返した場合は，次の<code>if</code>節に移り，ガードを実行して…と繰り返します。
+  最後の<code>if</code>節のガードが偽を返した場合は，<code>no_case$</code>例外が発生します。</p>
+<blockquote class="code-sample">コード例
+<code>if { 
+; X Y lt? -&gt; &quot;X less than Y&quot;
+; X Y eq? -&gt; &quot;X equal to Y&quot;
+; otherwise -&gt; &quot;X greater than Y&quot;
+}</code></blockquote>
+<p><code>otherwise</code>は常に<code>true$</code>を返す関数で，最後のif節で「それ以外の場合」のガードとして使われます。</p>
+<p>それぞれの<code>if</code>節のアクションの最後の式は，同じ型の結果を返さなければなりせん。
+  それが<code>if</code>ブロックの結果型になります。</p>
+
+<blockquote class="note">*1：アクションが空の場合は，<code>void$</code>が書かれているとみなされます。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="11.2">11.2. <code>case</code>ブロック</h2>
+<p>いくつかの選択肢のうち，パターンマッチが成功したガードのアクションを実行して結果を返します。
+  パターンマッチした結果に条件を加えることもできます。</p>
+<blockquote>文法<br/>
+  値 <code>case {</code> ガード <code>-&gt;</code> アクション <code>;</code> ガード <code>-&gt;</code> アクション <code>;</code> … }<br/>
+  値 <code>case {</code>  # 改行する場合は次のように書くことが多い<br/>
+  <code>;</code> ガード <code>-&gt;</code> アクション<br/>
+  <code>;</code> ガード <code>-&gt;</code> アクション<br/>
+  　…<br/>
+  <code>}</code><br/></blockquote>
+<p>「<code>case</code>」から始まる全体を「<code>case</code>ブロック」，「<code>;</code>」で区切られたそれぞれを「<code>case</code>節」と呼びます。
+  <code>case</code>節の「<code>-&gt;</code>」の前が「ガード」，後が「アクション」です。
+  <code>case</code>ブロックは，一つのパラメタを持つ関数のように扱われます。
+  最初の「値」には，変数を指定するか，関数の呼び出し結果を「<code>&gt;&gt;</code>」で渡すのが一般的です。
+  実行の流れは<code>if</code>ブロックと同じです。</p>
+<p><code>case</code>節のガードの基本は，パターンです。</p>
+<blockquote class="code-sample">コード例
+<code>ISBN_ case {
+; *ISBN value$ -&gt; ISBN
+; ** -&gt; &quot;no ISBN&quot;
+}</code></blockquote>
+<p>パターンに束縛済みの変数や，定数リテラルを入れることができます。
+  関数呼び出しを入れることはできません。</p>
+<blockquote class="code-sample">コード例
+<code>Count_ case {</code>
+<code>; Old_count value$ -&gt; &quot;not changed&quot;</code>  # <code>Old_count</code>は束縛済み変数
+<code>; 0 value$ -&gt; &quot;zero&quot;
+; 1 value$ -&gt; &quot;one&quot;
+; ** value$-&gt; &quot;many&quot;
+; ** -&gt; &quot;hmmm...&quot;
+}</code></blockquote>
+<p>マッチした変数をより詳細なパターンにマッチさせることができます。</p>
+<blockquote class="code-sample">コード例
+<code>Maybe_foo case {
+; *F value$ =&gt; F = *X *Y foo$, X = ...  -&gt; ...
+; ** -&gt; ...
+}</code>
+</blockquote>
+<p>パターンの後に<code>=&gt;</code>を続け，マッチした変数をさらにパターンにマッチさせます。
+  詳細化が複数ある場合はカンマでつなぎます。</p>
+<p>パターンに続けて条件を指定することができます。</p>
+<blockquote class="code-sample">コード例
+<code>Count_ case {
+; *N value$ || N ge0? -&gt; &quot;valid&quot;</code>  # <code>N ge0?</code> は<code>N</code>≧0
+<code>; ** value$ -&gt; &quot;invalid&quot;
+; ** -&gt; &quot;hmmm...&quot;</code>
+}</blockquote>
+<p>同じアクションをもつ複数のパターンを「<code>|</code>」でつなげて一つのガードにまとめることができます。
+  条件がある場合はパターンの並びの後に指定します。</p>
+<blockquote>文法<br/>
+パターン <code>|</code> パターン <code>|</code> … <code>|</code> パターン <code>||</code> 条件 <code>-&gt;</code> アクション</blockquote>
+<p>この場合，各パターンでは変数を定義できません。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="12">12.  関数オブジェクトを使う</h1>
+<p>関数を関数呼び出しに渡したり，値に適用したりできます<span class="note-ref">*1</span>。
+  つまり，オブジェクトとして扱えます。関数オブジェクトをクロージャと呼びます<span class="note-ref">*2</span>。
+  クロージャの型（あるいは，単に「関数の型」）は，引数の型を順に並べ，その後に結果型を置き，型構築子「<code>fun</code>」によって示します。</p>
+<blockquote class="code-sample">コード例
+<code>&lt;int&gt;</code>と<code>&lt;int&gt;</code>を受け取り<code>&lt;int&gt;</code>を返す → <code>&lt;int int int fun&gt;</code>
+<code>&lt;A maybe&gt;</code>を受け取り<code>&lt;A&gt;</code>を返す → <code>&lt;&lt;A maybe&gt; A fun&gt;</code>
+引数無しで<code>&lt;void&gt;</code>を返す → <code>&lt;void fun&gt;</code></blockquote>
+
+<blockquote class="note">*1：関数プログラミングについては，専門の書籍などを参照してください。</blockquote>
+<blockquote class="note">*2：日本語では「閉包」。関数の外部環境（外部の変数）を取り込んで「閉じて」います。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="12.1">12.1. クロージャを取得する</h2>
+<p><code>eval</code>文で定義された関数<span class="note-ref">*1</span>をクロージャとして取得するには，その関数の公式名の前に「<code>^</code>」を付けます。
+  別名は使用できません。</p>
+<blockquote class="code-sample">コード例
+<code>^int_sum = *Sum_fun</code>  # 変数に束縛する例</blockquote>
+<p>関数（あるいはクロージャ）の中で，自分自身をオブジェクトとして取得する場合には，「<code>^^</code>」が使えます<span class="note-ref">*2</span>。</p>
+
+<blockquote class="note">*1：静的関数と呼ぶことがあります。</blockquote>
+<blockquote class="note">*2：静的関数の場合は自分自身の名前を使って取得することも可能ですが，動的に定義されたクロージャの場合は名前を持たないため「<code>^^</code>」を使うことになります。</blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="12.2">12.2. クロージャを適用する</h2>
+<p>パラメタを必要な数だけ並べた後に「<code>&amp;</code>」を置き，その後にクロージャを指定します。</p>
+<blockquote class="code-sample">コード例
+<code>M N &amp;Sum_fun</code> <span class="note-ref">*1</span>
+<code>N M &amp;(Funs get_sum_fun)</code>
+# <code>( )</code> の中は，2個のパラメタを取るクロージャを返す関数呼び出し</blockquote>
+
+<blockquote class="note">*1：慣習的に「<code>&amp;</code>」の後ろには空白を置きません。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="12.3">12.3. クロージャを動的に定義する</h2>
+<p>関数の内部で（すなわち，実行中に）クロージャを定義することができます。
+  定義方法はeval文と似ていますが，名前を持ちません。</p>
+<blockquote>文法<br/>
+  パラメタを持つ場合 → <code>\</code> パラメタ定義 <code>-&gt;</code> 結果型 { 式の並び }<br/>
+  パラメタを持たない場合 → <code>\\</code> 結果型 <code>{</code> 式の並び <code>}</code><br/></blockquote>
+<p>パラメタを持つ場合と持たない場合で，形式が異なりますので注意してください。
+  なお，クロージャ定義は一つの文法要素として扱われますので，全体をカッコで括る必要はありません。</p>
+<p>動的に定義したクロージャをその場で適用することもできます。</p>
+<blockquote class="code-sample">コード例
+<code>M N &amp;\ &lt;int&gt; *I &lt;int&gt; *J -&gt; &lt;int int tuple&gt; { (| I J sum, I J diff |) }
+  = (| *S, *D |)</code>
+# <code>I</code>と<code>J</code>について和と差からなるタプルを求めるクロージャを定義し（「<code>\</code>」から「<code>}</code>」），
+# <code>M</code>と<code>N</code>に適用し（「<code>&amp;</code>」の前後），
+# それぞれの要素を<code>S</code>と<code>D</code>に束縛する（「<code>=</code>」の右側）。
+# つまり，<code>M+N</code>が<code>S</code>に，<code>M-N</code>が<code>D</code>に束縛される。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="12.4">12.4. 高階関数</h2>
+<p>関数（クロージャ）を引数に取る関数を高階関数と呼びます。
+  ここでは，標準ライブラリ<code>&quot;sango.list&quot;</code>で提供されているいくつかの高階関数の使用例を示します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="12.4.a">マップ</h3>
+<p><code>&lt;A list&gt;</code>の各要素に<code>&lt;A B fun&gt;</code>を適用し<code>&lt;B list&gt;</code>を返します。
+  <code>map</code>として提供されています。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.list&quot; -&gt; list ;;</code>
+<code>[ 0, 1, -1, 2, -2 ] ^ge0? list.map</code>  # <code>ge0?</code>は0以上かどうか判定する関数
+# 結果は<code>[ true$, true$, false$, true$, false$ ]</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="12.4.b">フィルタ</h3>
+<p><code>&lt;A list&gt;</code>の各要素に<code>&lt;A bool fun&gt;</code>を適用し，結果が<code>true$</code>になる要素だけを<code>&lt;A list&gt;</code>として返します。
+  <code>filter</code>として提供されています。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.list&quot; -&gt; list ;;</code>
+<code>[ 0, 1, -1, 2, -2 ] ^ge0? list.filter</code>  # 結果は<code>[ 0, 1, 2 ]</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="12.4.c">畳み込み</h3>
+<p>リストの要素に順に関数を適用していき，最終的に一つの結果を出します。
+  <code>&quot;sango.list&quot;</code>には何種類か定義されていますが，<code>fold</code>を使って<code>&lt;int list&gt;</code>の和を計算する例を示します。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.list&quot; -&gt; list ;;
+0 [ 3, 5, 7 ] ^sum list.fold</code></blockquote>
+<blockquote>計算経過<br/>
+→ <code>(0 3 sum) [ 5, 7 ] ^sum list.fold</code> → <code>3 [ 5, 7 ] ^sum list.fold</code><br/>
+→ <code>(3 5 sum) [ 7 ] ^sum list.fold → 8 [ 7 ] ^sum list.fold</code><br/>
+→ <code>(8 7 sum) [] ^sum list.fold → 15 [] ^sum list.fold</code><br/>
+→ <code>15</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="13">13.  繰り返しをうまくプログラミングする</h1>
+<p>繰り返しを行うには，他の関数型言語でのプログラミングと同じように，再帰呼び出しを使います。
+  ここでは，リストの長さ（要素の個数）を求める関数を例に解説します。</p>
+<p>まず関数の入出力を考えてみましょう。
+  要素に対して何か処理するわけではありませんから，どんなの要素型のリストでも処理できます。
+  入力は<code>&lt; A list&gt;</code>でよいでしょう。
+  結果は整数で返すものとします<span class="note-ref">*1</span>。</p>
+<blockquote class="code-sample">コード例
+<code>eval &lt;*A list&gt; *L length -&gt; &lt;int&gt;</code></blockquote>
+<p>処理の中身を考えます。空リストの長さはゼロです。
+  要素を持つリストについては，先頭の要素を除いたリストを作って長さを求め，それに1を加えればよさそうです。
+  関数定義全体はこうなりました。</p>
+<blockquote class="code-sample">コード例
+<code>eval &lt;*A list&gt; *L length -&gt; &lt;int&gt; {
+  L case {
+  ; [] -&gt; 0
+  ; [ ** ; *T ] -&gt; (T length) 1 sum
+  }
+} ;;</code></blockquote>
+<p>さて，この関数は，ロジックとしては動くのですが，再帰呼び出しによるメモリ使用量に課題があります。
+  自分自身を呼び出し，呼び出し側は結果を待つため，内部的には関数の実行環境が保持されたままです。
+  つまり，メモリを消費します。それがリストの長さ分だけ続くため，長さに応じたメモリが必要になり，とても長いリストを渡すとメモリ不足になってプログラムが停止してしまう可能性もあります。</p>
+<p>こういった問題に対処するため，関数型言語では，関数末尾の関数呼び出しを，メモリを保持しないよう最適化します。
+  Sangoもそうなっています。ただし，それには条件があり，呼び出す関数が返す値がそのまま自分の結果になっていること，つまり，結果を待つ必要がないことです。
+  この例では，最後の処理は<code>sum</code>であり，最適化されるのは<code>sum</code>の呼び出しだけで，<code>length</code>の再帰呼び出しは最適化されません。</p>
+<p>こんな場合には書き換えの定跡があります。
+  カウント済の値と，未カウントのリストのペアを持ちまわる方法です。
+  一つ要素をカウントしたらカウントを一つ上げ，未カウントのリストを一つ短くすることを繰り返します。
+  <code>0</code>と<code>L</code>のペアで開始し，未カウントのリストが空になった時点で終了します。</p>
+<blockquote class="code-sample">コード例<code>
+eval &lt;*A list&gt; *L length -&gt; &lt;int&gt; {
+  0 L length_sub
+} ;;
+eval &lt;int&gt; *Count &lt;*A list&gt; *Uncounted length_sub -&gt; &lt;int&gt; {
+  Uncounted case {
+  ; [] -&gt; Count
+  ; [ ** ; *T ] -&gt; (Count 1 sum) T length_sub
+  }
+} ;;</code></blockquote>
+<p><code>length_sub</code>の最後の呼び出しは<code>length_sub</code>であるため，再帰呼び出しが最適化されます。
+さらに，<code>length_sub</code>が<code>length</code>の中からしか呼び出されないときは，クロージャにしてしまうこともできます。</p>
+<blockquote class="code-sample">コード例<code>
+eval &lt;*A list&gt; *L length -&gt; &lt;int&gt; {
+  0 L &amp;\ &lt;int&gt; *Count &lt;*A list&gt; *Uncounted -&gt; &lt;int&gt; {
+    Uncounted case {
+    ; [] -&gt; Count
+    ; [ ** ; *T ] -&gt; (Count 1 sum) T &amp;^^
+    }
+  }
+} ;;</code></blockquote>
+<p>動的に定義されたクロージャの中で自分自身のオブジェクトを取得するには「<code>^^</code>」を使うのでした。
+  「<code>&amp;^^</code>」には「<code>&amp;&amp;</code>」という別名があり，通常は「<code>&amp;&amp;</code>」を使います。
+  また，静的関数の中でも自己再帰呼び出しには「<code>&amp;&amp;</code>」を使うのが慣習です。</p>
+<blockquote class="code-sample">コード例<code>
+eval &lt;*A list&gt; *L length -&gt; &lt;int&gt; {
+  0 L &amp;\ &lt;int&gt; *Count &lt;*A list&gt; *Uncounted -&gt; &lt;int&gt; {
+    Uncounted case {
+    ; [] -&gt; Count
+    ; [ ** ; *T ] -&gt; (Count 1 sum) T &amp;&amp;
+    }
+  }
+} ;;</code></blockquote>
+<p>これでひとまず完成しました。
+  ちなみに，この場合，<code>case</code>節 は順序に依存しないので，呼び出し全体を通じてリストが空でないケースが多いと考えるならば，順序を逆にして効率アップを図ることもありえます。</p>
+
+<blockquote class="note">*1：論理的には，リストは限りなく長くなる可能性があるので，結果型は<code>&lt;&quot;sango.num.bigint&quot;.bigint&gt;</code>とも考えられますが，整数型の範囲を超える長さのリストは現実的ではありません。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="14">14.  被構築型，再び</h1>
+<p>被構築型はプログラミングで多用されるため，豊富な機能を持っています。
+  まだ解説していない機能を解説します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="14.1">14.1. 属性取得関数</h2>
+<p>ラベルを付けた属性は，ラベル名を関数名に使うことによって属性値を取得することができます。</p>
+<blockquote class="code-sample">コード例
+<code>Book title = *Title,</code>  # <code>Book = title: *Title *** book$</code> と同じ
+<code>Book author = *Author</code>  # <code>Book = author: *Author *** book$</code> と同じ</blockquote>
+<p>属性ラベルを定義すると，コンパイラは内部的にアクセス関数を生成します。
+  生成された関数は，プログラマが定義した関数と同じように使用することができます。</p>
+<blockquote class="code-sample">生成コード例
+# データ構築子が一つの場合
+<code>data &lt;a&gt; := aa: &lt;t&gt; a$ ;;</code>
+<code>eval &lt;a&gt; *X _attr_a_aa | aa -&gt; &lt;t&gt; { X = aa: *V *** a$, V } ;;</code> <span class="note-ref">*1</span>
+ 
+# データ構築子が複数の場合<code>
+data &lt;b&gt; := ba: &lt;t&gt; b1$
+          | bb: &lt;u&gt; b2$ ;;
+eval &lt;b&gt; *X _maybe_attr_b_ba | maybe_ba -&gt; &lt;t maybe&gt; {
+  X case {
+  ; ba: *V *** b1$ -&gt; V value$
+  ; ** -&gt; none$
+  }
+} ;;</code></blockquote>
+
+<blockquote class="note">*1：生成された関数のアクセス制約は，型の定義がpublic，protectedの場合はpublicに，opaque，privateの場合はprivateになります。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="14.2">14.2. 一部の属性を変更する</h2>
+<p>被構築データの一部の属性だけを変更したいことがよくあります。
+  変更するといっても，Sangoのデータは不変なので，「一部の属性だけを変え，残りの属性は元の値を流用して，新たなデータを構築する」という意味になります。
+  この場合には，変更する属性と，流用するデータを使って，以下のように記述します。</p>
+<blockquote>文法<br/>
+  変更する属性の並び :: 流用するデータ データ構築子 ;;</blockquote>
+<p>「流用するデータ」には通常，変数を指定します<span class="note-ref">*1</span>。
+  次の例では，<code>Person</code>というデータの<code>age</code>属性を取得し一つ増加させて（<code>inc</code>），新しいデータ<code>Person'</code>を構築しています。</p>
+<blockquote class="code-sample">コード例<code>
+age: (Person age &gt;&gt; inc) :: Person person$ = *Person'</code></blockquote>
+<p>流用するデータのデータ構築子は，指定したデータ構築子と一致していなければなりません。
+  不一致の場合は<code>incompat$</code>例外が発生します。
+  複数のデータ構築子で定義されている被構築型の場合は，必要に応じてデータ構築子の場合分けをしてください。</p>
+
+<blockquote class="note">*1：式を指定することも可能ですが，二つ以上の文法要素の場合はカッコで括ってください。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="14.3">14.3. 型を拡張する</h2>
+<p>型の拡張とは，他のモジュールで定義された被構築型にデータ構築子を追加定義することです。
+  extend文によって行います。</p>
+<blockquote class="code-sample">コード例
+# <code>&lt;book&gt;</code>はモジュール<code>m</code>にてpublicとして定義されているものとする。
+<code>extend &lt;m.book&gt; @public := title: &lt;cstr&gt; hand_made_book$ ;;</code></blockquote>
+<p>このモジュールを<code>m1</code>とすると，上記<code>extend</code>文により<code>&lt;m1.book&gt;</code>が定義されます<span class="note-ref">*1</span>。</p>
+<p>型構築子を変更する場合は，次のように定義します。</p>
+<blockquote class="code-sample">コード例
+<code>extend &lt;m.book&gt; -&gt; extended_book @public := title: &lt;cstr&gt; hand_made_book$ ;;</code></blockquote>
+<p>この例では，<code>&lt;m1.extended_book&gt;</code>が定義されます。
+  なお，型構築子が変更されると，ベースとなった型と拡張した型の関係が分かりにくくなるため，型構築子の変更は，型構築子が衝突する場合など，最小限に行うべきです。</p>
+<p><code>m</code>の内部では，<code>&lt;book&gt;</code>を拡張した型（<code>&lt;m1.book&gt;</code>もその一つ）を<code>&lt;book+&gt;</code>と示します。
+  <code>&lt;book&gt;</code>を定義すると，<code>&lt;book+&gt;</code>のオブジェクトが実際には<code>&lt;book&gt;</code>の範囲にあるかどうかを判定する関数，<code>&lt;book&gt;</code>の範囲に落とし込む関数が同時に生成されます。
+  ベースとなる定義をしたモジュール<code>m</code>においては以下のとおりです。</p>
+<blockquote class="code-sample">生成コード例<code>
+eval &lt;book+&gt; *X _in_book? | book? @public -&gt; &lt;bool&gt; {
+  X case {
+  ; *** book$ -&gt; true$
+  ; ** -&gt; false$
+  }
+} ;;
+eval &lt;book+&gt; *X _narrow_book | narrow @public -&gt; &lt;book maybe&gt; {
+X case {
+  ; *V0 *V1 *V2 *V3 book$ -&gt; (V0 V1 V2 V3 book$) value$
+  ; ** -&gt; none$
+  }
+} ;;</code></blockquote>
+<p>拡張定義したモジュール<code>m1</code>においても同様の関数が生成されます。</p>
+<blockquote class="code-sample">生成コード例<code>
+eval &lt;book+&gt; *X _in_book? | book? @public -&gt; &lt;bool&gt; {
+  X case {
+  ; *** hand_made_book$ -&gt; true$
+  ; ** -&gt; X m._in_book?
+  }
+} ;;
+eval &lt;book+&gt; *X _narrow_book | narrow @public -&gt; &lt;book maybe&gt; {
+  X case {
+  ; *V0 hand_made_book$ -&gt; (V0 hand_made_book$) value$
+  ; ** -&gt; X m._narrow_book
+  }
+} ;;</code></blockquote>
+
+<blockquote class="note">*1：他モジュールの型構築子を参照するのでモジュール識別子で修飾します。修飾が無い場合，通常は，(1)自モジュール，(2)<code>&quot;sango.lang&quot;</code>の順で参照が解決されますが，型の拡張は自モジュールの定義に対してはできないため，<code>extend</code>文では例外的に<code>&quot;sango.lang&quot;</code>が指定されているとみなされます。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="15">15. 例外に備える</h1>
+<p>Sangoは，多くの言語のように，例外の処理機構を持っています。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="15.1">15.1. 例外を送出する</h2>
+<p>例外は，Sango処理系が例外状況を検出して送出するほか，プログラマが送出することもできます。
+  どのような状況を例外とするかはプログラマ次第ですが，状況判断を例外に依存し過ぎるプログラム設計は好ましくありません。</p>
+<p>例外を送出するには，(1)例外オブジェクトを生成し，(2)例外オブジェクトを送出します。</p>
+<p>例外オブジェクトを生成するのは，新たに例外状況を検出したとき，捕捉した例外を別の例外に変換したときです。
+  後者の場合，捕捉した例外情報を残すために保存しておくことができます。
+  例外オブジェクト<code>&lt;&quot;sango.lang&quot;.exception&gt;</code>は以下の関数で生成します。</p>
+<blockquote class="def">定義
+<code>module &quot;sango.lang&quot; ;;</code>
+形式1：
+<code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg &lt;exception maybe&gt; *Original_exc_
+  new_exception @public -&gt; &lt;exception&gt; ;;</code> <span class="note-ref">*1</span>
+形式2：
+<code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg
+  new_original_exception | new_exception @public -&gt; &lt;exception&gt; ;;</code>
+形式3：
+<code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg &lt;exception&gt; *Original_exc
+  new_chained_exception | new_exception @public -&gt; &lt;exception&gt; ;;</code></blockquote>
+<p>形式2と形式3は，形式1のショートカットです。
+  <code>Msg</code>は例外の情報を示す任意の文字列をセットできます。</p>
+<p>例外オブジェクトには生成時のコールスタック情報（関数の呼び出しの深さ情報）がセットされますので，例外オブジェクトは送出のすぐ前で生成するのがポイントです。</p>
+<p>生成した例外は以下の関数で送出します。この関数からは制御は戻りません<span class="note-ref">*2</span>。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.lang&quot; ;;
+eval &lt;exception&gt; *E throw @public -&gt; &lt;_&gt; ;;</code></blockquote>
+
+<blockquote class="note">*1：今後，関数の入出力定義は，処理の本体を省略してこのように示します。</blockquote>
+<blockquote class="note">*2：<code>&lt;_&gt;</code>は制御が戻らないことを示す，形式的な型です。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="15.2">15.2. 例外を捕捉する</h2>
+<p>例外を捕捉するには，正常終了か例外発生か否かを含めて，関数の呼び出し結果を受け取ります。
+  <code>&quot;sango.lang&quot;.try</code>を使って，関数の結果型が<code>&lt;A&gt;</code>の場合に結果を<code>&lt;A result&gt;</code>で受け取ります。</p>
+ 
+<blockquote class="def">定義<code>
+module &quot;sango.lang&quot; ;;
+eval &lt;*A fun&gt; *F try @public -&gt; &lt;A result&gt; ;;
+data &lt;*A result&gt; @public :=
+| fin: &lt;A&gt; fin$
+| &lt;exception&gt; exc$ ;;</code></blockquote>
+<p>受け取った結果によって処理を分岐させます。 </p>
+<blockquote class="code-sample">コード例<code>
+\\ &lt;res&gt; { do_trial } try &gt;&gt; case {
+; *R fin$ -&gt; R do_normal_process
+; ** exc$ -&gt; do_error_process
+}</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="15.3">15.3. 例外情報を扱う</h2>
+<p>例外の種類によって処理を分岐させる場合は，例外オブジェクトの<code>desc</code>属性によって場合分けします。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.io&quot; -&gt; io ;;
+\\ &lt;res&gt; { do_trial } try &gt;&gt; case {
+  ; *R fin$ -&gt; R do_normal_process
+  ; (desc: io.io_failure$ *** exception$) exc$ -&gt; do_IO_error_process
+  ; ** exc$ -&gt; do_generic_error_process
+}</code></blockquote>
+<p>デバッグのために例外情報を表示させるには，<code>&quot;sango.debug&quot;.dump_exception_to</code>（別名<code>dump_to</code>）によって例外オブジェクトをプリントストリームに出力します。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.debug&quot; -&gt; debug ;;
+import &quot;sango.io.stdio&quot; -&gt; stdio ;;
+Exception stdio.cstdout debug.dump_to</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="15.4">15.4. 新しい例外を定義する</h2>
+<p><code>&lt;&quot;sango.lang&quot;.exc_desc&gt;</code>を拡張することによって，例外を定義できます。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="15.5">15.5. <code>thru$</code>例外</h2>
+<p><code>&quot;sango.lang&quot;.thru$</code>例外は，継続困難な例外が発生した場合など，アクタを速やかに終了させたい場合に使用されます。
+  通常は，意識する必要はありません。<p>
+<p> この例外は，<code>try</code>に補足されません。
+  補足する場合は，<code>&quot;sango.lang&quot;.catch_all_try</code>を使用します。
+  この場合，補足した例外の趣旨にしたがい，速やかにアクタを終了させるようにしなければなりません。
+  </p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="16">16. モジュールを作る</h1>
+<p>モジュールは関連する機能の集まりとして作成します。
+  機能を実装し，モジュール外に必要な範囲だけを公開します。
+  どの範囲を一つのモジュールとするかは，プログラマやプロジェクトの考え方によります。</p>
+<p>メインモジュール（プログラムの実行を開始するモジュール）もライブラリモジュールも，形式の上では区別はありません。
+  メインモジュールはメイン関数（<code>_main_</code>）を含む必要がありますが，メイン関数を含んでいても，ライブラリとして使用することができます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="16.1">16.1. モジュール名</h2>
+<p>モジュールはモジュール名を持ちます。Sango提供モジュールのモジュール名は<code>&quot;sango.<var>xxx</var>.<var>yyy</var>&quot;</code>といった形をしています。
+  ピリオドで区切られた名前が並んでいますが，モジュール間には親子といった関係はありません。
+  プログラマが定義するモジュールもモジュール名を付けることができます。<span class="note-ref">*1</span>。
+  モジュール名は，<code>module</code>文で宣言します。</p>
+<blockquote class="code-sample">コード例
+<code>module &quot;proj_x.foo.bar&quot; ;;</code></blockquote>
+<p><code>module</code>文が指定されていないモジュールを無名モジュールと呼びます。
+  無名モジュールは，モジュールファイル（<code>*.sgm</code>）のロード時に，パスからモジュール名が決定されます。<p>
+<p><code>_name_</code>関数（引数なし，public）を使うと，モジュール内から自分のモジュール名を取得できます。</p>
+
+<blockquote class="note">*1：モジュール名については，付録を参照してください。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="16.2">16.2. 初期化</h2>
+<p>モジュールは，使用されるに先立って準備をしたいこともあります。
+  実行環境に応じた値を計算しておく，デーモンスレッドを立ち上げておくといったことです。
+  このようなことのために，モジュールはロード後に制御を受け取ることができます。
+  それには「<code>_init_</code>」という関数を定義し，初期化処理を記述します。</p>
+<blockquote class="code-sample">コード例<code>
+eval _init_ -&gt; &lt;t&gt; { do_initialization } ;;</code></blockquote>
+<p><code>_init_</code>は新たなスレッドで非同期に実行され，終了後にモジュールが使用可能になります<span class="note-ref">*1</span>。
+  メインモジュールの場合，<code>_main_</code>は<code>_init_</code>の後に実行されます。
+  <code>_init_</code>実行中に他のモジュールが使用しようとすると，その処理は待たされます<span class="note-ref">*2</span>。</p>
+<p>初期化後，<code>_init_</code>結果は「<code>_initd_</code>」という関数でいつでも取得できます。
+  <code>_initd_</code>の結果型は<code>_init_</code>の結果型と同じです。</p>
+<blockquote class="code-sample">疑似定義コード例<code>
+eval _initd_ -&gt; &lt;t&gt; ;;</code></blockquote>
+
+<blockquote class="note">*1：<code>_init_</code>が正常終了しなかった場合，プログラム全体がエラー終了します。</blockquote>
+<blockquote class="note">*2：複数モジュールの<code>_init_</code>によるデッドロックに注意してください。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="17">17. モデリング ― 「記述」と「実体」</h1>
+<p>例えば人のデータとして氏名や年齢などを表すデータを定義したとします。
+  これらのデータは人の特性を示した「値」で，このようなデータをSangoでは「記述」（description）と呼びます。
+  「記述」はノートに書いた文章のようなもので，新しいデータを生成すると文章が増えていきます。
+  去年の年齢データと今年の年齢データを求めると異なるように，いくつものバージョンのデータが次々にノートに書き込まれたのと同じ状況です。
+  Sangoのオブジェクトは変化しません（immutable）。
+  被構築データや変数は，どれかのバージョンの年齢データを指し示しています。</p>
+<p>それに対して，ファイルやネットワークセッションを管理しようとすると，ファイルやセッションに関する情報の最新版をどこかに持っておきたくなります。
+  それを実装するには，アクタ（後述）に持たせるか，「実体」（entity）を使います。ここでは，「実体」について説明します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="17.1">17.1. 「実体」に「記述」を紐づける</h2>
+<p>「実体」は手続き型言語における変数に相当し，オブジェクトを入れておく箱や，つなぎとめるフックのようなものです。</p>
+<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>を使います。
+  参照は手続き型言語における変数へのポインタに相当します。
+  「実体」を作成すると参照が返されますので，それを使います。
+  「実体」に紐づけられるオブジェクトは<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>です。
+   <code>&lt;&quot;sango.entity&quot;.ent_d&gt;</code>を拡張して定義します。
+  「実体」に紐づいたオブジェクトの取得，紐づけ直しは，以下の関数で入出力のように行います。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.entity&quot; ;;
+eval &lt;eref&gt; *Entity read @public -&gt; &lt;ent_d+&gt; ;;
+eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d+&gt; ;;</code>
+  # それまで紐づけられていたオブジェクトが返される</blockquote>
+<p>入出力処理は「実体」をロックして行われますので，<code>read</code>と<code>write</code>が交錯しても整合性が保たれます<span class="note-ref">*1</span>。</p>
+
+<blockquote class="note">*1：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="17.2">17.2. 「実体」消滅後の後処理</h2>
+<p>他のプログラミング言語と同様に，Sangoのオブジェクトはメモリ空間に存在し，不必要になると<span class="note-ref">*1</span>システムによって回収されます（ゴミ集め。Garbage Collection，GC）。
+  「記述」のGCはオブジェクトを消去するだけです。
+  一方，「実体」の場合は後処理が必要になることがあります。
+  例えば，ファイルやネットワークセッションをクローズしてリソースを解放するといったことです。
+  「実体」の生成時に後処理関数（invalidator）を指定することができます。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.entity&quot; ;;
+eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_entity @public -&gt; &lt;eref&gt; ;;</code></blockquote>
+<p>後処理関数は<code>&lt;void fun&gt;</code>で，「実体」が回収され消滅した後に，新たなスレッドとして起動されます<span class="note-ref">*2</span>。</p>
+
+<blockquote class="note">*1：どこからも参照されなくなった場合。</blockquote>
+<blockquote class="note">*2：Javaなどのファイナライザはオブジェクトの回収前に起動されますが，Sangoの後処理関数はオブジェクトの回収後に起動されることに注意してください。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="17.3">17.3. 弱参照</h2>
+<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
+  弱参照が指し示す（かもしれない）「実体」にアクセスするには，まず弱参照から強参照を取得し，強参照が存在すればそれを使って「実体」にアクセスします。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.entity&quot; ;;
+eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></blockquote>
+<p>弱参照が無効化された（弱参照が切れた）ときに通知を受け取ることができます。
+  通知を受けるリスナ関数は生成時に指定します。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.entity&quot; ;;
+eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;wref&gt; ;;</code></blockquote>
+<p>このリスナ関数は，後処理関数と同様に，弱参照が無効化された後に，新たなスレッドとして起動されます。</p>
+
+<blockquote class="note">*1：弱参照は他のプログラミング言語の弱参照と同じです。説明は割愛します。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="18">18. 並行プログラミング ― アクタにタスクを実行させる</h1>
+<p>Sangoプログラムは，並行して実行されるスレッドから構成されます。
+  Sangoではスレッドを「アクタ」（actor）と呼びます。
+  アクタ同士は，メモリ空間を共有せず，同期取りやメッセージ交換をします。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="18.1">18.1. アクタの生成・開始</h2>
+<p>アクタは，パラメタを持たないクロージャから生成します。
+  生成されたアクタは，まだ動き出していません。
+  生成時に返される<code>&lt;A &quot;sango.actor&quot;.async_h&gt;</code>は，アクタ実行結果<code>&lt;A&gt;</code>にアクセスするための，いわゆる「ハンドル」で，そこからアクタ自体のハンドル<code>&lt;&quot;sango.actor&quot;.actor_h&gt;</code>を取得することができます。
+  アクタを開始させるには，<code>&quot;sango.actor&quot;.start_actor</code>か<code>start_async</code>（いずれも別名<code>start</code>を持つ）を呼び出します。</p>
+<blockquote class="def">定義
+<code>module &quot;sango.actor&quot; ;;</code>
+<code>eval &lt;*A fun&gt; *F spawn_actor | spawn @public -&gt; &lt;A async_h&gt; ;;</code>　# 生成
+<code>eval &lt;*A async_h&gt; *Async actor_h @public -&gt; &lt;actor_h&gt; ;;</code>
+<code>eval &lt;actor_h&gt; *Actor start_actor | start @public -&gt; &lt;void&gt; ;;</code> # 開始
+<code>eval &lt;*A async_h&gt; *Async start_async | start @public -&gt; &lt;void&gt; ;;</code> # 開始</blockquote>
+<p>これらの関数を使ったアクタの開始シーケンスは以下のようになります。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.actor&quot; -&gt; act ;;
+\\ &lt;t&gt; { do_something } act.spawn = *Async, Async act.start</code>
+  # Asyncは待ち合わせに使用。待ち合わせる必要がなければ以下のように書ける
+<code>\\ &lt;t&gt; { do_something } act.spawn &gt;&gt; act.start</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="18.2">18.2. アクタの終了</h2>
+<p>アクタは，開始した関数からの復帰あるいは例外送出により終了します<span class="note-ref">*1</span>。
+  Sangoは，メインルーチンおよびモジュール初期化処理に割り当てたアクタの終了を監視しており，これらが例外によって終了すると，プログラム全体を異常終了させます。
+  Sangoは，それ以外のアクタが正常終了したか例外終了したかを関知しませんので，終了状態によって対処が必要であれば<span class="note-ref">*2</span>，<code>try</code>関数，あるいはアクタの結果取得などによってプログラミングしておく必要があります。
+  アクタが例外終了した場合にプログラム全体を異常終了させるには，<code>&quot;sango.system.runtime&quot;.terminate_on_abnormal_end</code>，<code>&quot;sango.system.runtime&quot;.terminate_on_my_abnormal_end</code>を呼び出すと簡便です。</p>
+<p>上記の異常終了の条件が発生せずに実行可能なアクタが全くなくなった時点で，プログラムは正常終了します。</p>
+
+<blockquote class="note">*1：現在は，他のアクタなどから強制終了させるなどの手段を提供していません。</blockquote>
+<blockquote class="note">*2：例外時には例外情報を出力する，他のアクタに通知する，プログラムを異常終了させるなど。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="18.3">18.3. アクタの終了待ち合わせ</h2>
+<p>アクタの終了を待ち合わることができます。
+  指定したアクタが終了するか，タイムアウトになるまで待たされます。</p>
+<blockquote class="def">定義
+<code>module &quot;sango.actor&quot; ;;
+data &lt;wait&gt; @public :=
+| wait_forever$</code>  # タイムアウトしない
+<code>| &lt;int&gt; wait_ms$ ;;</code>  # ミリ秒単位の待ちタイムアウト設定
+<code>eval &lt;actor_h&gt; *Actor &lt;wait&gt; *Wait
+  wait_actor_ended | join @public -&gt; &lt;bool&gt;  ;;</code></blockquote>
+<p>対象のアクタが終了した場合は<code>true$</code>，タイムアウトが発生した場合は<code>false$</code>が返されます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="18.4">18.4. アクタの結果取得</h2>
+<p>アクタの実行結果<code>&lt;A result&gt;</code>を取得するには以下の関数を使用します。
+  アクタがまだ終了していない場合は<code>none$</code>が返されます。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.actor&quot; ;;
+eval &lt;*A async_h&gt; *Async
+  async_peek_result | peek @public -&gt; &lt;&lt;A result&gt; maybe&gt; ;;</code></blockquote>
+<p>アクタの終了を待ってから結果を取得する関数も提供されています。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.actor&quot; ;;
+eval &lt;*A async_h&gt; *Async sync @public -&gt; &lt;A result&gt; ;;</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="18.5">18.5. アクタの優先度</h2>
+<p>アクタは，0から9のスケジュール優先度を持ちます。
+  0が最低，9が最高の優先度を表します。
+  デフォルトの優先度は4です。
+  優先度は，動的に変更が可能です。</p>
+<blockquote class="def">定義
+<code>module &quot;sango.actor&quot; ;;
+eval highest_priority @public -&gt; &lt;int&gt; ;;</code>  # 9
+<code>eval default_priority @public -&gt; &lt;int&gt; ;;</code>  # 4
+<code>eval lowest_priority @public -&gt; &lt;int&gt; ;;</code>  # 0
+<code>eval &lt;actor_h&gt; *Actor priority @public -&gt; &lt;int&gt; ;;
+eval &lt;actor_h&gt; *Actor &lt;int&gt; *Priority set_priority @public -&gt; &lt;void&gt; ;;</code></blockquote>
+<p>【Tentative】ライブラリ等で実装されているアクタの優先度は次のとおりです。</p>
+<table border>
+  <tr><th>優先度</th><th>アクタ</th></tr>
+  <tr><td>9</td><td>&nbsp;</td></tr>
+  <tr><td>8</td><td><ul><li><code>&quot;sango.actor.util&quot;</code> serializer，entity monitor</li></ul></td></tr>
+  <tr><td>7</td><td><ul><li><code>&quot;sango.io&quot;</code> 入出力</li></ul></td></tr>
+  <tr><td>6</td><td>&nbsp;</td></tr>
+  <tr><td>5</td><td>&nbsp;</td></tr>
+  <tr><td>4</td><td>（デフォルト）</td></tr>
+  <tr><td>3</td><td>&nbsp;</td></tr>
+  <tr><td>2</td><td>&nbsp;</td></tr>
+  <tr><td>1</td><td>&nbsp;</td></tr>
+  <tr><td>0</td><td>&nbsp;</td></tr>
+</table>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="19">19. 並行プログラミング ― メッセージ交換</h1>
+<p>前章で解説した方法は，アクタが終了しないと結果を受け取れません。
+  アクタを内部サーバとして動かしたい場合や，アクタ間で何度もやり取りをする場合は，メッセージ交換を使います。
+  メッセージ交換は，メッセージボックスを経由してメッセージをやり取りする方法です。
+  メッセージ交換には，クライアントやサーバといった役割の考え方はなく，アクタは平等です。</p>
+<p>ここでは，「実体」（entity）をエミュレートするコードを例題に解説します<span class="note-ref">*1</span>。
+  実体に保持されるオブジェクトはアクタが保持する変数として，実体の読み書きはアクタとメッセージを交換することによって実現されています。</p>
+<p>本章では，<code>&quot;sango.actor&quot;</code>を<code>act</code>として，<code>&quot;sango.entity&quot;</code>を<code>ent</code>としてインポートしているものとします。</p>
+
+<blockquote class="note">*1：このコードは，サンプルとして提供されています（<code>entemu.sg</code>）。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="19.1">19.1. メッセージ</h2>
+<p>メッセージは，<code>&lt;&quot;sango.actor&quot;.msg+&gt;</code>です。
+  独自のメッセージは，<code>&lt;&quot;sango.actor&quot;.msg&gt;</code>を拡張して定義します。</p>
+<blockquote class="code-sample">コード例
+<code>extend &lt;act.msg&gt; :=</code>
+<code>| &lt;act.post_h&gt; read_req$</code>  # read要求
+<code>| &lt;foo&gt; read_res$</code>  # read結果
+<code>| &lt;act.post_h&gt; &lt;foo&gt; write_req$</code>   # write要求
+<code>| &lt;foo&gt; write_res$ ;;</code>  # write結果</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="19.2">19.2. メッセージボックス</h2>
+<p>メッセージボックスの作成は，実行時に行います。
+  アクタをクライアント／サーバ構成にする場合，メッセージボックスは，サーバの要求受付用だけでなく，クライアントの結果受信用にも使用します。</p>
+<blockquote class="code-sample">コード例<code>
+act.open_mbox = (| *Box, *Post |) </code></blockquote>
+<p>メッセージボックスを作成すると，<code>&lt;mbox_h&gt;</code>と<code>&lt;post_h&gt;</code>が返されます。
+  <code>&lt;mbox_h&gt;</code>はメッセージボックスからメッセージを受信するために，<code>&lt;post_h&gt;</code>はメッセージボックスにメッセージを送信（ポスト）するために使います。
+  どのアクタからもメッセージを送信することができますが，メッセージを受信できるのはそのメッセージボックスを作成したアクタのみです。
+  メッセージボックスを作成したアクタ<span class="note-ref">*1</span>から他のアクタには<code>&lt;post_h&gt;</code>だけを渡してください。</p>
+
+<blockquote class="note">*1：メッセージボックスの「所有者」とも言います。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="19.3">19.3. メッセージの送信</h2>
+<p><code>&lt;&quot;sango.actor&quot;.post_h&gt;</code>を使って，メッセージを送信します。
+  以下は，サーバとなっているアクタがread要求の結果を送信するコードです。</p>
+<blockquote class="code-sample">コード例<code>
+Ret (ED read_res$) act.send</code></blockquote>
+<p>最初のパラメタが送り先，次のパラメタが送信するメッセージです。
+  メッセージを送信した後，制御が戻ります。受信したアクタがメッセージを処理したかどうかを直接的に知る方法はありませんので，その必要があれば，プログラマが作りこみます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="19.4">19.4. メッセージの受信</h2>
+<p>メッセージボックスからメッセージを受信するには，以下のように行います。
+  クライアントもサーバも方法は同じです。
+<blockquote class="code-sample">コード例
+<code>Box act.receive &gt;&gt; value = *Msg,</code>  # 必ずメッセージがある状態
+ ...
+<code>Msg case {
+; *Ret read_req$ -&gt; ED Ret svr_read
+; *Ret *New_data write_req$ -&gt; ED Ret New_data svr_write
+; act.no_post$ -&gt; none$
+; ** -&gt; ED value$
+}</code></blockquote>
+<p><code>receive</code>は，メッセージボックスから，最も早くポストされたメッセージを取り出して<code>value$</code>で返します。メッセージが無い場合は即時に<code>none$</code>を返します。</p>
+<p>メッセージボックスにメッセージがポストされた状態まで待つためには，以下の関数を使います。</p>
+<blockquote class="code-sample">コード例<code>
+Box act.wait_forever$ act.listen</code></blockquote>
+<p>第二パラメタは待ち時間です（<code>&lt;&quot;sango.actor&quot;.wait&gt;</code>）。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="19.5">19.5. メッセージがポストされないことの検出</h2>
+<p>メッセージボックスには，それ以上のメッセージがポストされないことが明白になった場合に，<code>&quot;sango.actor&quot;.no_post$</code>というメッセージがポストされます<span class="note-ref">*1</span>。
+  このメッセージによりアクタ自体が不要となったと判断したときは<span class="note-ref">*2</span>，システムリソース解放のため，アクタを終了してください。</p>
+
+<blockquote class="note">*1：<code>&lt;mbox_opts&gt;</code>の<code>notify_nopost</code>が<code>true$</code>で生成された場合。</blockquote>
+<blockquote class="note">*2：サーバになっているアクタの要求受付用メッセージボックスで<code>no_post$</code>を受信した場合など。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="20">20. コレクションを使う</h1>
+<p>オブジェクトを複数集めたオブジェクトをコレクションといいます。
+  ここではコレクションをいくつか解説します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.1">20.1. ストリング，文字列</h2>
+<p>個々の要素の取得，連続した部分ストリング（スライス，slice）の取り出しができます。</p>
+<p>個々の要素の位置を指標（index）といい，先頭（左端）要素をゼロとした整数で示します。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.string&quot; -&gt; str ;;</code>
+<code>[| 3, 5, 7, 9, 11 |] 1 str.length</code>  # 長さを取得，結果は5
+<code>[| 3, 5, 7, 9, 11 |] 2 str.elem</code>  # 指標2の要素を取得，結果は7
+<code>[| 3, 5, 7, 9, 11 |] 1 3 str.slice</code>
+# 指標1から3個のスライスを取得，結果は<code>[| 5, 7, 9 |]</code></blockquote>
+<p>文字列は文字のストリングですので，ストリングとして扱えるほか，<code>&quot;sango.cstr&quot;</code>から各種関数が提供されています。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.2">20.2. セット</h2>
+<p>重複のない値の集まりを実現するコレクションです。
+  値に順序はありません。</p>
+<p>標準ライブラリにて，フレームワークといくつかの実装が提供されています。
+  単純な実装であるsimple setの使用例を示します。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.util.set&quot; -&gt; set ;;
+import &quot;sango.util.set.simpleset&quot; -&gt; simpleset ;;
+simpleset.new_set = *S0,
+S0 set.empty? = true$,
+S0 1 set.put = (| *S1, none$ |),
+S1 1 set.put_new = (| S1, false$ |),
+S1 2 set.put_new = (| *S2, true$ |),
+S2 2 set.put = (| *S3, 2 value$ |),
+S3 set.size = 2,
+S3 2 set.contain? = true$,
+S3 3 set.contain? = false$,
+S3 3 set.put = (| *S4, none$ |),
+S4 2 set.remove = (| *S5, 2 value$ |),
+S5 set.take &gt;&gt; case {
+; (| 1, *S5' |) value$ -&gt;
+  S5' set.take = (| 3, *S5'' |) value$,
+  S5'' set.take = none$
+; (| 3, *S5' |) value$ -&gt;
+  S5' set.take = (| 1, *S5'' |) value$,
+  S5'' set.take = none$
+},
+S5 set.clear &gt;&gt; set.empty? = true$,
+S5 [ 4, 5 ] set.add_list = *S6,
+S6 set.size = 4</code></blockquote>
+<ul>
+  <li>セットに値を追加するには<code>put</code>を使います。
+    <code>put</code>は更新されたセットとともに，登録されていた値を返します。</li>
+  <li><code>put_new</code>は値が登録されていない場合に成功します。
+    成功したか否かはタプルの第二要素で返されます。</li>
+  <li><code>put</code>ではなく<code>add</code>を使うと，更新されたセットのみが返されます。</li>
+  <li>値が含まれているかどうかを判定するには<code>contain?</code>を使います。</li>
+  <li>値を削除するには<code>remove</code>を使います。
+  <code>remove</code>は更新されたセットとともに，登録されていた値を返します。
+  <code>remove</code>ではなく<code>delete</code>を使うと，更新されたセットのみが返されます。</li>
+  <li><code>take</code>は，値を一つ取り除いて返します。</li>
+</ul>
+<p>関数の詳細はライブラリ解説を参照してください。</p>
+<p>simple setは，<code>contain?</code>，<code>remove</code>等の操作に，セットの大きさに比例したコストがかかります。
+  大きなセットを扱う場合，値の大小比較が可能であれば<code>&quot;sango.util.avltree.set&quot;</code>を使うとよいでしょう。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.3">20.3. バッグ</h2>
+<p>値の集まりを実現するコレクションです。
+  重複も許されます。
+  値に順序はありません。</p>
+<p>標準ライブラリにて，フレームワークといくつかの実装が提供されています。
+  単純な実装であるsimple bagの使用例を示します。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.util.bag&quot; -&gt; bag ;;
+import &quot;sango.util.bag.simplebag&quot; -&gt; simbplebag ;;
+simplebag.new_bag = *B0,
+B0 bag.empty? = true$,
+B0 1 bag.add = *B1,  # B1 = { 1 }
+B1 2 bag.add = *B2,  # B2 = { 1, 2 }
+B2 1 bag.add = *B3,  # B3 = { 1, 2, 1 }
+B3 2 bag.add = *B4,  # B4 = { 1, 2, 1, 2 }
+B4 3 bag.add = *B5,  # B5 = { 1, 2, 1, 2, 3 }
+B5 bag.size = 5,
+B5 2 bag.contain? = true$,
+B5 4 bag.contain? = false$,
+B5 2 bag.get_all = [ 2, 2 ],
+B5 1 bag.remove_all = (| *B6, [ 1, 1 ] |),  # B6 = { 2, 2, 3 }
+B6 2 bag.remove = (| *B7, 2 value$ |),  # B7 = { 2, 3 }
+B7 bag.take &gt;&gt; case {
+; (| 2, *B7' |) value$ -&gt;
+  B7' bag.take = (| 3, *B7'' |) value$,
+  B7'' bag.take = none$
+; (| 3, *B7' |) value$ -&gt;
+  B7' bag.take = (| 2, *B7'' |) value$,
+  B7'' bag.take = none$
+},
+B6 bag.clear &gt;&gt; bag.empty? = true$,
+B7 [ 4, 5 ] bag.add_list = *B8,  # B8 = { 2, 3, 4, 5 }
+B8 bag.size = 4,
+B8 bag.iter = *I,
+I next = (| **, *I' |) value$,
+I' next = (| **, *I'' |) value$,
+I'' next = (| **, *I''' |) value$,
+I''' next = (| **, *I'''' |) value$,
+I'''' next = none$</code></blockquote>
+<ul> 
+  <li>バッグに値を追加するには<code>add</code>を使います。
+    <code>add</code>は更新されたバッグを返します。</li>
+  <li>値が含まれているかどうかを判定するには<code>contain?</code>を使います。</li>
+  <li><code>remove_all</code>は等価な値すべてを<code>remove</code>は等価な値ひとつを削除します。
+  <li><code>take</code>は，値を一つ取り除いて返します。</li>
+</ul>
+<p>関数の詳細はライブラリ解説を参照してください。</p>
+<p>simple bagは，<code>contain?</code>，<code>remove</code>等の操作に，バッグの大きさに比例したコストがかかります。
+  大きなバッグを扱う場合，値の大小比較が可能であれば<code>&quot;sango.util.avltree.bag&quot;</code>を使うとよいでしょう。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.4">20.4. マップ</h2>
+<p>キーと値のペアを保持するコレクションです<span class="note-ref">*1</span>。
+  キーと値を関連付けてマップに追加すること，キーに関連付けられている値をマップから取得することなどができます。
+  キーと値の型は同じでも異なっていても構いません。</p>
+<p>標準ライブラリにて，フレームワークといくつかの実装が提供されています。
+  単純な実装であるsimple mapの使用例を示します。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.util.map&quot; -&gt; map ;;
+import &quot;sango.util.map.simplemap&quot; -&gt; simplemap ;;
+simplemap.new_map = *M0,
+M0 map.empty? = true$,
+M0 1 &quot;abc&quot; map.put = (| *M1, none$ |),
+M1 1 &quot;ABC&quot; map.put_new = (| M1, false$ |),
+M1 2 &quot;def&quot; map.put_new = (| *M2, true$ |),
+M2 2 &quot;DEF&quot; map.put = (| *M3, (| 2, &quot;def&quot; |) value$ |),
+M3 map.size = 2,
+M3 2 map.assoc = &quot;DEF&quot; value$,
+M3 3 &quot;ghi&quot; map.put = (| *M4, none$ |),
+M4 2 map.remove = (| *M5, (| 2, &quot;DEF&quot; |) value$ |),
+M5 map.take &gt;&gt; case {
+; (| (| 1, &quot;abc&quot; |), *M5' |) value$ -&gt;
+  M5' map.take = (| (| 3, &quot;ghi&quot; |), *M5'' |) value$,
+  M5'' map.take = none$
+; (| (| 3, &quot;ghi&quot; |), *M5' |) value$ -&gt;
+  M5' map.take = (| (| 1, &quot;abc&quot; |), *M5'' |) value$,
+  M5'' map.take = none$
+},
+M5 map.clear &gt;&gt; map.empty? = true$,
+M5 [ (| 4, &quot;jkl&quot; |), (| 5, &quot;mno&quot; |) ] map.add_list = *M6,
+M6 map.size = 4</code></blockquote>
+<ul>
+  <li>キーに対して値を関連付けるには<code>put</code>を使います。
+    <code>put</code>は更新されたマップとともに，登録されていたキーと値を返します。</li>
+  <li><code>put_new</code>はキーが登録されていない場合に成功します。
+    成功したか否かはタプルの第二要素で返されます。</li>
+  <li><code>put</code>ではなく<code>add</code>を使うと，更新されたマップのみが返されます。</li>
+  <li>キーに関連付けられている値を取得するには<code>assoc</code>を使います。</li>
+  <li>キーに対する値を削除するには<code>remove</code>を使います。
+    <code>remove</code>は更新されたマップとともに，登録されていたキーと値を返します。
+    <code>remove</code>ではなく<code>delete</code>を使うと，更新されたマップのみが返されます。</li>
+  <li><code>take</code>は，キーと値のペアを一つ取り除いて返します。</li>
+</ul>
+<p>関数の詳細はライブラリ解説を参照してください。</p>
+<p>simple mapは，<code>put</code>，<code>assoc</code>，<code>remove</code>等の操作に，マップの大きさに比例したコストがかかります。
+  大きなマップを扱う場合，キーの大小比較が可能であれば<code>&quot;sango.util.avltree&quot;</code>に実装されている「AVL木」，あるいは<code>&quot;sango.util.avltree.map&quot;</code>を使うとよいでしょう。</p>
+
+<blockquote class="note">*1：「辞書」や「連想リスト」とも呼ばれるものです。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.5">20.5. キュー</h2>
+<p>先入れ先出し（First In First Out，FIFO）のコレクションです。
+  値の追加と取り出しが可能です。
+  <code>&quot;sango.util.queue&quot;</code>モジュールからキューのフレームワークが，<code>&quot;sango.util.queue.simplequeue&quot;</code>モジュールから単純な実装であるsimple queueが提供されています。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.6">20.6. スタック</h2>
+<p>後入れ先出し（Lirst In First Out，LIFO）のコレクションです。
+  値の追加と取り出しが可能です。
+  リストを使うと実装できますが，抽象化したフレームワークを提供しています。
+  <code>&quot;sango.util.stack&quot;</code>モジュールからスタックのフレームワークが，<code>&quot;sango.util.stack.liststack&quot;</code>モジュールからリストとの相互変換機能が提供されています。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.7">20.7. 配列</h2>
+<p>【Tentative】固定個数の要素を持つコレクションです。
+  列挙（<code>&lt;A &quot;sango.util.enum&quot;enum&gt;</code>）を指標として使用し，個々の要素の参照と更新ができます。
+  ストリングは，要素の参照は低コスト（O(1)）で実行できますが，要素の変更においては他の要素のコピーが発生するため，要素数に比例した（O(n)の）コストがかかります。
+  配列は，参照のコストと更新のコストをバランスしています。
+  <code>&quot;sango.util.array&quot;</code>モジュールから配列のフレームワークが，<code>&quot;sango.util.avltree.array&quot;</code>モジュールからAVL木による実装が提供されています。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="21">21. 表示可能な文字列に変換する</h1>
+<p>文字と文字列を除き，データを表示するには，文字列に変換する必要があります。
+  指定した形式の文字列（あるいは形式を指定しない文字列）にデータを変換することを「フォーマットする」と言います。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="21.1">21.1. フォーマット関数</h2>
+<p>フォーマットする方法の一つは，それぞれの型で提供されているフォーマット関数を使うことです<span class="note-ref">*1</span>。
+  <code>&lt;int&gt;</code>，<code>&lt;real&gt;</code>，<code>&lt;&quot;sango.num.bingint&quot;.bigint&gt;</code>には，以下のフォーマット関数が提供されています。
+  いずれも，変換形式はライブラリの実装に任されています。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.num.int&quot; ;;
+eval &lt;int&gt; *I default_format | format @public -&gt; &lt;cstr&gt; ;;
+module &quot;sango.num.real&quot; ;;
+eval &lt;real&gt; *R default_format | format @public -&gt; &lt;cstr&gt; ;;
+module &quot;sango.num.bigint&quot; ;;
+eval &lt;bigint&gt; *B default_format | format @public -&gt; &lt;cstr&gt; ;;</code></blockquote>
+
+<blockquote class="note">*1：<code>&quot;sango.debug&quot;.repr</code>以外には，すべての型に適用できるフォーマット関数はありません。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="21.2">21.2. テンプレート</h2>
+<p>表示メッセージを作成する場合などで，表現と編集ロジックを切り離すには，テンプレート文字列にフォーマットしたデータを差し込む方法もあります。
+  テンプレートとマップを指定して<code>&quot;sango.cstr.format&quot;.format</code>を呼び出します。
+  テンプレートには，データを埋め込む位置に，書式（どのデータをどうフォーマットするか）を指定します。
+  データは<code>&lt;&quot;sango.cstr.format&quot;.fd+&gt;</code>にしてマップにします<span class="note-ref">*1</span>。</p>
+<blockquote class="code-sample">コード例
+<code>import &quot;sango.util.map&quot; -&gt; map ;;
+import &quot;sango.util.map.simplemap&quot; -&gt; simplemap ;;
+import &quot;sango.cstr.format&quot; -&gt; fmt ;;
+&quot;book '{title:cstr}' {isbn:cstr} {pages:int}pages&quot;</code>  # これがテンプレート
+<code>(simplemap.new_map
+  [ (| &quot;title&quot;, &quot;Wow!&quot; fmt.cstr_fd$ |),</code>  # このリストがマップの内容
+<code>    (| &quot;isbn&quot;, &quot;12-3-456-7890-1&quot; fmt.cstr_fd$ |),
+    (| &quot;pages&quot;, 254 fmt.int_fd$ |) ]
+  map.add_list)</code>  # マップを生成しキーと値を登録
+<code>fmt.format</code>  # フォーマット関数の呼び出し
+# 結果は「<samp>book 'Wow!' 12-3-456-7890-1 254pages」</samp></blockquote>
+<p>「<code>{ }</code>」で囲まれた部分が書式です。以下の形式で指定します。</p>
+<blockquote>文法<br/>
+  <code>{</code>データ選択キー<code>:</code>編集方法<code>}</code><br/>
+  <code>{</code>データ選択キー<code>:</code>編集方法<code>:</code>編集パラメタ<code>}</code></blockquote>
+<p>データ選択キーは，マップのキーです。編集方法は，データの型に応じた文字列です。編集方法によっては編集パラメタで編集詳細を指定します。
+  テンプレートの中では「<code>{</code>」，「<code>:</code>」，「<code>}</code>」が意味を持ちますので，これらを単なる文字として扱う場合は「<code>%</code>」を前に置いてエスケープします。「<code>%</code>」自体の場合もエスケープします。</p>
+<blockquote><code>{</code> → <code>%{</code>　　<code>:</code> → <code>%:</code>　　<code>}</code> → <code>%}</code>　　<code>%</code> → <code>%%</code></blockquote>
+<p><code>&lt;byte&gt;</code>，<code>&lt;int&gt;</code>，<code>&lt;real&gt;</code>，<code>&lt;char&gt;</code>，<code>&lt;cstr&gt;</code>，<code>&lt;&quot;sango.num.bigint&quot;.bigint&gt;</code>に対して，以下の編集方法が提供されています<span class="note-ref">*2</span>。</p>
+<table border>
+  <tr><th>編集方法</th><th>対象（<code>&lt;&quot;sango.cstr.format&quot;.obj+&gt;</code>）</th></tr>
+  <tr>
+    <td><code>int</code></td>
+    <td><ul>
+      <li><code>&lt;byte&gt; &quot;sango.cstr.format&quot;.byte_fd$</code></li>
+      <li><code>&lt;int&gt; &quot;sango.cstr.format&quot;.int_fd$</code></li>
+    </ul></td>
+  </tr>
+  <tr>
+    <td><code>real</code></td>
+    <td><ul>
+      <li><code>&lt;real&gt; &quot;sango.cstr.format&quot;.real_fd$</code></li>
+    </ul></td>
+  </tr>
+  <tr>
+    <td><code>sango.num.bigint</code></td>
+    <td><ul>
+      <li><code>&lt;byte&gt; &quot;sango.cstr.format&quot;.byte_fd$</code></li>
+      <li><code>&lt;int&gt; &quot;sango.cstr.format&quot;.int_fd$</code></li>
+      <li><code>&lt;&quot;sango.num.bigint&quot;.bigint&gt; &quot;sango.num.bigint&quot;.bigint_fd$</code></li>
+    </ul></td>
+  </tr>
+  <tr>
+    <td><code>cstr</code></td>
+    <td><ul>
+      <li><code>&lt;char&gt; &quot;sango.cstr.format&quot;.char_fd$</code></li>
+      <li><code>&lt;cstr&gt; &quot;sango.cstr.format&quot;.cstr_fd$</code></li>
+    </ul></td>
+  </tr>
+</table>
+
+<blockquote class="note">*1：マップのため，キー／データの順序は意味を持ちません。</blockquote>
+<blockquote class="note">*2：処理コード作成中のため，編集パラメタは指定しないでください。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="21.2.a">フォーマット結果の参照</h3>
+<p>生成された文字列を一時的に保存し，参照することができます。</p>
+<blockquote class="code-sample">コード例<code>
+import &quot;sango.util.map&quot; -&gt; map ;;
+import &quot;sango.util.map.simplemap&quot; -&gt; simplemap ;;
+import &quot;sango.cstr.format&quot; -&gt; fmt ;;
+&quot;{pages*P:int}{P:cstr} pages? Yes, {P:cstr} pages.&quot;
+(simplemap.new_map [ (| &quot;pages&quot;, 254 fmt.int_fd$ |) ] map.add_list)
+fmt.format</code> 
+# 結果は「<samp>254 pages? Yes, 254 pages.</samp>」</blockquote>
+<p>この例では，<code>pages</code>を編集した結果を<code>P</code>として保存し，その後，Pを2回参照しています。
+  保存のキーは，データ選択キーの直後に「<code>*</code>」を置きそれに続けて指定します<span class="note-ref">*1</span>。
+  一時的保存先に，指定したマップが使われます。
+  マップは内部的に更新されますが，呼び出し側には影響を与えません<span class="note-ref">*2</span>。</p>
+
+<blockquote class="note">*1：この用法のため，データ選択キーに「<code>*</code>」を含めることはできません（今のところは）。</blockquote>
+<blockquote class="note">*2：したがって，保存した結果は，<code>format</code>の呼び出し中だけ有効です。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="21.2.b">場合分け</h3>
+<p>値によって場合分けする<code>SEL</code>という編集方法が提供されています。</p>
+<blockquote class="code-sample">コード例<code>
+&quot;{number*N:int}I have {N:SEL:0;no books|1;a book|*;some books}.&quot;</code></blockquote>
+<p>この例の場合，<code>number</code>が0なら「<samp>I have no books.</samp>」，1なら「<samp>I have a book.</samp>」，それ以外（2以上）なら「<samp>I have some books.</samp>」が生成されます。
+  <code>SEL</code>による場合分けの対象は文字列ですので，参照するデータは必要に応じて文字列に変換しておく必要があります。この例を正確に説明するなら，<code>number</code>を編集した結果の<code>N</code>が「<samp>0</samp>」なら「<samp>I have no books.</samp>」，「<samp>1</samp>」なら「<samp>I have a book.</samp>」，それ以外なら「<samp>I have some books.</samp>」が生成される，ということです。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="21.2.c">フォーマット関数の登録</h3>
+<p>独自に定義したフォーマット関数を，この枠組みに組み込むことができます。</p>
+<p>フォーマット関数は，参照するデータと編集パラメタを受け取って編集結果を返す関数として定義し，編集方法をキーにして登録します。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.cstr.format&quot; ;;
+alias type &lt;obj&gt; @public := &lt;fd+&gt; ;;
+alias type &lt;obj_key&gt; @public := &lt;cstr&gt; ;;
+alias type &lt;format_method&gt; @public := &lt;cstr&gt; ;;
+alias type &lt;format_param&gt; @public := &lt;cstr&gt; ;;
+alias type &lt;formatter&gt; @public := &lt;obj format_param cstr fun&gt; ;;
+eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
+  install_formatter @public -&gt; &lt;void&gt; ;;</code>
+# 型の別名定義を外せば，実質的に以下と同じ
+<code>eval &lt;cstr&gt; *Method &lt;fd+ cstr cstr fun&gt; *Formatter
+  install_formatter @public -&gt; &lt;void&gt; ;;</code></blockquote>
+<p>独自の型とそのフォーマット関数を定義する場合は，モジュールの初期化関数（<code>_init_</code>）の中で登録しておくとよいでしょう<span class="note-ref">*1</span>。</p>
+
+<blockquote class="note">*1：実例は，<code>&quot;sango.num.bigint&quot;</code>のソースコードを参照してください。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="22">22. 入出力</h1>
+<p>入出力は関数呼び出しを通じて行います<span class="note-ref">*1</span>。詳細はライブラリリファレンスを参照してください。
+  入出力には入出力エラーがつきものですので，例外を適切に処理してください。</p>
+
+<blockquote class="note">*1：Sangoでは記述された順番に処理が行われますので，遅延評価の考慮は不要です。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="22.1">22.1. ストリーム入出力</h2>
+<p>バイトや文字，あるいはもっと複雑なデータの流れをストリームと呼びます。
+  ストリームからの入力はまだ読み込まれていないデータを先頭から読み込み，ストリームへの出力はストリームの末尾にデータを追加します。
+  入出力ストリームに共通するアクセスについては，<code>&quot;sango.io&quot;</code>で抽象化されています。</p>
+<p>ストリームを生成すると「ハンドル」が返され，そのストリームへのアクセスには返されたハンドルを使用します。
+  <code>&quot;sango.io&quot;</code>では以下のストリームを定義しています（ハンドルの型でストリームを代表します）。</p>
+<table border>
+  <tr><th>ストリーム</th><th>方向</th><th>解説</th></tr>
+  <tr>
+    <td><code>&lt;A instream_h&gt;</code></td>
+    <td>in</td>
+    <td><code>&lt;A&gt;</code>を処理単位とする入力ストリーム。
+      <code>&lt;byte instream_h&gt;</code>，<code>&lt;char instream_h&gt;</code>などとして使用</td></tr>
+  <tr>
+    <td><code>&lt;A outstream_h&gt;</code></td>
+    <td>out</td>
+    <td><code>&lt;A&gt;</code>を処理単位とする出力ストリーム。
+      <code>&lt;byte outstream_h&gt;</code>，<code>&lt;char outstream_h&gt;</code>などとして使用</td></tr>
+  <tr>
+    <td><code>&lt;line_instream_h&gt;</code></td>
+    <td>in</td>
+    <td>行（改行文字で区切られた文字の並び）を読み込む入力ストリーム。
+      標準入力やテキストファイルから行を読み込むときなどに使用</td></tr>
+  <tr>
+    <td><code>&lt;print_stream_h&gt;</code></td>
+    <td>out</td>
+    <td>文字の並びを行単位に区切って出力するストリーム。
+      <code>&lt;char out_stream_h&gt;</code>は改行文字がそのままの並びで出力されるが，<code>&lt;print_stream_h&gt;</code>は改行文字シーケンス（CR，LF，CR+LF）を行の切れ目として扱う。
+      標準出力やテキストファイルへの出力などに使用</td></tr>
+</table>
+<p>例えばテキストファイルから行を読み込むには，原理的には，ファイルに対する<code>&lt;byte instream_h&gt;</code>をオープンし，それをもとに<code>&lt;char instream_h&gt;</code>を作成し，さらに<code>&lt;line_instream_h&gt;</code>を作成するという手順になります。
+  文字のエンコーディングは<code>&quot;sango.char.encoding&quot;</code>にてサポートされています。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="22.2">22.2. 標準入出力</h2>
+<p>標準入力（stdin）を<code>&lt;&quot;sango.io&quot;.line_instream&gt;</code>，標準出力（stdout），標準エラー出力（stderr）を<code>&lt;&quot;sango.io&quot;.print_stream&gt;</code>としてサポートしています<span class="note-ref">*1</span>。
+  プログラム開始時には，それぞれプロセスの標準入出力に接続されていますが，プログラム内で変更することもできます。</p>
+
+<blockquote class="note">*1：現在は，いずれも文字ベースのストリームとしてサポートされています。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="22.3">22.3. ファイルシステム【整備中】</h2>
+<p><code>&quot;sango.io.filesys&quot;</code>がオペレーティングシステムのファイルシステムへのアクセスを提供します。ライブラリ解説を参照してください。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="22.4">22.4. ネットワーク【整備中】</h2>
+<p><code>&quot;sango.io.net.socket&quot;</code>，<code>&quot;sango.io.net.inet&quot;</code>が，ソケット機能，インターネットアクセス機能の試験実装です。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<hr/>
+
+<h1 id="A">A. 仕様</h1>
+<h2 id="A.1">A.1. 識別子</h2>
+<p>識別子には，モジュール識別子，型構築子，データ構築子，関数名，属性ラベル，仮引数変数（関数やクロージャのパラメタ宣言に使われる変数），型パラメタ，局所変数があります。</p>
+<p>使える文字は，大英字，小英字，「<code>_</code>」（下線），「<code>$</code>」，「<code>?</code>」，「<code>@</code>」，「<code>'</code>」（単引用符），数字で，最初の文字は大英字，小英字，「<code>_</code>」のいずれかです。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="A.1.a">慣習</h3>
+<ul>
+  <li>  仮引数変数，型パラメタ，局所変数（つまり変数の仲間）は大英字で，それ以外は小英字か「<code>_</code>」で開始します。</li>
+  <li>  データ構築子は「<code>$</code>」で終わります。</li>
+  <li>  判定結果として論理型を返す関数は「<code>?</code>」で終わります。</li>
+  <li>  <code>&lt;A maybe&gt;</code>に束縛する変数は「<code>_</code>」で終わることが多いです。</li>
+</ul>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="A.2">A.2. モジュール名</h2>
+<p>モジュール名は，文法上は任意の文字列が使用できますが，ファイルのパスにマッピングされるため，マッピング上の制約が発生します。
+  マッピング規則は処理系の実装依存ですが，既存実装では「<code>.</code>」で区切った部分がパスの名前の列になります。
+  したがって，「<code>.</code>」で区切った部分がファイルシステムで許された名前になる必要があります。
+  また，現在，モジュールのネイティブ実装はJavaでプログラミングするため，Javaのパッケージ名，クラス名で使用できる文字でなければなりません。
+  英字，「<code>_</code>」（下線），数字程度で構成するのが無難です。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="A.3">A.3.  コンパイラ（<code>sangoc</code>）</h2>
+<p>ソースコードをコンパイルし，モジュールファイルを生成します。
+  コンパイルに必要なモジュール（インポートされているモジュール）はコンパイラが再帰的に検出してコンパイルし，すでにコンパイル済みであれば<span class="note-ref">*1</span>モジュールファイルを参照してコンパイル処理を続行します。</p>
+
+<blockquote class="note">*1：モジュールファイルよりソースファイルが新しい場合は，再コンパイルします。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="A.3.a">実行形式</h3>
+<blockquote class="usage"><kbd>sangoc [<var>option...</var>] <var>source-file...</var></kbd>
+<code><var>option</var></code>：
+  <code>-h</code>，<code>-help</code>，<code>-?</code>　…　ヘルプメッセージを出力します。「<code>-verbose help</code>」と同じです。
+  <code>-version</code>　…　バージョン情報を出力します。「<code>-verbose version</code>」と同じです。
+  <code>-modules &lt;paths&gt;</code>　…　モジュール探索パスのルートを指定します。複数指定する場合はパス区切り記号（Windowsでは「<code>;</code>」，Unixでは「<code>:</code>」）でつなぎます。
+  <code>-m &lt;paths&gt;</code>　…　<code>-modules</code>と同じです。
+  <code>-out &lt;path&gt;</code>　…　モジュールファイルの出力先を指定します。個々のモジュールファイルは，指定されたディレクトリをルートとし，モジュール名をパスに変換したディレクトリに出力されます。
+  <code>-verbose <var>switches</var></code>　…　<code><var>switches</var></code>に指定したカテゴリのメッセージを出力します。
+  <code>-quiet <var>switches</var></code>　…　<code><var>switches</var></code>に指定したカテゴリのメッセージを抑制します。
+  <code><var>option</var></code>のデフォルトは「<code>-m . -verbose version+module</code>」です。
+<code><var>switches</var></code>：
+  次のカテゴリから一つ以上を「<code>+</code>」でつなぎます。
+    <code>help</code>　…　ヘルプメッセージ
+    <code>version</code>　…　バージョン情報
+    <code>module</code>　…　モジュールの参照情報
+    <code>all</code>　…　上記のすべて
+<code><var>source-file...</var></code>：
+  コンパイル対象のソースファイルを指定します。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="A.4">A.4. 実行エンジン（<code>sango</code>）</h2>
+<p>Sangoプログラムを実行します。実行に必要なモジュールファイルはモジュール探索パスから取得します。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="A.4.a">実行形式</h3>
+<blockquote class="usage"><kbd>sango [<var>option...</var>] <var>program-module-name</var> [<var>arg...</var>]</kbd>
+<code><var>option</var></code>：
+  <code>-h</code>，<code>-help</code>，<code>-?</code>　…　ヘルプメッセージを出力します。「<code>-verbose help</code>」と同じです。
+  <code>-version</code>　…　バージョン情報を出力します。「<code>-verbose version</code>」と同じです。
+  <code>-modules <var>paths</var></code>　…　モジュール探索パスのルートを指定します。複数指定する場合はパス区切り記号（Windowsでは「<code>;</code>」，Unixでは「<code>:</code>」）でつなぎます。
+  <code>-m <var>paths</var></code>　…　<code>-modules</code>と同じです。
+  <code>-verbose <var>switches</var></code>　…　<code><var>switches</var></code>に指定したカテゴリのメッセージを出力します。
+  <code>-quiet <var>switches</var></code>　…　<code><var>switches</var></code>に指定したカテゴリのメッセージを抑制します。
+  <code><var>option</var></code>のデフォルトは「<code>-m . -verbose version+module</code>」です。
+<code><var>switches</var></code>：
+  次のカテゴリから一つ以上を「<code>+</code>」でつなぎます。
+    <code>help</code>　…　ヘルプメッセージ
+    <code>version</code>　…　バージョン情報
+    <code>module</code>　…　モジュールのロード情報
+    <code>all</code>　…　上記のすべて
+<code><var>program-module-name</var></code>：
+  実行を開始するモジュールのモジュール名を指定します。
+<code><var>arg...</var></code>：
+  プログラムに渡すパラメタを指定します。</blockquote>
+   
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="A.4.b">メッセージ出力先</h3>
+<p>実行エンジンのメッセージは標準エラー出力に出力されます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="A.4.c">終了</h3>
+<p>いずれかのアクタが<code>&quot;sango.system.runtime&quot;.exit</code>，<code>&quot;sango.system.runtime&quot;.shutdown</code>を呼び出すか<span class="note-ref">*1</span>，フォアグラウンド（foreground）のアクタがすべて終了すると，実行エンジンが停止しプロセスが終了します<span class="note-ref">*2</span>。
+  後者の場合，例外終了したアクタの有無にかかわらず，終了コード0で<code>&quot;sango.system.runtime&quot;.exit</code>が呼び出されたとみなされます。
+  アクタはフォアグラウンド状態で生成され，<code>&quot;sango.actor&quot;.run_background</code>を呼び出すことによってバックグラウンド（background）に移行することができます。
+  バックグラウンドは，いわゆる「デーモン」の状態です。</p>
+
+<blockquote class="note">*1：<code>&quot;sango.system.runtime&quot;.exit</code>は内部で<code>&quot;sango.system.runtime&quot;.shutdown</code>を呼び出します。
+  この場合，タイムアウト時間（後述）には10秒が設定されます。</blockquote>
+
+<blockquote class="note">*2：フォアグラウンドのアクタが存在するにもかかわらず，全アクタがブロックされた状態であることを検出した場合にも終了します。また，内部矛盾を検出したとき，リソースが不足したときなど，実行の継続が困難な場合にも終了することがあります。これらのときの終了コードは1です。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h3 id="A.4.d">終了シーケンス</h3>
+<p>上述の「終了する」は，厳密には「終了シーケンスを開始する」を意味します。
+  終了シーケンスが開始されると，<code>&quot;sango.system.runtime&quot;.add_action_to_shutdown</code>で登録されたアクションが，それぞれ新しいアクタで起動されます。
+  また，<code>&lt;&quot;sango.actor&quot;.sys_msg&gt;</code>を受け取るように生成された各メッセージボックスに<code>&quot;sango.actor&quot;.shutdown$</code>がポストされます。
+  それ以外は，アクタの動作には影響はありません<span class="note-ref">*1</span>。アクタがすべて終了するかブロック状態になると，指定されていた終了コードにて実際に停止します<span class="note-ref">*2</span>。</p>
+
+<blockquote class="note">*1：実行上の制約が追加されないという意味です。アクタを生成することもできますが，フォアグラウンドのアクタが発生しても，終了シーケンスは解除されません。</blockquote>
+<blockquote class="note">*2：終了シーケンスが開始してから<code>&quot;sango.system.runtime&quot;.shutdown</code>で指定されたタイムアウト時間が経過しても終了します。</blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="B">B. 型について</h1>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.1">B.1. 型の扱い</h2>
+<p>「型」の概念を持つプログラミング言語は多くあります。例えば，整数は四則演算，大小比較などの対象になりますが，文字は四則演算の対象になりませんので，両者の型は異なると考えます。</p>
+<p>Sangoにおける型は，「プログラム文脈上での，オブジェクトの使用範囲の区別」です。
+  ここで，「プログラム文脈上での」は，実行時のオブジェクトによって型が決まるわけではないことを意味しています。
+  例えば以下のコードを考えます。</p>
+<blockquote class="code-sample">コード例<code>
+[] = *X,
+&amp;\\ &lt;int list&gt; { X } = *Y</code></blockquote>
+<p><code>X</code>の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）です。
+  <code>Y</code>に実際に束縛されるオブジェクトは<code>[]</code>ですが，<code>Y</code>の型は<code>&lt;int list&gt;</code>になります。</p>
+<p>プログラミング文脈上で型が決まるため，実行時にオブジェクトの型を取得する関数は提供されていません。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.2">B.2. 型と型との関係</h2>
+<p>Sangoにおける型は，基本的にはそれぞれ独立していて相互関係はありません。
+  例えば，数を表す<code>&lt;byte&gt;</code>，<code>&lt;int&gt;</code>，<code>&lt;real&gt;</code>，<code>&lt;&quot;sango.num.bigint&quot;.bigint&gt;</code>には相互関係はなく，コンパイラが型を自動変換することはありません。</p>
+<p>相互関係を持つのは，被構築型<code>&lt;<var>T</var>&gt;</code>とその拡張型<code>&lt;<var>T</var>+&gt;</code>です。
+  <code>&lt;<var>T</var>+&gt;</code>として扱われているオブジェクトが実際には<code>&lt;<var>T</var>&gt;</code>なのかを判定すること，<code>&lt;<var>T</var>&gt;</code>に落とし込むこと（narrow）ができます。</p>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.3">B.3. narrowとcast</h2>
+<p>オブジェクト指向言語には「narrow」や「cast」があります。Sangoにもこれらの用語がありますが，以下の意味です。</p>
+<p>「narrow」は，拡張型<code>&lt;<var>T</var>+&gt;</code>として扱われているオブジェクトを元の型<code>&lt;<var>T</var>&gt;</code>に落とし込むことです。
+  これは，コンパイラが生成する<code>_narrow_<var>T</var></code>関数（別名は型に共通で<code>narrow</code>）によって行います。
+  落とし込めれば<code>&lt;<var>T</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
+<blockquote class="def">疑似定義<code>
+eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<var>T</var> maybe&gt; ;;</code></blockquote>
+<p>「cast」は，未束縛の型パラメタを決定し，より具体的な型にすることです。
+  例えば，<code>&lt;A list&gt;</code>を<code>&lt;int list&gt;</code>にすることです。
+  これは，変数の束縛時にcast先の型を指定して行います。
+  ただし，Sangoのプログラミングにおいて，castを行うことは通常ありません。</p>
+<blockquote class="code-sample">コード例<code>
+[] = &lt;int list&gt; *X</code></blockquote>
+ 
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="C">C. Known bugs and restrictions</h1>
+<p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
+<p>■　クロージャ定義において返り値の型を省略してもコンパイルエラーになりませんが，省略しないでください。</p>
+<p>■　クロージャ定義をその場で起動する場合においてクロージャのパラメタの型を省略してもコンパイルエラーになりませんが，省略しないでください。（例：<code>P Q &\ *X *Y -&gt; ...</code>）</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+
+</body>
+</html>

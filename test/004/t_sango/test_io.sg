@@ -1,0 +1,60 @@
+import "sango.actor" -> act ;;
+import "sango.char.encoding" -> enc ;;
+import "sango.debug" -> debug ;;
+import "sango.cstr" -> cstr ;;
+import "sango.io" -> io ;;
+import "sango.io.filesys" -> fs ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval <cstr> *DD <cstr> *F file001 -> <cstr> { (DD fs.parse_path) F fs.child_path >> fs.path_repr } ;;
+eval test -> <void> {
+  runtime.args = [ *Cur_dir, *Data_dir ; ** ],
+  Data_dir "d101.txt" file001 >> fs.open_byte_outstream = *Bo101,
+  enc.start_default_encoder = *E101,
+  E101 Bo101 io.open_char_outstream = *Co101,
+  Co101 test101,
+  Co101 io.close,
+  Data_dir "d301.txt" file001 >> fs.open_byte_outstream >> io.open_print_stream = *Po301,
+  Po301 test301,
+  Po301 io.close,
+  Data_dir "d101.txt" file001 >> fs.open_byte_instream = *Bi501,
+  enc.default_decode_props enc.start_default_decoder = *D501,
+  Bi501 D501 io.open_char_instream = *Ci501,
+  Ci501 test501,
+  Ci501 io.close,
+  Data_dir "d101.txt" file001 >> fs.open_byte_instream = *Bi601,
+  enc.default_decode_props enc.start_default_decoder = *D601,
+  Bi601 D601 io.open_char_instream = *Ci601,
+  Ci601 io.open_line_instream = *Li601,
+  Li601 test601,
+  Li601 io.close,
+  Data_dir "d301.txt" file001 >> fs.open_byte_instream >> io.open_line_instream = *Li701,
+  Li701 test701,
+  Li701 io.close,
+  void$
+} ;;
+
+eval <char io.outstream_h> *O test101 -> <void> { O "ab" io.write, O '\n' io.write, O 'c' io.write } ;;
+eval <io.print_stream_h> *O test301 -> <void> { O "abc" io.print_and_newline, O "`u3042;`u3044;\n`u3046;`u3048;" io.print_and_newline } ;;
+eval <char io.instream_h> *I test501 -> <void> {
+  I io.read = 'a' io.instream_data$,
+  I 5 io.read_string = "b\nc" io.instream_data$,
+  I 5 io.read_string = io.instream_at_end$,
+  void$ } ;;
+eval <io.line_instream_h> *I test601 -> <void> {
+  I io.read_line = ("ab" ** cstr.line$) io.instream_data$,
+  I io.read_line = ("c" ** cstr.line$) io.instream_data$,
+  I io.read_line = io.instream_at_end$,
+  void$ } ;;
+eval <io.line_instream_h> *I test701 -> <void> {
+  I io.read_line = ("abc" ** cstr.line$) io.instream_data$,
+  I io.read_line = ("`u3042;`u3044;" ** cstr.line$) io.instream_data$,
+  I io.read_line = ("`u3046;`u3048;" ** cstr.line$) io.instream_data$,
+  I io.read_line = io.instream_at_end$,
+  void$ } ;;

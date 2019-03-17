@@ -1,0 +1,83 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.net.inet" -> inet ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  test101,
+  void$
+} ;;
+
+eval test001 -> <void> {
+  ^svr001 act.spawn = *S, S act.start,
+  ^cli001 act.spawn = *C, C act.start,
+  C act.sync = void$ fin$,
+  S act.sync = void$ fin$,
+  void$
+} ;;
+
+eval svr001 -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  12345 inet.create_server_socket = *SvrSoc,
+  SvrSoc inet.accept = *ConnSoc,
+  SvrSoc inet.close,
+  ConnSoc inet.instream >> io.open_char_instream = *In,
+  ConnSoc inet.outstream >> io.open_char_outstream = *Out,
+  In io.read = 'x' io.instream_data$, Out 'X' io.write,
+  In io.read = 'y' io.instream_data$, Out 'Y' io.write,
+  In io.read = 'z' io.instream_data$, Out 'Z' io.write,
+  # In io.read = io.instream_at_end$,
+  Out io.flush,
+  \\ <void> { Out io.close } try,,
+  \\ <void> { In io.close } try,
+  \\ <void> { ConnSoc inet.close } try >> ignore
+} ;;
+
+eval cli001 -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  inet.create_connection_socket = *ConnSoc,
+  ConnSoc ("localhost" inet.addr) 12345 1000 inet.connect,
+  ConnSoc inet.instream >> io.open_char_instream = *In,
+  ConnSoc inet.outstream >> io.open_char_outstream = *Out,
+  Out "xyz" io.write,
+  Out io.flush,
+  In io.read = 'X' io.instream_data$,
+  In io.read = 'Y' io.instream_data$,
+  In io.read = 'Z' io.instream_data$,
+  In io.read = io.instream_at_end$, stdio.flush,
+  \\ <void> { Out io.close } try,
+  \\ <void> { In io.close } try,
+  \\ <void> { ConnSoc inet.close } try >> ignore
+} ;;
+
+eval test101 -> <void> {
+  ^svr101 act.spawn = *S, S act.start,
+  ^cli101 act.spawn = *C, C act.start,
+  S act.sync = void$ fin$,
+  C act.sync = void$ fin$,
+  void$
+} ;;
+
+eval svr101 -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  23456 inet.create_datagram_socket = *DgSoc,
+  DgSoc 1000 inet.receive = (| **, 34567, [| 11~, 12~, 13~ |] |) value$,
+  DgSoc inet.close,
+  void$
+} ;;
+
+eval cli101 -> <void> {
+  runtime.terminate_on_my_abnormal_end,
+  34567 inet.create_datagram_socket = *DgSoc,
+  DgSoc ("localhost" inet.addr) 23456 [| 11~, 12~, 13~ |] inet.send,
+  DgSoc inet.close,
+  void$
+} ;;
