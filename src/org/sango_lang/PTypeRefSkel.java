@@ -55,7 +55,6 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < t.params.length; i++) {
       PVarDef d = var.varSlot.varDef;
       PVarSlot s = PVarSlot.create(d);
-      bindings.addVirtualTvar(s);
       t.params[i] = PTypeVarSkel.create((d != null)? d.getSrcInfo(): null, (d != null)? d.scope: null, s);
     }
     bindings.bind(var.varSlot, t);

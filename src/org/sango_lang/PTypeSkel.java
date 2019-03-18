@@ -103,12 +103,6 @@ public interface PTypeSkel {
     PTypeSkel lookupAppl(PVarSlot var) {
       return this.applBindings.lookup(var);
     }
-
-    List<PVarSlot> getVarSlotList() {
-      List<PVarSlot> vl = new ArrayList<PVarSlot>(this.applBindings.virtualTvarList);
-      vl.addAll(this.varSlotList);
-      return vl;
-    }
   }
 
   public abstract static class Util {

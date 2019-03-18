@@ -31,7 +31,6 @@ import java.util.Map;
 public class PTypeSkelBindings {
   Map<PVarSlot, PTypeSkel> bindingDict;
   List<PVarSlot> givenTvarList;
-  List<PVarSlot> virtualTvarList;
 
   private PTypeSkelBindings() {}
 
@@ -43,14 +42,12 @@ public class PTypeSkelBindings {
     PTypeSkelBindings b = new PTypeSkelBindings();
     b.bindingDict = new HashMap<PVarSlot, PTypeSkel>();
     b.givenTvarList = givenTvarList;
-    b.virtualTvarList = new ArrayList<PVarSlot>();
     return b;
   }
 
   public String toString() {
     return this.bindingDict.toString()
-      + " G" + this.givenTvarList.toString()
-      + " V" + this.virtualTvarList.toString();
+      + " G" + this.givenTvarList.toString();
   }
 
   boolean isBound(PVarSlot var) {
@@ -81,11 +78,4 @@ public class PTypeSkelBindings {
   }
 
   boolean isGivenTvar(PVarSlot var) { return this.givenTvarList.contains(var); }
-
-  void addVirtualTvar(PVarSlot var) {
-    if (this.virtualTvarList.contains(var)) { throw new IllegalArgumentException("Already registered."); }
-    this.virtualTvarList.add(var);
-  }
-
-  boolean isVirtualTvar(PVarSlot var) { return this.virtualTvarList.contains(var); }
 }
