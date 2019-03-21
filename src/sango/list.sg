@@ -25,6 +25,10 @@ module "sango.list" ;;
 
 import "sango.util.iter" -> iter ;;
 
+eval empty_list @public -> <*A list> {
+  []
+} ;;
+
 eval <*A iter> *Iter new_list @public -> <A list> {
   Iter [] &\ <A iter> *I <A list> *Xs -> {
     I next >> case {
