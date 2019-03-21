@@ -11,6 +11,8 @@ eval _main_ -> <void> {
 eval test -> <void> {
   test001,
   test002,
+  test005,
+  test006,
   test011,
   test012,
   test021,
@@ -70,6 +72,8 @@ eval test -> <void> {
 
 eval test001 -> <bool> { [] list.empty? = true$ } ;;
 eval test002 -> <bool> { [] list.non_empty? = false$ } ;;
+eval test005 -> <int list> { 5 [] list.cons = [ 5 ] } ;;
+eval test006 -> <int list> { 5 [ 7 ] list.cons = [ 5, 7 ] } ;;
 eval test011 -> <int> { [] list.length = 0 } ;;
 eval test012 -> <int> { [ 1, 2, 3 ] list.length = 3 } ;;
 eval test021 -> <int maybe> { [] list.first = none$ } ;;

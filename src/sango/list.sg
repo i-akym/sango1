@@ -78,6 +78,10 @@ eval <*A list> *Xs tail @public -> <<A list> maybe> {
   }
 } ;;
 
+eval <*A> *X <A list> *Xs cons @public -> <A list> {
+  [ X ; Xs ]
+} ;;
+
 eval <*A list> *Xs last @public -> <A maybe> {
   Xs case {
   ; [ *XsL ] -> XsL value$
