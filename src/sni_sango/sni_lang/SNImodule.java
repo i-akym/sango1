@@ -79,139 +79,76 @@ public class SNImodule {
     }
   }
 
+  public void sni_tao_value(RNativeImplHelper helper, RClosureItem self, RObjItem tao) {
+    helper.setReturnValue(((TaoItem)tao).value);
+  }
+
+  public void sni_do_byte_tao(RNativeImplHelper helper, RClosureItem self, RObjItem b) {
+    helper.setReturnValue(TaoItem.create(helper, createPrimitiveType(helper, Module.TCON_BYTE), b));
+  }
+
+  public void sni_do_int_tao(RNativeImplHelper helper, RClosureItem self, RObjItem i) {
+    helper.setReturnValue(TaoItem.create(helper, createPrimitiveType(helper, Module.TCON_INT), i));
+  }
+
+  public void sni_do_real_tao(RNativeImplHelper helper, RClosureItem self, RObjItem r) {
+    helper.setReturnValue(TaoItem.create(helper, createPrimitiveType(helper, Module.TCON_REAL), r));
+  }
+
+  public void sni_do_char_tao(RNativeImplHelper helper, RClosureItem self, RObjItem c) {
+    helper.setReturnValue(TaoItem.create(helper, createPrimitiveType(helper, Module.TCON_CHAR), c));
+  }
+
   public void sni_do_new_tuple(RNativeImplHelper helper, RClosureItem self, RObjItem elems
 ) {
-    List<RStructItem> os = new ArrayList<RStructItem>();
+    List<TaoItem> os = new ArrayList<TaoItem>();
     RListItem L = (RListItem)elems;
     while (L instanceof RListItem.Cell) {
       RListItem.Cell c = (RListItem.Cell)L;
-      os.add((RStructItem)c.head);
+      os.add((TaoItem)c.head);
       L = c.tail;
     }
-    if (os.size() >= 2) {
-      helper.setReturnValue(TupleObj.create(helper, os));
-    } else {
+    if (os.size() < 2) {
       helper.setException(sni_sango.SNIlang.createBadArgException(
         helper, new Cstr("Insufficient elements."), null));
+      return;
     }
+    PTypeSkel[] ts = new PTypeSkel[os.size()];
+    RObjItem[] vs = new RObjItem[os.size()];
+    for (int i = 0; i < os.size(); i++) {
+      TaoItem o = os.get(i);
+      ts[i] = o.type;
+      vs[i] = o.value;
+    }
+    helper.setReturnValue(TaoItem.create(helper, createTupleType(helper, ts), helper.getTupleItem(vs)));
   }
 
   public void sni_do_tuple_elems(RNativeImplHelper helper, RClosureItem self, RObjItem tuple) {
-    TupleObj o = (TupleObj)tuple;
-    RStructItem s = (RStructItem)o.value;
-    PTypeSkel[] pts = ((PTypeRefSkel)o.type).getParams();
+    TaoItem tupleTao = (TaoItem)tuple;
+    if (!PTypeRefSkel.isLangType(tupleTao.type, Module.TCON_TUPLE)) {
+      helper.setException(sni_sango.SNIlang.createBadArgException(
+        helper, new Cstr("Not a tuple."), null));
+      return;
+    }
+    RStructItem s = (RStructItem)tupleTao.value;
+    PTypeSkel[] pts = ((PTypeRefSkel)tupleTao.type).getParams();
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
       RListItem.Cell c = helper.createListCellItem();
-      c.head = wrap(helper, pts[i], s.getFieldAt(i));
+      c.head = TaoItem.create(helper, pts[i], s.getFieldAt(i));
       c.tail = L;
       L = c;
     }
     helper.setReturnValue(L);
   }
 
-  public void sni_do_empty_list(RNativeImplHelper helper, RClosureItem self) {
-    helper.setReturnValue(ListObj.createEmpty(helper));
-  }
-
-  public void sni_do_list_cons(RNativeImplHelper helper, RClosureItem self, RObjItem head, RObjItem tail) {
-/* DEBUG */ try {
-    TnV htv = unwrap(helper, (RStructItem)head);
-    ListObj lo = (ListObj)tail;
-// /* DEBUG */ System.out.println(lo.type);
-    PTypeSkel tep = ((PTypeRefSkel)lo.type).getParams()[0];
-    try {
-      PTypeSkelBindings b = PTypeSkelBindings.create();
-      PTypeSkel tep2 = htv.type.join(tep, b);
-      if (tep2 != null) {
-        ListObj L = ListObj.create(helper, tep2, htv.value, (RListItem)lo.value);
-        helper.setReturnValue(L);
-      } else {
-        helper.setException(sni_sango.SNIlang.createBadArgException(
-          helper, new Cstr("Type mismatch."), null));
-      }
-    } catch (CompileException ex) {
-      throw new RuntimeException("Unexpected exception. - " + ex.toString());
-      // helper.setException(sni_sango.SNIlang.createBadArgException(
-        // helper, new Cstr("Type mismatch."), null));
-    }
-/* DEBUG */ } catch (Exception ex) {
-/* DEBUG */ ex.printStackTrace(System.out);
-/* DEBUG */ }
-  }
-
-  public void sni_do_list_empty_Q_(RNativeImplHelper helper, RClosureItem self, RObjItem list) {
-    helper.setReturnValue(helper.getBoolItem(((ListObj)list).isEmpty()));
-  }
-
-  public void sni_do_list_head(RNativeImplHelper helper, RClosureItem self, RObjItem list) {
-    ListObj L = (ListObj)list;
-    RObjItem h;
-    if (L.isEmpty()) {
-      h = null;
-    } else {
-      RListItem.Cell c = (RListItem.Cell)L.value;
-      h = wrap(helper, L.getElemType(), c.head);
-    }
-    helper.setReturnValue(sni_sango.SNIlang.getMaybeItem(helper, h));
-  }
-
-  public void sni_do_list_tail(RNativeImplHelper helper, RClosureItem self, RObjItem list) {
-    ListObj L = (ListObj)list;
-    RObjItem t;
-    if (L.isEmpty()) {
-      t = null;
-    } else {
-      RListItem.Cell c = (RListItem.Cell)L.value;
-      t = ListObj.createWithType(helper, L.type, c.tail);
-    }
-    helper.setReturnValue(sni_sango.SNIlang.getMaybeItem(helper, t));
-  }
-
-  public void sni_do_list_to_string(RNativeImplHelper helper, RClosureItem self, RObjItem list) {
-    ListObj lo = (ListObj)list;
-    RListItem L = (RListItem)lo.value;
-    int count = 0;
-    while (L instanceof RListItem.Cell) {
-      count++;
-      RListItem.Cell c = (RListItem.Cell)L;
-      L = c.tail;
-    }
-    RArrayItem a = helper.createArrayItem(count);
-    L = (RListItem)lo.value;
-    for (int i = 0; i < count; i++) {
-      RListItem.Cell c = (RListItem.Cell)L;
-      a.setElemAt(i, c.head);
-      L = c.tail;
-    }
-    helper.setReturnValue(StringObj.create(helper, ((PTypeRefSkel)lo.type).getParams()[0], a));
-  }
-
-  public void sni_do_string_length(RNativeImplHelper helper, RClosureItem self, RObjItem string) {
-    StringObj so = (StringObj)string;
-    helper.setReturnValue(helper.getIntItem(((RArrayItem)so.value).getElemCount()));
-  }
-
-  public void sni_do_string_elem(RNativeImplHelper helper, RClosureItem self, RObjItem string, RObjItem pos) {
-    StringObj so = (StringObj)string;
-    RArrayItem a = (RArrayItem)so.value;
-    int len = a.getElemCount();
-    int idx = ((RIntItem)pos).getValue();
-    if (0 <= idx && idx < len) {
-      helper.setReturnValue(wrap(helper, so.getElemType(), a.getElemAt(idx)));
-    } else {
-      helper.setException(sni_sango.SNIlang.createBadArgException(
-        helper, new Cstr("Invalid index."), null));
-    }
-  }
-
   public void sni_do_new_data(RNativeImplHelper helper, RClosureItem self, RObjItem attrs, RObjItem mod, RObjItem dcon) {
 /* DEBUG */ try {
     RListItem L = (RListItem)attrs;
-    List<TnV> as = new ArrayList<TnV>();
+    List<TaoItem> as = new ArrayList<TaoItem>();
     while (L instanceof RListItem.Cell) {
       RListItem.Cell lc = (RListItem.Cell)L;
-      as.add(unwrap(helper, (RStructItem)lc.head));
+      as.add((TaoItem)lc.head);
       L = lc.tail;
     }
     Cstr modName = helper.arrayItemToCstr((RArrayItem)mod);
@@ -232,7 +169,7 @@ public class SNImodule {
     RObjItem[] vs = new RObjItem[as.size()];
     try {
       for (int i = 0; i < c.getAttrCount(); i++) {
-        TnV tv = as.get(i);
+        TaoItem tv = as.get(i);
         // if (PTypeRefSkel.willNotReturn(tv.type)) { ... }  // HERE
         PDataDef.Attr a = c.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
@@ -259,7 +196,7 @@ public class SNImodule {
     }
     RDataConstr dc = helper.getDataConstr(modName, dconName);
     RStructItem data = helper.getStructItem(dc, vs);
-    ConstrObj o = ConstrObj.createWithType(helper, c.getType(b), data);
+    TaoItem o = TaoItem.create(helper, c.getType(b), data);
     helper.setReturnValue(o);
 /* DEBUG */ } catch (Exception ex) {
 /* DEBUG */ ex.printStackTrace(System.out);
@@ -268,8 +205,14 @@ public class SNImodule {
   }
 
   public void sni_do_constr_attrs(RNativeImplHelper helper, RClosureItem self, RObjItem constr) {
-    ConstrObj co = (ConstrObj)constr;
-    RStructItem s = (RStructItem)co.value;
+    TaoItem constrTao = (TaoItem)constr;
+    if (!(constrTao.value instanceof RStructItem)) {  // TODO: need more conditions
+      helper.setException(sni_sango.SNIlang.createBadArgException(
+        helper, new Cstr("Not a constructed data."), null));
+      return;
+    }
+    
+    RStructItem s = (RStructItem)constrTao.value;
     RDataConstr dc = s.getDataConstr();
     Cstr modName = dc.getModName();
     String dconName = dc.getName();
@@ -278,7 +221,7 @@ public class SNImodule {
     PDataDef.Constr c = dd.getConstr(dconName);
     PTypeSkelBindings b = PTypeSkelBindings.create();
     try {
-      b = ts.applyTo(co.type, b);
+      b = ts.applyTo(constrTao.type, b);
     } catch (CompileException ex) {
       throw new RuntimeException("Unexpected exception. - " + ex.toString());
     }
@@ -288,7 +231,7 @@ public class SNImodule {
       PDataDef.Attr a = c.getAttrAt(i);
       PTypeSkel at = a.getNormalizedType().instanciate(ib);
       RListItem.Cell lc = helper.createListCellItem();
-      lc.head = wrap(helper, at, s.getFieldAt(i));
+      lc.head = TaoItem.create(helper, at, s.getFieldAt(i));
       lc.tail = L;
       L = lc;
     }
@@ -301,7 +244,7 @@ public class SNImodule {
     RClosureItem c = helper.getCore().getClosureItem(modName, funName);
     if (c != null) {
       PTypeSkel t = helper.getCore().getFunType(modName, funName);
-      helper.setReturnValue(ClosureObj.createWithType(helper, t, c));
+      helper.setReturnValue(TaoItem.create(helper, t, c));
     } else {
       helper.setException(sni_sango.SNIlang.createBadArgException(
         helper, new Cstr("Not found."), null));
@@ -310,8 +253,13 @@ public class SNImodule {
 
   public void sni_prepare_apply(RNativeImplHelper helper, RClosureItem self, RObjItem params, RObjItem closure) {
 /* DEBUG */ try {
-    ClosureObj co = (ClosureObj)closure;
-    PTypeRefSkel ft = (PTypeRefSkel)co.type;  // <A B C ... R fun>
+    TaoItem closureTao = (TaoItem)closure;
+    if (!PTypeRefSkel.isLangType(closureTao.type, Module.TCON_FUN)) {
+      helper.setException(sni_sango.SNIlang.createBadArgException(
+        helper, new Cstr("Not a closure."), null));
+      return;
+    }
+    PTypeRefSkel ft = (PTypeRefSkel)closureTao.type;  // <A B C ... R fun>
     PTypeSkel[] pts = ft.getParams();
     RObjItem[] ps = new RObjItem[pts.length - 1];
     RObjItem L = params;
@@ -324,15 +272,14 @@ public class SNImodule {
           return;
         }
         RListItem.Cell lc = (RListItem.Cell)L;
-        RStructItem p = (RStructItem)lc.head;  // <obj>
-        TnV tnv = unwrap(helper, p);
-        PTypeSkelBindings bb = pts[i].applyTo(tnv.type, b);
+        TaoItem p = (TaoItem)lc.head;
+        PTypeSkelBindings bb = pts[i].applyTo(p.type, b);
         if (bb == null) {
           helper.setException(sni_sango.SNIlang.createBadArgException(
             helper, new Cstr("Parameter type mismatch."), null));
           return;
         }
-        ps[i] = tnv.value;
+        ps[i] = p.value;
         b = bb;
         L = lc.tail;
       }
@@ -348,7 +295,7 @@ public class SNImodule {
     }
     PTypeSkel rt = pts[pts.length - 1]
       .instanciate(PTypeSkel.InstanciationBindings.create(b));
-    helper.setReturnValue(RunObj.create(helper, rt, (RClosureItem)co.value, ps));
+    helper.setReturnValue(RunObj.create(helper, rt, (RClosureItem)closureTao.value, ps));
 /* DEBUG */ } catch (Exception ex) {
   /* DEBUG */ ex.printStackTrace(System.out);
   /* DEBUG */ throw ex;
@@ -368,7 +315,7 @@ public class SNImodule {
         RObjItem r = res.getReturnValue();
         RDataConstr dc = helper.getDataConstr(Module.MOD_LANG, "fin$");
         helper.setReturnValue(
-          helper.getStructItem(dc, new RObjItem[] { wrap(helper, (PTypeSkel)ri, r) })); 
+          helper.getStructItem(dc, new RObjItem[] { TaoItem.create(helper, (PTypeSkel)ri, r) })); 
       } else {
         helper.setReturnValue(res.toResultItem());
       }
@@ -379,237 +326,39 @@ public class SNImodule {
 /* DEBUG */ }
   }
 
-  abstract static class WrappedObj extends RObjItem {
+  static class TaoItem extends RObjItem {
     PTypeSkel type;
     RObjItem value;
 
-    WrappedObj(RuntimeEngine e, PTypeSkel type, RObjItem value) {
+    TaoItem(RuntimeEngine e, PTypeSkel type, RObjItem value) {
       super(e);
       this.type = type;
       this.value = value;
     }
 
+    static TaoItem create(RNativeImplHelper helper, PTypeSkel type, RObjItem value) {
+      return new TaoItem(helper.getRuntimeEngine(), type, value);
+    }
+
+    public boolean objEquals(RFrame frame, RObjItem item) {
+      boolean eq;
+      if (item == this) {
+        eq = true;
+      } else if (!(item instanceof TaoItem)) {
+        eq = false;
+      } else {
+        TaoItem o = (TaoItem)item;
+        eq = this.type.equals(o.type) && this.value.objEquals(frame, o.value);
+      }
+      return eq;
+    }
+
     public Cstr debugReprOfContents() {
       return new Cstr(PTypeSkel.Util.repr(this.type) + this.toString());
     }
-  }
-
-  public static class TupleObj extends WrappedObj {
-    TupleObj(RuntimeEngine e, PTypeSkel type, RStructItem tuple) {
-      super(e, type, tuple);
-    }
-
-    static TupleObj create(RNativeImplHelper helper, List<RStructItem> elems) {
-      PTypeSkel[] ts = new PTypeSkel[elems.size()];
-      RObjItem[] vs = new RObjItem[elems.size()];
-      for (int i = 0; i < elems.size(); i++) {
-        TnV tnv = unwrap(helper, elems.get(i));
-        ts[i] = tnv.type;
-        vs[i] = tnv.value;
-      }
-      return createWithType(helper, createTupleType(helper, ts), helper.getTupleItem(vs));
-    }
-
-    static TupleObj createWithType(RNativeImplHelper helper, PTypeSkel type, RStructItem tuple) {
-      return new TupleObj(helper.getRuntimeEngine(), type, tuple);
-    }
-
-    public boolean objEquals(RFrame frame, RObjItem item) {
-      boolean eq;
-      if (item == this) {
-        eq = true;
-      } else if (!(item instanceof TupleObj)) {
-        eq = false;
-      } else {
-        TupleObj t = (TupleObj)item;
-        eq = this.type.equals(t.type) && this.value.objEquals(frame, t.value);
-      }
-      return eq;
-    }
 
     public RType.Sig getTsig() {
-      return RType.createTsig(myModName, "tuple_obj", 0);
-    }
-  }
-
-  public static class ListObj extends WrappedObj {
-    ListObj(RuntimeEngine e, PTypeSkel type, RListItem list) {
-      super(e, type, list);
-    }
-
-    static ListObj createEmpty(RNativeImplHelper helper) {
-      return createEmptyWithType(helper, createPolymorphicListType(helper));
-    }
-
-    static ListObj createEmpty(RNativeImplHelper helper, PTypeSkel elemType) {
-      return createEmptyWithType(helper, createListType(helper, elemType));
-    }
-
-    static ListObj createEmptyWithType(RNativeImplHelper helper, PTypeSkel type) {
-      return createWithType(helper, type, helper.getListNilItem());
-    }
-
-    static ListObj create(RNativeImplHelper helper, PTypeSkel elemType, RObjItem head, RListItem tail) {
-      RListItem.Cell c = helper.createListCellItem();
-      c.head = head;
-      c.tail = tail;
-      return create(helper, elemType, c);
-    }
-
-    static ListObj create(RNativeImplHelper helper, PTypeSkel elemType, RListItem list) {
-      return createWithType(helper, createListType(helper, elemType), list);
-    }
-
-    static ListObj createWithType(RNativeImplHelper helper, PTypeSkel type, RListItem list) {
-      return new ListObj(helper.getRuntimeEngine(), type, list);
-    }
-
-    PTypeSkel getElemType() {
-      PTypeRefSkel t = (PTypeRefSkel)this.type;
-      return t.getParams()[0];
-    }
-
-    public boolean isEmpty() {
-      return this.value instanceof RListItem.Nil;
-    }
-
-    public RType.Sig getTsig() {
-      return RType.createTsig(myModName, "list_obj", 0);
-    }
-
-    public boolean objEquals(RFrame frame, RObjItem item) {
-      boolean eq;
-      if (item == this) {
-        eq = true;
-      } else if (!(item instanceof ListObj)) {
-        eq = false;  // logically not reached
-      } else {
-        ListObj L = (ListObj)item;
-        eq = this.type.equals(L.type) && this.value.objEquals(frame, L.value);
-      }
-      return eq;
-    }
-  }
-
-  public static class StringObj extends WrappedObj {
-    StringObj(RuntimeEngine e, PTypeSkel type, RArrayItem string) {
-      super(e, type, string);
-    }
-
-    static StringObj create(RNativeImplHelper helper, PTypeSkel elemType, RArrayItem string) {
-      return createWithType(helper, createStringType(helper, elemType), string);
-    }
-
-    static StringObj createWithType(RNativeImplHelper helper, PTypeSkel type, RArrayItem string) {
-      return new StringObj(helper.getRuntimeEngine(), type, string);
-    }
-
-    PTypeSkel getElemType() {
-      PTypeRefSkel t = (PTypeRefSkel)this.type;
-      return t.getParams()[0];
-    }
-
-    public RType.Sig getTsig() {
-      return RType.createTsig(myModName, "string_obj", 0);
-    }
-
-    public boolean objEquals(RFrame frame, RObjItem item) {
-      boolean eq;
-      if (item == this) {
-        eq = true;
-      } else if (!(item instanceof StringObj)) {
-        eq = false;  // logically not reached
-      } else {
-        StringObj so = (StringObj)item;
-        eq = this.type.equals(so.type) && this.value.objEquals(frame, so.value);
-      }
-      return eq;
-    }
-  }
-
-  public static class ConstrObj extends WrappedObj {
-    ConstrObj(RuntimeEngine e, PTypeSkel type, RStructItem data) {
-      super(e, type, data);
-    }
-
-    static ConstrObj createWithType(RNativeImplHelper helper, PTypeSkel type, RStructItem data) {
-      return new ConstrObj(helper.getRuntimeEngine(), type, data);
-    }
-
-    public boolean objEquals(RFrame frame, RObjItem item) {
-      boolean eq;
-      if (item == this) {
-        eq = true;
-      } else if (!(item instanceof ConstrObj)) {
-        eq = false;
-      } else {
-        ConstrObj c = (ConstrObj)item;
-        RStructItem s = (RStructItem)c.value;
-        RStructItem ss = (RStructItem)this.value;
-        eq = this.type.equals(c.type);
-        for (int i = 0; eq && i < s.getFieldCount(); i++) {
-          eq = ss.getFieldAt(i).objEquals(frame, s.getFieldAt(i));
-        }
-      }
-      return eq;
-    }
-
-    public RType.Sig getTsig() {
-      return RType.createTsig(myModName, "constr_obj", 0);
-    }
-  }
-
-  public static class ClosureObj extends WrappedObj {
-    ClosureObj(RuntimeEngine e, PTypeSkel type, RClosureItem closure) {
-      super(e, type, closure);
-    }
-
-    static ClosureObj createWithType(RNativeImplHelper helper, PTypeSkel type, RClosureItem closure) {
-      return new ClosureObj(helper.getRuntimeEngine(), type, closure);
-    }
-
-    public boolean objEquals(RFrame frame, RObjItem item) {
-      boolean eq;
-      if (item == this) {
-        eq = true;
-      } else if (!(item instanceof ClosureObj)) {
-        eq = false;
-      } else {
-        ClosureObj c = (ClosureObj)item;
-        eq = this.type.equals(c.type) && this.value.objEquals(frame, c.value);
-      }
-      return eq;
-    }
-
-    public RType.Sig getTsig() {
-      return RType.createTsig(myModName, "closure_obj", 0);
-    }
-  }
-
-  public static class CapsuleObj extends WrappedObj {
-    CapsuleObj(RuntimeEngine e, PTypeSkel type, RObjItem item) {
-      super(e, type, item);
-    }
-
-    static CapsuleObj createWithType(RNativeImplHelper helper, PTypeSkel type, RObjItem item) {
-      return new CapsuleObj(helper.getRuntimeEngine(), type, item);
-    }
-
-    public boolean objEquals(RFrame frame, RObjItem item) {
-      boolean eq;
-      if (item == this) {
-        eq = true;
-      } else if (!(item instanceof CapsuleObj)) {
-        eq = false;
-      } else {
-        CapsuleObj c = (CapsuleObj)item;
-        eq = this.type.equals(c.type) && this.value.objEquals(frame, c.value);
-      }
-      return eq;
-    }
-
-    public RType.Sig getTsig() {
-      return RType.createTsig(myModName, "capsule_obj", 0);
+      return RType.createTsig(myModName, "tao", 0);
     }
   }
 
@@ -654,90 +403,6 @@ public class SNImodule {
     }
   }
 
-  static class TnV {
-    PTypeSkel type;
-    RObjItem value;
-
-    TnV(PTypeSkel t, RObjItem v) {
-      this.type = t;
-      this.value = v;
-    }
-  }
-
-  static TnV unwrap(RNativeImplHelper helper, RStructItem obj) {
-    PTypeSkel t = null;
-    RObjItem v = null;
-    RDataConstr dc = obj.getDataConstr();
-    String dcn = dc.getName();
-    if (dcn.equals("int_obj$")) {
-      t = createPrimitiveType(helper, Module.TCON_INT);
-      v = obj.getFieldAt(0);
-    } else if (dcn.equals("byte_obj$")) {
-      t = createPrimitiveType(helper, Module.TCON_BYTE);
-      v = obj.getFieldAt(0);
-    } else if (dcn.equals("char_obj$")) {
-      t = createPrimitiveType(helper, Module.TCON_CHAR);
-      v = obj.getFieldAt(0);
-    } else if (dcn.equals("real_obj$")) {
-      t = createPrimitiveType(helper, Module.TCON_REAL);
-      v = obj.getFieldAt(0);
-    } else if (dcn.equals("tuple_obj$")
-        || dcn.equals("list_obj$")
-        || dcn.equals("string_obj$")
-        || dcn.equals("constr_obj$")
-        || dcn.equals("closure_obj$")
-        || dcn.equals("capsule_obj$")) {
-      WrappedObj o = (WrappedObj)obj.getFieldAt(0);
-      t = o.type;
-      v = o.value;
-    } else {
-      throw new IllegalArgumentException("Unexpected object. dcon =  " + dcn);
-    }
-    return new TnV(t, v);
-  }
-
-  static RObjItem wrap(RNativeImplHelper helper, PTypeSkel type, RObjItem obj) {
-    RObjItem mo = null;
-    if (PTypeRefSkel.isLangType(type, Module.TCON_INT)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "int_obj$");
-      mo = helper.getStructItem(dc, new RObjItem[] { obj });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_BYTE)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "byte_obj$");
-      mo = helper.getStructItem(dc, new RObjItem[] { obj });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_CHAR)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "char_obj$");
-      mo = helper.getStructItem(dc, new RObjItem[] { obj });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_REAL)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "real_obj$");
-      mo = helper.getStructItem(dc, new RObjItem[] { obj });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_TUPLE)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "tuple_obj$");
-      TupleObj o = TupleObj.createWithType(helper, type, (RStructItem)obj);
-      mo = helper.getStructItem(dc, new RObjItem[] { obj });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_LIST)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "list_obj$");
-      ListObj lo = ListObj.createWithType(helper, type, (RListItem)obj);
-      mo = helper.getStructItem(dc, new RObjItem[] { lo });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_STRING)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "string_obj$");
-      StringObj o = StringObj.createWithType(helper, type, (RArrayItem)obj);
-      mo = helper.getStructItem(dc, new RObjItem[] { o });
-    } else if (PTypeRefSkel.isLangType(type, Module.TCON_FUN)) {
-      RDataConstr dc = helper.getDataConstr(myModName, "closure_obj$");
-      ClosureObj o = ClosureObj.createWithType(helper, type, (RClosureItem)obj);
-      mo = helper.getStructItem(dc, new RObjItem[] { o });
-    } else if (obj instanceof RStructItem) {  // TODO: should check definition
-      RDataConstr dc = helper.getDataConstr(myModName, "constr_obj$");
-      ConstrObj o = ConstrObj.createWithType(helper, type, (RStructItem)obj);
-      mo = helper.getStructItem(dc, new RObjItem[] { o });
-    } else {
-      RDataConstr dc = helper.getDataConstr(myModName, "capsule_obj$");
-      CapsuleObj o = CapsuleObj.createWithType(helper, type, obj);
-      mo = helper.getStructItem(dc, new RObjItem[] { o });
-    }
-    return mo;
-  }
-
   static PTypeRefSkel createPrimitiveType(RNativeImplHelper helper, String tcon) {
     DataDef dd = new DataDef(helper.getCore().getDefDictGetter());
     dd.mod = Module.MOD_LANG;
@@ -764,70 +429,13 @@ public class SNImodule {
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_STRING);
+    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
         PTypeId.SUBCAT_DATA, 1, Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
       helper.getCore().getDefDictGetter(), null, ti, false, elemTypes);
-  }
-
-  static PTypeRefSkel createPolymorphicListType(RNativeImplHelper helper) {
-    DataDef dd = new DataDef(helper.getCore().getDefDictGetter());
-    dd.mod = Module.MOD_LANG;
-    dd.sigTcon = Module.TCON_LIST;
-    dd.sigParams = new PTypeVarSkel[] {
-      PTypeVarSkel.create(null, null, PVarSlot.createInternal())
-    };
-    dd.acc = Module.ACC_PUBLIC;
-    // dd.baseTconKey = null;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_LIST);
-    PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
-    PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, 1, Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
-    return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false,
-      new PTypeSkel[] { PTypeVarSkel.create(null, null, PVarSlot.createInternal()) });
-  }
-
-  static PTypeRefSkel createListType(RNativeImplHelper helper, PTypeSkel elemType) {
-    DataDef dd = new DataDef(helper.getCore().getDefDictGetter());
-    dd.mod = Module.MOD_LANG;
-    dd.sigTcon = Module.TCON_LIST;
-    dd.sigParams = new PTypeVarSkel[] {
-      PTypeVarSkel.create(null, null, PVarSlot.createInternal())
-    };
-    dd.acc = Module.ACC_PUBLIC;
-    // dd.baseTconKey = null;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_LIST);
-    PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
-    PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, 1, Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
-    return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false,
-      new PTypeSkel[] { elemType });
-  }
-
-  static PTypeRefSkel createStringType(RNativeImplHelper helper, PTypeSkel elemType) {
-    DataDef dd = new DataDef(helper.getCore().getDefDictGetter());
-    dd.mod = Module.MOD_LANG;
-    dd.sigTcon = Module.TCON_STRING;
-    dd.sigParams = new PTypeVarSkel[] {
-      PTypeVarSkel.create(null, null, PVarSlot.createInternal())
-    };
-    dd.acc = Module.ACC_PUBLIC;
-    // dd.baseTconKey = null;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_STRING);
-    PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
-    PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, 1, Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
-    return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false,
-      new PTypeSkel[] { elemType });
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
