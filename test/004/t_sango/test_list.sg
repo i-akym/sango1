@@ -68,6 +68,8 @@ eval test -> <void> {
   test103,
   test104,
   test105,
+  test110,
+  test111,
   void$
 } ;;
 
@@ -130,3 +132,5 @@ eval test102 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 2 9 list.repl
 eval test103 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 4 9 list.replace_at = (| [ 0, 1, 2, 3, 9 ], 4 |) value$ } ;;
 eval test104 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 5 9 list.replace_at = none$ } ;;
 eval test105 -> <<<int list> int tuple> maybe> { [] 0 9 list.replace_at = none$ } ;;
+eval test110 -> <int list> { [ 1, 2, 3 ] list.iter >> list.new_list = [ 1, 2, 3 ] } ;;
+eval test111 -> <int list> { [ 1, 2, 3 ] list.iter >> list.new_reverse_list = [ 3, 2, 1 ] } ;;
