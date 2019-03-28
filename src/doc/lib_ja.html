@@ -2058,6 +2058,9 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *Iter new_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>イテレータによってリストを作成します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *Iter new_reverse_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<p>イテレータから供給される逆順にリストを作成します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;A list&gt; *Xs cons @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p><code>Xs</code>の前に<code>X</code>を加えたリストを作成します。</p>
 
