@@ -1,5 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
 import "sango.string" -> str ;;
 import "sango.system.runtime" -> runtime ;;
 
@@ -64,6 +65,14 @@ eval test -> <void> {
   B''' test052,
   B''' test053,
   B''' test054,
+  test060,
+  test060a,
+  test061,
+  test061a,
+  test062,
+  test062a,
+  test063,
+  test063a,
   void$
 } ;;
 
@@ -121,3 +130,11 @@ eval <char str.string_buf> *B test051 -> <cstr> { B 0 str.pack = (| "", *B' |), 
 eval <char str.string_buf> *B test052 -> <cstr> { B 4 str.pack = (| "abcd", *B' |), B' str.pack_all = "efghi" } ;;
 eval <char str.string_buf> *B test053 -> <cstr> { B 6 str.pack = (| "abcdef", *B' |), B' str.pack_all = "ghi" } ;;
 eval <char str.string_buf> *B test054 -> <cstr> { B 10 str.pack = (| "abcdefghi", *B' |), B' str.pack_all = "" } ;;
+eval test060 -> <int string> { 3 ([ 1, 2, 3 ] list.iter) str.new_string = [| 1, 2, 3 |] } ;;
+eval test060a -> <int string> { 3 ([ 1, 2, 3 ] list.iter) str.new_reverse_string = [| 3, 2, 1 |] } ;;
+eval test061 -> <int string> { 0 ([ 1, 2, 3 ] list.iter) str.new_string = [||] } ;;
+eval test061a -> <int string> { 0 ([ 1, 2, 3 ] list.iter) str.new_reverse_string = [||] } ;;
+eval test062 -> <int string> { 2 ([ 1, 2, 3 ] list.iter) str.new_string = [| 1, 2 |] } ;;
+eval test062a -> <int string> { 2 ([ 1, 2, 3 ] list.iter) str.new_reverse_string = [| 2, 1 |] } ;;
+eval test063 -> <<int string> result> { \\ <int string> { 4 ([ 1, 2, 3 ] list.iter) str.new_string } try = ** exc$ } ;;
+eval test063a -> <<int string> result> { \\ <int string> { 4 ([ 1, 2, 3 ] list.iter) str.new_reverse_string } try = ** exc$ } ;;
