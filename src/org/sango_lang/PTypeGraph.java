@@ -1164,20 +1164,4 @@ if (DEBUG > 1) {
       }
     }
   }
-
-  NoImplNode createNoImplNode(PTypedElem typedElem) {
-    NoImplNode n = new NoImplNode(typedElem);
-    return n;
-  }
-
-  class NoImplNode extends Node {
-
-    NoImplNode(PTypedElem typedElem) {
-      super(typedElem);
-    }
-
-    PTypeSkel infer() throws CompileException {
-      throw new RuntimeException("PTypeGraph.Node not implemented." + this.typedElem.toString());
-    }
-  }
 }

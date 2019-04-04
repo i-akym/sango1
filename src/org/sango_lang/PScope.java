@@ -107,10 +107,6 @@ class PScope {
     return s;
   }
 
-  // PScope exit() {  // common for defineFun(), enterFun(), enterInner()
-    // return this.parent;
-  // }
-
   PVarSlot lookupVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
@@ -173,20 +169,6 @@ class PScope {
 
   boolean isDefinedOuter(PVarSlot varSlot) {
     return (this.funLevel >= 0)? this.outerDict.containsValue(varSlot): false;
-  }
-
-  boolean areSameVarNamesDefined(PScope s) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
-    }
-    return this.varDict.keySet().equals(s.varDict.keySet());
-  }
-
-  void mergeOuterDict(PScope s) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
-    }
-    this.outerDict.putAll(s.outerDict);
   }
 
   List<PVarSlot> getEnvList() { return this.envList; }
