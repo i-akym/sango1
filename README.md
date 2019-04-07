@@ -1,11 +1,11 @@
 # Sango
 
 ## OVERVIEW
-'Sango'は，Isao Akiyamaが趣味で開発している，以下の特徴をもつプログラミング言語です。
-  - 関数型言語，遅延評価でなく即時評価
-  - オブジェクトは不変（immutable）
+'Sango'は，Isao Akiyamaが趣味で開発している関数型プログラミング言語です。独自のプログラミングモデルと文法によって，わかりやすく誤りが混入しづらいプログラミングを支援します。
+  - 全てのオブジェクトは不変（immutable）
   - 静的な強い型付け
-  - 関数名やデータ構築子をパラメタの後ろに書く，つまり書いてある順番どおりに実行される
+  - モジュール分割とアクセス制御
+  - プログラムコードと実行の順序の一致
   - メッセージ交換による並行処理
 
 ## LICENSE
@@ -24,7 +24,6 @@ src/doc/*.html
 Tower of Hanoi
 
     import "sango.cstr" -> cstr ;;
-    import "sango.debug" -> debug ;;
     import "sango.io.stdio" -> stdio ;;
     import "sango.num.int" -> int ;;
     import "sango.system.runtime" -> runtime ;;
