@@ -232,12 +232,13 @@ Java1.8以上がインストールされている必要があります。</p>
 <ol>
   <li>インストール先のディレクトリを削除あるいは移動して，存在しない状態にします。
     存在すると，この後の手順でエラーになります。</li>
-  <li>リリースファイルを解凍し「<code>release</code>」ディレクトリに移動します。</li>
+  <li>リリースファイルを解凍します。</li>
+  <li>解凍してできた「<code>release</code>」をシェルのカレントディレクトリにします。</li>
   <li>「<code>unix_configure.sh</code>」にインストール先ディレクトリを絶対パスで指定して実行します。
     ここでは「<code>/opt/sango</code>」をインストールディレクトリとします。
     正常終了後，「<code>install.sh</code>」を実行します。</li>
     <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>tar xvfz sango0.1.tgz</kbd>
+<samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
 <samp>$ </samp><kbd>cd release</kbd>
 <samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
 <samp>$ </samp><kbd>sudo ./install.sh</kbd></blockquote></li>
