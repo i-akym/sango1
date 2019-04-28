@@ -2305,9 +2305,8 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
   変換に失敗した場合は例外が発生します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;real&gt; *R default_format | format @public -&gt; &lt;cstr&gt; ;;</code></td></tr></table>
-<p><code>&lt;real&gt;</code>を文字列にフォーマットします。
-  値の範囲に応じ<code>&quot;<var>xx</var>.<var>xx</var>&quot;</code>と<code>&quot;<var>xx</var>.<var>xx</var>E<var>xx</var>&quot;</code>の形式を切り替えます。
-  形式は変更されることがあります。</p>
+<p><code>&lt;real&gt;</code>を<code>&quot;<var>m</var>.<var>nnnnnnnnnnnn</var>E<var>xx</var>&quot;</code>形式の文字列にフォーマットします。
+  非数，正負の無限大は，<code>&quot;NaN&quot;</code>，<code>&quot;Infinity&quot;</code>，<code>&quot;-Infinity&quot;</code>に変換されます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.string"><code>sango.string</code></h1>

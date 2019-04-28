@@ -33,6 +33,10 @@ eval test -> <void> {
   test024b,
   test025,
   test026,
+  test100,
+  test101,
+  test102,
+  test103,
   void$
 } ;;
 
@@ -60,3 +64,7 @@ eval test024a -> <real result> { \\ <real> { "16.25e+" real.parse } try = ** exc
 eval test024b -> <real result> { \\ <real> { "16.25e-" real.parse } try = ** exc$ } ;;
 eval test025 -> <real result> { \\ <real> { "16.25a" real.parse } try = ** exc$ } ;;
 eval test026 -> <real result> { \\ <real> { "16.25e0z" real.parse } try = ** exc$ } ;;
+eval test100 -> <cstr> { nan real.format = "NaN" } ;;
+eval test101 -> <cstr> { pos_inf real.format = "Infinity" } ;;
+eval test102 -> <cstr> { neg_inf real.format = "-Infinity" } ;;
+eval test103 -> <cstr> { 0.0 real.format = "0.000000000000E0" } ;;

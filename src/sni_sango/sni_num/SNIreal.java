@@ -27,6 +27,7 @@ import java.lang.Double;
 import org.sango_lang.Cstr;
 import org.sango_lang.RArrayItem;
 import org.sango_lang.RClosureItem;
+import org.sango_lang.RListItem;
 import org.sango_lang.RNativeImplHelper;
 import org.sango_lang.RObjItem;
 import org.sango_lang.RRealItem;
@@ -42,8 +43,17 @@ public class SNIreal {
     helper.setReturnValue(helper.getRealItem(Double.parseDouble(str.toJavaString())));
   }
 
-  public void sni_default_format(RNativeImplHelper helper, RClosureItem self, RObjItem r) {
-    double d = ((RRealItem)r).getValue();
-    helper.setReturnValue(helper.cstrToArrayItem(new Cstr(Double.toString(d))));
+  public void sni_ieee754_bin64_bits(RNativeImplHelper helper, RClosureItem self, RObjItem r) {
+    double v = ((RRealItem)r).getValue();
+    long bs = Double.doubleToLongBits(v);
+    RListItem L = helper.getListNilItem();
+    for (int i = 0; i < 64; i++) {
+      RListItem.Cell lc = helper.createListCellItem();
+      lc.tail = L;
+      lc.head = helper.getIntItem((int)(bs & 1));
+      bs >>>= 1;
+      L = lc;
+    }
+    helper.setReturnValue(L);
   }
 }

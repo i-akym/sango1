@@ -25,6 +25,8 @@ module "sango.num.real" ;;
 
 import "sango.cstr" -> cstr ;;
 import "sango.cstr.format" -> fmt ;;
+import "sango.list" -> list ;;
+import "sango.num.int" -> int ;;
 import "sango.string" -> str ;;
 
 # -- parse --
@@ -107,4 +109,253 @@ eval <int> *CC decimal_digit? -> <bool> {
 
 eval <cstr> *S _parse_floating_point -> <real> @native ;;
 
-eval <real> *R default_format | format @public -> <cstr> @native ;;
+
+# -- format --
+
+eval <real> *R default_format | format @public -> <cstr> {
+  R do_format
+} ;;
+
+eval <real> *R do_format -> <cstr> {
+  if {
+  ; R nan? -> "NaN"
+  ; R infinite? ->
+    if {
+    ; R ge0? -> "Infinity"
+    ; otherwise -> "-Infinity"
+    }
+  ; otherwise -> R do_format_float_number
+  }
+} ;;
+
+eval <real> *R do_format_float_number -> <cstr> {
+  if {
+  ; R zero? -> do_format_float_zero
+  ; otherwise -> R do_format_float_non_zero
+  }
+} ;;
+
+eval do_format_float_zero -> <cstr> {
+  0 (| [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], 0 |) to_float_format
+} ;;
+
+eval <real> *R do_format_float_non_zero -> <cstr> {
+  R ieee754_bin64_bits >> ieee754_bin64_parts = (| *S, *E, *F |),
+  F E ieee754_bin64_to_int_bin_frac_bin = (| *Int, *Frac |),
+  (Int bin_to_decs) (Frac frac_bin_to_decs) int_frac_decs_to_dec_float = *Df,
+  S (Df 12 dec_float_digits) to_float_format
+} ;;
+
+eval <int> *S <<int list> int tuple> *Df to_float_format -> <cstr> {
+  Df = (| *D, *E |),
+  D \ <int> *C -> <cstr> { C %x30 sum >> char_value >> str.string } list.map = [ *I ; *Js ],
+  str.new_string_buf = *B,
+  S case {
+  ; 1 -> B "-" str.append
+  ; ** -> B
+  } = *B',
+  B' I str.append = *B'',
+  Js case {
+  ; [] -> B''
+  ; ** -> (B'' "." str.append) (Js str.concat) str.append
+  } = *B''',
+  B''' "E" str.append = *B'''',
+  B'''' (E int.format) str.append >> str.pack_all
+} ;;
+
+eval <int list> *Int_decs <int list> *Frac_decs int_frac_decs_to_dec_float -> <<int list> int tuple> {
+  (| Int_decs, Frac_decs |) case {
+  ; (| [], ** |) ->
+    Frac_decs -1 &\ <int list> *D <int> *E -> <<int list> int tuple> {
+      D case {
+      ; [ 0 ; *D' ] -> D' (E dec) &&
+      ; ** -> (| D, E |)
+      }
+    }
+  ; ** -> (| Int_decs Frac_decs list.append >> cut_trailing_zeros, Int_decs list.length >> dec |)
+  }
+} ;;
+
+eval <real> *R ieee754_bin64_bits @public -> <int list> @native ;;
+
+eval <int list> *B64 ieee754_bin64_parts @public -> <int <int list> <int list> tuple> {  # sign, exponent, fraction ; not zero-suppressed
+  B64 = [
+    *S,
+    *E10, *E09, *E08, *E07, *E06, *E05, *E04, *E03, *E02, *E01, *E00,
+    *F51, *F50, *F49, *F48, *F47, *F46, *F45, *F44, *F43, *F42, *F41,
+    *F40, *F39, *F38, *F37, *F36, *F35, *F34, *F33, *F32, *F31, *F30,
+    *F29, *F28, *F27, *F26, *F25, *F24, *F23, *F22, *F21, *F20, *F19,
+    *F18, *F17, *F16, *F15, *F14, *F13, *F12, *F11, *F10, *F09, *F08,
+    *F07, *F06, *F05, *F04, *F03, *F02, *F01, *F00
+  ],
+  (|
+    S,
+    [ E10, E09, E08, E07, E06, E05, E04, E03, E02, E01, E00 ],
+    [ F51, F50, F49, F48, F47, F46, F45, F44, F43, F42, F41,
+      F40, F39, F38, F37, F36, F35, F34, F33, F32, F31, F30,
+      F29, F28, F27, F26, F25, F24, F23, F22, F21, F20, F19,
+      F18, F17, F16, F15, F14, F13, F12, F11, F10, F09, F08,
+      F07, F06, F05, F04, F03, F02, F01, F00 ]
+  |)
+} ;;
+
+eval <int list> *Frac_part <int list> *Exp_part ieee754_bin64_to_int_bin_frac_bin -> <<int list> <int list> tuple> {
+  Frac_part cut_trailing_zeros = *F,
+  (Exp_part bin_to_int) 1023 diff = *Shift,
+  if {
+  ; Shift zero? -> (| [ 1 ], F |)
+  ; Shift gt0? -> F Shift frac_bin_shift_left = (| *Left, *Right |), (| [ 1 ; Left ], Right |)
+  ; otherwise -> (| [], [ 1 ; F ] (Shift neg >> dec) frac_bin_shift_right |)
+  }
+} ;;
+
+eval <int list> *Frac_bin <int> *Count frac_bin_shift_left -> <<int list> <int list> tuple> {
+  Count [] Frac_bin &\ <int> *J <int list> *L_r <int list> *R -> <<int list> <int list> tuple> {
+    (| J, R |)  case {
+    ; (| 0, ** |) -> (| L_r list.reverse, R |)
+    ; (| **, [ *B ; *R' ] |) -> (J dec) [ B ; L_r ] R' &&
+    ; (| **, [] |) -> (J dec) [ 0 ; L_r ] [] &&
+    }
+  }
+} ;;
+
+eval <int list> *Frac_bin <int> *Count frac_bin_shift_right -> <int list> {
+  Count case {
+  ; 0 -> Frac_bin
+  ; ** -> [ 0 ; Frac_bin ] (Count dec) &&
+  }
+} ;;
+
+eval <int list> *X digits_normalize -> <int list> {
+  X cut_leading_zeros
+} ;;
+
+eval <int list> *X cut_leading_zeros -> <int list> {
+  X &\ <int list> *L -> <int list> {
+    L case {
+    ; [ 0 ; *L' ] -> L' &&
+    ; ** -> L
+    }
+  }
+} ;;
+
+eval <int list> *X cut_trailing_zeros -> <int list> {
+  X list.reverse >> cut_leading_zeros >> list.reverse
+} ;;
+
+eval <int list> *X <int list> *Y bin_add -> <int list> {
+  (X list.reverse) (Y list.reverse) 0 []
+    &\ <int list> *Xs_r <int list> *Ys_r <int> *C <int list> *As -> <int list> {
+    (| Xs_r, Ys_r, C |) case {
+    ; (| [ 0 ; *Xs_r' ], [ 0 ; *Ys_r' ], 0 |) -> Xs_r' Ys_r' 0 [ 0 ; As ] &&
+    ; (| [ 0 ; *Xs_r' ], [ 0 ; *Ys_r' ], 1 |) -> Xs_r' Ys_r' 0 [ 1 ; As ] &&
+    ; (| [ 0 ; *Xs_r' ], [ 1 ; *Ys_r' ], 0 |) -> Xs_r' Ys_r' 0 [ 1 ; As ] &&
+    ; (| [ 0 ; *Xs_r' ], [ 1 ; *Ys_r' ], 1 |) -> Xs_r' Ys_r' 1 [ 0 ; As ] &&
+    ; (| [ 1 ; *Xs_r' ], [ 0 ; *Ys_r' ], 0 |) -> Xs_r' Ys_r' 0 [ 1 ; As ] &&
+    ; (| [ 1 ; *Xs_r' ], [ 0 ; *Ys_r' ], 1 |) -> Xs_r' Ys_r' 1 [ 0 ; As ] &&
+    ; (| [ 1 ; *Xs_r' ], [ 1 ; *Ys_r' ], 0 |) -> Xs_r' Ys_r' 1 [ 0 ; As ] &&
+    ; (| [ 1 ; *Xs_r' ], [ 1 ; *Ys_r' ], 1 |) -> Xs_r' Ys_r' 1 [ 1 ; As ] &&
+    ; (| [], [ 0 ; *Ys_r' ], 0 |) -> [] Ys_r' 0 [ 0 ; As ] &&
+    ; (| [], [ 0 ; *Ys_r' ], 1 |) -> [] Ys_r' 0 [ 1 ; As ] &&
+    ; (| [], [ 1 ; *Ys_r' ], 0 |) -> [] Ys_r' 0 [ 1 ; As ] &&
+    ; (| [], [ 1 ; *Ys_r' ], 1 |) -> [] Ys_r' 1 [ 0 ; As ] &&
+    ; (| [ ** ; ** ], [], ** |) -> [] Xs_r C As &&
+    ; (| [], [], 0 |) -> As
+    ; (| [], [], 1 |) -> [ 1 ; As ]
+    }
+  }
+} ;;
+
+eval <int list> *X <int> *P bin_pow2 -> <int list> {
+  (X list.reverse) P &\ <int list> *L <int> *PP -> <int list> {
+    PP case {
+    ; 0 -> L list.reverse
+    ; ** -> [ 0 ; L ] (PP dec) &&
+    }
+  }
+} ;;
+
+eval <int list> *X bin_div10 -> <<int list> <int list> tuple> {
+  0 X [] &\ <int> *C <int list> *L <int list> *Q_r -> <<int list> <int list> tuple> {
+    (| C, L |) case {
+    ; (| 0, [ 1, 1, 1, *B3 ; *L' ] |) -> 0 [ 1, 0, B3 ; L' ] [ 1 ; Q_r ] &&
+    ; (| 0, [ 1, 1, 0, *B3 ; *L' ] |) -> 0 [ 0, 1, B3 ; L' ] [ 1 ; Q_r ] &&
+    ; (| 0, [ 1, 0, 1, *B3 ; *L' ] |) -> 0 [ 0, 0, B3 ; L' ] [ 1 ; Q_r ] &&
+    ; (| 0, [ 1, 0, 0, *B3 ; *L' ] |) -> 1 [ 0, 0, B3 ; L' ] [ 0 ; Q_r ] &&
+    ; (| 0, [ 0, *B1, *B2, *B3 ; *L' ] |) -> 0 [ B1, B2, B3 ; L' ] [ 0 ; Q_r ] &&
+    ; (| 0, ** |) -> (| Q_r list.reverse >> digits_normalize, L |)
+    ; (| 1, [ 0, 0, 1, *B3 ; *L' ] |) -> 1 [ 0, 0, B3 ; L' ] [ 1 ; Q_r ] &&
+    ; (| 1, [ 0, 0, 0, *B3 ; *L' ] |) -> 0 [ 1, 1, B3 ; L' ] [ 1 ; Q_r ] &&
+    ; (| 1, [ 0, 0, *B2 ] |) -> (| Q_r list.reverse >> digits_normalize, [ 1, 0, 0, B2 ] |)
+    }
+  }
+} ;;
+
+eval <int list> *F frac_bin_to_decs -> <int list> {
+  F [] &\ <int list> *L <int list> *D_r -> <int list> {
+    L case {
+    ; [] -> D_r list.reverse
+    ; ** -> L frac_bin_mul10 = (| *I, *F' |), F' [ I ; D_r ] &&
+    }
+  }
+} ;;
+
+eval <int list> *Frac_bin frac_bin_mul10 -> <int <int list> tuple> {
+  ((Frac_bin 2 bin_pow2) Frac_bin bin_add) 1 bin_pow2 = *F10,
+  (F10 list.reverse) (Frac_bin list.reverse) [] &\ <int list> *YY_r <int list> *Y_r <int list> *Z -> <int <int list> tuple> {
+    (| YY_r, Y_r |) case {
+    ; (| **, [] |) -> (| YY_r list.reverse >> bin_to_int, Z cut_trailing_zeros |)
+    ; (| [ *B ; *YY_r' ], [ ** ; *Y_r' ] |) -> YY_r' Y_r' [ B ; Z ] &&
+    }
+  }
+} ;;
+
+eval <int list> *X bin_to_int -> <int> {
+  X 0 &\ <int list> *L <int> *I -> <int> {
+    L case {
+    ; [ *B ; *L' ] -> L' ((I I sum) B sum) &&
+    ; [] -> I
+    }
+  }
+} ;;
+
+eval <int list> *X bin_to_decs -> <int list> {
+  X [] &\ <int list> *L <int list> *LL -> <int list> {
+    L case {
+    ; [] -> LL
+    ; ** -> L bin_div10 = (| *Quot, *Rem |), Quot [ Rem bin_to_int ; LL ] &&
+    }
+  }
+} ;;
+
+eval <<int list> int tuple> *X <int> *D dec_float_digits -> <<int list> int tuple> {  # significant digit count = D + 1
+  X = (| *Y, *E |),
+  Y (D inc) [] &\ <int list> *L <int> *C <int list> *L_r -> <<int list> int tuple> {
+    (| C, L |) case {
+    ; (| 0, [ *N ; ** ] |) -> (| L_r, E |) N dec_float_r_round
+    ; (| 0, [] |) -> (| L_r list.reverse, E |)
+    ; (| **, [ *N ; *L' ] |) -> L' (C dec) [ N ; L_r ] &&
+    ; (| **, [] |) -> [] (C dec) [ 0 ; L_r ] &&
+    }
+  }
+} ;;
+
+eval <<int list> int tuple> *X <int> *N dec_float_r_round -> <<int list> int tuple> {
+  if {
+  ; N 5 lt? -> X = (| *Y, *E |), (| Y list.reverse, E |)
+  ; otherwise -> X dec_float_r_round_up
+  }
+} ;;
+
+eval <<int list> int tuple> *X dec_float_r_round_up -> <<int list> int tuple> {
+  X = (| *Y, *E |),
+  Y 1 [] &\ <int list> *L <int> *C <int list> *L_r -> <<int list> int tuple> {
+    L case {
+    ; [ *D ; *L' ] -> (D C sum) 10 div = (| *C', *D' |), L' C' [ D' ; L_r ] &&
+    ; [] -> (| L_r, C |)
+    }
+  } >> case {
+  ; (| *YY, 0 |) -> (| YY, E |)
+  ; (| *YY, 1 |) -> (| [ 1 ; YY list.reverse >> list.tail >> value >> list.reverse ], E inc |)
+  }
+} ;;

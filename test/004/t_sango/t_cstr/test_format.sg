@@ -44,7 +44,7 @@ eval <tab> *M test002 -> <cstr> {
 eval <tab> *M test002a -> <cstr> {
   "abc{200:int}def" M fmt.format = "abc200def" } ;;
 eval <tab> *M test003 -> <cstr> {
-  "abc{-0.25:real}def" M fmt.format = "abc-0.25def" } ;;
+  "abc{-0.25:real}def" M fmt.format = "abc-2.500000000000E-1def" } ;;
 eval <tab> *M test005 -> <cstr> {
   "{SSS*ZZZ:cstr}{ZZZ:cstr}" M fmt.format = "SSS" } ;;
 eval <tab> *M test011 -> <cstr> {
