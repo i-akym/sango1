@@ -1,0 +1,420 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2019 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# This is a sample program of '15-puzzle'
+# Usage: sango 15puzzle
+#
+# move command ::= <block> <direction>
+# <block>   ::= "1" | "2" | .. | "14" | "15"
+# <direction> ::= "l" | "left" | "r" | "right" | "u" | "up" | "d" | "down"
+
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.io" -> io ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.string" -> str ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.avltree" -> avl ;;
+import "sango.util.random" -> rand ;;
+
+alias type <block> := <cstr> ;;
+alias type <direction> := <cstr> ;;
+
+data <slide> := block: <block> direction: <direction> slide$ ;;
+
+data <board> :=
+  place_block_map: <int block avl.tree>
+  block_place_map: <block int avl.tree>
+  board$ ;;
+
+extend <exc_desc> :=
+| bad_input$ ;;
+
+eval <board> *Board print_board -> <void> {
+  "  " stdio.print,
+  Board 0 block_at >> stdio.print,
+  " " stdio.print,
+  Board 1 block_at >> stdio.print,
+  " " stdio.print,
+  Board 2 block_at >> stdio.print,
+  " " stdio.print,
+  Board 3 block_at >> stdio.print_and_newline,
+  "  " stdio.print,
+  Board 4 block_at >> stdio.print,
+  " " stdio.print,
+  Board 5 block_at >> stdio.print,
+  " " stdio.print,
+  Board 6 block_at >> stdio.print,
+  " " stdio.print,
+  Board 7 block_at >> stdio.print_and_newline,
+  "  " stdio.print,
+  Board 8 block_at >> stdio.print,
+  " " stdio.print,
+  Board 9 block_at >> stdio.print,
+  " " stdio.print,
+  Board 10 block_at >> stdio.print,
+  " " stdio.print,
+  Board 11 block_at >> stdio.print_and_newline,
+  "  " stdio.print,
+  Board 12 block_at >> stdio.print,
+  " " stdio.print,
+  Board 13 block_at >> stdio.print,
+  " " stdio.print,
+  Board 14 block_at >> stdio.print,
+  " " stdio.print,
+  Board 15 block_at >> stdio.print_and_newline
+} ;;
+
+data <play_state> :=
+| <game> play$
+| idle$
+| to_exit$ ;;
+
+data <game> :=
+  board: <board>
+  game$ ;;
+
+data <idle_action> :=
+| ia_print_help$
+| ia_new_game$
+| ia_exit$ ;;
+
+data <play_action> :=
+| pa_print_help$
+| pa_end_game$
+| <slide> pa_hand$
+| pa_exit$ ;;
+
+eval _main_ -> <void> {
+  print_opening_message,
+  idle$ main_loop
+} ;;
+
+eval <play_state> *P main_loop -> <void> {
+  P case {
+  ; idle$ -> 
+    \\ <play_state> { idle_action = *A, A do_idle_action } try >> case {
+    ; *P' fin$ -> P'
+    ; (desc: bad_input$ msg: *M *** exception$) exc$ -> M stdio.print_and_newline, P
+    ; *E exc$ -> E throw  # bug
+    } = *Q, Q &&
+  ; *G play$ ->
+    \\ <play_state> { G play_action = *A, G A do_play_action } try >> case {
+    ; *P' fin$ -> P'
+    ; (desc: bad_input$ msg: *M *** exception$) exc$ -> M stdio.print_and_newline, P
+    ; *E exc$ -> E throw  # bug
+    } >> case {
+    ; *G play$ || G finished? ->
+       G board >> print_board,
+      "Completed!" stdio.print_and_newline, idle$
+    ; *PP -> PP
+    } = *Q, Q &&
+  ; to_exit$ ->
+    "Bye." stdio.print_and_newline, stdio.flush,
+    0 runtime.exit
+  }
+} ;;
+
+eval new_game -> <game> {
+  board: new_board game$
+} ;;
+
+eval empty_board -> <board> {
+  place_block_map: (int_ord_fs avl.new_tree)
+    block_place_map: (cstr.ord_fs avl.new_tree)
+    board$
+} ;;
+
+eval <board> *Board <int> *Place <block> *Block put_block -> <board> {
+  Board place_block_map = *Mpb,
+  Board block_place_map = *Mbp,
+  place_block_map: (Mpb Place Block avl.add)
+    block_place_map: (Mbp Block Place avl.add)
+    board$
+} ;;
+
+eval <board> *Board <int> *Place block_at -> <block> {
+  (Board place_block_map) Place avl.assoc >> value
+} ;;
+
+eval <board> *Board <block> *Block block_place -> <int> {
+  (Board block_place_map) Block avl.assoc >> value
+} ;;
+
+eval <int> *Place left_place -> <int maybe> {
+  Place case {
+  ; 0 | 4 | 8 | 12 -> none$
+  ; ** -> (Place dec) value$
+  }
+} ;;
+
+eval <int> *Place right_place -> <int maybe> {
+  Place case {
+  ; 3 | 7 | 11 | 15 -> none$
+  ; ** -> (Place inc) value$
+  }
+} ;;
+
+eval <int> *Place up_place -> <int maybe> {
+  Place case {
+  ; 0 | 1 | 2 | 3 -> none$
+  ; ** -> (Place 4 diff) value$
+  }
+} ;;
+
+eval <int> *Place down_place -> <int maybe> {
+  Place case {
+  ; 12 | 13 | 14 | 15 -> none$
+  ; ** -> (Place 4 sum) value$
+  }
+} ;;
+
+eval new_board -> <board> {
+  empty_board = *B0,
+  B0 0 " 1" put_block = *B1,
+  B1 1 " 2" put_block = *B2,
+  B2 2 " 3" put_block = *B3,
+  B3 3 " 4" put_block = *B4,
+  B4 4 " 5" put_block = *B5,
+  B5 5 " 6" put_block = *B6,
+  B6 6 " 7" put_block = *B7,
+  B7 7 " 8" put_block = *B8,
+  B8 8 " 9" put_block = *B9,
+  B9 9 "10" put_block = *B10,
+  B10 10 "11" put_block = *B11,
+  B11 11 "12" put_block = *B12,
+  B12 12 "13" put_block = *B13,
+  B13 13 "14" put_block = *B14,
+  B14 14 "15" put_block = *B15,
+  B15 15 "  " put_block = *B16,
+  # shuffle
+  100 B16 &\ <int> *I <board> *B -> <board> {
+    I case {
+    ; 0 -> B
+    ; ** ->
+      B "  " block_place = *V,
+      (V slidables) (rand.generate 6.0 prod >> int) str.elem = (| *P, *F |),
+      (I dec) (B P F do_slide_seq) &&
+    }
+  }
+} ;;
+
+eval <int> *Place slidables -> <<int <int <int maybe> fun> tuple> string> {
+  Place case {
+  ; 0 -> 
+    [| (| 1, ^left_place |), (| 2, ^left_place |), (| 3, ^left_place |),
+      (| 4, ^up_place |), (| 8, ^up_place |), (| 12, ^up_place |) |]
+  ; 1 -> 
+    [| (| 0, ^right_place |), (| 2, ^left_place |), (| 3, ^left_place |),
+      (| 5, ^up_place |), (| 9, ^up_place |), (| 13, ^up_place |) |]
+  ; 2 -> 
+    [| (| 0, ^right_place |), (| 1, ^right_place |), (| 3, ^left_place |),
+      (| 6, ^up_place |), (| 10, ^up_place |), (| 14, ^up_place |) |]
+  ; 3 -> 
+    [| (| 0, ^right_place |), (| 1, ^right_place |), (| 2, ^right_place |),
+      (| 7, ^up_place |), (| 11, ^up_place |), (| 15, ^up_place |) |]
+  ; 4 -> 
+    [| (| 5, ^left_place |), (| 6, ^left_place |), (| 7, ^left_place |),
+      (| 0, ^down_place |), (| 8, ^up_place |), (| 12, ^up_place |) |]
+  ; 5 -> 
+    [| (| 4, ^right_place |), (| 6, ^left_place |), (| 7, ^left_place |),
+      (| 1, ^down_place |), (| 9, ^up_place |), (| 13, ^up_place |) |]
+  ; 6 -> 
+    [| (| 4, ^right_place |), (| 5, ^right_place |), (| 7, ^left_place |),
+      (| 2, ^down_place |), (| 10, ^up_place |), (| 14, ^up_place |) |]
+  ; 7 -> 
+    [| (| 4, ^right_place |), (| 5, ^right_place |), (| 6, ^right_place |),
+      (| 3, ^down_place |), (| 11, ^up_place |), (| 15, ^up_place |) |]
+  ; 8 -> 
+    [| (| 9, ^left_place |), (| 10, ^left_place |), (| 11, ^left_place |),
+      (| 0, ^down_place |), (| 4, ^down_place |), (| 12, ^up_place |) |]
+  ; 9 -> 
+    [| (| 8, ^right_place |), (| 10, ^left_place |), (| 11, ^left_place |),
+      (| 1, ^down_place |), (| 5, ^down_place |), (| 13, ^up_place |) |]
+  ; 10 -> 
+    [| (| 8, ^right_place |), (| 9, ^right_place |), (| 11, ^left_place |),
+      (| 2, ^down_place |), (| 6, ^down_place |), (| 14, ^up_place |) |]
+  ; 11 -> 
+    [| (| 8, ^right_place |), (| 9, ^right_place |), (| 10, ^right_place |),
+      (| 3, ^down_place |), (| 7, ^down_place |), (| 15, ^up_place |) |]
+  ; 12 -> 
+    [| (| 13, ^left_place |), (| 14, ^left_place |), (| 15, ^left_place |),
+      (| 0, ^down_place |), (| 4, ^down_place |), (| 8, ^down_place |) |]
+  ; 13 -> 
+    [| (| 12, ^right_place |), (| 14, ^left_place |), (| 15, ^left_place |),
+      (| 1, ^down_place |), (| 5, ^down_place |), (| 9, ^down_place |) |]
+  ; 14 -> 
+    [| (| 12, ^right_place |), (| 13, ^right_place |), (| 15, ^left_place |),
+      (| 2, ^down_place |), (| 6, ^down_place |), (| 10, ^down_place |) |]
+  ; 15 -> 
+    [| (| 12, ^right_place |), (| 13, ^right_place |), (| 14, ^right_place |),
+      (| 3, ^down_place |), (| 7, ^down_place |), (| 11, ^down_place |) |]
+  }
+} ;;
+
+eval idle_action -> <idle_action> {
+  "Enter 'n' to start a new game or 'x' to exit >> " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.split_by_space >> case {
+    ; [ "n" ] -> ia_new_game$
+    ; [ "x" ] -> ia_exit$
+    ; [ "?" ] -> ia_print_help$
+    ; *SS -> bad_input$ "Error: Unkown command." new_exception >> throw
+    }
+  ; io.instream_at_end$ -> ia_exit$
+  }
+} ;;
+
+eval <game> *G play_action -> <play_action> {
+  stdio.newline,
+  G board >> print_board,
+  "Enter next hand or 'e' to end game >> " stdio.print,
+  stdio.flush,
+  stdio.read_line >> case {
+  ; (*Input ** cstr.line$) io.instream_data$ ->
+    Input cstr.split_by_space >> case {
+    ; [ "e" ] -> pa_end_game$
+    ; [ "?" ] -> pa_print_help$
+    ; *SS -> (SS parse_slide) pa_hand$
+    }
+  ; io.instream_at_end$ -> pa_exit$
+  }
+} ;;
+
+eval <idle_action> *A do_idle_action -> <play_state> {
+  A case {
+  ; ia_exit$ -> to_exit$
+  ; ia_new_game$  -> new_game play$
+  ; ia_print_help$ -> print_help, idle$
+  }
+} ;;
+
+eval <game> *G <play_action> *A do_play_action -> <play_state> {
+  A case {
+  ; pa_end_game$  -> idle$
+  ; *Slide pa_hand$ -> (G Slide do_slide) play$
+  ; pa_exit$ -> to_exit$
+  ; pa_print_help$ -> print_help, G play$
+  }
+} ;;
+
+eval <cstr list> *Tokens parse_slide -> <slide> {
+  Tokens case {
+  ; [ *Block_token, *Direction_token ] ->
+    (Block_token parse_block) (Direction_token parse_direction) slide$
+  ; ** ->
+    bad_input$ "Error: Needs block and direction." new_exception >> throw
+  }
+} ;;
+
+eval <cstr> *Token parse_block -> <block> {
+  Token case {
+  ; "1" -> " 1"
+  ; "2" -> " 2"
+  ; "3" -> " 3"
+  ; "4" -> " 4"
+  ; "5" -> " 5"
+  ; "6" -> " 6"
+  ; "7" -> " 7"
+  ; "8" -> " 8"
+  ; "9" -> " 9"
+  ; "10" | "11" | "12" | "13" | "14" | "15" -> Token
+  ; ** -> bad_input$ "Error: Invalid block." new_exception >> throw
+  }
+} ;;
+
+eval <cstr> *Token parse_direction -> <direction> {
+  Token case {
+  ; "l" | "r" | "u" | "d" -> Token
+  ; "left" -> "l"
+  ; "right" -> "r"
+  ; "up" -> "u"
+  ; "down" -> "d"
+  ; ** -> bad_input$ "Error: Invalid direction." new_exception >> throw
+  }
+} ;;
+
+eval <game> *G <slide> *Slide do_slide -> <game> {
+  G board = *Board,
+  Slide direction >> case {
+  ; "l" -> ^left_place
+  ; "r" -> ^right_place
+  ; "u" -> ^up_place
+  ; "d" -> ^down_place
+  } = *Forward,
+  Board (Board (Slide block) block_place) Forward do_slide_seq = *Board',
+  board: Board' :: G game$
+} ;;
+
+eval <board> *Board <int> *Place <int <int maybe> fun> *Forward do_slide_seq -> <board> {
+  Board Place block_at = *Block,
+  Block case {
+  ; "  " -> Board
+  ; ** ->
+    Place &Forward >> case {
+    ; *Q value$ ->
+      Board Q Forward && = *Board',
+      Board' Q block_at >> case {
+      ; "  " -> (Board' Q Block put_block) Place "  " put_block
+      ; ** -> Board'
+      }
+    ; ** -> Board
+    }
+  }
+} ;;
+
+eval <game> *G finished? -> <bool> {
+  G board = *Board,
+  [ Board 0 block_at, Board 1 block_at, Board 2 block_at, Board 3 block_at,
+    Board 4 block_at, Board 5 block_at, Board 6 block_at, Board 7 block_at,
+    Board 8 block_at, Board 9 block_at, Board 10 block_at, Board 11 block_at,
+    Board 12 block_at, Board 13 block_at, Board 14 block_at, Board 15 block_at ] case {
+  ; [ " 1", " 2", " 3", " 4", " 5", " 6", " 7", " 8",
+      " 9", "10", "11", "12", "13", "14", "15", "  " ] -> true$
+  ; ** -> false$
+  }
+} ;;
+
+eval print_opening_message -> <void> {
+  stdio.newline,
+  "15-puzzle started." stdio.print_and_newline,
+  "You can enter '?' for help." stdio.print_and_newline
+} ;;
+
+eval print_help -> <void> {
+  stdio.newline,
+  "* Hand instructions and game control commands" stdio.print_and_newline,
+  "Hand instruction:" stdio.print_and_newline,
+  "  <block> <direction> : Slide <block> in <direction>" stdio.print_and_newline,
+  "    block: 1, 2, .. , 14, 15" stdio.print_and_newline,
+  "    direction: l(eft), r(ight), u(p), d(own) -- first letter or word" stdio.print_and_newline,
+  "    You can move block sequence." stdio.print_and_newline,
+  "  e : End game" stdio.print_and_newline,
+  "Command:" stdio.print_and_newline,
+  "  x : Exit 15-puzzle" stdio.print_and_newline,
+  "  n : Start new game" stdio.print_and_newline,
+  stdio.newline
+} ;;
