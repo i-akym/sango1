@@ -42,6 +42,14 @@ public class SNIstring {
   }
 
   public void sni_new_string(RNativeImplHelper helper, RClosureItem self, RObjItem count, RObjItem iter) {
+    this.new_string(helper, self, count, iter, 1);
+  }
+
+  public void sni_new_reverse_string(RNativeImplHelper helper, RClosureItem self, RObjItem count, RObjItem iter) {
+    this.new_string(helper, self, count, iter, -1);
+  }
+
+  public void new_string(RNativeImplHelper helper, RClosureItem self, RObjItem count, RObjItem iter, int direction) {
     Object[] iterInfo = (Object[])helper.getAndClearResumeInfo();  // [0] array; [1] next index to fill
     if (iterInfo == null) {
       int c = ((RIntItem)count).getValue();
@@ -54,7 +62,10 @@ public class SNIstring {
         helper.setReturnValue(a);
       } else {
         RClosureItem nextf = (RClosureItem)((RStructItem)iter).getFieldAt(0);
-        helper.scheduleInvocation(nextf, new RObjItem[0], new Object[] { a, 0 });
+        helper.scheduleInvocation(
+          nextf,
+          new RObjItem[0],
+          new Object[] { a, (direction > 0)? 0: c - 1 });
       }
     } else {
       RResult res = helper.getInvocationResult();
@@ -72,8 +83,9 @@ public class SNIstring {
       RObjItem value = generated.getFieldAt(0);
       RArrayItem a = (RArrayItem)iterInfo[0];
       int idx = (Integer)iterInfo[1];
-      a.setElemAt(idx++, value);
-      if (idx >= a.getElemCount()) {
+      a.setElemAt(idx, value);
+      idx += direction;
+      if (idx >= a.getElemCount() || idx < 0) {
         helper.setReturnValue(a);
       } else {
         RStructItem newIter = (RStructItem)generated.getFieldAt(1);

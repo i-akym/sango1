@@ -1704,7 +1704,4 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
     public PDefDict.TconKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
   }
-
-  class ForeignFunRef {
-  }
 }

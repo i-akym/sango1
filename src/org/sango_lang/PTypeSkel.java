@@ -34,8 +34,7 @@ public interface PTypeSkel {
 
   boolean isLiteralNaked();
 
-  PTypeSkel instanciate(InstanciationBindings iBindings, PScope scope);
-  // if scope == null then new vars are not registered to scope
+  PTypeSkel instanciate(InstanciationBindings iBindings);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
@@ -104,33 +103,6 @@ public interface PTypeSkel {
     PTypeSkel lookupAppl(PVarSlot var) {
       return this.applBindings.lookup(var);
     }
-
-    List<PVarSlot> getVarSlotList() {
-      List<PVarSlot> vl = new ArrayList<PVarSlot>(this.applBindings.virtualTvarList);
-      vl.addAll(this.varSlotList);
-      return vl;
-    }
-  }
-
-  public static class InstanciationRes {
-    public PTypeSkel instance;
-    public List<PVarSlot> newvarList;
-
-    static InstanciationRes create(PTypeSkel instance) {
-      InstanciationRes ir = new InstanciationRes();
-      ir.instance = instance;
-      ir.newvarList = new ArrayList<PVarSlot>();
-      return ir;
-    }
-
-    static InstanciationRes create(PTypeSkel instance, List<PVarSlot> newvarList) {
-      InstanciationRes ir = new InstanciationRes();
-      ir.instance = instance;
-      ir.newvarList = new ArrayList<PVarSlot>(newvarList);
-      return ir;
-    }
-
-    private InstanciationRes() {}
   }
 
   public abstract static class Util {

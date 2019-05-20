@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.0.0言語解説</title>
+<title>Sango 1.0.1言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -156,12 +156,13 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
 <hr/>
 
 <h1 id="1">1. Sangoとは</h1>
-<p>Sangoは，以下の特徴をもつプログラミング言語です。
+<p>'Sango'は，Isao Akiyamaが趣味で開発している関数型プログラミング言語です。
+独自のプログラミングモデルと文法によって，わかりやすく誤りが混入しづらいプログラミングを支援します。
 <ul>
-  <li>関数型言語，遅延評価でなく即時評価</li>
-  <li>オブジェクトは不変（immutable）</li>
-  <li>強い静的な型付け</li>
-  <li>関数名やデータ構築子を後ろに書く，つまり書いてある順番どおりに実行される</li>
+  <li>全てのオブジェクトは不変（immutable）</li>
+  <li>静的な強い型付け</li>
+  <li>モジュール分割とアクセス制御</li>
+  <li>プログラムコードと実行の順序の一致</li>
   <li>メッセージ交換による並行処理</li>
 </ul>
 Sangoは開発中です。
@@ -231,12 +232,13 @@ Java1.8以上がインストールされている必要があります。</p>
 <ol>
   <li>インストール先のディレクトリを削除あるいは移動して，存在しない状態にします。
     存在すると，この後の手順でエラーになります。</li>
-  <li>リリースファイルを解凍し「<code>release</code>」ディレクトリに移動します。</li>
+  <li>リリースファイルを解凍します。</li>
+  <li>解凍してできた「<code>release</code>」をシェルのカレントディレクトリにします。</li>
   <li>「<code>unix_configure.sh</code>」にインストール先ディレクトリを絶対パスで指定して実行します。
     ここでは「<code>/opt/sango</code>」をインストールディレクトリとします。
     正常終了後，「<code>install.sh</code>」を実行します。</li>
     <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>tar xvfz sango0.1.tgz</kbd>
+<samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
 <samp>$ </samp><kbd>cd release</kbd>
 <samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
 <samp>$ </samp><kbd>sudo ./install.sh</kbd></blockquote></li>

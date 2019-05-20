@@ -28,6 +28,7 @@ import "sango.list" -> list ;;
 # -- string --
 
 eval <int> *Count <*A iter> *Iter new_string @public -> <A string> @native ;;
+eval <int> *Count <*A iter> *Iter new_reverse_string @public -> <A string> @native ;;
 eval <*A string> *Xz length @public -> <int> @native ;;
 eval <*A string> *Xz <int> *Pos elem @public -> <A> @native ;;
 eval <*A string> *Xz <int> *Start <int> *Count slice @public -> <A string> @native ;;

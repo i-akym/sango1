@@ -330,7 +330,7 @@ class PCompiledModule implements PDefDict {
       for (int i = 0; i < params.length; i++) {
         bindings.bind(this.tparams[i].varSlot, params[i]);
       }
-      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings), null);
+      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
       // /* DEBUG */ System.out.print("unalias ");
       // /* DEBUG */ System.out.print(this.tconInfo.key);
       // /* DEBUG */ System.out.print(" -> ");
@@ -364,10 +364,9 @@ class PCompiledModule implements PDefDict {
       return index;
     }
 
-    public PTypeSkel.InstanciationRes getType(PTypeSkelBindings bindings) {
+    public PTypeSkel getType(PTypeSkelBindings bindings) {
       PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-      PTypeSkel t = this.dataDef.getTypeSig().instanciate(ib, null);
-      return PTypeSkel.InstanciationRes.create(t, ib.varSlotList);
+      return this.dataDef.getTypeSig().instanciate(ib);
     }
 
     AttrDef addAttr(String name, PTypeSkel type) {

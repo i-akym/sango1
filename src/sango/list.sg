@@ -25,11 +25,19 @@ module "sango.list" ;;
 
 import "sango.util.iter" -> iter ;;
 
+eval empty_list @public -> <*A list> {
+  []
+} ;;
+
 eval <*A iter> *Iter new_list @public -> <A list> {
+  Iter new_reverse_list >> reverse
+} ;;
+
+eval <*A iter> *Iter new_reverse_list @public -> <A list> {
   Iter [] &\ <A iter> *I <A list> *Xs -> {
     I next >> case {
     ; (| *Y, *I' |) value$ -> I' [ Y ; Xs ] &&
-    ; none$ -> Xs reverse
+    ; none$ -> Xs
     }
   }
 } ;;
@@ -76,6 +84,10 @@ eval <*A list> *Xs tail @public -> <<A list> maybe> {
   ; [ ** ; *XsT ] -> XsT value$
   ; ** -> none$
   }
+} ;;
+
+eval <*A> *X <A list> *Xs cons @public -> <A list> {
+  [ X ; Xs ]
 } ;;
 
 eval <*A list> *Xs last @public -> <A maybe> {

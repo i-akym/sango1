@@ -55,7 +55,6 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < t.params.length; i++) {
       PVarDef d = var.varSlot.varDef;
       PVarSlot s = PVarSlot.create(d);
-      bindings.addVirtualTvar(s);
       t.params[i] = PTypeVarSkel.create((d != null)? d.getSrcInfo(): null, (d != null)? d.scope: null, s);
     }
     bindings.bind(var.varSlot, t);
@@ -118,10 +117,10 @@ public class PTypeRefSkel implements PTypeSkel {
     return this.tconInfo;
   }
 
-  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings, PScope scope) {
+  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].instanciate(iBindings, scope);
+      ps[i] = this.params[i].instanciate(iBindings);
     }
     PTypeRefSkel tr = new PTypeRefSkel();
     tr.srcInfo = this.srcInfo;

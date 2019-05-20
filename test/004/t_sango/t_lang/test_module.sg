@@ -25,13 +25,7 @@ eval test -> <void> {
   test100,
   test101,
   test102,
-  test102a,
   test103,
-  test103a,
-  test104,
-  test104a,
-  test105,
-  test110,
   test200,
   test200a,
   test200b,
@@ -43,8 +37,6 @@ eval test -> <void> {
   test211,
   test211a,
   test211b,
-  test220,
-  test221,
   test230,
   test240,
   test241,
@@ -56,80 +48,68 @@ eval test -> <void> {
 
 eval test000 -> <void> { "sango.lang" mod.require_module } ;;
 eval test001 -> <void> { "sango.num.bigint" mod.require_module, "sango.num.bigint" mod.wait_module_initialized } ;;
-eval test002 -> <void> { \\ <void> {"no_such_module" mod.require_module } try = *E exc$, void$ };;
-eval test100 -> <bool> { mod.empty_list >> mod.empty? = true$ } ;;
-eval test101 -> <bool> { (3 mod.int_obj$) mod.empty_list mod.cons >> mod.empty? = false$ } ;;
-eval test102 -> <mod.list_obj> { (3 mod.int_obj$) ((5 mod.int_obj$) mod.empty_list mod.cons) mod.cons } ;;
-eval test102a -> <mod.list_obj result> {
-  \\ <mod.list_obj> { (3 mod.int_obj$) (('z' mod.char_obj$) mod.empty_list mod.cons) mod.cons } try = ** exc$
+eval test002 -> <void> { \\ <void> {"no_such_module" mod.require_module } try = *E exc$, void$ } ;;
+eval test100 -> <_?_> {
+  9~ mod.tao >> mod.value = <byte> == 9~
 } ;;
-eval test103 -> <mod.obj maybe> { mod.empty_list >> mod.head = none$ } ;;
-eval test103a -> <mod.list_obj maybe> { mod.empty_list >> mod.tail = none$ } ;;
-eval test104 -> <mod.obj maybe> { (3 mod.int_obj$) mod.empty_list mod.cons >> mod.head = (3 mod.int_obj$) value$ } ;;
-eval test104a -> <bool> { (3 mod.int_obj$) mod.empty_list mod.cons >> mod.tail = *T value$, T mod.empty? = true$ } ;;
-eval test105 -> <bool> {
-  mod.empty_list = *E0, mod.empty_list = *E1,
-  E0 E0 hard_eq? = true$, E0 E1 hard_eq? = false$ } ;;
-eval test110 -> <mod.obj maybe> {
-  [ 's' mod.char_obj$, 'g' mod.char_obj$ ] mod.new_list = *L,
-  L mod.head = ('s' mod.char_obj$) value$
+eval test101 -> <_?_> {
+  11 mod.tao >> mod.value = <int> == 11
 } ;;
-eval test200 -> <mod.closure_obj result> {
-  \\ <mod.closure_obj> { "sango.lang" "eval" mod.closure } try = ** fin$
+eval test102 -> <_?_> {
+  13.57 = *R,
+  R mod.tao >> mod.value = <real> == R
 } ;;
-eval test200a -> <mod.closure_obj result> {
-  \\ <mod.closure_obj> { "no_such_mod" "_name_" mod.closure } try = ** exc$
+eval test103 -> <_?_> {
+  'p' mod.tao >> mod.value = <char> == 'p'
 } ;;
-eval test200b -> <mod.closure_obj result> {
-  \\ <mod.closure_obj> { "sango.lang" "no_such_fun" mod.closure } try = ** exc$
+eval test200 -> <mod.tao result> {
+  \\ <mod.tao> { "sango.lang" "eval" mod.closure } try = ** fin$
 } ;;
-eval test210 -> <mod.obj result> { [ 5 mod.int_obj$ ] ("sango.lang" "itself" mod.closure) mod.apply = (5 mod.int_obj$) fin$ } ;;
-eval test210a -> <<mod.obj result> result> {
-  \\ <mod.obj result> { [] ("sango.lang" "itself" mod.closure) mod.apply } try = ** exc$
+eval test200a -> <mod.tao result> {
+  \\ <mod.tao> { "no_such_mod" "_name_" mod.closure } try = ** exc$
 } ;;
-eval test210b -> <<mod.obj result> result> {
-  \\ <mod.obj result> { [ 7 mod.int_obj$, 9 mod.int_obj$ ] ("sango.lang" "itself" mod.closure) mod.apply } try = ** exc$
+eval test200b -> <mod.tao result> {
+  \\ <mod.tao> { "sango.lang" "no_such_fun" mod.closure } try = ** exc$
 } ;;
-eval test210c -> <<mod.obj result> result> {
-  \\ <mod.obj result> { [ 7 mod.int_obj$ ] ("no_such_module" "itself" mod.closure) mod.apply } try = ** exc$
+eval test210 -> <_?_> { [ 5 mod.tao ] ("sango.lang" "itself" mod.closure) mod.apply = *R fin$, R mod.value = <int> == 5 } ;;
+eval test210a -> <<mod.tao result> result> {
+  \\ <mod.tao result> { [] ("sango.lang" "itself" mod.closure) mod.apply } try = ** exc$
 } ;;
-eval test210d -> <<mod.obj result> result> {
-  \\ <mod.obj result> { [ 7 mod.int_obj$ ] ("sango.lang" "no_such_fun" mod.closure) mod.apply } try = ** exc$
+eval test210b -> <<mod.tao result> result> {
+  \\ <mod.tao result> { [ 7 mod.tao, 9 mod.tao ] ("sango.lang" "itself" mod.closure) mod.apply } try = ** exc$
 } ;;
-eval test211 -> <mod.obj result> {
-  [ 7 mod.int_obj$, 5 mod.int_obj$ ] ("sango.lang" "int_sum" mod.closure) mod.apply = (12 mod.int_obj$) fin$
+eval test210c -> <<mod.tao result> result> {
+  \\ <mod.tao result> { [ 7 mod.tao ] ("no_such_module" "itself" mod.closure) mod.apply } try = ** exc$
 } ;;
-eval test211a -> <mod.obj result> {
-  [ 7 mod.int_obj$, 0 mod.int_obj$ ] ("sango.lang" "int_div" mod.closure) mod.apply = ** exc$
+eval test210d -> <<mod.tao result> result> {
+  \\ <mod.tao result> { [ 7 mod.tao ] ("sango.lang" "no_such_fun" mod.closure) mod.apply } try = ** exc$
 } ;;
-eval test211b -> <<mod.obj result> result> {
-  \\ <mod.obj result> { [ 7 mod.int_obj$, 'm' mod.char_obj$ ] ("sango.lang" "int_sum" mod.closure) mod.apply } try = ** exc$
+eval test211 -> <_?_> {
+  [ 7 mod.tao, 5 mod.tao ] ("sango.lang" "int_sum" mod.closure) mod.apply = *R fin$, R mod.value = <int> == 12
 } ;;
-eval test220 -> <mod.obj> {
-  [] ("sango.lang" "_name_" mod.closure) mod.apply = (*S mod.string_obj$) fin$,
-  S mod.length = 10, S 0 mod.elem = 's' mod.char_obj$, S 9 mod.elem = 'g' mod.char_obj$
+eval test211a -> <mod.tao result> {
+  [ 7 mod.tao, 0 mod.tao ] ("sango.lang" "int_div" mod.closure) mod.apply = ** exc$
 } ;;
-eval test221 -> <mod.obj> {
-  [ 's' mod.char_obj$, 'g' mod.char_obj$ ] mod.new_list >> mod.to_string = *S,
-  S mod.length = 2, S 0 mod.elem = 's' mod.char_obj$, S 1 mod.elem = 'g' mod.char_obj$
+eval test211b -> <<mod.tao result> result> {
+  \\ <mod.tao result> { [ 7 mod.tao, 'm' mod.tao ] ("sango.lang" "int_sum" mod.closure) mod.apply } try = ** exc$
 } ;;
-eval test230 -> <mod.obj list> {
-  [ 7 mod.int_obj$, 5.43 mod.real_obj$, 'c' mod.char_obj$ ] = *D,
+eval test230 -> <mod.tao list> {
+  [ 7 mod.tao, 5.43 mod.tao, 'c' mod.tao ] = *D,
   D mod.new_tuple >> mod.elems = D
 } ;;
-eval test240 -> <mod.obj list> {
-  [ 7 mod.int_obj$ ] = *As,
+eval test240 -> <mod.tao list> {
+  [ 7 mod.tao ] = *As,
   As "sango.lang" "value$" mod.new_data >> mod.constr_attrs = As
 } ;;
-eval test241 -> <mod.constr_obj result> {
-  \\ <mod.constr_obj> { [] "no_such_module" "value$" mod.new_data } try = ** exc$
+eval test241 -> <mod.tao result> {
+  \\ <mod.tao> { [] "no_such_module" "value$" mod.new_data } try = ** exc$
 } ;;
-eval test241a -> <mod.constr_obj result> {
-  \\ <mod.constr_obj> { [] "sango.lang" "no_such_dcon$" mod.new_data } try = ** exc$
+eval test241a -> <mod.tao result> {
+  \\ <mod.tao> { [] "sango.lang" "no_such_dcon$" mod.new_data } try = ** exc$
 } ;;
-eval test241b -> <mod.constr_obj result> {
-  \\ <mod.constr_obj> { [] "sango.lang" "value$" mod.new_data } try = ** exc$
+eval test241b -> <mod.tao result> {
+  \\ <mod.tao> { [] "sango.lang" "value$" mod.new_data } try = ** exc$
 } ;;
-eval test241c -> <mod.constr_obj result> {
-  \\ <mod.constr_obj> { [ 'x' mod.char_obj$, 'y' mod.char_obj$ ] "sango.lang" "value$" mod.new_data } try = ** exc$
+eval test241c -> <mod.tao result> {
+  \\ <mod.tao> { [ 'x' mod.tao, 'y' mod.tao ] "sango.lang" "value$" mod.new_data } try = ** exc$
 } ;;

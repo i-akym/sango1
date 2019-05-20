@@ -107,10 +107,6 @@ class PScope {
     return s;
   }
 
-  // PScope exit() {  // common for defineFun(), enterFun(), enterInner()
-    // return this.parent;
-  // }
-
   PVarSlot lookupVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
@@ -175,20 +171,6 @@ class PScope {
     return (this.funLevel >= 0)? this.outerDict.containsValue(varSlot): false;
   }
 
-  boolean areSameVarNamesDefined(PScope s) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
-    }
-    return this.varDict.keySet().equals(s.varDict.keySet());
-  }
-
-  void mergeOuterDict(PScope s) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
-    }
-    this.outerDict.putAll(s.outerDict);
-  }
-
   List<PVarSlot> getEnvList() { return this.envList; }
 
   Compiler getCompiler() { return this.theMod.theCompiler; }
@@ -242,20 +224,14 @@ class PScope {
     return v;
   }
 
-  PTypeSkel.InstanciationRes getEmptyListType(Parser.SrcInfo srcInfo) {
+  PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
     PVarDef nv = this.getNewTvar(srcInfo);
-    PTypeSkel.InstanciationRes ir = PTypeSkel.InstanciationRes.create(
-      this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel());
-    ir.newvarList.add(nv.varSlot);
-    return ir;
+    return this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel();
   }
 
-  PTypeSkel.InstanciationRes getEmptyStringType(Parser.SrcInfo srcInfo) {
+  PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
     PVarDef nv = this.getNewTvar(srcInfo);
-    PTypeSkel.InstanciationRes ir = PTypeSkel.InstanciationRes.create(
-      this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel());
-    ir.newvarList.add(nv.varSlot);
-    return ir;
+    return this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel();
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {

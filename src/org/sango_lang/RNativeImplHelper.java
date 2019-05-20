@@ -428,9 +428,9 @@ public class RNativeImplHelper {
         PTypeSkel[] pts = fd.getParamTypes();
         PTypeSkel[] tis = new PTypeSkel[pts.length + 1];
         for (int i = 0; i < pts.length; i++) {
-          tis[i] = pts[i].instanciate(ibs, null);
+          tis[i] = pts[i].instanciate(ibs);
         }
-        tis[pts.length] = fd.getRetType().instanciate(ibs, null);
+        tis[pts.length] = fd.getRetType().instanciate(ibs);
         PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, "fun");
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           PTypeId.SUBCAT_NOT_FOUND, pts.length, Module.ACC_OPAQUE, null);

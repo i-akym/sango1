@@ -11,6 +11,9 @@ eval _main_ -> <void> {
 eval test -> <void> {
   test001,
   test002,
+  test003,
+  test005,
+  test006,
   test011,
   test012,
   test021,
@@ -65,11 +68,16 @@ eval test -> <void> {
   test103,
   test104,
   test105,
+  test110,
+  test111,
   void$
 } ;;
 
 eval test001 -> <bool> { [] list.empty? = true$ } ;;
 eval test002 -> <bool> { [] list.non_empty? = false$ } ;;
+eval test003 -> <*A list> { list.empty_list = [] } ;;
+eval test005 -> <int list> { 5 [] list.cons = [ 5 ] } ;;
+eval test006 -> <int list> { 5 [ 7 ] list.cons = [ 5, 7 ] } ;;
 eval test011 -> <int> { [] list.length = 0 } ;;
 eval test012 -> <int> { [ 1, 2, 3 ] list.length = 3 } ;;
 eval test021 -> <int maybe> { [] list.first = none$ } ;;
@@ -124,3 +132,5 @@ eval test102 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 2 9 list.repl
 eval test103 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 4 9 list.replace_at = (| [ 0, 1, 2, 3, 9 ], 4 |) value$ } ;;
 eval test104 -> <<<int list> int tuple> maybe> { [ 0, 1, 2, 3, 4 ] 5 9 list.replace_at = none$ } ;;
 eval test105 -> <<<int list> int tuple> maybe> { [] 0 9 list.replace_at = none$ } ;;
+eval test110 -> <int list> { [ 1, 2, 3 ] list.iter >> list.new_list = [ 1, 2, 3 ] } ;;
+eval test111 -> <int list> { [ 1, 2, 3 ] list.iter >> list.new_reverse_list = [ 3, 2, 1 ] } ;;

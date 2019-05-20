@@ -82,8 +82,7 @@ public class PTypeVarSkel implements PTypeSkel {
     this.polymorphic = b;
   }
 
-  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings, PScope scope) {
-    // /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
+  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel t;
     if (iBindings.isGivenTvar(this.varSlot)) {
 // /* DEBUG */ System.out.println("instanciate 1 " + this.toString());
@@ -94,12 +93,12 @@ public class PTypeVarSkel implements PTypeSkel {
     } else if (iBindings.isBound(this.varSlot)) {
 // /* DEBUG */ System.out.println("instanciate 3 " + this.toString());
       t = iBindings.lookup(this.varSlot);
-    } else if (scope!= null) {
+    // } else if (scope!= null) {
 // /* DEBUG */ System.out.println("instanciate 4 " + this.toString());
-      PTypeVarSkel v = scope.getNewTvar(this.srcInfo).getSkel();
-      v.polymorphic = true;
-      iBindings.bind(this.varSlot, v);
-      t = v;
+      // PTypeVarSkel v = scope.getNewTvar(this.srcInfo).getSkel();
+      // v.polymorphic = true;
+      // iBindings.bind(this.varSlot, v);
+      // t = v;
     } else {
 // /* DEBUG */ System.out.println("instanciate 5 " + this.toString());
       PVarSlot s = PVarSlot.create(this.varSlot.varDef);

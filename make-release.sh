@@ -68,20 +68,12 @@ mkdir $RELEASE_DIR || copy_error
 echo "mkdir $RELEASE_DIR/src"
 mkdir $RELEASE_DIR/src || copy_error
 
-echo "find src/org -type d -exec mkdir $RELEASE_DIR/{} \;"
-find src/org -type d -exec mkdir $RELEASE_DIR/{} \; || copy_error
-echo "find src/org -name '*.java' -exec cp {} $RELEASE_DIR/{} \;"
-find src/org -name '*.java' -exec cp {} $RELEASE_DIR/{} \; || copy_error
-
-echo "find src/sango -type d -exec mkdir $RELEASE_DIR/{} \;"
-find src/sango -type d -exec mkdir $RELEASE_DIR/{} \; || copy_error
-echo "find src/sango -name '*.sg' -exec cp {} $RELEASE_DIR/{} \;"
-find src/sango -name '*.sg' -exec cp {} $RELEASE_DIR/{} \; || copy_error
-
-echo "find src/sni_sango -type d -exec mkdir $RELEASE_DIR/{} \;"
-find src/sni_sango -type d -exec mkdir $RELEASE_DIR/{} \; || copy_error
-echo "find src/sni_sango -name '*.java' -exec cp {} $RELEASE_DIR/{} \;"
-find src/sni_sango -name '*.java' -exec cp {} $RELEASE_DIR/{} \; || copy_error
+echo "rsync -r --include '*/' --include '*.java' --exclude '*' src/org $RELEASE_DIR/src"
+rsync -r --include '*/' --include '*.java' --exclude '*' src/org $RELEASE_DIR/src || copy_error
+echo "rsync -r --include '*/' --include '*.sg' --exclude '*' src/sango $RELEASE_DIR/src"
+rsync -r --include '*/' --include '*.sg' --exclude '*' src/sango $RELEASE_DIR/src || copy_error
+echo "rsync -r --include '*/' --include '*.java' --exclude '*' src/sni_sango $RELEASE_DIR/src"
+rsync -r --include '*/' --include '*.java' --exclude '*' src/sni_sango $RELEASE_DIR/src || copy_error
 
 echo "mkdir $RELEASE_DIR/src/bin"
 mkdir $RELEASE_DIR/src/bin || copy_error
@@ -100,32 +92,12 @@ cp src/bin/win/*.bat $RELEASE_DIR/src/bin/win/ || copy_error
 
 echo "mkdir $RELEASE_DIR/lib"
 mkdir $RELEASE_DIR/lib || copy_error
-
-echo "mkdir $RELEASE_DIR/tmp"
-mkdir $RELEASE_DIR/tmp || copy_error
-echo "mkdir $RELEASE_DIR/tmp/src"
-mkdir $RELEASE_DIR/tmp/src || copy_error
-
-echo "find src/org -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
-find src/org -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
-echo "find src/org -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \;"
-find src/org -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
-echo "mv $RELEASE_DIR/tmp/src/org $RELEASE_DIR/lib/org"
-mv $RELEASE_DIR/tmp/src/org $RELEASE_DIR/lib/org || copy_error
-
-echo "find src/sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
-find src/sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
-echo "find src/sango -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \;"
-find src/sango -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
-echo "mv $RELEASE_DIR/tmp/src/sango $RELEASE_DIR/lib/sango"
-mv $RELEASE_DIR/tmp/src/sango $RELEASE_DIR/lib/sango || copy_error
-
-echo "find src/sni_sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
-find src/sni_sango -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
-echo "find src/sni_sango -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \;"
-find src/sni_sango -name '*.class' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
-echo "mv $RELEASE_DIR/tmp/src/sni_sango $RELEASE_DIR/lib/sni_sango"
-mv $RELEASE_DIR/tmp/src/sni_sango $RELEASE_DIR/lib/sni_sango || copy_error
+echo "rsync -r --include '*/' --include '*.class' --exclude '*' src/org $RELEASE_DIR/lib"
+rsync -r --include '*/' --include '*.class' --exclude '*' src/org $RELEASE_DIR/lib || copy_error
+echo "rsync -r --include '*/' --include '*.sgm' --exclude '*' src/sango $RELEASE_DIR/lib"
+rsync -r --include '*/' --include '*.sgm' --exclude '*' src/sango $RELEASE_DIR/lib || copy_error
+echo "rsync -r --include '*/' --include '*.class' --exclude '*' src/sni_sango $RELEASE_DIR/lib"
+rsync -r --include '*/' --include '*.class' --exclude '*' src/sni_sango $RELEASE_DIR/lib || copy_error
 
 # setup bin 
 
@@ -141,14 +113,8 @@ cp src/doc/*.html $RELEASE_DIR/doc/ || copy_error
 
 # setup sample 
 
-echo "find src/sample -type d -exec mkdir $RELEASE_DIR/tmp/{} \;"
-find src/sample -type d -exec mkdir $RELEASE_DIR/tmp/{} \; || copy_error
-echo "src/sample -name '*.sg' -exec cp {} $RELEASE_DIR/tmp/{} \;"
-find src/sample -name '*.sg' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
-echo "src/sample -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \;"
-find src/sample -name '*.sgm' -exec cp {} $RELEASE_DIR/tmp/{} \; || copy_error
-echo "mv $RELEASE_DIR/tmp/src/sample $RELEASE_DIR/sample"
-mv $RELEASE_DIR/tmp/src/sample $RELEASE_DIR/sample || copy_error
+echo "rsync -r --include '*/' --include '*.sg' --include '*.sgm' --exclude '*' src/sample $RELEASE_DIR"
+rsync -r --include '*/' --include '*.sg' --include '*.sgm' --exclude '*' src/sample $RELEASE_DIR || copy_error
 
 # setup etc 
 
@@ -197,9 +163,6 @@ echo "chmod a+x $RELEASE_DIR/*.sh"
 chmod a+x $RELEASE_DIR/*.sh || copy_error
 
 # end
-
-echo "rm -R $RELEASE_DIR/tmp"
-rm -R $RELEASE_DIR/tmp || copy_error
 
 exit 0
 
