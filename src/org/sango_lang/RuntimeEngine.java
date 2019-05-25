@@ -51,6 +51,7 @@ public class RuntimeEngine {
   boolean verboseModule;
   End end;
   boolean sysWorkerStop;
+  RClientHelper clientHelper;
 
   public static void main(String[] args) {
     LauncherControl lc = new LauncherControl();
@@ -127,6 +128,8 @@ public class RuntimeEngine {
     this.argList = args;
   }
 
+  public RClientHelper getClientHelper() { return this.clientHelper; }
+
   RuntimeEngine() {
     this.msgOut = System.err;
     this.locale = Locale.getDefault();
@@ -168,6 +171,7 @@ public class RuntimeEngine {
       } else {
         m.start();
       }
+      this.clientHelper = new RClientHelper(this);
       this.taskMgr.start();
       this.sysWork();
     } catch (IOException ex) {
