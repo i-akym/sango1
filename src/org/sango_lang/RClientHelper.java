@@ -127,6 +127,18 @@ public class RClientHelper {
     return this.theEngine.memMgr.arrayItemToCstr(array);
   }
 
+  public RListItem listToListItem(List<? extends RObjItem> os) {
+    // programmer must guarantee type consistency
+    RListItem L = this.getListNilItem();
+    for (int i = os.size() - 1; i >= 0; i--) {
+      RListItem.Cell c = this.createListCellItem();
+      c.tail = L;
+      c.head = os.get(i);
+      L = c;
+    }
+    return L;
+  }
+
   // misc
 
   public Version getVersion() { return RuntimeEngine.getVersion(); }

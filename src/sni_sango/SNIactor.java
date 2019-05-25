@@ -101,7 +101,7 @@ public class SNIactor {
       Integer expiration = (w.getDataConstr().equals(ms))? ((RIntItem)w.getFieldAt(0)).getValue(): null;
       List<RActorHItem> ended = core.waitFor(al, expiration);
       if (!ended.isEmpty()) {
-        helper.setReturnValue(toList(helper, ended));
+        helper.setReturnValue(helper.listToListItem(ended));
       } else if (expiration == null || expiration > 0) {
         core.setResumeInfo(new ActorListHolder(al));
         core.releaseTask();
@@ -110,7 +110,7 @@ public class SNIactor {
       }
     } else {
       List<RActorHItem> ended = core.waitFor(alh.actorHList, 0);
-      helper.setReturnValue(toList(helper, ended));
+      helper.setReturnValue(helper.listToListItem(ended));
     }
   }
 
@@ -120,17 +120,6 @@ public class SNIactor {
     ActorListHolder(List<RActorHItem> as) {
       this.actorHList = as;
     }
-  }
-
-  static private RObjItem toList(RNativeImplHelper helper, List<? extends RObjItem> v) {
-    RListItem L = helper.getListNilItem();
-    for (int i = v.size() - 1; i >= 0; i--) {
-      RListItem.Cell c = helper.createListCellItem();
-      c.tail = L;
-      c.head = v.get(i);
-      L = c;
-    }
-    return L;
   }
 
   public void sni_async_result_peek(RNativeImplHelper helper, RClosureItem self, RObjItem result) {
@@ -196,7 +185,7 @@ public class SNIactor {
       if (e != null) {
         helper.setException(e);
       } else if (!receivables.isEmpty()) {
-        helper.setReturnValue(toList(helper, receivables));
+        helper.setReturnValue(helper.listToListItem(receivables));
       } else if (expiration == null || expiration > 0) {
         core.setResumeInfo(new MboxListHolder(bl));
         core.releaseTask();
@@ -205,7 +194,7 @@ public class SNIactor {
       }
     } else {
       List<RObjItem> receivables = core.listenMboxes(blh.mboxHList, 0);
-      helper.setReturnValue(toList(helper, receivables));
+      helper.setReturnValue(helper.listToListItem(receivables));
     }
   }
 

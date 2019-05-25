@@ -24,6 +24,7 @@
 package sni_sango.sni_system;
  
 import java.util.List;
+import java.util.ArrayList;
 import org.sango_lang.Cstr;
 import org.sango_lang.RActorHItem;
 import org.sango_lang.RArrayItem;
@@ -59,14 +60,11 @@ public class SNIruntime {
 
   public void sni_args(RNativeImplHelper helper, RClosureItem self) {
     List<Cstr> args = helper.getArgs();
-    RListItem L = helper.getListNilItem();
-    for (int i = args.size() - 1; i >= 0; i--) {
-      RListItem.Cell c = helper.createListCellItem();
-      c.tail = L;
-      c.head = helper.cstrToArrayItem(args.get(i));
-      L = c;
+    List<RArrayItem> as = new ArrayList<RArrayItem>();
+    for (int i = 0; i < args.size(); i++) {
+      as.add(helper.cstrToArrayItem(args.get(i)));
     }
-    helper.setReturnValue(L);
+    helper.setReturnValue(helper.listToListItem(as));
   }
 
   public void sni_shutdown(RNativeImplHelper helper, RClosureItem self, RObjItem exitCode, RObjItem timeout) {

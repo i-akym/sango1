@@ -132,6 +132,10 @@ public class RNativeImplHelper {
     return this.theEngine.getClientHelper().arrayItemToCstr(array);
   }
 
+  public RListItem listToListItem(List<? extends RObjItem> os) {
+    return this.theEngine.getClientHelper().listToListItem(os);
+  }
+
   public RClosureItem createClosureOfNativeImplHere(String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl) {
     return this.theEngine.memMgr.createClosureOfNativeImpl(
       this.frame.closure.impl.mod,
