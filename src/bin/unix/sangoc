@@ -22,4 +22,29 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-java -cp LLIIBB org.sango_lang.Compiler -L LLIIBB $*
+ARGS=$*
+while [ "$1" != "" ]; do
+  if [ "$ACT" = "skip" ]; then
+    ACT=
+  elif [ "$ACT" = "m-opt" ]; then
+    ULIB=$1
+    ACT=
+  elif [ "$1" = "-modules" ]; then
+    ACT="m-opt"
+  elif [ "$1" = "-m" ]; then
+    ACT="m-opt"
+  elif [ "$1" = "-out" ]; then
+    ACT="skip"
+  elif [ "$1" = "-verbose" ]; then
+    ACT="skip"
+  elif [ "$1" = "-quiet" ]; then
+    ACT="skip"
+  fi
+  shift
+done
+if [ "$ULIB" != "" ]; then
+  LIB="$ULIB:LLIIBB"
+else
+  LIB="LLIIBB"
+fi
+java -cp $LIB org.sango_lang.Compiler -L LLIIBB $ARGS

@@ -28,5 +28,32 @@ if defined SANGO_JAVA_BIN (
 ) else (
   set JAVA=java
 )
-call %JAVA% -cp "LLIIBB" org.sango_lang.Compiler -L "LLIIBB" %*
+set ARGS=%*
+:analyze_args
+if "%~1" == "" goto analyze_args_end
+if "%ACT%" == "skip" (
+    set ACT=
+) else if "%ACT%" == "m-opt" (
+    set ULIB=%~1
+    set ACT=
+) else if "%~1" == "-modules" (
+    set ACT=m-opt
+) else if "%~1" == "-m" (
+    set ACT=m-opt
+) else if "%~1" == "-out" (
+    set ACT=skip
+) else if "%~1" == "-verbose" (
+    set ACT=skip
+) else if "%~1" == "-quiet" (
+    set ACT=skip
+)
+shift
+goto analyze_args
+:analyze_args_end
+if not "%ULIB%" == "" (
+  set LIB=%ULIB%;LLIIBB
+) else (
+  set LIB=LLIIBB
+)
+call %JAVA% -cp "%LIB%" org.sango_lang.Compiler -L "LLIIBB" %ARGS%
 exit /b %ERRORLEVEL%
