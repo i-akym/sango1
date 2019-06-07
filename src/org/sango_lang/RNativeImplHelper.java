@@ -233,6 +233,10 @@ public class RNativeImplHelper {
 
   public Version getVersion() { return RuntimeEngine.getVersion(); }
 
+  public void mayRunLong() {
+    this.theEngine.taskMgr.taskMayRunLong(this.frame.theTaskControl);
+  }
+
   public class Core {  // for core features
     boolean toReleaseTask;
 
@@ -448,11 +452,6 @@ public class RNativeImplHelper {
 
     public PDefDict.DefDictGetter getDefDictGetter() {
       return RNativeImplHelper.this.theEngine.modMgr;
-    }
-
-    public void mayRunLong() {
-      RNativeImplHelper.this.theEngine.taskMgr.taskMayRunLong(
-        RNativeImplHelper.this.frame.theTaskControl);
     }
 
     public void requestShutdown(int exitCode, int timeout) {
