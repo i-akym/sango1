@@ -23,6 +23,7 @@
  ***************************************************************************/
  package sni_sango;
  
+import java.util.ArrayList;
 import java.util.List;
 import org.sango_lang.Cstr;
 import org.sango_lang.Module;
@@ -32,6 +33,7 @@ import org.sango_lang.RDataConstr;
 import org.sango_lang.RListItem;
 import org.sango_lang.RNativeImplHelper;
 import org.sango_lang.RObjItem;
+import org.sango_lang.RStructItem;
 import org.sango_lang.RuntimeEngine;
 
  public class SNIdebug {
@@ -54,8 +56,8 @@ import org.sango_lang.RuntimeEngine;
   public void sni_call_stack(RNativeImplHelper helper, RClosureItem self, RObjItem excInfo) {
     RExcInfoItem ei = (RExcInfoItem)excInfo;
     List<RExcInfoItem.FrameSnapshot> cs = ei.getCallStack();
-    RListItem r = helper.getListNilItem();
-    for (int i = cs.size() - 1; i >= 0; i--) {  // create list from tail
+    List<RStructItem> fs = new ArrayList<RStructItem>();
+    for (int i = 0; i < cs.size(); i++) {
       RExcInfoItem.FrameSnapshot f = cs.get(i);
       RObjItem iMod = helper.cstrToArrayItem(f.impl.getModule().getName());
       RObjItem iName = helper.cstrToArrayItem(new Cstr(f.impl.getName()));  // String -> Cstr -> ArrayItem
@@ -63,12 +65,9 @@ import org.sango_lang.RuntimeEngine;
       RObjItem iLoc = sni_sango.SNIlang.getMaybeItem(helper, (loc != null)? helper.cstrToArrayItem(new Cstr(loc)): null);
       RObjItem iTrans = helper.getBoolItem(f.transferred);
       RDataConstr dcFrame = helper.getDataConstr(myModName, "frame$");
-      RObjItem iFrame = helper.getStructItem(dcFrame, new RObjItem[] { iMod, iName, iLoc, iTrans });
-      RListItem.Cell c = helper.createListCellItem();
-      c.tail = r;
-      c.head = iFrame;
-      r = c;
+      RStructItem iFrame = helper.getStructItem(dcFrame, new RObjItem[] { iMod, iName, iLoc, iTrans });
+      fs.add(iFrame);
     }
-    helper.setReturnValue(r); 
+    helper.setReturnValue(helper.listToListItem(fs)); 
   }
 }

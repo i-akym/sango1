@@ -68,7 +68,7 @@ public class SNIsystem {
     list.add(tempDirProp(helper));
     list.add(userNameProp(helper));
     list.add(userHomeProp(helper));
-    helper.setReturnValue(listToListItem(helper, list));
+    helper.setReturnValue(helper.listToListItem(list));
   }
 
   private static RObjItem tempDirProp(RNativeImplHelper helper) {
@@ -101,16 +101,5 @@ public class SNIsystem {
     c.tail = helper.getListNilItem();
     c.head = value;
     return helper.getTupleItem(new RObjItem[] { helper.cstrToArrayItem(new Cstr(key)), c });
-  }
-
-  private static RObjItem listToListItem(RNativeImplHelper helper, List<RObjItem> list) {
-    RListItem L = helper.getListNilItem();
-    for (int i = list.size() - 1; i >= 0; i--) {
-      RListItem.Cell c = helper.createListCellItem();
-      c.tail = L;
-      c.head = list.get(i);
-      L = c;
-    }
-    return L;
   }
 }

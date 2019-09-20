@@ -61,87 +61,85 @@ public class RNativeImplHelper {
   // handling object
 
   public RStructItem getBoolItem(boolean b) {
-    return this.theEngine.memMgr.getBoolItem(b);
+    return this.theEngine.getClientHelper().getBoolItem(b);
   }
 
   public boolean boolItemToBoolean(RStructItem b) {
-    RDataConstr dc = b.dataConstr;
-    if (dc.modName.equals(Module.MOD_LANG) && dc.tcon.equals("bool")) {
-      ;
-    } else {
-      throw new IllegalArgumentException("Not bool item.");
-    }
-    return dc.name.equals("true$")? true: false;
+    return this.theEngine.getClientHelper().boolItemToBoolean(b);
   }
 
   public RIntItem getByteItem(int b) {
-    return this.theEngine.memMgr.getByteItem(b);
+    return this.theEngine.getClientHelper().getByteItem(b);
   }
 
   public RIntItem getCharItem(int c) {
-    return this.theEngine.memMgr.getCharItem(c);
+    return this.theEngine.getClientHelper().getCharItem(c);
   }
 
   public RIntItem getIntItem(int i) {
-    return this.theEngine.memMgr.getIntItem(i);
+    return this.theEngine.getClientHelper().getIntItem(i);
   }
 
   public RRealItem getRealItem(double d) {
-    return this.theEngine.memMgr.getRealItem(d);
+    return this.theEngine.getClientHelper().getRealItem(d);
   }
 
   public RRealItem getNaNItem() {
-    return this.theEngine.memMgr.getNaNItem();
+    return this.theEngine.getClientHelper().getNaNItem();
   }
 
   public RRealItem getPosInfItem() {
-    return this.theEngine.memMgr.getPosInfItem();
+    return this.theEngine.getClientHelper().getPosInfItem();
   }
 
   public RRealItem getNegInfItem() {
-    return this.theEngine.memMgr.getNegInfItem();
+    return this.theEngine.getClientHelper().getNegInfItem();
   }
 
   public RStructItem getVoidItem() {
-    return this.theEngine.memMgr.getVoidItem();
+    return this.theEngine.getClientHelper().getVoidItem();
   }
 
   public RListItem.Nil getListNilItem() {
-    return this.theEngine.memMgr.getListNilItem();
+    return this.theEngine.getClientHelper().getListNilItem();
   }
 
   public RListItem.Cell createListCellItem() {
-    return this.theEngine.memMgr.createListCellItem();
+    return this.theEngine.getClientHelper().createListCellItem();
   }
 
   public RDataConstr getDataConstr(Cstr modName, String name) {
-    return this.theEngine.memMgr.getDataConstr(modName, name);
+    return this.theEngine.getClientHelper().getDataConstr(modName, name);
   }
 
   public RStructItem getStructItem(RDataConstr dataConstr, RObjItem[] attrs) {
-    return this.theEngine.memMgr.getStructItem(dataConstr, attrs);
+    return this.theEngine.getClientHelper().getStructItem(dataConstr, attrs);
   }
 
   public RStructItem getTupleItem(RObjItem[] elems) {
-    return this.theEngine.memMgr.getTupleItem(elems);
+    return this.theEngine.getClientHelper().getTupleItem(elems);
   }
 
   public RArrayItem createArrayItem(int size) {
-    return this.theEngine.memMgr.createArrayItem(size);
+    return this.theEngine.getClientHelper().createArrayItem(size);
   }
 
   public RArrayItem cstrToArrayItem(Cstr cstr) {
-    return this.theEngine.memMgr.cstrToArrayItem(cstr);
+    return this.theEngine.getClientHelper().cstrToArrayItem(cstr);
   }
 
   public Cstr arrayItemToCstr(RArrayItem array) {
-    return this.theEngine.memMgr.arrayItemToCstr(array);
+    return this.theEngine.getClientHelper().arrayItemToCstr(array);
   }
 
-  public RClosureItem createClosureOfNativeImplHere(String name, int paramCount, /* String implFor, */ Object nativeImplTargetObject, Method nativeImpl) {
+  public RListItem listToListItem(List<? extends RObjItem> os) {
+    return this.theEngine.getClientHelper().listToListItem(os);
+  }
+
+  public RClosureItem createClosureOfNativeImplHere(String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl) {
     return this.theEngine.memMgr.createClosureOfNativeImpl(
       this.frame.closure.impl.mod,
-      name, paramCount, /* implFor, */ nativeImplTargetObject, nativeImpl);
+      name, paramCount, nativeImplTargetObject, nativeImpl);
   }
 
   public boolean objEquals(RObjItem item0, RObjItem item1) {
@@ -234,6 +232,10 @@ public class RNativeImplHelper {
   // misc
 
   public Version getVersion() { return RuntimeEngine.getVersion(); }
+
+  public void mayRunLong() {
+    this.theEngine.taskMgr.taskMayRunLong(this.frame.theTaskControl);
+  }
 
   public class Core {  // for core features
     boolean toReleaseTask;
@@ -450,11 +452,6 @@ public class RNativeImplHelper {
 
     public PDefDict.DefDictGetter getDefDictGetter() {
       return RNativeImplHelper.this.theEngine.modMgr;
-    }
-
-    public void mayRunLong() {
-      RNativeImplHelper.this.theEngine.taskMgr.taskMayRunLong(
-        RNativeImplHelper.this.frame.theTaskControl);
     }
 
     public void requestShutdown(int exitCode, int timeout) {

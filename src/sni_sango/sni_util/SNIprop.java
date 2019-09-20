@@ -123,7 +123,7 @@ public class SNIprop {
         case LToken.CSTR:
           values.add(getCstrPropItem(helper, t.cstrValue)); s = 3; break;
         case LToken.SEM:
-          kvs.add(helper.getTupleItem(new RObjItem[] { keyItem, listToListItem(helper, values) }));
+          kvs.add(helper.getTupleItem(new RObjItem[] { keyItem, helper.listToListItem(values) }));
           s = 0;
           keyItem = null;
           values = null;
@@ -145,7 +145,7 @@ public class SNIprop {
         case LToken.COMMA:
           s = 4; break;
         case LToken.SEM:
-          kvs.add(helper.getTupleItem(new RObjItem[] { keyItem, listToListItem(helper, values) }));
+          kvs.add(helper.getTupleItem(new RObjItem[] { keyItem, helper.listToListItem(values) }));
           s = 0;
           keyItem = null;
           values = null;
@@ -191,7 +191,7 @@ public class SNIprop {
       emsg.append("Last definition is not completed.");
       throw new CompileException(emsg.toString());
     }
-    return listToListItem(helper, kvs);
+    return helper.listToListItem(kvs);
   }
 
   public static RStructItem getIntPropItem(RNativeImplHelper helper, int i) {
@@ -228,16 +228,5 @@ public class SNIprop {
   public static RStructItem getCstrPropItem(RNativeImplHelper helper, RObjItem s) {
     RDataConstr dc = helper.getDataConstr(new Cstr("sango.util.prop"), "cstr_prop$");
     return helper.getStructItem(dc, new RObjItem[] { s });
-  }
-
-  private static RObjItem listToListItem(RNativeImplHelper helper, List<RObjItem> list) {
-    RListItem L = helper.getListNilItem();
-    for (int i = list.size() - 1; i >= 0; i--) {
-      RListItem.Cell c = helper.createListCellItem();
-      c.tail = L;
-      c.head = list.get(i);
-      L = c;
-    }
-    return L;
   }
 }
