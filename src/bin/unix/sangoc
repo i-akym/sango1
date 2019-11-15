@@ -27,6 +27,6 @@ if [ "$SANGO_JAVA_BIN" != "" ]; then
 else
   JAVA=java
 fi
-SLIB=LLIIBB
+SLIB=$SANGO_MODULES:LLIIBB
 JLIB=$SLIB
 $JAVA -cp $JLIB org.sango_lang.Compiler -L $SLIB $*

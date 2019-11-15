@@ -50,7 +50,7 @@ if "%ACT%" == "skip" (
 shift
 goto analyze_args
 :analyze_args_end
-set SLIB=LLIIBB
+set SLIB=%SANGO_MODULES%;LLIIBB
 set JLIB=%ULIB%;%SLIB%
 call %JAVA% -cp %JLIB% org.sango_lang.RuntimeEngine -L %SLIB% %ARGS%
 exit /b %ERRORLEVEL%

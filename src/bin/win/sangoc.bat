@@ -30,7 +30,7 @@ if not defined SANGO_JAVA_BIN (
 ) else (
   set JAVA=%SANGO_JAVA_BIN%java
 )
-set SLIB=LLIIBB
+set SLIB=%SANGO_MODULES%;LLIIBB
 set JLIB=%SLIB%
 call %JAVA% -cp %JLIB% org.sango_lang.Compiler -L %SLIB% %*
 exit /b %ERRORLEVEL%
