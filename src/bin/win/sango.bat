@@ -48,10 +48,7 @@ if "%ACT%" == "skip" (
 shift
 goto analyze_args
 :analyze_args_end
-if not "%ULIB%" == "" (
-  set LIB=%ULIB%;LLIIBB
-) else (
-  set LIB=LLIIBB
-)
-call %JAVA% -cp "%LIB%" org.sango_lang.RuntimeEngine -L "LLIIBB" %ARGS%
+set SLIB=LLIIBB
+set JLIB=%ULIB%;%SLIB%
+call %JAVA% -cp %JLIB% org.sango_lang.RuntimeEngine -L %SLIB% %ARGS%
 exit /b %ERRORLEVEL%

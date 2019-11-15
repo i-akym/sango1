@@ -40,9 +40,6 @@ while [ "$1" != "" ]; do
   fi
   shift
 done
-if [ "$ULIB" != "" ]; then
-  LIB="$ULIB:LLIIBB"
-else
-  LIB="LLIIBB"
-fi
-java -cp $LIB org.sango_lang.RuntimeEngine -L LLIIBB $ARGS
+SLIB=LLIIBB
+JLIB=$ULIB:$SLIB
+java -cp $JLIB org.sango_lang.RuntimeEngine -L $SLIB $ARGS

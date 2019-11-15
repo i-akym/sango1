@@ -28,5 +28,7 @@ if defined SANGO_JAVA_BIN (
 ) else (
   set JAVA=java
 )
-call %JAVA% -cp "LLIIBB" org.sango_lang.Compiler -L "LLIIBB" %*
+set SLIB=LLIIBB
+set JLIB=%SLIB%
+call %JAVA% -cp %JLIB% org.sango_lang.Compiler -L %SLIB% %*
 exit /b %ERRORLEVEL%
