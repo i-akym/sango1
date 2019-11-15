@@ -22,6 +22,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
+if [ "$SANGO_JAVA_BIN" != "" ]; then
+  JAVA=${SANGO_JAVA_BIN%/}/java
+else
+  JAVA=java
+fi
 ARGS=$*
 while [ "$1" != "" ]; do
   if [ "$ACT" = "skip" ]; then

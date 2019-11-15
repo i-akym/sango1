@@ -23,10 +23,12 @@
 @rem ***************************************************************************
 @echo off
 setlocal
-if defined SANGO_JAVA_BIN (
+if not defined SANGO_JAVA_BIN (
+  set JAVA=java
+) else if not "%SANGO_JAVA_BIN:~-1%"=="\" (
   set JAVA=%SANGO_JAVA_BIN%\java
 ) else (
-  set JAVA=java
+  set JAVA=%SANGO_JAVA_BIN%java
 )
 set ARGS=%*
 :analyze_args
