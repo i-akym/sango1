@@ -1894,6 +1894,8 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 <h2 id="A.3">A.3.  コンパイラ（<code>sangoc</code>）</h2>
 <p>ソースコードをコンパイルし，モジュールファイルを生成します。
   コンパイルに必要なモジュール（インポートされているモジュール）はコンパイラが再帰的に検出してコンパイルし，すでにコンパイル済みであれば<span class="note-ref">*1</span>モジュールファイルを参照してコンパイル処理を続行します。</p>
+<p>モジュール探索パスは環境変数<code>SANGO_MODULES</code>で指定することもできます。
+  この場合は，「<code>-modules</code>」オプションの指定に次いで探索の対象になります。</p>
 
 <blockquote class="note">*1：モジュールファイルよりソースファイルが新しい場合は，再コンパイルします。</blockquote>
  
@@ -1921,6 +1923,8 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="A.4">A.4. 実行エンジン（<code>sango</code>）</h2>
 <p>Sangoプログラムを実行します。実行に必要なモジュールファイルはモジュール探索パスから取得します。</p>
+<p>モジュール探索パスは環境変数<code>SANGO_MODULES</code>で指定することもできます。
+  この場合は，「<code>-modules</code>」オプションの指定に次いで探索の対象になります。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h3 id="A.4.a">実行形式</h3>

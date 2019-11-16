@@ -22,4 +22,11 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-java -cp LLIIBB org.sango_lang.Compiler -L LLIIBB $*
+if [ "$SANGO_JAVA_BIN" != "" ]; then
+  JAVA=${SANGO_JAVA_BIN%/}/java
+else
+  JAVA=java
+fi
+SLIB=$SANGO_MODULES:LLIIBB
+JLIB=$SLIB
+$JAVA -cp $JLIB org.sango_lang.Compiler -L $SLIB $*
