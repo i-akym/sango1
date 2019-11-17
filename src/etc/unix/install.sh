@@ -24,12 +24,27 @@
 ###########################################################################
 
 not_setup() {
-  echo "Not configured. Install directory missing."
+  echo "** ERROR: Not configured. Install directory missing."
+  exit 1
+}
+
+bad_arg() {
+  echo "** ERROR: Invalide argument. $1"
+  exit 1
+}
+
+bad_mode() {
+  echo "** ERROR: Invalide mode. $MODE"
   exit 1
 }
 
 target_already_exists_error() {
-  echo "Install directory $INSTALL_DIR already exists. Delete it in advance."
+  echo "** ERROR: Install directory $INSTALL_DIR already exists. Delete it in advance."
+  exit 1
+}
+
+target_does_not_exist_error() {
+  echo "** ERROR: Install directory $INSTALL_DIR does not exist."
   exit 1
 }
 
@@ -38,57 +53,118 @@ copy_error() {
   exit 1
 }
 
+initial_install() {
+  test ! -e $INSTALL_DIR || target_already_exists_error
+
+  echo "mkdir $INSTALL_DIR"
+  mkdir $INSTALL_DIR || copy_error
+
+  install
+}
+
+upgrade_install() {
+  # There may be add-in libraries under $INSTALL_DIR/lib; must keep them.
+
+  test -e $INSTALL_DIR || target_does_not_exist_error
+
+  echo "rm -f $INSTALL_DIR/*.txt"
+  rm -f $INSTALL_DIR/*.txt
+
+  echo "rm -Rf $INSTALL_DIR/src"
+  rm -Rf $INSTALL_DIR/src
+
+  echo "rm -Rf $INSTALL_DIR/lib/sango"
+  rm -Rf $INSTALL_DIR/lib/sango
+
+  echo "rm -Rf $INSTALL_DIR/lib/org"
+  rm -Rf $INSTALL_DIR/lib/org
+
+  echo "rm -Rf $INSTALL_DIR/lib/sni_sango"
+  rm -Rf $INSTALL_DIR/lib/sni_sango
+
+  echo "rm -Rf $INSTALL_DIR/lib/etc"
+  rm -Rf $INSTALL_DIR/lib/etc
+
+  echo "rm -Rf $INSTALL_DIR/bin"
+  rm -Rf $INSTALL_DIR/bin
+
+  echo "rm -Rf $INSTALL_DIR/doc"
+  rm -Rf $INSTALL_DIR/doc
+
+  echo "rm -Rf $INSTALL_DIR/sample"
+  rm -Rf $INSTALL_DIR/sample
+
+  echo "rm -Rf $INSTALL_DIR/etc"
+  rm -Rf $INSTALL_DIR/etc
+
+  install
+}
+
+install() {
+  echo "cp ./*.txt $INSTALL_DIR/"
+  cp ./*.txt $INSTALL_DIR/ || copy_error
+
+  echo "cp -R ./src $INSTALL_DIR/"
+  cp -R ./src $INSTALL_DIR/ || copy_error
+
+  echo "cp -R ./lib $INSTALL_DIR/"
+  cp -R ./lib $INSTALL_DIR/ || copy_error
+  echo "mkdir $INSTALL_DIR/lib/etc"
+  mkdir $INSTALL_DIR/lib/etc || copy_error
+  echo "cp ./system.props $INSTALL_DIR/lib/etc/"
+  cp ./system.props $INSTALL_DIR/lib/etc/ || copy_error
+
+  echo "mkdir $INSTALL_DIR/bin"
+  mkdir $INSTALL_DIR/bin || copy_error
+
+  echo "cat ./bin/unix/sangoc | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sangoc"
+  cat ./bin/unix/sangoc | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sangoc || copy_error
+
+  echo "cat ./bin/unix/sango | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sango"
+  cat ./bin/unix/sango | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sango || copy_error
+
+  echo "cp -R ./doc $INSTALL_DIR/"
+  cp -R ./doc $INSTALL_DIR/ || copy_error
+
+  echo "cp -R ./sample $INSTALL_DIR/"
+  cp -R ./sample $INSTALL_DIR/ || copy_error
+
+  echo "cp -R ./etc $INSTALL_DIR/"
+  cp -R ./etc $INSTALL_DIR/ || copy_error
+
+  echo "find $INSTALL_DIR -type d | xargs chmod 755"
+  find $INSTALL_DIR -type d | xargs chmod 755 || copy_error
+
+  echo "find $INSTALL_DIR -type f | xargs chmod 644"
+  find $INSTALL_DIR -type f | xargs chmod 644 || copy_error
+
+  echo "chmod a+x $INSTALL_DIR/bin/*"
+  chmod a+x $INSTALL_DIR/bin/* || copy_error
+}
+
 # -- start --
 
 INSTALL_DIR=_INSTALL_DIR_
+MODE="initial"
+REPLACE_LIB=s:LLIIBB:$INSTALL_DIR/lib:g
 
 test "$INSTALL_DIR" != "" || not_setup
 
-REPLACE_LIB=s:LLIIBB:$INSTALL_DIR/lib:g
+while [ "$1" != "" ]; do
+  if [ "$1" = "-mode" ]; then
+    MODE=$2
+    shift 2
+  else
+    bad_arg $1
+  fi
+done
 
-test ! -e $INSTALL_DIR || target_already_exists_error
-
-echo "mkdir $INSTALL_DIR"
-mkdir $INSTALL_DIR || copy_error
-
-echo "cp ./*.txt $INSTALL_DIR"
-cp ./*.txt $INSTALL_DIR || copy_error
-
-echo "cp -R ./src $INSTALL_DIR/src"
-cp -R ./src $INSTALL_DIR/src || copy_error
-
-echo "cp -R ./lib $INSTALL_DIR/lib"
-cp -R ./lib $INSTALL_DIR/lib || copy_error
-echo "mkdir $INSTALL_DIR/lib/etc"
-mkdir $INSTALL_DIR/lib/etc || copy_error
-echo "cp ./system.props $INSTALL_DIR/lib/etc/"
-cp ./system.props $INSTALL_DIR/lib/etc/ || copy_error
-
-echo "mkdir $INSTALL_DIR/bin"
-mkdir $INSTALL_DIR/bin || copy_error
-
-echo "cat ./bin/unix/sangoc | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sangoc"
-cat ./bin/unix/sangoc | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sangoc || copy_error
-
-echo "cat ./bin/unix/sango | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sango"
-cat ./bin/unix/sango | sed -e "$REPLACE_LIB" > $INSTALL_DIR/bin/sango || copy_error
-
-echo "cp -R ./doc $INSTALL_DIR/doc"
-cp -R ./doc $INSTALL_DIR/doc || copy_error
-
-echo "cp -R ./sample $INSTALL_DIR/sample"
-cp -R ./sample $INSTALL_DIR/sample || copy_error
-
-echo "cp -R ./etc $INSTALL_DIR/etc"
-cp -R ./etc $INSTALL_DIR/etc || copy_error
-
-echo "find $INSTALL_DIR -type d | xargs chmod 755"
-find $INSTALL_DIR -type d | xargs chmod 755 || copy_error
-
-echo "find $INSTALL_DIR -type f | xargs chmod 644"
-find $INSTALL_DIR -type f | xargs chmod 644 || copy_error
-
-echo "chmod a+x $INSTALL_DIR/bin/*"
-chmod a+x $INSTALL_DIR/bin/* || copy_error
+if [ "$MODE" = "initial" ]; then
+  initial_install
+elif [ "$MODE" = "upgrade" ]; then
+  upgrade_install
+else
+  bad_mode
+fi
 
 exit 0

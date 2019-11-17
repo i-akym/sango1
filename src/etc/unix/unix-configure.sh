@@ -32,7 +32,7 @@ print_usage() {
 }
 
 bad_arg() {
-  echo "** ERROR: Bad argument. - $1"
+  echo "** ERROR: Bad argument. $1"
   exit 1
 }
 
@@ -42,7 +42,7 @@ no_install_dir() {
 }
 
 target_is_not_absolute() {
-  echo "Install directory $INSTALL_DIR is not an absolute path."
+  echo "**ERROR: Install directory $INSTALL_DIR is not an absolute path."
   exit 1
 }
 
