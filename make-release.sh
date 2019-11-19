@@ -101,8 +101,8 @@ rsync -r --include '*/' --include '*.class' --exclude '*' src/sni_sango $RELEASE
 
 # setup bin 
 
-echo "cp -R $RELEASE_DIR/src/bin $RELEASE_DIR/bin"
-cp -R $RELEASE_DIR/src/bin $RELEASE_DIR/bin
+echo "cp -R $RELEASE_DIR/src/bin $RELEASE_DIR/"
+cp -R $RELEASE_DIR/src/bin $RELEASE_DIR/ || copy_error
 
 # setup doc 
 
@@ -126,8 +126,8 @@ echo "cp src/etc/unix/*.sh $RELEASE_DIR/etc/unix/"
 cp src/etc/unix/*.sh $RELEASE_DIR/etc/unix/ || copy_error
 echo "mkdir $RELEASE_DIR/etc/win"
 mkdir $RELEASE_DIR/etc/win || copy_error
-echo "cp src/etc/win/*.bat $RELEASE_DIR/etc/win"
-cp src/etc/win/*.bat $RELEASE_DIR/etc/win || copy_error
+echo "cp src/etc/win/*.bat $RELEASE_DIR/etc/win/"
+cp src/etc/win/*.bat $RELEASE_DIR/etc/win/ || copy_error
 
 # setup tool
 
