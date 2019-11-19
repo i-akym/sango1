@@ -192,9 +192,12 @@ Java1.8以上がインストールされている必要があります。</p>
   <li>「<code>win_configure.bat</code>」にインストール先ディレクトリを，「ドライブ文字<code>:\</code>」で始まる絶対パスで指定して実行します。
 	  ここでは「<code>D:\sango</code>」をインストールディレクトリとします<span class="note-ref">*1</span>。
     正常終了後，「<code>install.bat</code>」を実行します。
-    <blockquote class="run-sample">実行例
+    <blockquote class="run-sample">実行例（初期インストール）
 <samp>D:\work\release&gt; </samp><kbd>.\win_configure -install-to D:\sango</kbd>
 <samp>D:\work\release&gt; </samp><kbd>.\install</kbd> </blockquote>
+    <blockquote class="run-sample">実行例（更新インストール）
+<samp>D:\work\release&gt; </samp><kbd>.\win_configure -install-to D:\sango</kbd>
+<samp>D:\work\release&gt; </samp><kbd>.\install -mode upgrade</kbd> </blockquote>
   </li>
   <li>「<code>D:\sango\bin</code>」ディレクトリにパス（PATH）を通します。
     Windowsの設定方法にしたがってください。
@@ -237,11 +240,16 @@ Java1.8以上がインストールされている必要があります。</p>
   <li>「<code>unix_configure.sh</code>」にインストール先ディレクトリを絶対パスで指定して実行します。
     ここでは「<code>/opt/sango</code>」をインストールディレクトリとします。
     正常終了後，「<code>install.sh</code>」を実行します。</li>
-    <blockquote class="run-sample">実行例
+    <blockquote class="run-sample">実行例（初期インストール）
 <samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
 <samp>$ </samp><kbd>cd release</kbd>
 <samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
 <samp>$ </samp><kbd>sudo ./install.sh</kbd></blockquote></li>
+    <blockquote class="run-sample">実行例（更新インストール）
+<samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
+<samp>$ </samp><kbd>cd release</kbd>
+<samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
+<samp>$ </samp><kbd>sudo ./install.sh -mode upgrade</kbd></blockquote></li>
   <li>必要に応じ，実行ファイル「<code>sangoc</code>」「<code>sango</code>」をPATH上に設定します。
     <blockquote class="run-sample">実行例
 <samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sangoc /usr/bin/sangoc</kbd>
