@@ -191,11 +191,11 @@ Java1.8以上がインストールされている必要があります。</p>
 	  ここでは「<code>D:\sango</code>」をインストールディレクトリとします<span class="note-ref">*1</span>。
     正常終了後，「<code>install.bat</code>」を実行します。
     <blockquote class="run-sample">実行例（初期インストール）
-<samp>D:\work\release&gt; </samp><kbd>.\win_configure -install-to D:\sango</kbd>
-<samp>D:\work\release&gt; </samp><kbd>.\install</kbd> </blockquote>
+<samp>D:\work\release&gt; <kbd>.\win_configure -install-to D:\sango</kbd></samp>
+<samp>D:\work\release&gt; <kbd>.\install</kbd></samp></blockquote>
     <blockquote class="run-sample">実行例（更新インストール）
-<samp>D:\work\release&gt; </samp><kbd>.\win_configure -install-to D:\sango</kbd>
-<samp>D:\work\release&gt; </samp><kbd>.\install -mode upgrade</kbd> </blockquote>
+<samp>D:\work\release&gt; <kbd>.\win_configure -install-to D:\sango</kbd></samp>
+<samp>D:\work\release&gt; <kbd>.\install -mode upgrade</kbd></samp></blockquote>
   </li>
   <li>「<code>D:\sango\bin</code>」ディレクトリにパス（PATH）を通します。
     Windowsの設定方法にしたがってください。
@@ -204,14 +204,14 @@ Java1.8以上がインストールされている必要があります。</p>
     「<code>D:\sango\sample\hello.sg</code>」をカレントディレクトリにコピーし，コンパイルして実行します<span class="note-ref">*2</span>。
     エラーなく終了し，「<samp>Hello, world!</samp>」が表示されればOKです。
     <blockquote class="run-sample">実行例
-<samp>D:\work\release&gt; </samp><kbd>copy D:\sango\sample\hello.sg</kbd>
-<samp>D:\work\release&gt; </samp><kbd>sangoc hello.sg</kbd>
+<samp>D:\work\release&gt; <kbd>copy D:\sango\sample\hello.sg</kbd></samp>
+<samp>D:\work\release&gt; <kbd>sangoc hello.sg</kbd></samp>
 <samp>Sango version x.y.z_nnn</samp>
 <samp>Compiling &quot;hello&quot; = D:\sango_x_y\hello.sg ...</samp>
 <samp>Importing &quot;sango.lang&quot; = D:\sango\lib\sango\lang.sgm ...</samp>
 <samp>Importing &quot;sango.io.stdio&quot; = D:\sango\lib\sango\io\stdio.sgm ...</samp>
 <samp>Generating &quot;hello&quot; = D:\sango_x_y\hello.sgm ...</samp>
-<samp>D:\sango_x\release&gt; </samp><kbd>sango hello</kbd>
+<samp>D:\sango_x\release&gt; <kbd>sango hello</kbd></samp>
 <samp>Sango version x.y.z_nnn</samp>
 <samp>Loading &quot;hello&quot; = D:\sango_x_y\hello.sgm ...</samp>
 <samp>Loading &quot;sango.lang&quot; = D:\sango\lib\sango\lang.sgm ...</samp>
@@ -237,31 +237,31 @@ Java1.8以上がインストールされている必要があります。</p>
     ここでは「<code>/opt/sango</code>」をインストールディレクトリとします。
     正常終了後，「<code>install.sh</code>」を実行します。</li>
     <blockquote class="run-sample">実行例（初期インストール）
-<samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
-<samp>$ </samp><kbd>cd release</kbd>
-<samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
-<samp>$ </samp><kbd>sudo ./install.sh</kbd></blockquote></li>
+<samp>$ <kbd>tar -xz -f sango1.0.0_1.tgz</kbd></samp>
+<samp>$ <kbd>cd release</kbd></samp>
+<samp>$ <kbd>./unix-configure -install-to /opt/sango</kbd></samp>
+<samp>$ <kbd>sudo ./install.sh</kbd></samp></blockquote></li>
     <blockquote class="run-sample">実行例（更新インストール）
-<samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
-<samp>$ </samp><kbd>cd release</kbd>
-<samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
-<samp>$ </samp><kbd>sudo ./install.sh -mode upgrade</kbd></blockquote></li>
+<samp>$ <kbd>tar -xz -f sango1.0.0_1.tgz</kbd></samp>
+<samp>$ <kbd>cd release</kbd></samp>
+<samp>$ <kbd>./unix-configure -install-to /opt/sango</kbd></samp>
+<samp>$ <kbd>sudo ./install.sh -mode upgrade</kbd></samp></blockquote></li>
   <li>必要に応じ，実行ファイル「<code>sangoc</code>」「<code>sango</code>」をPATH上に設定します。
     <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sangoc /usr/bin/sangoc</kbd>
-<samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sango /usr/bin/sango</kbd></blockquote></li>
+<samp>$ <kbd>sudo ln -s /opt/sango/bin/sangoc /usr/bin/sangoc</kbd></samp>
+<samp>$ <kbd>sudo ln -s /opt/sango/bin/sango /usr/bin/sango</kbd></samp></blockquote></li>
   <li>動作確認をします。
     「<code>/opt/sango/sample/hello.sg</code>」をカレントディレクトリにコピーし，コンパイルして実行します<span class="note-ref">*1</span>。
     エラーなく終了し，「<samp>Hello, world!</samp>」が表示されればOKです。
     <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>cp /opt/sango/sample/hello.sg .</kbd>
-<samp>$ </samp><kbd>sangoc hello.sg</kbd>
+<samp>$ <kbd>cp /opt/sango/sample/hello.sg .</kbd></samp>
+<samp>$ <kbd>sangoc hello.sg</kbd></samp>
 <samp>Sango version x.y.z_nnn
 Compiling &quot;hello&quot; = /tmp/work/sango_x_y/hello.sg ...
 Importing &quot;sango.lang&quot; = /opt/sango/lib/sango/lang.sgm ...
 Importing &quot;sango.io.stdio&quot; = /opt/sango/lib/sango/io/stdio.sgm ...
 Generating &quot;hello&quot; = /tmp/work/hello.sgm ...</samp>
-<samp>$ </samp><kbd>sango hello</kbd>
+<samp>$ <kbd>sango hello</kbd></samp>
 <samp>Sango version x.y.z_nnn
 Loading &quot;hello&quot; = /tmp/work/hello.sgm ...
 Loading &quot;sango.lang&quot; = /opt/sango/lib/sango/lang.sgm ...
@@ -790,12 +790,12 @@ eval _main_ -&gt; &lt;void&gt; {
 } ;;</code></blockquote>
 <p>ソースコードが完成したら，コンパイルし，実行します。</p>
 <blockquote class="run-sample">実行例
-<samp>D:\work&gt; </samp><kbd>sangoc add.sg</kbd>
-<samp>D:\work&gt; </samp><kbd>sango add 23 506</kbd></blockquote>
+<samp>D:\work&gt; <kbd>sangoc add.sg</kbd></samp>
+<samp>D:\work&gt; <kbd>sango add 23 506</kbd></samp></blockquote>
 <p>実行するとSangoのバージョン，ロードされたモジュール名の後に結果が表示されます。
   バージョン情報，モジュール情報が不要の場合は，<code>-quiet</code>オプションで表示を抑制します。</p>
 <blockquote class="run-sample">実行例
-<samp>D:\work&gt; </samp><kbd>sango -quiet all add 23 506</kbd>
+<samp>D:\work&gt; <kbd>sango -quiet all add 23 506</kbd></samp>
 <samp>23 + 506 = {&quot;sango.lang&quot;.int|529}</samp>
 <samp>D:\work&gt;</samp></blockquote>
 <p>例外が発生した場合は，次のような出力になります。
