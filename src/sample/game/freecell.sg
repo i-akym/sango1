@@ -118,7 +118,7 @@ eval <card> *Card <color_display> *Disp card_display -> <cstr> {
   Card = suit: *S num: *N card$,
   (| Disp, S suit_color |) case {
   ; (| color_letter$, *Color |) -> [| S suit_letter, N num_letter, Color color_letter |]
-  ; (| simple_color$, black$ |) -> [| '`u1b;', '[', '7', 'm', '`u1b;', '[', '7', 'm', S suit_letter, N num_letter, '`u1b;', '[', 'm' |]
+  ; (| simple_color$, black$ |) -> [| '`u1b;', '[', '7', 'm', S suit_letter, N num_letter, '`u1b;', '[', 'm' |]
   ; (| simple_color$, red$ |) -> [| S suit_letter, N num_letter |]
   }
 } ;;
