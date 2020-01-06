@@ -159,6 +159,23 @@ eval <*A set> *Set clear @public -> <A set> {
   d: (D &(Fs clear_f)) :: Set set$
 } ;;
 
+eval <*A set> *Set <A list> *Elems contain_just_list? | contain_just? @public -> <bool> {
+  Set (Elems list.iter) contain_just_iter?
+} ;;
+
+eval <*A set> *Set <A iter> *Iter contain_just_iter? | contain_just? @public -> <bool> {
+  Iter Set &\ <A iter> *I <A set> *S -> <bool> {
+    I next >> case {
+    ; (| *E, *I' |) value$ ->
+      S E remove >> case {
+      ; (| *S', ** value$ |) -> I' S' &&
+      ; ** -> false$
+      }
+    ; none$ -> S empty?
+    }
+  }
+} ;;
+
 eval <*A set> *Set <A list> *Elems add_list @public -> <A set> {
   Set (Elems list.iter) add_iter
 } ;;
