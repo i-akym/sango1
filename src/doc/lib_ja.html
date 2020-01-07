@@ -3595,6 +3595,12 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems contain_just_list? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>セットの要素がリストに含まれる値と同一か判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter contain_just_iter? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>セットの要素がイテレータの供給する値と同一か判定します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems add_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
