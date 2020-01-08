@@ -233,22 +233,11 @@ eval <*A list> *Xs <A A A fun> *F reduce_right @public -> <A maybe> {
 } ;;
 
 eval <*A list> *Xs reverse @public -> <A list> {
-  Xs [] &\ <A list> *XXs <A list> *RRs -> {
-    XXs case {
-    ; [ *XXsH ; *XXsT ] -> XXsT [ XXsH ; RRs ] &&
-    ; [] -> RRs
-    }
-  }
+  Xs [] cons_each
 } ;;
 
 eval <*A list> *Xs0 <A list> *Xs1 append @public -> <A list> {
-  Xs0 [] Xs1 &\ <A list> *XXs <A list> *RRs <A list> *AAs -> {
-    (| XXs, RRs |) case {
-    ; (| [ *XXH ; *XXT ], RRs |) -> XXT [ XXH ; RRs ] AAs &&
-    ; (| [], [ *RRH ; *RRT ] |) -> [] RRT [ RRH ; AAs ] &&
-    ; (| [], [] |) -> AAs
-    }
-  }
+  (Xs0 reverse) Xs1 cons_each
 } ;;
 
 eval <<*A list> list> *Xss concat @public -> <A list> {
