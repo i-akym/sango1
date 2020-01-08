@@ -2064,6 +2064,14 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;A list&gt; *Xs cons @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p><code>Xs</code>の前に<code>X</code>を加えたリストを作成します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A maybe&gt; *X_ &lt;A list&gt; *Xs cons_if_some @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<p><code>X_</code>が<code>(*X value$)</code>であれば，<code>Xs</code>の前に<code>X</code>を加えたリストを作成します。
+  <code>X_</code>が<code>none$</code>であれば，<code>Xs</code>を返します。 </p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *X0s &lt;A list&gt; *X1s cons_each @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<p><code>X0s</code>の先頭から順次要素を取り出し<code>X1s</code>の前に加えたリストを作成し返します。
+  結果は，<code>X0s</code>が<code>X1s</code>の前に逆順に加えられたものになります。 </p>
+
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.list.2"><code>sango.list</code> - 判定</h2>
 
