@@ -16,6 +16,8 @@ eval test -> <void> {
   test006,
   test006a,
   test006b,
+  test007,
+  test007a,
   test011,
   test012,
   test021,
@@ -82,6 +84,8 @@ eval test005 -> <int list> { 5 [] list.cons = [ 5 ] } ;;
 eval test006 -> <int list> { 5 [ 7 ] list.cons = [ 5, 7 ] } ;;
 eval test006a -> <int list> { (5 value$) [ 7 ] list.cons_if_some = [ 5, 7 ] } ;;
 eval test006b -> <int list> { none$ [ 7 ] list.cons_if_some = [ 7 ] } ;;
+eval test007 -> <int list> { [] [ 7 ] list.cons_each = [ 7 ] } ;;
+eval test007a -> <int list> { [ 3, 5 ] [ 7 ] list.cons_each = [ 5, 3, 7 ] } ;;
 eval test011 -> <int> { [] list.length = 0 } ;;
 eval test012 -> <int> { [ 1, 2, 3 ] list.length = 3 } ;;
 eval test021 -> <int maybe> { [] list.first = none$ } ;;
