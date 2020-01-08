@@ -90,6 +90,13 @@ eval <*A> *X <A list> *Xs cons @public -> <A list> {
   [ X ; Xs ]
 } ;;
 
+eval <*A maybe> *X_ <A list> *Xs cons_if_some @public -> <A list> {
+  X_ case {
+  ; *X value$ -> [ X ; Xs ]
+  ; ** -> Xs
+  }
+} ;;
+
 eval <*A list> *Xs last @public -> <A maybe> {
   Xs case {
   ; [ *XsL ] -> XsL value$
