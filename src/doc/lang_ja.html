@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.0.2言語解説</title>
+<title>Sango 1.1.0言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -30,7 +30,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
 <p>SangoはMIT Licenseに基いて配布されています。</p>
 <table border><tr><td>
 <p>MIT License </p>
-<p>Copyright (c) 2018 Isao Akiyama </p>
+<p>Copyright (c) 2018 AKIYAMA Isao</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
@@ -151,7 +151,8 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#B.1">B.1. 型の扱い</a>
   <a href="#B.2">B.2. 型と型との関係</a>
   <a href="#B.3">B.3. narrowとcast</a>
-<a href="#C">C. Known bugs and restrictions</a></div>
+<a href="#C">C. 主な変更点</a></div>
+<a href="#D">D. Known bugs and restrictions</a></div>
 
 <hr/>
 
@@ -186,15 +187,16 @@ Java1.8以上がインストールされている必要があります。</p>
 <ol>
   <li>リリースファイルを解凍し「<code>release</code>」ディレクトリを取り出します。
     ここではそれを「<code>D:\work\release</code>」とします。</li>
-  <li>インストール先のディレクトリを削除あるいは移動して，存在しない状態にします。
-    存在すると，この後の手順でエラーになります。</li>
   <li>コマンドプロンプトを起動し，「<code>D:\work\release</code>」をカレントディレクトリにします。</li>
   <li>「<code>win_configure.bat</code>」にインストール先ディレクトリを，「ドライブ文字<code>:\</code>」で始まる絶対パスで指定して実行します。
 	  ここでは「<code>D:\sango</code>」をインストールディレクトリとします<span class="note-ref">*1</span>。
     正常終了後，「<code>install.bat</code>」を実行します。
-    <blockquote class="run-sample">実行例
-<samp>D:\work\release&gt; </samp><kbd>.\win_configure -install-to D:\sango</kbd>
-<samp>D:\work\release&gt; </samp><kbd>.\install</kbd> </blockquote>
+    <blockquote class="run-sample">実行例（初期インストール）
+<samp>D:\work\release&gt; <kbd>.\win_configure -install-to D:\sango</kbd></samp>
+<samp>D:\work\release&gt; <kbd>.\install</kbd></samp></blockquote>
+    <blockquote class="run-sample">実行例（更新インストール）
+<samp>D:\work\release&gt; <kbd>.\win_configure -install-to D:\sango</kbd></samp>
+<samp>D:\work\release&gt; <kbd>.\install -mode upgrade</kbd></samp></blockquote>
   </li>
   <li>「<code>D:\sango\bin</code>」ディレクトリにパス（PATH）を通します。
     Windowsの設定方法にしたがってください。
@@ -203,14 +205,14 @@ Java1.8以上がインストールされている必要があります。</p>
     「<code>D:\sango\sample\hello.sg</code>」をカレントディレクトリにコピーし，コンパイルして実行します<span class="note-ref">*2</span>。
     エラーなく終了し，「<samp>Hello, world!</samp>」が表示されればOKです。
     <blockquote class="run-sample">実行例
-<samp>D:\work\release&gt; </samp><kbd>copy D:\sango\sample\hello.sg</kbd>
-<samp>D:\work\release&gt; </samp><kbd>sangoc hello.sg</kbd>
+<samp>D:\work\release&gt; <kbd>copy D:\sango\sample\hello.sg</kbd></samp>
+<samp>D:\work\release&gt; <kbd>sangoc hello.sg</kbd></samp>
 <samp>Sango version x.y.z_nnn</samp>
 <samp>Compiling &quot;hello&quot; = D:\sango_x_y\hello.sg ...</samp>
 <samp>Importing &quot;sango.lang&quot; = D:\sango\lib\sango\lang.sgm ...</samp>
 <samp>Importing &quot;sango.io.stdio&quot; = D:\sango\lib\sango\io\stdio.sgm ...</samp>
 <samp>Generating &quot;hello&quot; = D:\sango_x_y\hello.sgm ...</samp>
-<samp>D:\sango_x\release&gt; </samp><kbd>sango hello</kbd>
+<samp>D:\sango_x\release&gt; <kbd>sango hello</kbd></samp>
 <samp>Sango version x.y.z_nnn</samp>
 <samp>Loading &quot;hello&quot; = D:\sango_x_y\hello.sgm ...</samp>
 <samp>Loading &quot;sango.lang&quot; = D:\sango\lib\sango\lang.sgm ...</samp>
@@ -230,34 +232,37 @@ Java1.8以上がインストールされている必要があります。</p>
 <h2 id="2.2">2.2. Linux環境へのインストール</h2>
 <p>以下の手順でインストールします。</p>
 <ol>
-  <li>インストール先のディレクトリを削除あるいは移動して，存在しない状態にします。
-    存在すると，この後の手順でエラーになります。</li>
   <li>リリースファイルを解凍します。</li>
   <li>解凍してできた「<code>release</code>」をシェルのカレントディレクトリにします。</li>
   <li>「<code>unix_configure.sh</code>」にインストール先ディレクトリを絶対パスで指定して実行します。
     ここでは「<code>/opt/sango</code>」をインストールディレクトリとします。
     正常終了後，「<code>install.sh</code>」を実行します。</li>
-    <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>tar -xz -f sango1.0.0_1.tgz</kbd>
-<samp>$ </samp><kbd>cd release</kbd>
-<samp>$ </samp><kbd>./unix-configure -install-to /opt/sango</kbd>
-<samp>$ </samp><kbd>sudo ./install.sh</kbd></blockquote></li>
+    <blockquote class="run-sample">実行例（初期インストール）
+<samp>$ <kbd>tar -xz -f sango1.0.0_1.tgz</kbd></samp>
+<samp>$ <kbd>cd release</kbd></samp>
+<samp>$ <kbd>./unix-configure -install-to /opt/sango</kbd></samp>
+<samp>$ <kbd>sudo ./install.sh</kbd></samp></blockquote></li>
+    <blockquote class="run-sample">実行例（更新インストール）
+<samp>$ <kbd>tar -xz -f sango1.0.0_1.tgz</kbd></samp>
+<samp>$ <kbd>cd release</kbd></samp>
+<samp>$ <kbd>./unix-configure -install-to /opt/sango</kbd></samp>
+<samp>$ <kbd>sudo ./install.sh -mode upgrade</kbd></samp></blockquote></li>
   <li>必要に応じ，実行ファイル「<code>sangoc</code>」「<code>sango</code>」をPATH上に設定します。
     <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sangoc /usr/bin/sangoc</kbd>
-<samp>$ </samp><kbd>sudo ln -s /opt/sango/bin/sango /usr/bin/sango</kbd></blockquote></li>
+<samp>$ <kbd>sudo ln -s /opt/sango/bin/sangoc /usr/bin/sangoc</kbd></samp>
+<samp>$ <kbd>sudo ln -s /opt/sango/bin/sango /usr/bin/sango</kbd></samp></blockquote></li>
   <li>動作確認をします。
     「<code>/opt/sango/sample/hello.sg</code>」をカレントディレクトリにコピーし，コンパイルして実行します<span class="note-ref">*1</span>。
     エラーなく終了し，「<samp>Hello, world!</samp>」が表示されればOKです。
     <blockquote class="run-sample">実行例
-<samp>$ </samp><kbd>cp /opt/sango/sample\hello.sg .</kbd>
-<samp>$ </samp><kbd>sangoc hello.sg</kbd>
+<samp>$ <kbd>cp /opt/sango/sample/hello.sg .</kbd></samp>
+<samp>$ <kbd>sangoc hello.sg</kbd></samp>
 <samp>Sango version x.y.z_nnn
-Compiling &quot;hello&quot; = /tmp/work/sango_x_y\hello.sg ...
-Importing &quot;sango.lang&quot; = /opt/sango/lib/sango\lang.sgm ...
+Compiling &quot;hello&quot; = /tmp/work/sango_x_y/hello.sg ...
+Importing &quot;sango.lang&quot; = /opt/sango/lib/sango/lang.sgm ...
 Importing &quot;sango.io.stdio&quot; = /opt/sango/lib/sango/io/stdio.sgm ...
 Generating &quot;hello&quot; = /tmp/work/hello.sgm ...</samp>
-<samp>$ </samp><kbd>sango hello</kbd>
+<samp>$ <kbd>sango hello</kbd></samp>
 <samp>Sango version x.y.z_nnn
 Loading &quot;hello&quot; = /tmp/work/hello.sgm ...
 Loading &quot;sango.lang&quot; = /opt/sango/lib/sango/lang.sgm ...
@@ -786,12 +791,12 @@ eval _main_ -&gt; &lt;void&gt; {
 } ;;</code></blockquote>
 <p>ソースコードが完成したら，コンパイルし，実行します。</p>
 <blockquote class="run-sample">実行例
-<samp>D:\work&gt; </samp><kbd>sangoc add.sg</kbd>
-<samp>D:\work&gt; </samp><kbd>sango add 23 506</kbd></blockquote>
+<samp>D:\work&gt; <kbd>sangoc add.sg</kbd></samp>
+<samp>D:\work&gt; <kbd>sango add 23 506</kbd></samp></blockquote>
 <p>実行するとSangoのバージョン，ロードされたモジュール名の後に結果が表示されます。
   バージョン情報，モジュール情報が不要の場合は，<code>-quiet</code>オプションで表示を抑制します。</p>
 <blockquote class="run-sample">実行例
-<samp>D:\work&gt; </samp><kbd>sango -quiet all add 23 506</kbd>
+<samp>D:\work&gt; <kbd>sango -quiet all add 23 506</kbd></samp>
 <samp>23 + 506 = {&quot;sango.lang&quot;.int|529}</samp>
 <samp>D:\work&gt;</samp></blockquote>
 <p>例外が発生した場合は，次のような出力になります。
@@ -1894,6 +1899,8 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 <h2 id="A.3">A.3.  コンパイラ（<code>sangoc</code>）</h2>
 <p>ソースコードをコンパイルし，モジュールファイルを生成します。
   コンパイルに必要なモジュール（インポートされているモジュール）はコンパイラが再帰的に検出してコンパイルし，すでにコンパイル済みであれば<span class="note-ref">*1</span>モジュールファイルを参照してコンパイル処理を続行します。</p>
+<p>モジュール探索パスは環境変数<code>SANGO_MODULES</code>で指定することもできます。
+  この場合は，「<code>-modules</code>」オプションの指定に次いで探索の対象になります。</p>
 
 <blockquote class="note">*1：モジュールファイルよりソースファイルが新しい場合は，再コンパイルします。</blockquote>
  
@@ -1921,6 +1928,8 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="A.4">A.4. 実行エンジン（<code>sango</code>）</h2>
 <p>Sangoプログラムを実行します。実行に必要なモジュールファイルはモジュール探索パスから取得します。</p>
+<p>モジュール探索パスは環境変数<code>SANGO_MODULES</code>で指定することもできます。
+  この場合は，「<code>-modules</code>」オプションの指定に次いで探索の対象になります。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h3 id="A.4.a">実行形式</h3>
@@ -2009,7 +2018,35 @@ eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<v
 [] = &lt;int list&gt; *X</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h1 id="C">C. Known bugs and restrictions</h1>
+<h1 id="C">C. 主な変更点</h1>
+<p>■　1.0.0</p>
+<p>初期リリース</p>
+
+<p>■　1.0.1</p>
+<ul>
+<li><code>sango.list</code>に<code>empty_list</code>，<code>cons</code>，<code>new_reverse_list</code>を追加</li>
+<li><code>sango.string</code>に<code>new_reverse_string</code>を追加</li>
+<li>メタプログラミング機能の一部を試験実装（非公開） </li>
+<li>15-puzzleをサンプルに追加</li>
+</ul>
+
+<p>■　1.0.2</p>
+<ul>
+<li><code>RNativeImplHelper</code>に<code>mayRunLong()</code>を追加</li>
+<li>外部Javaプログラムからの関数呼び出し機能を追加（非公開）</li>
+</ul>
+
+<p>■　1.1.0</p>
+<ul>
+<li><code>sango.list</code>に<code>cons_if_some</code>，<code>cons_each</code>を追加</li>
+<li><code>sango.util.set</code>に <code>contain_just_list?</code>，<code>contain_just_iter?</code>を追加</li>
+<li>更新インストール機能を追加</li>
+<li>環境変数<code>SANGO_JAVA_BIN</code>，<code>SANGO_MODULES</code>を追加</li>
+</ul>
+
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="D">D. Known bugs and restrictions</h1>
 <p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
 <p>■　クロージャ定義において返り値の型を省略してもコンパイルエラーになりませんが，省略しないでください。</p>
 <p>■　クロージャ定義をその場で起動する場合においてクロージャのパラメタの型を省略してもコンパイルエラーになりませんが，省略しないでください。（例：<code>P Q &\ *X *Y -&gt; ...</code>）</p>

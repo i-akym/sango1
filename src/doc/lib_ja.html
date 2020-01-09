@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.0.2　ライブラリ解説</title>
+<title>Sango 1.1.0　ライブラリ解説</title>
 </head>
 
 <body>
@@ -36,7 +36,7 @@ kbd {
 <p>SangoはMIT Licenseに基いて配布されています。</p>
 <table border><tr><td>
 <p>MIT License </p>
-<p>Copyright (c) 2018 Isao Akiyama </p>
+<p>Copyright (c) 2018 AKIYAMA Isao </p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
@@ -2064,6 +2064,14 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;A list&gt; *Xs cons @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p><code>Xs</code>の前に<code>X</code>を加えたリストを作成します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A maybe&gt; *X_ &lt;A list&gt; *Xs cons_if_some @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<p><code>X_</code>が<code>(*X value$)</code>であれば，<code>Xs</code>の前に<code>X</code>を加えたリストを作成します。
+  <code>X_</code>が<code>none$</code>であれば，<code>Xs</code>を返します。 </p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *X0s &lt;A list&gt; *X1s cons_each @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<p><code>X0s</code>の先頭から順次要素を取り出し<code>X1s</code>の前に加えたリストを作成し返します。
+  結果は，<code>X1s</code>の前に<code>X0s</code>が逆順に加えられたものになります。 </p>
+
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.list.2"><code>sango.list</code> - 判定</h2>
 
@@ -3594,6 +3602,12 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems contain_just_list? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>セットの要素がリストに含まれる値と同一か判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter contain_just_iter? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>セットの要素がイテレータの供給する値と同一か判定します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems add_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>

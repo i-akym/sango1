@@ -23,10 +23,14 @@
 @rem ***************************************************************************
 @echo off
 setlocal
-if defined SANGO_JAVA_BIN (
+if not defined SANGO_JAVA_BIN (
+  set JAVA=java
+) else if not "%SANGO_JAVA_BIN:~-1%"=="\" (
   set JAVA=%SANGO_JAVA_BIN%\java
 ) else (
-  set JAVA=java
+  set JAVA=%SANGO_JAVA_BIN%java
 )
-call %JAVA% -cp "LLIIBB" org.sango_lang.Compiler -L "LLIIBB" %*
+set SLIB=%SANGO_MODULES%;LLIIBB
+set JLIB=%SLIB%
+call %JAVA% -cp %JLIB% org.sango_lang.Compiler -L %SLIB% %*
 exit /b %ERRORLEVEL%

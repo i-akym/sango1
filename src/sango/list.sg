@@ -90,6 +90,20 @@ eval <*A> *X <A list> *Xs cons @public -> <A list> {
   [ X ; Xs ]
 } ;;
 
+eval <*A maybe> *X_ <A list> *Xs cons_if_some @public -> <A list> {
+  X_ case {
+  ; *X value$ -> [ X ; Xs ]
+  ; ** -> Xs
+  }
+} ;;
+
+eval <*A list> *X0s <A list> *X1s cons_each @public -> <A list> {
+  X0s case {
+  ; [ *X ; *Ys ] -> Ys [ X ; X1s ] &&
+  ; [] -> X1s
+  }
+} ;;
+
 eval <*A list> *Xs last @public -> <A maybe> {
   Xs case {
   ; [ *XsL ] -> XsL value$
@@ -139,9 +153,9 @@ eval <*A list> *Xs <int> *Index <A> *Y insert_at @public -> <A list> {
   } = *Pos,
   Pos [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <A list> {
     (| I, Following |) case {
-    ; (| 0, ** |) -> Leading_r [ Y ; Following ] append_leading_reverse
+    ; (| 0, ** |) -> Leading_r [ Y ; Following ] cons_each
     ; (| **, [ *P ; *Qs ] |) -> (I dec) [ P ; Leading_r ] Qs &&
-    ; (| **, [] |) -> Leading_r [ Y ] append_leading_reverse
+    ; (| **, [] |) -> Leading_r [ Y ] cons_each
     }
   }
 } ;;
@@ -152,7 +166,7 @@ eval <*A list> *Xs <int> *Index remove_at @public -> <<<A list> A tuple> maybe> 
   ; otherwise ->
     Index [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <<<A list> A tuple> maybe> {
       (| I, Following |) case {
-      ; (| 0, [ *E ; *T ] |) -> (| Leading_r T append_leading_reverse, E |) value$
+      ; (| 0, [ *E ; *T ] |) -> (| Leading_r T cons_each, E |) value$
       ; (| **, []  |) -> none$
       ; (| **, [ *E ; *T ] |) -> (I dec) [ E ; Leading_r ] T &&
       }
@@ -166,18 +180,11 @@ eval <*A list> *Xs <int> *Index <A> *Y replace_at @public -> <<<A list> A tuple>
   ; otherwise ->
     Index [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <<<A list> A tuple> maybe> {
       (| I, Following |) case {
-      ; (| 0, [ *E ; *T ] |) -> (| Leading_r [ Y ; T ] append_leading_reverse, E |) value$
+      ; (| 0, [ *E ; *T ] |) -> (| Leading_r [ Y ; T ] cons_each, E |) value$
       ; (| **, []  |) -> none$
       ; (| **, [ *E ; *T ] |) -> (I dec) [ E ; Leading_r ] T &&
       }
     }
-  }
-} ;;
-
-eval <*A list> *Leading_r <A list> *Following append_leading_reverse -> <A list> {
-  Leading_r case {
-  ; [ *X ; *Ys ] -> Ys [ X ; Following ] &&
-  ; [] -> Following
   }
 } ;;
 
@@ -226,22 +233,11 @@ eval <*A list> *Xs <A A A fun> *F reduce_right @public -> <A maybe> {
 } ;;
 
 eval <*A list> *Xs reverse @public -> <A list> {
-  Xs [] &\ <A list> *XXs <A list> *RRs -> {
-    XXs case {
-    ; [ *XXsH ; *XXsT ] -> XXsT [ XXsH ; RRs ] &&
-    ; [] -> RRs
-    }
-  }
+  Xs [] cons_each
 } ;;
 
 eval <*A list> *Xs0 <A list> *Xs1 append @public -> <A list> {
-  Xs0 [] Xs1 &\ <A list> *XXs <A list> *RRs <A list> *AAs -> {
-    (| XXs, RRs |) case {
-    ; (| [ *XXH ; *XXT ], RRs |) -> XXT [ XXH ; RRs ] AAs &&
-    ; (| [], [ *RRH ; *RRT ] |) -> [] RRT [ RRH ; AAs ] &&
-    ; (| [], [] |) -> AAs
-    }
-  }
+  (Xs0 reverse) Xs1 cons_each
 } ;;
 
 eval <<*A list> list> *Xss concat @public -> <A list> {
