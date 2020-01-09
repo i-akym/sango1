@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.0.2言語解説</title>
+<title>Sango 1.1.0言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -30,7 +30,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
 <p>SangoはMIT Licenseに基いて配布されています。</p>
 <table border><tr><td>
 <p>MIT License </p>
-<p>Copyright (c) 2018 Isao Akiyama </p>
+<p>Copyright (c) 2018 AKIYAMA Isao</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
@@ -151,7 +151,8 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#B.1">B.1. 型の扱い</a>
   <a href="#B.2">B.2. 型と型との関係</a>
   <a href="#B.3">B.3. narrowとcast</a>
-<a href="#C">C. Known bugs and restrictions</a></div>
+<a href="#C">C. 主な変更点</a></div>
+<a href="#D">D. Known bugs and restrictions</a></div>
 
 <hr/>
 
@@ -2017,7 +2018,35 @@ eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<v
 [] = &lt;int list&gt; *X</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h1 id="C">C. Known bugs and restrictions</h1>
+<h1 id="C">C. 主な変更点</h1>
+<p>■　1.0.0</p>
+<p>初期リリース</p>
+
+<p>■　1.0.1</p>
+<ul>
+<li><code>sango.list</code>に<code>empty_list</code>，<code>cons</code>，<code>new_reverse_list</code>を追加</li>
+<li><code>sango.string</code>に<code>new_reverse_string</code>を追加</li>
+<li>メタプログラミング機能の一部を試験実装（非公開） </li>
+<li>15-puzzleをサンプルに追加</li>
+</ul>
+
+<p>■　1.0.2</p>
+<ul>
+<li><code>RNativeImplHelper</code>に<code>mayRunLong()</code>を追加</li>
+<li>外部Javaプログラムからの関数呼び出し機能を追加（非公開）</li>
+</ul>
+
+<p>■　1.1.0</p>
+<ul>
+<li><code>sango.list</code>に<code>cons_if_some</code>，<code>cons_each</code>を追加</li>
+<li><code>sango.util.set</code>に <code>contain_just_list?</code>，<code>contain_just_iter?</code>を追加</li>
+<li>更新インストール機能を追加</li>
+<li>環境変数<code>SANGO_JAVA_BIN</code>，<code>SANGO_MODULES</code>を追加</li>
+</ul>
+
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="D">D. Known bugs and restrictions</h1>
 <p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
 <p>■　クロージャ定義において返り値の型を省略してもコンパイルエラーになりませんが，省略しないでください。</p>
 <p>■　クロージャ定義をその場で起動する場合においてクロージャのパラメタの型を省略してもコンパイルエラーになりませんが，省略しないでください。（例：<code>P Q &\ *X *Y -&gt; ...</code>）</p>
