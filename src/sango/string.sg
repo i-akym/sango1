@@ -38,7 +38,7 @@ eval <*A> *X elem_to_string | string @public -> <A string> {
   [| X |]
 } ;;
 
-eval <*A list> *Xs list_to_string | to_string | string @public -> <A string> {
+eval <*A list> *Xs list_to_string | to_string @public -> <A string> {
   (Xs list.length) (Xs list.iter) new_string
 } ;;
 
