@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 Isao Akiyama                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,226 +21,109 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree" ;;
+module "sango.util.avltree2" ;;
 
-import "sango.arith" -> arith ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
+import "sango.util.avltree.base" -> base ;;
 
 data <*A *B tree> @opaque :=
   ord: <A ord_fs>
-  root_: <<A B node> maybe>
+  root_: <<<A B tuple> base.node> maybe>
   count: <int>
   tree$ ;;
 
-data <*A *B node> :=
-  key: <A>
-  assoc: <B>
-  depth: <int>
-  bal: <int>  # left depth - right depth
-  left_: <<A B node> maybe>
-  right_: <<A B node> maybe>
-  node$ ;;
+eval aux_builder -> <*A <<A base.node> maybe> <<A base.node> maybe> <A base.aux+> fun> {
+  \ <*AA> *Assoc <<AA base.node> maybe> *LN <<AA base.node> maybe> *RN -> <AA base.aux+> {
+    base.dummy_aux$
+  }
+} ;;
+
+eval <*A ord_fs> *Ord <A> *K locator -> <<<A *B tuple> base.node> <<A B tuple> base.locate> fun> {
+  \ <<A *BB tuple> base.node> *N -> <<A BB tuple> base.locate> { 
+    K (N base.assoc >> tuple.pair_first) Ord compare >> case {
+    ; lt$ -> ^^ base.left$
+    ; eq$ -> base.just$
+    ; gt$ -> ^^ base.right$
+    }
+  }
+} ;;
 
 eval <*A ord_fs> *Ord new_tree @public -> <A *B tree> {
-  Ord none$ 0 tree$
+  ord: Ord root_: none$ count: 0 tree$
 } ;;
 
-eval <*A *B tree> *T clear @public -> <A B tree> {
-  root_: none$ count: 0 :: T tree$
+eval <*A *B tree> *Tree clear @public -> <A B tree> {
+  root_: none$ count: 0 :: Tree tree$
 } ;;
 
-eval <*A *B tree> *T empty? @public -> <bool> {
-  T root_ >> nothing?
+eval <*A *B tree> *Tree empty? @public -> <bool> {
+  Tree root_ >> nothing?
 } ;;
 
-eval <*A *B tree> *T size @public -> <int> {
-  T count
+eval <*A *B tree> *Tree size @public -> <int> {
+  Tree count
 } ;;
 
-eval <*A *B tree> *T <A> *X get @public -> <<A B tuple> maybe> {
-  T = *Ord *Node_ ** tree$,
-  Ord Node_ X get_in_subtree
+eval <*A *B tree> *Tree <A> *K get @public -> <<A B tuple> maybe> {
+  Tree = ord: *Ord root_: *Node_ *** tree$,
+  Node_ (Ord K locator) base.get
 } ;;
 
-eval <*A *B tree> *T <A> *X assoc @public -> <B maybe> {
-  (T X get) ^tuple.pair_second apply_to_something
+eval <*A *B tree> *Tree <A> *K assoc @public -> <B maybe> {
+  (Tree K get) ^tuple.pair_second apply_to_something
 } ;;
 
-eval <*A *B tree> *T <A> *X contain_key? @public -> <bool> {
-  T X get >> something?
+eval <*A *B tree> *Tree <A> *K contain_key? @public -> <bool> {
+  Tree K get >> something?
 } ;;
 
-eval <*A *B tree> *T <A> *X <B> *Y put @public -> <<A B tree> <<A B tuple> maybe> tuple> {
-  T = *Ord *Node_ *N tree$,
-  Ord Node_ X Y put_to_subtree = (| *Node', *Replaced_kv_ |),
+eval <*A *B tree> *Tree <A> *K <B> *V put @public -> <<A B tree> <<A B tuple> maybe> tuple> {
+  Tree = *Ord *Node_ *N *** tree$,
+  Node_ (Ord K locator) (| K, V |) aux_builder base.put = (| *Node', *Replaced_kv_ |),
   Replaced_kv_ case {
-  ; none$ -> (| Ord (Node' value$) (N inc) tree$, Replaced_kv_ |)
-  ; ** -> (| Ord (Node' value$) N tree$, Replaced_kv_ |)
+  ; none$ -> (| root_: (Node' value$) count: (N inc) :: Tree tree$, Replaced_kv_ |)
+  ; ** -> (| root_: (Node' value$) :: Tree tree$, Replaced_kv_ |)
   }
 } ;;
 
-eval <*A *B tree> *T <A> *X <B> *Y put_new @public -> <<A B tree> bool tuple> {
-  T X assoc >> case {
-  ; ** value$ -> (| T, false$ |)
-  ; ** -> (| T X Y add, true$ |)
+eval <*A *B tree> *Tree <A> *K <B> *V put_new @public -> <<A B tree> bool tuple> {
+  Tree K assoc >> case {
+  ; ** value$ -> (| Tree, false$ |)
+  ; ** -> (| Tree K V add, true$ |)
   }
 } ;;
 
-eval <*A *B tree> *T <A> *X <B> *Y add @public -> <A B tree> {
-  T X Y put >> tuple.pair_first
+eval <*A *B tree> *Tree <A> *K <B> *V add @public -> <A B tree> {
+  Tree K V put >> tuple.pair_first
 } ;;
 
-eval <*A *B tree> *T <A> *X remove @public -> <<A B tree> <<A B tuple> maybe> tuple> {
-  T = *Ord *Node_ *N tree$,
-  Ord Node_ X remove_in_subtree = (| *Node_', *Removed_kv_ |),
+eval <*A *B tree> *Tree <A> *K remove @public -> <<A B tree> <<A B tuple> maybe> tuple> {
+  Tree = ord: *Ord root_: *Node_ count: *N *** tree$,
+  Node_ (Ord K locator) aux_builder base.remove = (| *Node_', *Removed_kv_ |),
   Removed_kv_ case {
-  ; none$ -> (| Ord Node_' N tree$, Removed_kv_ |)
-  ; ** -> (| Ord Node_' (N dec) tree$, Removed_kv_ |)
+  ; none$ -> (| root_: Node_' :: Tree tree$, Removed_kv_ |)
+  ; ** -> (| root_: Node_' count: (N dec) :: Tree tree$, Removed_kv_ |)
   }
 } ;;
 
-eval <*A *B tree> *T <A> *X delete @public -> <A B tree> {
-  T X remove >> tuple.pair_first
+eval <*A *B tree> *Tree <A> *K delete @public -> <A B tree> {
+  Tree K remove >> tuple.pair_first
 } ;;
 
-eval <*A *B tree> *T take @public -> <<<A B tuple> <A B tree> tuple> maybe> {
-  T = *Ord *Node_ *N tree$,
-  Node_ case {
+eval <*A *B tree> *Tree take @public -> <<<A B tuple> <A B tree> tuple> maybe> {
+  Tree = root_: *Node_ count: *N *** tree$,
+  Node_ aux_builder base.take >> case {
+  ; (| *KV, *Node_' |) value$ -> (| KV, root_: Node_' count: (N dec) :: Tree tree$ |) value$
   ; none$ -> none$
-  ; *Node value$ ->
-    Ord Node cut_leftmost = (| *Key, *Assoc, *Node'_ |),
-    (| (| Key, Assoc |), Ord Node'_ (N dec) tree$ |) value$
   }
 } ;;
 
-eval <*A *B tree> *T <<A B tuple> list> *KVs add_list @public -> <A B tree> {
-  KVs case {
-  ; [ (| *K, *V |) ; *KVs' ] -> (T K V add) KVs' &&
-  ; ** -> T
-  }
-} ;;
-
-eval <*A> *X <*B> *Y <<A B node> maybe> *Left_ <<A B node> maybe> *Right_ new_node -> <A B node> {
-  Left_ subtree_depth = *LD,
-  Right_ subtree_depth = *RD,
-  key: X
-  assoc: Y
-  depth: ([ LD, RD ] arith.max >> value >> inc)
-  bal: (LD RD diff)
-  left_: Left_
-  right_: Right_
-  node$
-} ;;
-
-eval <<*A *B node> maybe> *Node_ subtree_depth -> <int> {
-  Node_ case {
-  ; *N value$ -> N depth
-  ; ** -> 0
-  }
-} ;;
-
-eval <*A ord_fs> *Ord <<A *B node> maybe> *Node_ <A> *X get_in_subtree -> <<A B tuple> maybe> {
-  Node_ case {
-  ; none$ -> none$
-  ; (*Key *Assoc ** ** *Left_ *Right_ node$) value$ ->
-    if {
-    ; X Key Ord eq? -> (| Key, Assoc |) value$
-    ; X Key Ord lt? -> Ord Left_ X &&
-    ; otherwise -> Ord Right_ X &&
+eval <*A *B tree> *Tree <<A B tuple> list> *KVs add_list @public -> <A B tree> {
+  Tree KVs
+    \ <A B tree> *T <A B tuple> *KV -> <A B tree> {
+      KV = (| *K, *V |),
+      T K V add
     }
-  }
-} ;;
-
-eval <*A ord_fs> *Ord <<A *B node> maybe> *Node_ <A> *X <B> *Y put_to_subtree -> <<A B node> <<A B tuple> maybe> tuple> {
-  Node_ case {
-  ; none$ -> (| X Y none$ none$ new_node, none$ |)
-  ; (*Key *Assoc ** ** *Left_ *Right_ node$) value$ ->
-    if {
-    ; X Key Ord eq? ->
-      (| X Y Left_ Right_ new_node, (| Key, Assoc |) value$ |)
-    ; X Key Ord lt? ->
-      Ord Left_ X Y && = (| *Left', *Replaced_kv_ |),
-      (| Key Assoc (Left' value$) Right_ new_node >> rebalance, Replaced_kv_ |)
-    ; otherwise ->
-      Ord Right_ X Y && = (| *Right', *Replaced_kv_ |),
-      (| Key Assoc Left_ (Right' value$) new_node >> rebalance, Replaced_kv_ |)
-    }
-  }
-} ;;
-
-eval <*A ord_fs> *Ord <<A *B node> maybe> *Node_ <A> *X remove_in_subtree -> <<<A B node> maybe> <<A B tuple> maybe> tuple> {
-  Node_ case {
-  ; none$ -> (| none$, none$ |)
-  ; (*Key *Assoc ** ** *Left_ *Right_ node$) value$ ->
-    if {
-    ; X Key Ord eq? ->
-      (| Left_, Right_ |) case {
-      ; (| none$, none$|) -> (| none$, (| Key, Assoc |) value$ |)
-      ; (| none$, ** |) -> (| Right_, (| Key, Assoc |) value$ |)
-      ; (| **, none$ |) -> (| Left_, (| Key, Assoc |) value$ |)
-      ; (| **, *R value$ |) ->
-        Ord R cut_leftmost = (| *Rkey, *Rassoc, *Right'_ |),
-        (| (Rkey Rassoc Left_ Right'_ new_node >> rebalance) value$, (| Key, Assoc |) value$ |)
-      }
-    ; X Key Ord lt? ->
-      Ord Left_ X && = (| *Left'_, *Removed_kv_ |),
-      (| (Key Assoc Left'_ Right_ new_node >> rebalance) value$, Removed_kv_ |)
-    ; otherwise ->
-      Ord Right_ X && = (| *Right'_, *Removed_kv_ |),
-      (| (Key Assoc Left_ Right'_ new_node >> rebalance) value$, Removed_kv_ |)
-    }
-  }
-} ;;
-
-eval <*A ord_fs> *Ord <A *B node> *Node cut_leftmost -> <A B <<A B node> maybe> tuple> {
-  Ord Node min_key_in_subtree = *K,
-  Ord (Node value$) K remove_in_subtree = (| *Node'_, (| *Removed_k, *Removed_v |) value$ |),
-  (| Removed_k, Removed_v, Node'_ |)
-} ;;
-
-eval <*A ord_fs> *Ord <A *B node> *Node min_key_in_subtree -> <A> {  # Ord not needed
-  Node = *Key ** ** ** *Left_ *Right_ node$,
-  Left_ case {
-  ; none$ -> Key
-  ; *L value$ -> Ord L &&
-  }
-} ;;
-
-eval <*A *B node> *Node rebalance -> <A B node> {
-  Node bal >> case {
-  ; 2 -> Node rebalance_heavy_left
-  ; 1 -> Node
-  ; 0 -> Node
-  ; -1 -> Node
-  ; -2 -> Node rebalance_heavy_right
-  }
-} ;;
-
-eval <*A *B node> *Node rebalance_heavy_left -> <A B node> {
-  Node = *Key *Assoc ** ** (*Left value$) *Right_ node$,
-  Left bal >> case {
-  ; 1 -> Node rotate_right
-  ; 0 -> Node rotate_right
-  ; -1 -> Key Assoc ((Left rotate_left) value$) Right_ new_node >> rotate_right
-  }
-} ;;
-
-eval <*A *B node> *Node rebalance_heavy_right -> <A B node> {
-  Node = *Key *Assoc ** ** *Left_ (*Right value$) node$,
-  Right bal >> case {
-  ; 1 -> Key Assoc Left_ ((Right rotate_right) value$) new_node >> rotate_left
-  ; 0 -> Node rotate_left
-  ; -1 -> Node rotate_left
-  }
-} ;;
-
-eval <*A *B node> *Node rotate_left -> <A B node> {
-  Node = *Key *Assoc ** ** *Left_ (*Right value$) node$,
-  (Right key) (Right assoc) ((Key Assoc Left_ (Right left_) new_node) value$) (Right right_) new_node
-} ;;
-
-eval <*A *B node> *Node rotate_right -> <A B node> {
-  Node = *Key *Assoc ** ** (*Left value$) *Right_ node$,
-  (Left key) (Left assoc) (Left left_) ((Key Assoc (Left right_) Right_ new_node) value$) new_node
+    list.fold
 } ;;
