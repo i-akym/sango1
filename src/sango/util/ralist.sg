@@ -1,0 +1,256 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.ralist" ;;
+
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.iter" -> iter ;;
+
+# -- random access list --
+
+data <*A ralist> @public :=
+  d: <A ralist_d+>
+  fs: <A ralist_fs>
+  ralist$ ;;
+
+data <*A ralist_d> @public := _dummy_ralist_d$ ;;
+
+data <*A ralist_fs> @public :=
+  empty?_f_: <<<A ralist_d+> bool fun> maybe>
+  length_f: <<A ralist_d+> int fun>
+  elem_f: <<A ralist_d+> int <A maybe> fun>
+  first_f_: <<<A ralist_d+> <A maybe> fun> maybe>
+  last_f_: <<<A ralist_d+> <A maybe> fun> maybe>
+  tail_f_: <<<A ralist_d+> <A ralist_d+> fun> maybe>
+  insert_at_f: <<A ralist_d+> int A <A ralist_d+> fun>
+  append_f_: <<<A ralist_d+> A <A ralist_d+> fun> maybe>
+  remove_at_f: <<A ralist_d+> int <<A ralist_d+> <A maybe> tuple> fun>
+  delete_at_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
+  take_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
+  drop_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
+  clear_f: <<A ralist_d+> <A ralist_d+> fun>
+  ralist_fs$ ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_empty?_f | empty?_f @public -> <<A ralist_d+> bool fun> {
+  Fs empty?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D -> <bool> {
+      D &(Fs length_f) >> zero?
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_first_f | first_f @public -> <<A ralist_d+> <A maybe> fun> {
+  Fs first_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D -> <A maybe> {
+      D 0 &(Fs elem_f)
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_last_f | last_f @public -> <<A ralist_d+> <A maybe> fun> {
+  Fs last_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D -> <A maybe> {
+      D (D &(Fs length_f) >> dec) &(Fs elem_f)
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_tail_f | tail_f @public -> <<A ralist_d+> <A ralist_d+> fun> {
+  Fs tail_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D -> <A ralist_d+> {
+      D 0 &(Fs delete_at_f)
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_append_f | append_f @public -> <<A ralist_d+> A <A ralist_d+> fun> {
+  Fs append_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D <A> *X -> <A ralist_d+> {
+      D (D &(Fs length_f)) X &(Fs insert_at_f)
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_delete_at_f | delete_at_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
+  Fs delete_at_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D <int> *Index -> <A ralist_d+> {
+      D Index &(Fs remove_at_f) >> tuple.pair_first
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_take_f | take_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
+  Fs take_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D <int> *Count -> <A ralist_d+> {
+      if {
+      ; Count ge0? ->
+      ; otherwise -> bad_arg$ "Negative count." new_exception >> throw
+      },
+      Fs empty?_f = *Empty?_f,
+      Fs first_f = *First_f,
+      Fs tail_f = *Tail_f,
+      Fs append_f = *Append_f,
+      Count D (D &(Fs clear_f))
+          &\ <int> *CC <A ralist_d+> *D_from <A ralist_d+> *D_to -> <A ralist_d+> {
+        (| D_from &Empty?_f, CC |) case {
+        ; (| true$, ** |) -> D_to
+        ; (| **, 0 |) -> D_to
+        ; ** -> (CC dec) (D_from &Tail_f) (D_to (D_from &First_f >> value) &Append_f) &&
+        }
+      }
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_drop_f | drop_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
+  Fs take_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <A ralist_d+> *D <int> *Count -> <A ralist_d+> {
+      if {
+      ; Count ge0? ->
+      ; otherwise -> bad_arg$ "Negative count." new_exception >> throw
+      },
+      Fs empty?_f = *Empty?_f,
+      Fs tail_f = *Tail_f,
+      Count D &\ <int> *CC <A ralist_d+> *DD -> <A ralist_d+> {
+        (| DD &Empty?_f, CC |) case {
+        ; (| true$, ** |) -> DD
+        ; (| **, 0 |) -> DD
+        ; ** -> (CC dec) (DD &Tail_f) &&
+        }
+      }
+    }
+  }
+} ;;
+
+
+# -- framework --
+
+eval <*A ralist> *List empty? @public -> <bool> {
+  List = d: *D fs: *Fs ralist$,
+  D &(Fs empty?_f)
+} ;;
+
+eval <*A ralist> *List non_empty? @public -> <bool> {
+  List empty? >> not
+} ;;
+
+eval <*A ralist> *List length @public -> <int> {
+  List = d: *D fs: *Fs ralist$,
+  D &(Fs length_f)
+} ;;
+
+eval <*A ralist> *List <int> *Index elem @public -> <A maybe> {
+  List = d: *D fs: *Fs ralist$,
+  D Index &(Fs elem_f)
+} ;;
+
+eval <*A ralist> *List first | head @public -> <A maybe> {
+  List = d: *D fs: *Fs ralist$,
+  D &(Fs first_f)
+} ;;
+
+eval <*A ralist> *List last @public -> <A maybe> {
+  List = d: *D fs: *Fs ralist$,
+  D &(Fs last_f)
+} ;;
+
+eval <*A ralist> *List tail @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D &(Fs tail_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List <int> *Index <A> *X insert_at @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D Index X &(Fs insert_at_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List <A> *X append @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D X &(Fs append_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List <int> *Index remove_at @public -> <<A ralist> <A maybe> tuple> {
+  List = d: *D fs: *Fs ralist$,
+  D Index &(Fs remove_at_f) = (| *D', *Removed_ |),
+  (| d: D' :: List ralist$, Removed_ |)
+} ;;
+
+eval <*A ralist> *List <int> *Index delete_at @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D Index &(Fs delete_at_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List <int> *Count take @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D Count &(Fs take_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List <int> *Count drop @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D Count &(Fs drop_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List clear @public -> <A ralist> {
+  List = d: *D fs: *Fs ralist$,
+  d: (D &(Fs clear_f)) :: List ralist$
+} ;;
+
+eval <*A ralist> *List iter @public -> <A iter> {
+  \\ <<A <A iter> tuple> maybe> { List iter_next } iter$
+} ;;
+
+eval <*A ralist> *List iter_next -> <<A <A iter> tuple> maybe> {
+  List first >> case {
+  ; *X value$ ->
+    (| X, \\ <<A <A iter> tuple> maybe> { (List tail) iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A ralist> *List <A list> *Xs append_list @public -> <A ralist> {
+  List (Xs list.iter) append_iter
+} ;;
+
+eval <*A ralist> *List <A iter> *Iter append_iter @public -> <A ralist> {
+  Iter next >> case {
+  ; (| *X, *Iter' |) value$ -> (List X append) Iter' &&
+  ; ** -> List
+  }
+} ;;
