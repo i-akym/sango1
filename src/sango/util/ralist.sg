@@ -123,6 +123,15 @@ eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A ral
   }
 } ;;
 
+eval <*A ralist_fs> *Fs ralist_fs_update_at_f | update_at_f @public -> <<A ralist_d+> int A <<A ralist_d+> maybe> fun> {
+  \ <A ralist_d+> *D <int> *Index <A> *X -> <<A ralist_d+> maybe> {
+    D Index X &(Fs replace_at_f) >> case {
+    ; (| *D', ** |) value$ -> D' value$
+    ; none$ -> none$
+    }
+  }
+} ;;
+
 eval <*A ralist_fs> *Fs ralist_fs_take_f | take_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
   Fs take_f_ >> case {
   ; *F value$ -> F
@@ -246,8 +255,8 @@ eval <*A ralist> *List <int> *Index <A> *X replace_at @public -> <<<A ralist> A 
 
 eval <*A ralist> *List <int> *Index <A> *X update_at @public -> <<A ralist> maybe> {
   List = d: *D fs: *Fs ralist$,
-  D Index X &(Fs replace_at_f) >> case {
-  ; (| *D', ** |) value$ -> (d: D' :: List ralist$) value$
+  D Index X &(Fs update_at_f) >> case {
+  ; *D' value$ -> (d: D' :: List ralist$) value$
   ; none$ -> none$
   }
 } ;;
