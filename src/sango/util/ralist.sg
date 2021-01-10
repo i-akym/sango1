@@ -45,7 +45,7 @@ data <*A ralist_fs> @public :=
   insert_at_f: <<A ralist_d+> int A <A ralist_d+> fun>
   append_f_: <<<A ralist_d+> A <A ralist_d+> fun> maybe>
   remove_at_f: <<A ralist_d+> int <<<A ralist_d+> A tuple> maybe> fun>
-  delete_at_f_: <<<A ralist_d+> int <<A ralist_d+> maybe> fun> maybe>
+  replace_at_f_: <<<A ralist_d+> int A <<<A ralist_d+> A tuple> maybe> fun> maybe>
   take_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
   drop_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
   clear_f: <<A ralist_d+> <A ralist_d+> fun>
@@ -102,12 +102,21 @@ eval <*A ralist_fs> *Fs ralist_fs_append_f | append_f @public -> <<A ralist_d+> 
 } ;;
 
 eval <*A ralist_fs> *Fs ralist_fs_delete_at_f | delete_at_f @public -> <<A ralist_d+> int <<A ralist_d+> maybe> fun> {
-  Fs delete_at_f_ >> case {
+  \ <A ralist_d+> *D <int> *Index -> <<A ralist_d+> maybe> {
+    D Index &(Fs remove_at_f) >> case {
+    ; (| *D', ** |) value$ -> D' value$
+    ; none$ -> none$
+    }
+  }
+} ;;
+
+eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A ralist_d+> int A <<<A ralist_d+> A tuple> maybe> fun> {
+  Fs replace_at_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D <int> *Index -> <<A ralist_d+> maybe> {
+    \ <A ralist_d+> *D <int> *Index <A> *X -> <<<A ralist_d+> A tuple> maybe> {
       D Index &(Fs remove_at_f) >> case {
-      ; (| *D', ** |) value$ -> D' value$
+      ; (| *D', *Removed |) value$ -> (| D' Index X &(Fs insert_at_f), Removed |) value$
       ; none$ -> none$
       }
     }
@@ -223,6 +232,22 @@ eval <*A ralist> *List <int> *Index delete_at @public -> <<A ralist> maybe> {
   List = d: *D fs: *Fs ralist$,
   D Index &(Fs delete_at_f) >> case {
   ; *D' value$ -> (d: D' :: List ralist$) value$
+  ; none$ -> none$
+  }
+} ;;
+
+eval <*A ralist> *List <int> *Index <A> *X replace_at @public -> <<<A ralist> A tuple> maybe> {
+  List = d: *D fs: *Fs ralist$,
+  D Index X &(Fs replace_at_f) >> case {
+  ; (| *D', *Replaced |) value$ -> (| d: D' :: List ralist$, Replaced |) value$
+  ; none$ -> none$
+  }
+} ;;
+
+eval <*A ralist> *List <int> *Index <A> *X update_at @public -> <<A ralist> maybe> {
+  List = d: *D fs: *Fs ralist$,
+  D Index X &(Fs replace_at_f) >> case {
+  ; (| *D', ** |) value$ -> (d: D' :: List ralist$) value$
   ; none$ -> none$
   }
 } ;;
