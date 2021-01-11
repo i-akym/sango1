@@ -100,10 +100,11 @@ eval <*A *B tree> *Tree <A> *K <B> *V add @public -> <A B tree> {
 
 eval <*A *B tree> *Tree <A> *K remove @public -> <<A B tree> <<A B tuple> maybe> tuple> {
   Tree = ord: *Ord root_: *Node_ count: *N *** tree$,
-  Node_ (Ord K locator) aux_builder base.remove = (| *Node_', *Removed_kv_ |),
-  Removed_kv_ case {
-  ; none$ -> (| root_: Node_' :: Tree tree$, Removed_kv_ |)
-  ; ** -> (| root_: Node_' count: (N dec) :: Tree tree$, Removed_kv_ |)
+  Node_ (Ord K locator) aux_builder base.remove >> case {
+  ; (| *Node_', *Removed_kv |) value$ -> 
+    (| root_: Node_' count: (N dec) :: Tree tree$, Removed_kv value$ |)
+  ; none$ ->
+    (| Tree, none$ |)
   }
 } ;;
 

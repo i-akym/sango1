@@ -98,28 +98,34 @@ eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB
 } ;;
 
 eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB
-    remove @public -> <<<A node> maybe> <A maybe> tuple> {
+    remove @public -> <<<<A node> maybe> A tuple> maybe> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
     Node &Loc >> case { 
     ; just$ ->
       (| Left_, Right_ |) case {
-      ; (| none$, none$ |) -> (| none$, Assoc value$ |)
-      ; (| none$, ** |) -> (| Right_, Assoc value$ |)
-      ; (| **, none$ |) -> (| Left_, Assoc value$ |)
+      ; (| none$, none$ |) -> (| none$, Assoc |) value$
+      ; (| none$, ** |) -> (| Right_, Assoc |) value$
+      ; (| **, none$ |) -> (| Left_, Assoc |) value$
       ; (| **, *Right value$ |) ->
         Right AB cut_leftmost = (| *Assoc', *Right_' |),
-        (| ((Assoc' Left_ Right_' AB new_node) AB rebalance) value$, Assoc value$ |)
+        (| ((Assoc' Left_ Right_' AB new_node) AB rebalance) value$, Assoc |) value$
       }
     ; *Loc' left$ ->
-      Left_ Loc' AB && = (| *Left_', *Removed_ |),
-      (| ((Assoc Left_' Right_ AB new_node) AB rebalance) value$, Removed_ |)
+      Left_ Loc' AB && >> case {
+      ; (| *Left_', *Removed |) value$ ->
+        (| ((Assoc Left_' Right_ AB new_node) AB rebalance) value$, Removed |) value$
+      ; none$ -> none$
+      }
     ; *Loc' right$ ->
-      Right_ Loc' AB && = (| *Right_', *Removed_ |),
-      (| ((Assoc Left_ Right_' AB new_node) AB rebalance) value$, Removed_ |)
+      Right_ Loc' AB && >> case {
+      ; (| *Right_', *Removed |) value$ ->
+        (| ((Assoc Left_ Right_' AB new_node) AB rebalance) value$, Removed |) value$
+      ; none$ -> none$
+      }
     }
-  ; none$ -> (| none$, none$ |)
+  ; none$ -> none$
   }
 } ;;
 
