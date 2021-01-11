@@ -61,8 +61,7 @@ eval <*A> *X <<A node> maybe> *Left_ <<A node> maybe> *Right_ <A aux_builder> *A
     bal: (LD RD diff)
     left_: Left_
     right_: Right_
-    node$ = *Node',
-  Node' AB rebalance
+    node$
 } ;;
 
 eval <<*A node> maybe> *Node_ <A locator> *Loc get @public -> <A maybe> {
@@ -88,10 +87,10 @@ eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB
       (| X Left_ Right_ AB new_node, Assoc value$ |)
     ; *Loc' left$ ->
       Left_ Loc' X AB && = (| *Left', *Replaced_ |),
-      (| Assoc (Left' value$) Right_ AB new_node, Replaced_ |)
+      (| (Assoc (Left' value$) Right_ AB new_node) AB rebalance, Replaced_ |)
     ; *Loc' right$ ->
       Right_ Loc' X AB && = (| *Right', *Replaced_ |),
-      (| Assoc Left_ (Right' value$) AB new_node, Replaced_ |)
+      (| (Assoc Left_ (Right' value$) AB new_node) AB rebalance, Replaced_ |)
     }
   ; none$ ->
     (| X AB new_leaf_node, none$ |)
@@ -111,14 +110,14 @@ eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB
       ; (| **, none$ |) -> (| Left_, Assoc value$ |)
       ; (| **, *Right value$ |) ->
         Right AB cut_leftmost = (| *Assoc', *Right_' |),
-        (| (Assoc' Left_ Right_' AB new_node) value$, Assoc value$ |)
+        (| ((Assoc' Left_ Right_' AB new_node) AB rebalance) value$, Assoc value$ |)
       }
     ; *Loc' left$ ->
       Left_ Loc' AB && = (| *Left_', *Removed_ |),
-      (| (Assoc Left_' Right_ AB new_node) value$, Removed_ |)
+      (| ((Assoc Left_' Right_ AB new_node) AB rebalance) value$, Removed_ |)
     ; *Loc' right$ ->
       Right_ Loc' AB && = (| *Right_', *Removed_ |),
-      (| (Assoc Left_ Right_' AB new_node) value$, Removed_ |)
+      (| ((Assoc Left_ Right_' AB new_node) AB rebalance) value$, Removed_ |)
     }
   ; none$ -> (| none$, none$ |)
   }
@@ -139,7 +138,7 @@ eval <*A node> *Node <A aux_builder> *AB cut_leftmost -> <A <<A node> maybe> tup
   ; (| none$, ** |) -> (| Assoc, Right_ |)
   ; (| *Left value$, ** |) ->
     Left AB && = (| *A, *Left_' |),
-    (| A, (Assoc Left_' Right_ AB new_node) value$ |)
+    (| A, ((Assoc Left_' Right_ AB new_node) AB rebalance) value$ |)
   }
 } ;;
 
