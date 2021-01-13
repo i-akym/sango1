@@ -2123,12 +2123,20 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
  <code>Index</code>が負の場合は先頭に挿入します。
  <code>Index</code>が要素の個数以上の場合は末尾に挿入します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index remove_at @public -&gt; &lt;&lt;&lt;A list&gt; A tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index remove_at2 @public -&gt; &lt;&lt;A list&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
+ 該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index remove_at @public -&gt; &lt;&lt;&lt;A list&gt; A tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<p>【Deprecated】リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
  該当する要素が無い場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index &lt;A&gt; *Y replace_at @public -&gt; &lt;&lt;&lt;A list&gt; A tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index &lt;A&gt; *Y replace_at2 @public -&gt; &lt;&lt;A list&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を<code>Y</code>で置換し，結果のリストと置換された要素の組を返します。
+ 該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index &lt;A&gt; *Y replace_at @public -&gt; &lt;&lt;&lt;A list&gt; A tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<p>【Deprecated】リストの<code>Index</code>番目の要素を<code>Y</code>で置換し，結果のリストと置換された要素の組を返します。
  該当する要素が無い場合は<code>none$</code>が返ります。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs reverse @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
