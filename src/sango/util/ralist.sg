@@ -24,6 +24,7 @@
 module "sango.util.ralist" ;;
 
 import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
 import "sango.util.iter" -> iter ;;
 
 # -- random access list --
@@ -44,8 +45,8 @@ data <*A ralist_fs> @public :=
   tail_f_: <<<A ralist_d+> <<A ralist_d+> maybe> fun> maybe>
   insert_at_f: <<A ralist_d+> int A <A ralist_d+> fun>
   append_f_: <<<A ralist_d+> A <A ralist_d+> fun> maybe>
-  remove_at_f: <<A ralist_d+> int <<<A ralist_d+> A tuple> maybe> fun>
-  replace_at_f_: <<<A ralist_d+> int A <<<A ralist_d+> A tuple> maybe> fun> maybe>
+  remove_at_f: <<A ralist_d+> int <<A ralist_d+> <A maybe> tuple> fun>
+  replace_at_f_: <<<A ralist_d+> int A <<A ralist_d+> <A maybe> tuple> fun> maybe>
   take_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
   drop_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
   clear_f: <<A ralist_d+> <A ralist_d+> fun>
@@ -86,7 +87,10 @@ eval <*A ralist_fs> *Fs ralist_fs_tail_f | tail_f @public -> <<A ralist_d+> <<A 
   ; *F value$ -> F
   ; none$ ->
     \ <A ralist_d+> *D -> <<A ralist_d+> maybe> {
-      D 0 &(Fs delete_at_f)
+      D &(Fs empty?_f) >> case {
+      ; true$ -> none$
+      ; ** -> (D 0 &(Fs delete_at_f)) value$
+      }
     }
   }
 } ;;
@@ -101,34 +105,28 @@ eval <*A ralist_fs> *Fs ralist_fs_append_f | append_f @public -> <<A ralist_d+> 
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_delete_at_f | delete_at_f @public -> <<A ralist_d+> int <<A ralist_d+> maybe> fun> {
-  \ <A ralist_d+> *D <int> *Index -> <<A ralist_d+> maybe> {
-    D Index &(Fs remove_at_f) >> case {
-    ; (| *D', ** |) value$ -> D' value$
-    ; none$ -> none$
-    }
+eval <*A ralist_fs> *Fs ralist_fs_delete_at_f | delete_at_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
+  \ <A ralist_d+> *D <int> *Index -> <A ralist_d+> {
+    D Index &(Fs remove_at_f) >> tuple.pair_first
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A ralist_d+> int A <<<A ralist_d+> A tuple> maybe> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A ralist_d+> int A <<A ralist_d+> <A maybe> tuple> fun> {
   Fs replace_at_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D <int> *Index <A> *X -> <<<A ralist_d+> A tuple> maybe> {
+    \ <A ralist_d+> *D <int> *Index <A> *X -> <<A ralist_d+> <A maybe> tuple> {
       D Index &(Fs remove_at_f) >> case {
-      ; (| *D', *Removed |) value$ -> (| D' Index X &(Fs insert_at_f), Removed |) value$
-      ; none$ -> none$
+      ; (| *D', *Removed value$ |) -> (| D' Index X &(Fs insert_at_f), Removed value$ |)
+      ; ** -> (| D, none$ |)
       }
     }
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_update_at_f | update_at_f @public -> <<A ralist_d+> int A <<A ralist_d+> maybe> fun> {
-  \ <A ralist_d+> *D <int> *Index <A> *X -> <<A ralist_d+> maybe> {
-    D Index X &(Fs replace_at_f) >> case {
-    ; (| *D', ** |) value$ -> D' value$
-    ; none$ -> none$
-    }
+eval <*A ralist_fs> *Fs ralist_fs_update_at_f | update_at_f @public -> <<A ralist_d+> int A <A ralist_d+> fun> {
+  \ <A ralist_d+> *D <int> *Index <A> *X -> <A ralist_d+> {
+    D Index X &(Fs replace_at_f) >> tuple.pair_first
   }
 } ;;
 
@@ -229,36 +227,30 @@ eval <*A ralist> *List <A> *X append @public -> <A ralist> {
   d: (D X &(Fs append_f)) :: List ralist$
 } ;;
 
-eval <*A ralist> *List <int> *Index remove_at @public -> <<<A ralist> A tuple> maybe> {
+eval <*A ralist> *List <int> *Index remove_at @public -> <<A ralist> <A maybe> tuple> {
   List = d: *D fs: *Fs ralist$,
   D Index &(Fs remove_at_f) >> case {
-  ; (| *D', *Removed |) value$ -> (| d: D' :: List ralist$, Removed |) value$
-  ; none$ -> none$
+  ; (| *D', *Removed value$ |) -> (| d: D' :: List ralist$, Removed value$ |)
+  ; ** -> (| List, none$ |)
   }
 } ;;
 
-eval <*A ralist> *List <int> *Index delete_at @public -> <<A ralist> maybe> {
+eval <*A ralist> *List <int> *Index delete_at @public -> <A ralist> {
   List = d: *D fs: *Fs ralist$,
-  D Index &(Fs delete_at_f) >> case {
-  ; *D' value$ -> (d: D' :: List ralist$) value$
-  ; none$ -> none$
-  }
+  d: (D Index &(Fs delete_at_f)) :: List ralist$
 } ;;
 
-eval <*A ralist> *List <int> *Index <A> *X replace_at @public -> <<<A ralist> A tuple> maybe> {
+eval <*A ralist> *List <int> *Index <A> *X replace_at @public -> <<A ralist> <A maybe> tuple> {
   List = d: *D fs: *Fs ralist$,
   D Index X &(Fs replace_at_f) >> case {
-  ; (| *D', *Replaced |) value$ -> (| d: D' :: List ralist$, Replaced |) value$
-  ; none$ -> none$
+  ; (| *D', *Replaced value$ |) -> (| d: D' :: List ralist$, Replaced value$ |)
+  ; ** -> (| List, none$ |)
   }
 } ;;
 
-eval <*A ralist> *List <int> *Index <A> *X update_at @public -> <<A ralist> maybe> {
+eval <*A ralist> *List <int> *Index <A> *X update_at @public -> <A ralist> {
   List = d: *D fs: *Fs ralist$,
-  D Index X &(Fs update_at_f) >> case {
-  ; *D' value$ -> (d: D' :: List ralist$) value$
-  ; none$ -> none$
-  }
+  d: (D Index X &(Fs update_at_f)) :: List ralist$
 } ;;
 
 eval <*A ralist> *List <int> *Count take @public -> <A ralist> {

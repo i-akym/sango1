@@ -26,22 +26,16 @@ module "sango.util.avltree.ralist" ;;
 import "sango.util.avltree.base" -> base ;;
 import "sango.util.ralist" -> ral ;;
 
-data <*A ralist> @opaque :=
-  root_: <<A base.node> maybe>
-  ralist$ ;;
-
 extend <*A ral.ralist_d> :=
-  node_: <<A base.node> maybe>
+  body: <A base.tree>
   d$ ;;
 
 extend <*A base.aux> :=
   count: <int>  # element count here and under
   aux$ ;;
 
-eval aux_builder -> <*A <<A base.node> maybe> <<A base.node> maybe> <A base.aux+> fun> {
-  \ <*AA> *Assoc <<AA base.node> maybe> *LN <<AA base.node> maybe> *RN -> <AA base.aux+> {
-    ((LN elem_count) (RN elem_count) sum >> inc) aux$
-  }
+eval <*A> *Assoc <<A base.node> maybe> *Left_ <<A base.node> maybe> *Right_ build_aux -> <A base.aux+> {
+  ((Left_ elem_count) (Right_ elem_count) sum >> inc) aux$
 } ;;
 
 eval <<*A base.node> maybe> *Node_ elem_count -> <int> {
@@ -73,9 +67,8 @@ eval <int> *Index insert_locator -> <<*A base.node> <A base.locate> fun> {
 } ;;
 
 eval new_ralist @public -> <*A ral.ralist> {
-  d: (node_: none$ d$)
-    fs: ralist_fs
-    ral.ralist$
+  body: (^build_aux base.new_tree) d$ = *D,
+  d: D fs: ralist_fs ral.ralist$
 } ;;
 
 eval ralist_fs -> <*A ral.ralist_fs> {
@@ -96,35 +89,34 @@ eval ralist_fs -> <*A ral.ralist_fs> {
 } ;;
 
 eval <*A ral.ralist_d+> *D empty? -> <bool> {
-  D = node_: *Node_ *** d$,
-  Node_ nothing?
+  D = body: *Body *** d$,
+  Body base.node_ >> nothing?
 } ;;
 
 eval <*A ral.ralist_d+> *D length -> <int> {
-  D = node_: *Node_ *** d$,
-  Node_ elem_count
+  D = body: *Body *** d$,
+  Body base.node_ >> elem_count
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
-  D = node_: *Node_ *** d$,
-  Node_ (Index find_locator) base.get
+  D = body: *Body *** d$,
+  Body (Index find_locator) base.get
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index <A> *X insert_at -> <A ral.ralist_d+> {
-  D = node_: *Node_ *** d$,
-  Node_ (Index insert_locator) X aux_builder base.put = (| *Node', none$ |),
-  node_: (Node' value$) :: D d$
+  D = body: *Body *** d$,
+  Body (Index insert_locator) X base.put = (| *Body', none$ |),
+  body: Body' :: D d$
 } ;;
 
-eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<<A ral.ralist_d+> A tuple> maybe> {
-  D = node_: *Node_ *** d$,
-  Node_ (Index find_locator) aux_builder base.remove >> case {
-  ; (| *Node_', *Removed |) value$ ->
-    (| node_: Node_' :: D d$, Removed |) value$
-  ; none$ -> none$
+eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe> tuple> {
+  D = body: *Body *** d$,
+  Body (Index find_locator) base.remove >> case {
+  ; (| *Body', *Removed value$ |) -> (| body: Body' :: D d$, Removed value$ |)
+  ; ** -> (| D, none$ |)
   }
 } ;;
 
 eval <*A ral.ralist_d+> *D clear -> <A ral.ralist_d+> {
-  node_: none$ :: D d$
+  body: (^build_aux base.new_tree) d$
 } ;;

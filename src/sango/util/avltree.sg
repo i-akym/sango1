@@ -29,15 +29,9 @@ import "sango.util.avltree.base" -> base ;;
 
 data <*A *B tree> @opaque :=
   ord: <A ord_fs>
-  root_: <<<A B tuple> base.node> maybe>
+  body: <<A B tuple> base.tree>
   count: <int>
   tree$ ;;
-
-eval aux_builder -> <*A <<A base.node> maybe> <<A base.node> maybe> <A base.aux+> fun> {
-  \ <*AA> *Assoc <<AA base.node> maybe> *LN <<AA base.node> maybe> *RN -> <AA base.aux+> {
-    base.dummy_aux$
-  }
-} ;;
 
 eval <*A ord_fs> *Ord <A> *K locator -> <<<A *B tuple> base.node> <<A B tuple> base.locate> fun> {
   \ <<A *BB tuple> base.node> *N -> <<A BB tuple> base.locate> { 
@@ -50,15 +44,15 @@ eval <*A ord_fs> *Ord <A> *K locator -> <<<A *B tuple> base.node> <<A B tuple> b
 } ;;
 
 eval <*A ord_fs> *Ord new_tree @public -> <A *B tree> {
-  ord: Ord root_: none$ count: 0 tree$
+  ord: Ord body: base.new_tree count: 0 tree$
 } ;;
 
 eval <*A *B tree> *Tree clear @public -> <A B tree> {
-  root_: none$ count: 0 :: Tree tree$
+  body: base.new_tree count: 0 :: Tree tree$
 } ;;
 
 eval <*A *B tree> *Tree empty? @public -> <bool> {
-  Tree root_ >> nothing?
+  Tree count >> zero?
 } ;;
 
 eval <*A *B tree> *Tree size @public -> <int> {
@@ -66,8 +60,8 @@ eval <*A *B tree> *Tree size @public -> <int> {
 } ;;
 
 eval <*A *B tree> *Tree <A> *K get @public -> <<A B tuple> maybe> {
-  Tree = ord: *Ord root_: *Node_ *** tree$,
-  Node_ (Ord K locator) base.get
+  Tree = ord: *Ord body: *Body *** tree$,
+  Body (Ord K locator) base.get
 } ;;
 
 eval <*A *B tree> *Tree <A> *K assoc @public -> <B maybe> {
@@ -79,11 +73,11 @@ eval <*A *B tree> *Tree <A> *K contain_key? @public -> <bool> {
 } ;;
 
 eval <*A *B tree> *Tree <A> *K <B> *V put @public -> <<A B tree> <<A B tuple> maybe> tuple> {
-  Tree = *Ord *Node_ *N *** tree$,
-  Node_ (Ord K locator) (| K, V |) aux_builder base.put = (| *Node', *Replaced_kv_ |),
+  Tree = ord: *Ord body: *Body count: *N *** tree$,
+  Body (Ord K locator) (| K, V |) base.put = (| *Body', *Replaced_kv_ |),
   Replaced_kv_ case {
-  ; none$ -> (| root_: (Node' value$) count: (N inc) :: Tree tree$, Replaced_kv_ |)
-  ; ** -> (| root_: (Node' value$) :: Tree tree$, Replaced_kv_ |)
+  ; none$ -> (| body: Body' count: (N inc) :: Tree tree$, none$ |)
+  ; ** -> (| body: Body' :: Tree tree$, Replaced_kv_ |)
   }
 } ;;
 
@@ -99,12 +93,11 @@ eval <*A *B tree> *Tree <A> *K <B> *V add @public -> <A B tree> {
 } ;;
 
 eval <*A *B tree> *Tree <A> *K remove @public -> <<A B tree> <<A B tuple> maybe> tuple> {
-  Tree = ord: *Ord root_: *Node_ count: *N *** tree$,
-  Node_ (Ord K locator) aux_builder base.remove >> case {
-  ; (| *Node_', *Removed_kv |) value$ -> 
-    (| root_: Node_' count: (N dec) :: Tree tree$, Removed_kv value$ |)
-  ; none$ ->
-    (| Tree, none$ |)
+  Tree = ord: *Ord body: *Body count: *N *** tree$,
+  Body (Ord K locator) base.remove = (| *Body', *Removed_kv_ |),
+  Removed_kv_ case {
+  ; *Removed value$ -> (| body: Body' count: (N dec) :: Tree tree$, Removed_kv_ |)
+  ; none$ -> (| Tree, none$ |)
   }
 } ;;
 
@@ -113,9 +106,9 @@ eval <*A *B tree> *Tree <A> *K delete @public -> <A B tree> {
 } ;;
 
 eval <*A *B tree> *Tree take @public -> <<<A B tuple> <A B tree> tuple> maybe> {
-  Tree = root_: *Node_ count: *N *** tree$,
-  Node_ aux_builder base.take >> case {
-  ; (| *KV, *Node_' |) value$ -> (| KV, root_: Node_' count: (N dec) :: Tree tree$ |) value$
+  Tree = body: *Body count: *N *** tree$,
+  Body base.take >> case {
+  ; (| *KV, *Body' |) value$ -> (| KV, body: Body' count: (N dec) :: Tree tree$ |) value$
   ; none$ -> none$
   }
 } ;;

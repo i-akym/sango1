@@ -26,6 +26,11 @@ module "sango.util.avltree.base" ;;
 import "sango.arith" -> arith ;;
 import "sango.tuple" -> tuple ;;
 
+data <*A tree> @protected :=
+  node_: <<A node> maybe>
+  aux_builder: <A aux_builder>
+  tree$ ;;
+
 data <*A node> @protected :=
   assoc: <A>  # associated data
   aux: <A aux+>  # aux info
@@ -39,6 +44,10 @@ data <*A aux> @public := dummy_aux$ ;;  # to extend
 
 alias type <*A locator> @public := <<A node> <A locate> fun> ;;
 
+eval <*A> *Assoc <<A node> maybe> *Left_ <<A node> maybe> *Right_ dummy_aux @public -> <A aux> {
+  dummy_aux$
+} ;;
+
 # assoc x (left node) x (right node) -> aux
 alias type <*A aux_builder> @public := <A <<A node> maybe> <<A node> maybe> <A aux+> fun> ;;
 
@@ -47,12 +56,22 @@ data <*A locate> @public :=
 | <A locator> left$
 | <A locator> right$ ;;
 
-eval <*A> *X <A aux_builder> *AB new_leaf_node @public -> <A node> {
+eval new_tree @public -> <*A tree> {
+  ^dummy_aux new_tree_with_aux
+} ;;
+
+eval <*A aux_builder> *AB new_tree_with_aux | new_tree @public -> <A tree> {
+  node_: none$
+    aux_builder: AB
+    tree$
+} ;;
+
+eval <*A> *X <A aux_builder> *AB new_leaf_node -> <A node> {
   X none$ none$ AB new_node
 } ;;
 
-eval <*A> *X <<A node> maybe> *Left_ <<A node> maybe> *Right_ <A aux_builder> *AB
-    new_node @public -> <A node> {
+eval <*A> *X <<A node> maybe> *Left_ <<A node> maybe> *Right_ <A aux_builder> *AB new_node
+    -> <A node> {
   Left_ subtree_depth = *LD,
   Right_ subtree_depth = *RD,
   assoc: X
@@ -64,7 +83,12 @@ eval <*A> *X <<A node> maybe> *Left_ <<A node> maybe> *Right_ <A aux_builder> *A
     node$
 } ;;
 
-eval <<*A node> maybe> *Node_ <A locator> *Loc get @public -> <A maybe> {
+eval <*A tree> *Tree <A locator> *Loc get @public -> <A maybe> {
+  Tree = node_: *Node_ *** tree$,
+  Node_ Loc get_in_subtree
+} ;;
+
+eval <<*A node> maybe> *Node_ <A locator> *Loc get_in_subtree -> <A maybe> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
@@ -77,8 +101,14 @@ eval <<*A node> maybe> *Node_ <A locator> *Loc get @public -> <A maybe> {
   }
 } ;;
 
-eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB
-    put @public -> <<A node> <A maybe> tuple> {
+eval <*A tree> *Tree <A locator> *Loc <A> *X put @public -> <<A tree> <A maybe> tuple> {
+  Tree = node_: *Node_ aux_builder: *AB *** tree$,
+  Node_ Loc X AB put_in_subtree = (| *Node', *Replaced_ |),
+  (| node_: (Node' value$) :: Tree tree$, Replaced_ |)
+} ;;
+
+eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB put_in_subtree
+    -> <<A node> <A maybe> tuple> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
@@ -97,8 +127,16 @@ eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB
   }
 } ;;
 
-eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB
-    remove @public -> <<<<A node> maybe> A tuple> maybe> {
+eval <*A tree> *Tree <A locator> *Loc remove @public -> <<A tree> <A maybe> tuple> {
+  Tree = node_: *Node_ aux_builder: *AB *** tree$,
+  Node_ Loc AB remove_in_subtree >> case {
+  ; (| *Node_', *Removed |) value$ -> (| node_: Node_' :: Tree tree$, Removed value$ |)
+  ; none$ -> (| Tree, none$ |)
+  }
+} ;;
+
+eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB remove_in_subtree
+    -> <<<<A node> maybe> A tuple> maybe> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
@@ -129,8 +167,16 @@ eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB
   }
 } ;;
 
-eval <<*A node> maybe> *Node_ <A aux_builder> *AB
-    take @public -> <<A <<A node> maybe> tuple> maybe> {
+eval <*A tree> *Tree take @public -> <<A <A tree> tuple> maybe> {
+  Tree = node_: *Node_ aux_builder: *AB *** tree$,
+  Node_ AB take_in_subtree >> case {
+  ; (| *X, *Node_' |) value$ -> (| X, node_: Node_' :: Tree tree$ |) value$
+  ; none$ -> none$
+  }
+} ;;
+
+eval <<*A node> maybe> *Node_ <A aux_builder> *AB take_in_subtree
+    -> <<A <<A node> maybe> tuple> maybe> {
   Node_ case {
   ; *Node value$ -> (Node AB cut_leftmost) value$
   ; none$ -> none$
