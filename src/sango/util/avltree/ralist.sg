@@ -23,51 +23,51 @@
 ###########################################################################
 module "sango.util.avltree.ralist" ;;
 
-import "sango.util.avltree.base" -> base ;;
+import "sango.util.avltree.base" -> avl ;;
 import "sango.util.ralist" -> ral ;;
 
 extend <*A ral.ralist_d> :=
-  body: <A base.tree>
+  body: <A avl.tree>
   d$ ;;
 
-extend <*A base.aux> :=
+extend <*A avl.aux> :=
   count: <int>  # element count here and under
   aux$ ;;
 
-eval <*A> *Assoc <<A base.node> maybe> *Left_ <<A base.node> maybe> *Right_ build_aux -> <A base.aux+> {
+eval <*A> *Assoc <<A avl.node> maybe> *Left_ <<A avl.node> maybe> *Right_ build_aux -> <A avl.aux+> {
   ((Left_ elem_count) (Right_ elem_count) sum >> inc) aux$
 } ;;
 
-eval <<*A base.node> maybe> *Node_ elem_count -> <int> {
+eval <<*A avl.node> maybe> *Node_ elem_count -> <int> {
   Node_ case {
-  ; *Node value$ -> Node base.aux = count: *Count aux$, Count
+  ; *Node value$ -> Node avl.aux = count: *Count aux$, Count
   ; ** -> 0
   }
 } ;;
 
-eval <int> *Index find_locator -> <<*A base.node> <A base.locate> fun> {
-  \ <*AA base.node> *N -> <AA base.locate> { 
-    N base.left_ >> elem_count = *LC,
+eval <int> *Index find_locator -> <<*A avl.node> <A avl.locate> fun> {
+  \ <*AA avl.node> *N -> <AA avl.locate> { 
+    N avl.left_ >> elem_count = *LC,
     if {
-    ; Index LC eq? -> base.just$
-    ; Index LC lt? -> ^^ base.left$
-    ; otherwise -> ((Index LC diff >> dec) find_locator) base.right$
+    ; Index LC eq? -> avl.just$
+    ; Index LC lt? -> ^^ avl.left$
+    ; otherwise -> ((Index LC diff >> dec) find_locator) avl.right$
     }
   }
 } ;;
 
-eval <int> *Index insert_locator -> <<*A base.node> <A base.locate> fun> {
-  \ <*AA base.node> *N -> <AA base.locate> { 
-    N base.left_ >> elem_count = *LC,
+eval <int> *Index insert_locator -> <<*A avl.node> <A avl.locate> fun> {
+  \ <*AA avl.node> *N -> <AA avl.locate> { 
+    N avl.left_ >> elem_count = *LC,
     if {
-    ; Index LC le? -> ^^ base.left$  # if equals, traverse left
-    ; otherwise -> ((Index LC diff >> dec) insert_locator) base.right$
+    ; Index LC le? -> ^^ avl.left$  # if equals, traverse left
+    ; otherwise -> ((Index LC diff >> dec) insert_locator) avl.right$
     }
   }
 } ;;
 
 eval new_ralist @public -> <*A ral.ralist> {
-  body: (^build_aux base.new_tree) d$ = *D,
+  body: (^build_aux avl.new_tree) d$ = *D,
   d: D fs: ralist_fs ral.ralist$
 } ;;
 
@@ -90,33 +90,33 @@ eval ralist_fs -> <*A ral.ralist_fs> {
 
 eval <*A ral.ralist_d+> *D empty? -> <bool> {
   D = body: *Body *** d$,
-  Body base.node_ >> nothing?
+  Body avl.node_ >> nothing?
 } ;;
 
 eval <*A ral.ralist_d+> *D length -> <int> {
   D = body: *Body *** d$,
-  Body base.node_ >> elem_count
+  Body avl.node_ >> elem_count
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
   D = body: *Body *** d$,
-  Body (Index find_locator) base.get
+  Body (Index find_locator) avl.get
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index <A> *X insert_at -> <A ral.ralist_d+> {
   D = body: *Body *** d$,
-  Body (Index insert_locator) X base.put = (| *Body', none$ |),
+  Body (Index insert_locator) X avl.put = (| *Body', none$ |),
   body: Body' :: D d$
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe> tuple> {
   D = body: *Body *** d$,
-  Body (Index find_locator) base.remove >> case {
+  Body (Index find_locator) avl.remove >> case {
   ; (| *Body', *Removed value$ |) -> (| body: Body' :: D d$, Removed value$ |)
   ; ** -> (| D, none$ |)
   }
 } ;;
 
 eval <*A ral.ralist_d+> *D clear -> <A ral.ralist_d+> {
-  body: (^build_aux base.new_tree) d$
+  body: (^build_aux avl.new_tree) d$
 } ;;
