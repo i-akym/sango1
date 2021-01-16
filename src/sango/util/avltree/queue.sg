@@ -28,7 +28,6 @@ import "sango.util.queue" -> queue ;;
 
 extend <*A queue.queue_d> :=
   body: <A avl.tree>
-  count: <int>
   d$ ;;
 
 eval <*A avl.node> *Node locate_head -> <A avl.locate> {
@@ -43,7 +42,7 @@ eval <*A avl.node> *Node locate_enqueue -> <A avl.locate> {
 } ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  body: avl.new_tree count: 0 d$ = *D,
+  body: avl.new_tree d$ = *D,
   d: D fs: queue_fs queue.queue$
 } ;;
 
@@ -58,19 +57,18 @@ eval queue_fs -> <*A queue.queue_fs> {
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d empty? -> <bool> {
-  Queue_d = count: *Count *** d$,
-  Count zero?
+  Queue_d length >> zero?
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d length -> <int> {
-  Queue_d = count: *Count *** d$,
-  Count
+  Queue_d = body: *Body *** d$,
+  Body avl.size
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d <A> *Elem enqueue -> <A queue.queue_d+> {
-  Queue_d = body: *Body count: *Count *** d$,
+  Queue_d = body: *Body *** d$,
   Body ^locate_enqueue Elem avl.put = (| *Body', ** |),
-  body: Body' count: (Count inc) :: Queue_d d$
+  body: Body' :: Queue_d d$
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d head -> <A maybe> {
@@ -79,14 +77,13 @@ eval <*A queue.queue_d+> *Queue_d head -> <A maybe> {
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d dequeue -> <<A <A queue.queue_d+> tuple> maybe> {
-  Queue_d = body: *Body count: *Count *** d$,
+  Queue_d = body: *Body *** d$,
   Body avl.take >> case {
-  ; (| *Head, *Body' |) value$ ->
-    (| Head, body: Body' count: (Count dec) :: Queue_d d$ |) value$
+  ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue_d d$ |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d clear -> <A queue.queue_d+> {
-  body: avl.new_tree count: 0 d$
+  body: avl.new_tree d$
 } ;;

@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -24,13 +24,27 @@
 module "sango.util.avltree.set" ;;
 
 import "sango.tuple" -> tuple ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.base" -> avl ;;
 import "sango.util.set" -> set ;;
 
-extend <*A set.set_d> := tree: <A A avl.tree> set_d$ ;;
+extend <*A set.set_d> :=
+  ord: <A ord_fs>
+  body: <A avl.tree>
+  d$ ;;
+
+eval <*A ord_fs> *Ord <A> *X locator -> <<A avl.node> <A avl.locate> fun> {
+  \ <A avl.node> *N -> <A avl.locate> { 
+    X (N avl.assoc) Ord compare >> case {
+    ; lt$ -> ^^ avl.left$
+    ; eq$ -> avl.just$
+    ; gt$ -> ^^ avl.right$
+    }
+  }
+} ;;
 
 eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
-  d: ((Ord avl.new_tree) set_d$) fs: set_fs set.set$
+  ord: Ord body: avl.new_tree d$ = *D,
+  d: D fs: set_fs set.set$
 } ;;
 
 eval set_fs -> <*A set.set_fs> {
@@ -49,35 +63,34 @@ eval set_fs -> <*A set.set_fs> {
 } ;;
 
 eval <*A set.set_d+> *Set_d empty? -> <bool> {
-  Set_d = *Tree set_d$,
-  Tree avl.empty?
+  Set_d size >> zero?
 } ;;
 
 eval <*A set.set_d+> *Set_d size -> <int> {
-  Set_d = *Tree set_d$,
-  Tree avl.size
+  Set_d = body: *Body *** d$,
+  Body avl.size
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem get -> <A maybe> {
-  Set_d = *Tree set_d$,
-  (Tree Elem avl.get) ^tuple.pair_first apply_to_something
+  Set_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem locator) avl.get
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem contain? -> <bool> {
-  Set_d = *Tree set_d$,
-  Tree Elem avl.contain_key?
+  Set_d Elem get >> something?
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
-  Set_d = *Tree set_d$,
-  Tree Elem Elem avl.put = (| *Tree', *Replaced_ |),
-  (| tree: Tree' :: Set_d set_d$, Replaced_ ^tuple.pair_first apply_to_something |)
+  Set_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem locator) Elem avl.put = (| *Body', *Replaced_ |),
+  (| body: Body' :: Set_d d$, Replaced_ |)
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem put_new -> <<A set.set_d+> bool tuple> {
-  Set_d = *Tree set_d$,
-  Tree Elem Elem avl.put_new = (| *Tree', *Added? |),
-  (| tree: Tree' :: Set_d set_d$, Added? |)
+  Set_d Elem put >> case {
+  ; (| **, ** value$|) -> (| Set_d, false$ |)
+  ; (| *Set_d', none$ |) -> (| Set_d', true$ |)
+  }
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem add -> <A set.set_d+> {
@@ -85,9 +98,9 @@ eval <*A set.set_d+> *Set_d <A> *Elem add -> <A set.set_d+> {
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple> {
-  Set_d = *Tree set_d$,
-  Tree Elem avl.remove = (| *Tree', *Removed_ |),
-  (| tree: Tree' :: Set_d set_d$, Removed_ ^tuple.pair_first apply_to_something |)
+  Set_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem locator) avl.remove = (| *Body', *Removed_ |),
+  (| body: Body' :: Set_d d$, Removed_ |)
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem delete -> <A set.set_d+> {
@@ -95,14 +108,13 @@ eval <*A set.set_d+> *Set_d <A> *Elem delete -> <A set.set_d+> {
 } ;;
 
 eval <*A set.set_d+> *Set_d take -> <<A <A set.set_d+> tuple> maybe> {
-  Set_d = *Tree set_d$,
-  Tree avl.take >> case {
-  ; (| (| *E, E |), *Tree' |) value$ -> (| E, tree: Tree' :: Set_d set_d$ |) value$
+  Set_d = body: *Body *** d$,
+  Body avl.take >> case {
+  ; (| *E, *Body' |) value$ -> (| E, body: Body' :: Set_d d$ |) value$
   ; none$ -> none$
   }
 } ;;
 
 eval <*A set.set_d+> *Set_d clear -> <A set.set_d+> {
-  Set_d = *Tree set_d$,
-  (Tree avl.clear) set_d$
+  body: avl.new_tree :: Set_d d$
 } ;;

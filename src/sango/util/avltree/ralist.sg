@@ -30,24 +30,9 @@ extend <*A ral.ralist_d> :=
   body: <A avl.tree>
   d$ ;;
 
-extend <*A avl.aux> :=
-  count: <int>  # element count here and under
-  aux$ ;;
-
-eval <*A> *Assoc <<A avl.node> maybe> *Left_ <<A avl.node> maybe> *Right_ build_aux -> <A avl.aux+> {
-  ((Left_ elem_count) (Right_ elem_count) sum >> inc) aux$
-} ;;
-
-eval <<*A avl.node> maybe> *Node_ elem_count -> <int> {
-  Node_ case {
-  ; *Node value$ -> Node avl.aux = count: *Count aux$, Count
-  ; ** -> 0
-  }
-} ;;
-
 eval <int> *Index find_locator -> <<*A avl.node> <A avl.locate> fun> {
   \ <*AA avl.node> *N -> <AA avl.locate> { 
-    N avl.left_ >> elem_count = *LC,
+    N avl.left_ >> avl.subtree_size = *LC,
     if {
     ; Index LC eq? -> avl.just$
     ; Index LC lt? -> ^^ avl.left$
@@ -58,7 +43,7 @@ eval <int> *Index find_locator -> <<*A avl.node> <A avl.locate> fun> {
 
 eval <int> *Index insert_locator -> <<*A avl.node> <A avl.locate> fun> {
   \ <*AA avl.node> *N -> <AA avl.locate> { 
-    N avl.left_ >> elem_count = *LC,
+    N avl.left_ >> avl.subtree_size = *LC,
     if {
     ; Index LC le? -> ^^ avl.left$  # if equals, traverse left
     ; otherwise -> ((Index LC diff >> dec) insert_locator) avl.right$
@@ -67,7 +52,7 @@ eval <int> *Index insert_locator -> <<*A avl.node> <A avl.locate> fun> {
 } ;;
 
 eval new_ralist @public -> <*A ral.ralist> {
-  body: (^build_aux avl.new_tree) d$ = *D,
+  body: avl.new_tree d$ = *D,
   d: D fs: ralist_fs ral.ralist$
 } ;;
 
@@ -89,13 +74,12 @@ eval ralist_fs -> <*A ral.ralist_fs> {
 } ;;
 
 eval <*A ral.ralist_d+> *D empty? -> <bool> {
-  D = body: *Body *** d$,
-  Body avl.node_ >> nothing?
+  D length >> zero?
 } ;;
 
 eval <*A ral.ralist_d+> *D length -> <int> {
   D = body: *Body *** d$,
-  Body avl.node_ >> elem_count
+  Body avl.size
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
@@ -118,5 +102,5 @@ eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe
 } ;;
 
 eval <*A ral.ralist_d+> *D clear -> <A ral.ralist_d+> {
-  body: (^build_aux avl.new_tree) d$
+  body: avl.new_tree d$
 } ;;

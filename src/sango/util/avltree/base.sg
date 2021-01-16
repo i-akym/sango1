@@ -34,6 +34,7 @@ data <*A tree> @protected :=
 data <*A node> @protected :=
   assoc: <A>  # associated data
   aux: <A aux+>  # aux info
+  size: <int>
   depth: <int>
   bal: <int>  # left depth - right depth
   left_: <<A node> maybe>
@@ -76,11 +77,16 @@ eval <*A> *X <<A node> maybe> *Left_ <<A node> maybe> *Right_ <A aux_builder> *A
   Right_ subtree_depth = *RD,
   assoc: X
     aux: (X Left_ Right_ &AB)
+    size: ((Left_ subtree_size) (Right_ subtree_size) sum >> inc)
     depth: ([ LD, RD ] arith.max >> value >> inc)
     bal: (LD RD diff)
     left_: Left_
     right_: Right_
     node$
+} ;;
+
+eval <*A tree> *Tree size @public -> <int> {
+  Tree node_ >> subtree_size
 } ;;
 
 eval <*A tree> *Tree <A locator> *Loc get @public -> <A maybe> {
@@ -230,6 +236,13 @@ eval <*A node> *Node <A aux_builder> *AB rotate_left -> <A node> {
 eval <*A node> *Node <A aux_builder> *AB rotate_right -> <A node> {
   Node = assoc: *Assoc left_: (*Left value$) right_: *Right_ *** node$,
    (Left assoc) (Left left_) ((Assoc (Left right_) Right_ AB new_node) value$) AB new_node
+} ;;
+
+eval <<*A node> maybe> *Node_ subtree_size @public -> <int> {
+  Node_ case {
+  ; *Node value$ -> Node size
+  ; none$ -> 0
+  }
 } ;;
 
 eval <<*A node> maybe> *Node_ subtree_depth -> <int> {
