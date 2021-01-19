@@ -24,11 +24,12 @@
 module "sango.util.avltree.array" ;;
 
 import "sango.util.array" -> array ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.enum" -> enum ;;
+import "sango.util.map" -> map ;;
 
 extend <*A *B array.array_d> :=
-  tree: <A B avl.tree>
+  map: <A B map.map>
   compact_: <<B <B bool fun> tuple> maybe>
   array_d$ ;;
 
@@ -39,34 +40,35 @@ eval <*A enum.enum> *Enum <A *B fun> *Supplier <<B <B bool fun> tuple> maybe> *C
   ; (| *C, *C?_f |) value$ || C &C?_f ->
   ; ** -> bad_arg$ "Invalid compaction spec." new_exception >> throw
   },
-  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avl.new_tree) &\ <A iter> *I <A B avl.tree> *T -> <A B avl.tree> {
+  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avlmap.new_map)
+      &\ <A iter> *I <A B map.map> *M -> <A B map.map> {
     I next >> case {
     ; (| *Idx, *I' |) value$ ->
       Idx &Supplier = *Val,
       Compact_ case {
-      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' T &&
-      ; ** -> I' (T Idx Val avl.add) &&
+      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' M &&
+      ; ** -> I' (M Idx Val map.add) &&
       }
-    ; ** -> T
+    ; ** -> M
     }
-  } = *Tree,
-  tree: Tree compact_: Compact_ array_d$ = *D,
+  } = *Map,
+  map: Map compact_: Compact_ array_d$ = *D,
   get_f: ^get set_f: ^set array.array_fs$ = *Fs,
   d: D ix: Enum fs: Fs array.array$
 } ;;
 
 eval <*A *B array.array_d+> *D <A> *Idx get -> <B> {
-  D = tree: *Tree compact_: *Compact_ array_d$,
-  Tree Idx avl.assoc >> case {
+  D = map: *Map compact_: *Compact_ array_d$,
+  Map Idx map.assoc >> case {
   ; *V value$ -> V
   ; ** -> Compact_ = (| *C, ** |) value$, C
   }
 } ;;
 
 eval <*A *B array.array_d+> *D <A> *Idx <B> *Val set -> <A B array.array_d+> {
-  D = tree: *Tree compact_: *Compact_ array_d$,
+  D = map: *Map compact_: *Compact_ array_d$,
   Compact_ case {
-  ; (| **, *C?_f |) value$ || Val &C?_f -> tree: (Tree Idx avl.delete) :: D array_d$
-  ; ** -> tree: (Tree Idx Val avl.add) :: D array_d$
+  ; (| **, *C?_f |) value$ || Val &C?_f -> map: (Map Idx map.delete) :: D array_d$
+  ; ** -> map: (Map Idx Val map.add) :: D array_d$
   }
 } ;;

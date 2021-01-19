@@ -27,10 +27,11 @@ import "sango.actor.util" -> actu ;;
 import "sango.cstr" -> cstr ;;
 import "sango.entity" -> ent ;;
 import "sango.list" -> list ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.map" -> map ;;
 import "sango.util.prop" -> prop ;;
 
-alias type <prop_tab> := <cstr prop+ avl.tree> ;;
+alias type <prop_tab> := <cstr prop+ map.map> ;;
 
 extend <ent.ent_d> := <prop_tab> prop_tab$ ;;
 
@@ -56,7 +57,7 @@ data <byte_order> @public :=
 eval <cstr> *Key property @public -> <prop+ maybe> {
   _initd_ = prop_tab_ent: *Ent *** d$,
   Ent ent.read = *Tab prop_tab$,
-  Tab Key avl.assoc
+  Tab Key map.assoc
 } ;;
 
 eval <cstr> *Key <int> *Default int_property_with_default_value | int_property @public -> <int> {
@@ -121,7 +122,7 @@ eval <cstr> *Key <prop+> *Value add_property @public -> <void> {
   Mon
     \ <ent.eref> *Prop_tab_ent -> <void> {
       Prop_tab_ent ent.read = *Prop_tab prop_tab$,
-      Prop_tab_ent ((Prop_tab Key Value avl.add) prop_tab$) ent.write >> ignore
+      Prop_tab_ent ((Prop_tab Key Value map.add) prop_tab$) ent.write >> ignore
     }
     actu.run
 } ;;
@@ -131,9 +132,9 @@ eval <cstr> *Key <prop+ prop+ fun> *Upd update_property @public -> <prop+> {
   Mon
     \ <ent.eref> *Prop_tab_ent -> <prop+> {
       Prop_tab_ent ent.read = *Prop_tab prop_tab$,
-      Prop_tab Key avl.assoc = *Old value$,
+      Prop_tab Key map.assoc = *Old value$,
       Old &Upd = *New,
-      Prop_tab_ent ((Prop_tab Key New avl.add) prop_tab$) ent.write,
+      Prop_tab_ent ((Prop_tab Key New map.add) prop_tab$) ent.write,
       New
     }
     actu.run
@@ -143,9 +144,9 @@ eval <cstr> *Key <prop+ prop+ fun> *Upd update_property @public -> <prop+> {
 # -- initialization --
 
 eval _init_ -> <d> {
-  init_props (cstr.ord_fs avl.new_tree) &\ <<cstr prop+ tuple> list> *KVs <prop_tab> *M -> <prop_tab> {
+  init_props (cstr.ord_fs avlmap.new_map) &\ <<cstr prop+ tuple> list> *KVs <prop_tab> *M -> <prop_tab> {
     KVs case {
-    ; [ (| *K, *V |) ; *T ] -> M K V avl.add = *M', T M' &&
+    ; [ (| *K, *V |) ; *T ] -> M K V map.add = *M', T M' &&
     ; ** -> M
     }
   } = *Ptab,

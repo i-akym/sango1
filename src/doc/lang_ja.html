@@ -1661,7 +1661,7 @@ M6 map.size = 4</code></blockquote>
 </ul>
 <p>関数の詳細はライブラリ解説を参照してください。</p>
 <p>simple mapは，<code>put</code>，<code>assoc</code>，<code>remove</code>等の操作に，マップの大きさに比例したコストがかかります。
-  大きなマップを扱う場合，キーの大小比較が可能であれば<code>&quot;sango.util.avltree&quot;</code>に実装されている「AVL木」，あるいは<code>&quot;sango.util.avltree.map&quot;</code>を使うとよいでしょう。</p>
+  大きなマップを扱う場合，キーの大小比較が可能であれば<code>&quot;sango.util.avltree.map&quot;</code>を使うとよいでしょう。</p>
 
 <blockquote class="note">*1：「辞書」や「連想リスト」とも呼ばれるものです。</blockquote>
  
@@ -2050,6 +2050,7 @@ eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<v
 <li>【非互換】<code>sango.string.list_to_string</code>から，別名<code>string</code>を削除</li>
 <li>【Deprecated】<code>sango.list.remove_at</code>（<code>sango.list.remove_at2</code>を使用してください）</li>
 <li>【Deprecated】<code>sango.list.replace_at</code>（<code>sango.list.replace_at2</code>を使用してください）</li>
+<li>【Deprecated】<code>sango.util.avltree</code>（<code>sango.util.avltree.map</code>を使用してください）</li>
 </ul>
 
 

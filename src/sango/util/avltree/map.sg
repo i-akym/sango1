@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -23,17 +23,24 @@
 ###########################################################################
 module "sango.util.avltree.map" ;;
 
-import "sango.util.avltree" -> avl ;;
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.avltree.base" -> avl ;;
 import "sango.util.map" -> map ;;
 
-extend <*A *B map.map_d> := <A B avl.tree> avltree_map_d$ ;;
+extend <*A *B map.map_d> :=
+  ord: <A ord_fs>
+  body: <<A B tuple> avl.tree>
+  d$ ;;
 
-eval <*A ord_fs> *Ord new_map @public -> <A *B map.map> {
-  Ord avl.new_tree >> to_map
-} ;;
-
-eval <*A *B avl.tree> *Tree to_map @public -> <A B map.map> {
-  d: (Tree avltree_map_d$) fs: map_fs map.map$
+eval <*A ord_fs> *Ord <A> *K locator -> <<<A *B tuple> avl.node> <<A B tuple> avl.locate> fun> {
+  \ <<A *BB tuple> avl.node> *N -> <<A BB tuple> avl.locate> { 
+    K (N avl.assoc >> tuple.pair_first) Ord compare >> case {
+    ; lt$ -> ^^ avl.left$
+    ; eq$ -> avl.just$
+    ; gt$ -> ^^ avl.right$
+    }
+  }
 } ;;
 
 eval map_fs @public -> <*A *B map.map_fs> {
@@ -52,68 +59,68 @@ eval map_fs @public -> <*A *B map.map_fs> {
   map.map_fs$
 } ;;
 
+eval <*A ord_fs> *Ord new_map @public -> <A *B map.map> {
+  ord: Ord body: avl.new_tree d$ = *D,
+  d: D fs: map_fs map.map$
+} ;;
+
 eval <*A *B map.map_d+> *Map_d empty? -> <bool> {
-  Map_d = *Tree avltree_map_d$,
-  Tree avl.empty?
+  Map_d size >> zero?
 } ;;
 
 eval <*A *B map.map_d+> *Map_d size -> <int> {
-  Map_d = *Tree avltree_map_d$,
-  Tree avl.size
+  Map_d = body: *Body *** d$,
+  Body avl.size
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key get -> <<A B tuple> maybe> {
-  Map_d = *Tree avltree_map_d$,
-  Tree Key avl.get
+  Map_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Key locator) avl.get
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key assoc -> <B maybe> {
-  Map_d = *Tree avltree_map_d$,
-  Tree Key avl.assoc
+  (Map_d Key get) ^tuple.pair_second apply_to_something
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key contain_key? -> <bool> {
-  Map_d = *Tree avltree_map_d$,
-  Tree Key avl.contain_key?
+  Map_d Key get >> something?
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value put -> <<A B map.map_d+> <<A B tuple> maybe> tuple> {
-  Map_d = *Tree avltree_map_d$,
-  Tree Key Value avl.put = (| *Tree', *KV_ |),
-  (| Tree' avltree_map_d$, KV_ |)
+  Map_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Key locator) (| Key, Value |) avl.put = (| *Body', *KV_ |),
+  (| body: Body' :: Map_d d$, KV_ |)
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value put_new -> <<A B map.map_d+> bool tuple> {
-  Map_d = *Tree avltree_map_d$,
-  Tree Key Value avl.put_new = (| *Tree', *Succeeded |),
-  (| Tree' avltree_map_d$, Succeeded |)
+  Map_d Key Value put >> case {
+  ; (| **, ** value$ |) -> (| Map_d, false$ |)
+  ; (| *Map_d', none$ |) -> (| Map_d', true$ |)
+  }
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value add -> <A B map.map_d+> {
-  Map_d = *Tree avltree_map_d$,
-  (Tree Key Value avl.add) avltree_map_d$
+  Map_d Key Value put >> tuple.pair_first
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key remove -> <<A B map.map_d+> <<A B tuple> maybe> tuple> {
-  Map_d = *Tree avltree_map_d$,
-  Tree Key avl.remove = (| *Tree', *Removed_ |),
-  (| Tree' avltree_map_d$, Removed_ |)
+  Map_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Key locator) avl.remove = (| *Body', *Removed_ |),
+  (| body: Body' :: Map_d d$, Removed_ |)
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key delete -> <A B map.map_d+> {
-  Map_d = *Tree avltree_map_d$,
-  (Tree Key avl.delete) avltree_map_d$
+  Map_d Key remove >> tuple.pair_first
 } ;;
 
 eval <*A *B map.map_d+> *Map_d take -> <<<A B tuple> <A B map.map_d+> tuple> maybe> {
-  Map_d = *Tree avltree_map_d$,
-  Tree avl.take >> case {
-  ; (| *KV, *Tree' |) value$ -> (| KV, Tree' avltree_map_d$ |) value$
+  Map_d = body: *Body *** d$,
+  Body avl.take >> case {
+  ; (| *KV, *Body' |) value$ -> (| KV, body: Body' :: Map_d d$ |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*A *B map.map_d+> *Map_d clear -> <A B map.map_d+> {
-  Map_d = *Tree avltree_map_d$,
-  (Tree avl.clear) avltree_map_d$
+  body: avl.new_tree :: Map_d d$
 } ;;

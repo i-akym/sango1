@@ -35,7 +35,8 @@ import "sango.io" -> io ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.string" -> str ;;
 import "sango.system.runtime" -> runtime ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.map" -> map ;;
 import "sango.util.random" -> rand ;;
 
 alias type <block> := <cstr> ;;
@@ -44,8 +45,8 @@ alias type <direction> := <cstr> ;;
 data <slide> := block: <block> direction: <direction> slide$ ;;
 
 data <board> :=
-  place_block_map: <int block avl.tree>
-  block_place_map: <block int avl.tree>
+  place_block_map: <int block map.map>
+  block_place_map: <block int map.map>
   board$ ;;
 
 extend <exc_desc> :=
@@ -141,25 +142,25 @@ eval new_game -> <game> {
 } ;;
 
 eval empty_board -> <board> {
-  place_block_map: (int_ord_fs avl.new_tree)
-    block_place_map: (cstr.ord_fs avl.new_tree)
+  place_block_map: (int_ord_fs avlmap.new_map)
+    block_place_map: (cstr.ord_fs avlmap.new_map)
     board$
 } ;;
 
 eval <board> *Board <int> *Place <block> *Block put_block -> <board> {
   Board place_block_map = *Mpb,
   Board block_place_map = *Mbp,
-  place_block_map: (Mpb Place Block avl.add)
-    block_place_map: (Mbp Block Place avl.add)
+  place_block_map: (Mpb Place Block map.add)
+    block_place_map: (Mbp Block Place map.add)
     board$
 } ;;
 
 eval <board> *Board <int> *Place block_at -> <block> {
-  (Board place_block_map) Place avl.assoc >> value
+  (Board place_block_map) Place map.assoc >> value
 } ;;
 
 eval <board> *Board <block> *Block block_place -> <int> {
-  (Board block_place_map) Block avl.assoc >> value
+  (Board block_place_map) Block map.assoc >> value
 } ;;
 
 eval <int> *Place left_place -> <int maybe> {
