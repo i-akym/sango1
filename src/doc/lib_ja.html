@@ -197,6 +197,9 @@ kbd {
 <a href="#sango.util.queue.simplequeue"><code>sango.util.queue.simplequeue</code></a>
   <a href="#sango.util.queue.simplequeue.1">実装</a>
 <a href="#sango.util.random"><code>sango.util.random</code></a>
+<a href="#sango.util.ralist"><code>sango.util.ralist</code></a>
+  <a href="#sango.util.ralist.1">フレームワーク</a>
+  <a href="#sango.util.ralist.2">実装者向け情報</a>
 <a href="#sango.util.set"><code>sango.util.set</code></a>
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
@@ -3548,6 +3551,148 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;real iter&gt; *Gen builtin_set_generator | set_generator @public -&gt; &lt;void&gt;</code></td></tr></table>
 <p>モジュールに組み込まれた乱数発生サービスに乱数発生器を設定しなおします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.ralist"><code>sango.util.ralist</code></h1>
+
+<p>【Tentative】リストの要素を指標によってアクセスするには，リストの長さnに対して最大O(n)のコストがかかります。
+  このコストを下げたリスト・モデルの実装をランダム・アクセス・リストと呼び，このモジュールでフレームワークを提供します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.ralist.1"><code>sango.util.ralist</code> - フレームワーク</h2>
+
+<p>データと機能関数群をカプセル化しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A ralist&gt; @public :=
+  d: &lt;A ralist_d+&gt;
+  fs: &lt;A ralist_fs&gt;
+  ralist$ ;;</code></td></tr></table>
+<p>カプセル化されたランダム・アクセス・リストのオブジェクトを表します。
+  <code>&lt;A&gt;</code>は要素の型です。
+  ランダム・アクセス・リストを使用するには属性を意識する必要はありません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>リストが空かどうかを判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List non_empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>リストが要素をもつかどうかを判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>リストの長さ（要素の個数）を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index elem @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<p>リストの<code>Index</code>番目の要素を返します。
+  先頭は0番目です。
+  該当する要素が無い場合は<code>none$</code>が返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List first | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<p>リストの先頭要素を返します。
+  空リストの場合は<code>none$</code>が返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List last @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<p>リストの末尾要素を返します。
+  空リストの場合は<code>none$</code>が返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List tail @public -&gt; &lt;&lt;A ralist&gt; maybe&gt; ;;</code></td></tr></table>
+<p>リストから先頭要素を取り除いた残りを返します。
+  空リストの場合は<code>none$</code>が返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X insert_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストの<code>Index</code>番目の要素として<code>X</code>を挿入します。
+  <code>Index</code>が負の場合は先頭に挿入します。
+  <code>Index</code>が要素の個数以上の場合は末尾に挿入します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A&gt; *X append @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストの末尾に<code>X</code>を挿入します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index remove_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<p>リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
+  該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index delete_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストの<code>Index</code>番目の要素を削除します。
+  該当する要素が無い場合は，リストは変化しません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X replace_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<p>リストの<code>Index</code>番目の要素を<code>X</code>で置換し，結果のリストと置換された要素の組を返します。
+  該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X update_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストの<code>Index</code>番目の要素を<code>X</code>で置換します。
+  該当する要素が無い場合は，リストは変化しません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count take @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストの先頭から<code>Count</code>個の要素をリストとして返します。
+  要素の個数が<code>Count</code>個に満たない場合は，リストの全体が返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count drop @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストの先頭から<code>Count</code>個の要素を取り除いたリストを返します。
+  要素の個数が<code>Count</code>個に満たない場合は，空リストが返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List clear @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>リストを空にします。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>要素を供給するイテレータを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A list&gt; *Xs append_list @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p><code>Xs</code>の要素を順に末尾に追加します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A iter&gt; *Iter append_iter @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>イテレータが供給する値を順に末尾に追加します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.ralist.2"><code>sango.util.ralist</code> - 実装者向け情報</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A ralist_d&gt; @public := _dummy_ralist_d$ ;;</code></td></tr></table>
+<p>ランダム・アクセス・リストの実体データを表します。 これはダミーの定義で，ランダム・アクセス・リストを実装する際に拡張します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A ralist_fs&gt; @public :=
+  empty?_f_: &lt;&lt;&lt;A ralist_d+&gt; bool fun&gt; maybe&gt;
+  length_f: &lt;&lt;A ralist_d+&gt; int fun&gt;
+  elem_f: &lt;&lt;A ralist_d+&gt; int &lt;A maybe&gt; fun&gt;
+  first_f_: &lt;&lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
+  last_f_: &lt;&lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
+  tail_f_: &lt;&lt;&lt;A ralist_d+&gt; &lt;&lt;A ralist_d+&gt; maybe&gt; fun&gt; maybe&gt;
+  insert_at_f: &lt;&lt;A ralist_d+&gt; int A &lt;A ralist_d+&gt; fun&gt;
+  append_f_: &lt;&lt;&lt;A ralist_d+&gt; A &lt;A ralist_d+&gt; fun&gt; maybe&gt;
+  remove_at_f: &lt;&lt;A ralist_d+&gt; int &lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
+  replace_at_f_: &lt;&lt;&lt;A ralist_d+&gt; int A &lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; maybe&gt;
+  take_f_: &lt;&lt;&lt;A ralist_d+&gt; int &lt;A ralist_d+&gt; fun&gt; maybe&gt;
+  drop_f_: &lt;&lt;&lt;A ralist_d+&gt; int &lt;A ralist_d+&gt; fun&gt; maybe&gt;
+  clear_f: &lt;&lt;A ralist_d+&gt; &lt;A ralist_d+&gt; fun&gt;
+  ralist_fs$ ;;</code></td></tr></table>
+<p>機能関数群を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_empty?_f | empty?_f @public -&gt; &lt;&lt;A ralist_d+&gt; bool fun&gt; ;;</code></td></tr></table>
+<p>リストが空かどうかを判定する関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_first_f | first_f @public -&gt; &lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの先頭要素を返す関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_last_f | last_f @public -&gt; &lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの末尾要素を返す関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_tail_f | tail_f @public -&gt; &lt;&lt;A ralist_d+&gt; &lt;&lt;A ralist_d+&gt; maybe&gt; fun&gt; ;;</code></td></tr></table>
+<p>先頭要素を除いたリストを返す関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_append_f | append_f @public -&gt; &lt;&lt;A ralist_d+&gt; A &lt;A ralist_d+&gt; fun&gt; ;;</code></td></tr></table>
+<p>値をリストの末尾に追加する関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_delete_at_f | delete_at_f @public -&gt; &lt;&lt;A ralist_d+&gt; int &lt;A ralist_d+&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの指標の位置の要素を削除する関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_replace_at_f | replace_at_f @public -&gt; &lt;&lt;A ralist_d+&gt; int A &lt;&lt;A ralist_d+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの指標の位置の要素を置換する関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_update_at_f | update_at_f @public -&gt; &lt;&lt;A ralist_d+&gt; int A &lt;A ralist_d+&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの指標の位置の要素を置換する関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_take_f | take_f @public -&gt; &lt;&lt;A ralist_d+&gt; int &lt;A ralist_d+&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの先頭から指定された個数の要素を取り出す関数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_drop_f | drop_f @public -&gt; &lt;&lt;A ralist_d+&gt; int &lt;A ralist_d+&gt; fun&gt; ;;</code></td></tr></table>
+<p>リストの先頭から指定された個数の要素を除く関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.set"><code>sango.util.set</code></h1>
