@@ -160,6 +160,8 @@ kbd {
   <a href="#sango.util.avltree.bag.1">実装</a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
   <a href="#sango.util.avltree.map.1">実装</a>
+<a href="#sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></a>
+  <a href="#sango.util.avltree.ralist.1">実装</a>
 <a href="#sango.util.avltree.set"><code>sango.util.avltree.set</code></a>
   <a href="#sango.util.avltree.set.1">実装</a>
 <a href="#sango.util.bag"><code>sango.util.bag</code></a>
@@ -2870,6 +2872,17 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>AVL木をマップにラップします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></h1>
+
+<p>AVL木をランダム・アクセス・リストとして使用するための機能を提供します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.avltree.ralist.1"><code>sango.util.avltree.ralist</code> - 実装</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval new_ralist @public -&gt; &lt;*A ral.ralist&gt; ;;</code></td></tr></table>
+<p>空のランダム・アクセス・リストを生成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.set"><code>sango.util.avltree.set</code></h1>
 
 <p>AVL木をセットとして使用するための機能を提供します。</p>
@@ -3555,7 +3568,7 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.ralist"><code>sango.util.ralist</code></h1>
 
-<p>【Tentative】リストの要素を指標によってアクセスするには，リストの長さnに対して最大O(n)のコストがかかります。
+<p>【Tentative】リストの要素を指標によってアクセスするには，指標に比例するコストがかかります。
   このコストを下げたリスト・モデルの実装をランダム・アクセス・リストと呼び，このモジュールでフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
