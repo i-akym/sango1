@@ -25,14 +25,15 @@ module "sango.util.sort" ;;
 
 import "sango.list" -> list ;;
 import "sango.string" -> str ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
 
-alias type <*A sort_d_tree> := <A <A list> avl.tree> ;;
+alias type <*A sort_d_map> := <A <A list> map.map> ;;
 
 data <*A sort_d> @opaque :=
   extracted: <A list>
-  tree: <A sort_d_tree>
+  map: <A sort_d_map>
   sort_d$ ;;
 
 eval <*A list> *List <A ord_fs> *Ord sort_list | sort @public -> <A list> {
@@ -45,21 +46,21 @@ eval <*A string> *Str <A ord_fs> *Ord sort_string | sort @public -> <A string> {
 } ;;
 
 eval <*A iter> *Iter <A ord_fs> *Ord sort @public -> <A iter> {
-  Iter (Ord avl.new_tree) &\ <A iter> *I <A sort_d_tree> *T -> <A sort_d_tree> {
+  Iter (Ord avlmap.new_map) &\ <A iter> *I <A sort_d_map> *M -> <A sort_d_map> {
     I next >> case {
-    ; (| *V, *I' |) value$ -> I' (T V add) &&
-    ; none$ -> T
+    ; (| *V, *I' |) value$ -> I' (M V add) &&
+    ; none$ -> M
     }
-  } = *Tree,
-  \\ <A iter_res> { (extracted: [] tree: Tree sort_d$) iter_next } iter$
+  } = *Map,
+  \\ <A iter_res> { (extracted: [] map: Map sort_d$) iter_next } iter$
 } ;;
 
-eval <*A sort_d_tree> *T <A> *V add -> <A sort_d_tree> {
-  T V avl.assoc >> case {
+eval <*A sort_d_map> *M <A> *V add -> <A sort_d_map> {
+  M V map.assoc >> case {
   ; *Q value$ -> Q
   ; none$ -> []
   } = *Vs_r,
-  T V [ V ; Vs_r ]  avl.add
+  M V [ V ; Vs_r ]  map.add
 } ;;
 
 eval <*A sort_d> *D iter_next -> <A iter_res> {
@@ -71,12 +72,12 @@ eval <*A sort_d> *D iter_next -> <A iter_res> {
 } ;;
 
 eval <*A sort_d> *D sort_d_take -> <<A <A sort_d> tuple> maybe> {
-  D = extracted: *Extracted tree: *Tree sort_d$,
-  Extracted Tree &\ <A list> *Es <A sort_d_tree> *T -> <<A <A sort_d> tuple> maybe> {
+  D = extracted: *Extracted map: *Map sort_d$,
+  Extracted Map &\ <A list> *Es <A sort_d_map> *T -> <<A <A sort_d> tuple> maybe> {
     Es case {
-    ; [ *E ; *Es' ] -> (| E, extracted: Es' tree: T :: D sort_d$ |) value$
+    ; [ *E ; *Es' ] -> (| E, extracted: Es' map: T :: D sort_d$ |) value$
     ; [] ->
-      T avl.take >> case {
+      T map.take >> case {
       ; (| (| **, *Vs |), *T' |) value$ -> (Vs list.reverse) T' &&
       ; none$ -> none$
       }

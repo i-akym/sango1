@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,54 +21,69 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree.array" ;;
+module "sango.util.avltree.queue" ;;
 
-import "sango.util.array" -> array ;;
-import "sango.util.avltree.map" -> avlmap ;;
-import "sango.util.enum" -> enum ;;
-import "sango.util.map" -> map ;;
+import "sango.util.avltree.base" -> avl ;;
+import "sango.util.queue" -> queue ;;
 
-extend <*A *B array.array_d> :=
-  map: <A B map.map>
-  compact_: <<B <B bool fun> tuple> maybe>
-  array_d$ ;;
+extend <*A queue.queue_d> :=
+  body: <A avl.tree>
+  d$ ;;
 
-eval <*A enum.enum> *Enum <A *B fun> *Supplier <<B <B bool fun> tuple> maybe> *Compact_ 
-    new_array @public -> <A B array.array> {
-  Compact_ case {
-  ; none$ ->
-  ; (| *C, *C?_f |) value$ || C &C?_f ->
-  ; ** -> bad_arg$ "Invalid compaction spec." new_exception >> throw
-  },
-  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avlmap.new_map)
-      &\ <A iter> *I <A B map.map> *M -> <A B map.map> {
-    I next >> case {
-    ; (| *Idx, *I' |) value$ ->
-      Idx &Supplier = *Val,
-      Compact_ case {
-      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' M &&
-      ; ** -> I' (M Idx Val map.add) &&
-      }
-    ; ** -> M
-    }
-  } = *Map,
-  map: Map compact_: Compact_ array_d$ = *D,
-  get_f: ^get set_f: ^set array.array_fs$ = *Fs,
-  d: D ix: Enum fs: Fs array.array$
-} ;;
-
-eval <*A *B array.array_d+> *D <A> *Idx get -> <B> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Map Idx map.assoc >> case {
-  ; *V value$ -> V
-  ; ** -> Compact_ = (| *C, ** |) value$, C
+eval <*A avl.node> *Node locate_head -> <A avl.locate> {
+  Node avl.left_ >> case {
+  ; ** value$ -> ^^ avl.left$
+  ; ** -> avl.just$
   }
 } ;;
 
-eval <*A *B array.array_d+> *D <A> *Idx <B> *Val set -> <A B array.array_d+> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Compact_ case {
-  ; (| **, *C?_f |) value$ || Val &C?_f -> map: (Map Idx map.delete) :: D array_d$
-  ; ** -> map: (Map Idx Val map.add) :: D array_d$
+eval <*A avl.node> *Node locate_enqueue -> <A avl.locate> {
+  ^^ avl.right$
+} ;;
+
+eval new_queue @public -> <*A queue.queue> {
+  body: avl.new_tree d$ = *D,
+  d: D fs: queue_fs queue.queue$
+} ;;
+
+eval queue_fs -> <*A queue.queue_fs> {
+  empty?_f: ^empty?
+    length_f: ^length
+    enqueue_f: ^enqueue
+    head_f: ^head
+    dequeue_f: ^dequeue
+    clear_f: ^clear
+    queue.queue_fs$
+} ;;
+
+eval <*A queue.queue_d+> *Queue_d empty? -> <bool> {
+  Queue_d length >> zero?
+} ;;
+
+eval <*A queue.queue_d+> *Queue_d length -> <int> {
+  Queue_d = body: *Body *** d$,
+  Body avl.size
+} ;;
+
+eval <*A queue.queue_d+> *Queue_d <A> *Elem enqueue -> <A queue.queue_d+> {
+  Queue_d = body: *Body *** d$,
+  Body ^locate_enqueue Elem avl.put = (| *Body', ** |),
+  body: Body' :: Queue_d d$
+} ;;
+
+eval <*A queue.queue_d+> *Queue_d head -> <A maybe> {
+  Queue_d = body: *Body *** d$,
+  Body ^locate_head avl.get
+} ;;
+
+eval <*A queue.queue_d+> *Queue_d dequeue -> <<A <A queue.queue_d+> tuple> maybe> {
+  Queue_d = body: *Body *** d$,
+  Body avl.take >> case {
+  ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue_d d$ |) value$
+  ; ** -> none$
   }
+} ;;
+
+eval <*A queue.queue_d+> *Queue_d clear -> <A queue.queue_d+> {
+  body: avl.new_tree d$
 } ;;

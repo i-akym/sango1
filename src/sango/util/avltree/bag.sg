@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -23,105 +23,152 @@
 ###########################################################################
 module "sango.util.avltree.bag" ;;
 
+import "sango.arith" -> arith ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.base" -> avl ;;
 import "sango.util.bag" -> bag ;;
 
-# alias type <*A bag> @public := <<A bag_d> A bag.bag> ;;
-# alias type <*A bag_fs> @public := <<A bag_d> A bag.bag_fs> ;;
-
 extend <*A bag.bag_d> :=
-  tree: <A <A list> avl.tree>
-  size: <int>
-  bag_d$ ;;
+  ord: <A ord_fs>
+  body: <<A list> avl.tree>
+  d$ ;;
 
-eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
-  d: (tree: (Ord avl.new_tree) size: 0 bag_d$) fs: bag_fs bag.bag$
+eval <*A ord_fs> *Ord <A> *X locator -> <<<A list> avl.node> <<A list> avl.locate> fun> {
+  \ <<A list> avl.node> *N -> <<A list> avl.locate> { 
+    X (N avl.assoc >> list.head >> value) Ord compare >> case {
+    ; lt$ -> ^^ avl.left$
+    ; eq$ -> avl.just$
+    ; gt$ -> ^^ avl.right$
+    }
+  }
+} ;;
+
+extend <*A avl.aux> :=  # actually <A> is <Z list>
+  count: <int>
+  mins: <A>
+  aux$ ;;
+
+eval <*A list> *Assoc <<<A list> avl.node> maybe> *Left_ <<<A list> avl.node> maybe> *Right_
+    build_aux -> <<A list> aux> {
+  Assoc list.length = *My_count,
+  (| Left_, Right_ |) case {
+  ; (| *Left value$, *Right value$ |) ->
+    Left avl.aux = count: *L_count mins: *L_mins aux$,
+    Right avl.aux = count: *R_count mins: ** aux$,
+    (| [ L_count, R_count, My_count ] arith.sum, L_mins |)
+  ; (| *Left value$, none$ |) ->
+    Left avl.aux = count: *L_count mins: *L_mins aux$,
+    (| L_count My_count sum, L_mins |)
+  ; (| none$, *Right value$ |) ->
+    Right avl.aux = count: *R_count mins: ** aux$,
+    (| R_count My_count sum, Assoc |)
+  ; (| none$, none$ |) ->
+    (| My_count, Assoc |)
+  } = (| *Count, *Mins |),
+  count: Count mins: Mins aux$
 } ;;
 
 eval bag_fs @public -> <*A bag.bag_fs> {
-  empty?_f: ^bag_empty?
-    size_f: ^bag_size
-    contain?_f: ^bag_contain?
-    get_all_f: ^bag_get_all
-    add_f: ^bag_add
-    remove_f: ^bag_remove
-    remove_all_f: ^bag_remove_all
-    delete_f_: (^bag_delete value$)
-    delete_all_f_: (^bag_delete_all value$)
-    take_f: ^bag_take
-    clear_f: ^bag_clear
+  empty?_f: ^empty?
+    size_f: ^size
+    contain?_f: ^contain?
+    get_all_f: ^get_all
+    add_f: ^add
+    remove_f: ^remove
+    remove_all_f: ^remove_all
+    delete_f_: (^delete value$)
+    delete_all_f_: (^delete_all value$)
+    take_f: ^take
+    clear_f: ^clear
     bag.bag_fs$
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d bag_empty? -> <bool> {
-  Bag_d = size: *Size *** bag_d$,
-  Size >> zero?
+# eval <<<*A list> avl.node> maybe> *Node_ subtree_count -> <int> {
+  # Node_ case {
+  # ; *Node value$ -> Node avl.aux = count: *Count aux$, Count
+  # ; none$ -> 0
+  # }
+# } ;;
+
+eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
+  ord: Ord body: (^build_aux avl.new_tree) d$ = *D,
+  d: D fs: bag_fs bag.bag$
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d bag_size -> <int> {
-  Bag_d = size: *Size *** bag_d$,
-  Size
+eval <*A bag.bag_d+> *Bag_d empty? -> <bool> {
+  Bag_d size >> zero?
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_contain? -> <bool> {
-  Bag_d = tree: *Tree *** bag_d$,
-  Tree Elem avl.contain_key?
+eval <*A bag.bag_d+> *Bag_d size -> <int> {
+  Bag_d = body: *Body *** d$,
+  Body avl.node_ >> case {
+  ; *Node value$ -> Node avl.aux = count: *Count *** aux$, Count
+  ; none$ -> 0
+  }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_get_all -> <A list> {
-  Bag_d = tree: *Tree *** bag_d$,
-  Tree Elem avl.assoc >> case {
-  ; *Vs value$ -> Vs
+eval <*A bag.bag_d+> *Bag_d <A> *Elem contain? -> <bool> {
+  Bag_d Elem get_all >> list.non_empty?
+} ;;
+
+eval <*A bag.bag_d+> *Bag_d <A> *Elem get_all -> <A list> {
+  Bag_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem locator) avl.get >> case {
+  ; *Elems value$ -> Elems
   ; none$ -> []
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_add -> <A bag.bag_d+> {
-  Bag_d = tree: *Tree size: *Size *** bag_d$,
-  Tree Elem avl.assoc >> case {
-  ; *Vs value$ -> Tree Elem [ Elem ; Vs ] avl.add
-  ; none$ -> Tree Elem [ Elem ] avl.add
-  } = *Tree',
-  tree: Tree' size: (Size inc) :: Bag_d bag_d$
+eval <*A bag.bag_d+> *Bag_d <A> *Elem add -> <A bag.bag_d+> {
+  Bag_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put = (| *Body', ** |),
+  body: Body' :: Bag_d d$
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_remove -> <<A bag.bag_d+> <A maybe> tuple> {
-  Bag_d = tree: *Tree size: *Size *** bag_d$,
-  Tree Elem avl.assoc >> case {
-  ; [ *V ] value$ -> Tree Elem avl.delete = *Tree', (| tree: Tree' size: (Size dec) :: Bag_d bag_d$, V value$ |)
-  ; [ *V ; *Vs ] value$ -> Tree Elem Vs avl.add = *Tree', (| tree: Tree' size: (Size dec) :: Bag_d bag_d$, V value$ |)
-  ; none$ -> (| Bag_d, none$ |)
-  # ; *X -> X debug.repr >> stdio.print_and_newline, intentional$ "Trepped." new_exception >> throw  # DEBUG
+eval <*A bag.bag_d+> *Bag_d <A> *Elem remove -> <<A bag.bag_d+> <A maybe> tuple> {
+  Bag_d = ord: *Ord body: *Body *** d$,
+  Bag_d Elem get_all >> case {
+  ; [] ->
+    (| Bag_d, none$ |)
+  ; [ *E ] ->
+    Body (Ord Elem locator) avl.remove = (| *Body', ** value$ |),
+    (| body: Body' :: Bag_d d$, E value$ |)
+  ; [ *E ; *Es ] -> 
+    Body (Ord Elem locator) Es avl.put = (| *Body', ** value$ |),
+    (| body: Body' :: Bag_d d$, E value$ |)
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_remove_all -> <<A bag.bag_d+> <A list> tuple> {
-  Bag_d = tree: *Tree size: *Size *** bag_d$,
-  Tree Elem avl.assoc >> case {
-  ; *Vs value$ -> Tree Elem avl.delete = *Tree', (| tree: Tree' size: (Size (Vs list.length) diff) :: Bag_d bag_d$, Vs |)
-  ; none$ -> (| Bag_d, [] |)
-  }
+eval <*A bag.bag_d+> *Bag_d <A> *Elem remove_all -> <<A bag.bag_d+> <A list> tuple> {
+  Bag_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem locator) avl.remove = (| *Body', *Removed_ |),
+  Removed_ case {
+  ; *Removed value$ -> Removed
+  ; none$ -> []
+  } = *Removed_list,
+  (| body: Body' :: Bag_d d$, Removed_list |)
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_delete -> <A bag.bag_d+> {
-  Bag_d Elem bag_remove >> tuple.pair_first
+eval <*A bag.bag_d+> *Bag_d <A> *Elem delete -> <A bag.bag_d+> {
+  Bag_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem bag_delete_all -> <A bag.bag_d+> {
-  Bag_d Elem bag_remove_all >> tuple.pair_first
+eval <*A bag.bag_d+> *Bag_d <A> *Elem delete_all -> <A bag.bag_d+> {
+  Bag_d Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d bag_take -> <<A <A bag.bag_d+> tuple> maybe> {
-  Bag_d = tree: *Tree size: *Size *** bag_d$,
-  Tree avl.take >> case {
-  ; (| (| *E, ** |), ** |) value$ -> Bag_d E bag_remove = (| *Bag_d', *EE value$ |), (| EE, Bag_d' |) value$
+eval <*A bag.bag_d+> *Bag_d take -> <<A <A bag.bag_d+> tuple> maybe> {
+  Bag_d = ord: *Ord body: *Body *** d$,
+  Body avl.node_ >> case {
+  ; *Node value$ ->
+    Node avl.aux = mins: *Mins *** aux$, 
+    Bag_d (Mins list.head >> value) remove = (| *Bag_d', *Removed value$ |),
+    (| Removed, Bag_d' |) value$
   ; none$ -> none$
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d bag_clear -> <A bag.bag_d+> {
-  Bag_d = tree: *Tree size: *Size *** bag_d$,
-  tree: (Tree avl.clear) size: 0 :: Bag_d bag_d$
+eval <*A bag.bag_d+> *Bag_d clear -> <A bag.bag_d+> {
+  body: (^build_aux avl.new_tree) :: Bag_d d$
 } ;;

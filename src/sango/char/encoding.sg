@@ -30,11 +30,12 @@ import "sango.lang.module" -> mod ;;
 import "sango.string" -> str ;;
 import "sango.system" -> sys ;;
 import "sango.tuple" -> tuple ;;
-import "sango.util.avltree" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.map" -> map ;;
 
 data <d> :=
-  encoder_impl_tab: <cstr cstr avl.tree>
-  decoder_impl_tab: <cstr cstr avl.tree>
+  encoder_impl_tab: <cstr cstr map.map>
+  decoder_impl_tab: <cstr cstr map.map>
   d$ ;;
 
 extend <exc_desc> @public := decode_failure$ ;;
@@ -95,7 +96,7 @@ eval <cstr> *Encoding start_encoder @public -> <encoder_h> {
   IK sys.property >> case {
   ; (*Fs encoder_impl_fs_prop$) value$ -> Fs
   ; ** ->
-    (_initd_ >> encoder_impl_tab) Encoding avl.assoc >> case {
+    (_initd_ >> encoder_impl_tab) Encoding map.assoc >> case {
     ; *IM value$ -> IM
     ; ** -> bad_arg$ "Unknown encoding." new_exception >> throw
     } = *M,
@@ -129,7 +130,7 @@ eval <cstr> *Encoding <decode_props> *Ps start_decoder @public -> <decoder_h> {
   IK sys.property >> case {
   ; (*Fs decoder_impl_fs_prop$) value$ -> Fs
   ; ** ->
-    (_initd_ >> decoder_impl_tab) Encoding avl.assoc >> case {
+    (_initd_ >> decoder_impl_tab) Encoding map.assoc >> case {
     ; *IM value$ -> IM
     ; ** -> bad_arg$ "Unknown encoding." new_exception >> throw
     } = *M,
@@ -174,8 +175,8 @@ eval <cstr> *Encoding <decoder_impl_fs> *Fs install_decoder_impl @public -> <voi
   ([ "char.encoding.decoder_impl.", Encoding ] cstr.concat) (Fs decoder_impl_fs_prop$) sys.add_property
 } ;;
 
-eval encoder_module_tab -> <cstr cstr avl.tree> {
-  (cstr.ord_fs avl.new_tree)
+eval encoder_module_tab -> <cstr cstr map.map> {
+  (cstr.ord_fs avlmap.new_map)
   [
     (| "UTF-8", "sango.char.encoding.utf" |),
     (| "UTF-16", "sango.char.encoding.utf" |),
@@ -186,11 +187,11 @@ eval encoder_module_tab -> <cstr cstr avl.tree> {
     (| "MS932", "sango.char.encoding.win31j" |),
     (| "CP932", "sango.char.encoding.win31j" |)
   ]
-  avl.add_list
+  map.add_list
 } ;;
 
-eval decoder_module_tab -> <cstr cstr avl.tree> {
-  (cstr.ord_fs avl.new_tree)
+eval decoder_module_tab -> <cstr cstr map.map> {
+  (cstr.ord_fs avlmap.new_map)
   [
     (| "UTF-8", "sango.char.encoding.utf" |),
     (| "UTF-16", "sango.char.encoding.utf" |),
@@ -201,5 +202,5 @@ eval decoder_module_tab -> <cstr cstr avl.tree> {
     (| "MS932", "sango.char.encoding.win31j" |),
     (| "CP932", "sango.char.encoding.win31j" |)
   ]
-  avl.add_list
+  map.add_list
 } ;;

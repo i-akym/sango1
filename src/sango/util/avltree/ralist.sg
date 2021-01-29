@@ -1,0 +1,106 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.avltree.ralist" ;;
+
+import "sango.util.avltree.base" -> avl ;;
+import "sango.util.ralist" -> ral ;;
+
+extend <*A ral.ralist_d> :=
+  body: <A avl.tree>
+  d$ ;;
+
+eval <int> *Index find_locator -> <<*A avl.node> <A avl.locate> fun> {
+  \ <*AA avl.node> *N -> <AA avl.locate> { 
+    N avl.left_ >> avl.subtree_size = *LC,
+    if {
+    ; Index LC eq? -> avl.just$
+    ; Index LC lt? -> ^^ avl.left$
+    ; otherwise -> ((Index LC diff >> dec) find_locator) avl.right$
+    }
+  }
+} ;;
+
+eval <int> *Index insert_locator -> <<*A avl.node> <A avl.locate> fun> {
+  \ <*AA avl.node> *N -> <AA avl.locate> { 
+    N avl.left_ >> avl.subtree_size = *LC,
+    if {
+    ; Index LC le? -> ^^ avl.left$  # if equals, traverse left
+    ; otherwise -> ((Index LC diff >> dec) insert_locator) avl.right$
+    }
+  }
+} ;;
+
+eval new_ralist @public -> <*A ral.ralist> {
+  body: avl.new_tree d$ = *D,
+  d: D fs: ralist_fs ral.ralist$
+} ;;
+
+eval ralist_fs -> <*A ral.ralist_fs> {
+  empty?_f_: (^empty? value$)
+    length_f: ^length
+    elem_f: ^elem
+    first_f_: none$
+    last_f_: none$
+    tail_f_: none$
+    insert_at_f: ^insert_at
+    append_f_: none$
+    remove_at_f: ^remove_at
+    replace_at_f_: none$
+    take_f_: none$
+    drop_f_: none$
+    clear_f: ^clear
+    ral.ralist_fs$
+} ;;
+
+eval <*A ral.ralist_d+> *D empty? -> <bool> {
+  D length >> zero?
+} ;;
+
+eval <*A ral.ralist_d+> *D length -> <int> {
+  D = body: *Body *** d$,
+  Body avl.size
+} ;;
+
+eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
+  D = body: *Body *** d$,
+  Body (Index find_locator) avl.get
+} ;;
+
+eval <*A ral.ralist_d+> *D <int> *Index <A> *X insert_at -> <A ral.ralist_d+> {
+  D = body: *Body *** d$,
+  Body (Index insert_locator) X avl.put = (| *Body', none$ |),
+  body: Body' :: D d$
+} ;;
+
+eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe> tuple> {
+  D = body: *Body *** d$,
+  Body (Index find_locator) avl.remove >> case {
+  ; (| *Body', *Removed value$ |) -> (| body: Body' :: D d$, Removed value$ |)
+  ; ** -> (| D, none$ |)
+  }
+} ;;
+
+eval <*A ral.ralist_d+> *D clear -> <A ral.ralist_d+> {
+  body: avl.new_tree d$
+} ;;

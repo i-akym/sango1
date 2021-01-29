@@ -1,0 +1,253 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 Isao Akiyama                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.util.avltree.base" ;;
+
+import "sango.arith" -> arith ;;
+import "sango.tuple" -> tuple ;;
+
+data <*A tree> @protected :=
+  node_: <<A node> maybe>
+  aux_builder: <A aux_builder>
+  tree$ ;;
+
+data <*A node> @protected :=
+  assoc: <A>  # associated data
+  aux: <A aux+>  # aux info
+  size: <int>
+  depth: <int>
+  bal: <int>  # left depth - right depth
+  left_: <<A node> maybe>
+  right_: <<A node> maybe>
+  node$ ;;
+
+data <*A aux> @public := dummy_aux$ ;;  # to extend
+
+alias type <*A locator> @public := <<A node> <A locate> fun> ;;
+
+eval <*A> *Assoc <<A node> maybe> *Left_ <<A node> maybe> *Right_ dummy_aux @public -> <A aux> {
+  dummy_aux$
+} ;;
+
+# assoc x (left node) x (right node) -> aux
+alias type <*A aux_builder> @public := <A <<A node> maybe> <<A node> maybe> <A aux+> fun> ;;
+
+data <*A locate> @public :=
+| just$
+| <A locator> left$
+| <A locator> right$ ;;
+
+eval new_tree @public -> <*A tree> {
+  ^dummy_aux new_tree_with_aux
+} ;;
+
+eval <*A aux_builder> *AB new_tree_with_aux | new_tree @public -> <A tree> {
+  node_: none$
+    aux_builder: AB
+    tree$
+} ;;
+
+eval <*A> *X <A aux_builder> *AB new_leaf_node -> <A node> {
+  X none$ none$ AB new_node
+} ;;
+
+eval <*A> *X <<A node> maybe> *Left_ <<A node> maybe> *Right_ <A aux_builder> *AB new_node
+    -> <A node> {
+  Left_ subtree_depth = *LD,
+  Right_ subtree_depth = *RD,
+  assoc: X
+    aux: (X Left_ Right_ &AB)
+    size: ((Left_ subtree_size) (Right_ subtree_size) sum >> inc)
+    depth: ([ LD, RD ] arith.max >> value >> inc)
+    bal: (LD RD diff)
+    left_: Left_
+    right_: Right_
+    node$
+} ;;
+
+eval <*A tree> *Tree size @public -> <int> {
+  Tree node_ >> subtree_size
+} ;;
+
+eval <*A tree> *Tree <A locator> *Loc get @public -> <A maybe> {
+  Tree = node_: *Node_ *** tree$,
+  Node_ Loc get_in_subtree
+} ;;
+
+eval <<*A node> maybe> *Node_ <A locator> *Loc get_in_subtree -> <A maybe> {
+  Node_ case {
+  ; *Node value$ ->
+    Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
+    Node &Loc >> case {
+    ; just$ -> Assoc value$
+    ; *Loc' left$ -> Left_ Loc' &&
+    ; *Loc' right$ -> Right_ Loc' &&
+    }
+  ; none$ -> none$
+  }
+} ;;
+
+eval <*A tree> *Tree <A locator> *Loc <A> *X put @public -> <<A tree> <A maybe> tuple> {
+  Tree = node_: *Node_ aux_builder: *AB *** tree$,
+  Node_ Loc X AB put_in_subtree = (| *Node', *Replaced_ |),
+  (| node_: (Node' value$) :: Tree tree$, Replaced_ |)
+} ;;
+
+eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB put_in_subtree
+    -> <<A node> <A maybe> tuple> {
+  Node_ case {
+  ; *Node value$ ->
+    Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
+    Node &Loc >> case { 
+    ; just$ ->
+      (| X Left_ Right_ AB new_node, Assoc value$ |)
+    ; *Loc' left$ ->
+      Left_ Loc' X AB && = (| *Left', *Replaced_ |),
+      (| (Assoc (Left' value$) Right_ AB new_node) AB rebalance, Replaced_ |)
+    ; *Loc' right$ ->
+      Right_ Loc' X AB && = (| *Right', *Replaced_ |),
+      (| (Assoc Left_ (Right' value$) AB new_node) AB rebalance, Replaced_ |)
+    }
+  ; none$ ->
+    (| X AB new_leaf_node, none$ |)
+  }
+} ;;
+
+eval <*A tree> *Tree <A locator> *Loc remove @public -> <<A tree> <A maybe> tuple> {
+  Tree = node_: *Node_ aux_builder: *AB *** tree$,
+  Node_ Loc AB remove_in_subtree >> case {
+  ; (| *Node_', *Removed |) value$ -> (| node_: Node_' :: Tree tree$, Removed value$ |)
+  ; none$ -> (| Tree, none$ |)
+  }
+} ;;
+
+eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB remove_in_subtree
+    -> <<<<A node> maybe> A tuple> maybe> {
+  Node_ case {
+  ; *Node value$ ->
+    Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
+    Node &Loc >> case { 
+    ; just$ ->
+      (| Left_, Right_ |) case {
+      ; (| none$, none$ |) -> (| none$, Assoc |) value$
+      ; (| none$, ** |) -> (| Right_, Assoc |) value$
+      ; (| **, none$ |) -> (| Left_, Assoc |) value$
+      ; (| **, *Right value$ |) ->
+        Right AB cut_leftmost = (| *Assoc', *Right_' |),
+        (| ((Assoc' Left_ Right_' AB new_node) AB rebalance) value$, Assoc |) value$
+      }
+    ; *Loc' left$ ->
+      Left_ Loc' AB && >> case {
+      ; (| *Left_', *Removed |) value$ ->
+        (| ((Assoc Left_' Right_ AB new_node) AB rebalance) value$, Removed |) value$
+      ; none$ -> none$
+      }
+    ; *Loc' right$ ->
+      Right_ Loc' AB && >> case {
+      ; (| *Right_', *Removed |) value$ ->
+        (| ((Assoc Left_ Right_' AB new_node) AB rebalance) value$, Removed |) value$
+      ; none$ -> none$
+      }
+    }
+  ; none$ -> none$
+  }
+} ;;
+
+eval <*A tree> *Tree take @public -> <<A <A tree> tuple> maybe> {
+  Tree = node_: *Node_ aux_builder: *AB *** tree$,
+  Node_ AB take_in_subtree >> case {
+  ; (| *X, *Node_' |) value$ -> (| X, node_: Node_' :: Tree tree$ |) value$
+  ; none$ -> none$
+  }
+} ;;
+
+eval <<*A node> maybe> *Node_ <A aux_builder> *AB take_in_subtree
+    -> <<A <<A node> maybe> tuple> maybe> {
+  Node_ case {
+  ; *Node value$ -> (Node AB cut_leftmost) value$
+  ; none$ -> none$
+  }
+} ;;
+
+eval <*A node> *Node <A aux_builder> *AB cut_leftmost -> <A <<A node> maybe> tuple> {
+  Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
+  (| Left_, Right_ |) case {
+  ; (| none$, none$ |) -> (| Assoc, none$ |)
+  ; (| none$, ** |) -> (| Assoc, Right_ |)
+  ; (| *Left value$, ** |) ->
+    Left AB && = (| *A, *Left_' |),
+    (| A, ((Assoc Left_' Right_ AB new_node) AB rebalance) value$ |)
+  }
+} ;;
+
+eval <*A node> *Node <A aux_builder> *AB rebalance -> <A node> {
+  Node bal >> case {
+  ; 2 -> Node AB rebalance_heavy_left
+  ; 1 -> Node
+  ; 0 -> Node
+  ; -1 -> Node
+  ; -2 -> Node AB rebalance_heavy_right
+  }
+} ;;
+
+eval <*A node> *Node <A aux_builder> *AB rebalance_heavy_left -> <A node> {
+  Node = assoc: *Assoc left_: (*Left value$) right_: *Right_ *** node$,
+  Left bal >> case {
+  ; 1 -> Node AB rotate_right
+  ; 0 -> Node AB rotate_right
+  ; -1 -> (Assoc ((Left AB rotate_left) value$) Right_ AB new_node) AB rotate_right
+  }
+} ;;
+
+eval <*A node> *Node <A aux_builder> *AB rebalance_heavy_right -> <A node> {
+  Node = assoc: *Assoc left_: *Left_ right_: (*Right value$) *** node$,
+  Right bal >> case {
+  ; 1 -> (Assoc Left_ ((Right AB rotate_right) value$) AB new_node) AB rotate_left
+  ; 0 -> Node AB rotate_left
+  ; -1 -> Node AB rotate_left
+  }
+} ;;
+
+eval <*A node> *Node <A aux_builder> *AB rotate_left -> <A node> {
+  Node = assoc: *Assoc left_: *Left_ right_: (*Right value$) *** node$,
+  (Right assoc) ((Assoc Left_ (Right left_) AB new_node) value$) (Right right_) AB new_node
+} ;;
+
+eval <*A node> *Node <A aux_builder> *AB rotate_right -> <A node> {
+  Node = assoc: *Assoc left_: (*Left value$) right_: *Right_ *** node$,
+   (Left assoc) (Left left_) ((Assoc (Left right_) Right_ AB new_node) value$) AB new_node
+} ;;
+
+eval <<*A node> maybe> *Node_ subtree_size @public -> <int> {
+  Node_ case {
+  ; *Node value$ -> Node size
+  ; none$ -> 0
+  }
+} ;;
+
+eval <<*A node> maybe> *Node_ subtree_depth -> <int> {
+  Node_ case {
+  ; *Node value$ -> Node depth
+  ; ** -> 0
+  }
+} ;;
