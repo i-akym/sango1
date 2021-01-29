@@ -156,6 +156,7 @@ kbd {
 <a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a>
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
+<a href="#sango.util.avltree.queue"><code>sango.util.avltree.queue</code></a>
 <a href="#sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></a>
 <a href="#sango.util.avltree.set"><code>sango.util.avltree.set</code></a>
 <a href="#sango.util.bag"><code>sango.util.bag</code></a>
@@ -2759,7 +2760,8 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree"><code>sango.util.avltree</code> 【Deprecated】</h1>
 
-<p>AVL木の構造をしたマップを提供します。キーは順序付け可能でなければなりません。</p>
+<p>AVL木の構造をしたマップを提供します。
+  キーは順序付け可能でなければなりません。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A *B tree&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>のキーに対する<code>&lt;B&gt;</code>の値を持つマップを表します。</p>
@@ -2815,12 +2817,12 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code></h1>
 
-<p>AVL木を配列として使用するための機能を提供します。</p>
+<p>AVL木による配列の実装です。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A enum.enum&gt; *Enum
   &lt;A *B fun&gt; *Supplier
   &lt;&lt;B &lt;B bool fun&gt; tuple&gt; maybe&gt; *Compact_ 
-  new_array @public -&gt; &lt;A B array.array&gt; ;;</code></td></tr></table>
+  new_array @public -&gt; &lt;A B &quot;sango.util.array&quot;.array&gt; ;;</code></td></tr></table>
 <p>配列を生成します。<code>Enum</code>には指標を指定します。<code>Supplier</code>には，指標に対する要素の初期値を返す関数を指定します。</p>
 <p><code>Compact_<code>には，配列のメモリサイズを小さくする設定を指定します。
   本機能は，タプルの第一要素（以降，C）をAVL木の内部データとして作成することを抑制します。
@@ -2833,33 +2835,44 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.bag"><code>sango.util.avltree.bag</code></h1>
 
-<p>AVL木をバッグとして使用するための機能を提供します。</p>
+<p>AVL木によるバッグの実装です。
+  値は順序付け可能でなければなりません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_bag @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_bag @public -&gt; &lt;A &quot;sango.util.bag&quot;.bag&gt; ;;</code></td></tr></table>
 <p>空のバッグを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.map"><code>sango.util.avltree.map</code></h1>
 
-<p>AVL木をマップとして使用するための機能を提供します。</p>
+<p>AVL木によるマップの実装です。
+  キーは順序付け可能でなければなりません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_map @public -&gt; &lt;A *B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
 <p>空のマップを生成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.avltree.queue"><code>sango.util.avltree.queue</code></h1>
+
+<p>AVL木によるキューの実装です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_queue -&gt; &lt;*A &quot;sango.util.queue&quot;.queue&gt; ;;</code></td></tr></table>
+<p>空のキューを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></h1>
 
-<p>AVL木をランダム・アクセス・リストとして使用するための機能を提供します。</p>
+<p>AVL木によるランダム・アクセス・リストの実装です。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval new_ralist @public -&gt; &lt;*A ral.ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval new_ralist @public -&gt; &lt;*A &quot;sango.util.ralist&quot;.ralist&gt; ;;</code></td></tr></table>
 <p>空のランダム・アクセス・リストを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.set"><code>sango.util.avltree.set</code></h1>
 
-<p>AVL木をセットとして使用するための機能を提供します。</p>
+<p>AVL木によるセットの実装です。
+  値は順序付け可能でなければなりません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_set @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_set @public -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
 <p>空のセットを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

@@ -1670,7 +1670,9 @@ M6 map.size = 4</code></blockquote>
 <h2 id="20.5">20.5. キュー</h2>
 <p>先入れ先出し（First In First Out，FIFO）のコレクションです。
   値の追加と取り出しが可能です。
-  <code>&quot;sango.util.queue&quot;</code>モジュールからキューのフレームワークが，<code>&quot;sango.util.queue.simplequeue&quot;</code>モジュールから単純な実装であるsimple queueが提供されています。</p>
+  <code>&quot;sango.util.queue&quot;</code>モジュールからキューのフレームワークが，<code>&quot;sango.util.queue.simplequeue&quot;</code>モジュールから単純な実装であるsimple queueが提供されています。
+  simple queueは，値を取り出すときに長さに比例したコストがかかることがあります。
+  定常的に長いキューを扱う場合には<code>&quot;sango.util.avltree.queue&quot;</code>を使用すると効率が改善する可能性があります。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.6">20.6. スタック</h2>
