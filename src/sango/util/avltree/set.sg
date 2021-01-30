@@ -42,6 +42,16 @@ eval <*A ord_fs> *Ord <A> *X locator -> <<A avl.node> <A avl.locate> fun> {
   }
 } ;;
 
+eval <*A ord_fs> *Ord <A> *X put_new_locator -> <<A avl.node> <A avl.locate> fun> {
+  \ <A avl.node> *N -> <A avl.locate> { 
+    X (N avl.assoc) Ord compare >> case {
+    ; lt$ -> ^^ avl.left$
+    ; eq$ -> "" avl.abort$
+    ; gt$ -> ^^ avl.right$
+    }
+  }
+} ;;
+
 eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
   ord: Ord body: avl.new_tree d$ = *D,
   d: D fs: set_fs set.set$
@@ -73,7 +83,10 @@ eval <*A set.set_d+> *Set_d size -> <int> {
 
 eval <*A set.set_d+> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) avl.get
+  Body (Ord Elem locator) avl.get >> case {
+  ; *E avl.get_done$ -> E value$
+  ; ** -> none$
+  }
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem contain? -> <bool> {
@@ -82,14 +95,17 @@ eval <*A set.set_d+> *Set_d <A> *Elem contain? -> <bool> {
 
 eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) Elem avl.put = (| *Body', *Replaced_ |),
-  (| body: Body' :: Set_d d$, Replaced_ |)
+  Body (Ord Elem locator) Elem avl.put >> case {
+  ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, none$ |)
+  ; *Body' *Replaced avl.put_replace_done$ -> (| body: Body' :: Set_d d$, Replaced value$ |)
+  }
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem put_new -> <<A set.set_d+> bool tuple> {
-  Set_d Elem put >> case {
-  ; (| **, ** value$|) -> (| Set_d, false$ |)
-  ; (| *Set_d', none$ |) -> (| Set_d', true$ |)
+  Set_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Elem put_new_locator) Elem avl.put >> case {
+  ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, true$ |)
+  ; ** avl.put_aborted$ -> (| Set_d, false$ |)
   }
 } ;;
 
@@ -99,8 +115,10 @@ eval <*A set.set_d+> *Set_d <A> *Elem add -> <A set.set_d+> {
 
 eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) avl.remove = (| *Body', *Removed_ |),
-  (| body: Body' :: Set_d d$, Removed_ |)
+  Body (Ord Elem locator) avl.remove >> case {
+  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Set_d d$, Removed value$ |)
+  ; avl.remove_not_found$ -> (| Set_d, none$ |)
+  }
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem delete -> <A set.set_d+> {

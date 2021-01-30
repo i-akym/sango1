@@ -115,15 +115,17 @@ eval <*A bag.bag_d+> *Bag_d <A> *Elem contain? -> <bool> {
 eval <*A bag.bag_d+> *Bag_d <A> *Elem get_all -> <A list> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
-  ; *Elems value$ -> Elems
-  ; none$ -> []
+  ; *Elems avl.get_done$ -> Elems
+  ; ** -> []
   }
 } ;;
 
 eval <*A bag.bag_d+> *Bag_d <A> *Elem add -> <A bag.bag_d+> {
   Bag_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put = (| *Body', ** |),
-  body: Body' :: Bag_d d$
+  Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put >> case {
+  ; *Body' avl.put_new_done$ -> body: Body' :: Bag_d d$
+  ; *Body' ** avl.put_replace_done$ -> body: Body' :: Bag_d d$
+  }
 } ;;
 
 eval <*A bag.bag_d+> *Bag_d <A> *Elem remove -> <<A bag.bag_d+> <A maybe> tuple> {
@@ -132,22 +134,20 @@ eval <*A bag.bag_d+> *Bag_d <A> *Elem remove -> <<A bag.bag_d+> <A maybe> tuple>
   ; [] ->
     (| Bag_d, none$ |)
   ; [ *E ] ->
-    Body (Ord Elem locator) avl.remove = (| *Body', ** value$ |),
+    Body (Ord Elem locator) avl.remove = *Body' ** avl.remove_done$,
     (| body: Body' :: Bag_d d$, E value$ |)
   ; [ *E ; *Es ] -> 
-    Body (Ord Elem locator) Es avl.put = (| *Body', ** value$ |),
+    Body (Ord Elem locator) Es avl.put = *Body' ** avl.put_replace_done$,
     (| body: Body' :: Bag_d d$, E value$ |)
   }
 } ;;
 
 eval <*A bag.bag_d+> *Bag_d <A> *Elem remove_all -> <<A bag.bag_d+> <A list> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) avl.remove = (| *Body', *Removed_ |),
-  Removed_ case {
-  ; *Removed value$ -> Removed
-  ; none$ -> []
-  } = *Removed_list,
-  (| body: Body' :: Bag_d d$, Removed_list |)
+  Body (Ord Elem locator) avl.remove >> case {
+  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Bag_d d$, Removed |)
+  ; avl.remove_not_found$ -> (| Bag_d, [] |)
+  }
 } ;;
 
 eval <*A bag.bag_d+> *Bag_d <A> *Elem delete -> <A bag.bag_d+> {

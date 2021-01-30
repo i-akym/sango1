@@ -55,7 +55,33 @@ alias type <*A aux_builder> @public := <A <<A node> maybe> <<A node> maybe> <A a
 data <*A locate> @public :=
 | just$
 | <A locator> left$
-| <A locator> right$ ;;
+| <A locator> right$
+| <cstr> abort$ ;;  # can return reason of abortion
+
+data <*A get_res> @public :=
+| <A> get_done$
+| get_not_found$
+| <cstr> get_aborted$ ;;
+
+data <*A put_res> @public :=
+| <A tree> put_new_done$
+| <A tree> <A> put_replace_done$
+| <cstr> put_aborted$ ;;
+
+data <*A iput_res> :=  # internal
+| <A node> iput_new_done$
+| <A node> <A> iput_replace_done$
+| <cstr> iput_aborted$ ;;
+
+data <*A remove_res> @public :=
+| <A tree> <A> remove_done$
+| remove_not_found$
+| <cstr> remove_aborted$ ;;
+
+data <*A iremove_res> :=  # internal
+| <<A node> maybe> <A> iremove_done$
+| iremove_not_found$
+| <cstr> iremove_aborted$ ;;
 
 eval new_tree @public -> <*A tree> {
   ^dummy_aux new_tree_with_aux
@@ -89,87 +115,102 @@ eval <*A tree> *Tree size @public -> <int> {
   Tree node_ >> subtree_size
 } ;;
 
-eval <*A tree> *Tree <A locator> *Loc get @public -> <A maybe> {
+eval <*A tree> *Tree <A locator> *Loc get @public -> <A get_res> {
   Tree = node_: *Node_ *** tree$,
   Node_ Loc get_in_subtree
 } ;;
 
-eval <<*A node> maybe> *Node_ <A locator> *Loc get_in_subtree -> <A maybe> {
+eval <<*A node> maybe> *Node_ <A locator> *Loc get_in_subtree -> <A get_res> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
     Node &Loc >> case {
-    ; just$ -> Assoc value$
+    ; just$ -> Assoc get_done$
     ; *Loc' left$ -> Left_ Loc' &&
     ; *Loc' right$ -> Right_ Loc' &&
+    ; *Reason abort$ -> Reason get_aborted$
     }
-  ; none$ -> none$
+  ; none$ -> get_not_found$
   }
 } ;;
 
-eval <*A tree> *Tree <A locator> *Loc <A> *X put @public -> <<A tree> <A maybe> tuple> {
+eval <*A tree> *Tree <A locator> *Loc <A> *X put @public -> <A put_res> {
   Tree = node_: *Node_ aux_builder: *AB *** tree$,
-  Node_ Loc X AB put_in_subtree = (| *Node', *Replaced_ |),
-  (| node_: (Node' value$) :: Tree tree$, Replaced_ |)
+  Node_ Loc X AB put_in_subtree >> case {
+  ; *Node' iput_new_done$ -> (node_: (Node' value$) :: Tree tree$) put_new_done$
+  ; *Node' *Replaced iput_replace_done$ -> (node_: (Node' value$) :: Tree tree$) Replaced put_replace_done$
+  ; *Reason iput_aborted$ -> Reason put_aborted$
+  }
 } ;;
 
-eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB put_in_subtree
-    -> <<A node> <A maybe> tuple> {
+eval <<*A node> maybe> *Node_ <A locator> *Loc <A> *X <A aux_builder> *AB put_in_subtree -> <A iput_res> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
     Node &Loc >> case { 
     ; just$ ->
-      (| X Left_ Right_ AB new_node, Assoc value$ |)
+      (X Left_ Right_ AB new_node) Assoc iput_replace_done$
     ; *Loc' left$ ->
-      Left_ Loc' X AB && = (| *Left', *Replaced_ |),
-      (| (Assoc (Left' value$) Right_ AB new_node) AB rebalance, Replaced_ |)
+      Left_ Loc' X AB && >> case {
+      ; *Left' iput_new_done$ ->
+        ((Assoc (Left' value$) Right_ AB new_node) AB rebalance) iput_new_done$
+      ; *Left' *Replaced iput_replace_done$ ->
+        ((Assoc (Left' value$) Right_ AB new_node) AB rebalance) Replaced iput_replace_done$
+      ; *Aborted -> Aborted
+      }
     ; *Loc' right$ ->
-      Right_ Loc' X AB && = (| *Right', *Replaced_ |),
-      (| (Assoc Left_ (Right' value$) AB new_node) AB rebalance, Replaced_ |)
+      Right_ Loc' X AB && >> case {
+      ; *Right' iput_new_done$ ->
+        ((Assoc Left_ (Right' value$) AB new_node) AB rebalance) iput_new_done$
+      ; *Right' *Replaced iput_replace_done$ ->
+        ((Assoc Left_ (Right' value$) AB new_node) AB rebalance) Replaced iput_replace_done$
+      ; *Aborted -> Aborted
+      }
+    ; *Reason abort$ -> Reason iput_aborted$
     }
   ; none$ ->
-    (| X AB new_leaf_node, none$ |)
+    (X AB new_leaf_node) iput_new_done$
   }
 } ;;
 
-eval <*A tree> *Tree <A locator> *Loc remove @public -> <<A tree> <A maybe> tuple> {
+eval <*A tree> *Tree <A locator> *Loc remove @public -> <A remove_res> {
   Tree = node_: *Node_ aux_builder: *AB *** tree$,
   Node_ Loc AB remove_in_subtree >> case {
-  ; (| *Node_', *Removed |) value$ -> (| node_: Node_' :: Tree tree$, Removed value$ |)
-  ; none$ -> (| Tree, none$ |)
+  ; *Node_' *Removed iremove_done$ -> (node_: Node_' :: Tree tree$) Removed remove_done$
+  ; iremove_not_found$ -> remove_not_found$
+  ; *Reason iremove_aborted$ -> Reason remove_aborted$
   }
 } ;;
 
-eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB remove_in_subtree
-    -> <<<<A node> maybe> A tuple> maybe> {
+eval <<*A node> maybe> *Node_ <A locator> *Loc <A aux_builder> *AB remove_in_subtree -> <A iremove_res> {
   Node_ case {
   ; *Node value$ ->
     Node = assoc: *Assoc left_: *Left_ right_: *Right_ *** node$,
     Node &Loc >> case { 
     ; just$ ->
       (| Left_, Right_ |) case {
-      ; (| none$, none$ |) -> (| none$, Assoc |) value$
-      ; (| none$, ** |) -> (| Right_, Assoc |) value$
-      ; (| **, none$ |) -> (| Left_, Assoc |) value$
+      ; (| none$, none$ |) -> none$ Assoc iremove_done$
+      ; (| none$, ** |) -> Right_ Assoc iremove_done$
+      ; (| **, none$ |) -> Left_ Assoc iremove_done$
       ; (| **, *Right value$ |) ->
         Right AB cut_leftmost = (| *Assoc', *Right_' |),
-        (| ((Assoc' Left_ Right_' AB new_node) AB rebalance) value$, Assoc |) value$
+        (((Assoc' Left_ Right_' AB new_node) AB rebalance) value$) Assoc iremove_done$
       }
     ; *Loc' left$ ->
       Left_ Loc' AB && >> case {
-      ; (| *Left_', *Removed |) value$ ->
-        (| ((Assoc Left_' Right_ AB new_node) AB rebalance) value$, Removed |) value$
-      ; none$ -> none$
+      ; *Left_' *Removed iremove_done$ ->
+        (((Assoc Left_' Right_ AB new_node) AB rebalance) value$) Removed iremove_done$
+      ; *Not_found_or_aborted -> Not_found_or_aborted
       }
     ; *Loc' right$ ->
       Right_ Loc' AB && >> case {
-      ; (| *Right_', *Removed |) value$ ->
-        (| ((Assoc Left_ Right_' AB new_node) AB rebalance) value$, Removed |) value$
-      ; none$ -> none$
+      ; *Right_' *Removed iremove_done$ ->
+        (((Assoc Left_ Right_' AB new_node) AB rebalance) value$) Removed iremove_done$
+      ; *Not_found_or_aborted -> Not_found_or_aborted
       }
+    ; *Reason abort$ -> Reason iremove_aborted$
     }
-  ; none$ -> none$
+  ; none$ -> iremove_not_found$
   }
 } ;;
 

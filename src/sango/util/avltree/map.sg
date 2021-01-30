@@ -43,6 +43,16 @@ eval <*A ord_fs> *Ord <A> *K locator -> <<<A *B tuple> avl.node> <<A B tuple> av
   }
 } ;;
 
+eval <*A ord_fs> *Ord <A> *K put_new_locator -> <<<A *B tuple> avl.node> <<A B tuple> avl.locate> fun> {
+  \ <<A *BB tuple> avl.node> *N -> <<A BB tuple> avl.locate> { 
+    K (N avl.assoc >> tuple.pair_first) Ord compare >> case {
+    ; lt$ -> ^^ avl.left$
+    ; eq$ -> "" avl.abort$
+    ; gt$ -> ^^ avl.right$
+    }
+  }
+} ;;
+
 eval map_fs @public -> <*A *B map.map_fs> {
   empty?_f: ^empty?
   size_f: ^size
@@ -75,7 +85,10 @@ eval <*A *B map.map_d+> *Map_d size -> <int> {
 
 eval <*A *B map.map_d+> *Map_d <A> *Key get -> <<A B tuple> maybe> {
   Map_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Key locator) avl.get
+  Body (Ord Key locator) avl.get >> case {
+  ; *KV avl.get_done$ -> KV value$
+  ; ** -> none$
+  }
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key assoc -> <B maybe> {
@@ -88,14 +101,17 @@ eval <*A *B map.map_d+> *Map_d <A> *Key contain_key? -> <bool> {
 
 eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value put -> <<A B map.map_d+> <<A B tuple> maybe> tuple> {
   Map_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Key locator) (| Key, Value |) avl.put = (| *Body', *KV_ |),
-  (| body: Body' :: Map_d d$, KV_ |)
+  Body (Ord Key locator) (| Key, Value |) avl.put >> case {
+  ; *Body' avl.put_new_done$ -> (| body: Body' :: Map_d d$, none$ |)
+  ; *Body' *KV avl.put_replace_done$ -> (| body: Body' :: Map_d d$, KV value$ |)
+  }
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value put_new -> <<A B map.map_d+> bool tuple> {
-  Map_d Key Value put >> case {
-  ; (| **, ** value$ |) -> (| Map_d, false$ |)
-  ; (| *Map_d', none$ |) -> (| Map_d', true$ |)
+  Map_d = ord: *Ord body: *Body *** d$,
+  Body (Ord Key put_new_locator) (| Key, Value |) avl.put >> case {
+  ; *Body' avl.put_new_done$ -> (| body: Body' :: Map_d d$, true$ |)
+  ; ** avl.put_aborted$ -> (| Map_d, false$ |)
   }
 } ;;
 
@@ -105,8 +121,10 @@ eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value add -> <A B map.map_d+> {
 
 eval <*A *B map.map_d+> *Map_d <A> *Key remove -> <<A B map.map_d+> <<A B tuple> maybe> tuple> {
   Map_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Key locator) avl.remove = (| *Body', *Removed_ |),
-  (| body: Body' :: Map_d d$, Removed_ |)
+  Body (Ord Key locator) avl.remove >> case {
+  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Map_d d$, Removed value$ |)
+  ; avl.remove_not_found$ -> (| Map_d, none$ |)
+  }
 } ;;
 
 eval <*A *B map.map_d+> *Map_d <A> *Key delete -> <A B map.map_d+> {
