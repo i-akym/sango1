@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree" ;;
+module @deprecated "sango.util.avltree" ;;
 
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;

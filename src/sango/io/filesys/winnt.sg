@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.io.filesys.winnt" ;;
+module @beta "sango.io.filesys.winnt" ;;
 
 import "sango.cstr" -> cstr ;;
 import "sango.io" -> io ;;

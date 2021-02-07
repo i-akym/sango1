@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree.ralist" ;;
+module @alpha "sango.util.avltree.ralist" ;;
 
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.ralist" -> ral ;;

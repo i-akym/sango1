@@ -110,6 +110,7 @@ public class Module {
 
   static final String ATTR_ACC = "acc";
   static final String ATTR_ATTR_COUNT = "attr_count";
+  static final String ATTR_AVAILABILITY = "availability";
   static final String ATTR_BASE_MOD_INDEX = "base_mod_index";
   static final String ATTR_BASE_TCON = "base_tcon";
   static final String ATTR_DCON = "dcon";
@@ -138,11 +139,22 @@ public class Module {
   static final String REPR_PROTECTED = "protected";
   static final String REPR_OPAQUE = "opaque";
   static final String REPR_PRIVATE = "private";
+  static final String REPR_GENERAL = "general";
+  static final String REPR_ALPHA = "alpha";
+  static final String REPR_BETA = "beta";
+  static final String REPR_LIMITED = "limited";
+  static final String REPR_DEPRECATED = "deprecated";
 
   public static final int ACC_PUBLIC = 1;
   public static final int ACC_PROTECTED = 2;
   public static final int ACC_OPAQUE = 4;
   public static final int ACC_PRIVATE = 8;
+
+  public static final int AVAILABILITY_GENERAL = 0;
+  public static final int AVAILABILITY_ALPHA = 1;
+  public static final int AVAILABILITY_BETA = 2;
+  public static final int AVAILABILITY_LIMITED = 7;
+  public static final int AVAILABILITY_DEPRECATED = 9;
 
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;
@@ -150,6 +162,7 @@ public class Module {
   static final String CUR_FORMAT_VERSION = "1.0";
 
   Cstr name;
+  int availability;
   int slotCount;
   Cstr[] modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
@@ -168,6 +181,8 @@ public class Module {
   Class<?> nativeImplClass;
 
   private Module() {}
+
+  public int getAvailability() { return this.availability; }
 
   public int getSlotCount() { return this.slotCount; }
 
@@ -265,6 +280,28 @@ public class Module {
         throw new FormatException("Invalid module name: " + modName);
       }
     }
+
+    int av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      String sAvailability = aAvailability.getNodeValue();
+      if (sAvailability.equals(REPR_GENERAL)) {
+        av = AVAILABILITY_GENERAL;
+      } else if (sAvailability.equals(REPR_ALPHA)) {
+        av = AVAILABILITY_ALPHA;
+      } else if (sAvailability.equals(REPR_BETA)) {
+        av = AVAILABILITY_BETA;
+      } else if (sAvailability.equals(REPR_LIMITED)) {
+        av = AVAILABILITY_LIMITED;
+      } else if (sAvailability.equals(REPR_DEPRECATED)) {
+        av = AVAILABILITY_DEPRECATED;
+      } else {
+        throw new FormatException("Invalid " + ATTR_AVAILABILITY + ": " + sAvailability);
+      }
+    }
+    // /* DEBUG */ System.out.print("avilability = ");
+    // /* DEBUG */ System.out.println(av);
+    builder.setAvailability(av);
 
     int slotCount = 1;
     Node aSlotCount = attrs.getNamedItem(ATTR_SLOT_COUNT);
@@ -1112,6 +1149,22 @@ public class Module {
     if (this.name != null) {
       moduleNode.setAttribute(ATTR_NAME, this.name.toJavaString());
     }
+    switch (this.availability) {
+    case AVAILABILITY_GENERAL:
+      break;
+    case AVAILABILITY_ALPHA:
+      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_ALPHA);
+      break;
+    case AVAILABILITY_BETA:
+      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_BETA);
+      break;
+    case AVAILABILITY_LIMITED:
+      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_LIMITED);
+      break;
+    case AVAILABILITY_DEPRECATED:
+      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_DEPRECATED);
+      break;
+    }
     if (this.slotCount != 0) {
       moduleNode.setAttribute(ATTR_SLOT_COUNT, Integer.toString(this.slotCount));
     }
@@ -1314,6 +1367,10 @@ public class Module {
 
     void setName(Cstr name) {
       this.mod.name = name;
+    }
+
+    void setAvailability(int availability) {
+      this.mod.availability = availability;
     }
 
     void setSlotCount(int n) {

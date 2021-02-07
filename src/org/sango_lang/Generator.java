@@ -71,6 +71,7 @@ class Generator {
 
   void generateModInfo() {
     this.modBuilder.setName(this.parser.mod.definedName);
+    this.modBuilder.setAvailability(this.parser.mod.availability);
     this.modBuilder.setSlotCount((this.parser.mod.isInitFunDefined())? 2: 1);
   }
 

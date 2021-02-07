@@ -57,8 +57,20 @@ class PModule extends PDefaultProgElem implements PDefDict {
   static final int ACC_DEFAULT_FOR_EXTEND = Module.ACC_PRIVATE;
   static final int ACC_DEFAULT_FOR_ALIAS = Module.ACC_PRIVATE;
 
+  static final String AVAILABILITY_WORD_GENERAL = "@general";
+  static final String AVAILABILITY_WORD_ALPHA = "@alpha";
+  static final String AVAILABILITY_WORD_BETA = "@beta";
+  static final String AVAILABILITY_WORD_LIMITED = "@limited";
+  static final String AVAILABILITY_WORD_DEPRECATED = "@deprecated";
+  static final String AVAILABILITY_WORDX_GENERAL = "general";
+  static final String AVAILABILITY_WORDX_ALPHA = "alpha";
+  static final String AVAILABILITY_WORDX_BETA = "beta";
+  static final String AVAILABILITY_WORDX_LIMITED = "limited";
+  static final String AVAILABILITY_WORDX_DEPRECATED = "deprecated";
+
   Compiler theCompiler;
   Parser.SrcInfo modDefSrcInfo;
+  int availability;
   Cstr definedName;  // maybe null
   Cstr name;
   String myId;
@@ -164,6 +176,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
       this.mod.srcInfo = si;
     }
 
+    void setAvailability(int availability) {
+      this.mod.availability = availability;
+    }
+
     void setDefinedName(Cstr name) throws CompileException {
       StringBuffer emsg;
       if (this.requiredName != null && !name.equals(this.requiredName)) {
@@ -263,6 +279,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (name != null) {
       builder.setDefinedName(name);
     }
+    builder.setAvailability(acceptXAvailabilityAttr(elem));
     String id = elem.getAttrValueAsId("id");
     if (id != null) {
       builder.setMyId(id);
@@ -311,6 +328,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       return;
     }
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("No module name at ");
@@ -418,6 +436,63 @@ class PModule extends PDefaultProgElem implements PDefDict {
       throw new CompileException(emsg.toString());
     }
     return a;
+  }
+
+  static int acceptAvailability(ParserA.TokenReader reader) throws CompileException, IOException {
+    ParserA.Token a = ParserA.acceptSpecialWord(reader, ParserA.SPACE_NEEDED);
+    int av;
+    if (a == null) {
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_GENERAL)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_ALPHA)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_ALPHA;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_BETA)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_BETA;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_LIMITED)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_LIMITED;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_DEPRECATED)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_DEPRECATED;
+    } else {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Invalid availability descriptor at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(". - ");
+      emsg.append(a.value.token);
+      throw new CompileException(emsg.toString());
+    }
+    return av;
+  }
+
+  static int acceptXAvailabilityAttr(ParserB.Elem elem) throws CompileException {
+    int av;
+    String avail = elem.getAttrValue("availability");
+    if (avail == null) {
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (avail.equals(AVAILABILITY_WORDX_GENERAL)) {
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (avail.equals(AVAILABILITY_WORDX_ALPHA)) {
+      av = Module.AVAILABILITY_ALPHA;
+    } else if (avail.equals(AVAILABILITY_WORDX_BETA)) {
+      av = Module.AVAILABILITY_BETA;
+    } else if (avail.equals(AVAILABILITY_WORDX_LIMITED)) {
+      av = Module.AVAILABILITY_LIMITED;
+    } else if (avail.equals(AVAILABILITY_WORDX_DEPRECATED)) {
+      av = Module.AVAILABILITY_DEPRECATED;
+    } else {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Invalid availability descriptor at ");
+      emsg.append(elem.getSrcInfo().toString());
+      emsg.append(". - ");
+      emsg.append(avail);
+      throw new CompileException(emsg.toString());
+    }
+    return av;
   }
 
   static ParserA.Token acceptWildCard(ParserA.TokenReader reader, int spc) throws CompileException, IOException {

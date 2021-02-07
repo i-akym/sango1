@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.net.inet" ;;
+module @alpha "sango.net.inet" ;;
 
 import "sango.entity" -> ent ;;
 import "sango.net.socket" -> soc ;;
