@@ -1149,21 +1149,8 @@ public class Module {
     if (this.name != null) {
       moduleNode.setAttribute(ATTR_NAME, this.name.toJavaString());
     }
-    switch (this.availability) {
-    case AVAILABILITY_GENERAL:
-      break;
-    case AVAILABILITY_ALPHA:
-      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_ALPHA);
-      break;
-    case AVAILABILITY_BETA:
-      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_BETA);
-      break;
-    case AVAILABILITY_LIMITED:
-      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_LIMITED);
-      break;
-    case AVAILABILITY_DEPRECATED:
-      moduleNode.setAttribute(ATTR_AVAILABILITY, REPR_DEPRECATED);
-      break;
+    if (this.availability != AVAILABILITY_GENERAL) {
+      moduleNode.setAttribute(ATTR_AVAILABILITY, reprOfAvailability(this.availability));
     }
     if (this.slotCount != 0) {
       moduleNode.setAttribute(ATTR_SLOT_COUNT, Integer.toString(this.slotCount));
@@ -1644,7 +1631,7 @@ public class Module {
   }
 
   static String reprOfAcc(int acc) {
-    String r = null;
+    String r;
     switch (acc) {
     case ACC_PUBLIC:
       r = REPR_PUBLIC;
@@ -1657,6 +1644,33 @@ public class Module {
       break;
     case ACC_PRIVATE:
       r = REPR_PRIVATE;
+      break;
+    default:
+      throw new IllegalArgumentException();
+    }
+    return r;
+  }
+
+  static String reprOfAvailability(int availability) {
+    String r;
+    switch (availability) {
+    case AVAILABILITY_GENERAL:
+      r = REPR_GENERAL;
+      break;
+    case AVAILABILITY_ALPHA:
+      r = REPR_ALPHA;
+      break;
+    case AVAILABILITY_BETA:
+      r = REPR_BETA;
+      break;
+    case AVAILABILITY_LIMITED:
+      r = REPR_LIMITED;
+      break;
+    case AVAILABILITY_DEPRECATED:
+      r = REPR_DEPRECATED;
+      break;
+    default:
+      throw new IllegalArgumentException();
     }
     return r;
   }

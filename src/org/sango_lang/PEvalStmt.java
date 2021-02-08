@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PEvalStmt extends PDefaultProgElem implements PFunDef {
+  int availability;  // Module.AVAILABILITY_xxx
   PVarDef[] params;
   String official;
   String[] aliases;
@@ -86,6 +87,10 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.eval.srcInfo = si;
+    }
+
+    void setAvailability(int availability) {
+      this.eval.availability = availability;
     }
 
     void addParam(PVarDef param) {
@@ -151,6 +156,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader));
     PExprId official = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED);
     if (official == null) {

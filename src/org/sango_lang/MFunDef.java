@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 
 public class MFunDef implements Module.Elem {
   String name;
+  int availability;
   int acc;
   String[] aliases;
   MType[] paramTypes;
@@ -54,6 +55,10 @@ public class MFunDef implements Module.Elem {
 
     void setName(String name) {
       this.funDef.name = name;
+    }
+
+    void setAvailability(int availability) {
+      this.funDef.availability = availability;
     }
 
     void setAcc(int acc) {
@@ -82,6 +87,9 @@ public class MFunDef implements Module.Elem {
   public Element externalize(Document doc) {
     Element funDefNode = doc.createElement(Module.TAG_FUN_DEF);
     funDefNode.setAttribute(Module.ATTR_NAME, this.name);
+    if (this.availability != Module.AVAILABILITY_GENERAL) {
+      funDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
+    }
     if (this.acc != Module.ACC_PRIVATE) {
       funDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
     }
