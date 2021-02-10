@@ -195,6 +195,7 @@ class PCompiledModule implements PDefDict {
 
   DataDef convertDataDef(Module mod, MDataDef dataDef, List<PTypeRefSkel> unresolvedTypeRefList) {
     DataDef dd = new DataDef();
+    dd.availability = dataDef.availability;
     dd.sigTcon = dataDef.tcon;
     dd.sigParams = (dataDef.paramCount >= 0)? new PTypeVarSkel[dataDef.paramCount]: null;
     dd.acc = dataDef.acc;
@@ -219,6 +220,7 @@ class PCompiledModule implements PDefDict {
   }
 
   class DataDef implements PDataDef {
+    int availability;
     PTypeSkel sig;  // lazy setup
     String sigTcon;
     PTypeVarSkel[] sigParams;
@@ -261,6 +263,8 @@ class PCompiledModule implements PDefDict {
       }
       return this.sig;
     }
+
+    public int getAvailability() { return this.availability; }
 
     public int getAcc() { return this.acc; }
 

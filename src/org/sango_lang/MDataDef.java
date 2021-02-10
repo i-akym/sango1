@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 
 public class MDataDef implements Module.Elem {
   String tcon;
+  int availability;
   int acc;
   int paramCount;
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
@@ -53,6 +54,10 @@ public class MDataDef implements Module.Elem {
 
     void setTcon(String tcon) {
       this.dataDef.tcon = tcon;
+    }
+
+    void setAvailability(int availability) {
+      this.dataDef.availability = availability;
     }
 
     void setAcc(int acc) {
@@ -86,6 +91,9 @@ public class MDataDef implements Module.Elem {
     Element dataDefNode = doc.createElement(Module.TAG_DATA_DEF);
     dataDefNode.setAttribute(Module.ATTR_TCON, this.tcon);
     dataDefNode.setAttribute(Module.ATTR_PARAM_COUNT, Integer.toString(this.paramCount));
+    if (this.availability != Module.AVAILABILITY_GENERAL) {
+      dataDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
+    }
     if (this.acc != Module.ACC_PRIVATE) {
       dataDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
     }

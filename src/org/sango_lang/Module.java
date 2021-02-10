@@ -284,20 +284,21 @@ public class Module {
     int av = AVAILABILITY_GENERAL;
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
-      String sAvailability = aAvailability.getNodeValue();
-      if (sAvailability.equals(REPR_GENERAL)) {
-        av = AVAILABILITY_GENERAL;
-      } else if (sAvailability.equals(REPR_ALPHA)) {
-        av = AVAILABILITY_ALPHA;
-      } else if (sAvailability.equals(REPR_BETA)) {
-        av = AVAILABILITY_BETA;
-      } else if (sAvailability.equals(REPR_LIMITED)) {
-        av = AVAILABILITY_LIMITED;
-      } else if (sAvailability.equals(REPR_DEPRECATED)) {
-        av = AVAILABILITY_DEPRECATED;
-      } else {
-        throw new FormatException("Invalid " + ATTR_AVAILABILITY + ": " + sAvailability);
-      }
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+      // String sAvailability = aAvailability.getNodeValue();
+      // if (sAvailability.equals(REPR_GENERAL)) {
+        // av = AVAILABILITY_GENERAL;
+      // } else if (sAvailability.equals(REPR_ALPHA)) {
+        // av = AVAILABILITY_ALPHA;
+      // } else if (sAvailability.equals(REPR_BETA)) {
+        // av = AVAILABILITY_BETA;
+      // } else if (sAvailability.equals(REPR_LIMITED)) {
+        // av = AVAILABILITY_LIMITED;
+      // } else if (sAvailability.equals(REPR_DEPRECATED)) {
+        // av = AVAILABILITY_DEPRECATED;
+      // } else {
+        // throw new FormatException("Invalid " + ATTR_AVAILABILITY + ": " + sAvailability);
+      // }
     }
     // /* DEBUG */ System.out.print("avilability = ");
     // /* DEBUG */ System.out.println(av);
@@ -400,6 +401,14 @@ public class Module {
     // /* DEBUG */ System.out.print("tcon = ");
     // /* DEBUG */ System.out.println(aTcon.getNodeValue());
 
+    int av = AVAILABILITY_GENERAL;  // default
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+    // /* DEBUG */ System.out.print("availability = ");
+    // /* DEBUG */ System.out.println(av);
+
     int acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
@@ -434,9 +443,9 @@ public class Module {
     if (aBaseModIndex != null) {
       Node aBaseTcon = attrs.getNamedItem(ATTR_BASE_TCON);
       String baseTcon = (aBaseTcon != null)? aBaseTcon.getNodeValue(): aTcon.getNodeValue();
-      builder.startDataDef(aTcon.getNodeValue(), acc, paramCount, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
+      builder.startDataDef(aTcon.getNodeValue(), av, acc, paramCount, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
     } else {
-      builder.startDataDef(aTcon.getNodeValue(), acc, paramCount);
+      builder.startDataDef(aTcon.getNodeValue(), av, acc, paramCount);
     }
     Node n = node.getFirstChild();
     while (n != null) {
@@ -1371,9 +1380,9 @@ public class Module {
 
     void endForeignMod() {
       if (this.currentForeignModName != null && this.currentForeignModName.equals(MOD_LANG)) {
-        this.startDataDef(TCON_TUPLE, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
-        this.startDataDef(TCON_FUN, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
       }
       this.foreignModList.add(this.currentForeignModName);
@@ -1387,13 +1396,14 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
-    void startDataDef(String tcon, int acc, int paramCount) {
-      this.startDataDef(tcon, acc, paramCount, 0, null);
+    void startDataDef(String tcon, int availability, int acc, int paramCount) {
+      this.startDataDef(tcon, availability, acc, paramCount, 0, null);
     }
 
-    void startDataDef(String tcon, int acc, int paramCount, int baseModIndex, String baseTcon) {
+    void startDataDef(String tcon, int availability, int acc, int paramCount, int baseModIndex, String baseTcon) {
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.setTcon(tcon);
+      this.dataDefBuilder.setAvailability(availability);
       this.dataDefBuilder.setAcc(acc);
       this.dataDefBuilder.setParamCount(paramCount);
       this.dataDefBuilder.setBaseModIndex(baseModIndex);
@@ -1603,9 +1613,9 @@ public class Module {
         this.mod.modTab[i] = this.foreignModList.get(j);
       }
       if (this.mod.name != null && this.mod.name.equals(MOD_LANG)) {
-        this.startDataDef(TCON_TUPLE, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
-        this.startDataDef(TCON_FUN, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
       }
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();
@@ -1673,6 +1683,24 @@ public class Module {
       throw new IllegalArgumentException();
     }
     return r;
+  }
+
+  static int parseAvailabilityAttr(String s) {
+    int av;
+    if (s.equals(REPR_GENERAL)) {
+      av = AVAILABILITY_GENERAL;
+    } else if (s.equals(REPR_ALPHA)) {
+      av = AVAILABILITY_ALPHA;
+    } else if (s.equals(REPR_BETA)) {
+      av = AVAILABILITY_BETA;
+    } else if (s.equals(REPR_LIMITED)) {
+      av = AVAILABILITY_LIMITED;
+    } else if (s.equals(REPR_DEPRECATED)) {
+      av = AVAILABILITY_DEPRECATED;
+    } else {
+      throw new IllegalArgumentException("Invalid " + ATTR_AVAILABILITY + ": " + s);
+    }
+    return av;
   }
 
   interface Elem {

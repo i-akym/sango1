@@ -408,7 +408,7 @@ eval <date_time> *DT0 <date_time> *DT1 date_time_ge? | ge? @public -> <bool> {
 
 # -- loacal time --
 
-data <local_date_time> @protected :=
+data @alpha <local_date_time> @protected :=
   zone_id: <cstr>
   zone_offset: <int>
   # dst?: <bool>

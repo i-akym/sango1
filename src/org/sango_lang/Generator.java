@@ -119,10 +119,10 @@ class Generator {
     if (pvs == null) { return; }  // fun, tuple
     PDefDict.TconKey btk = dd.getBaseTconKey();
     if (btk != null) {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAcc(), pvs.length,
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length,
         this.parser.mod.modNameToModRefIndex(btk.modName), btk.tcon);
     } else {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAcc(), pvs.length);
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length);
     }
     List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
     for (int i = 0; i < pvs.length; i++) {

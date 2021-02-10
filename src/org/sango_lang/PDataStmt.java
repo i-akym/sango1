@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 class PDataStmt extends PDefaultProgElem implements PDataDef {
+  int availability;
   PTypeDesc sig;  // null means variable params
   String tcon;
   int acc;
@@ -81,6 +82,10 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.dat.srcInfo = si;
+    }
+
+    void setAvailability(int availability) {
+      this.dat.availability = availability;
     }
 
     void setSig(PTypeDesc sig) {
@@ -174,6 +179,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc tsig;
     if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL)) == null) {
       emsg = new StringBuffer();
@@ -378,6 +384,8 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
   public PTypeSkel getTypeSig() {
     return (this.sig != null)? this.sig.getSkel(): null;
   }
+
+  public int getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

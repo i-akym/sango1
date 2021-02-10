@@ -31,6 +31,8 @@ public interface PDataDef {
 
   PTypeSkel getTypeSig();
 
+  int getAvailability();  // Module.AVAILABILITY_xxx
+
   int getAcc();
 
   int getConstrCount();  // 0 if native impl

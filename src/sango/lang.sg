@@ -119,7 +119,7 @@ data <*A eq_fs> @public :=
   ne?_f_: <<A A bool fun> maybe>
   eq_fs$ ;;
 
-data <*A hash_fs> @public :=
+data @alpha <*A hash_fs> @public :=
   hash_f: <A int fun> hash_fs$ ;;
 
 data <ordering> @public :=

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PExtendStmt extends PDefaultProgElem implements PDataDef {
+  int availability;
   String baseMod;
   String baseTcon;
   String tcon;
@@ -83,6 +84,10 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
 
     void setRename(String rename) {
       this.rename = rename;
+    }
+
+    void setAvailability(int availability) {
+      this.ext.availability = availability;
     }
 
     void setAcc(int acc) {
@@ -325,6 +330,8 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
   public PTypeRefSkel getTypeSig() {
     return (PTypeRefSkel)this.sig.getSkel();
   }
+
+  public int getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

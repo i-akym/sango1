@@ -1755,6 +1755,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
+    public int getAvailability() { return this.referredDataDef.getAvailability(); }
+
     public int getAcc() {
       int acc;
       if ((this.requiredAcc & Module.ACC_PUBLIC) > 0) {
