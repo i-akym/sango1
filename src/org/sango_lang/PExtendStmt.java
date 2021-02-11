@@ -151,6 +151,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc base;
     if ((base = PType.acceptSig(reader, PExprId.ID_MAYBE_QUAL)) == null) {
       emsg = new StringBuffer();
