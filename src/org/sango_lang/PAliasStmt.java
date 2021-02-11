@@ -31,6 +31,7 @@ import java.util.Map;
 class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   PTypeDesc sig;
   String tcon;
+  int availability;
   int acc;
   PVarDef[] tparams;
   PTypeDesc body;  // is PTypeRef after circular def check
@@ -67,6 +68,10 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
 
     void setSig(PTypeDesc sig) {
       this.alias.sig = sig;
+    }
+
+    void setAvailability(int availability) {
+      this.alias.availability = availability;
     }
 
     void setAcc(int acc) {
@@ -110,6 +115,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     ParserA.acceptSpecifiedWord(reader, "type", ParserA.SPACE_NEEDED);
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc tsig;
     if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL)) == null) {
       emsg = new StringBuffer();
@@ -335,6 +341,8 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     }
     return vs;
   }
+
+  public int getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

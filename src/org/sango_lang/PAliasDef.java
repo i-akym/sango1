@@ -31,6 +31,8 @@ public interface PAliasDef {
 
   PVarSlot[] getParamVarSlots();
   
+  int getAvailability();
+
   int getAcc();
 
   void collectUnaliasTconInfo(List<PDefDict.TconInfo> list);

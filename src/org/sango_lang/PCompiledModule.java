@@ -292,6 +292,7 @@ class PCompiledModule implements PDefDict {
     PDefDict.TconProps tp = PDefDict.TconProps.create(
       PTypeId.SUBCAT_ALIAS, aliasDef.paramCount, aliasDef.acc, g);
     ad.tconInfo = PDefDict.TconInfo.create(tk, tp);
+    ad.availability = aliasDef.availability;
     ad.acc = aliasDef.acc;
     ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
@@ -305,6 +306,7 @@ class PCompiledModule implements PDefDict {
 
   static class AliasDef implements PAliasDef {
     PDefDict.TconInfo tconInfo;
+    int availability;
     int acc;
     PTypeVarSkel[] tparams;
     PTypeRefSkel body;
@@ -318,6 +320,8 @@ class PCompiledModule implements PDefDict {
       }
       return vs;
     }
+
+    public int getAvailability() { return this.availability; }
 
     public int getAcc() { return this.acc; }
 

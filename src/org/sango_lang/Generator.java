@@ -164,7 +164,8 @@ class Generator {
 
   void generateAliasTypeDefGeneric(PAliasDef alias) {
     PVarSlot[] pvs = alias.getParamVarSlots();
-    MAliasTypeDef atd = MAliasTypeDef.create(alias.getTcon(), alias.getAcc(), pvs.length);
+    MAliasTypeDef atd = MAliasTypeDef.create(
+      alias.getTcon(), alias.getAvailability(), alias.getAcc(), pvs.length);
     List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);

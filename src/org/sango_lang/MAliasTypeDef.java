@@ -28,15 +28,17 @@ import org.w3c.dom.Element;
 
 public class MAliasTypeDef implements Module.Elem {
   String tcon;
+  int availability;
   int acc;
   int paramCount;
   MType body;
 
   private MAliasTypeDef() {}
 
-  static MAliasTypeDef create(String tcon, int acc, int paramCount) {
+  static MAliasTypeDef create(String tcon, int availability, int acc, int paramCount) {
     MAliasTypeDef atd = new MAliasTypeDef();
     atd.tcon = tcon;
+    atd.availability = availability;
     atd.acc = acc;
     atd.paramCount = paramCount;
     return atd;
@@ -49,6 +51,9 @@ public class MAliasTypeDef implements Module.Elem {
   public Element externalize(Document doc) {
     Element aliasTypeDefNode = doc.createElement(Module.TAG_ALIAS_TYPE_DEF);
     aliasTypeDefNode.setAttribute(Module.ATTR_TCON, this.tcon);
+    if (this.availability != Module.AVAILABILITY_GENERAL) {
+      aliasTypeDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
+    }
     if (this.acc != Module.ACC_PRIVATE) {
       aliasTypeDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
     }

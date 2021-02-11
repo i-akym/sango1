@@ -544,6 +544,12 @@ public class Module {
       throw new FormatException("Type constructor not found.");
     }
 
+    int av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+
     int paramCount = 0;  // default: 0
     Node aParamCount = attrs.getNamedItem(ATTR_PARAM_COUNT);
     if (aParamCount != null) {
@@ -566,7 +572,7 @@ public class Module {
       }
     }
 
-    builder.startAliasTypeDef(aTcon.getNodeValue(), acc, paramCount);
+    builder.startAliasTypeDef(aTcon.getNodeValue(), av, acc, paramCount);
     Node n = node.getFirstChild();
     MType type = null;
     while (n != null) {
@@ -1446,8 +1452,8 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
-    void startAliasTypeDef(String tcon, int acc, int paramCount) {
-      this.currentAliasTypeDef = MAliasTypeDef.create(tcon, acc, paramCount);
+    void startAliasTypeDef(String tcon, int availability, int acc, int paramCount) {
+      this.currentAliasTypeDef = MAliasTypeDef.create(tcon, availability, acc, paramCount);
     }
 
     void setAliasBody(MType type) {
