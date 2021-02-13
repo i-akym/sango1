@@ -169,6 +169,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), null, tcon, false);
     tconItem.setTcon();
 
+    builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
     int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
     builder.setAcc(acc);
 

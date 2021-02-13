@@ -211,6 +211,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     }
     builder.setOfficial(official);
 
+    builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
     int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EVAL, PModule.ACC_DEFAULT_FOR_EVAL);
     builder.setAcc(acc);
 

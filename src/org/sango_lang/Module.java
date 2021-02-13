@@ -285,20 +285,6 @@ public class Module {
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
       av = parseAvailabilityAttr(aAvailability.getNodeValue());
-      // String sAvailability = aAvailability.getNodeValue();
-      // if (sAvailability.equals(REPR_GENERAL)) {
-        // av = AVAILABILITY_GENERAL;
-      // } else if (sAvailability.equals(REPR_ALPHA)) {
-        // av = AVAILABILITY_ALPHA;
-      // } else if (sAvailability.equals(REPR_BETA)) {
-        // av = AVAILABILITY_BETA;
-      // } else if (sAvailability.equals(REPR_LIMITED)) {
-        // av = AVAILABILITY_LIMITED;
-      // } else if (sAvailability.equals(REPR_DEPRECATED)) {
-        // av = AVAILABILITY_DEPRECATED;
-      // } else {
-        // throw new FormatException("Invalid " + ATTR_AVAILABILITY + ": " + sAvailability);
-      // }
     }
     // /* DEBUG */ System.out.print("avilability = ");
     // /* DEBUG */ System.out.println(av);
@@ -623,6 +609,14 @@ public class Module {
     // /* DEBUG */ System.out.print("name = ");
     // /* DEBUG */ System.out.println(funName);
 
+    int av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+    // /* DEBUG */ System.out.print("avilability = ");
+    // /* DEBUG */ System.out.println(av);
+
     int acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
@@ -640,6 +634,7 @@ public class Module {
 
     MFunDef.Builder funDefBuilder = MFunDef.Builder.newInstance();
     funDefBuilder.setName(funName);
+    funDefBuilder.setAvailability(av);
     funDefBuilder.setAcc(acc);
     Node n = skipIgnorableNodes(node.getFirstChild());
     if (internalizeFunAliases(n, builder, funDefBuilder)) {
