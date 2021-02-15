@@ -672,7 +672,8 @@ public class Compiler implements PDefDict.DefDictGetter {
     }
   }
 
-  void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv) {
+  void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
+      throws CompileException {
     Parser p = this.parserDict.get(referredModName);
     if (p != null) {  // should be not null...
       switch (this.decideAvailabilityAction(p.mod.availability, featureAv)) {
@@ -691,7 +692,7 @@ public class Compiler implements PDefDict.DefDictGetter {
             referredModName,p. mod.availability,
             id, featureAv));
         this.compileError = true;
-        break;
+        throw new CompileException("Availability error.");
       }
     }
   }
@@ -705,7 +706,8 @@ public class Compiler implements PDefDict.DefDictGetter {
       + " in " + referredModName.repr() + ma + ".";
   }
 
-  void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv) {
+  void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
+      throws CompileException {
     Parser p = this.parserDict.get(referredModName);
     if (p != null) {  // should be not null...
       switch (this.decideAvailabilityAction(p.mod.availability, featureAv)) {
@@ -724,7 +726,7 @@ public class Compiler implements PDefDict.DefDictGetter {
             referredModName,p. mod.availability,
             id, featureAv));
         this.compileError = true;
-        break;
+        throw new CompileException("Availability error.");
       }
     }
   }

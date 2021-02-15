@@ -39,6 +39,7 @@ class Generator {
   Cstr modName;
   File modFile;
   Module.Builder modBuilder;
+  boolean stop;
 
   Generator(Compiler theCompiler, Compiler.CompileEntry ce) {
     this.theCompiler = theCompiler;
@@ -51,6 +52,7 @@ class Generator {
   void generate() throws IOException, TransformerException {
     this.generateModInfo();
     this.generateForeignInfo();
+    if (this.stop) { return; }
     this.generateDataDefs();
     this.generateAliasTypeDefs();
     this.generateFunDefs();
@@ -94,23 +96,35 @@ class Generator {
     PDataDef[] dds = this.parser.mod.foreignIdResolver.getReferredDataDefsIn(modName);
     for (int i = 0; i < dds.length; i++) {
       PDataDef dd = dds[i];
-      this.theCompiler.handleTypeAvailability(
-        this.modName, modName, dd.getFormalTcon(), dd.getAvailability());
-      this.generateDataDefGeneric(dd);
+      try {
+        this.theCompiler.handleTypeAvailability(
+          this.modName, modName, dd.getFormalTcon(), dd.getAvailability());
+        this.generateDataDefGeneric(dd);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
     }
     PAliasDef[] ads = this.parser.mod.foreignIdResolver.getReferredAliasDefsIn(modName);
     for (int i = 0; i < ads.length; i++) {
       PAliasDef ad = ads[i];
-      this.theCompiler.handleTypeAvailability(
-        this.modName, modName, ad.getTcon(), ad.getAvailability());
-      this.generateAliasTypeDefGeneric(ad);
+      try {
+        this.theCompiler.handleTypeAvailability(
+          this.modName, modName, ad.getTcon(), ad.getAvailability());
+        this.generateAliasTypeDefGeneric(ad);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
     }
     PFunDef[] fds = this.parser.mod.foreignIdResolver.getReferredFunDefsIn(modName);
     for (int i = 0; i < fds.length; i++) {
       PFunDef fd = fds[i];
-      this.theCompiler.handleFunAvailability(
-        this.modName, modName, fd.getOfficialName(), fd.getAvailability());
-      this.generateFunDef(fd);
+      try {
+        this.theCompiler.handleFunAvailability(
+          this.modName, modName, fd.getOfficialName(), fd.getAvailability());
+        this.generateFunDef(fd);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
     }
   }
 
