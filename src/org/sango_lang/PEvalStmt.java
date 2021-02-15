@@ -450,6 +450,8 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     return this.official;
   }
 
+  public int getAvailability() { return this.availability; }
+
   public PTypeSkel[] getParamTypes() {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
