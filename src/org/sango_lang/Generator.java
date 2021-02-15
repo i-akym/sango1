@@ -36,12 +36,14 @@ import javax.xml.transform.stream.StreamResult;
 class Generator {
   Compiler theCompiler;
   Parser parser;
+  Cstr modName;
   File modFile;
   Module.Builder modBuilder;
 
   Generator(Compiler theCompiler, Compiler.CompileEntry ce) {
     this.theCompiler = theCompiler;
     this.parser = theCompiler.parserDict.get(ce.modName);
+    this.modName = ce.modName;
     this.modFile = ce.modFile;
     this.modBuilder = Module.newBuilder();
   }
@@ -91,15 +93,24 @@ class Generator {
   void generateForeignRefsIn(Cstr modName) {
     PDataDef[] dds = this.parser.mod.foreignIdResolver.getReferredDataDefsIn(modName);
     for (int i = 0; i < dds.length; i++) {
-      this.generateDataDefGeneric(dds[i]);
+      PDataDef dd = dds[i];
+      this.theCompiler.handleTypeAvailability(
+        this.modName, modName, dd.getFormalTcon(), dd.getAvailability());
+      this.generateDataDefGeneric(dd);
     }
     PAliasDef[] ads = this.parser.mod.foreignIdResolver.getReferredAliasDefsIn(modName);
     for (int i = 0; i < ads.length; i++) {
-      this.generateAliasTypeDefGeneric(ads[i]);
+      PAliasDef ad = ads[i];
+      this.theCompiler.handleTypeAvailability(
+        this.modName, modName, ad.getTcon(), ad.getAvailability());
+      this.generateAliasTypeDefGeneric(ad);
     }
     PFunDef[] fds = this.parser.mod.foreignIdResolver.getReferredFunDefsIn(modName);
     for (int i = 0; i < fds.length; i++) {
-      this.generateFunDef(fds[i]);
+      PFunDef fd = fds[i];
+      this.theCompiler.handleFunAvailability(
+        this.modName, modName, fd.getOfficialName(), fd.getAvailability());
+      this.generateFunDef(fd);
     }
   }
 

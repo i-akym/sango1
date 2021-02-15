@@ -399,6 +399,7 @@ class PCompiledModule implements PDefDict {
     FunDef fd = new FunDef();
     fd.modName = mod.name;
     fd.name = funDef.name;
+    fd.availability = funDef.availability;
     fd.paramTypes = new PTypeSkel[funDef.paramTypes.length];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < fd.paramTypes.length; i++) {
@@ -411,12 +412,15 @@ class PCompiledModule implements PDefDict {
   static class FunDef implements PFunDef {
     Cstr modName;
     String name;
+    int availability;
     PTypeSkel[] paramTypes;
     PTypeSkel retType;
 
     public Cstr getModName() { return this.modName; }
 
     public String getOfficialName() { return this.name; }
+
+    public int getAvailability() { return this.availability; }
 
     public PTypeSkel[] getParamTypes() { return this.paramTypes; }
 
