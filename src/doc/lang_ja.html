@@ -152,8 +152,9 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#B.1">B.1. 型の扱い</a>
   <a href="#B.2">B.2. 型と型との関係</a>
   <a href="#B.3">B.3. narrowとcast</a>
-<a href="#C">C. 主な変更点</a></div>
-<a href="#D">D. Known bugs and restrictions</a></div>
+<a href="#C">C. アベイラビリティ</a>
+<a href="#D">D. 主な変更点</a>
+<a href="#E">E. Known bugs and restrictions</a></div>
 
 <hr/>
 
@@ -1923,15 +1924,26 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
   <code>-modules &lt;paths&gt;</code>　…　モジュール探索パスのルートを指定します。複数指定する場合はパス区切り記号（Windowsでは「<code>;</code>」，Unixでは「<code>:</code>」）でつなぎます。
   <code>-m &lt;paths&gt;</code>　…　<code>-modules</code>と同じです。
   <code>-out &lt;path&gt;</code>　…　モジュールファイルの出力先を指定します。個々のモジュールファイルは，指定されたディレクトリをルートとし，モジュール名をパスに変換したディレクトリに出力されます。
-  <code>-verbose <var>switches</var></code>　…　<code><var>switches</var></code>に指定したカテゴリのメッセージを出力します。
-  <code>-quiet <var>switches</var></code>　…　<code><var>switches</var></code>に指定したカテゴリのメッセージを抑制します。
-  <code><var>option</var></code>のデフォルトは「<code>-m . -verbose version+module</code>」です。
-<code><var>switches</var></code>：
+  <code>-verbose <var>switches1</var></code>　…　<code><var>switches1</var></code>に指定したカテゴリのメッセージを出力します。
+  <code>-quiet <var>switches1</var></code>　…　<code><var>switches1</var></code>に指定したカテゴリのメッセージを抑制します。
+  <code>-warn <var>switches2</var></code>　…　<code><var>switches2</var></code>が検出されると警告メッセージを表示します。
+  <code>-error <var>switches2</var></code>　…　<code><var>switches2</var></code>が検出されるとエラーにします。
+  <code>-ignore <var>switches2</var></code>　…　<code>-warn</code>，<code>-error</code>の指定を解除します。
+  <code><var>option</var></code>のデフォルトは「<code>-m . -verbose version+module -warn av-alpha+av-limited+av-deprecated</code>」です。
+<code><var>switches1</var></code>：
   次のカテゴリから一つ以上を「<code>+</code>」でつなぎます。
     <code>help</code>　…　ヘルプメッセージ
     <code>version</code>　…　バージョン情報
     <code>module</code>　…　モジュールの参照情報
     <code>all</code>　…　上記のすべて
+<code><var>switches2</var></code>：
+  次の検査スイッチから一つ以上を「<code>+</code>」でつなぎます。
+    <code>av-alpha</code>　…　アベイラビリティ「Alpha」
+    <code>av-beta</code>　…　アベイラビリティ「Beta」
+    <code>av-limited</code>　…　アベイラビリティ「Limited」
+    <code>av-deprecated</code>　…　アベイラビリティ「Deprecated」
+    <code>av-general</code>　…　アベイラビリティ「General」
+    <code>av-all</code>　…　アベイラビリティすべて
 <code><var>source-file...</var></code>：
   コンパイル対象のソースファイルを指定します。</blockquote>
  
@@ -2028,7 +2040,31 @@ eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<v
 [] = &lt;int list&gt; *X</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h1 id="C">C. 主な変更点</h1>
+<h1 id="C">C. アベイラビリティ</h1>
+<p>ライブラリが提供する機能は，開発中，公開されて自由に使用できる状態，推奨されない状態など，ライフサイクルに応じて変化していきます。
+  ライブラリの使用者に対して，提供機能の位置づけや安定性を表すのがアベイラビリティです。
+  現在，以下のレベルを区別することができます。
+</p>
+<table border>
+<tr><th>アベイラビリティ</th><th>指定キーワード</th><th>説明</th></tr>
+<tr><td>General</td><td><code>@general</code> あるいは無指定</td><td>仕様は確定し，品質は十分確保されている</td></tr>
+<tr><td>Alpha</td><td><code>@alpha</code></td><td>開発中であり，仕様が確定されていないか，品質が不十分</td></tr>
+<tr><td>Beta</td><td><code>@beta</code></td><td>開発中であり，仕様，品質ともにほぼ確立されている</td></tr>
+<tr><td>Limited</td><td><code>@limited</code></td><td>使用は限定されている。例：不具合回避のための一時的な機能</td></tr>
+<tr><td>Deprecated</td><td><code>@deprecated</code></td><td>推奨されない。不具合が発見されても修復されない，ドキュメントが更新されない，将来のバージョンで削除される等の可能性がある</td></tr>
+</table>
+<p>アベイラビリティはモジュール，型，関数に設定でき，<code>module</code>文，<code>data</code>文，<code>extend</code>文，<code>alias type</code>文にて，文キーワードの次に指定します。</p>
+<blockquote class="code-sample">コード例<code>
+module @alpha "foo.bar" ;;
+data @beta &lt;t&gt; @public := ... ;;
+extend @limited &lt;bm.b&gt; @public := ... ;;
+alias type @deprecated &lt;a&gt; @public := ... ;;
+eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
+<p>コンパイラは，ライブラリを使用するモジュールのコンパイル時にアベイラビリティを検査し，（指定に応じて）警告メッセージを表示します。
+  また，コンパイルをエラーにすることも可能です。</p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h1 id="D">D. 主な変更点</h1>
 <p>■　1.0.0</p>
 <p>初期リリース</p>
 
@@ -2067,9 +2103,13 @@ eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<v
 <li>【Deprecated】<code>&quot;sango.util.avltree&quot;</code>（<code>&quot;sango.util.avltree.map&quot;</code>を使用してください）</li>
 </ul>
 
+<p>■　Next version</p>
+<ul>
+<li>アベイラビリティの設定・検査を追加</li>
+</ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h1 id="D">D. Known bugs and restrictions</h1>
+<h1 id="E">E. Known bugs and restrictions</h1>
 <p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
 <p>■　クロージャ定義において返り値の型を省略してもコンパイルエラーになりませんが，省略しないでください。</p>
 <p>■　クロージャ定義をその場で起動する場合においてクロージャのパラメタの型を省略してもコンパイルエラーになりませんが，省略しないでください。（例：<code>P Q &amp;\ *X *Y -&gt; ...</code>）</p>
