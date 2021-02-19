@@ -787,7 +787,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateInFun(PDataDef dd, Parser.SrcInfo srcInfo, String baseModId, String baseTcon) throws CompileException {
-    // eval <*T0 *T1 .. tcon+> *X _in_tcon? | tcon? @public -> <bool> {
+    // eval @availability <*T0 *T1 .. tcon+> *X _in_tcon? | tcon? @public -> <bool> {
     //   X case {
     //   ; *** dcon0 -> true$
     //   ; *** dcon1 -> true$
@@ -803,6 +803,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = srcInfo.appendPostfix("_in");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(dd.getAvailability());
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
@@ -875,7 +876,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateNarrowFun(PDataDef dd, Parser.SrcInfo srcInfo, String baseModId, String baseTcon) throws CompileException {
-    // eval <*T0 *T1 .. tcon+> *X _narrow_tcon | narrow @public -> <<T0 T1 .. tcon> maybe> {
+    // eval @availability <*T0 *T1 .. tcon+> *X _narrow_tcon | narrow @public -> <<T0 T1 .. tcon> maybe> {
     //   X case {
     //   ; *V0 *V1 .. dcon0 -> (V0 V1 .. dcon0) value$
     //   ; *V0 *V1 .. dcon1 -> (V0 V1 .. dcon1) value$
@@ -891,6 +892,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(dd.getAvailability());
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
@@ -990,7 +992,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateAttrFunForDataStmt(PDataStmt dat, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
-    // eval <*T0 *T1 .. tcon> *X _attr_tcon_a | a @xxx -> <a's type> {
+    // eval @availability <*T0 *T1 .. tcon> *X _attr_tcon_a | a @xxx -> <a's type> {
     //   X = a: *V *** dcon$,
     //   V
     // }
@@ -1000,6 +1002,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = dat.srcInfo.appendPostfix("_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(dat.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc((dat.acc == Module.ACC_PUBLIC || dat.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
@@ -1038,7 +1041,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       for (int j = 0; j < constr.attrs.length; j++) {
         PDataAttrDef attr = constr.attrs[j];
         if (attr.name != null) {
-          this.generateMaybeAttrFun(dat.tcon, dat.tparams, dat.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
+          this.generateMaybeAttrFun(dat.tcon, dat.tparams, dat.availability, dat.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
         }
       }
     }
@@ -1050,14 +1053,14 @@ class PModule extends PDefaultProgElem implements PDefDict {
       for (int j = 0; j < constr.attrs.length; j++) {
         PDataAttrDef attr = constr.attrs[j];
         if (attr.name != null) {
-          this.generateMaybeAttrFun(ext.tcon, ext.tparams, ext.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
+          this.generateMaybeAttrFun(ext.tcon, ext.tparams, ext.availability, ext.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
         }
       }
     }
   }
 
-  private void generateMaybeAttrFun(String tcon, PVarDef[] tparams, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
-    // eval <*T0 *T1 .. tcon> *X _maybe_attr_tcon_a | maybe_a @xxx -> <<a's type> maybe> {
+  private void generateMaybeAttrFun(String tcon, PVarDef[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
+    // eval @availability <*T0 *T1 .. tcon> *X _maybe_attr_tcon_a | maybe_a @xxx -> <<a's type> maybe> {
     //   X case {
     //   ; a: *V *** dcon -> V value$
     //   ; ** -> none$
@@ -1068,6 +1071,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc((acc == Module.ACC_PUBLIC || acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
