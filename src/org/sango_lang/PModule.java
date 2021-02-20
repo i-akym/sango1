@@ -1270,6 +1270,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
       Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
   }
 
+  public int getModAvailability() { return this.availability; }
+
   public Cstr[] getForeignMods() {
     Cstr[] ms;
     if (this.isLang()) {

@@ -32,6 +32,7 @@ import java.util.Set;
 
 class PCompiledModule implements PDefDict {
   PDefDict.DefDictGetter defDictGetter;
+  int availability;
   Cstr name;
   Cstr[] foreignMods;
   Map<PDefDict.TconKey, PDefDict.TconProps> foreignTconDict;
@@ -54,6 +55,7 @@ class PCompiledModule implements PDefDict {
     PCompiledModule cm = new PCompiledModule();
     cm.defDictGetter = defDictGetter;
     cm.name = mod.name;
+    cm.availability = mod.availability;
 
     cm.foreignMods = new Cstr[mod.getModTab().length - 1];
     System.arraycopy(mod.getModTab(), 1, cm.foreignMods, 0, cm.foreignMods.length);
@@ -170,6 +172,8 @@ class PCompiledModule implements PDefDict {
     p.cat |= cat;
     p.acc |= acc;
   }
+
+  public int getModAvailability() { return this.availability; }
 
   public Cstr[] getForeignMods() {
     return this.foreignMods;

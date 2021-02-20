@@ -674,22 +674,23 @@ public class Compiler implements PDefDict.DefDictGetter {
 
   void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
       throws CompileException {
-    Parser p = this.parserDict.get(referredModName);
-    if (p != null) {  // should be not null...
-      switch (this.decideAvailabilityAction(p.mod.availability, featureAv)) {
+    PDefDict dd = this.defDictDict.get(referredModName);
+    if (dd != null) {  // should be not null...
+      int ma = dd.getModAvailability();
+      switch (this.decideAvailabilityAction(ma, featureAv)) {
       case ACTION_IGNORE: break;
       case ACTION_WARN:
         this.msgOut.print("Warning: ");
         this.msgOut.println(funAvailabilityMsg(
             referrerModName,
-            referredModName,p. mod.availability,
+            referredModName, ma,
             id, featureAv));
         break;
       case ACTION_ERROR:
         this.msgOut.print("Error: ");
         this.msgOut.println(funAvailabilityMsg(
             referrerModName,
-            referredModName,p. mod.availability,
+            referredModName, ma,
             id, featureAv));
         this.compileError = true;
         throw new CompileException("Availability error.");
@@ -708,22 +709,23 @@ public class Compiler implements PDefDict.DefDictGetter {
 
   void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
       throws CompileException {
-    Parser p = this.parserDict.get(referredModName);
-    if (p != null) {  // should be not null...
-      switch (this.decideAvailabilityAction(p.mod.availability, featureAv)) {
+    PDefDict dd = this.defDictDict.get(referredModName);
+    if (dd != null) {  // should be not null...
+      int ma = dd.getModAvailability();
+      switch (this.decideAvailabilityAction(ma, featureAv)) {
       case ACTION_IGNORE: break;
       case ACTION_WARN:
         this.msgOut.print("Warning: ");
         this.msgOut.println(typeAvailabilityMsg(
             referrerModName,
-            referredModName,p. mod.availability,
+            referredModName, ma,
             id, featureAv));
         break;
       case ACTION_ERROR:
         this.msgOut.print("Error: ");
         this.msgOut.println(typeAvailabilityMsg(
             referrerModName,
-            referredModName,p. mod.availability,
+            referredModName, ma,
             id, featureAv));
         this.compileError = true;
         throw new CompileException("Availability error.");
