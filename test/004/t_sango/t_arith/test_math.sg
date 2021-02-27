@@ -39,10 +39,21 @@ eval test -> <void> {
   test110,
   test111,
   test112,
+  test200,
+  test201,
+  test210,
+  test212,
+  test213,
+  test214,
+  test215,
   void$
 } ;;
 
 eval <real> *X <real> *Y nearly_eq? -> <bool> { (X Y diff >> arith.abs) 0.001 lt? } ;;
+
+eval <math.complex> *X <math.complex> *Y c_nearly_eq? -> <bool> {
+  ((X math.re) (Y math.re) nearly_eq?) ((X math.im) (Y math.im) nearly_eq?) and
+} ;;
 
 eval test000 -> <bool> { math.pi 3.1416 nearly_eq? = true$ } ;;
 eval test001 -> <bool> { math.e 2.718 nearly_eq? = true$ } ;;
@@ -73,3 +84,35 @@ eval test102 -> <bool> { (-1.0 math.acos) math.pi nearly_eq? = true$ } ;;
 eval test110 -> <bool> { (0.0 math.atan) 0.0 nearly_eq? = true$ } ;;
 eval test111 -> <bool> { (1.0 math.atan) (math.pi 4.0 quot) nearly_eq? = true$ } ;;
 eval test112 -> <bool> { (-1.0 math.atan) (math.pi 4.0 quot >> neg) nearly_eq? = true$ } ;;
+eval test200 -> <bool> {
+  12.0 5.0 math.complex$ = *Z,
+  (Z math.abs) 13.0 nearly_eq? = true$
+} ;;
+eval test201 -> <bool> {
+  12.0 5.0 math.complex$ = *Z,
+  (Z math.conj) (12.0 -5.0 math.complex$) c_nearly_eq? = true$
+} ;;
+eval test210 -> <bool> {
+  12.0 5.0 math.complex$ = *Z,
+  (Z math.neg) (-12.0 -5.0 math.complex$) c_nearly_eq? = true$
+} ;;
+eval test212 -> <bool> {
+  12.0 5.0 math.complex$ = *Z0,
+  -3.0 4.0 math.complex$ = *Z1,
+  (Z0 Z1 math.sum) (9.0 9.0 math.complex$) c_nearly_eq? = true$
+} ;;
+eval test213 -> <bool> {
+  12.0 5.0 math.complex$ = *Z0,
+  -3.0 4.0 math.complex$ = *Z1,
+  (Z0 Z1 math.diff) (15.0 1.0 math.complex$) c_nearly_eq? = true$
+} ;;
+eval test214 -> <bool> {
+  12.0 5.0 math.complex$ = *Z0,
+  -3.0 4.0 math.complex$ = *Z1,
+  (Z0 Z1 math.prod) (-56.0 33.0 math.complex$) c_nearly_eq? = true$
+} ;;
+eval test215 -> <bool> {
+  12.0 5.0 math.complex$ = *Z0,
+  -3.0 4.0 math.complex$ = *Z1,
+  (Z0 Z1 math.quot) ((-16.0 25.0 quot) (-63.0 25.0 quot) math.complex$) c_nearly_eq? = true$
+} ;;

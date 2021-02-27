@@ -76,7 +76,7 @@ kbd {
   <a href="#sango.arith.2">最大・最小</a>
   <a href="#sango.arith.3">各種関数</a>
 <a href="#sango.arith.math"><code>sango.arith.math</code></a>
-  <a href="#sango.arith.math.1">定数</a>
+  <a href="#sango.arith.math.1">型と定数</a>
   <a href="#sango.arith.math.2">各種関数</a>
 <a href="#sango.bool"><code>sango.bool</code></a>
   <a href="#sango.bool.1">可変個入力</code></a>
@@ -1012,7 +1012,10 @@ eval &lt;real&gt; *R real_abs | abs @public -&gt; &lt;real&gt; ;;</code></td></t
 <p>数学関数を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.arith.math.1"><code>sango.arith.math</code> - 定数</h2>
+<h2 id="sango.arith.math.1"><code>sango.arith.math</code> - 型と定数</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;complex&gt; @public := re: &lt;real&gt; im: &lt;real&gt; complex$ ;;</code></td></tr></table>
+<p>複素数を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval pi @public -&gt; &lt;real&gt; ;; </code></td></tr></table>
 <p>円周率を返します。</p>
@@ -1055,6 +1058,30 @@ eval &lt;real&gt; *R real_abs | abs @public -&gt; &lt;real&gt; ;;</code></td></t
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;real&gt; *R atan @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
 <p>正接の逆関数（arc tangent）の値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;real&gt; *R complex @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>実数を複素数に変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z c_abs | abs @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
+<p>絶対値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z c_conj | conj @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>共役の値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z c_neg | neg @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p><code>-1</code>を掛けた値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_sum | sum @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>和を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_diff | diff @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>差を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_prod | prod @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>積を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_quot | quot @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>商を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.bool"><code>sango.bool</code></h1>

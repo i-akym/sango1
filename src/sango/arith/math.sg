@@ -23,6 +23,8 @@
 ###########################################################################
 module "sango.arith.math" ;;
 
+data <complex> @public := re: <real> im: <real> complex$ ;;
+
 eval pi @public -> <real> { 3.14159265358979323846 } ;;
 eval e @public -> <real> { 2.7182818284590452354 } ;;
 eval <real> *R0 <real> *R1 real_pow | pow @public -> <real> @native ;;
@@ -39,4 +41,48 @@ eval <real> *R atan @public -> <real> @native ;;
 # eval <real> *R sinh @public -> <real> @native ;;
 # eval <real> *R cosh @public -> <real> @native ;;
 # eval <real> *R tanh @public -> <real> @native ;;
+
+eval <real> *R complex @public -> <complex> {
+  re: R im: 0.0 complex$
+} ;;
+
+eval <complex> *Z c_abs | abs @public -> <real> {
+  Z = re: *R im: *I complex$,
+  ((R R prod) (I I prod) sum) sqrt
+} ;;
+
+eval <complex> *Z c_conj | conj @public -> <complex> {
+  Z = re: *R im: *I complex$,
+  re: R im: (I neg) complex$
+} ;;
+
+eval <complex> *Z c_neg | neg @public -> <complex> {
+  Z = re: *R im: *I complex$,
+  re: (R neg) im: (I neg) complex$
+} ;;
+
+eval <complex> *Z0 <complex> *Z1 c_sum | sum @public -> <complex> {
+  Z0 = re: *R0 im: *I0 complex$,
+  Z1 = re: *R1 im: *I1 complex$,
+  re: (R0 R1 sum) im: (I0 I1 sum) complex$
+} ;;
+
+eval <complex> *Z0 <complex> *Z1 c_diff | diff @public -> <complex> {
+  Z0 = re: *R0 im: *I0 complex$,
+  Z1 = re: *R1 im: *I1 complex$,
+  re: (R0 R1 diff) im: (I0 I1 diff) complex$
+} ;;
+
+eval <complex> *Z0 <complex> *Z1 c_prod | prod @public -> <complex> {
+  Z0 = re: *R0 im: *I0 complex$,
+  Z1 = re: *R1 im: *I1 complex$,
+  re: ((R0 R1 prod) (I0 I1 prod) diff) im: ((R0 I1 prod) (R1 I0 prod) sum) complex$
+} ;;
+
+eval <complex> *Z0 <complex> *Z1 c_quot | quot @public -> <complex> {
+  Z0 = re: *R0 im: *I0 complex$,
+  Z1 = re: *R1 im: *I1 complex$,
+  (R1 R1 prod) (I1 I1 prod) sum = *P,
+  re: (((R0 R1 prod) (I0 I1 prod) sum) P quot) im: (((R1 I0 prod) (R0 I1 prod) diff) P quot) complex$
+} ;;
 
