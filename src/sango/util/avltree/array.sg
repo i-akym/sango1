@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree.array" ;;
+module @alpha "sango.util.avltree.array" ;;
 
 import "sango.util.array" -> array ;;
 import "sango.util.avltree.map" -> avlmap ;;

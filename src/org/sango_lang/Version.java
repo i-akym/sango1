@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 Isao Akiyama                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,7 +25,7 @@ package org.sango_lang;
 
 public class Version {
   static final int MAJOR = 1;
-  static final int MINOR = 2;
+  static final int MINOR = 3;
   static final int MICRO = 0;
   static final String LEVEL = null;
   static final int BUILD = 1;

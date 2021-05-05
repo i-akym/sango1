@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.locale" ;;
+module @alpha "sango.util.locale" ;;
 
 import "sango.cstr" -> cstr ;;
 import "sango.system" -> sys ;;

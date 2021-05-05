@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PExtendStmt extends PDefaultProgElem implements PDataDef {
+  int availability;
   String baseMod;
   String baseTcon;
   String tcon;
@@ -83,6 +84,10 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
 
     void setRename(String rename) {
       this.rename = rename;
+    }
+
+    void setAvailability(int availability) {
+      this.ext.availability = availability;
     }
 
     void setAcc(int acc) {
@@ -146,6 +151,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc base;
     if ((base = PType.acceptSig(reader, PExprId.ID_MAYBE_QUAL)) == null) {
       emsg = new StringBuffer();
@@ -215,6 +221,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
       builder.setRename(renamed);
     }
 
+    builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
     int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EXTEND, PModule.ACC_DEFAULT_FOR_EXTEND);
     builder.setAcc(acc);
 
@@ -325,6 +332,8 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
   public PTypeRefSkel getTypeSig() {
     return (PTypeRefSkel)this.sig.getSkel();
   }
+
+  public int getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

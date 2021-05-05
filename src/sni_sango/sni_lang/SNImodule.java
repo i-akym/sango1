@@ -453,6 +453,7 @@ public class SNImodule {
   }
 
   static class DataDef implements PDataDef {
+    int availability;  // actually needed?
     PDefDict.DefDictGetter defDictGetter;
     Cstr mod;
     PTypeSkel sig;  // lazy setup
@@ -502,6 +503,8 @@ public class SNImodule {
       }
       return this.sig;
     }
+
+    public int getAvailability() { return this.availability; }
 
     public int getAcc() { return this.acc; }
 

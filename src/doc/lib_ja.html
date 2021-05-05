@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.2.0　ライブラリ解説</title>
+<title>Sango 1.3.0　ライブラリ解説</title>
 </head>
 
 <body>
@@ -30,8 +30,16 @@ kbd {
 <ul>
   <li>実際のプログラム中では「モジュール識別子<code>.</code>識別子」と記述する事項を，「<code>"</code>モジュール名<code>".</code>識別子」と表記します。</li>
   <li><code>data</code>文，<code>extend</code>文の解説において，属性を特定するために，「<code>（</code>ラベル名<code>:）</code>」と便宜的なラベル名を付けることがあります。</li>
-  <li>試験的な実装については，解説しないか，【Tentative】と表示します。</li>
 </ul>
+<p>定義，機能のアベイラビリティ（使用可能性）は【】に入れて表示します。</p>
+<table border>
+<tr><th>アベイラビリティ</th><th>説明</th></tr>
+<tr><td>（非表示）</td><td>仕様は確定し，品質は十分確保されている</td></tr>
+<tr><td>Alpha</td><td>開発中であり，仕様が確定されていないか，品質が不十分</td></tr>
+<tr><td>Beta</td><td>開発中であり，仕様，品質ともにほぼ確立されている</td></tr>
+<tr><td>Limited</td><td>使用は限定されている。例：不具合回避のための一時的な機能</td></tr>
+<tr><td>Deprecated</td><td>推奨されない。不具合が発見されても修復されない，ドキュメントが更新されない，将来のバージョンで削除される等の可能性がある</td></tr>
+</table>
 
 <p>SangoはMIT Licenseに基いて配布されています。</p>
 <table border><tr><td>
@@ -68,7 +76,7 @@ kbd {
   <a href="#sango.arith.2">最大・最小</a>
   <a href="#sango.arith.3">各種関数</a>
 <a href="#sango.arith.math"><code>sango.arith.math</code></a>
-  <a href="#sango.arith.math.1">定数</a>
+  <a href="#sango.arith.math.1">型と定数</a>
   <a href="#sango.arith.math.2">各種関数</a>
 <a href="#sango.bool"><code>sango.bool</code></a>
   <a href="#sango.bool.1">可変個入力</code></a>
@@ -99,7 +107,7 @@ kbd {
   <a href="#sango.io.4">文字入出力ストリーム</a>
   <a href="#sango.io.5">行入力ストリーム</a>
   <a href="#sango.io.6">プリントストリーム</a>
-<a href="#sango.io.filesys"><code>sango.io.filesys</code></a>
+<a href="#sango.io.filesys"><code>sango.io.filesys</code></a> 【Beta】
   <a href="#sango.io.filesys.1">ディレクトリとファイルの操作</a>
   <a href="#sango.io.filesys.2">パスの操作</a>
   <a href="#sango.io.filesys.3">ファイルの入出力</a>
@@ -113,15 +121,15 @@ kbd {
   <a href="#sango.io.util.2">ストリングからの入力ストリーム</a>
   <a href="#sango.io.util.3">ストリームデータの連結</a>
   <a href="#sango.io.util.4">pump</a>
-<a href="#sango.lang.module"><code>sango.lang.module</code></a>
+<a href="#sango.lang.module"><code>sango.lang.module</code></a> 【Beta】
   <a href="#sango.lang.module.1">モジュールの動的ロード</a>
 <a href="#sango.list"><code>sango.list</code></a>
   <a href="#sango.list.1">生成</a>
   <a href="#sango.list.2">判定</a>
   <a href="#sango.list.3">データ供給</a>
   <a href="#sango.list.4">要素処理</a>
-<a href="#sango.net.inet"><code>sango.net.inet</code></a>
-<a href="#sango.net.socket"><code>sango.net.socket</code></a>
+<a href="#sango.net.inet"><code>sango.net.inet</code></a> 【Alpha】
+<a href="#sango.net.socket"><code>sango.net.socket</code></a> 【Alpha】
 <a href="#sango.num.bigint"><code>sango.num.bigint</code></a>
   <a href="#sango.num.bigint.1">生成</a>
   <a href="#sango.num.bigint.2">比較</a>
@@ -141,7 +149,7 @@ kbd {
   <a href="#sango.string.4">string buffer</a>
 <a href="#sango.system"><code>sango.system</code></a>
   <a href="#sango.system.1">システムプロパティ</a>
-<a href="#sango.system.os"><code>sango.system.os</code></a>
+<a href="#sango.system.os"><code>sango.system.os</code></a> 【Alpha】
   <a href="#sango.system.os.1">サブプロセス起動</a>
 <a href="#sango.system.runtime"><code>sango.system.runtime</code></a>
   <a href="#sango.system.runtime.1">プログラム実行環境</a>
@@ -149,15 +157,15 @@ kbd {
   <a href="#sango.system.runtime.3">その他</a>
 <a href="#sango.tuple"><code>sango.tuple</code></a>
   <a href="#sango.tuple.1">要素取得</a>
-<a href="#sango.util.array"><code>sango.util.array</code></a>
+<a href="#sango.util.array"><code>sango.util.array</code></a> 【Alpha】
   <a href="#sango.util.array.1">フレームワーク</a>
   <a href="#sango.util.array.2">実装者向け情報</a>
 <a href="#sango.util.avltree"><code>sango.util.avltree</code></a> 【Deprecated】
-<a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a>
+<a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a> 【Alpha】
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
 <a href="#sango.util.avltree.queue"><code>sango.util.avltree.queue</code></a>
-<a href="#sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></a>
+<a href="#sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></a> 【Alpha】
 <a href="#sango.util.avltree.set"><code>sango.util.avltree.set</code></a>
 <a href="#sango.util.bag"><code>sango.util.bag</code></a>
   <a href="#sango.util.bag.1">フレームワーク</a>
@@ -168,41 +176,41 @@ kbd {
   <a href="#sango.util.datetime.2">判定</a>
   <a href="#sango.util.datetime.3">比較</a>
   <a href="#sango.util.datetime.4">現在時刻取得</a>
-<a href="#sango.util.enum"><code>sango.util.enum</code></a>
+<a href="#sango.util.enum"><code>sango.util.enum</code></a> 【Alpha】
   <a href="#sango.util.enum.1">フレームワーク</a>
   <a href="#sango.util.enum.2">実装者向け情報</a>
 <a href="#sango.util.iter"><code>sango.util.iter</code></a>
   <a href="#sango.util.iter.1">定数の供給</a>
   <a href="#sango.util.iter.2">変形</a>
-<a href="#sango.util.locale"><code>sango.util.locale</code></a>
+<a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
 <a href="#sango.util.map"><code>sango.util.map</code></a>
   <a href="#sango.util.map.1">フレームワーク</a>
   <a href="#sango.util.map.2">実装者向け情報</a>
-<a href="#sango.util.map.holder"><code>sango.util.map.holder</code></a>
+<a href="#sango.util.map.holder"><code>sango.util.map.holder</code></a> 【Alpha】
   <a href="#sango.util.map.holder.1">生成</a>
   <a href="#sango.util.map.holder.2">要素処理</a>
   <a href="#sango.util.map.holder.3">参照，更新</a>
 <a href="#sango.util.map.simplemap"><code>sango.util.map.simplemap</code></a>
-<a href="#sango.util.prop"><code>sango.util.prop</code></a>
+<a href="#sango.util.prop"><code>sango.util.prop</code></a> 【Alpha】
 <a href="#sango.util.queue"><code>sango.util.queue</code></a>
   <a href="#sango.util.queue.1">フレームワーク</a>
   <a href="#sango.util.queue.2">実装者向け情報</a>
 <a href="#sango.util.queue.simplequeue"><code>sango.util.queue.simplequeue</code></a>
 <a href="#sango.util.random"><code>sango.util.random</code></a>
-<a href="#sango.util.ralist"><code>sango.util.ralist</code></a>
+<a href="#sango.util.ralist"><code>sango.util.ralist</code></a> 【Alpha】
   <a href="#sango.util.ralist.1">フレームワーク</a>
   <a href="#sango.util.ralist.2">実装者向け情報</a>
 <a href="#sango.util.set"><code>sango.util.set</code></a>
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
-<a href="#sango.util.set.holder"><code>sango.util.set.holder</code></a>
+<a href="#sango.util.set.holder"><code>sango.util.set.holder</code></a> 【Alpha】
   <a href="#sango.util.set.holder.1">生成</a>
   <a href="#sango.util.set.holder.2">要素処理</a>
   <a href="#sango.util.set.holder.3">参照，更新</a>
 <a href="#sango.util.set.simpleset"><code>sango.util.set.simpleset</code></a>
-<a href="#sango.util.shell"><code>sango.util.shell</code></a>
+<a href="#sango.util.shell"><code>sango.util.shell</code></a> 【Alpha】
   <a href="#sango.util.shell.1">プログラム実行環境取得</a>
   <a href="#sango.util.shell.2">ディレクトリとファイルの操作</a>
   <a href="#sango.util.shell.3">パスの操作</a>
@@ -283,7 +291,7 @@ kbd {
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A hash_fs&gt; @public := hash_f: &lt;A int fun&gt; hash_fs$ ;;</code></td></tr></table>
-<p>【Tentative】オブジェクトのハッシュ値を扱う関数を表します。</p>
+<p>【Alpha】オブジェクトのハッシュ値を扱う関数を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
 <p>イテレータ（データを次々と供給するオブジェクト）を表します。</p>
@@ -1004,7 +1012,10 @@ eval &lt;real&gt; *R real_abs | abs @public -&gt; &lt;real&gt; ;;</code></td></t
 <p>数学関数を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.arith.math.1"><code>sango.arith.math</code> - 定数</h2>
+<h2 id="sango.arith.math.1"><code>sango.arith.math</code> - 型と定数</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;complex&gt; @public := re: &lt;real&gt; im: &lt;real&gt; complex$ ;;</code></td></tr></table>
+<p>複素数を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval pi @public -&gt; &lt;real&gt; ;; </code></td></tr></table>
 <p>円周率を返します。</p>
@@ -1047,6 +1058,30 @@ eval &lt;real&gt; *R real_abs | abs @public -&gt; &lt;real&gt; ;;</code></td></t
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;real&gt; *R atan @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
 <p>正接の逆関数（arc tangent）の値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;real&gt; *R complex @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>実数を複素数に変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z c_abs | abs @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
+<p>絶対値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z c_conj | conj @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>共役の値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z c_neg | neg @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p><code>-1</code>を掛けた値を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_sum | sum @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>和を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_diff | diff @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>差を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_prod | prod @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>積を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;complex&gt; *Z0 &lt;complex&gt; *Z1 c_quot | quot @public -&gt; &lt;complex&gt; ;;</code></td></tr></table>
+<p>商を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.bool"><code>sango.bool</code></h1>
@@ -1688,7 +1723,7 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <p>プリントストリームの状態を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.io.filesys"><code>sango.io.filesys</code></h1>
+<h1 id="sango.io.filesys"><code>sango.io.filesys</code> 【Beta】</h1>
 
 <p>ファイルシステムへのインタフェースを提供します。
   ファイルシステムの機能や動作はオペレーティングシステムに依存しますが，このモジュールでは，共通する範囲での機能を提供します 。
@@ -1975,7 +2010,7 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.io.util.4"><code>sango.io.util</code> - pump</h2>
 
-<p>【Tentative】入力ストリームからデータを受け取りそのまま出力ストリームに書き込むアクタです。
+<p>【Alpha】入力ストリームからデータを受け取りそのまま出力ストリームに書き込むアクタです。
   入力ストリームが終了するまで動作します。
   データのコピー，転送などに使用します。</p>
 
@@ -2016,7 +2051,7 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
   なお，この過程で例外が発生しても無視します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.lang.module"><code>sango.lang.module</code></h1>
+<h1 id="sango.lang.module"><code>sango.lang.module</code> 【Beta】</h1>
 
 <p>モジュール管理機能へのインタフェースを提供します。</p>
 
@@ -2165,15 +2200,15 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
   空リストの場合は<code>none$</code>が返ります。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.net.inet"><code>sango.net.inet</code></h1>
+<h1 id="sango.net.inet"><code>sango.net.inet</code> 【Alpha】</h1>
 
-<p>【Tentative】インターネットへのアクセス機能を提供します。
+<p>インターネットへのアクセス機能を提供します。
   整備中のため，解説しません。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.net.socket"><code>sango.net.socket</code></h1>
+<h1 id="sango.net.socket"><code>sango.net.socket</code> 【Alpha】</h1>
 
-<p>【Tentative】ソケット機能を提供します。
+<p>ソケット機能を提供します。
   整備中のため，解説しません。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -2289,7 +2324,7 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
 <h2 id="sango.num.int.1"><code>sango.num.int</code> - 列挙</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;int&gt; *Start &lt;int&gt; *End &lt;int&gt; *Step enum @public -&gt; &lt;int &quot;sango.util.enum&quot;.enum&gt; ;;</code></td></tr></table>
-<p>【Tentative】<code>Start</code>から<code>End</code>まで<code>Step</code>きざみの列挙を返します。
+<p>【Alpha】<code>Start</code>から<code>End</code>まで<code>Step</code>きざみの列挙を返します。
   <code>Step</code>には負の値も指定可能です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -2579,14 +2614,14 @@ eval byte_order @public -&gt; &lt;byte_order&gt; ;;</code></td></tr></table>
   新しい値を結果として返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.system.os"><code>sango.system.os</code></h1>
+<h1 id="sango.system.os"><code>sango.system.os</code> 【Alpha】</h1>
 
 <p>オペレーティングシステムとのインタフェースを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.system.os.1"><code>sango.system.os</code> - サブプロセス起動</h2>
 
-<p>【Tentative】実行エンジンからサブプロセスを起動し，オペレーティングシステム上のコマンドを実行します。
+<p>実行エンジンからサブプロセスを起動し，オペレーティングシステム上のコマンドを実行します。
   サブプロセスを起動すると，その終了待ちを行うアクタが起動されます。
   アクタの終了を待つことでサブプロセスの終了を待ち合わせることができ，サブプロセスの終了コードは，アクタの処理結果として取得できます。
   また，サブプロセスの標準入力，標準出力，標準エラー出力とデータ授受ができます。</p>
@@ -2713,9 +2748,9 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>タプルの要素を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.array"><code>sango.util.array</code></h1>
+<h1 id="sango.util.array"><code>sango.util.array</code> 【Alpha】</h1>
 
-<p>【Tentative】配列は，固定個数の要素を持つコレクションです。
+<p>配列は，固定個数の要素を持つコレクションです。
   指標を使って，個々の要素の参照，更新ができます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -2815,7 +2850,7 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>リストに含まれるキーと値のペアを全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code></h1>
+<h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code> 【Alpha】</h1>
 
 <p>AVL木による配列の実装です。</p>
 
@@ -2859,7 +2894,7 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>空のキューを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></h1>
+<h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code> 【Alpha】</h1>
 
 <p>AVL木によるランダム・アクセス・リストの実装です。</p>
 
@@ -3022,7 +3057,7 @@ remove_all @public -&gt; &lt;&lt;A bag&gt; &lt;A list&gt; tuple&gt; ;;</code></t
  date: &lt;date&gt;
  time: &lt;time&gt;
  local_date_time$ ;;</code></td></tr></table>
-<p>【Tentative】タイムゾーンでの日付・時刻を表します。</p>
+<p>【Alpha】タイムゾーンでの日付・時刻を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval min_year @public -&gt; &lt;int&gt; ;;
 eval max_year @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
@@ -3104,9 +3139,9 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 <p>現在の時刻を1970年1月1日00:00:00からのミリ秒で返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.enum"><code>sango.util.enum</code></h1>
+<h1 id="sango.util.enum"><code>sango.util.enum</code> 【Alpha】</h1>
 
-<p>【Tentative】列挙(enumeration)のフレームワークを提供します。
+<p>列挙(enumeration)のフレームワークを提供します。
   列挙は，単一の型の，特定の文脈（context）において順序付けされた有限個の値からなります。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3211,13 +3246,13 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *W add_while @public -&gt; &lt;A iter&gt; ;;
 </code></td></tr></table>
-<p>【Tentative】生成の継続条件を付加します。
+<p>【Alpha】生成の継続条件を付加します。
   <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.locale"><code>sango.util.locale</code></h1>
+<h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>
 
-<p>【Tentative】言語，国を識別する情報です。</p>
+<p>言語，国を識別する情報です。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;locale&gt; @protected :=
   language: &lt;cstr&gt;
@@ -3374,9 +3409,9 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <p>キーと値のペアをマップから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.map.holder"><code>sango.util.map.holder</code></h1>
+<h1 id="sango.util.map.holder"><code>sango.util.map.holder</code> 【Alpha】</h1>
 
-<p>【Tentative】マップをホルダに入れ，変更可能なオブジェクトとして扱うことを可能にします。
+<p>マップをホルダに入れ，変更可能なオブジェクトとして扱うことを可能にします。
   複数アクタで共有することが主な用途です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3435,9 +3470,9 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
   <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.prop"><code>sango.util.prop</code></h1>
+<h1 id="sango.util.prop"><code>sango.util.prop</code> 【Alpha】</h1>
 
-<p>【Tentative】プロパティファイルへのアクセス機能を提供します。
+<p>プロパティファイルへのアクセス機能を提供します。
   整備中のため，解説しません。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3539,9 +3574,9 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <p>モジュールに組み込まれた乱数発生サービスに乱数発生器を設定しなおします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.ralist"><code>sango.util.ralist</code></h1>
+<h1 id="sango.util.ralist"><code>sango.util.ralist</code> 【Alpha】</h1>
 
-<p>【Tentative】リストの要素を指標によってアクセスするには，指標に比例するコストがかかります。
+<p>リストの要素を指標によってアクセスするには，指標に比例するコストがかかります。
   このコストを下げたリスト・モデルの実装をランダム・アクセス・リストと呼び，このモジュールでフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3797,9 +3832,9 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <p>値をセットから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.set.holder"><code>sango.util.set.holder</code></h1>
+<h1 id="sango.util.set.holder"><code>sango.util.set.holder</code> 【Alpha】</h1>
 
-<p>【Tentative】セットをホルダに入れ，変更可能なオブジェクトとして扱うことを可能にします。
+<p>セットをホルダに入れ，変更可能なオブジェクトとして扱うことを可能にします。
   複数アクタで共有することが主な用途です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3859,9 +3894,9 @@ eval &lt;*A holder_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &
   <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.shell"><code>sango.util.shell</code></h1>
+<h1 id="sango.util.shell"><code>sango.util.shell</code> 【Alpha】</h1>
 
-<p>【Tentative】シェルプログラミングのユーティリティ機能を提供します。
+<p>シェルプログラミングのユーティリティ機能を提供します。
   実際に処理を行う関数へ中継する関数を多く提供します。
   これらを使用することにより，インポートを簡素化することができます。</p>
 

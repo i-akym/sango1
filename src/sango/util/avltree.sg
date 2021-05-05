@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree" ;;
+module @deprecated "sango.util.avltree" ;;
 
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
@@ -60,7 +60,10 @@ eval <*A *B tree> *Tree size @public -> <int> {
 
 eval <*A *B tree> *Tree <A> *K get @public -> <<A B tuple> maybe> {
   Tree = ord: *Ord body: *Body *** tree$,
-  Body (Ord K locator) base.get
+  Body (Ord K locator) base.get >> case {
+  ; *KV base.get_done$ -> KV value$
+  ; ** -> none$
+  }
 } ;;
 
 eval <*A *B tree> *Tree <A> *K assoc @public -> <B maybe> {
@@ -73,8 +76,10 @@ eval <*A *B tree> *Tree <A> *K contain_key? @public -> <bool> {
 
 eval <*A *B tree> *Tree <A> *K <B> *V put @public -> <<A B tree> <<A B tuple> maybe> tuple> {
   Tree = ord: *Ord body: *Body *** tree$,
-  Body (Ord K locator) (| K, V |) base.put = (| *Body', *Replaced_kv_ |),
-  (| body: Body' :: Tree tree$, Replaced_kv_ |)
+  Body (Ord K locator) (| K, V |) base.put >> case {
+  ; *Body' base.put_new_done$ -> (| body: Body' :: Tree tree$, none$ |)
+  ; *Body' *Replaced_kv base.put_replace_done$ -> (| body: Body' :: Tree tree$, Replaced_kv value$ |)
+  }
 } ;;
 
 eval <*A *B tree> *Tree <A> *K <B> *V put_new @public -> <<A B tree> bool tuple> {
@@ -90,8 +95,10 @@ eval <*A *B tree> *Tree <A> *K <B> *V add @public -> <A B tree> {
 
 eval <*A *B tree> *Tree <A> *K remove @public -> <<A B tree> <<A B tuple> maybe> tuple> {
   Tree = ord: *Ord body: *Body *** tree$,
-  Body (Ord K locator) base.remove = (| *Body', *Removed_kv_ |),
-  (| body: Body' :: Tree tree$, Removed_kv_ |)
+  Body (Ord K locator) base.remove >> case {
+  ; *Body' *Removed_kv base.remove_done$ -> (| body: Body' :: Tree tree$, Removed_kv value$ |)
+  ; base.remove_not_found$ -> (| Tree, none$ |)
+  }
 } ;;
 
 eval <*A *B tree> *Tree <A> *K delete @public -> <A B tree> {

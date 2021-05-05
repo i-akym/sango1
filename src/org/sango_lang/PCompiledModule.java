@@ -32,6 +32,7 @@ import java.util.Set;
 
 class PCompiledModule implements PDefDict {
   PDefDict.DefDictGetter defDictGetter;
+  int availability;
   Cstr name;
   Cstr[] foreignMods;
   Map<PDefDict.TconKey, PDefDict.TconProps> foreignTconDict;
@@ -54,6 +55,7 @@ class PCompiledModule implements PDefDict {
     PCompiledModule cm = new PCompiledModule();
     cm.defDictGetter = defDictGetter;
     cm.name = mod.name;
+    cm.availability = mod.availability;
 
     cm.foreignMods = new Cstr[mod.getModTab().length - 1];
     System.arraycopy(mod.getModTab(), 1, cm.foreignMods, 0, cm.foreignMods.length);
@@ -171,6 +173,8 @@ class PCompiledModule implements PDefDict {
     p.acc |= acc;
   }
 
+  public int getModAvailability() { return this.availability; }
+
   public Cstr[] getForeignMods() {
     return this.foreignMods;
   }
@@ -195,6 +199,7 @@ class PCompiledModule implements PDefDict {
 
   DataDef convertDataDef(Module mod, MDataDef dataDef, List<PTypeRefSkel> unresolvedTypeRefList) {
     DataDef dd = new DataDef();
+    dd.availability = dataDef.availability;
     dd.sigTcon = dataDef.tcon;
     dd.sigParams = (dataDef.paramCount >= 0)? new PTypeVarSkel[dataDef.paramCount]: null;
     dd.acc = dataDef.acc;
@@ -219,6 +224,7 @@ class PCompiledModule implements PDefDict {
   }
 
   class DataDef implements PDataDef {
+    int availability;
     PTypeSkel sig;  // lazy setup
     String sigTcon;
     PTypeVarSkel[] sigParams;
@@ -262,6 +268,8 @@ class PCompiledModule implements PDefDict {
       return this.sig;
     }
 
+    public int getAvailability() { return this.availability; }
+
     public int getAcc() { return this.acc; }
 
     public int getConstrCount() { return this.constrDict.size(); }
@@ -288,6 +296,7 @@ class PCompiledModule implements PDefDict {
     PDefDict.TconProps tp = PDefDict.TconProps.create(
       PTypeId.SUBCAT_ALIAS, aliasDef.paramCount, aliasDef.acc, g);
     ad.tconInfo = PDefDict.TconInfo.create(tk, tp);
+    ad.availability = aliasDef.availability;
     ad.acc = aliasDef.acc;
     ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
@@ -301,6 +310,7 @@ class PCompiledModule implements PDefDict {
 
   static class AliasDef implements PAliasDef {
     PDefDict.TconInfo tconInfo;
+    int availability;
     int acc;
     PTypeVarSkel[] tparams;
     PTypeRefSkel body;
@@ -314,6 +324,8 @@ class PCompiledModule implements PDefDict {
       }
       return vs;
     }
+
+    public int getAvailability() { return this.availability; }
 
     public int getAcc() { return this.acc; }
 
@@ -391,6 +403,7 @@ class PCompiledModule implements PDefDict {
     FunDef fd = new FunDef();
     fd.modName = mod.name;
     fd.name = funDef.name;
+    fd.availability = funDef.availability;
     fd.paramTypes = new PTypeSkel[funDef.paramTypes.length];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < fd.paramTypes.length; i++) {
@@ -403,12 +416,15 @@ class PCompiledModule implements PDefDict {
   static class FunDef implements PFunDef {
     Cstr modName;
     String name;
+    int availability;
     PTypeSkel[] paramTypes;
     PTypeSkel retType;
 
     public Cstr getModName() { return this.modName; }
 
     public String getOfficialName() { return this.name; }
+
+    public int getAvailability() { return this.availability; }
 
     public PTypeSkel[] getParamTypes() { return this.paramTypes; }
 

@@ -57,8 +57,20 @@ class PModule extends PDefaultProgElem implements PDefDict {
   static final int ACC_DEFAULT_FOR_EXTEND = Module.ACC_PRIVATE;
   static final int ACC_DEFAULT_FOR_ALIAS = Module.ACC_PRIVATE;
 
+  static final String AVAILABILITY_WORD_GENERAL = "@general";
+  static final String AVAILABILITY_WORD_ALPHA = "@alpha";
+  static final String AVAILABILITY_WORD_BETA = "@beta";
+  static final String AVAILABILITY_WORD_LIMITED = "@limited";
+  static final String AVAILABILITY_WORD_DEPRECATED = "@deprecated";
+  static final String AVAILABILITY_WORDX_GENERAL = "general";
+  static final String AVAILABILITY_WORDX_ALPHA = "alpha";
+  static final String AVAILABILITY_WORDX_BETA = "beta";
+  static final String AVAILABILITY_WORDX_LIMITED = "limited";
+  static final String AVAILABILITY_WORDX_DEPRECATED = "deprecated";
+
   Compiler theCompiler;
   Parser.SrcInfo modDefSrcInfo;
+  int availability;
   Cstr definedName;  // maybe null
   Cstr name;
   String myId;
@@ -164,6 +176,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
       this.mod.srcInfo = si;
     }
 
+    void setAvailability(int availability) {
+      this.mod.availability = availability;
+    }
+
     void setDefinedName(Cstr name) throws CompileException {
       StringBuffer emsg;
       if (this.requiredName != null && !name.equals(this.requiredName)) {
@@ -263,6 +279,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (name != null) {
       builder.setDefinedName(name);
     }
+    builder.setAvailability(acceptXAvailabilityAttr(elem));
     String id = elem.getAttrValueAsId("id");
     if (id != null) {
       builder.setMyId(id);
@@ -311,6 +328,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       return;
     }
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("No module name at ");
@@ -418,6 +436,63 @@ class PModule extends PDefaultProgElem implements PDefDict {
       throw new CompileException(emsg.toString());
     }
     return a;
+  }
+
+  static int acceptAvailability(ParserA.TokenReader reader) throws CompileException, IOException {
+    ParserA.Token a = ParserA.acceptSpecialWord(reader, ParserA.SPACE_NEEDED);
+    int av;
+    if (a == null) {
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_GENERAL)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_ALPHA)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_ALPHA;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_BETA)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_BETA;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_LIMITED)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_LIMITED;
+    } else if (a.value.token.equals(AVAILABILITY_WORD_DEPRECATED)) {
+      reader.tokenConsumed();
+      av = Module.AVAILABILITY_DEPRECATED;
+    } else {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Invalid availability descriptor at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(". - ");
+      emsg.append(a.value.token);
+      throw new CompileException(emsg.toString());
+    }
+    return av;
+  }
+
+  static int acceptXAvailabilityAttr(ParserB.Elem elem) throws CompileException {
+    int av;
+    String avail = elem.getAttrValue("availability");
+    if (avail == null) {
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (avail.equals(AVAILABILITY_WORDX_GENERAL)) {
+      av = Module.AVAILABILITY_GENERAL;
+    } else if (avail.equals(AVAILABILITY_WORDX_ALPHA)) {
+      av = Module.AVAILABILITY_ALPHA;
+    } else if (avail.equals(AVAILABILITY_WORDX_BETA)) {
+      av = Module.AVAILABILITY_BETA;
+    } else if (avail.equals(AVAILABILITY_WORDX_LIMITED)) {
+      av = Module.AVAILABILITY_LIMITED;
+    } else if (avail.equals(AVAILABILITY_WORDX_DEPRECATED)) {
+      av = Module.AVAILABILITY_DEPRECATED;
+    } else {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Invalid availability descriptor at ");
+      emsg.append(elem.getSrcInfo().toString());
+      emsg.append(". - ");
+      emsg.append(avail);
+      throw new CompileException(emsg.toString());
+    }
+    return av;
   }
 
   static ParserA.Token acceptWildCard(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
@@ -712,7 +787,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateInFun(PDataDef dd, Parser.SrcInfo srcInfo, String baseModId, String baseTcon) throws CompileException {
-    // eval <*T0 *T1 .. tcon+> *X _in_tcon? | tcon? @public -> <bool> {
+    // eval @availability <*T0 *T1 .. tcon+> *X _in_tcon? | tcon? @public -> <bool> {
     //   X case {
     //   ; *** dcon0 -> true$
     //   ; *** dcon1 -> true$
@@ -728,6 +803,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = srcInfo.appendPostfix("_in");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(dd.getAvailability());
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
@@ -800,7 +876,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateNarrowFun(PDataDef dd, Parser.SrcInfo srcInfo, String baseModId, String baseTcon) throws CompileException {
-    // eval <*T0 *T1 .. tcon+> *X _narrow_tcon | narrow @public -> <<T0 T1 .. tcon> maybe> {
+    // eval @availability <*T0 *T1 .. tcon+> *X _narrow_tcon | narrow @public -> <<T0 T1 .. tcon> maybe> {
     //   X case {
     //   ; *V0 *V1 .. dcon0 -> (V0 V1 .. dcon0) value$
     //   ; *V0 *V1 .. dcon1 -> (V0 V1 .. dcon1) value$
@@ -816,6 +892,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(dd.getAvailability());
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
@@ -915,7 +992,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateAttrFunForDataStmt(PDataStmt dat, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
-    // eval <*T0 *T1 .. tcon> *X _attr_tcon_a | a @xxx -> <a's type> {
+    // eval @availability <*T0 *T1 .. tcon> *X _attr_tcon_a | a @xxx -> <a's type> {
     //   X = a: *V *** dcon$,
     //   V
     // }
@@ -925,6 +1002,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = dat.srcInfo.appendPostfix("_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(dat.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc((dat.acc == Module.ACC_PUBLIC || dat.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
@@ -963,7 +1041,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       for (int j = 0; j < constr.attrs.length; j++) {
         PDataAttrDef attr = constr.attrs[j];
         if (attr.name != null) {
-          this.generateMaybeAttrFun(dat.tcon, dat.tparams, dat.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
+          this.generateMaybeAttrFun(dat.tcon, dat.tparams, dat.availability, dat.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
         }
       }
     }
@@ -975,14 +1053,14 @@ class PModule extends PDefaultProgElem implements PDefDict {
       for (int j = 0; j < constr.attrs.length; j++) {
         PDataAttrDef attr = constr.attrs[j];
         if (attr.name != null) {
-          this.generateMaybeAttrFun(ext.tcon, ext.tparams, ext.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
+          this.generateMaybeAttrFun(ext.tcon, ext.tparams, ext.availability, ext.acc, constr.dcon, attr.name, attr.type, attr.srcInfo);
         }
       }
     }
   }
 
-  private void generateMaybeAttrFun(String tcon, PVarDef[] tparams, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
-    // eval <*T0 *T1 .. tcon> *X _maybe_attr_tcon_a | maybe_a @xxx -> <<a's type> maybe> {
+  private void generateMaybeAttrFun(String tcon, PVarDef[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
+    // eval @availability <*T0 *T1 .. tcon> *X _maybe_attr_tcon_a | maybe_a @xxx -> <<a's type> maybe> {
     //   X case {
     //   ; a: *V *** dcon -> V value$
     //   ; ** -> none$
@@ -993,6 +1071,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
     evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc((acc == Module.ACC_PUBLIC || acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
@@ -1190,6 +1269,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
       PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
       Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
   }
+
+  public int getModAvailability() { return this.availability; }
 
   public Cstr[] getForeignMods() {
     Cstr[] ms;
@@ -1679,6 +1760,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     public PVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
+
+    public int getAvailability() { return this.referredDataDef.getAvailability(); }
 
     public int getAcc() {
       int acc;

@@ -43,6 +43,10 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 public class Compiler implements PDefDict.DefDictGetter {
+  static final int ACTION_IGNORE = 0;
+  static final int ACTION_WARN = 1;
+  static final int ACTION_ERROR = 2;
+
   PrintStream msgOut;
   List<String> srcList;
   List<Cstr> importQueue;
@@ -61,6 +65,11 @@ public class Compiler implements PDefDict.DefDictGetter {
   File modOutPath;
   boolean verboseModule;
   boolean compileError;
+  int onAvGeneral;
+  int onAvAlpha;
+  int onAvBeta;
+  int onAvLimited;
+  int onAvDeprecated;
 
   public static void main(String[] args) {
     LauncherControl lc = new LauncherControl();
@@ -149,6 +158,11 @@ public class Compiler implements PDefDict.DefDictGetter {
     this.userModPathList.add(new File("."));
     this.modPathList = new ArrayList<File>();
     this.verboseModule = true;
+    this.onAvGeneral = ACTION_IGNORE;
+    this.onAvAlpha = ACTION_WARN;
+    this.onAvBeta = ACTION_IGNORE;
+    this.onAvLimited = ACTION_WARN;
+    this.onAvDeprecated = ACTION_WARN;
     this.srcList = new ArrayList<String>();
   }
 
@@ -178,7 +192,10 @@ public class Compiler implements PDefDict.DefDictGetter {
           s.equals("-modules") || s.equals("-m") ||
           s.equals("-out") ||
           s.equals("-verbose") ||
-          s.equals("-quiet")) {
+          s.equals("-quiet") ||
+          s.equals("-ignore") ||
+          s.equals("-warn") ||
+          s.equals("-error")) {
         opt = new String[] { s, null };
       } else if (s.startsWith("-")) {
         lc.msgOut.print("Unknown option. ");
@@ -218,6 +235,12 @@ public class Compiler implements PDefDict.DefDictGetter {
       processVerboseOpt(lc, c, optParam);
     } else if (optName.equals("-quiet")) {
       processQuietOpt(lc, c, optParam);
+    } else if (optName.equals("-ignore")) {
+      processIgnoreOpt(lc, c, optParam);
+    } else if (optName.equals("-warn")) {
+      processWarnOpt(lc, c, optParam);
+    } else if (optName.equals("-error")) {
+      processErrorOpt(lc, c, optParam);
     } else if (optName.equals("-L")) {  // system lib path, which is used internally
       processLOpt(lc, c, optParam);
     } else {
@@ -301,6 +324,50 @@ public class Compiler implements PDefDict.DefDictGetter {
       c.setVerboseModule(sw);
     } else {
       lc.msgOut.println("Unknown parameter to -verbose/-quiet option.");
+      System.exit(1);
+    }
+  }
+
+  static void processIgnoreOpt(LauncherControl lc, Compiler c, String optParam) {
+    processActionOptWithParams(lc, c, optParam, ACTION_IGNORE);
+  }
+
+  static void processWarnOpt(LauncherControl lc, Compiler c, String optParam) {
+    processActionOptWithParams(lc, c, optParam, ACTION_WARN);
+  }
+
+  static void processErrorOpt(LauncherControl lc, Compiler c, String optParam) {
+    processActionOptWithParams(lc, c, optParam, ACTION_ERROR);
+  }
+
+  static void processActionOptWithParams(LauncherControl lc, Compiler c, String optParam, int action) {
+    String[] ps = optParam.split("\\+");
+    for (int i = 0; i < ps.length; i++) {
+      if (ps[i] != null) {
+        processActionOpt(lc, c, ps[i], action);
+      }
+    }
+  }
+
+  static void processActionOpt(LauncherControl lc, Compiler c, String param, int action) {
+    if (param.equals("av-all")) {
+      c.onAvGeneral = action;
+      c.onAvAlpha = action;
+      c.onAvBeta = action;
+      c.onAvLimited = action;
+      c.onAvDeprecated = action;
+    } else if (param.equals("av-general")) {
+      c.onAvGeneral = action;
+    } else if (param.equals("av-alpha")) {
+      c.onAvAlpha = action;
+    } else if (param.equals("av-beta")) {
+      c.onAvBeta = action;
+    } else if (param.equals("av-limited")) {
+      c.onAvLimited = action;
+    } else if (param.equals("av-deprecated")) {
+      c.onAvDeprecated = action;
+    } else {
+      lc.msgOut.println("Unknown parameter to -ignore/-warn/-error option.");
       System.exit(1);
     }
   }
@@ -605,6 +672,108 @@ public class Compiler implements PDefDict.DefDictGetter {
     }
   }
 
+  void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
+      throws CompileException {
+    PDefDict dd = this.defDictDict.get(referredModName);
+    if (dd != null) {  // should be not null...
+      int ma = dd.getModAvailability();
+      switch (this.decideAvailabilityAction(ma, featureAv)) {
+      case ACTION_IGNORE: break;
+      case ACTION_WARN:
+        this.msgOut.print("Warning: ");
+        this.msgOut.println(funAvailabilityMsg(
+            referrerModName,
+            referredModName, ma,
+            id, featureAv));
+        break;
+      case ACTION_ERROR:
+        this.msgOut.print("Error: ");
+        this.msgOut.println(funAvailabilityMsg(
+            referrerModName,
+            referredModName, ma,
+            id, featureAv));
+        this.compileError = true;
+        throw new CompileException("Availability error.");
+      }
+    }
+  }
+
+  static String funAvailabilityMsg(Cstr referrerModName, Cstr referredModName, int modAv, String id, int featureAv) {
+    String ma = (modAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(modAv) + "]";
+    String fa = (featureAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(featureAv) + "]";
+    return
+      referrerModName.repr() + " refers function "
+      + "\"" + id + "\"" + fa
+      + " in " + referredModName.repr() + ma + ".";
+  }
+
+  void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
+      throws CompileException {
+    PDefDict dd = this.defDictDict.get(referredModName);
+    if (dd != null) {  // should be not null...
+      int ma = dd.getModAvailability();
+      switch (this.decideAvailabilityAction(ma, featureAv)) {
+      case ACTION_IGNORE: break;
+      case ACTION_WARN:
+        this.msgOut.print("Warning: ");
+        this.msgOut.println(typeAvailabilityMsg(
+            referrerModName,
+            referredModName, ma,
+            id, featureAv));
+        break;
+      case ACTION_ERROR:
+        this.msgOut.print("Error: ");
+        this.msgOut.println(typeAvailabilityMsg(
+            referrerModName,
+            referredModName, ma,
+            id, featureAv));
+        this.compileError = true;
+        throw new CompileException("Availability error.");
+      }
+    }
+  }
+
+  static String typeAvailabilityMsg(Cstr referrerModName, Cstr referredModName, int modAv, String id, int featureAv) {
+    String ma = (modAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(modAv) + "]";
+    String fa = (featureAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(featureAv) + "]";
+    return
+      referrerModName.repr() + " refers type "
+      + "\"" + id + "\"" + fa
+      + " in " + referredModName.repr() + ma + ".";
+  }
+
+  int decideAvailabilityAction(int modAv, int featureAv) {
+    int ma = this.availabilityAction(modAv);
+    int fa = this.availabilityAction(featureAv);
+    return (ma > fa)? ma: fa;
+  }
+
+  int availabilityAction(int availability) {
+    int a;
+    switch (availability) {
+    case Module.AVAILABILITY_GENERAL: a = this.onAvGeneral; break;
+    case Module.AVAILABILITY_ALPHA: a = this.onAvAlpha; break;
+    case Module.AVAILABILITY_BETA: a = this.onAvBeta; break;
+    case Module.AVAILABILITY_LIMITED: a = this.onAvLimited; break;
+    case Module.AVAILABILITY_DEPRECATED: a = this.onAvDeprecated; break;
+    default: throw new IllegalArgumentException("Invalid availability.");
+    }
+    return a;
+  }
+
+  static String availabilityRepr(int availability) {
+    String s;
+    switch (availability) {
+    case Module.AVAILABILITY_GENERAL: s = "General"; break;
+    case Module.AVAILABILITY_ALPHA: s = "Alpha"; break;
+    case Module.AVAILABILITY_BETA: s = "Beta"; break;
+    case Module.AVAILABILITY_LIMITED: s = "Limited"; break;
+    case Module.AVAILABILITY_DEPRECATED: s = "Deprecated"; break;
+    default: throw new IllegalArgumentException("Invalid availability.");
+    }
+    return s;
+  }
+
   class CompileEntry {
     Cstr modName;
     File srcFile;
@@ -692,15 +861,25 @@ public class Compiler implements PDefDict.DefDictGetter {
     out.println("  -out <path> : Generate module files to <path> directory.");
     out.println("  -verbose <switches1> : Show detail messages.");
     out.println("  -quiet <switches1> : Suppress messages.");
+    out.println("  -warn <switches2> : Display if detected.");
+    out.println("  -error <switches2> : Handle as an error if detected.");
+    out.println("  -ignore <switches2> : Clear -warn/-error switches.");
     out.println();
-    out.println("  <switches1> -- one or more switches concatenated with '+'. Switch are as follows");
+    out.println("  <switches1> -- one or more switches concatenated with '+'. Switches are...");
     out.println("    help : help message");
     out.println("    version : version information");
     out.println("    module : actions to module");
     out.println("    all : all switches above");
+    out.println("  <switches2> -- one or more switches concatenated with '+'. Switches are...");
+    out.println("    av-general : availability - general");
+    out.println("    av-alpha : availability - alpha");
+    out.println("    av-beta : availability - beta");
+    out.println("    av-limited : availability - limited");
+    out.println("    av-deprecated : availability - deprecated");
+    out.println("    av-all : availability - all states");
     out.println();
     out.println("Default options");
-    out.println("  -m . -verbose version+module");
+    out.println("  -m . -verbose version+module -warn av-alpha+av-limited+av-deprecated");
     out.println();
   }
 }

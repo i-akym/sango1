@@ -67,13 +67,16 @@ eval <*A queue.queue_d+> *Queue_d length -> <int> {
 
 eval <*A queue.queue_d+> *Queue_d <A> *Elem enqueue -> <A queue.queue_d+> {
   Queue_d = body: *Body *** d$,
-  Body ^locate_enqueue Elem avl.put = (| *Body', ** |),
+  Body ^locate_enqueue Elem avl.put = *Body' avl.put_new_done$,
   body: Body' :: Queue_d d$
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d head -> <A maybe> {
   Queue_d = body: *Body *** d$,
-  Body ^locate_head avl.get
+  Body ^locate_head avl.get >> case {
+  ; *E avl.get_done$ -> E value$
+  ; ** -> none$
+  }
 } ;;
 
 eval <*A queue.queue_d+> *Queue_d dequeue -> <<A <A queue.queue_d+> tuple> maybe> {

@@ -26,6 +26,8 @@ package org.sango_lang;
 import java.util.List;
 
 public interface PDefDict {
+  int getModAvailability();
+
   Cstr[] getForeignMods();
 
   EidProps resolveEid(String id, int catOpts, int accOpts) throws CompileException;

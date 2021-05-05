@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.avltree.ralist" ;;
+module @alpha "sango.util.avltree.ralist" ;;
 
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.ralist" -> ral ;;
@@ -84,19 +84,22 @@ eval <*A ral.ralist_d+> *D length -> <int> {
 
 eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
   D = body: *Body *** d$,
-  Body (Index find_locator) avl.get
+  Body (Index find_locator) avl.get >> case {
+  ; *Y avl.get_done$ -> Y value$
+  ; ** -> none$
+  }
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index <A> *X insert_at -> <A ral.ralist_d+> {
   D = body: *Body *** d$,
-  Body (Index insert_locator) X avl.put = (| *Body', none$ |),
+  Body (Index insert_locator) X avl.put = *Body' avl.put_new_done$,
   body: Body' :: D d$
 } ;;
 
 eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe> tuple> {
   D = body: *Body *** d$,
   Body (Index find_locator) avl.remove >> case {
-  ; (| *Body', *Removed value$ |) -> (| body: Body' :: D d$, Removed value$ |)
+  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: D d$, Removed value$ |)
   ; ** -> (| D, none$ |)
   }
 } ;;

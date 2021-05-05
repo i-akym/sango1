@@ -582,7 +582,7 @@ eval <char stream_appender_d> *D char_stream_appender_end -> <void> {
 
 # -- pump --
 
-data <*A pump_conf> @public :=
+data @alpha <*A pump_conf> @public :=
   src: <A io.instream_h>
   dst: <A io.outstream_h>
   read_at_end_action: <<A pump_conf> void fun>

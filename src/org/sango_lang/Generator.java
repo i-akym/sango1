@@ -36,12 +36,15 @@ import javax.xml.transform.stream.StreamResult;
 class Generator {
   Compiler theCompiler;
   Parser parser;
+  Cstr modName;
   File modFile;
   Module.Builder modBuilder;
+  boolean stop;
 
   Generator(Compiler theCompiler, Compiler.CompileEntry ce) {
     this.theCompiler = theCompiler;
     this.parser = theCompiler.parserDict.get(ce.modName);
+    this.modName = ce.modName;
     this.modFile = ce.modFile;
     this.modBuilder = Module.newBuilder();
   }
@@ -49,6 +52,7 @@ class Generator {
   void generate() throws IOException, TransformerException {
     this.generateModInfo();
     this.generateForeignInfo();
+    if (this.stop) { return; }
     this.generateDataDefs();
     this.generateAliasTypeDefs();
     this.generateFunDefs();
@@ -71,6 +75,7 @@ class Generator {
 
   void generateModInfo() {
     this.modBuilder.setName(this.parser.mod.definedName);
+    this.modBuilder.setAvailability(this.parser.mod.availability);
     this.modBuilder.setSlotCount((this.parser.mod.isInitFunDefined())? 2: 1);
   }
 
@@ -90,15 +95,36 @@ class Generator {
   void generateForeignRefsIn(Cstr modName) {
     PDataDef[] dds = this.parser.mod.foreignIdResolver.getReferredDataDefsIn(modName);
     for (int i = 0; i < dds.length; i++) {
-      this.generateDataDefGeneric(dds[i]);
+      PDataDef dd = dds[i];
+      try {
+        this.theCompiler.handleTypeAvailability(
+          this.modName, modName, dd.getFormalTcon(), dd.getAvailability());
+        this.generateDataDefGeneric(dd);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
     }
     PAliasDef[] ads = this.parser.mod.foreignIdResolver.getReferredAliasDefsIn(modName);
     for (int i = 0; i < ads.length; i++) {
-      this.generateAliasTypeDefGeneric(ads[i]);
+      PAliasDef ad = ads[i];
+      try {
+        this.theCompiler.handleTypeAvailability(
+          this.modName, modName, ad.getTcon(), ad.getAvailability());
+        this.generateAliasTypeDefGeneric(ad);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
     }
     PFunDef[] fds = this.parser.mod.foreignIdResolver.getReferredFunDefsIn(modName);
     for (int i = 0; i < fds.length; i++) {
-      this.generateFunDef(fds[i]);
+      PFunDef fd = fds[i];
+      try {
+        this.theCompiler.handleFunAvailability(
+          this.modName, modName, fd.getOfficialName(), fd.getAvailability());
+        this.generateFunDef(fd);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
     }
   }
 
@@ -118,10 +144,10 @@ class Generator {
     if (pvs == null) { return; }  // fun, tuple
     PDefDict.TconKey btk = dd.getBaseTconKey();
     if (btk != null) {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAcc(), pvs.length,
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length,
         this.parser.mod.modNameToModRefIndex(btk.modName), btk.tcon);
     } else {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAcc(), pvs.length);
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length);
     }
     List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
@@ -163,7 +189,8 @@ class Generator {
 
   void generateAliasTypeDefGeneric(PAliasDef alias) {
     PVarSlot[] pvs = alias.getParamVarSlots();
-    MAliasTypeDef atd = MAliasTypeDef.create(alias.getTcon(), alias.getAcc(), pvs.length);
+    MAliasTypeDef atd = MAliasTypeDef.create(
+      alias.getTcon(), alias.getAvailability(), alias.getAcc(), pvs.length);
     List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
@@ -186,6 +213,7 @@ class Generator {
   void generateFunDef(PEvalStmt eval) {
     MFunDef.Builder b = MFunDef.Builder.newInstance();
     b.setName(eval.official);
+    b.setAvailability(eval.availability);
     b.setAcc(eval.acc);
     for (int i = 0; i < eval.aliases.length; i++) {
       b.addAlias(eval.aliases[i]);

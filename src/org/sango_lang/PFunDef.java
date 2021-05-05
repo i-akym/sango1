@@ -29,6 +29,8 @@ interface PFunDef {
 
   String getOfficialName();
 
+  int getAvailability();
+
   PTypeSkel[] getParamTypes();
 
   PTypeSkel getRetType();

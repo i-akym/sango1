@@ -110,6 +110,7 @@ public class Module {
 
   static final String ATTR_ACC = "acc";
   static final String ATTR_ATTR_COUNT = "attr_count";
+  static final String ATTR_AVAILABILITY = "availability";
   static final String ATTR_BASE_MOD_INDEX = "base_mod_index";
   static final String ATTR_BASE_TCON = "base_tcon";
   static final String ATTR_DCON = "dcon";
@@ -138,11 +139,22 @@ public class Module {
   static final String REPR_PROTECTED = "protected";
   static final String REPR_OPAQUE = "opaque";
   static final String REPR_PRIVATE = "private";
+  static final String REPR_GENERAL = "general";
+  static final String REPR_ALPHA = "alpha";
+  static final String REPR_BETA = "beta";
+  static final String REPR_LIMITED = "limited";
+  static final String REPR_DEPRECATED = "deprecated";
 
   public static final int ACC_PUBLIC = 1;
   public static final int ACC_PROTECTED = 2;
   public static final int ACC_OPAQUE = 4;
   public static final int ACC_PRIVATE = 8;
+
+  public static final int AVAILABILITY_GENERAL = 0;
+  public static final int AVAILABILITY_ALPHA = 1;
+  public static final int AVAILABILITY_BETA = 2;
+  public static final int AVAILABILITY_LIMITED = 7;
+  public static final int AVAILABILITY_DEPRECATED = 9;
 
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;
@@ -150,6 +162,7 @@ public class Module {
   static final String CUR_FORMAT_VERSION = "1.0";
 
   Cstr name;
+  int availability;
   int slotCount;
   Cstr[] modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
@@ -168,6 +181,8 @@ public class Module {
   Class<?> nativeImplClass;
 
   private Module() {}
+
+  public int getAvailability() { return this.availability; }
 
   public int getSlotCount() { return this.slotCount; }
 
@@ -266,6 +281,15 @@ public class Module {
       }
     }
 
+    int av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+    // /* DEBUG */ System.out.print("avilability = ");
+    // /* DEBUG */ System.out.println(av);
+    builder.setAvailability(av);
+
     int slotCount = 1;
     Node aSlotCount = attrs.getNamedItem(ATTR_SLOT_COUNT);
     if (aSlotCount != null) {
@@ -363,6 +387,14 @@ public class Module {
     // /* DEBUG */ System.out.print("tcon = ");
     // /* DEBUG */ System.out.println(aTcon.getNodeValue());
 
+    int av = AVAILABILITY_GENERAL;  // default
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+    // /* DEBUG */ System.out.print("availability = ");
+    // /* DEBUG */ System.out.println(av);
+
     int acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
@@ -397,9 +429,9 @@ public class Module {
     if (aBaseModIndex != null) {
       Node aBaseTcon = attrs.getNamedItem(ATTR_BASE_TCON);
       String baseTcon = (aBaseTcon != null)? aBaseTcon.getNodeValue(): aTcon.getNodeValue();
-      builder.startDataDef(aTcon.getNodeValue(), acc, paramCount, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
+      builder.startDataDef(aTcon.getNodeValue(), av, acc, paramCount, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
     } else {
-      builder.startDataDef(aTcon.getNodeValue(), acc, paramCount);
+      builder.startDataDef(aTcon.getNodeValue(), av, acc, paramCount);
     }
     Node n = node.getFirstChild();
     while (n != null) {
@@ -498,6 +530,12 @@ public class Module {
       throw new FormatException("Type constructor not found.");
     }
 
+    int av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+
     int paramCount = 0;  // default: 0
     Node aParamCount = attrs.getNamedItem(ATTR_PARAM_COUNT);
     if (aParamCount != null) {
@@ -520,7 +558,7 @@ public class Module {
       }
     }
 
-    builder.startAliasTypeDef(aTcon.getNodeValue(), acc, paramCount);
+    builder.startAliasTypeDef(aTcon.getNodeValue(), av, acc, paramCount);
     Node n = node.getFirstChild();
     MType type = null;
     while (n != null) {
@@ -571,6 +609,14 @@ public class Module {
     // /* DEBUG */ System.out.print("name = ");
     // /* DEBUG */ System.out.println(funName);
 
+    int av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+    // /* DEBUG */ System.out.print("avilability = ");
+    // /* DEBUG */ System.out.println(av);
+
     int acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
@@ -588,6 +634,7 @@ public class Module {
 
     MFunDef.Builder funDefBuilder = MFunDef.Builder.newInstance();
     funDefBuilder.setName(funName);
+    funDefBuilder.setAvailability(av);
     funDefBuilder.setAcc(acc);
     Node n = skipIgnorableNodes(node.getFirstChild());
     if (internalizeFunAliases(n, builder, funDefBuilder)) {
@@ -1112,6 +1159,9 @@ public class Module {
     if (this.name != null) {
       moduleNode.setAttribute(ATTR_NAME, this.name.toJavaString());
     }
+    if (this.availability != AVAILABILITY_GENERAL) {
+      moduleNode.setAttribute(ATTR_AVAILABILITY, reprOfAvailability(this.availability));
+    }
     if (this.slotCount != 0) {
       moduleNode.setAttribute(ATTR_SLOT_COUNT, Integer.toString(this.slotCount));
     }
@@ -1316,6 +1366,10 @@ public class Module {
       this.mod.name = name;
     }
 
+    void setAvailability(int availability) {
+      this.mod.availability = availability;
+    }
+
     void setSlotCount(int n) {
       this.mod.slotCount = n;
     }
@@ -1327,9 +1381,9 @@ public class Module {
 
     void endForeignMod() {
       if (this.currentForeignModName != null && this.currentForeignModName.equals(MOD_LANG)) {
-        this.startDataDef(TCON_TUPLE, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
-        this.startDataDef(TCON_FUN, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
       }
       this.foreignModList.add(this.currentForeignModName);
@@ -1343,13 +1397,14 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
-    void startDataDef(String tcon, int acc, int paramCount) {
-      this.startDataDef(tcon, acc, paramCount, 0, null);
+    void startDataDef(String tcon, int availability, int acc, int paramCount) {
+      this.startDataDef(tcon, availability, acc, paramCount, 0, null);
     }
 
-    void startDataDef(String tcon, int acc, int paramCount, int baseModIndex, String baseTcon) {
+    void startDataDef(String tcon, int availability, int acc, int paramCount, int baseModIndex, String baseTcon) {
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.setTcon(tcon);
+      this.dataDefBuilder.setAvailability(availability);
       this.dataDefBuilder.setAcc(acc);
       this.dataDefBuilder.setParamCount(paramCount);
       this.dataDefBuilder.setBaseModIndex(baseModIndex);
@@ -1392,8 +1447,8 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
-    void startAliasTypeDef(String tcon, int acc, int paramCount) {
-      this.currentAliasTypeDef = MAliasTypeDef.create(tcon, acc, paramCount);
+    void startAliasTypeDef(String tcon, int availability, int acc, int paramCount) {
+      this.currentAliasTypeDef = MAliasTypeDef.create(tcon, availability, acc, paramCount);
     }
 
     void setAliasBody(MType type) {
@@ -1559,9 +1614,9 @@ public class Module {
         this.mod.modTab[i] = this.foreignModList.get(j);
       }
       if (this.mod.name != null && this.mod.name.equals(MOD_LANG)) {
-        this.startDataDef(TCON_TUPLE, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
-        this.startDataDef(TCON_FUN, ACC_PUBLIC, -1);
+        this.startDataDef(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
         this.endDataDef();
       }
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();
@@ -1587,7 +1642,7 @@ public class Module {
   }
 
   static String reprOfAcc(int acc) {
-    String r = null;
+    String r;
     switch (acc) {
     case ACC_PUBLIC:
       r = REPR_PUBLIC;
@@ -1600,8 +1655,53 @@ public class Module {
       break;
     case ACC_PRIVATE:
       r = REPR_PRIVATE;
+      break;
+    default:
+      throw new IllegalArgumentException();
     }
     return r;
+  }
+
+  static String reprOfAvailability(int availability) {
+    String r;
+    switch (availability) {
+    case AVAILABILITY_GENERAL:
+      r = REPR_GENERAL;
+      break;
+    case AVAILABILITY_ALPHA:
+      r = REPR_ALPHA;
+      break;
+    case AVAILABILITY_BETA:
+      r = REPR_BETA;
+      break;
+    case AVAILABILITY_LIMITED:
+      r = REPR_LIMITED;
+      break;
+    case AVAILABILITY_DEPRECATED:
+      r = REPR_DEPRECATED;
+      break;
+    default:
+      throw new IllegalArgumentException();
+    }
+    return r;
+  }
+
+  static int parseAvailabilityAttr(String s) {
+    int av;
+    if (s.equals(REPR_GENERAL)) {
+      av = AVAILABILITY_GENERAL;
+    } else if (s.equals(REPR_ALPHA)) {
+      av = AVAILABILITY_ALPHA;
+    } else if (s.equals(REPR_BETA)) {
+      av = AVAILABILITY_BETA;
+    } else if (s.equals(REPR_LIMITED)) {
+      av = AVAILABILITY_LIMITED;
+    } else if (s.equals(REPR_DEPRECATED)) {
+      av = AVAILABILITY_DEPRECATED;
+    } else {
+      throw new IllegalArgumentException("Invalid " + ATTR_AVAILABILITY + ": " + s);
+    }
+    return av;
   }
 
   interface Elem {

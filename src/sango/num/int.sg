@@ -68,7 +68,7 @@ eval <cstr> *Str parse @public -> <int> {
 
 extend <*A enum.context_d> := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
 
-eval <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> {
+eval @alpha <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> {
   if {
   ; Step gt0? -> (| Step, 1, int_ord_fs |)
   ; Step lt0? -> (| Step neg, -1, int_ord_fs inverse |)
