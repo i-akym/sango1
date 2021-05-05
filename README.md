@@ -15,7 +15,7 @@ MIT License
 Java 1.8 or higher
 
 ## DOWNLOAD RELEASE PACKAGE
-[here](https://github.com/i-akym/sango-release)
+[here](https://github.com/i-akym/sango1/wiki/)
 
 ## DOCUMENTS
 src/doc/*.html
