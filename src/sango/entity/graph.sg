@@ -1,0 +1,206 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.entity.graph" ;;
+
+import "sango.entity" -> ent ;;
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.simplemap" -> smap ;;
+
+extend <ent.ent_d> :=
+| <graph_d> graph_ent_d$
+| <node_d> node_ent_d$ ;;
+
+data <graph_d> :=
+  nodes: <ent.eref list>
+  graph_d$ ;;
+
+data <node_d> :=
+  wself: <ent.wref>  # you can get wref in entity data in order to avoid making wref again
+  alive: <bool>
+  content: <independent+>
+  links: <cstr ent.wref map.map>
+  node_d$ ;;
+
+data <*A graph_h> @opaque :=
+  de: <ent.eref>
+  seal_fs: <A seal_fs>
+  graph_h$ ;;
+
+data <*A node_h> @opaque :=
+  graph_h: <A graph_h>
+  dew: <ent.wref>
+  node_h$ ;;
+
+eval <*A node_h> *Node_h node_graph | graph @public -> <A graph_h> { Node_h graph_h } ;;
+
+eval <*A seal_fs> *Seal_fs create_graph @public -> <A graph_h> {
+  nodes: [] graph_d$ = *Graph_d,
+  (Graph_d graph_ent_d$) none$ ent.create_entity = *GDE,
+  de: GDE seal_fs: Seal_fs graph_h$
+} ;;
+
+eval <*A graph_h> *Graph_h <A> *X <<void fun> maybe> *Invalidator_
+    graph_create_node | create_node @public -> <A node_h> {
+  Graph_h = de: *GDE seal_fs: *Seal_fs *** graph_h$,
+  GDE ent.read = *Graph_d graph_ent_d$,
+  Graph_d = nodes: *Nodes graph_d$,
+  ent.existence$ Invalidator_ ent.create_entity = *NDE,  # create and get eref
+  NDE none$ ent.create_weak_holder = *NDEW,
+  wself: NDEW alive: true$ content: (X &(Seal_fs >> seal_f)) links: (smap.new_map) node_d$ = *Node_d,
+  NDE (Node_d node_ent_d$) ent.write,
+  nodes: [ NDE ; Nodes ] :: Graph_d graph_d$ = *Graph_d',
+  GDE (Graph_d' graph_ent_d$) ent.write,
+  graph_h: Graph_h dew: NDEW node_h$
+} ;;
+
+eval <*A graph_h> *Graph_h graph_nodes | nodes @public -> <<A node_h> list> {
+  (Graph_h de) ent.read = *Graph_d graph_ent_d$,
+  (Graph_d nodes)
+    \ <ent.eref> *E -> <A node_h> {
+      E ent.read = (wself: *W *** node_d$) node_ent_d$,
+      graph_h: Graph_h dew: W node_h$
+    }
+    list.map
+} ;;
+
+eval <*A graph_h> *Graph_h graph_clear | clear @public -> <void> {
+  Graph_h = de: *GDE *** graph_h$,
+  GDE ent.read = *Graph_d graph_ent_d$,
+  (Graph_d nodes)
+    \ <ent.eref> *E -> <void> {
+      E ent.read = *ND node_ent_d$,
+      E ((ND node_d_destroy) node_ent_d$) ent.write >> ignore
+    }
+    list.map,
+  nodes: [] :: Graph_d graph_d$ = *Graph_d',
+  GDE (Graph_d' graph_ent_d$) ent.write >> ignore
+} ;;
+
+eval <*A node_h> *Node_h node_alive? | alive? @public -> <bool> {
+  Node_h dew >> ent.get >> case {
+  ; *NDE value$ ->
+    NDE ent.read = (alive: *A *** node_d$) node_ent_d$,
+    A
+  ; ** -> false$
+  }
+} ;;
+
+eval <*A node_h> *Node_h node_kill | kill @public -> <void> {
+  Node_h = graph_h: *Graph_h dew: *NDEW *** node_h$,
+  Graph_h = de: *GDE *** graph_h$,
+  NDEW ent.get >> case {
+  ; *NDE value$ ->
+    NDE ent.read = *Node_d node_ent_d$,
+    Node_d case {
+    ; alive: true$ links: *Links *** node_d$ ->
+      NDE ((Node_d node_d_destroy) node_ent_d$) ent.write,
+      GDE ent.read = *Graph_d graph_ent_d$,
+      Graph_d = nodes: *Nodes *** graph_d$,
+      Nodes [] &\ <ent.eref list> *Ns <ent.eref list> *NNs -> <ent.eref list> {
+        Ns case {
+        ; [ NDE ; *Ns' ] -> Ns' NNs &&  # skip to purge
+        ; [ *E ; *Ns' ] ->
+          E ent.read = *ND node_ent_d$,
+          E ((ND NDEW node_d_purge_dangling_links) node_ent_d$) ent.write,
+          Ns' [ E ; NNs ] &&
+        ; [] -> NNs  # node scan ended
+        }
+      } = *Nodes',
+      nodes: Nodes' :: Graph_d graph_d$ = *Graph_d',
+      GDE (Graph_d' graph_ent_d$) ent.write >> ignore
+    ; ** ->  # dead
+    }
+  ; ** ->  # purged
+  }
+} ;;
+
+eval <*A node_h> *Node_h node_read | read @public -> <A> {
+  Node_h read_live_node = (| *NDE, *Node_d |),
+  (Node_d content) &(Node_h graph_h >> seal_fs >> unseal_f) >> value
+} ;;
+
+eval <*A node_h> *Node_h <A> *X node_write | write @public -> <void> {
+  Node_h read_live_node = (| *NDE, *Node_d |),
+  content: (X &(Node_h graph_h >> seal_fs >> seal_f)) :: Node_d node_d$ = *Node_d',
+  NDE (Node_d' node_ent_d$) ent.write >> ignore
+} ;;
+
+eval <*A node_h> *Node_h node_links | links @public -> <cstr list> {
+  Node_h read_live_node = (| *NDE, *Node_d |),
+  (Node_d links >> map.iter >> list.new_list) ^tuple.pair_first list.map
+} ;;
+
+eval <*A node_h> *Node1_h <cstr> *Tag <A node_h> *Node2_h node_link | link @public -> <void> {
+  Node1_h read_live_node = (| *NDE1, *Node_d |),
+  Node2_h node_alive?
+    >> case { true$ -> ; ** -> bad_arg$ "Attempt to link dead node." new_exception >> throw },
+  links: ((Node_d links) Tag (Node2_h dew) map.add) :: Node_d node_d$ = *Node_d',
+  NDE1 (Node_d' node_ent_d$) ent.write >> ignore
+} ;;
+
+eval <*A node_h> *Node_h <cstr> *Tag node_unlink | unlink @public -> <void> {
+  Node_h read_live_node = (| *NDE, *Node_d |),
+  links: ((Node_d links) Tag map.delete) :: Node_d node_d$ = *Node_d',
+  NDE (Node_d' node_ent_d$) ent.write >> ignore 
+} ;;
+
+eval <*A node_h> *Node_h <cstr> *Tag node_traverse | traverse @public -> <<A node_h> maybe> {
+  Node_h read_live_node = (| *NDE, *Node_d |),
+  (Node_d links) Tag map.assoc >> case {
+  ; *W value$ -> (graph_h: (Node_h graph_h) dew: W node_h$) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A node_h> *Node_h read_live_node -> <ent.eref node_d tuple> {
+  Node_h = graph_h: *Graph_h dew: *NDEW *** node_h$,
+  NDEW ent.get >> case {
+  ; *NDE value$ ->
+    NDE ent.read = *Node_d node_ent_d$,
+    Node_d case {
+    ; alive: true$ *** node_d$ -> (| NDE, Node_d |)
+    ; ** -> bad_arg$ "Not alive." new_exception >> throw
+    }
+  ; ** -> bad_arg$ "Not alive." new_exception >> throw
+  }
+} ;;
+
+eval <node_d> *Node_d node_d_destroy -> <node_d> {
+  alive: false$ links: smap.new_map :: Node_d node_d$
+} ;;
+
+eval <node_d> *Node_d <ent.wref> *To node_d_purge_dangling_links -> <node_d> {
+  Node_d links = *Links,
+  (Links map.iter) Links &\ <<cstr ent.wref tuple> iter> *I <cstr ent.wref map.map> *Ls
+      -> <cstr ent.wref map.map> {
+    I next >> case {
+    ; (| (| *T, To |), *I' |) value$ -> I' (Ls T map.delete) &&
+    ; (| **, *I' |) value$ -> I' Ls &&
+    ; ** -> Ls
+    }
+  } = *Links',
+  links: Links :: Node_d node_d$
+} ;;
