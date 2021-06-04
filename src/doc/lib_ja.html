@@ -3795,6 +3795,15 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て削除します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A bool fun&gt; *Filter filter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<p><code>Filter</code>の条件を満たす要素の集合を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 intersection @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<p><code>Set1</code>に含まれる<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の積集合）を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 difference @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<p><code>Set1</code>に含まれない<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の差集合）を返します。</p>
+
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.set.2"><code>sango.util.set</code> - 実装者向け情報</h2>
 
