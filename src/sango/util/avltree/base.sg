@@ -42,6 +42,7 @@ data <*A node> @protected :=
   node$ ;;
 
 data <*A aux> @public := dummy_aux$ ;;  # to extend
+data <*A info> @public := no_info$ ;;  # to extend
 
 alias type <*A locator> @public := <<A node> <A locate> fun> ;;
 
@@ -52,36 +53,37 @@ eval <*A> *Assoc <<A node> maybe> *Left_ <<A node> maybe> *Right_ dummy_aux @pub
 # assoc x (left node) x (right node) -> aux
 alias type <*A aux_builder> @public := <A <<A node> maybe> <<A node> maybe> <A aux+> fun> ;;
 
+
 data <*A locate> @public :=
 | just$
 | <A locator> left$
 | <A locator> right$
-| <cstr> abort$ ;;  # can return reason of abortion
+| <A info+> abort$ ;;  # can return reason of abortion
 
 data <*A get_res> @public :=
 | <A> get_done$
 | get_not_found$
-| <cstr> get_aborted$ ;;
+| <A info+> get_aborted$ ;;
 
 data <*A put_res> @public :=
 | <A tree> put_new_done$
 | <A tree> <A> put_replace_done$
-| <cstr> put_aborted$ ;;
+| <A info+> put_aborted$ ;;
 
 data <*A iput_res> :=  # internal
 | <A node> iput_new_done$
 | <A node> <A> iput_replace_done$
-| <cstr> iput_aborted$ ;;
+| <A info+> iput_aborted$ ;;
 
 data <*A remove_res> @public :=
 | <A tree> <A> remove_done$
 | remove_not_found$
-| <cstr> remove_aborted$ ;;
+| <A info+> remove_aborted$ ;;
 
 data <*A iremove_res> :=  # internal
 | <<A node> maybe> <A> iremove_done$
 | iremove_not_found$
-| <cstr> iremove_aborted$ ;;
+| <A info+> iremove_aborted$ ;;
 
 eval new_tree @public -> <*A tree> {
   ^dummy_aux new_tree_with_aux
