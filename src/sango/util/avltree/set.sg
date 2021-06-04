@@ -46,7 +46,7 @@ eval <*A ord_fs> *Ord <A> *X put_new_locator -> <<A avl.node> <A avl.locate> fun
   \ <A avl.node> *N -> <A avl.locate> { 
     X (N avl.assoc) Ord compare >> case {
     ; lt$ -> ^^ avl.left$
-    ; eq$ -> "" avl.abort$
+    ; eq$ -> avl.no_info$ avl.abort$
     ; gt$ -> ^^ avl.right$
     }
   }
