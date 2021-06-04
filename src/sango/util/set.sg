@@ -209,3 +209,19 @@ eval <*A set> *Set iter_next -> <A iter_res> {
   ; ** -> none$
   }
 } ;;
+
+eval <*A set> *Set <A bool fun> *Filter filter @public -> <A set> {
+  (Set clear) ((Set iter) Filter iter.add_filter) add_iter
+} ;;
+
+eval <*A set> *Set0 <A set> *Set1 intersection @public -> <A set> {
+  Set0
+    \ <A> *X -> <bool> { Set1 X contain? }
+    filter
+} ;;
+
+eval <*A set> *Set0 <A set> *Set1 difference @public -> <A set> {
+  Set0
+    \ <A> *X -> <bool> { Set1 X contain? >> not }
+    filter
+} ;;
