@@ -1,0 +1,15 @@
+import "sango.debug" -> debug ;;
+import "sango.entity.domain" -> entd ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval test000 -> <void> { entd.test } ;;
