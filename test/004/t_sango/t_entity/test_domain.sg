@@ -1,7 +1,10 @@
 import "sango.debug" -> debug ;;
+import "sango.entity" -> ent ;;
 import "sango.entity.domain" -> entd ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
+import "sango.util.avltree.set" -> avlset ;;
+import "sango.util.set" -> set ;;
 
 eval _main_ -> <void> {
   test
@@ -9,7 +12,29 @@ eval _main_ -> <void> {
 
 eval test -> <void> {
   test000,
+  test001,
+  test002,
   void$
 } ;;
 
 eval test000 -> <void> { entd.test } ;;
+eval test001 -> <void> {
+  entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
+  stdio.flush
+} ;;
+eval test002 -> <void> {
+  entd.create_domain = *D,
+  (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
+    runtime.gc,
+    D ent.existence$ none$ entd.create_entity >> entd.live_id = *N,
+    S N set.put_new >> case {
+    ; (| **, true$ |) -> "Recycled " stdio.print, N debug.repr >> stdio.print_and_newline
+    ; (| *S', ** |) -> S' &&
+    }
+  }
+} ;;
