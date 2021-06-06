@@ -84,7 +84,7 @@ data <serialize_svr_d> :=
   serialize_svr_d$ ;;
 
 eval startup_serialize_svr -> <act.post_h> {
-  \ <act.post_h void fun> *R -> { R serialize_svr } startup_svr = (| *A, *P |),
+  \ <act.post_h void fun> *R -> <void> { R serialize_svr } startup_svr = (| *A, *P |),
   A true$ act.run_background,
   A 8 act.set_priority,  # tentative
   P

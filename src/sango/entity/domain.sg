@@ -1,0 +1,335 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.entity.domain" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.util.avltree.base" -> avl ;;
+import "sango.debug" -> debug ;;  # DEBUG
+import "sango.io.stdio" -> stdio ;;  # DEBUG
+
+data <entity_h> @protected :=
+  domain_h: <domain_h>
+  live_id: <int>
+  eref: <ent.eref>
+  entity_h$ ;;
+
+data <domain_h> @opaque :=
+  svr: <act.post_h>
+  domain_h$ ;;
+
+eval create_domain @public -> <domain_h> {
+  svr: _startup_domain_svr domain_h$
+} ;;
+
+eval <domain_h> *Domain_h <ent.ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public
+    -> <entity_h> {
+  Domain_h (X Invalidator_ ent.create_entity) put
+} ;;
+
+eval <domain_h> *Domain_h <ent.eref> *Eref put @public -> <entity_h> {
+  (Domain_h svr) = *Svr,
+  Svr _get_new_id = *Id,
+  Eref
+    (\ <ent.wref> *W -> <void> { Svr (Id id_released$) act.send } value$)
+    ent.create_weak_holder,
+  domain_h: Domain_h
+    live_id: Id
+    eref: Eref
+    entity_h$
+} ;;
+
+
+# -- client --
+
+extend <act.msg> :=
+| <act.post_h> get_new_id_req$
+| <int result> get_new_id_res$
+| <int> id_released$ ;;
+
+eval _startup_domain_svr -> <act.post_h> {
+  \ <act.post_h void fun> *R -> <void> { R domain_svr } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 8 act.set_priority,  # tentative
+  P
+} ;;
+
+eval <act.post_h> *Svr _get_new_id -> <int> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post get_new_id_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res get_new_id_res$) value$,
+  Res unwrap
+} ;;
+
+
+# -- server --
+
+data <svr_d> :=
+  free_ids: <seg avl.tree>
+  svr_d$ ;;
+
+eval <act.post_h void fun> *Reply domain_svr -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  free_ids: new_free_ids svr_d$ = *D,
+  (D value$) &\ <svr_d maybe> *D_ -> <void> {
+    D_ case {
+    ; *D value$ ->
+      Box act.wait_forever$ act.listen,
+      Box act.receive = *M value$,
+      (D M svr_dispatch) &&
+    ; ** ->  # exit
+    }
+  }
+} ;;
+
+eval <svr_d> *D <act.msg+> *Msg svr_dispatch -> <svr_d maybe> {
+  Msg case {
+  ; *P get_new_id_req$ -> (D P svr_get_new_id) value$
+  ; *N id_released$ -> (D N svr_id_released) value$
+  ; act.no_post$ -> none$
+  ;  ** -> D value$
+  }
+} ;;
+
+eval <svr_d> *D <act.post_h> *P svr_get_new_id -> <svr_d> {
+  D free_ids = *FIs,
+  \\ <int <seg avl.tree> tuple> { FIs get_new_id } try >> case {
+  ; (| *N, *FIs' |) fin$ -> (| N fin$, free_ids: FIs' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res get_new_id_res$) act.send,
+  D'
+} ;;
+
+eval <svr_d> *D <int> *N svr_id_released -> <svr_d> {
+  D free_ids = *FIs,
+  FIs N put_released = *FIs',
+  free_ids: FIs' :: D svr_d$
+} ;;
+
+
+# -- free id management --
+
+data <seg> :=
+  start: <int>
+  end: <int>
+  seg$ ;;
+
+extend <*A avl.aux> :=
+  min: <int>
+  max: <int>
+  subtree_range$ ;;
+
+extend <*A avl.info> :=
+| <int> to_add_start$  # notifies this seg's start
+| <int> to_add_end$  # notifies this seg's end
+| <int> <int> to_join_left$  # notifies left seg's end this seg's start
+| <int> <int> to_join_right$ ;;  # notifies this seg's end and right seg's start
+
+eval min_id -> <int> { min_int 2 sum } ;;
+eval max_id -> <int> { max_int 2 diff } ;;
+
+eval new_free_ids -> <seg avl.tree> {
+  ^build_aux avl.new_tree = *Tree,
+  Tree (min_id max_id seg_locator) (start: min_id end: max_id seg$) avl.put = *Tree' avl.put_new_done$,
+  Tree'
+} ;;
+
+eval <seg> *Seg <<seg avl.node> maybe> *Left_ <<seg avl.node> maybe> *Right_ build_aux -> <seg avl.aux+> {
+  (| Left_, Right_|) case {
+  ; (| none$, none$ |) ->
+    min: (Seg start) max: (Seg end) subtree_range$
+  ; (| (aux: (min: *Min *** subtree_range$) *** avl.node$) value$, none$ |) ->
+    min: Min max: (Seg end) subtree_range$
+  ; (| none$, (aux: (max: *Max *** subtree_range$) *** avl.node$) value$ |) ->
+    min: (Seg start) max: Max subtree_range$
+  ; (| (aux: (min: *Min *** subtree_range$) *** avl.node$) value$,
+        (aux: (max: *Max *** subtree_range$) *** avl.node$) value$ |) ->
+    min: Min max: Max subtree_range$
+  }
+} ;;
+
+eval <seg avl.tree> *Segs get_new_id -> <int <seg avl.tree> tuple> {  # may throw exception
+  Segs left_locator avl.remove = *Segs' (start: *S end: *E seg$) avl.remove_done$,
+  (| S, E |) case {
+  ; (| ** , S |) -> (| S, Segs' |)
+  ; ** ->
+    S inc = *S',
+    Segs' (S' E seg_locator) (start: S' end: E seg$) avl.put = *Segs'' avl.put_new_done$,
+    (| S, Segs'' |)
+  }
+} ;;
+
+eval <seg avl.tree> *Segs <int> *N put_released -> <seg avl.tree> {
+  Segs (N put_released_locator) (start: N end: N seg$) avl.put >> case {
+  ; *Segs' avl.put_new_done$ ->
+# N debug.repr >> stdio.print, " put new done" stdio.print_and_newline, stdio.flush,  # DEBUG
+    Segs'
+  ; (*S to_add_start$) avl.put_aborted$ ->
+# N debug.repr >> stdio.print, " to add start " stdio.print_and_newline, stdio.flush,  # DEBUG
+    Segs (S S seg_locator) avl.remove = *Segs' (start: S end: *E seg$) avl.remove_done$,
+    Segs' (N E seg_locator) (start: N end: E seg$) avl.put = *Segs'' avl.put_new_done$,
+    Segs''
+  ; (*E to_add_end$) avl.put_aborted$ ->
+# N debug.repr >> stdio.print, " to add end" stdio.print_and_newline, stdio.flush,  # DEBUG
+    Segs (E E seg_locator) avl.remove = *Segs' (start: *S end: E seg$) avl.remove_done$,
+    Segs' (S N seg_locator) (start: S end: N seg$) avl.put = *Segs'' avl.put_new_done$,
+    Segs''
+  ; (*LE *S to_join_left$) avl.put_aborted$ ->
+# N debug.repr >> stdio.print, " to join left" stdio.print_and_newline, stdio.flush,  # DEBUG
+    Segs (LE LE seg_locator) avl.remove = *Segs' (start: *LS end: LE seg$) avl.remove_done$,
+    Segs' (S S seg_locator) avl.remove = *Segs'' (start: S end: *E seg$) avl.remove_done$,
+    Segs'' (LS E seg_locator) (start: LS end: E seg$) avl.put = *Segs''' avl.put_new_done$,
+    Segs'''
+  ; (*E *RS to_join_right$) avl.put_aborted$ ->
+# N debug.repr >> stdio.print, " to join right" stdio.print_and_newline, stdio.flush,  # DEBUG
+    Segs (E E seg_locator) avl.remove = *Segs' (start: *S end: E seg$) avl.remove_done$,
+    Segs' (RS RS seg_locator) avl.remove = *Segs'' (start: RS end: *RE seg$) avl.remove_done$,
+    Segs'' (S RE seg_locator) (start: S end: RE seg$) avl.put = *Segs''' avl.put_new_done$,
+    Segs'''
+  }
+} ;;
+
+eval left_locator -> <seg avl.locator> {
+  \ <seg avl.node> *Node -> <seg avl.locate> {
+    Node avl.left_ >> case {
+    ; ** value$ -> ^^ avl.left$
+    ; ** -> avl.just$
+    }
+  }
+} ;;
+
+eval <int> *Start <int> *End seg_locator -> <seg avl.locator> {
+  if { Start End le? -> ; otherwise -> bad_arg$ "Invalid range." new_exception >> throw },
+  \ <seg avl.node> *N -> <seg avl.locate> {
+    N avl.assoc = start: *S end: *E seg$,
+    if {
+    ; End S lt? -> ^^ avl.left$
+    ; Start E gt? -> ^^ avl.right$
+    ; otherwise -> avl.just$
+    }
+  }
+} ;;
+
+eval <int> *N put_released_locator -> <seg avl.locator> {
+  \ <seg avl.node> *NN -> <seg avl.locate> {
+    NN N min_int max_int locate_released_id  # min_int and max_int are sentinels
+  }
+} ;;
+
+eval <seg avl.node> *Node <int> *N <int> *Lmax <int> *Rmin locate_released_id -> <seg avl.locate> {
+  Node avl.assoc = start: *S end: *E seg$,
+# ">> " stdio.print, (| N, Lmax, S, E, Rmin |) debug.repr >> stdio.print_and_newline, stdio.flush, # DEBUG
+  if {
+  ; N S lt? -> 
+    Node avl.left_ >> case {
+    ; *L value$ -> L avl.aux = max: *Max *** subtree_range$, Max
+    ; ** -> Lmax
+    } = *Lmax',
+# "== " stdio.print, (| N, Lmax', S, E, Rmin |) debug.repr >> stdio.print_and_newline, stdio.flush, # DEBUG
+    (| Lmax' inc, S dec |) case {
+    ; (| N, N |) -> (Lmax' S to_join_left$) avl.abort$
+    ; (| **, N |) -> (S to_add_start$) avl.abort$
+    ; ** ->
+      Node avl.right_ >> case {
+      ; *R value$ ->
+        R avl.aux = min: *Min *** subtree_range$, Min
+      ; ** -> Rmin
+      } = *Rmin',
+      \ <seg avl.node> *NN -> <seg avl.locate> { NN N Lmax Rmin' locate_released_id } avl.left$
+    }
+  ; N E gt? -> 
+    Node avl.right_ >> case {
+    ; *R value$ ->
+      R avl.aux = min: *Min *** subtree_range$, Min
+    ; ** -> Rmin
+    } = *Rmin',
+# "== " stdio.print, (| N, Lmax, S, E, Rmin' |) debug.repr >> stdio.print_and_newline, stdio.flush, # DEBUG
+    (| E inc, Rmin' dec |) case {
+    ; (| N, N |) -> (E Rmin' to_join_right$) avl.abort$
+    ; (| N, ** |) -> (E to_add_end$) avl.abort$
+    ; ** ->
+      Node avl.left_ >> case {
+      ; *L value$ ->
+        L avl.aux = max: *Max *** subtree_range$, Max
+      ; ** -> Lmax
+      } = *Lmax',
+      \ <seg avl.node> *NN -> <seg avl.locate> { NN N Lmax' Rmin locate_released_id } avl.right$
+    }
+  # ; otherwise ->  # not reached here
+  }
+} ;;
+
+
+# -- test routines --
+
+eval @limited test @public -> <void> {
+  test000
+} ;;
+
+# id management
+eval test000 -> <void> {
+  new_free_ids = *FIs0,  # [-2147483646..max]
+  FIs0 avl.size = 1,
+  FIs0 get_new_id = (| -2147483646, *FIs1 |),  # [-2147483645..max]
+  FIs1 avl.size = 1,
+  FIs1 get_new_id = (| -2147483645, *FIs2 |),  # [-2147483644..max]
+  FIs2 avl.size = 1,
+  FIs2 get_new_id = (| -2147483644, *FIs3 |),  # [-2147483643..max]
+  FIs3 avl.size = 1,
+  FIs3 get_new_id = (| -2147483643, *FIs4 |),  # [-2147483642..max]
+  FIs4 avl.size = 1,
+  FIs4 -2147483645 put_released = *FIs4a,  # [-2147483645] [-2147483642..max]
+  FIs4a avl.size = 2,
+  FIs4a get_new_id = (| -2147483645, *FIs4a1 |),  # [-2147483642..max]
+  FIs4a1 avl.size = 1,
+  FIs4a -2147483646 put_released = *FIs4b,  # [-2147483646..-2147483645] [-2147483642..max]
+  FIs4b avl.size = 2,
+  FIs4b -2147483644 put_released = *FIs4b1,  # [-2147483646..-2147483644] [-2147483642..max]
+  FIs4b1 avl.size = 2,
+  FIs4b1 -2147483643 put_released = *FIs4b2,  # [-2147483646..max]
+  FIs4b2 avl.size = 1,
+  FIs4 get_new_id = (| -2147483642, *FIs5 |),  # [-2147483641..max]
+  FIs5 avl.size = 1,
+  FIs5 get_new_id = (| -2147483641, *FIs6 |),  # [-2147483640..max]
+  FIs6 avl.size = 1,
+  FIs6 -2147483646 put_released = *FIs6a,  # [-2147483646] [-2147483640..max]
+  FIs6a avl.size = 2,
+  FIs6a -2147483643 put_released = *FIs6a1,  # [-2147483646] [-2147483643] [-2147483640..max]
+  FIs6a1 avl.size = 3,
+  FIs6a1 -2147483644 put_released = *FIs6a2,  # [-2147483646] [-2147483644..-2147483643] [-2147483640..max]
+  FIs6a1 avl.size = 3,
+  FIs6a1 -2147483642 put_released = *FIs6a3,  # [-2147483646] [-2147483643..-2147483642] [-2147483640..max]
+  FIs6a3 avl.size = 3,
+  FIs6a3 -2147483641 put_released = *FIs6a4,  # [-2147483646] [-2147483643..max]
+  FIs6a4 avl.size = 2,
+  FIs6a4 -2147483645 put_released = *FIs6a5,  # [-2147483646..-2147483645] [-2147483643..max]
+  FIs6a5 avl.size = 2,
+  FIs6a5 -2147483644 put_released = *FIs6a6,  # [-2147483646..max]
+  FIs6a6 avl.size = 1,
+  void$
+} ;;
