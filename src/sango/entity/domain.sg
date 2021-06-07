@@ -30,44 +30,116 @@ import "sango.util.avltree.base" -> avl ;;
 import "sango.debug" -> debug ;;  # DEBUG
 import "sango.io.stdio" -> stdio ;;  # DEBUG
 
-data <entity_h> @protected :=
-  domain_h: <domain_h>
-  live_id: <int>
-  eref: <ent.eref>
+data <i> :=
+  default_domain: <domain_h> i$ ;;
+
+data <entity_h> @opaque :=
+  _domain_h: <domain_h>
+  _id: <int>
+  _eref: <ent.eref>
   entity_h$ ;;
+
+eval <entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entity _domain_h } ;;
+eval <entity_h> *Entity entity_id_during_alive | id_during_alive @public -> <int> { Entity _id } ;;
+
+data <weak_holder_h> @opaque :=
+  _domain_h: <domain_h>
+  _id: <int>
+  _wref_holder: <ent.eref>
+  weak_holder_h$ ;;
+
+eval <weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <domain_h> { Weak_holder _domain_h } ;;
+eval <weak_holder_h> *Weak_holder weak_holder_id_during_alive | id_during_alive @public -> <int> { Weak_holder _id } ;;
+
+extend <ent.ent_d> :=
+| svr: <act.post_h> svr_holder$
+| entity_h: <entity_h> entity_h_holder$
+| wref: <ent.wref> wref_holder$ ;;
 
 data <domain_h> @opaque :=
   svr: <act.post_h>
   domain_h$ ;;
 
+eval default_domain @public -> <domain_h> {
+  _initd_ >> default_domain
+} ;;
+
 eval create_domain @public -> <domain_h> {
   svr: _startup_domain_svr domain_h$
 } ;;
 
-eval <domain_h> *Domain_h <ent.ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public
+eval <domain_h> *Domain <ent.ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public
     -> <entity_h> {
-  Domain_h (X Invalidator_ ent.create_entity) put
+  Domain (X Invalidator_ ent.create_entity) contain_eref
 } ;;
 
-eval <domain_h> *Domain_h <ent.eref> *Eref put @public -> <entity_h> {
-  (Domain_h svr) = *Svr,
-  Svr _get_new_id = *Id,
+eval <domain_h> *Domain <ent.eref> *Eref contain_eref @public -> <entity_h> {
+  Domain svr = *Svr,
+  Svr _get_new_eid = *Id,
+  ((svr: Svr svr_holder$) none$ ent.create_entity) none$ ent.create_weak_holder = *Wsvr,  # avoid being kept
   Eref
-    (\ <ent.wref> *W -> <void> { Svr (Id id_released$) act.send } value$)
+    (\ <ent.wref> *W -> <void> {
+       Wsvr ent.get >> case {
+       ; *E value$ -> E ent.read = svr: *S svr_holder$, S (Id eid_released$) act.send
+       ; ** ->
+       }
+     } value$)
     ent.create_weak_holder,
-  domain_h: Domain_h
-    live_id: Id
-    eref: Eref
-    entity_h$
+  _domain_h: Domain _id: Id _eref: Eref entity_h$
+} ;;
+
+eval <entity_h> *Entity read @public -> <ent.ent_d+> {
+  (Entity _eref) ent.read
+} ;;
+
+eval <entity_h> *Entity <ent.ent_d+> *X write | swap @public -> <ent.ent_d+> {
+  (Entity _eref) X ent.write
+} ;;
+
+eval <domain_h> *Domain <entity_h> *Entity <<int void fun> maybe> *Listener_
+    create_weak_holder @public -> <weak_holder_h> {
+  Domain svr = *Svr,
+  Svr _get_new_wid = *Id,
+  Listener_ case {
+  ; *L value$ -> \ <ent.wref> *W -> <void> { Id &L } value$
+  ; ** -> none$
+  } = *L_,
+  (entity_h: Entity entity_h_holder$) none$ ent.create_entity = *Entity_holder,
+  Entity_holder L_ ent.create_weak_holder = *Wref,
+  ((svr: Svr svr_holder$) none$ ent.create_entity) none$ ent.create_weak_holder = *Wsvr,  # avoid being kept
+  (wref: Wref wref_holder$) 
+    (\\ <void> { 
+       Wsvr ent.get >> case {
+       ; *E value$ -> E ent.read = svr: *S svr_holder$, S (Id wid_released$) act.send
+       ; ** ->
+       }
+     } value$)
+    ent.create_entity = *Wref_holder,
+  _domain_h: Domain _id: Id _wref_holder: Wref_holder weak_holder_h$
+} ;;
+
+eval <weak_holder_h> *Weak_holder get @public -> <entity_h maybe> {
+  Weak_holder _wref_holder >> ent.read = wref: *W wref_holder$,
+  W ent.get >> case {
+  ; *E value$ -> E ent.read = entity_h: *Entity entity_h_holder$, Entity value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <weak_holder_h> *Weak_holder clear @public -> <void> {
+  Weak_holder _wref_holder >> ent.read = wref: *W wref_holder$,
+  W ent.clear
 } ;;
 
 
 # -- client --
 
 extend <act.msg> :=
-| <act.post_h> get_new_id_req$
+| <act.post_h> get_new_eid_req$
+| <act.post_h> get_new_wid_req$
 | <int result> get_new_id_res$
-| <int> id_released$ ;;
+| <int> eid_released$
+| <int> wid_released$ ;;
 
 eval _startup_domain_svr -> <act.post_h> {
   \ <act.post_h void fun> *R -> <void> { R domain_svr } actu.startup_svr = (| *A, *P |),
@@ -76,9 +148,17 @@ eval _startup_domain_svr -> <act.post_h> {
   P
 } ;;
 
-eval <act.post_h> *Svr _get_new_id -> <int> {
+eval <act.post_h> *Svr _get_new_eid -> <int> {
   act.open_mbox = (| *Box, *Post |),
-  Svr (Post get_new_id_req$) act.send,
+  Svr (Post get_new_eid_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res get_new_id_res$) value$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Svr _get_new_wid -> <int> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post get_new_wid_req$) act.send,
   Box act.wait_forever$ act.listen,
   Box act.receive = (*Res get_new_id_res$) value$,
   Res unwrap
@@ -88,13 +168,14 @@ eval <act.post_h> *Svr _get_new_id -> <int> {
 # -- server --
 
 data <svr_d> :=
-  free_ids: <seg avl.tree>
+  free_eids: <seg avl.tree>
+  free_wids: <seg avl.tree>
   svr_d$ ;;
 
 eval <act.post_h void fun> *Reply domain_svr -> <void> {
   act.open_mbox = (| *Box, *Post |),
   Post &Reply,
-  free_ids: new_free_ids svr_d$ = *D,
+  free_eids: new_free_ids free_wids: new_free_ids svr_d$ = *D,
   (D value$) &\ <svr_d maybe> *D_ -> <void> {
     D_ case {
     ; *D value$ ->
@@ -108,27 +189,45 @@ eval <act.post_h void fun> *Reply domain_svr -> <void> {
 
 eval <svr_d> *D <act.msg+> *Msg svr_dispatch -> <svr_d maybe> {
   Msg case {
-  ; *P get_new_id_req$ -> (D P svr_get_new_id) value$
-  ; *N id_released$ -> (D N svr_id_released) value$
+  ; *P get_new_eid_req$ -> (D P svr_get_new_eid) value$
+  ; *P get_new_wid_req$ -> (D P svr_get_new_wid) value$
+  ; *N eid_released$ -> (D N svr_eid_released) value$
+  ; *N wid_released$ -> (D N svr_wid_released) value$
   ; act.no_post$ -> none$
   ;  ** -> D value$
   }
 } ;;
 
-eval <svr_d> *D <act.post_h> *P svr_get_new_id -> <svr_d> {
-  D free_ids = *FIs,
+eval <svr_d> *D <act.post_h> *P svr_get_new_eid -> <svr_d> {
+  D free_eids = *FIs,
   \\ <int <seg avl.tree> tuple> { FIs get_new_id } try >> case {
-  ; (| *N, *FIs' |) fin$ -> (| N fin$, free_ids: FIs' :: D svr_d$ |)
+  ; (| *N, *FIs' |) fin$ -> (| N fin$, free_eids: FIs' :: D svr_d$ |)
   ; *E exc$ -> (| E exc$, D |)
   } = (| *Res, *D' |),
   P (Res get_new_id_res$) act.send,
   D'
 } ;;
 
-eval <svr_d> *D <int> *N svr_id_released -> <svr_d> {
-  D free_ids = *FIs,
+eval <svr_d> *D <act.post_h> *P svr_get_new_wid -> <svr_d> {
+  D free_wids = *FIs,
+  \\ <int <seg avl.tree> tuple> { FIs get_new_id } try >> case {
+  ; (| *N, *FIs' |) fin$ -> (| N fin$, free_wids: FIs' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res get_new_id_res$) act.send,
+  D'
+} ;;
+
+eval <svr_d> *D <int> *N svr_eid_released -> <svr_d> {
+  D free_eids = *FIs,
   FIs N put_released = *FIs',
-  free_ids: FIs' :: D svr_d$
+  free_eids: FIs' :: D svr_d$
+} ;;
+
+eval <svr_d> *D <int> *N svr_wid_released -> <svr_d> {
+  D free_wids = *FIs,
+  FIs N put_released = *FIs',
+  free_wids: FIs' :: D svr_d$
 } ;;
 
 
@@ -282,6 +381,13 @@ eval <seg avl.node> *Node <int> *N <int> *Lmax <int> *Rmin locate_released_id ->
     }
   # ; otherwise ->  # not reached here
   }
+} ;;
+
+
+# -- initialization --
+
+eval _init_ -> <i> {
+  default_domain: create_domain i$
 } ;;
 
 
