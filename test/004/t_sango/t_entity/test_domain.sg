@@ -25,7 +25,7 @@ eval test -> <void> {
 
 eval test000 -> <void> { entd.test } ;;
 eval test001 -> <void> {
-  entd.create_domain = *D,
+  entd.default_domain = *D,
   D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
   D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
   D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,

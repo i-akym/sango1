@@ -30,6 +30,9 @@ import "sango.util.avltree.base" -> avl ;;
 import "sango.debug" -> debug ;;  # DEBUG
 import "sango.io.stdio" -> stdio ;;  # DEBUG
 
+data <i> :=
+  default_domain: <domain_h> i$ ;;
+
 data <entity_h> @opaque :=
   _domain_h: <domain_h>
   _id: <int>
@@ -56,6 +59,10 @@ extend <ent.ent_d> :=
 data <domain_h> @opaque :=
   svr: <act.post_h>
   domain_h$ ;;
+
+eval default_domain @public -> <domain_h> {
+  _initd_ >> default_domain
+} ;;
 
 eval create_domain @public -> <domain_h> {
   svr: _startup_domain_svr domain_h$
@@ -374,6 +381,13 @@ eval <seg avl.node> *Node <int> *N <int> *Lmax <int> *Rmin locate_released_id ->
     }
   # ; otherwise ->  # not reached here
   }
+} ;;
+
+
+# -- initialization --
+
+eval _init_ -> <i> {
+  default_domain: create_domain i$
 } ;;
 
 
