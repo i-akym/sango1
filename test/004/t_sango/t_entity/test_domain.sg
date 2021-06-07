@@ -17,26 +17,29 @@ eval test -> <void> {
   test001,
   test002,
   test010,
+  test021,
+  test022,
+  test030,
   void$
 } ;;
 
 eval test000 -> <void> { entd.test } ;;
 eval test001 -> <void> {
   entd.create_domain = *D,
-  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.live_id >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
   stdio.flush
 } ;;
 eval test002 -> <void> {
   entd.create_domain = *D,
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
-    D ent.existence$ none$ entd.create_entity >> entd.live_id = *N,
+    D ent.existence$ none$ entd.create_entity >> entd.id_during_alive = *N,
     S N set.put_new >> case {
-    ; (| **, true$ |) -> "Recycled " stdio.print, N debug.repr >> stdio.print_and_newline
+    ; (| **, true$ |) -> "entity_h recycled " stdio.print, N debug.repr >> stdio.print_and_newline
     ; (| *S', ** |) -> S' &&
     }
   }
@@ -46,5 +49,36 @@ eval test010 -> <void> {
   D ent.existence$ none$ entd.create_entity = *E,
   E entd.read = ent.existence$,
   E my_ent_d$ entd.write = ent.existence$,
+  void$
+} ;;
+eval test021 -> <void> {
+  entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity = *E,
+  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  stdio.flush
+} ;;
+eval test022 -> <void> {
+  entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity = *E,
+  (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
+    runtime.gc,
+    D E none$ entd.create_weak_holder >> entd.id_during_alive = *N,
+    S N set.put_new >> case {
+    ; (| **, true$ |) -> "weak_holder_h recycled " stdio.print, N debug.repr >> stdio.print_and_newline
+    ; (| *S', ** |) -> S' &&
+    }
+  }
+} ;;
+eval test030 -> <void> {
+  entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity = *E,
+  D E none$ entd.create_weak_holder = *W,
+  W entd.get = E value$,
+  W entd.clear,
+  W entd.get = none$,
   void$
 } ;;
