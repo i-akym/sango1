@@ -61,6 +61,15 @@ eval <domain_h> *Domain_h <ent.eref> *Eref put @public -> <entity_h> {
     entity_h$
 } ;;
 
+# -- forward to sango.entity --
+
+eval <entity_h> *Entity read @public -> <ent.ent_d+> {
+  (Entity eref) ent.read
+} ;;
+
+eval <entity_h> *Entity <ent.ent_d+> *X write | swap @public -> <ent.ent_d+> {
+  (Entity eref) X ent.write
+} ;;
 
 # -- client --
 
