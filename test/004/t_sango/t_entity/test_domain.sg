@@ -19,7 +19,9 @@ eval test -> <void> {
   test010,
   test021,
   test022,
+  test023,
   test030,
+  test033,
   void$
 } ;;
 
@@ -73,6 +75,15 @@ eval test022 -> <void> {
     }
   }
 } ;;
+eval test023 -> <void> {
+  entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity = *E0,
+  D ent.existence$ none$ entd.create_entity = *E1,
+  entd.entity_ord_fs = *OFs,
+  E0 E0 OFs compare = eq$,
+  E0 E1 OFs compare = lt$,
+  void$
+} ;;
 eval test030 -> <void> {
   entd.create_domain = *D,
   D ent.existence$ none$ entd.create_entity = *E,
@@ -80,5 +91,15 @@ eval test030 -> <void> {
   W entd.get = E value$,
   W entd.clear,
   W entd.get = none$,
+  void$
+} ;;
+eval test033 -> <void> {
+  entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity = *E,
+  D E none$ entd.create_weak_holder = *W0,
+  D E none$ entd.create_weak_holder = *W1,
+  entd.weak_holder_ord_fs = *OFs,
+  W0 W0 OFs compare = eq$,
+  W0 W1 OFs compare = lt$,
   void$
 } ;;

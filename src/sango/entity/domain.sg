@@ -42,6 +42,26 @@ data <entity_h> @opaque :=
 eval <entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entity _domain_h } ;;
 eval <entity_h> *Entity entity_id_during_alive | id_during_alive @public -> <int> { Entity _id } ;;
 
+eval <entity_h> *E0 <entity_h> *E1 entity_compare | compare @public -> <ordering> {
+  E0 = _domain_h: *D0 _id: *N0 *** entity_h$,
+  E1 = _domain_h: *D1 _id: *N1 *** entity_h$,
+  D0 case {
+  ; D1 ->
+  ; ** -> bad_arg$ "In different domains." new_exception >> throw
+  },
+  N0 N1 compare
+} ;;
+
+eval entity_ord_fs @public -> <entity_h ord_fs> {
+  compare_f: ^entity_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
 data <weak_holder_h> @opaque :=
   _domain_h: <domain_h>
   _id: <int>
@@ -50,6 +70,26 @@ data <weak_holder_h> @opaque :=
 
 eval <weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <domain_h> { Weak_holder _domain_h } ;;
 eval <weak_holder_h> *Weak_holder weak_holder_id_during_alive | id_during_alive @public -> <int> { Weak_holder _id } ;;
+
+eval <weak_holder_h> *W0 <weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
+  W0 = _domain_h: *D0 _id: *N0 *** weak_holder_h$,
+  W1 = _domain_h: *D1 _id: *N1 *** weak_holder_h$,
+  D0 case {
+  ; D1 ->
+  ; ** -> bad_arg$ "In different domains." new_exception >> throw
+  },
+  N0 N1 compare
+} ;;
+
+eval weak_holder_ord_fs @public -> <weak_holder_h ord_fs> {
+  compare_f: ^weak_holder_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
 
 extend <ent.ent_d> :=
 | svr: <act.post_h> svr_holder$
