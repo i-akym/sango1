@@ -37,6 +37,7 @@ eval test001 -> <void> {
 } ;;
 eval test002 -> <void> {
   entd.create_domain = *D,
+  D ent.existence$ none$ entd.create_entity = *E,  # keep -2147483646
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
     D ent.existence$ none$ entd.create_entity >> entd.id_during_alive = *N,
@@ -66,6 +67,7 @@ eval test021 -> <void> {
 eval test022 -> <void> {
   entd.create_domain = *D,
   D ent.existence$ none$ entd.create_entity = *E,
+  D E none$ entd.create_weak_holder = *W,  # keep -2147483646
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
     D E none$ entd.create_weak_holder >> entd.id_during_alive = *N,

@@ -36,7 +36,7 @@ data <i> :=
 data <entity_h> @opaque :=
   _domain_h: <domain_h>
   _id: <int>
-  _eref: <ent.eref>
+  _eref_holder: <ent.eref>
   entity_h$ ;;
 
 eval <entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entity _domain_h } ;;
@@ -93,8 +93,8 @@ eval weak_holder_ord_fs @public -> <weak_holder_h ord_fs> {
 
 extend <ent.ent_d> :=
 | svr: <act.post_h> svr_holder$
-| entity_h: <entity_h> entity_h_holder$
-| wref: <ent.wref> wref_holder$ ;;
+| eid: <int> eref: <ent.eref> eref_holder_d$
+| wid: <int> wref: <ent.wref> wref_holder_d$ ;;
 
 data <domain_h> @opaque :=
   svr: <act.post_h>
@@ -117,57 +117,65 @@ eval <domain_h> *Domain <ent.eref> *Eref contain_eref @public -> <entity_h> {
   Domain svr = *Svr,
   Svr _get_new_eid = *Id,
   ((svr: Svr svr_holder$) none$ ent.create_entity) none$ ent.create_weak_holder = *Wsvr,  # avoid being kept
-  Eref
-    (\ <ent.wref> *W -> <void> {
+  (eid: Id eref: Eref eref_holder_d$)
+    (\\ <void> {
        Wsvr ent.get >> case {
        ; *E value$ -> E ent.read = svr: *S svr_holder$, S (Id eid_released$) act.send
        ; ** ->
        }
      } value$)
-    ent.create_weak_holder,
-  _domain_h: Domain _id: Id _eref: Eref entity_h$
+    ent.create_entity= *Eref_holder,
+  _domain_h: Domain _id: Id _eref_holder: Eref_holder entity_h$
 } ;;
 
 eval <entity_h> *Entity read @public -> <ent.ent_d+> {
-  (Entity _eref) ent.read
+  Entity _eref_holder >> ent.read = eref: *Eref *** eref_holder_d$,
+  Eref ent.read
 } ;;
 
 eval <entity_h> *Entity <ent.ent_d+> *X write | swap @public -> <ent.ent_d+> {
-  (Entity _eref) X ent.write
+  Entity _eref_holder >> ent.read = eref: *Eref *** eref_holder_d$,
+  Eref X ent.write
 } ;;
 
-eval <domain_h> *Domain <entity_h> *Entity <<int void fun> maybe> *Listener_
+eval <domain_h> *Domain <entity_h> *Entity <<weak_holder_h void fun> maybe> *Listener_
     create_weak_holder @public -> <weak_holder_h> {
   Domain svr = *Svr,
   Svr _get_new_wid = *Id,
-  Listener_ case {
-  ; *L value$ -> \ <ent.wref> *W -> <void> { Id &L } value$
-  ; ** -> none$
-  } = *L_,
-  (entity_h: Entity entity_h_holder$) none$ ent.create_entity = *Entity_holder,
-  Entity_holder L_ ent.create_weak_holder = *Wref,
   ((svr: Svr svr_holder$) none$ ent.create_entity) none$ ent.create_weak_holder = *Wsvr,  # avoid being kept
-  (wref: Wref wref_holder$) 
+  ent.existence$
     (\\ <void> { 
        Wsvr ent.get >> case {
        ; *E value$ -> E ent.read = svr: *S svr_holder$, S (Id wid_released$) act.send
        ; ** ->
        }
      } value$)
-    ent.create_entity = *Wref_holder,
+    ent.create_entity = *Wref_holder,  # create and get eref first
+  Listener_ case {
+  ; *L value$ ->
+    \ <ent.wref> *W -> <void> {
+      Wref_holder ent.read = wid: *N wref: *W wref_holder_d$,
+      (_domain_h: Domain _id: N _wref_holder: Wref_holder weak_holder_h$) &L
+    } value$
+  ; ** -> none$
+  } = *L_,
+  (Entity _eref_holder) L_ ent.create_weak_holder = *Wref,
+  Wref_holder (wid: Id wref: Wref wref_holder_d$) ent.write,
   _domain_h: Domain _id: Id _wref_holder: Wref_holder weak_holder_h$
 } ;;
 
 eval <weak_holder_h> *Weak_holder get @public -> <entity_h maybe> {
-  Weak_holder _wref_holder >> ent.read = wref: *W wref_holder$,
+  Weak_holder _wref_holder >> ent.read = wref: *W *** wref_holder_d$,
   W ent.get >> case {
-  ; *E value$ -> E ent.read = entity_h: *Entity entity_h_holder$, Entity value$
+  ; *E value$ ->
+    E ent.read = eid: *N *** eref_holder_d$,
+    (_domain_h:(Weak_holder _domain_h) _id: N _eref_holder: E entity_h$) value$
   ; ** -> none$
   }
 } ;;
 
 eval <weak_holder_h> *Weak_holder clear @public -> <void> {
-  Weak_holder _wref_holder >> ent.read = wref: *W wref_holder$,
+  Weak_holder _wref_holder >> ent.read = wref: *W *** wref_holder_d$,
   W ent.clear
 } ;;
 
