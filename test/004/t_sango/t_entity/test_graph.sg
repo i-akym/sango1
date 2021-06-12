@@ -1,0 +1,59 @@
+import "sango.debug" -> debug ;;
+import "sango.entity" -> ent ;;
+import "sango.entity.graph" -> gr ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.simpleset" -> sset ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+extend <ent.ent_d> := <cstr> my_ent_d$ ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval test000 -> <void> {
+  gr.create_graph = *G,
+  G gr.nodes = [],
+  G ("N0" my_ent_d$) none$ gr.create_node = *N0,
+  G gr.nodes = [ N0 ],
+  G ("N1" my_ent_d$) none$ gr.create_node = *N1,
+  G ("N2" my_ent_d$) none$ gr.create_node = *N2,
+  G ("N3" my_ent_d$) none$ gr.create_node = *N3,
+  G ("NN" my_ent_d$) none$ gr.create_node = *NN,
+  G gr.nodes >> list.length = 5,
+  N0 gr.alive? = true$,
+  N0 "first-child" N1 gr.link,
+  N0 "last-child" N3 gr.link,
+  N1 "next-sibling" N2 gr.link,
+  N2 "next-sibling" N3 gr.link,
+  N2 "prev-sibling" N1 gr.link,
+  N2 "self" N2 gr.link,  # cyclic
+  N3 "prev-sibling" N2 gr.link,
+  N3 "parent" N0 gr.link,
+  NN "foo" N0 gr.link,
+  N3 gr.links >> case { [ "prev-sibling", "parent" ] -> ; [ "parent", "prev-sibling" ] -> },
+  N0 "first-child" gr.traverse = N1 value$,
+  N1 "parent" gr.traverse = none$,
+  [ N1 ] gr.reachable_nodes >> list.length = 4,  # N0, N1, N2, N3
+  [ N1, N3 ] gr.reachable_nodes >> list.length = 4,  # N0, N1, N2, N3
+  [ NN ] gr.reachable_nodes >> list.length = 5,  # N0, N1, N2, N3, NN
+  N2 gr.kill,
+  N2 gr.alive? = false$,
+  G gr.nodes >> list.length = 4,
+  N1 "next-sibling" gr.traverse = none$,
+  N1 gr.links = [],
+  G [ N3 ] gr.kill_unreachable_nodes,
+  G gr.nodes >> list.length = 3,  # N0, N1, N3
+  NN gr.alive? = false$,
+  G gr.clear,
+  G gr.nodes = [],
+  N0 gr.alive? = false$,
+  void$
+} ;;
