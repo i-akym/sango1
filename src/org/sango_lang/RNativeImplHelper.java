@@ -461,5 +461,9 @@ public class RNativeImplHelper {
     public void terminateOnAbnormalEnd(RActorHItem actorH) {
       RNativeImplHelper.this.theEngine.taskMgr.terminateOnAbnormalEnd(actorH.taskControl);
     }
+
+    public void requestGC() {
+      RNativeImplHelper.this.theEngine.memMgr.maintainFull();
+    }
   }
 }
