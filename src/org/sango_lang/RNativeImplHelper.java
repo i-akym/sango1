@@ -136,6 +136,14 @@ public class RNativeImplHelper {
     return this.theEngine.getClientHelper().listToListItem(os);
   }
 
+  public RClosureItem createClosureOfNativeImpl(Cstr modName, String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl) {
+    RModule mod = this.theEngine.modMgr.getRMod(modName);
+    if (mod == null) {
+      throw new IllegalArgumentException("Invalid module name.");
+    }
+    return this.theEngine.memMgr.createClosureOfNativeImpl(mod, name, paramCount, nativeImplTargetObject, nativeImpl);
+  }
+
   public RClosureItem createClosureOfNativeImplHere(String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl) {
     return this.theEngine.memMgr.createClosureOfNativeImpl(
       this.frame.closure.impl.mod,
@@ -204,6 +212,39 @@ public class RNativeImplHelper {
   }
 
   // for further invocation
+
+  public RResult apply(RObjItem[] params, RClosureItem closure) {
+    RTaskControl execTask = this.theEngine.taskMgr.createTask(
+      RTaskMgr.PRIO_DEFAULT,  // HERE: my priority
+      RTaskMgr.TASK_TYPE_APPL,
+      closure,
+      params);
+    ResultHolder rh = new ResultHolder();
+    ResultSetter setter = new ResultSetter(execTask, rh);
+    Method setterImpl = null;
+    try {
+      setterImpl = setter.getClass().getMethod(
+        "transfer", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+    } catch (Exception ex) {
+      throw new RuntimeException("Unexpected exception. " + ex.toString());
+    }
+    RClosureItem resClosure = this.createClosureOfNativeImpl(
+      Module.MOD_LANG,
+      "transfer_result",
+      0,
+      setter,
+      setterImpl);
+    RTaskControl resTask = this.theEngine.taskMgr.createTask(
+      8,  // good?
+      RTaskMgr.TASK_TYPE_APPL,
+      resClosure);
+    resTask.terminateOnAbnormalEnd = true;  // hmmm,,,
+    execTask.start();
+    resTask.startWaitingFor(execTask);
+    return rh.getResult();
+  }
+
+  // -- basic
 
   Object getResumeInfo() { return this.resumeInfo; }
 
@@ -464,6 +505,46 @@ public class RNativeImplHelper {
 
     public void requestGC() {
       RNativeImplHelper.this.theEngine.memMgr.maintainFull();
+    }
+  }
+
+  private class ResultHolder {
+    RResult result;
+
+    RResult getResult() {
+      RResult r = null;
+      while (r == null) {
+        synchronized (this) {
+          r = this.result;
+          if (r == null) {
+            try {
+              this.wait();
+            } catch (InterruptedException ex) {}
+          }
+        }
+      }
+      return r;
+    }
+
+    void putResult(RResult r) {
+      synchronized (this) {
+        this.result = r;
+        this.notify();
+      }
+    }
+  }
+
+  private class ResultSetter {
+    RTaskControl execTask;
+    ResultHolder resultHolder;
+
+    ResultSetter(RTaskControl exec, ResultHolder res) {
+      this.execTask = exec;
+      this.resultHolder = res;
+    }
+
+    public void transfer(RNativeImplHelper helper, RClosureItem self) {
+      this.resultHolder.putResult(this.execTask.getResult());
     }
   }
 }
