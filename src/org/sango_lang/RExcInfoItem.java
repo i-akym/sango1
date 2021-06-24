@@ -54,7 +54,7 @@ public class RExcInfoItem extends RObjItem {
     return RType.createTsig(Module.MOD_LANG, "exc_info", 0);
   }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     return new Cstr(this.toString());
   }
 

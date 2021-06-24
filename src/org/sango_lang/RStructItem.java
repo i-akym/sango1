@@ -78,25 +78,53 @@ public class RStructItem extends RObjItem {
     return tsig;
   }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     Cstr s = new Cstr();
     String sep;
-    if (this.dataConstr == RDataConstr.pseudoOfTuple) {
-      sep = "";
-    } else {
-      s.append(this.dataConstr.name);  // dcon's module name is included the type info
+    if (this.dataConstr != RDataConstr.pseudoOfTuple) {
+      s.append(this.dataConstr.name);
       sep = ";";
-    }
-    if (this.fields.length > 0) {
-      s.append(sep);
+    } else {
       sep = "";
-      for (int i = 0; i < this.fields.length; i++) {
-        s.append(sep);
-        s = s.append(this.fields[i].debugRepr());
-        sep = ",";
-      }
+    }
+    for (int i = 0; i < this.fields.length; i++) {
+      s.append(sep);
+      s = s.append(this.fields[i].dump());
+      sep = ",";
     }
     return s;
+  }
+
+  public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      if (this.fields.length == 0) {
+        Cstr r = this.getDumpHeader();
+        r.append(this.dataConstr.name);
+        r = r.append(this.getDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      } else {
+        Cstr r = this.getDumpHeader();
+        if (this.dataConstr != RDataConstr.pseudoOfTuple) {
+          r.append(this.dataConstr.name);
+          r.append(';');
+        }
+        helper.scheduleDebugRepr(this.fields[0], new Object[] { 0, r });
+      }
+    } else {
+      RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      Cstr r = (Cstr)ris[1];
+      r = r.append(helper.arrayItemToCstr(rx));
+      int next = current + 1;
+      if (next < this.fields.length) {
+        r.append(',');
+        helper.scheduleDebugRepr(this.fields[next], new Object[] { next, r });
+      } else {
+        r = r.append(this.getDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      }
+    }
   }
 
   public boolean equals(Object o) {

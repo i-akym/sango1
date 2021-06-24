@@ -31,7 +31,11 @@ abstract public class RObjItem extends RVMItem {
 
   abstract public RType.Sig getTsig();
 
-  public Cstr debugRepr() {
+  public Cstr dump() {
+    return this.getDumpHeader().append(this.dumpInside()).append(this.getDumpTrailer());
+  }
+
+  public Cstr getDumpHeader() {
     Cstr r = new Cstr();
     RType.Sig tsig = this.getTsig();
     r.append('{');
@@ -39,10 +43,19 @@ abstract public class RObjItem extends RVMItem {
     r.append('.');
     r.append(tsig.name.toJavaString());
     r.append('|');
-    r = r.append(this.debugReprOfContents());
+    return r;
+  }
+
+  abstract public Cstr dumpInside();
+
+  public Cstr getDumpTrailer() {
+    Cstr r = new Cstr();
     r.append('}');
     return r;
   }
 
-  abstract public Cstr debugReprOfContents();
+  public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+    // default implementation; override this for contained RObjItems
+    helper.setReturnValue(helper.cstrToArrayItem(this.dump()));
+  }
 }

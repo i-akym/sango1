@@ -53,7 +53,7 @@ public class RRealItem extends RObjItem {
 
   public double getValue() { return this.value; }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     return new Cstr(Double.toString(this.value));
   }
 }

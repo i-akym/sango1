@@ -53,7 +53,7 @@ public class RMboxPItem extends RObjItem {
     return RType.createTsig(new Cstr("sango.actor"), "mbox_p", 0);
   }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     return new Cstr(this.toString());
   }
 }

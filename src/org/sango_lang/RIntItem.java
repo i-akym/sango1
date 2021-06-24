@@ -75,7 +75,7 @@ abstract public class RIntItem extends RObjItem {
       return RType.createTsig(Module.MOD_LANG, "int", 0);
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr(Integer.toString(this.value));
     }
   }
@@ -100,10 +100,11 @@ abstract public class RIntItem extends RObjItem {
       return RType.createTsig(Module.MOD_LANG, "byte", 0);
     }
 
-    public Cstr debugReprOfContents() {
-      Cstr s = new Cstr(Integer.toString(this.value));
-      s.append('~');
-      return s;
+    public Cstr dumpInside() {
+      Cstr r = new Cstr();
+      r.append(Integer.toString(this.value));
+      r.append('~');
+      return r;
     }
   }
 
@@ -127,12 +128,12 @@ abstract public class RIntItem extends RObjItem {
       return RType.createTsig(Module.MOD_LANG, "char", 0);
     }
 
-    public Cstr debugReprOfContents() {
-      Cstr s = new Cstr();
-      s.append('\'');
-      s.append(Cstr.codePointToRawRepr(this.value, false));
-      s.append('\'');
-      return s;
+    public Cstr dumpInside() {
+      Cstr r = new Cstr();
+      r.append('\'');
+      r.append(Cstr.codePointToRawRepr(this.value, false));
+      r.append('\'');
+      return r;
     }
   }
 }

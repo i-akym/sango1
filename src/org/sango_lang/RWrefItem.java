@@ -50,10 +50,10 @@ public class RWrefItem extends RObjItem {
   }
 
   public RType.Sig getTsig() {
-    return RType.createTsig(Module.MOD_LANG, "wref", 0);
+    return RType.createTsig(new Cstr("sango.entity"), "wref", 0);
   }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     return new Cstr(this.toString());
   }
 

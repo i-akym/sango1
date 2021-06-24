@@ -353,7 +353,7 @@ public class SNImodule {
       return eq;
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr(PTypeSkel.Util.repr(this.type) + this.toString());
     }
 
@@ -394,7 +394,7 @@ public class SNImodule {
       return eq;
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
 

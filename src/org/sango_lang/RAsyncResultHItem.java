@@ -52,7 +52,7 @@ public class RAsyncResultHItem extends RObjItem {
     return RType.createTsig(new Cstr("sango.actor"), "async_result_h", 1);
   }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     return new Cstr(this.toString());
   }
 }

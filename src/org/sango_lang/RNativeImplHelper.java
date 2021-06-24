@@ -241,6 +241,7 @@ public class RNativeImplHelper {
     resTask.terminateOnAbnormalEnd = true;  // hmmm,,,
     execTask.start();
     resTask.startWaitingFor(execTask);
+    RResult result = rh.getResult();
     return rh.getResult();
   }
 
@@ -277,6 +278,41 @@ public class RNativeImplHelper {
   public void mayRunLong() {
     this.theEngine.taskMgr.taskMayRunLong(this.frame.theTaskControl);
   }
+
+  public void scheduleDebugRepr(RObjItem obj, Object resumeInfo) {
+    RType.Sig tsig = obj.getTsig();
+    RClosureItem c = this.core.getClosureItem(tsig.mod, "_call_debug_repr_" + tsig.name.toJavaString());
+    if (c != null) {
+      this.scheduleInvocation(c, new RObjItem[] { obj }, resumeInfo);
+    } else {
+      Method impl = null;
+      try {
+        impl = obj.getClass().getMethod(
+          "debugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+      } catch (Exception ex) {
+        throw new RuntimeException("Unexpected exception. " + ex.toString());
+      }
+      c = this.createClosureOfNativeImpl(
+        new Cstr("sango.debug"),
+        "debug_repr_f",
+        0,
+        obj,
+        impl);
+      this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
+    }
+  }
+
+  // public static class DebugReprCaller {
+    // RObjItem target;
+
+    // DebugReprCaller(RObjItem target) {
+      // this.target = target;
+    // }
+
+    // public void call(RNativeImplHelper helper, RClosureItem self) {
+      // this.target.debugRepr(helper, self);
+    // }
+  // }
 
   public class Core {  // for core features
     boolean toReleaseTask;
@@ -517,6 +553,7 @@ public class RNativeImplHelper {
         synchronized (this) {
           r = this.result;
           if (r == null) {
+            RNativeImplHelper.this.mayRunLong();
             try {
               this.wait();
             } catch (InterruptedException ex) {}
