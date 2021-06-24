@@ -48,11 +48,11 @@ public class RErefItem extends RObjItem {
   }
 
   public RType.Sig getTsig() {
-    return RType.createTsig(Module.MOD_LANG, "eref", 0);
+    return RType.createTsig(new Cstr("sango.entity"), "eref", 0);
   }
 
-  public Cstr debugReprOfContents() {
-    return new Cstr(this.toString() + "," + this.entity.toString() + "," + this.read().debugRepr().toJavaString());
+  public Cstr dumpInside() {
+    return new Cstr(this.toString());
   }
 
   public RObjItem read() { return this.entity.read(); }

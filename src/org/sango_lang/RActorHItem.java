@@ -52,7 +52,7 @@ public class RActorHItem extends RObjItem {
     return RType.createTsig(new Cstr("sango.actor"), "actor_h", 0);
   }
 
-  public Cstr debugReprOfContents() {
+  public Cstr dumpInside() {
     return new Cstr(this.toString());
   }
 }

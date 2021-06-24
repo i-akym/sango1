@@ -1,12 +1,24 @@
+import "sango.cstr" -> cstr ;;
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
 
 extend <exc_desc> := e001_exc$ ;;
 
+data <*A *B d0> :=
+| d0a$
+| <A> <B> d0b$ ;;
+
+eval <*A *B d0> *X  _debug_repr_d0 -> <cstr> {
+  X case {
+  ; d0a$ -> "D0a"
+  ; *P *Q d0b$ -> [ "D0b(", P debug.repr, ",", Q debug.repr, ")" ] cstr.concat
+  }
+} ;;
+
 eval _main_ -> <void> {
-  runtime.terminate_on_my_abnormal_end,
-  test
+  test,
+  stdio.flush
 } ;;
 
 eval test -> <void> {
@@ -16,6 +28,12 @@ eval test -> <void> {
   test102,
   test103,
   test104,
+  test105,
+  test106,
+  test107,
+  test107a,
+  test200,
+  test201,
   void$
 } ;;
 
@@ -23,7 +41,13 @@ eval exc001 -> <exception> { e001_exc$ "Test exception occurred." new_exception 
 eval exc002 -> <_> { exc001 >> throw } ;;
 eval test001 -> <bool> { debug.check_assertion? } ;;
 eval test002 -> <void> { ^exc002 try = *E exc$, "Exception info ----" stdio.print_and_newline, E stdio.cstdout debug.dump_to } ;;
-eval test101 -> <void> { 101 debug.repr >> stdio.print_and_newline } ;;
-eval test102 -> <void> { (102 value$) debug.repr >> stdio.print_and_newline } ;;
-eval test103 -> <void> { (| 103, 't' |) debug.repr >> stdio.print_and_newline } ;;
-eval test104 -> <void> { [ 104, -104 ] debug.repr >> stdio.print_and_newline } ;;
+eval test101 -> <void> { 101 debug.repr = "{\"sango.lang\".int|101}", void$ } ;;
+eval test102 -> <void> { (102 value$) debug.repr = "{\"sango.lang\".maybe|value$;{\"sango.lang\".int|102}}", void$ } ;;
+eval test103 -> <void> { (| 103, 't' |) debug.repr = "{\"sango.lang\".tuple|{\"sango.lang\".int|103},{\"sango.lang\".char|'t'}}", void$ } ;;
+eval test104 -> <void> { [ 104, -104 ] debug.repr = "{\"sango.lang\".list|{\"sango.lang\".int|104},{\"sango.lang\".int|-104}}", void$ } ;;
+eval test105 -> <void> { [||] debug.repr = "{\"sango.lang\".string|}", void$ } ;;
+eval test106 -> <void> { "abc" debug.repr = "{\"sango.lang\".string|\"abc\"}", void$ } ;;
+eval test107 -> <void> { ^^ debug.repr = "{\"sango.lang\".fun|\"test_debug\".test107/0}", void$ } ;;
+eval test107a -> <void> { 33 = *X, 'z' = *Y, \\ <int> { Y, X } debug.repr >> stdio.print_and_newline } ;;
+eval test200 -> <void> { d0a$ debug.repr = "D0a", void$ } ;;
+eval test201 -> <void> { (99 (-99 d0a$ d0b$) d0b$) debug.repr = "D0b({\"sango.lang\".int|99},D0b({\"sango.lang\".int|-99},D0a))", void$ } ;;

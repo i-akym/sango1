@@ -318,7 +318,7 @@ public class SNIinet {
       return RType.createTsig(new Cstr("sango.net.inet"), "connection_socket_impl_p", 0);
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
   }
@@ -339,7 +339,7 @@ public class SNIinet {
       return RType.createTsig(new Cstr("sango.net.inet"), "server_socket_impl_p", 0);
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
   }
@@ -360,7 +360,7 @@ public class SNIinet {
       return RType.createTsig(new Cstr("sango.net.inet"), "datagram_socket_impl_p", 0);
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
   }

@@ -80,26 +80,56 @@ public class RArrayItem extends RObjItem {
     return b;
   }
 
-  public Cstr debugReprOfContents() {
-    boolean allChar = true;
-    for (int i = 0; allChar && i < this.items.length; i++) {
-      allChar = this.items[i] instanceof RIntItem.CharObj;
-    }
+  public Cstr dumpInside() {
+    // TODO: improve performance ; many copying of chars
     Cstr s = new Cstr();
-    if (this.items.length > 0 && allChar) {
-      s.append('\"');
-      for (int i = 0; i < this.items.length; i++) {
-        s.append(Cstr.codePointToRawRepr(((RIntItem.CharObj)this.items[i]).value, true));
-      }
-      s.append('\"');
-    } else {
-      String sep = "";
-      for (int i = 0; i < this.items.length; i++) {
-        s.append(sep);
-        s = s.append(this.items[i].debugReprOfContents());
-        sep = ",";
-      }
+    String sep = "";
+    for (int i = 0; i < this.items.length; i++) {
+      s.append(sep);
+      s = s.append(this.items[i].dump());
+      sep = ",";
     }
     return s;
+  }
+
+  public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      if (this.items.length == 0) {
+        Cstr r = this.getDumpHeader().append(this.getDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      } else {
+        boolean allChar = true;
+        for (int i = 0; allChar && i < this.items.length; i++) {
+          allChar = this.items[i] instanceof RIntItem.CharObj;
+        }
+        if (allChar) {
+          Cstr r = this.getDumpHeader();
+          r.append('\"');
+          for (int i = 0; i < this.items.length; i++) {
+            r.append(Cstr.codePointToRawRepr(((RIntItem.CharObj)this.items[i]).value, true));
+          }
+          r.append('\"');
+          r = r.append(this.getDumpTrailer());
+          helper.setReturnValue(helper.cstrToArrayItem(r));
+        } else {
+          Cstr r = this.getDumpHeader();
+          helper.scheduleDebugRepr(this.items[0], new Object[] { 0, r });
+        }
+      }
+    } else {
+      RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      Cstr r = (Cstr)ris[1];
+      r = r.append(helper.arrayItemToCstr(rx));
+      int next = current + 1;
+      if (next < this.items.length) {
+        r.append(',');
+        helper.scheduleDebugRepr(this.items[next], new Object[] { next, r });
+      } else {
+        r = r.append(this.getDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      }
+    }
   }
 }

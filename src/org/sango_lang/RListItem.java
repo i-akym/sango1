@@ -54,18 +54,38 @@ abstract public class RListItem extends RObjItem {
       return b;
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       Cstr s = new Cstr();
-      RObjItem o = this;
       String sep = "";
-      while (o instanceof Cell) {
+      RListItem L = this;
+      while (L instanceof Cell) {
+        Cell c = (Cell)L;
         s.append(sep);
-        Cell c = (Cell)o;
-        s = s.append(c.head.debugRepr());
-        o = c.tail;
+        s = s.append(c.head.dump());
+        L = c.tail;
         sep = ",";
       }
       return s;
+    }
+
+    public void debugRepr(RNativeImplHelper helper) {
+      Object[] ris = (Object[])helper.getAndClearResumeInfo();
+      if (ris == null) {
+        Cstr r = this.getDumpHeader();
+        helper.scheduleDebugRepr(this.head, new Object[] { this.tail, r });
+      } else {
+        RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+        Cstr r = (Cstr)ris[1];
+        r = r.append(helper.arrayItemToCstr(rx));
+        if (ris[0] instanceof Nil) {
+          r = r.append(this.getDumpTrailer());
+          helper.setReturnValue(helper.cstrToArrayItem(r));
+        } else {
+          Cell c = (Cell)ris[0];
+          r.append(',');
+          helper.scheduleDebugRepr(c.head, new Object[] { c.tail, r });
+        }
+      }
     }
   }
 
@@ -77,7 +97,7 @@ abstract public class RListItem extends RObjItem {
       return (item == this) || (item instanceof Nil);
     }
 
-    public Cstr debugReprOfContents() {
+    public Cstr dumpInside() {
       return new Cstr("NIL");
     }
   }
