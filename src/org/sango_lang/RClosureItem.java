@@ -75,7 +75,7 @@ public class RClosureItem extends RObjItem {
     String sep = ";";
     for (int i = 0; i < this.env.length; i++) {
       s.append(sep);
-      s = s.append(this.env[i].dump());
+      s.append(this.env[i].dump());
       sep = ",";
     }
     return s;
@@ -84,14 +84,14 @@ public class RClosureItem extends RObjItem {
   public void debugRepr(RNativeImplHelper helper) {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
-      Cstr r = this.getDumpHeader();
+      Cstr r = this.createDumpHeader();
       r.append(this.impl.mod.name.repr());
       r.append('.');
       r.append(this.impl.name);
       r.append('/');
       r.append(Integer.toString(this.impl.paramCount));
       if (this.env.length == 0) {
-        r = r.append(this.getDumpTrailer());
+        r.append(this.createDumpTrailer());
         helper.setReturnValue(helper.cstrToArrayItem(r));
       } else {
         r.append(';');
@@ -101,13 +101,13 @@ public class RClosureItem extends RObjItem {
       RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
       int current = (Integer)ris[0];
       Cstr r = (Cstr)ris[1];
-      r = r.append(helper.arrayItemToCstr(rx));
+      r.append(helper.arrayItemToCstr(rx));
       int next = current + 1;
       if (next < this.env.length) {
         r.append(',');
         helper.scheduleDebugRepr(this.env[next], new Object[] { next, r });
       } else {
-        r = r.append(this.getDumpTrailer());
+        r.append(this.createDumpTrailer());
         helper.setReturnValue(helper.cstrToArrayItem(r));
       }
     }

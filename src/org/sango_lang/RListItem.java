@@ -61,7 +61,7 @@ abstract public class RListItem extends RObjItem {
       while (L instanceof Cell) {
         Cell c = (Cell)L;
         s.append(sep);
-        s = s.append(c.head.dump());
+        s.append(c.head.dump());
         L = c.tail;
         sep = ",";
       }
@@ -71,14 +71,14 @@ abstract public class RListItem extends RObjItem {
     public void debugRepr(RNativeImplHelper helper) {
       Object[] ris = (Object[])helper.getAndClearResumeInfo();
       if (ris == null) {
-        Cstr r = this.getDumpHeader();
+        Cstr r = this.createDumpHeader();
         helper.scheduleDebugRepr(this.head, new Object[] { this.tail, r });
       } else {
         RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
         Cstr r = (Cstr)ris[1];
-        r = r.append(helper.arrayItemToCstr(rx));
+        r.append(helper.arrayItemToCstr(rx));
         if (ris[0] instanceof Nil) {
-          r = r.append(this.getDumpTrailer());
+          r.append(this.createDumpTrailer());
           helper.setReturnValue(helper.cstrToArrayItem(r));
         } else {
           Cell c = (Cell)ris[0];

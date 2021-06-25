@@ -89,7 +89,7 @@ public class RStructItem extends RObjItem {
     }
     for (int i = 0; i < this.fields.length; i++) {
       s.append(sep);
-      s = s.append(this.fields[i].dump());
+      s.append(this.fields[i].dump());
       sep = ",";
     }
     return s;
@@ -99,12 +99,12 @@ public class RStructItem extends RObjItem {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
       if (this.fields.length == 0) {
-        Cstr r = this.getDumpHeader();
+        Cstr r = this.createDumpHeader();
         r.append(this.dataConstr.name);
-        r = r.append(this.getDumpTrailer());
+        r.append(this.createDumpTrailer());
         helper.setReturnValue(helper.cstrToArrayItem(r));
       } else {
-        Cstr r = this.getDumpHeader();
+        Cstr r = this.createDumpHeader();
         if (this.dataConstr != RDataConstr.pseudoOfTuple) {
           r.append(this.dataConstr.name);
           r.append(';');
@@ -115,13 +115,13 @@ public class RStructItem extends RObjItem {
       RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
       int current = (Integer)ris[0];
       Cstr r = (Cstr)ris[1];
-      r = r.append(helper.arrayItemToCstr(rx));
+      r.append(helper.arrayItemToCstr(rx));
       int next = current + 1;
       if (next < this.fields.length) {
         r.append(',');
         helper.scheduleDebugRepr(this.fields[next], new Object[] { next, r });
       } else {
-        r = r.append(this.getDumpTrailer());
+        r.append(this.createDumpTrailer());
         helper.setReturnValue(helper.cstrToArrayItem(r));
       }
     }
