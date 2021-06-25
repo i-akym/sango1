@@ -32,10 +32,13 @@ abstract public class RObjItem extends RVMItem {
   abstract public RType.Sig getTsig();
 
   public Cstr dump() {
-    return this.getDumpHeader().append(this.dumpInside()).append(this.getDumpTrailer());
+    Cstr s = this.createDumpHeader();
+    s.append(this.dumpInside());
+    s.append(this.createDumpTrailer());
+    return s;
   }
 
-  public Cstr getDumpHeader() {
+  public Cstr createDumpHeader() {
     Cstr r = new Cstr();
     RType.Sig tsig = this.getTsig();
     r.append('{');
@@ -48,7 +51,7 @@ abstract public class RObjItem extends RVMItem {
 
   abstract public Cstr dumpInside();
 
-  public Cstr getDumpTrailer() {
+  public Cstr createDumpTrailer() {
     Cstr r = new Cstr();
     r.append('}');
     return r;

@@ -86,7 +86,7 @@ public class RArrayItem extends RObjItem {
     String sep = "";
     for (int i = 0; i < this.items.length; i++) {
       s.append(sep);
-      s = s.append(this.items[i].dump());
+      s.append(this.items[i].dump());
       sep = ",";
     }
     return s;
@@ -96,7 +96,8 @@ public class RArrayItem extends RObjItem {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
       if (this.items.length == 0) {
-        Cstr r = this.getDumpHeader().append(this.getDumpTrailer());
+        Cstr r = this.createDumpHeader();
+        r.append(this.createDumpTrailer());
         helper.setReturnValue(helper.cstrToArrayItem(r));
       } else {
         boolean allChar = true;
@@ -104,16 +105,16 @@ public class RArrayItem extends RObjItem {
           allChar = this.items[i] instanceof RIntItem.CharObj;
         }
         if (allChar) {
-          Cstr r = this.getDumpHeader();
+          Cstr r = this.createDumpHeader();
           r.append('\"');
           for (int i = 0; i < this.items.length; i++) {
             r.append(Cstr.codePointToRawRepr(((RIntItem.CharObj)this.items[i]).value, true));
           }
           r.append('\"');
-          r = r.append(this.getDumpTrailer());
+          r.append(this.createDumpTrailer());
           helper.setReturnValue(helper.cstrToArrayItem(r));
         } else {
-          Cstr r = this.getDumpHeader();
+          Cstr r = this.createDumpHeader();
           helper.scheduleDebugRepr(this.items[0], new Object[] { 0, r });
         }
       }
@@ -121,13 +122,13 @@ public class RArrayItem extends RObjItem {
       RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
       int current = (Integer)ris[0];
       Cstr r = (Cstr)ris[1];
-      r = r.append(helper.arrayItemToCstr(rx));
+      r.append(helper.arrayItemToCstr(rx));
       int next = current + 1;
       if (next < this.items.length) {
         r.append(',');
         helper.scheduleDebugRepr(this.items[next], new Object[] { next, r });
       } else {
-        r = r.append(this.getDumpTrailer());
+        r.append(this.createDumpTrailer());
         helper.setReturnValue(helper.cstrToArrayItem(r));
       }
     }

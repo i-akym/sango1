@@ -118,6 +118,12 @@ public class Cstr {
     }
   }
 
+  public void append(Cstr s) {
+    for (int i = 0; i < s.value.size(); i++) {
+      this.value.add(s.value.get(i));
+    }
+  }
+
   public String toJavaString() {
     StringBuffer buf = new StringBuffer();
     for (int i = 0; i < this.value.size(); i++) {
@@ -134,7 +140,7 @@ public class Cstr {
     return s;
   }
 
-  public Cstr append(Cstr s) {
+  public Cstr newByAppending(Cstr s) {
     Cstr ss = new Cstr();
     for (int i = 0; i < this.value.size(); i++) {
       ss.value.add(this.value.get(i));
