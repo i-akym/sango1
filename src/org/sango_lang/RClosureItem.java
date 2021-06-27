@@ -81,7 +81,7 @@ public class RClosureItem extends RObjItem {
     return s;
   }
 
-  public void debugRepr(RNativeImplHelper helper) {
+  public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
       Cstr r = this.createDumpHeader();
