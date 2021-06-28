@@ -57,7 +57,15 @@ abstract public class RObjItem extends RVMItem {
     return r;
   }
 
-  public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+  final public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+    if (helper.getAndClearResumeInfo() == null) {
+      helper.scheduleDebugRepr(this, this);
+    } else {
+      helper.setReturnValue(helper.getInvocationResult().getReturnValue());
+    }
+  }
+
+  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
     // default implementation; override this for contained RObjItems
     helper.setReturnValue(helper.cstrToArrayItem(this.dump()));
   }

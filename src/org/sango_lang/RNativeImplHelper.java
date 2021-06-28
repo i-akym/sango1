@@ -288,7 +288,7 @@ public class RNativeImplHelper {
       Method impl = null;
       try {
         impl = obj.getClass().getMethod(
-          "debugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+          "doDebugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
       } catch (Exception ex) {
         throw new RuntimeException("Unexpected exception. " + ex.toString());
       }
@@ -301,18 +301,6 @@ public class RNativeImplHelper {
       this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
     }
   }
-
-  // public static class DebugReprCaller {
-    // RObjItem target;
-
-    // DebugReprCaller(RObjItem target) {
-      // this.target = target;
-    // }
-
-    // public void call(RNativeImplHelper helper, RClosureItem self) {
-      // this.target.debugRepr(helper, self);
-    // }
-  // }
 
   public class Core {  // for core features
     boolean toReleaseTask;
