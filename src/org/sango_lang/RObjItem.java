@@ -23,6 +23,8 @@
  ***************************************************************************/
 package org.sango_lang;
 
+import java.lang.reflect.Method;
+
 abstract public class RObjItem extends RVMItem {
 
   public RObjItem(RuntimeEngine e) { super(e); }
@@ -57,11 +59,34 @@ abstract public class RObjItem extends RVMItem {
     return r;
   }
 
-  final public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+  final public void objDebugRepr(RNativeImplHelper helper, RClosureItem self) {
     if (helper.getAndClearResumeInfo() == null) {
-      helper.scheduleDebugRepr(this, this);
+      this.scheduleDoDebugRepr(helper, this);
     } else {
       helper.setReturnValue(helper.getInvocationResult().getReturnValue());
+    }
+  }
+
+  private void scheduleDoDebugRepr(RNativeImplHelper helper, Object resumeInfo) {
+    RType.Sig tsig = this.getTsig();
+    RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_debug_repr_" + tsig.name.toJavaString());
+    if (c != null) {
+      helper.scheduleInvocation(c, new RObjItem[] { this }, resumeInfo);
+    } else {
+      Method impl = null;
+      try {
+        impl = this.getClass().getMethod(
+          "doDebugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+      } catch (Exception ex) {
+        throw new RuntimeException("Unexpected exception. " + ex.toString());
+      }
+      c = helper.createClosureOfNativeImpl(
+        new Cstr("sango.debug"),
+        "do_debug_repr_f",
+        0,
+        this,
+        impl);
+      helper.scheduleInvocation(c, new RObjItem[0], resumeInfo);
     }
   }
 
