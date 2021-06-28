@@ -95,7 +95,7 @@ public class RStructItem extends RObjItem {
     return s;
   }
 
-  public void debugRepr(RNativeImplHelper helper, RClosureItem self) {
+  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
       if (this.fields.length == 0) {

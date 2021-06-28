@@ -44,11 +44,7 @@ import org.sango_lang.RuntimeEngine;
   }
 
   public void sni_repr(RNativeImplHelper helper, RClosureItem self, RObjItem x) {
-    if (helper.getAndClearResumeInfo() == null) {
-      helper.scheduleDebugRepr(x, self);
-    } else {
-      helper.setReturnValue(helper.getInvocationResult().getReturnValue());
-    }
+    x.debugRepr(helper, self);
   }
 
   public void sni_check_assertion_Q_(RNativeImplHelper helper, RClosureItem self) {
