@@ -280,26 +280,20 @@ public class RNativeImplHelper {
   }
 
   public void scheduleDebugRepr(RObjItem obj, Object resumeInfo) {
-    RType.Sig tsig = obj.getTsig();
-    RClosureItem c = this.core.getClosureItem(tsig.mod, "_call_debug_repr_" + tsig.name.toJavaString());
-    if (c != null) {
-      this.scheduleInvocation(c, new RObjItem[] { obj }, resumeInfo);
-    } else {
-      Method impl = null;
-      try {
-        impl = obj.getClass().getMethod(
-          "doDebugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
-      } catch (Exception ex) {
-        throw new RuntimeException("Unexpected exception. " + ex.toString());
-      }
-      c = this.createClosureOfNativeImpl(
-        new Cstr("sango.debug"),
-        "debug_repr_f",
-        0,
-        obj,
-        impl);
-      this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
+    Method impl = null;
+    try {
+      impl = obj.getClass().getMethod(
+        "objDebugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+    } catch (Exception ex) {
+      throw new RuntimeException("Unexpected exception. " + ex.toString());
     }
+    RClosureItem c = this.createClosureOfNativeImpl(
+      new Cstr("sango.debug"),
+      "debug_repr_f",
+      0,
+      obj,
+      impl);
+    this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
   }
 
   public class Core {  // for core features
