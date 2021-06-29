@@ -51,6 +51,10 @@ public class RErefItem extends RObjItem {
     return RType.createTsig(new Cstr("sango.entity"), "eref", 0);
   }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(this.hashCode()));
+  }
+
   public Cstr dumpInside() {
     return new Cstr(this.toString());
   }

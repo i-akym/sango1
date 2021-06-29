@@ -279,6 +279,29 @@ public class RNativeImplHelper {
     this.theEngine.taskMgr.taskMayRunLong(this.frame.theTaskControl);
   }
 
+  public void scheduleHash(RObjItem obj, Object resumeInfo) {
+    RType.Sig tsig = obj.getTsig();
+    RClosureItem c = this.core.getClosureItem(tsig.mod, "_call_hash_" + tsig.name.toJavaString());
+    if (c != null) {
+      this.scheduleInvocation(c, new RObjItem[] { obj }, resumeInfo);
+    } else {
+      Method impl = null;
+      try {
+        impl = obj.getClass().getMethod(
+          "objHash", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+      } catch (Exception ex) {
+        throw new RuntimeException("Unexpected exception. " + ex.toString());
+      }
+      c = this.createClosureOfNativeImpl(
+        new Cstr("sango.lang"),
+        "hash_f",
+        0,
+        obj,
+        impl);
+      this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
+    }
+  }
+
   public void scheduleDebugRepr(RObjItem obj, Object resumeInfo) {
     Method impl = null;
     try {

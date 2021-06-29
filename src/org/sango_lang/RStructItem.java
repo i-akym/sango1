@@ -78,6 +78,34 @@ public class RStructItem extends RObjItem {
     return tsig;
   }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      int h;
+      if (this.dataConstr == RDataConstr.pseudoOfTuple) {
+        h = -1;
+      } else {
+        h = this.dataConstr.modName.hashCode() ^ this.dataConstr.name.hashCode();
+      }
+      if (this.fields.length > 0) {
+        helper.scheduleHash(this.fields[0], new Object[] { 0, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
+      }
+    } else {
+      RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      int h = ((RIntItem)ris[1]).getValue();
+      h ^= hx.getValue();
+      int next = current + 1;
+      if (next < this.fields.length) {
+        helper.scheduleHash(this.fields[next], new Object[] { next, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
+      }
+    }
+  }
+
   public Cstr dumpInside() {
     Cstr s = new Cstr();
     String sep;

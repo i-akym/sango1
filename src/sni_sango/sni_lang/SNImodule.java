@@ -353,6 +353,10 @@ public class SNImodule {
       return eq;
     }
 
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(0));  // TODO: improve!
+    }
+
     public Cstr dumpInside() {
       return new Cstr(PTypeSkel.Util.repr(this.type) + this.toString());
     }
@@ -392,6 +396,10 @@ public class SNImodule {
         }
       }
       return eq;
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(0));  // TODO: improve!
     }
 
     public Cstr dumpInside() {

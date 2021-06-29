@@ -55,6 +55,10 @@ abstract public class RIntItem extends RObjItem {
 
   public int getValue() { return this.value; }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(this.value));
+  }
+
   static class IntObj extends RIntItem {
     IntObj(RuntimeEngine e, int value) { super(e, value); }
 

@@ -80,6 +80,29 @@ public class RArrayItem extends RObjItem {
     return b;
   }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      int h = 0;
+      if (this.items.length > 0) {
+        helper.scheduleHash(this.items[0], new Object[] { 0, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
+      }
+    } else {
+      RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      int h = ((RIntItem)ris[1]).getValue();
+      h ^= hx.getValue();
+      int next = current + 1;
+      if (next < this.items.length) {
+        helper.scheduleHash(this.items[next], new Object[] { next, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
+      }
+    }
+  }
+
   public Cstr dumpInside() {
     // TODO: improve performance ; many copying of chars
     Cstr s = new Cstr();

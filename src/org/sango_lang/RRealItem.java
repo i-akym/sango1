@@ -53,6 +53,10 @@ public class RRealItem extends RObjItem {
 
   public double getValue() { return this.value; }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(Double.hashCode(this.value)));
+  }
+
   public Cstr dumpInside() {
     return new Cstr(Double.toString(this.value));
   }
