@@ -52,6 +52,10 @@ public class RAsyncResultHItem extends RObjItem {
     return RType.createTsig(new Cstr("sango.actor"), "async_result_h", 1);
   }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(this.hashCode()));
+  }
+
   public Cstr dumpInside() {
     return new Cstr(this.toString());
   }

@@ -318,6 +318,10 @@ public class SNIinet {
       return RType.createTsig(new Cstr("sango.net.inet"), "connection_socket_impl_p", 0);
     }
 
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
     public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
@@ -339,6 +343,10 @@ public class SNIinet {
       return RType.createTsig(new Cstr("sango.net.inet"), "server_socket_impl_p", 0);
     }
 
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
     public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
@@ -358,6 +366,10 @@ public class SNIinet {
   
     public RType.Sig getTsig() {
       return RType.createTsig(new Cstr("sango.net.inet"), "datagram_socket_impl_p", 0);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
     }
 
     public Cstr dumpInside() {

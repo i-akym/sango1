@@ -249,6 +249,10 @@ public class SNIbigint {
       return RType.createTsig(new Cstr("sango.num.bigint"), "bigint", 0);
     }
 
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
     public Cstr dumpInside() {
       return new Cstr(this.value.toString());
     }

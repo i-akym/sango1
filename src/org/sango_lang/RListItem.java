@@ -54,6 +54,24 @@ abstract public class RListItem extends RObjItem {
       return b;
     }
 
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      Object[] ris = (Object[])helper.getAndClearResumeInfo();
+      if (ris == null) {
+        int h = 0;
+        helper.scheduleDebugRepr(this.head, new Object[] { this.tail, h });
+      } else {
+        RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
+        int h = (Integer)ris[1];
+        h ^= hx.getValue();
+        if (ris[0] instanceof Nil) {
+          helper.setReturnValue(helper.getIntItem(h));
+        } else {
+          Cell c = (Cell)ris[0];
+          helper.scheduleDebugRepr(c.head, new Object[] { c.tail, h });
+        }
+      }
+    }
+
     public Cstr dumpInside() {
       Cstr s = new Cstr();
       String sep = "";
@@ -95,6 +113,10 @@ abstract public class RListItem extends RObjItem {
 
     public boolean objEquals(RFrame frame, RObjItem item) {
       return (item == this) || (item instanceof Nil);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(0));
     }
 
     public Cstr dumpInside() {

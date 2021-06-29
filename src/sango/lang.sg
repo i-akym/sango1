@@ -119,9 +119,6 @@ data <*A eq_fs> @public :=
   ne?_f_: <<A A bool fun> maybe>
   eq_fs$ ;;
 
-data @alpha <*A hash_fs> @public :=
-  hash_f: <A int fun> hash_fs$ ;;
-
 data <ordering> @public :=
 | lt$
 | eq$
@@ -658,6 +655,8 @@ eval <*A> *X expose @public -> <_?_> @native ;;
 
 eval <*A> *X itself | id @public -> <A> { X } ;;
 eval <*A> *X to_fun @public -> <A fun> { \\ { X } } ;;
+
+eval <*A> *X hash @public -> <int> @native ;;
 
 eval <*A> *X ignore @public -> <void> { void$ } ;;
 eval <*A result> *R unwrap @public -> <A> {

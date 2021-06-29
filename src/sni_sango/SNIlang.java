@@ -39,6 +39,10 @@
     return new SNIlang();
   }
 
+  public void sni_hash(RNativeImplHelper helper, RClosureItem self, RObjItem obj) {
+    obj.objHash(helper, self);
+  }
+
   public void sni_nan(RNativeImplHelper helper, RClosureItem self) {
     helper.setReturnValue(helper.getNaNItem());
   }

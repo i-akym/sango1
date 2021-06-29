@@ -65,6 +65,10 @@ public class RClosureItem extends RObjItem {
 
   int getParamCount() { return this.impl.paramCount; }
 
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(0));  // TODO: improve!
+  }
+
   public Cstr dumpInside() {
     Cstr s = new Cstr();
     s.append(this.impl.mod.name.repr());

@@ -765,6 +765,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       PDataStmt dat = this.dataStmtList.get(i);
       if (dat.constrs != null) {
+        this.generateCallHashFun(dat, dat.srcInfo);
         this.generateCallDebugReprFun(dat, dat.srcInfo);
         if (dat.acc == Module.ACC_PUBLIC || dat.acc == Module.ACC_PROTECTED) {
           this.generateInFun(dat, dat.srcInfo, null, null);
@@ -779,6 +780,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
       PExtendStmt ext = this.extendStmtList.get(i);
+      this.generateCallHashFun(ext, ext.srcInfo);
       this.generateCallDebugReprFun(ext, ext.srcInfo);
       if (ext.acc == Module.ACC_PUBLIC || ext.acc == Module.ACC_PROTECTED) {
         this.generateInFun(ext, ext.srcInfo, ext.baseMod, ext.baseTcon);
@@ -786,6 +788,37 @@ class PModule extends PDefaultProgElem implements PDefDict {
       }
       this.generateMaybeAttrFunsForExtendStmt(ext);
     }
+  }
+
+  private void generateCallHashFun(PDataDef dd, Parser.SrcInfo srcInfo) throws CompileException {
+    // eval <*T0 *T1 .. TCON> *X _call_hash_TCON @private -> <int> {
+    //   X _hash_TCON
+    // }
+    String tcon = dd.getFormalTcon();
+    if (!this.funOfficialDict.containsKey("_hash_" + tcon)) { return; }
+    Parser.SrcInfo si = srcInfo.appendPostfix("_hash");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setOfficial("_call_hash_" + tcon);
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
+    for (int i = 0; i < paramNames.length; i++) {
+      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
+    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "int", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_hash_" + tcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    this.addEvalStmt(evalStmtBuilder.create());
   }
 
   private void generateCallDebugReprFun(PDataDef dd, Parser.SrcInfo srcInfo) throws CompileException {
