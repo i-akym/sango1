@@ -24,6 +24,7 @@
 module "sango.actor" ;;
 
 import "sango.entity" -> ent ;;
+import "sango.list" -> list ;;
 
 extend <exc_desc> @public :=
 | exit$ ;;  # actor should end quickly
@@ -117,8 +118,8 @@ extend <ent.ent_d> :=
 | <mbox_p> mbox_p_ent_d$
 | <ent.wref> mbox_p_eref_wref_ent_d$ ;;
 
-data <mbox_h> @opaque := <ent.eref> mbox_h$ ;;  # eref = mbox_p -> ent_d -> eref
-data <post_h> @opaque := <ent.eref> post_h$ ;;  # eref = mbox_p -> ent_d -> eref -> wref -> ent_d -> eref
+data <mbox_h> @opaque := be: <ent.eref> mbox_h$ ;;  # eref = mbox_p -> ent_d -> eref
+data <post_h> @opaque := bewe: <ent.eref> post_h$ ;;  # eref = mbox_p -> ent_d -> eref -> wref -> ent_d -> eref
 
 data <mbox_opts> @public :=
   notify_nopost: <bool>
@@ -140,53 +141,61 @@ eval <mbox_opts> *Opts open_mbox @public -> <mbox_h post_h tuple> {
     notify_nopost: *Notify_nopost
     notify_sysmsg: *Notify_sysmsg
     mbox_opts$,
-  mbox_create = *H,
-  H = *BpE mbox_h$,
-  BpE none$ ent.create_weak_holder = *BpEW,
+  create_mbox = *BE,
+  BE none$ ent.create_weak_holder = *BEW,
   Notify_nopost case {
-  ; true$ -> \\ { BpEW no_post$ try_put_msg } value$
+  ; true$ -> \\ { BEW no_post$ try_put_msg } value$
   ; ** -> none$
   } = *F_,
   Notify_sysmsg case {
-  ; true$ -> BpEW notify_sysmsg
+  ; true$ -> BE notify_sysmsg
   ; ** ->
   },
-  (BpEW mbox_p_eref_wref_ent_d$) F_ ent.create_entity = *BpEWE,
-  (| H, BpEWE post_h$ |)
+  (BEW mbox_p_eref_wref_ent_d$) F_ ent.create_entity = *BEWE,
+  (| BE mbox_h$, BEWE post_h$ |)
 } ;;
 
-eval mbox_create -> <mbox_h> @native ;; 
-eval <ent.wref> *BpEW notify_sysmsg -> <void> @native ;;
+eval create_mbox -> <ent.eref> @native ;; 
+eval <ent.eref> *BE notify_sysmsg -> <void> @native ;;
 
-eval <mbox_h> *B mbox_owner | owner -> <actor_h> @native ;;
+eval <ent.eref> *BE mbe_owner | owner -> <actor_h> @native ;;
 
 eval <post_h> *P <msg+> *M mbox_send_msg | send_msg | send @public -> <void> {
-  P = *BpEWE post_h$,
-  BpEWE ent.read = *BpEW mbox_p_eref_wref_ent_d$,
-  BpEW M try_put_msg
+  P bewe >> ent.read = *BEW mbox_p_eref_wref_ent_d$,
+  BEW M try_put_msg
 } ;;
 
-eval <ent.wref> *BpEW <msg+> *M try_put_msg -> <void> {
-  BpEW ent.get >> case {
-  ; *BpE value$ ->
-    BpE ent.read = *Bp mbox_p_ent_d$,
-    Bp M mbox_put_msg
+eval <ent.wref> *BEW <msg+> *M try_put_msg -> <void> {
+  BEW ent.get >> case {
+  ; *BE value$ ->
+    BE M mbe_put_msg
   ; ** ->  # if no receiver, dispose msg
   }
 } ;;
 
-eval <mbox_p> *Bp <msg+> *M mbox_put_msg -> <void> @native ;;
+eval <ent.eref> *BE <msg+> *M mbe_put_msg -> <void> @native ;;
 
-eval <mbox_h list> *Bs <wait> *Wait mbox_listen_multiple | listen_mboxes | listen @public -> <mbox_h list> @native ;;
+eval <mbox_h list> *Mboxes <wait> *Wait mbox_listen_multiple | listen_mboxes | listen @public
+    -> <mbox_h list> {
+  ((Mboxes ^_attr_mbox_h_be list.map) Wait mbe_listen_multiple)
+    \ <ent.eref> *BE -> <mbox_h> { BE mbox_h$ }
+    list.map
+} ;;
 
-eval <mbox_h> *B <wait> *Wait listen_mbox | listen @public -> <bool> {
-  [ B ] Wait listen >> case {
+eval <ent.eref list> *BEs <wait> *Wait mbe_listen_multiple -> <ent.eref list> @native ;;
+
+eval <mbox_h> *Mbox <wait> *Wait listen_mbox | listen @public -> <bool> {
+  [ Mbox ] Wait listen >> case {
   ; [] -> false$
   ; ** -> true$
   }
 } ;;
 
-eval <mbox_h> *B mbox_receive_msg | receive_msg | receive @public -> <msg+ maybe> @native ;;
+eval <mbox_h> *Mbox mbox_receive_msg | receive_msg | receive @public -> <msg+ maybe> {
+  Mbox be >> mbe_receive_msg
+} ;;
+
+eval <ent.eref> *BE mbe_receive_msg -> <msg+ maybe> @native ;;
 
 
 # -- monitoring --

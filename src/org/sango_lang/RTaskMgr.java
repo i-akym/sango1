@@ -446,16 +446,17 @@ class RTaskMgr {
     }
   }
 
-  List<RMbox> listenMboxes(RTaskControl t, List<RMbox> bs, Integer expiration) {
-    List<RMbox> receivables = new ArrayList<RMbox>();
+  List<RErefItem> listenMboxes(RTaskControl t, List<RErefItem> bes, Integer expiration) {
+    List<RErefItem> receivables = new ArrayList<RErefItem>();
     List<RLock.Client> lockClients = new ArrayList<RLock.Client>();
-    for (int i = 0; i < bs.size(); i++) {
-      RMbox b = bs.get(i);
+    for (int i = 0; i < bes.size(); i++) {
+      RErefItem be = bes.get(i);
+      RMbox b = this.theEngine.memMgr.getMboxBody(be);
       RLock.Client blc = b.lock.createClient();
       blc.require(RLock.EXCLUSIVE);  // LOCK
       lockClients.add(blc);
       if (!b.msgQueue.isEmpty()) {
-        receivables.add(b);
+        receivables.add(be);
       }
     }
     if (receivables.isEmpty() && (expiration == null || expiration > 0)) {
@@ -465,8 +466,8 @@ class RTaskMgr {
       case TASK_RUNNING:
         this.removeFromRunningList(lc, t);
         this.addToBlockedList(lc, t);
-        for (int i = 0; i < bs.size(); i++) {
-          RMbox b = bs.get(i);
+        for (int i = 0; i < bes.size(); i++) {
+          RMbox b = this.theEngine.memMgr.getMboxBody(bes.get(i));
           b.addBlockedTask(t);
           t.addBlocker(b);
         }

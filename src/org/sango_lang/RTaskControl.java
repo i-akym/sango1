@@ -111,8 +111,8 @@ class RTaskControl implements RTaskMgr.Blocker {
     return !this.theMgr.joinSomeOfTasks(this, ts, expiration).isEmpty();
   }
 
-  List<RMbox> listenMboxes(List<RMbox> bs, Integer expiration) {
-    return this.theMgr.listenMboxes(this, bs, expiration);
+  List<RErefItem> listenMboxes(List<RErefItem> bes, Integer expiration) {
+    return this.theMgr.listenMboxes(this, bes, expiration);
   }
 
   public void addBlockedTask(RTaskControl t) {

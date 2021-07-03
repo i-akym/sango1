@@ -40,9 +40,6 @@ class RMbox implements RTaskMgr.Blocker {
   static RMbox create(RuntimeEngine e, RTaskControl owner) {
     RMbox b = new RMbox();
     b.owner = owner;
-    RObjItem p = e.memMgr.getStructItem(e.memMgr.getDataConstr(new Cstr("sango.actor"), "mbox_p_ent_d$"), new RObjItem[] { RMboxPItem.create(e, b) });
-    RErefItem pe = e.memMgr.createEntity(p, null);
-    b.handleItem = e.memMgr.getStructItem(e.memMgr.getDataConstr(new Cstr("sango.actor"), "mbox_h$"), new RObjItem[] { pe });
     b.lock = RLock.create();
     b.msgQueue = new LinkedList<RObjItem>();
     b.blockedTaskList = new ArrayList<RTaskControl>();
