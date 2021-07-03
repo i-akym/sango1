@@ -1445,7 +1445,9 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;wref&gt; ;;</code></td></tr></table>
 <p>実体への弱参照を生成します。
-  弱参照が無効になった際に制御を受け取る関数を指定することができます。</p>
+  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
+  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
+  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></td></tr></table>
 <p>弱参照から参照（強参照）を取得します。

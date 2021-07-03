@@ -26,11 +26,11 @@ package org.sango_lang;
 import java.lang.ref.WeakReference;
 
 public class RWrefItem extends RObjItem {
-  WeakReference<RMemMgr.Entity> entityWref;
+  WeakReference<RErefItem> entityWref;
 
   RWrefItem(RuntimeEngine e) { super(e); }
 
-  public static RWrefItem create(RuntimeEngine e, WeakReference<RMemMgr.Entity> wr) {
+  public static RWrefItem create(RuntimeEngine e, WeakReference<RErefItem> wr) {
     RWrefItem wref = new RWrefItem(e);
     wref.entityWref = wr;
     return wref;
@@ -62,8 +62,7 @@ public class RWrefItem extends RObjItem {
   }
 
   public RErefItem get() {
-    RMemMgr.Entity e = this.entityWref.get();
-    return (e != null)? RErefItem.create(this.theEngine, e): null;
+    return this.entityWref.get();
   }
 
   public void clear() {
