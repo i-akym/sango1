@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 class RMemMgr {
@@ -42,12 +43,10 @@ class RMemMgr {
   static final int CHAR_INT_CACHE_MAX = 127;
 
   RuntimeEngine theEngine;
-  Map<Reference, RClosureItem> entityInvalidatorDict;
-  ReferenceQueue<Entity> purgedEntityWrefQueue;
-  Map<Reference, WrefListenerInfo> wrefListenerDict;
-  ReferenceQueue<Entity> clearedWrefQueue;
+  List<EntityInvalidationInfo> entityInvalidationInfoList;
+  List<WrefNotificationInfo> wrefNotificationInfoList;
+  List<WeakReference<RErefItem>> sysMsgReceiverList;
   int maintenanceInterval;
-  LinkedList<WeakReference<RMemMgr.Entity>> sysMsgReceivers;
   // cache
   RRealItem nanItem;
   RRealItem posInfItem;
@@ -61,12 +60,10 @@ class RMemMgr {
 
   RMemMgr(RuntimeEngine e) {
     this.theEngine = e;
-    this.entityInvalidatorDict = Collections.synchronizedMap(new HashMap<Reference, RClosureItem>());
-    this.purgedEntityWrefQueue = new ReferenceQueue<Entity>();
-    this.wrefListenerDict = Collections.synchronizedMap(new HashMap<Reference, WrefListenerInfo>());
-    this.clearedWrefQueue = new ReferenceQueue<Entity>();
+    this.entityInvalidationInfoList = Collections.synchronizedList(new LinkedList<EntityInvalidationInfo>());
+    this.wrefNotificationInfoList = Collections.synchronizedList(new LinkedList<WrefNotificationInfo>());
+    this.sysMsgReceiverList = Collections.synchronizedList(new LinkedList<WeakReference<RErefItem>>());
     this.maintenanceInterval = MAINTENANCE_INTERVAL;
-    this.sysMsgReceivers = new LinkedList<WeakReference<RMemMgr.Entity>>();
     this.makeCache();
   }
 
@@ -232,25 +229,19 @@ class RMemMgr {
   }
 
   RErefItem createEntity(RObjItem item, RClosureItem invalidator) {
-    Entity e = new Entity(item);
+    RErefItem eref = RErefItem.create(this.theEngine, new Entity(item));
     if (invalidator != null) {
-      WeakReference<Entity> wr = new WeakReference<Entity>(e, this.purgedEntityWrefQueue);
-      this.entityInvalidatorDict.put(wr, invalidator);
+      this.entityInvalidationInfoList.add(new EntityInvalidationInfo(eref, invalidator));
     }
-    return RErefItem.create(this.theEngine, e);
+    return eref;
   }
 
   RWrefItem createWeakHolder(RObjItem entity, RClosureItem listener) {
     RErefItem eref = (RErefItem)entity;
     WeakReference<Entity> wr;
-    RWrefItem wref;
+    RWrefItem wref = RWrefItem.create(this.theEngine, new WeakReference<RErefItem>(eref));
     if (listener != null) {
-      wr = new WeakReference<Entity>(eref.entity, this.clearedWrefQueue);
-      wref = RWrefItem.create(this.theEngine, wr);
-      this.wrefListenerDict.put(wr, new WrefListenerInfo(wref, listener));
-    } else {
-      wr = new WeakReference<Entity>(eref.entity);
-      wref = RWrefItem.create(this.theEngine, wr);
+      this.wrefNotificationInfoList.add(new WrefNotificationInfo(wref, listener));
     }
     return wref;
   }
@@ -260,54 +251,67 @@ class RMemMgr {
   }
 
   private void doMaintainFull() {
-    this.checkSysMsgReceiver();
-    this.notifyPurgedEntities(Integer.MAX_VALUE);
-    this.notifyClearedWrefs(Integer.MAX_VALUE);
+    this.notifyPurgedEntities(this.entityInvalidationInfoList.size());
+    this.notifyClearedWrefs(this.wrefNotificationInfoList.size());
+    this.maintainSysMsgReceivers(sysMsgReceiverList.size());
   }
 
   private void doMaintainQuick() {
-    this.checkSysMsgReceiver();
-    this.notifyPurgedEntities(1);
-    this.notifyClearedWrefs(1);
+    int n;
+    n = this.entityInvalidationInfoList.size();
+    this.notifyPurgedEntities((n > 0)? n / 10 + 1: 0);  // limit by 1/10 of length
+    n = this.wrefNotificationInfoList.size();
+    this.notifyClearedWrefs((n > 0)? n / 10 + 1: 0);  // limit by 1/10 of length
+    this.maintainSysMsgReceivers(1);
   }
 
-  private void checkSysMsgReceiver() {
-    synchronized (this.sysMsgReceivers) {
-      if (this.sysMsgReceivers.size() > 0) {
-        WeakReference<RMemMgr.Entity> w = this.sysMsgReceivers.poll();
-        if (w.get() != null) {
-          this.sysMsgReceivers.add(w);  // requeue if alive
+  private void notifyPurgedEntities(int count) {
+// /* DEBUG */ System.out.println("start notifyPurgedEntities");
+    for (int i = 0; i < count; i++) {
+      if (this.entityInvalidationInfoList.isEmpty()) { break; }
+      EntityInvalidationInfo info = this.entityInvalidationInfoList.remove(0);  // dequeue
+      if (info.weref.get() != null) {
+        this.entityInvalidationInfoList.add(info);  // requeue
+      } else {
+// /* DEBUG */ System.out.println("Detected purged entity.");
+        this.theEngine.taskMgr.createTask(
+          RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, info.invalidator)
+        .start();
+      }
+    }
+// /* DEBUG */ System.out.println("end notifyPurgedEntities");
+  }
+
+  private void notifyClearedWrefs(int count) {
+/* DEBUG */ System.out.println("start notifyClearedWrefs");
+    for (int i = 0; i < count; i++) {
+      if (this.wrefNotificationInfoList.isEmpty()) { break; }
+      WrefNotificationInfo info = this.wrefNotificationInfoList.remove(0);  // dequeue
+      RWrefItem wref;
+      if ((wref = info.wwref.get()) != null) {
+        if (wref.get() != null) {
+          this.wrefNotificationInfoList.add(info);  // requeue
+        } else {
+/* DEBUG */ System.out.println("Detected cleared wref.");
+          this.theEngine.taskMgr.createTask(
+            RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, info.listener, new RObjItem[] { wref })
+          .start();
         }
+      } else {
+        ;  // dispose
       }
     }
+/* DEBUG */ System.out.println("end notifyClearedWrefs");
   }
 
-  private void notifyPurgedEntities(int countMax) {
-    Reference<? extends Entity> r;
-    int countDown = countMax;
-    while (countDown >= 0 && (r = this.purgedEntityWrefQueue.poll()) != null) {
-      RClosureItem invalidator = this.entityInvalidatorDict.remove(r);
-      if (invalidator != null) {  // supposed to be always not null
-        countDown--;
-// System.out.println("Detected purged entity.");
-        this.theEngine.taskMgr.createTask(
-          RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, invalidator)
-        .start();
-      }
-    }
-  }
-
-  private void notifyClearedWrefs(int countMax) {
-    Reference<? extends Entity> r;
-    int countDown = countMax;
-    while (countDown >= 0 && (r = this.clearedWrefQueue.poll()) != null) {
-      WrefListenerInfo listenerInfo = this.wrefListenerDict.remove(r);
-      if (listenerInfo != null) {  // supposed to be always not null
-        countDown--;
-// System.out.println("Detected cleared weak ref.");
-        this.theEngine.taskMgr.createTask(
-          RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, listenerInfo.listener, new RObjItem[] { listenerInfo.wref })
-        .start();
+  private void maintainSysMsgReceivers(int count) {
+    for (int i = 0; i < count; i++) {
+      if (this.sysMsgReceiverList.isEmpty()) { break; }
+      WeakReference<RErefItem> wr = this.sysMsgReceiverList.remove(0);  // dequeue
+      if (wr.get() != null) {
+        this.sysMsgReceiverList.add(wr);  // requeue
+      } else {
+        ;  // dispose
       }
     }
   }
@@ -318,22 +322,20 @@ class RMemMgr {
 
   public void notifySysMsg(RObjItem bpew) {
     RWrefItem wref = (RWrefItem)bpew;
-    RMemMgr.Entity ent = wref.entityWref.get();
-    if (ent != null) {
-      RStructItem bp = (RStructItem)ent.read();
+    RErefItem eref = wref.entityWref.get();
+    if (eref != null) {
+      RStructItem bp = (RStructItem)eref.read();
       if (bp.getFieldAt(0) instanceof RMboxPItem) {
-        synchronized (this.sysMsgReceivers) {
-          this.sysMsgReceivers.add(wref.entityWref);
-        }
+        this.sysMsgReceiverList.add(wref.entityWref);  // synchronized
       } else {
         throw new IllegalArgumentException("Not wref of mbox entity.");
       }
     }
   }
 
-  WeakReference<RMemMgr.Entity> pollSysMsgReceiver() {
-    synchronized (this.sysMsgReceivers) {
-      return this.sysMsgReceivers.poll();
+  WeakReference<RErefItem> pollSysMsgReceiver() {
+    synchronized (this.sysMsgReceiverList) {
+      return (!this.sysMsgReceiverList.isEmpty())? this.sysMsgReceiverList.remove(0): null;
     }
   }
 
@@ -359,12 +361,22 @@ class RMemMgr {
     }
   }
 
-  private class WrefListenerInfo {
-    RWrefItem wref;
+  private class EntityInvalidationInfo {
+    WeakReference<RErefItem> weref;
+    RClosureItem invalidator;
+
+    EntityInvalidationInfo(RErefItem eref, RClosureItem invalidator) {
+      this.weref = new WeakReference<RErefItem>(eref);
+      this.invalidator = invalidator;
+    }
+  }
+
+  private class WrefNotificationInfo {
+    WeakReference<RWrefItem> wwref;
     RClosureItem listener;
 
-    WrefListenerInfo(RWrefItem wref, RClosureItem listener) {
-      this.wref = wref;
+    WrefNotificationInfo(RWrefItem wref, RClosureItem listener) {
+      this.wwref = new WeakReference<RWrefItem>(wref);
       this.listener = listener;
     }
   }

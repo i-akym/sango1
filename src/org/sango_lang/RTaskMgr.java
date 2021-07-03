@@ -758,9 +758,9 @@ class RTaskMgr {
     RObjItem oShutdown = this.theEngine.memMgr.getStructItem(dcShutdown, new RObjItem[0]);
     RDataConstr dcMsg = this.theEngine.memMgr.getDataConstr(new Cstr("sango.actor"), "sys_msg$");
     RObjItem oMsg = this.theEngine.memMgr.getStructItem(dcMsg, new RObjItem[] { oShutdown });
-    WeakReference<RMemMgr.Entity> pew;
+    WeakReference<RErefItem> pew;
     while ((pew = this.theEngine.memMgr.pollSysMsgReceiver()) != null) {
-      RMemMgr.Entity pe = pew.get();
+      RErefItem pe = pew.get();
       if (pe != null) {
         ((RMboxPItem)((RStructItem)pe.read()).getFieldAt(0)).mbox.putMsg(oMsg);
       }
