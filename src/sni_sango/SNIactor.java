@@ -31,6 +31,7 @@ import org.sango_lang.RActorHItem;
 import org.sango_lang.RAsyncResultHItem;
 import org.sango_lang.RClosureItem;
 import org.sango_lang.RDataConstr;
+import org.sango_lang.RErefItem;
 import org.sango_lang.RIntItem;
 import org.sango_lang.RListItem;
 import org.sango_lang.RNativeImplHelper;
@@ -141,75 +142,76 @@ public class SNIactor {
     helper.setReturnValue(r);
   }
 
-  public void sni_mbox_create(RNativeImplHelper helper, RClosureItem self) {
+  public void sni_create_mbox(RNativeImplHelper helper, RClosureItem self) {
     helper.setReturnValue(helper.getCore().createMbox());
   }
 
-  public void sni_notify_sysmsg(RNativeImplHelper helper, RClosureItem self, RObjItem bpew) {
-    helper.getCore().notifySysMsg(bpew);
+  public void sni_notify_sysmsg(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
+    helper.getCore().notifySysMsg((RErefItem)be);
   }
 
-  public void sni_mbox_put_msg(RNativeImplHelper helper, RClosureItem self, RObjItem bp, RObjItem m) {
-    helper.getCore().putMsg(bp, m);
+  public void sni_mbe_put_msg(RNativeImplHelper helper, RClosureItem self, RObjItem be, RObjItem m) {
+    helper.getCore().putMsg((RErefItem)be, m);
   }
 
-  public void sni_mbox_owner(RNativeImplHelper helper, RClosureItem self, RObjItem b) {
-    helper.setReturnValue(helper.getCore().getOwnerOfMbox(b));
+  public void sni_mbe_owner(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
+    helper.setReturnValue(helper.getCore().getOwnerOfMbox((RErefItem)be));
   }
 
-  public void sni_mbox_listen_multiple(RNativeImplHelper helper, RClosureItem self, RObjItem bs, RObjItem wait) {
+  public void sni_mbe_listen_multiple(RNativeImplHelper helper, RClosureItem self, RObjItem bes, RObjItem wait) {
     RNativeImplHelper.Core core = helper.getCore();
-    MboxListHolder blh;
-    if ((blh = (MboxListHolder)helper.getAndClearResumeInfo()) == null) {
+    BEListHolder belh;
+    if ((belh = (BEListHolder)helper.getAndClearResumeInfo()) == null) {
       RActorHItem myActorH = core.myActorH();
-      List<RObjItem> bl = new ArrayList<RObjItem>();
-      RObjItem b = bs;
+      List<RErefItem> bel = new ArrayList<RErefItem>();
+      RListItem L = (RListItem)bes;
       RObjItem e = null;
-      while (e == null && (b instanceof RListItem.Cell)) {
-        RListItem.Cell c = (RListItem.Cell)b;
-        RObjItem bh = c.head;
-        if (!helper.objEquals(helper.getCore().getOwnerOfMbox(bh), myActorH)) {
+      while (e == null && (L instanceof RListItem.Cell)) {
+        RListItem.Cell c = (RListItem.Cell)L;
+        RErefItem be = (RErefItem)c.head;
+        if (!helper.objEquals(helper.getCore().getOwnerOfMbox(be), myActorH)) {
           e = sni_sango.SNIlang.createBadArgException(helper, new Cstr("Caller is not the owner of mbox."), null);
         }
-        bl.add(bh);
-        b = c.tail;
+        bel.add(be);
+        L = c.tail;
       }
-      List<RObjItem> receivables = null;
+      List<RErefItem> receivables = null;
       Integer expiration = null;
       if (e == null) {
         RStructItem w = (RStructItem)wait;
         RDataConstr ms = helper.getDataConstr(new Cstr("sango.actor"), "wait_ms$");
         expiration = (w.getDataConstr().equals(ms))? ((RIntItem)w.getFieldAt(0)).getValue(): null;
-        receivables = core.listenMboxes(bl, expiration);
+        receivables = core.listenMboxes(bel, expiration);
       }
       if (e != null) {
         helper.setException(e);
       } else if (!receivables.isEmpty()) {
         helper.setReturnValue(helper.listToListItem(receivables));
       } else if (expiration == null || expiration > 0) {
-        core.setResumeInfo(new MboxListHolder(bl));
+        core.setResumeInfo(new BEListHolder(bel));
         core.releaseTask();
       } else {
         helper.setReturnValue(helper.getListNilItem());
       }
     } else {
-      List<RObjItem> receivables = core.listenMboxes(blh.mboxHList, 0);
+      List<RErefItem> receivables = core.listenMboxes(belh.bel, 0);
       helper.setReturnValue(helper.listToListItem(receivables));
     }
   }
 
-  static private class MboxListHolder {
-    List<RObjItem> mboxHList;
-
-    MboxListHolder(List<RObjItem> bs) {
-      this.mboxHList = bs;
+  static private class BEListHolder {  // avoid compilation warning
+    List<RErefItem> bel;
+ 
+    BEListHolder(List<RErefItem> bel) {
+      this.bel = bel;
     }
   }
 
-  public void sni_mbox_receive_msg(RNativeImplHelper helper, RClosureItem self, RObjItem b) {
+  public void sni_mbe_receive_msg(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
+    RErefItem bee = (RErefItem)be;
     RActorHItem myActorH = helper.getCore().myActorH();
-    if (helper.objEquals(helper.getCore().getOwnerOfMbox(b), myActorH)) {
-      RObjItem m = helper.getCore().receiveMsg(b);
+    if (helper.objEquals(helper.getCore().getOwnerOfMbox(bee), myActorH)) {
+      RObjItem m = helper.getCore().receiveMsg(bee);
       RObjItem ret = sni_sango.SNIlang.getMaybeItem(helper, m);
       helper.setReturnValue(ret);
     } else {

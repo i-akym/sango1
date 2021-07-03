@@ -435,40 +435,28 @@ public class RNativeImplHelper {
       return RNativeImplHelper.this.theEngine.taskMgr.createMbox(RNativeImplHelper.this.frame.theTaskControl);
     }
 
-    public void notifySysMsg(RObjItem bpew) {
-      RNativeImplHelper.this.theEngine.memMgr.notifySysMsg(bpew);
+    public void notifySysMsg(RErefItem be) {
+      RNativeImplHelper.this.theEngine.memMgr.notifySysMsg(be);
     }
 
-    public RActorHItem getOwnerOfMbox(RObjItem b) {
-      return this.getBoxBody(b).owner.actorH;
+    public RActorHItem getOwnerOfMbox(RErefItem be) {
+      return this.getMboxBody(be).owner.actorH;
     }
 
-    public void putMsg(RObjItem bp, RObjItem m) {
-      ((RMboxPItem)bp).mbox.putMsg(m);
+    public void putMsg(RErefItem be, RObjItem m) {
+      this.getMboxBody(be).putMsg(m);
     }
 
-    public List<RObjItem> listenMboxes(List<RObjItem> bs, Integer expiration) {
-      List<RMbox> boxes = new ArrayList<RMbox>();
-      for (int i = 0; i < bs.size(); i++) {
-        boxes.add(this.getBoxBody(bs.get(i)));
-      }
-      List<RMbox> rboxes = RNativeImplHelper.this.frame.theTaskControl.listenMboxes(boxes, expiration);
-      List<RObjItem> receivables = new ArrayList<RObjItem>();
-      for (int i = 0; i < rboxes.size(); i++) {
-        receivables.add(rboxes.get(i).getHandleItem());
-      }
-      return receivables;
+    public List<RErefItem> listenMboxes(List<RErefItem> bes, Integer expiration) {
+      return RNativeImplHelper.this.frame.theTaskControl.listenMboxes(bes, expiration);
     }
 
-    public RObjItem receiveMsg(RObjItem b) {
-      return this.getBoxBody(b).receiveMsg();
+    public RObjItem receiveMsg(RErefItem mboxE) {
+      return this.getMboxBody(mboxE).receiveMsg();
     }
 
-    RMbox getBoxBody(RObjItem mboxH) {
-      RStructItem h = (RStructItem)mboxH;
-      RErefItem e =(RErefItem)h.getFieldAt(0);
-      RMboxPItem p = (RMboxPItem)((RStructItem)e.read()).getFieldAt(0);  // mbox_p mbox_p_ent_d$ -> mbox_p
-      return p.mbox;
+    RMbox getMboxBody(RErefItem mboxE) {
+      return RNativeImplHelper.this.theEngine.memMgr.getMboxBody(mboxE);
     }
 
     // runtime features

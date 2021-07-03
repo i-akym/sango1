@@ -316,25 +316,31 @@ class RMemMgr {
     }
   }
 
-  RObjItem createMbox(RTaskControl owner) {
-    return RMbox.create(this.theEngine, owner).handleItem;
+  RErefItem createMbox(RTaskControl owner) {
+    // create body
+    RMbox b = RMbox.create(this.theEngine, owner);
+    // wrap to RMBoxPItem(RObjItem)
+    RMboxPItem bp = RMboxPItem.create(this.theEngine, b);
+    // wrap to entity data
+    RObjItem d = this.getStructItem(
+      this.getDataConstr(new Cstr("sango.actor"), "mbox_p_ent_d$"),
+      new RObjItem[] { bp });
+    // create entity
+    RErefItem bpe = this.createEntity(d, null);
+    return bpe;
   }
 
-  public void notifySysMsg(RObjItem bpew) {
-    RWrefItem wref = (RWrefItem)bpew;
-    RErefItem eref = wref.entityWref.get();
-    if (eref != null) {
-      RStructItem bp = (RStructItem)eref.read();
-      if (bp.getFieldAt(0) instanceof RMboxPItem) {
-        this.sysMsgReceiverList.add(wref.entityWref);  // synchronized
-      } else {
-        throw new IllegalArgumentException("Not wref of mbox entity.");
-      }
-    }
+  RMbox getMboxBody(RErefItem mboxE) {
+    RMboxPItem p = (RMboxPItem)((RStructItem)mboxE.read()).getFieldAt(0);  // mbox_p mbox_p_ent_d$ -> mbox_p
+    return p.mbox;
+  }
+
+  public void notifySysMsg(RErefItem be) {
+    this.sysMsgReceiverList.add(new WeakReference<RErefItem>(be));  // synchronized
   }
 
   WeakReference<RErefItem> pollSysMsgReceiver() {
-    synchronized (this.sysMsgReceiverList) {
+    synchronized (this.sysMsgReceiverList) {  // is synchronization needed here?
       return (!this.sysMsgReceiverList.isEmpty())? this.sysMsgReceiverList.remove(0): null;
     }
   }
