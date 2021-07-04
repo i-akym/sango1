@@ -221,9 +221,9 @@ public class SNIactor {
   }
 
   public void sni_start_monitoring(RNativeImplHelper helper, RClosureItem self, RObjItem a, RObjItem p) {
-    helper.getCore().addActorMonitor(a, p);
+    helper.getCore().addActorMonitor(a, (RErefItem)((RStructItem)p).getFieldAt(0));
   }
   public void sni_stop_monitoring(RNativeImplHelper helper, RClosureItem self, RObjItem a, RObjItem p) {
-    helper.getCore().removeActorMonitor(a, p);
+    helper.getCore().removeActorMonitor(a, (RErefItem)((RStructItem)p).getFieldAt(0));
   }
 }

@@ -335,6 +335,25 @@ class RMemMgr {
     return p.mbox;
   }
 
+  RMbox tryGetMboxBodyFromSenderEntity(RErefItem senderE) {
+    RMbox b = null;
+    RWrefItem mboxpEW = (RWrefItem)((RStructItem)senderE.read()).getFieldAt(0);
+    RErefItem mboxpE = mboxpEW.get();
+    if (mboxpE == null) {
+      ;  // mbox is already GC'd.
+    } else if (mboxpE instanceof RErefItem) {
+      RObjItem mboxp = ((RStructItem)((RErefItem)mboxpE).read()).getFieldAt(0);
+      if (mboxp instanceof RMboxPItem) {
+        b = ((RMboxPItem)mboxp).mbox;
+      } else {
+        throw new IllegalArgumentException("Not <post_h>.");
+      }
+    } else {
+      throw new IllegalArgumentException("Not <post_h>.");
+    }
+    return b;
+  }
+
   public void notifySysMsg(RErefItem be) {
     this.sysMsgReceiverList.add(new WeakReference<RErefItem>(be));  // synchronized
   }
