@@ -404,29 +404,12 @@ public class RNativeImplHelper {
       return RNativeImplHelper.this.theEngine.taskMgr.peekTaskResult(a.taskControl);
     }
 
-    public void addActorMonitor(RObjItem actorH, RObjItem postH) {
-      RStructItem p = (RStructItem)postH;
-      RErefItem mboxpEWE = (RErefItem)p.getFieldAt(0);
-      RWrefItem mboxpEW = (RWrefItem)((RStructItem)mboxpEWE.read()).getFieldAt(0);
-      RErefItem mboxpE = mboxpEW.get();
-      if (mboxpE == null) {
-        ;  // mbox is already GC'd.
-      } else if (mboxpE instanceof RErefItem) {
-        RObjItem mboxp = ((RStructItem)((RErefItem)mboxpE).read()).getFieldAt(0);
-        if (mboxp instanceof RMboxPItem) {
-          RNativeImplHelper.this.theEngine.taskMgr.addActorMonitor((RActorHItem)actorH, mboxpEWE);
-        } else {
-          throw new IllegalArgumentException("Not <post_h>.");
-        }
-      } else {
-        throw new IllegalArgumentException("Not <post_h>.");
-      }
+    public void addActorMonitor(RObjItem actorH, RErefItem senderE) {
+      RNativeImplHelper.this.theEngine.taskMgr.addActorMonitor((RActorHItem)actorH, senderE);
     }
 
-    public void removeActorMonitor(RObjItem actorH, RObjItem postH) {
-      RStructItem p = (RStructItem)postH;
-      RErefItem mboxpEWE = (RErefItem)p.getFieldAt(0);
-      RNativeImplHelper.this.theEngine.taskMgr.removeActorMonitor((RActorHItem)actorH, mboxpEWE);
+    public void removeActorMonitor(RObjItem actorH, RErefItem senderE) {
+      RNativeImplHelper.this.theEngine.taskMgr.removeActorMonitor((RActorHItem)actorH, senderE);
     }
 
     // messaging

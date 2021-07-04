@@ -264,27 +264,27 @@ class RTaskMgr {
     return s;
   }
 
-  void addActorMonitor(RActorHItem actorH, RErefItem mboxpEWE) {
+  void addActorMonitor(RActorHItem actorH, RErefItem senderE) {
     RTaskControl t = actorH.taskControl;
     if (t.theMgr != this) {
       throw new IllegalArgumentException("Not my task.");
     }
     RLock.Client lc = this.lock.createClient();
     lc.require(RLock.EXCLUSIVE);  // ENTER CRITCAL SECTION
-    t.addMonitor(mboxpEWE);
+    t.addMonitor(senderE);
     this.scheduleNotifyActorState(lc, t);
     this.scheduleMaintenance();
     lc.release();  // EXIT CRITICAL SECTION
   }
 
-  void removeActorMonitor(RActorHItem actorH, RErefItem mboxpEWE) {
+  void removeActorMonitor(RActorHItem actorH, RErefItem senderE) {
     RTaskControl t = actorH.taskControl;
     if (t.theMgr != this) {
       throw new IllegalArgumentException("Not my task.");
     }
     RLock.Client lc = this.lock.createClient();
     lc.require(RLock.EXCLUSIVE);  // ENTER CRITCAL SECTION
-    t.removeMonitor(mboxpEWE);
+    t.removeMonitor(senderE);
     lc.release();  // EXIT CRITICAL SECTION
   }
 
@@ -969,19 +969,18 @@ class RTaskMgr {
   }
 
   class MsgReq {
-    RErefItem mboxpEWE;
+    RErefItem senderE;
     RObjItem msg;
 
-    MsgReq(RErefItem mboxpEWE, RObjItem msg) {
-      this.mboxpEWE = mboxpEWE;
+    MsgReq(RErefItem senderE, RObjItem msg) {
+      this.senderE = senderE;
       this.msg = msg;
     }
 
     void doSend() {
-      RWrefItem mboxpEW = (RWrefItem)((RStructItem)this.mboxpEWE.read()).getFieldAt(0);
-      RErefItem mboxpE = (RErefItem)mboxpEW.get();
-      if (mboxpE != null) {
-        ((RMboxPItem)((RStructItem)mboxpE.read()).getFieldAt(0)).mbox.putMsg(this.msg);
+      RMbox b = RTaskMgr.this.theEngine.memMgr.tryGetMboxBodyFromSenderEntity(this.senderE);
+      if (b != null) {
+        b.putMsg(this.msg);
       }
     }
   }
