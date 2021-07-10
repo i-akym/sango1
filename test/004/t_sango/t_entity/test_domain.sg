@@ -28,11 +28,11 @@ eval test -> <void> {
 eval test000 -> <void> { entd.test } ;;
 eval test001 -> <void> {
   entd.default_domain = *D,
-  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D ent.existence$ none$ entd.create_entity >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D ent.existence$ none$ entd.create_entity >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
   stdio.flush
 } ;;
 eval test002 -> <void> {
@@ -40,7 +40,7 @@ eval test002 -> <void> {
   D ent.existence$ none$ entd.create_entity = *E,  # keep -2147483646
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
-    D ent.existence$ none$ entd.create_entity >> entd.id_during_alive = *N,
+    D ent.existence$ none$ entd.create_entity >> entd.unique_num = *N,
     S N set.put_new >> case {
     ; (| **, true$ |) -> "entity_h recycled " stdio.print, N debug.repr >> stdio.print_and_newline
     ; (| *S', ** |) -> S' &&
@@ -57,11 +57,11 @@ eval test010 -> <void> {
 eval test021 -> <void> {
   entd.create_domain = *D,
   D ent.existence$ none$ entd.create_entity = *E,
-  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
-  D E none$ entd.create_weak_holder >> entd.id_during_alive >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
+  D E none$ entd.create_weak_holder >> entd.unique_num >> debug.repr >> stdio.print_and_newline,
   stdio.flush
 } ;;
 eval test022 -> <void> {
@@ -70,7 +70,7 @@ eval test022 -> <void> {
   D E none$ entd.create_weak_holder = *W,  # keep -2147483646
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
-    D E none$ entd.create_weak_holder >> entd.id_during_alive = *N,
+    D E none$ entd.create_weak_holder >> entd.unique_num = *N,
     S N set.put_new >> case {
     ; (| **, true$ |) -> "weak_holder_h recycled " stdio.print, N debug.repr >> stdio.print_and_newline
     ; (| *S', ** |) -> S' &&
