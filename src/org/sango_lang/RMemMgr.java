@@ -283,7 +283,7 @@ class RMemMgr {
   }
 
   private void notifyClearedWrefs(int count) {
-/* DEBUG */ System.out.println("start notifyClearedWrefs");
+// /* DEBUG */ System.out.println("start notifyClearedWrefs");
     for (int i = 0; i < count; i++) {
       if (this.wrefNotificationInfoList.isEmpty()) { break; }
       WrefNotificationInfo info = this.wrefNotificationInfoList.remove(0);  // dequeue
@@ -292,7 +292,7 @@ class RMemMgr {
         if (wref.get() != null) {
           this.wrefNotificationInfoList.add(info);  // requeue
         } else {
-/* DEBUG */ System.out.println("Detected cleared wref.");
+// /* DEBUG */ System.out.println("Detected cleared wref.");
           this.theEngine.taskMgr.createTask(
             RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, info.listener, new RObjItem[] { wref })
           .start();
@@ -301,7 +301,7 @@ class RMemMgr {
         ;  // dispose
       }
     }
-/* DEBUG */ System.out.println("end notifyClearedWrefs");
+// /* DEBUG */ System.out.println("end notifyClearedWrefs");
   }
 
   private void maintainSysMsgReceivers(int count) {
