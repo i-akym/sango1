@@ -120,6 +120,7 @@ extend <ent.ent_d> :=
 
 data <mbox_h> @opaque := be: <ent.eref> mbox_h$ ;;  # eref = mbox_p -> ent_d -> eref
 data <post_h> @opaque := bewe: <ent.eref> post_h$ ;;  # eref = mbox_p -> ent_d -> eref -> wref -> ent_d -> eref
+data <preserved_post_h> @opaque := bewew: <ent.wref> preserved_post_h$ ;;
 
 data <mbox_opts> @public :=
   notify_nopost: <bool>
@@ -157,6 +158,17 @@ eval <mbox_opts> *Opts open_mbox @public -> <mbox_h post_h tuple> {
 
 eval create_mbox -> <ent.eref> @native ;; 
 eval <ent.eref> *BE notify_sysmsg -> <void> @native ;;
+
+eval <post_h> *P preserve_post_h_for_receiver @public -> <preserved_post_h> {
+  bewew: ((P bewe) none$ ent.create_weak_holder) preserved_post_h$
+} ;;
+
+eval <preserved_post_h> *PP get_post_h @public -> <post_h maybe> {
+  PP bewew >> ent.get >> case {
+  ; *BEWE value$ -> (BEWE post_h$) value$
+  ; ** -> none$
+  }
+} ;;
 
 eval <ent.eref> *BE mbe_owner | owner -> <actor_h> @native ;;
 
