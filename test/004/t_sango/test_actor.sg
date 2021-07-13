@@ -30,6 +30,7 @@ eval test -> <void> {
   test123,
   test125,
   test131,
+  test140,
   test401,
   test401a,
   test402,
@@ -89,6 +90,12 @@ eval test122 -> <int> { act.default_priority = 4 } ;;
 eval test123 -> <int> { act.lowest_priority = 0 } ;;
 eval test125 -> <int> { act.my_actor_h act.priority = 4 } ;;
 eval test131 -> <int> { act.my_actor_h 6 act.set_priority, act.my_actor_h act.priority = 6 } ;;
+eval test140 -> <void> {
+  act.open_mbox = (| *B, *P |),
+  P act.preserve_post_h_for_receiver = *PP,
+  PP act.get_post_h = P value$,
+  void$
+} ;;
 eval test401 -> <void> {
   \\ <void> {} act.spawn_actor >> act.actor_h = *A,
   act.open_mbox = (| *B, *P |),
