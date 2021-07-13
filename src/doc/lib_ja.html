@@ -836,6 +836,11 @@ eval &lt;*A async_result_h&gt; *Result
 <table border width="100%"><tr><td class="def"><code>data &lt;post_h&gt; @opaque ;;</code></td></tr></table>
 <p>メッセージボックスへのメッセージ送信のためのハンドルを表します。</p>
 
+<table border width="100%"><tr><td class="def"><code>data &lt;preserved_post_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;post_h&gt;</code>を弱く保持するためのデータを表します。
+  メッセージボックスの受信アクタが<code>&lt;post_h&gt;</code>を保持すると<code>no_post$</code>メッセージがポストされません。
+  受信アクタが<code>&lt;post_h&gt;</code>を使用する場合は，このデータを作成して保持しておき，必要になった時点で<code>&lt;post_h&gt;</code>を再度得ます。</p>
+
 <table border width="100%"><tr><td class="def"><code>data &lt;mbox_opts&gt; @public :=
   notify_nopost: &lt;bool&gt;
   notify_sysmsg: &lt;bool&gt;
@@ -855,6 +860,14 @@ eval &lt;*A async_result_h&gt; *Result
 <table border width="100%"><tr><td class="def"><code>eval open_mbox_with_default_opts | open_mbox @public
   -&gt; &lt;mbox_h post_h tuple&gt; ;;</code></td></tr></table>
 <p>デフォルトの<code>&lt;mbox_opts&gt;</code>でメッセージボックスをオープンします。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;post_h&gt; *P preserve_post_h_for_receiver @public -&gt; &lt;preserved_post_h&gt; ;;</code></td></tr></table>
+<p><code>&lt;post_h&gt;</code>への参照を弱い状態にし必要になった時点で再取得するために，<code>&lt;preserved_post_h&gt;</code>に変換します。
+  この処理後<code>&lt;post_h&gt;</code>が保持され続けないように注意してください。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;preserved_post_h&gt; *PP get_post_h @public -&gt; &lt;post_h maybe&gt; ;;</code></td></tr></table>
+<p><code>&lt;post_h&gt;</code>を再取得します。
+  対応する<code>&lt;post_h&gt;</code>オブジェクトが消滅している場合（どのアクタからも送信されないことが確実になっている場合）には，<code>none$</code>が返されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;post_h&gt; *P &lt;msg+&gt; *M mbox_send_msg | send_msg | send @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>メッセージを送信します。</p>
