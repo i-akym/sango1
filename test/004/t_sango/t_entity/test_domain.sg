@@ -1,3 +1,5 @@
+import "sango.actor" -> act ;;
+import "sango.cstr" -> cstr ;;
 import "sango.debug" -> debug ;;
 import "sango.entity" -> ent ;;
 import "sango.entity.domain" -> entd ;;
@@ -40,12 +42,21 @@ eval test002 -> <void> {
   D ent.existence$ none$ entd.create_entity = *E,  # keep -2147483646
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
-    D ent.existence$ none$ entd.create_entity >> entd.unique_num = *N,
-    S N set.put_new >> case {
-    ; (| **, true$ |) -> "entity_h recycled " stdio.print, N debug.repr >> stdio.print_and_newline
-    ; (| *S', ** |) -> S' &&
+    act.yield,
+    D ent.existence$ none$ entd.create_entity = *EE,
+    EE entd.unique_num = *N,
+    EE
+      \ <int> *NN -> { [ "invalidated E ", NN debug.repr ] cstr.concat >> stdio.print_and_newline }
+      entd.add_unique_num_invalidator,
+    EE
+      \ <int> *NN -> { [ "invalidated e ", NN debug.repr ] cstr.concat >> stdio.print_and_newline }
+      entd.add_unique_num_invalidator,
+    S N set.get >> case {
+    ; ** value$ -> [ "entity_h recycled ", N debug.repr ] cstr.concat >> stdio.print_and_newline
+    ; ** -> (S N set.add) &&
     }
-  }
+  },
+  E entd.read >> ignore
 } ;;
 eval test010 -> <void> {
   entd.create_domain = *D,
@@ -70,12 +81,21 @@ eval test022 -> <void> {
   D E none$ entd.create_weak_holder = *W,  # keep -2147483646
   (int_ord_fs avlset.new_set) &\ <int set.set> *S -> <void> {
     runtime.gc,
-    D E none$ entd.create_weak_holder >> entd.unique_num = *N,
-    S N set.put_new >> case {
-    ; (| **, true$ |) -> "weak_holder_h recycled " stdio.print, N debug.repr >> stdio.print_and_newline
-    ; (| *S', ** |) -> S' &&
+    act.yield,
+    D E none$ entd.create_weak_holder = *WW,
+    WW entd.unique_num = *N,
+    WW
+      \ <int> *NN -> { [ "invalidated W ", NN debug.repr ] cstr.concat >> stdio.print_and_newline }
+      entd.add_unique_num_invalidator,
+    WW
+      \ <int> *NN -> { [ "invalidated w ", NN debug.repr ] cstr.concat >> stdio.print_and_newline }
+      entd.add_unique_num_invalidator,
+    S N set.get >> case {
+    ; ** value$ -> [ "weak_holder_h recycled ", N debug.repr ] cstr.concat >> stdio.print_and_newline
+    ; ** -> (S N set.add) &&
     }
-  }
+  },
+  W entd.get >> ignore
 } ;;
 eval test023 -> <void> {
   entd.create_domain = *D,

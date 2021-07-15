@@ -26,9 +26,15 @@ module @alpha "sango.entity.domain" ;;
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
 import "sango.entity" -> ent ;;
+import "sango.list" -> list ;;
+# import "sango.system.runtime" -> runtime ;;
 import "sango.util.avltree.base" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.map" -> map ;;
 import "sango.debug" -> debug ;;  # DEBUG
 import "sango.io.stdio" -> stdio ;;  # DEBUG
+
+alias type <unique_num_invalidator> @public := <int void fun> ;;
 
 data <i> :=
   default_domain: <domain_h> i$ ;;
@@ -92,7 +98,6 @@ eval weak_holder_ord_fs @public -> <weak_holder_h ord_fs> {
 } ;;
 
 extend <ent.ent_d> :=
-| svr: <act.post_h> svr_holder$
 | eun: <int> eref: <ent.eref> eref_holder_d$
 | wun: <int> wref: <ent.wref> wref_holder_d$ ;;
 
@@ -116,16 +121,18 @@ eval <domain_h> *Domain <ent.ent_d+> *X <<void fun> maybe> *Invalidator_ create_
 eval <domain_h> *Domain <ent.eref> *Eref contain_eref @public -> <entity_h> {
   Domain svr = *Svr,
   Svr _get_new_eun = *N,
-  ((svr: Svr svr_holder$) none$ ent.create_entity) none$ ent.create_weak_holder = *Wsvr,  # avoid being kept
   (eun: N eref: Eref eref_holder_d$)
     (\\ <void> {
-       Wsvr ent.get >> case {
-       ; *E value$ -> E ent.read = svr: *S svr_holder$, S (N eun_released$) act.send
-       ; ** ->
-       }
+       # will keep server
+       Svr (N eun_released$) act.send
      } value$)
     ent.create_entity= *Eref_holder,
   domain_h: Domain unique: N eref_holder: Eref_holder entity_h$
+} ;;
+
+eval <entity_h> *Entity <unique_num_invalidator> *Invalidator
+    entity_add_unique_num_invalidator | add_unique_num_invalidator @public -> <void> {
+  (Entity domain >> svr) Entity Invalidator _add_eun_invalidator
 } ;;
 
 eval <entity_h> *Entity read @public -> <ent.ent_d+> {
@@ -142,13 +149,10 @@ eval <domain_h> *Domain <entity_h> *Entity <<weak_holder_h void fun> maybe> *Lis
     create_weak_holder @public -> <weak_holder_h> {
   Domain svr = *Svr,
   Svr _get_new_wun = *N,
-  ((svr: Svr svr_holder$) none$ ent.create_entity) none$ ent.create_weak_holder = *Wsvr,  # avoid being kept
   ent.existence$
     (\\ <void> { 
-       Wsvr ent.get >> case {
-       ; *E value$ -> E ent.read = svr: *S svr_holder$, S (N wun_released$) act.send
-       ; ** ->
-       }
+       # will keep server
+       Svr (N wun_released$) act.send
      } value$)
     ent.create_entity = *Wref_holder,  # create and get eref first
   Listener_ case {
@@ -162,6 +166,11 @@ eval <domain_h> *Domain <entity_h> *Entity <<weak_holder_h void fun> maybe> *Lis
   (Entity eref_holder) L_ ent.create_weak_holder = *Wref,
   Wref_holder (wun: N wref: Wref wref_holder_d$) ent.write,
   domain_h: Domain unique: N wref_holder: Wref_holder weak_holder_h$
+} ;;
+
+eval <weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
+    weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -> <void> {
+  (Weak_holder domain >> svr) Weak_holder Invalidator _add_wun_invalidator
 } ;;
 
 eval <weak_holder_h> *Weak_holder get @public -> <entity_h maybe> {
@@ -183,11 +192,16 @@ eval <weak_holder_h> *Weak_holder clear @public -> <void> {
 # -- client --
 
 extend <act.msg> :=
+| <void result> void_res$
 | <act.post_h> get_new_eun_req$
 | <act.post_h> get_new_wun_req$
 | <int result> get_new_un_res$
+| <act.post_h> <entity_h> <unique_num_invalidator> add_eun_invalidator_req$
+| <act.post_h> <weak_holder_h> <unique_num_invalidator> add_wun_invalidator_req$
 | <int> eun_released$
-| <int> wun_released$ ;;
+| <int> wun_released$
+| <int> eun_invalidated$
+| <int> wun_invalidated$ ;;
 
 eval _startup_domain_svr -> <act.post_h> {
   \ <act.post_h void fun> *R -> <void> { R domain_svr } actu.startup_svr = (| *A, *P |),
@@ -212,18 +226,47 @@ eval <act.post_h> *Svr _get_new_wun -> <int> {
   Res unwrap
 } ;;
 
+eval <act.post_h> *Svr <entity_h> *Entity <unique_num_invalidator> *Invalidator
+    _add_eun_invalidator -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post Entity Invalidator add_eun_invalidator_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res void_res$) value$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Svr <weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
+    _add_wun_invalidator -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post Weak_holder Invalidator add_wun_invalidator_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res void_res$) value$,
+  Res unwrap
+} ;;
+
 
 # -- server --
 
+alias type <un_invalidator_tab> := <int <unique_num_invalidator list> map.map> ;;
+
 data <svr_d> :=
+  ppost_h: <act.preserved_post_h>
   free_euns: <seg avl.tree>
   free_wuns: <seg avl.tree>
+  eun_invalidator_tab: <un_invalidator_tab>
+  wun_invalidator_tab: <un_invalidator_tab>
   svr_d$ ;;
 
 eval <act.post_h void fun> *Reply domain_svr -> <void> {
+  # runtime.terminate_on_my_abnormal_end,
   act.open_mbox = (| *Box, *Post |),
   Post &Reply,
-  free_euns: new_free_uns free_wuns: new_free_uns svr_d$ = *D,
+  ppost_h: (Post act.preserve_post_h_for_receiver)
+    free_euns: new_free_uns
+    free_wuns: new_free_uns
+    eun_invalidator_tab: (int_ord_fs avlmap.new_map)
+    wun_invalidator_tab: (int_ord_fs avlmap.new_map)
+    svr_d$ = *D,
   (D value$) &\ <svr_d maybe> *D_ -> <void> {
     D_ case {
     ; *D value$ ->
@@ -239,8 +282,12 @@ eval <svr_d> *D <act.msg+> *Msg svr_dispatch -> <svr_d maybe> {
   Msg case {
   ; *P get_new_eun_req$ -> (D P svr_get_new_eun) value$
   ; *P get_new_wun_req$ -> (D P svr_get_new_wun) value$
+  ; *P *E *I add_eun_invalidator_req$ -> (D P E I svr_add_eun_invalidator) value$
+  ; *P *W *I add_wun_invalidator_req$ -> (D P W I svr_add_wun_invalidator) value$
   ; *N eun_released$ -> (D N svr_eun_released) value$
   ; *N wun_released$ -> (D N svr_wun_released) value$
+  ; *N eun_invalidated$ -> (D N svr_eun_invalidated) value$
+  ; *N wun_invalidated$ -> (D N svr_wun_invalidated) value$
   ; act.no_post$ -> none$
   ;  ** -> D value$
   }
@@ -266,13 +313,95 @@ eval <svr_d> *D <act.post_h> *P svr_get_new_wun -> <svr_d> {
   D'
 } ;;
 
+eval <svr_d> *D <act.post_h> *P <entity_h> *E <unique_num_invalidator> *Inv
+    svr_add_eun_invalidator -> <svr_d> {
+  # entity has been kept here
+  D eun_invalidator_tab = *Inv_tab,
+  \\ <un_invalidator_tab> { Inv_tab (E unique) Inv add_un_invalidator } try >> case {
+  ; *Inv_tab' fin$ -> (| void$ fin$, eun_invalidator_tab: Inv_tab' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res void_res$) act.send,
+  D'
+} ;;
+
+eval <svr_d> *D <act.post_h> *P <weak_holder_h> *W <unique_num_invalidator> *Inv
+    svr_add_wun_invalidator -> <svr_d> {
+  # weak holder has been kept here
+  D wun_invalidator_tab = *Inv_tab,
+  \\ <un_invalidator_tab> { Inv_tab (W unique) Inv add_un_invalidator } try >> case {
+  ; *Inv_tab' fin$ -> (| void$ fin$, wun_invalidator_tab: Inv_tab' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res void_res$) act.send,
+  D'
+} ;;
+
+eval <un_invalidator_tab> *Tab <int> *N <unique_num_invalidator> *Inv add_un_invalidator
+    -> <un_invalidator_tab> {
+  Tab N map.assoc >> case {
+  ; *Is value$ -> Tab N [ Inv ; Is ] map.add
+  ; none$ -> Tab N [ Inv ] map.add
+  }
+} ;;
+
 eval <svr_d> *D <int> *N svr_eun_released -> <svr_d> {
+  D = ppost_h: *PP free_euns: *FNs eun_invalidator_tab: *Inv_tab *** svr_d$,
+  Inv_tab N map.assoc >> case {
+  ; *Is value$ ->
+    PP act.get_post_h >> case {
+    ; *P value$ -> N Is P (N eun_invalidated$) start_un_invalidators, FNs  # keep unique num
+    ; none$ -> FNs N put_released
+    } = *FNs',
+    Inv_tab N map.delete = *Inv_tab',
+    free_euns: FNs' eun_invalidator_tab: Inv_tab' :: D svr_d$
+  ; none$ ->
+    FNs N put_released = *FNs',
+    free_euns: FNs' :: D svr_d$
+  }
+} ;;
+
+eval <svr_d> *D <int> *N svr_wun_released -> <svr_d> {
+  D = ppost_h: *PP free_wuns: *FNs wun_invalidator_tab: *Inv_tab *** svr_d$,
+  Inv_tab N map.assoc >> case {
+  ; *Is value$ ->
+    PP act.get_post_h >> case {
+    ; *P value$ -> N Is P (N wun_invalidated$) start_un_invalidators, FNs  # keep unique num
+    ; none$ -> FNs N put_released
+    } = *FNs',
+    Inv_tab N map.delete = *Inv_tab',
+    free_wuns: FNs' wun_invalidator_tab: Inv_tab' :: D svr_d$
+  ; none$ ->
+    FNs N put_released = *FNs',
+    free_wuns: FNs' :: D svr_d$
+  }
+} ;;
+
+eval <int> *N <unique_num_invalidator list> *Is <act.post_h> *P <act.msg+> *M start_un_invalidators -> <void> {
+  \\ <void> {
+    Is
+      \ <unique_num_invalidator> *I -> <act.actor_h> {
+        \\ <void> { N &I } act.spawn >> act.actor_h = *Actor_h,
+        Actor_h act.start,
+        Actor_h
+      }
+      list.map = *As,  # start all invalidators
+    As
+      \ <act.actor_h> *A -> <void> {
+        A act.wait_forever$ act.wait_actor_ended >> ignore
+      }
+      list.map,  # wait all invalidators' end; do not care end condition
+    P M act.send
+  } act.spawn >> act.start
+} ;;
+
+eval <svr_d> *D <int> *N svr_eun_invalidated -> <svr_d> {
   D free_euns = *FNs,
   FNs N put_released = *FNs',
   free_euns: FNs' :: D svr_d$
 } ;;
 
-eval <svr_d> *D <int> *N svr_wun_released -> <svr_d> {
+eval <svr_d> *D <int> *N svr_wun_invalidated -> <svr_d> {
   D free_wuns = *FNs,
   FNs N put_released = *FNs',
   free_wuns: FNs' :: D svr_d$
