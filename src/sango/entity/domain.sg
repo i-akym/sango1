@@ -21,18 +21,15 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.entity.domain" ;;
+module "sango.entity.domain" ;;
 
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
 import "sango.entity" -> ent ;;
 import "sango.list" -> list ;;
-# import "sango.system.runtime" -> runtime ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
-import "sango.debug" -> debug ;;  # DEBUG
-import "sango.io.stdio" -> stdio ;;  # DEBUG
 
 alias type <unique_num_invalidator> @public := <int void fun> ;;
 
@@ -258,7 +255,6 @@ data <svr_d> :=
   svr_d$ ;;
 
 eval <act.post_h void fun> *Reply domain_svr -> <void> {
-  # runtime.terminate_on_my_abnormal_end,
   act.open_mbox = (| *Box, *Post |),
   Post &Reply,
   ppost_h: (Post act.preserve_post_h_for_receiver)
@@ -421,10 +417,10 @@ extend <*A avl.aux> :=
   subtree_range$ ;;
 
 extend <*A avl.info> :=
-| <int> to_add_start$  # notifies this seg's start
-| <int> to_add_end$  # notifies this seg's end
-| <int> <int> to_join_left$  # notifies left seg's end this seg's start
-| <int> <int> to_join_right$ ;;  # notifies this seg's end and right seg's start
+| <int> to_add_start$  # this seg's start
+| <int> to_add_end$  # this seg's end
+| <int> <int> to_join_left$  # left seg's end, this seg's start
+| <int> <int> to_join_right$ ;;  # this seg's end, right seg's start
 
 eval min_un -> <int> { min_int 2 sum } ;;
 eval max_un -> <int> { max_int 2 diff } ;;
@@ -463,26 +459,21 @@ eval <seg avl.tree> *Segs get_new_un -> <int <seg avl.tree> tuple> {  # may thro
 eval <seg avl.tree> *Segs <int> *N put_released -> <seg avl.tree> {
   Segs (N put_released_locator) (start: N end: N seg$) avl.put >> case {
   ; *Segs' avl.put_new_done$ ->
-# N debug.repr >> stdio.print, " put new done" stdio.print_and_newline, stdio.flush,  # DEBUG
     Segs'
   ; (*S to_add_start$) avl.put_aborted$ ->
-# N debug.repr >> stdio.print, " to add start " stdio.print_and_newline, stdio.flush,  # DEBUG
     Segs (S S seg_locator) avl.remove = *Segs' (start: S end: *E seg$) avl.remove_done$,
     Segs' (N E seg_locator) (start: N end: E seg$) avl.put = *Segs'' avl.put_new_done$,
     Segs''
   ; (*E to_add_end$) avl.put_aborted$ ->
-# N debug.repr >> stdio.print, " to add end" stdio.print_and_newline, stdio.flush,  # DEBUG
     Segs (E E seg_locator) avl.remove = *Segs' (start: *S end: E seg$) avl.remove_done$,
     Segs' (S N seg_locator) (start: S end: N seg$) avl.put = *Segs'' avl.put_new_done$,
     Segs''
   ; (*LE *S to_join_left$) avl.put_aborted$ ->
-# N debug.repr >> stdio.print, " to join left" stdio.print_and_newline, stdio.flush,  # DEBUG
     Segs (LE LE seg_locator) avl.remove = *Segs' (start: *LS end: LE seg$) avl.remove_done$,
     Segs' (S S seg_locator) avl.remove = *Segs'' (start: S end: *E seg$) avl.remove_done$,
     Segs'' (LS E seg_locator) (start: LS end: E seg$) avl.put = *Segs''' avl.put_new_done$,
     Segs'''
   ; (*E *RS to_join_right$) avl.put_aborted$ ->
-# N debug.repr >> stdio.print, " to join right" stdio.print_and_newline, stdio.flush,  # DEBUG
     Segs (E E seg_locator) avl.remove = *Segs' (start: *S end: E seg$) avl.remove_done$,
     Segs' (RS RS seg_locator) avl.remove = *Segs'' (start: RS end: *RE seg$) avl.remove_done$,
     Segs'' (S RE seg_locator) (start: S end: RE seg$) avl.put = *Segs''' avl.put_new_done$,
@@ -519,14 +510,12 @@ eval <int> *N put_released_locator -> <seg avl.locator> {
 
 eval <seg avl.node> *Node <int> *N <int> *Lmax <int> *Rmin locate_released_un -> <seg avl.locate> {
   Node avl.assoc = start: *S end: *E seg$,
-# ">> " stdio.print, (| N, Lmax, S, E, Rmin |) debug.repr >> stdio.print_and_newline, stdio.flush, # DEBUG
   if {
   ; N S lt? -> 
     Node avl.left_ >> case {
     ; *L value$ -> L avl.aux = max: *Max *** subtree_range$, Max
     ; ** -> Lmax
     } = *Lmax',
-# "== " stdio.print, (| N, Lmax', S, E, Rmin |) debug.repr >> stdio.print_and_newline, stdio.flush, # DEBUG
     (| Lmax' inc, S dec |) case {
     ; (| N, N |) -> (Lmax' S to_join_left$) avl.abort$
     ; (| **, N |) -> (S to_add_start$) avl.abort$
@@ -544,7 +533,6 @@ eval <seg avl.node> *Node <int> *N <int> *Lmax <int> *Rmin locate_released_un ->
       R avl.aux = min: *Min *** subtree_range$, Min
     ; ** -> Rmin
     } = *Rmin',
-# "== " stdio.print, (| N, Lmax, S, E, Rmin' |) debug.repr >> stdio.print_and_newline, stdio.flush, # DEBUG
     (| E inc, Rmin' dec |) case {
     ; (| N, N |) -> (E Rmin' to_join_right$) avl.abort$
     ; (| N, ** |) -> (E to_add_end$) avl.abort$
