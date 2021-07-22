@@ -57,17 +57,26 @@ abstract public class RListItem extends RObjItem {
     public void doHash(RNativeImplHelper helper, RClosureItem self) {
       Object[] ris = (Object[])helper.getAndClearResumeInfo();
       if (ris == null) {
-        int h = 0;
-        helper.scheduleDebugRepr(this.head, new Object[] { this.tail, h });
+        Cell c = this;
+        RListItem L = this.tail;
+        Integer h;
+        while ((h = L.peekHashValue()) == null) {
+          helper.pushOstack(c);
+          c = (Cell)L;  // NIL's hash value is already set, so L is a cell
+          L = c.tail;
+        }
+        helper.scheduleHash(c.head, new Object[] { c, h });  // the cell, tail's hash value
       } else {
-        RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
-        int h = (Integer)ris[1];
-        h ^= hx.getValue();
-        if (ris[0] instanceof Nil) {
+        RIntItem hh = (RIntItem)helper.getInvocationResult().getReturnValue();
+        Cell c = (Cell)ris[0];
+        int h = (Integer)ris[1] * 31;  // multiple tail's hash value by primary num
+        h ^= hh.getValue();
+        if (c == this) {
           helper.setReturnValue(helper.getIntItem(h));
         } else {
-          Cell c = (Cell)ris[0];
-          helper.scheduleDebugRepr(c.head, new Object[] { c.tail, h });
+          c.setHashValue(h);
+          c = (RListItem.Cell)helper.popOstack();
+          helper.scheduleHash(c.head, new Object[] { c, h });
         }
       }
     }
@@ -109,14 +118,18 @@ abstract public class RListItem extends RObjItem {
 
   public static class Nil extends RListItem {
 
-    Nil(RuntimeEngine e) { super(e); }
+    Nil(RuntimeEngine e) {
+      super(e);
+      this.setHashValue(-1);
+    }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
       return (item == this) || (item instanceof Nil);
     }
 
     public void doHash(RNativeImplHelper helper, RClosureItem self) {
-      helper.setReturnValue(helper.getIntItem(0));
+      throw new RuntimeException("Hash value is already set.");
+      // helper.setReturnValue(helper.getIntItem(-1));
     }
 
     public Cstr dumpInside() {

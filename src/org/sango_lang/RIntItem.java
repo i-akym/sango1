@@ -29,6 +29,7 @@ abstract public class RIntItem extends RObjItem {
   RIntItem(RuntimeEngine e, int value) {
     super(e);
     this.value = value;
+    this.setHashValue(value);
   }
 
   // public static RIntItem get(RuntimeEngine e, int cat, int value) {
@@ -56,7 +57,8 @@ abstract public class RIntItem extends RObjItem {
   public int getValue() { return this.value; }
 
   public void doHash(RNativeImplHelper helper, RClosureItem self) {
-    helper.setReturnValue(helper.getIntItem(this.value));
+    throw new RuntimeException("Hash value is already set.");
+    // helper.setReturnValue(helper.getIntItem(this.value));
   }
 
   static class IntObj extends RIntItem {

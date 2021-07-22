@@ -26,7 +26,7 @@ package org.sango_lang;
 import java.lang.reflect.Method;
 
 abstract public class RObjItem extends RVMItem {
-  RIntItem hashValue;
+  private Integer hashValue;
 
   public RObjItem(RuntimeEngine e) { super(e); }
 
@@ -37,27 +37,22 @@ abstract public class RObjItem extends RVMItem {
   final public void objHash(RNativeImplHelper helper, RClosureItem self) {
     Object ri = helper.getAndClearResumeInfo();
     if (ri == null) {
-      RIntItem h = null;
-      synchronized (this) {
-        h = this.hashValue;
-      }
+      Integer h = this.peekHashValue();
       if (h != null) {
-        helper.setReturnValue(h);
+        helper.setReturnValue(helper.getIntItem(h));
       } else {
         this.scheduleDoHash(helper, this);
       }
     } else {
       RIntItem h = (RIntItem)helper.getInvocationResult().getReturnValue();
-      synchronized (this) {
-        if (this.hashValue == null) {
-          this.hashValue = h;  // make cache
-        } else if (this.hashValue.getValue() == h.getValue()) {
-          ;  // OK, do nothing
-        } else {
-          throw new RuntimeException("Hash value mismatch.");
-        }
-      }
+      this.setHashValue(h.getValue());
       helper.setReturnValue(h);
+    }
+  }
+
+  final public Integer peekHashValue() {
+    synchronized (this) {
+      return this.hashValue;
     }
   }
 
@@ -85,6 +80,19 @@ abstract public class RObjItem extends RVMItem {
   }
 
   abstract public void doHash(RNativeImplHelper helper, RClosureItem self);
+
+  // you can set hash value in advance
+  final void setHashValue(Integer h) {
+    synchronized (this) {
+      if (this.hashValue == null) {
+        this.hashValue = h;
+      } else if (this.hashValue.equals(h)) {
+        ;  // OK, do nothing
+      } else {
+        throw new RuntimeException("Hash value mismatch.");
+      }
+    }
+  }
 
   public Cstr dump() {
     Cstr s = this.createDumpHeader();
