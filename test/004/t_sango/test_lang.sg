@@ -15,8 +15,8 @@ alias type <*A d004> := <A list> ;;
 eval <cs d004> *II fun003 -> <void> {} ;;
 
 eval _main_ -> <void> {
-  runtime.terminate_on_my_abnormal_end,
-  test
+  test,
+  stdio.flush
 } ;;
 
 eval test -> <void> {
@@ -127,6 +127,14 @@ eval test -> <void> {
   test632b,
   test633,
   test634,
+  test700,
+  test701,
+  test702,
+  test703,
+  test710,
+  test711,
+  test712,
+  test713,
   void$
 } ;;
 
@@ -258,3 +266,18 @@ eval test632a -> <bool> { pos_inf int_convertible? = false$ } ;;
 eval test632b -> <bool> { neg_inf int_convertible? = false$ } ;;
 eval test633 -> <int> { -2147483648.0 int = -2147483648 } ;;
 eval test634 -> <int> { 2147483647.0 int = 2147483647 } ;;
+eval test700 -> <void> { "99 hash " stdio.print, 99 hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test701 -> <void> { "33~ hash " stdio.print, 33~ hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test702 -> <void> { "2.5 hash " stdio.print, 2.5 hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test703 -> <void> { "A hash " stdio.print, 'A' hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test710 -> <void> { "[] hash " stdio.print, [] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test711 -> <void> { "[ 1 ] hash " stdio.print, [ 1 ] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test712 -> <void> { "[ 1, 1 ] hash " stdio.print, [ 1, 1 ] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test713 -> <void> {  # more than capacity of a operand stack segment (100)
+  "[ 1 .. 110 ] hash " stdio.print,
+  [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+    61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+    81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+    101, 102, 103, 104, 105, 106, 107, 108, 109, 110 ] hash >> debug.repr >> stdio.print_and_newline } ;;
