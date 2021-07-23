@@ -1398,7 +1398,10 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <h2 id="sango.debug.1"></code>sango.debug</code> - オブジェクト情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X repr @public -&gt; &lt;cstr&gt; ;;</code></td></tr></table>
-<p>オブジェクトのデバッグ用表現（型，構成情報）を返します。</p>
+<p>オブジェクトのデバッグ用表現（型，構成情報）を返します。
+  使用者が定義した型は表現を変更することができます。
+  そのためには，定義しているモジュールの中で「<code>eval &lt;t&gt; *X _debug_repr_T -&gt; &lt;cstr&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。
+</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.debug.2"></code>sango.debug</code> - アサーション</h2>
