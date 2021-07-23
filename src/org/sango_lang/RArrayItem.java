@@ -83,7 +83,7 @@ public class RArrayItem extends RObjItem {
   public void doHash(RNativeImplHelper helper, RClosureItem self) {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
-      int h = 0;
+      int h = -1;
       if (this.items.length > 0) {
         helper.scheduleHash(this.items[0], new Object[] { 0, h });
       } else {
@@ -92,7 +92,7 @@ public class RArrayItem extends RObjItem {
     } else {
       RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
       int current = (Integer)ris[0];
-      int h = ((RIntItem)ris[1]).getValue();
+      int h = (Integer)ris[1] * 31;  // multiply by prime num
       h ^= hx.getValue();
       int next = current + 1;
       if (next < this.items.length) {

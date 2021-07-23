@@ -28,8 +28,7 @@ import java.util.List;
 
 public class Cstr {
   List<Integer> value;
-  boolean hashed;
-  int hashCodeValue;
+  Integer hashCodeValue;
 
   public Cstr() {
     this.value = new ArrayList<Integer>();
@@ -58,12 +57,12 @@ public class Cstr {
   }
 
   public int hashCode() {
-    if (!this.hashed) {
+    if (this.hashCodeValue == null) {
       this.hashCodeValue = 0;
       for (int i = 0; i < this.value.size(); i++) {
+        this.hashCodeValue *= 31;  // multiply by prime num
         this.hashCodeValue ^= this.value.get(i).intValue();
       }
-      this.hashed = true;
     }
     return this.hashCodeValue;
   }
@@ -104,7 +103,7 @@ public class Cstr {
 
   public void append(int c) {
     this.value.add(new Integer(c));
-    this.hashed = false;
+    this.hashCodeValue = null;
   }
 
   public void append(char c) {

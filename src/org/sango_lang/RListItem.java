@@ -69,7 +69,7 @@ abstract public class RListItem extends RObjItem {
       } else {
         RIntItem hh = (RIntItem)helper.getInvocationResult().getReturnValue();
         Cell c = (Cell)ris[0];
-        int h = (Integer)ris[1] * 31;  // multiple tail's hash value by primary num
+        int h = (Integer)ris[1] * 31;  // multiple tail's hash value by prime num
         h ^= hh.getValue();
         if (c == this) {
           helper.setReturnValue(helper.getIntItem(h));
