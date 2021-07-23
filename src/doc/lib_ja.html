@@ -295,9 +295,6 @@ kbd {
 <table border width="100%"><tr><td class="def"><code>data &lt;*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A hash_fs&gt; @public := hash_f: &lt;A int fun&gt; hash_fs$ ;;</code></td></tr></table>
-<p>【Alpha】オブジェクトのハッシュ値を扱う関数を表します。</p>
-
 <table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
 <p>イテレータ（データを次々と供給するオブジェクト）を表します。</p>
 
@@ -445,6 +442,13 @@ eval char_eq_fs @public -&gt; &lt;char eq_fs&gt; ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X0 &lt;A&gt; *X1 &lt;A eq_fs&gt; *Funs eqcmp_eq? | eq? @public -&gt; &lt;bool&gt; ;;
 eval &lt;*A&gt; *X0 &lt;A&gt; *X1 &lt;A eq_fs&gt; *Funs eqcmp_ne? | ne? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p><code>&lt;A eq_fs&gt;</code>を使用して，それぞれ，「等しい」「等しくない」かどうか判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X hash @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>ハッシュ値を返します。
+  ハッシュ値は，主にコレクションの中から等価なオブジェクトを探索するために使われます。
+  「XとYが等価ならばXのハッシュ値とYのハッシュ値が等しい」「Xのハッシュ値とYのハッシュ値が異なればXとYは等価ではない」（＝先の命題の待遇）が成り立ちます。
+  被構築データのハッシュ値はランタイムエンジンの内部アルゴリズムにより算出しますが，使用者が定義した型は算出アルゴリズムを変更することができます。
+  そのためには，定義しているモジュールの中で「<code>eval &lt;t&gt; *X _hash_T -&gt; &lt;int&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.4"><code>sango.lang</code> - 論理演算</h2>
