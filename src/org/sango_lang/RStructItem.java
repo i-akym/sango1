@@ -95,7 +95,7 @@ public class RStructItem extends RObjItem {
     } else {
       RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
       int current = (Integer)ris[0];
-      int h = ((RIntItem)ris[1]).getValue();
+      int h = (Integer)ris[1] * 31;  // multiply by prime num
       h ^= hx.getValue();
       int next = current + 1;
       if (next < this.fields.length) {

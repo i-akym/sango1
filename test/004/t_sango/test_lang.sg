@@ -4,6 +4,11 @@ import "sango.system.runtime" -> runtime ;;
 
 data <d001> := d001_1: <int> d001_2: <char> d001$ ;;
 
+eval <d001> *X _hash_d001 -> <int> {
+  X debug.repr >> stdio.print, " => _hash_d001 is called" stdio.print_and_newline,
+  123456
+} ;;
+
 extend <exc_desc> := test_exc$ ;;
 alias type <cs> := <cstr> ;;
 
@@ -135,6 +140,16 @@ eval test -> <void> {
   test711,
   test712,
   test713,
+  test720,
+  test721,
+  test722,
+  test723,
+  test724,
+  test730,
+  test731,
+  test732,
+  test733,
+  test750,
   void$
 } ;;
 
@@ -281,3 +296,13 @@ eval test713 -> <void> {  # more than capacity of a operand stack segment (100)
     61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
     81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
     101, 102, 103, 104, 105, 106, 107, 108, 109, 110 ] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test720 -> <void> { "[||] hash " stdio.print, [||] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test721 -> <void> { "[| 1 |] hash " stdio.print, [| 1 |] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test722 -> <void> { "[| 1, 1 |] hash " stdio.print, [| 1, 1 |] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test723 -> <void> { "[| 1, 1, 1 |] hash " stdio.print, [| 1, 1, 1 |] hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test724 -> <void> { "\"This is a test.\" hash " stdio.print, "This is a test." hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test730 -> <void> { "void$ hash " stdio.print, void$ hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test731 -> <void> { "(void$ value$) hash " stdio.print, (void$ value$) hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test732 -> <void> { "(| 1, 1 |) hash " stdio.print, (| 1, 1 |) hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test733 -> <void> { "(| 1, true$, \"abc\" value$ |) hash " stdio.print, (| 1, true$, "abc" value$ |) hash >> debug.repr >> stdio.print_and_newline } ;;
+eval test750 -> <void> { (3 'e' d001$) hash = 123456, void$ } ;;
