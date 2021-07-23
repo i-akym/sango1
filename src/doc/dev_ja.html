@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.3.0 Developer Notes</title>
+<title>Sango 1.4.0 Developer Notes</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -1018,8 +1018,32 @@ public void append(String s)<code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>abstract public RType.Sig getTsig()<code></td></tr></table>
 <p>型シグネチャ（型構築子と型パラメタ数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>abstract public Cstr debugReprOfContents()<code></td></tr></table>
-<p><code>&quot;sango.debug&quot;.repr</code>の結果に埋め込まれる，内部情報の表現を返します。</p>
+<table border width="100%"><tr><td class="def"><code>abstract public void doHash(RNativeImplHelper helper, RClosureItem self)<code></td></tr></table>
+<p>このオブジェクトのハッシュ値をネイティブ実装の返り値として設定します。
+オブジェクトに対する<code>&quot;sango.lang&quot;.hash</code>に対応して，このメソッドが呼び出されます。
+ただし，このメソッドが呼び出されるのは，最初の1回です（厳密には，複数アクタからほぼ同時に呼び出された場合，それぞれに対してこのメソッドが呼び出される可能性があります）。
+メソッドの結果は保存され，それ以降の呼び出しで返されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr dump()<code></td></tr></table>
+<p>オブジェクトをダンプ（内部情報を文字列化）します。
+ユーザがプログラム内でオブジェクトをダンプするために<code>&quot;sango.debug&quot;.repr</code>が提供されていますが，この場合は後述の<code>doDebugRepr</code>が呼び出されます。
+このメソッドは，ランタイムエンジンのエラー終了処理などの場合に呼び出されるほか，後述するように<code>doDebugRepr</code>から呼び出されることがあります。
+デフォルト実装は，<code>createDumpHeader</code>，<code>dumpInside</code>，<code>createDumpTrailer</code>の結果を連結します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr createDumpHeader()<code></td></tr></table>
+<p>オブジェクト情報のヘッダ（<code>{</code>型コンストラクタ情報<code>|</code>）を生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>abstract public Cstr dumpInside()<code></td></tr></table>
+<p>オブジェクトの内部情報を文字列化します（ヘッダとトレーラに囲まれる部分）。</p>
+
+<table border width="100%"><tr><td class="def"><code>public Cstr createDumpTrailer()<code></td></tr></table>
+<p>オブジェクト情報のトレーラ（<code>}</code>）を生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>public void doDebugRepr(RNativeImplHelper helper, RClosureItem self)<code></td></tr></table>
+<p><code>&quot;sango.debug&quot;.repr</code>が呼び出され，かつ，この型に対して<code>_debug_repr_*</code>が定義されていない場合に呼び出されます。
+このメソッドはオブジェクトをダンプして，ネイティブ実装の返り値として設定します。
+デフォルト実装は，<code>dump</code>を呼び出し，その結果を返り値とします。
+オブジェクトが他のオブジェクトを内包している場合は，内部オブジェクトのダンプをこのメソッドの結果に組み込むようにオーバーライドします。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.11">B.11 <code>RRealItem</code></h2>

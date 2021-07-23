@@ -111,8 +111,8 @@ class RTaskControl implements RTaskMgr.Blocker {
     return !this.theMgr.joinSomeOfTasks(this, ts, expiration).isEmpty();
   }
 
-  List<RMbox> listenMboxes(List<RMbox> bs, Integer expiration) {
-    return this.theMgr.listenMboxes(this, bs, expiration);
+  List<RErefItem> listenMboxes(List<RErefItem> bes, Integer expiration) {
+    return this.theMgr.listenMboxes(this, bes, expiration);
   }
 
   public void addBlockedTask(RTaskControl t) {
@@ -135,12 +135,12 @@ class RTaskControl implements RTaskMgr.Blocker {
     return (this.blockedTaskList.size() > 0)? this.blockedTaskList.remove(0): null;
   }
 
-  void addMonitor(RErefItem mboxpWE) {
-    this.monitorList.add(mboxpWE);
+  void addMonitor(RErefItem senderE) {
+    this.monitorList.add(senderE);
   }
 
-  void removeMonitor(RErefItem mboxpWE) {
-    this.monitorList.remove(mboxpWE);
+  void removeMonitor(RErefItem senderE) {
+    this.monitorList.remove(senderE);
   }
 
   public RResult getResult() {

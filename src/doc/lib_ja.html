@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.3.0　ライブラリ解説</title>
+<title>Sango 1.4.0　ライブラリ解説</title>
 </head>
 
 <body>
@@ -98,6 +98,11 @@ kbd {
 <a href="#sango.entity"><code>sango.entity</code></a>
   <a href="#sango.entity.1">実体</a>
   <a href="#sango.entity.2">弱参照</a>
+<a href="#sango.entity.domain"><code>sango.entity.domain</code></a>
+  <a href="#sango.entity.domain.1">ドメイン</a>
+  <a href="#sango.entity.domain.2">実体</a>
+  <a href="#sango.entity.domain.3">弱参照</a>
+  <a href="#sango.entity.domain.4">固有番号，大小比較</a>
 <a href="#sango.fun"><code>sango.fun</code></a>
   <a href="#sango.fun.1">1引数関数への変換</a>
 <a href="#sango.io"><code>sango.io</code></a>
@@ -165,7 +170,7 @@ kbd {
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
 <a href="#sango.util.avltree.queue"><code>sango.util.avltree.queue</code></a>
-<a href="#sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></a> 【Alpha】
+<a href="#sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></a>
 <a href="#sango.util.avltree.set"><code>sango.util.avltree.set</code></a>
 <a href="#sango.util.bag"><code>sango.util.bag</code></a>
   <a href="#sango.util.bag.1">フレームワーク</a>
@@ -199,7 +204,7 @@ kbd {
   <a href="#sango.util.queue.2">実装者向け情報</a>
 <a href="#sango.util.queue.simplequeue"><code>sango.util.queue.simplequeue</code></a>
 <a href="#sango.util.random"><code>sango.util.random</code></a>
-<a href="#sango.util.ralist"><code>sango.util.ralist</code></a> 【Alpha】
+<a href="#sango.util.ralist"><code>sango.util.ralist</code></a>
   <a href="#sango.util.ralist.1">フレームワーク</a>
   <a href="#sango.util.ralist.2">実装者向け情報</a>
 <a href="#sango.util.set"><code>sango.util.set</code></a>
@@ -289,9 +294,6 @@ kbd {
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A hash_fs&gt; @public := hash_f: &lt;A int fun&gt; hash_fs$ ;;</code></td></tr></table>
-<p>【Alpha】オブジェクトのハッシュ値を扱う関数を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
 <p>イテレータ（データを次々と供給するオブジェクト）を表します。</p>
@@ -440,6 +442,13 @@ eval char_eq_fs @public -&gt; &lt;char eq_fs&gt; ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X0 &lt;A&gt; *X1 &lt;A eq_fs&gt; *Funs eqcmp_eq? | eq? @public -&gt; &lt;bool&gt; ;;
 eval &lt;*A&gt; *X0 &lt;A&gt; *X1 &lt;A eq_fs&gt; *Funs eqcmp_ne? | ne? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p><code>&lt;A eq_fs&gt;</code>を使用して，それぞれ，「等しい」「等しくない」かどうか判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X hash @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>ハッシュ値を返します。
+  ハッシュ値は，主にコレクションの中から等価なオブジェクトを探索するために使われます。
+  「XとYが等価ならばXのハッシュ値とYのハッシュ値が等しい」「Xのハッシュ値とYのハッシュ値が異なればXとYは等価ではない」（＝先の命題の待遇）が成り立ちます。
+  被構築データのハッシュ値はランタイムエンジンの内部アルゴリズムにより算出しますが，使用者が定義した型は算出アルゴリズムを変更することができます。
+  そのためには，定義しているモジュールの中で「<code>eval &lt;t&gt; *X _hash_T -&gt; &lt;int&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.4"><code>sango.lang</code> - 論理演算</h2>
@@ -836,6 +845,11 @@ eval &lt;*A async_result_h&gt; *Result
 <table border width="100%"><tr><td class="def"><code>data &lt;post_h&gt; @opaque ;;</code></td></tr></table>
 <p>メッセージボックスへのメッセージ送信のためのハンドルを表します。</p>
 
+<table border width="100%"><tr><td class="def"><code>data &lt;preserved_post_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;post_h&gt;</code>を弱く保持するためのデータを表します。
+  メッセージボックスの受信アクタが<code>&lt;post_h&gt;</code>を保持すると<code>no_post$</code>メッセージがポストされません。
+  受信アクタが<code>&lt;post_h&gt;</code>を使用する場合は，このデータを作成して保持しておき，必要になった時点で<code>&lt;post_h&gt;</code>を再度得ます。</p>
+
 <table border width="100%"><tr><td class="def"><code>data &lt;mbox_opts&gt; @public :=
   notify_nopost: &lt;bool&gt;
   notify_sysmsg: &lt;bool&gt;
@@ -855,6 +869,14 @@ eval &lt;*A async_result_h&gt; *Result
 <table border width="100%"><tr><td class="def"><code>eval open_mbox_with_default_opts | open_mbox @public
   -&gt; &lt;mbox_h post_h tuple&gt; ;;</code></td></tr></table>
 <p>デフォルトの<code>&lt;mbox_opts&gt;</code>でメッセージボックスをオープンします。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;post_h&gt; *P preserve_post_h_for_receiver @public -&gt; &lt;preserved_post_h&gt; ;;</code></td></tr></table>
+<p><code>&lt;post_h&gt;</code>への参照を弱い状態にし必要になった時点で再取得するために，<code>&lt;preserved_post_h&gt;</code>に変換します。
+  この処理後<code>&lt;post_h&gt;</code>が保持され続けないように注意してください。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;preserved_post_h&gt; *PP get_post_h @public -&gt; &lt;post_h maybe&gt; ;;</code></td></tr></table>
+<p><code>&lt;post_h&gt;</code>を再取得します。
+  対応する<code>&lt;post_h&gt;</code>オブジェクトが消滅している場合（どのアクタからも送信されないことが確実になっている場合）には，<code>none$</code>が返されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;post_h&gt; *P &lt;msg+&gt; *M mbox_send_msg | send_msg | send @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>メッセージを送信します。</p>
@@ -945,17 +967,22 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.actor.util.3"><code>sango.actor.util</code> - entity monitor</h2>
 
-<p>「実体」（entity）の読み書き（<code>&quot;sango.entity&quot;.read</code>，<code>write</code>）は原子的に行われますが，読み出しと書き込みの間には他の処理が割り込むことがあります。
+<p>「実体」（entity）の読み書き（<code>&quot;sango.entity&quot;</code>あるいは<code>&quot;sango.entity.domain&quot;</code>の<code>read</code>，<code>write</code>）は原子的に行われますが，読み出しと書き込みの間には他の処理が割り込むことがあります。
   「実体」に対する一連の処理に原子性を持たせるために，entity monitorが提供されています。
   「実体」単位にentity monitorを生成し，それ経由でタスクを実行します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;monitor_h&gt; @opaque ;;</code></td></tr></table>
-<p>entity monitorのハンドルを表します。</p>
+<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *E create_monitor @public -&gt; &lt;monitor_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;monitor2_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.entity&quot;.eref&gt; *E create_monitor @public -&gt; &lt;monitor_h&gt; ;;
+eval &lt;ed.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;monitor2_h&gt; ;;</code></td></tr></table>
 <p>entity monitorを生成します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;monitor_h&gt; *M &lt;eref *A fun&gt; *F run_monitor | run @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;monitor_h&gt; *M &lt;&quot;sango.entity&quot;.eref *A fun&gt; *F run_monitor | run @public -&gt; &lt;A&gt; ;;
+eval &lt;monitor2_h&gt; *M &lt;ed.entity_h *A fun&gt; *F run_monitor2 | run @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>タスク<code>F</code>を実行します。
   タスクは実体への参照を受け取り，処理を行い結果を返します。
   タスクから返された値が，この関数の結果となります。
@@ -1371,7 +1398,10 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <h2 id="sango.debug.1"></code>sango.debug</code> - オブジェクト情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X repr @public -&gt; &lt;cstr&gt; ;;</code></td></tr></table>
-<p>オブジェクトのデバッグ用表現（型，構成情報）を返します。</p>
+<p>オブジェクトのデバッグ用表現（型，構成情報）を返します。
+  使用者が定義した型は表現を変更することができます。
+  そのためには，定義しているモジュールの中で「<code>eval &lt;t&gt; *X _debug_repr_T -&gt; &lt;cstr&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。
+</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.debug.2"></code>sango.debug</code> - アサーション</h2>
@@ -1445,7 +1475,9 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;wref&gt; ;;</code></td></tr></table>
 <p>実体への弱参照を生成します。
-  弱参照が無効になった際に制御を受け取る関数を指定することができます。</p>
+  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
+  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
+  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></td></tr></table>
 <p>弱参照から参照（強参照）を取得します。
@@ -1453,6 +1485,108 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;wref&gt; *W clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>弱参照を無効にします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.entity.domain"><code>sango.entity.domain</code></h1>
+
+<p>「実体」（entity）に対し，ドメイン（領域）の中で固有番号を付与した参照を作成します。
+  参照を固有番号で扱ったり，大小比較することが可能になります。
+  固有番号は，参照が生存している間，有効です。
+  参照オブジェクトが回収されると，固有番号は再利用されます。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.domain.1"></code>sango.entity.domain</code> - ドメイン</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;domain_h&gt; @opaque ;;</code></td></tr></table>
+<p>ドメインへのハンドルを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval default_domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<p>デフォルト・ドメイン（あらかじめ用意されているドメイン）を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval create_domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<p>ドメインを作成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.domain.2"></code>sango.entity.domain</code> - 実体</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;entity_h&gt; @opaque ;;</code></td></tr></table>
+<p>実体への参照を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;ent.ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_entity @public -&gt; &lt;entity_h&gt; ;;</code></td></tr></table></p>
+<p>ドメイン内に，<code>X</code>を初期値として実体を生成します。
+  実体がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;&quot;sango.entity&quot;.eref&gt; *Eref contain_eref @public -&gt; &lt;entity_h&gt; ;;</code></td></tr></table>
+<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>をドメインに取り込み，参照を作成します。
+  一つの参照を複数の異なったドメインに取り込むことは可能ですが，作成される参照は異なります。
+  同一のドメイン内に複数回取り込んだ場合も，そのたびに作成される参照は異なります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity entity_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<p>参照が属するドメインを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity read @public -&gt; &lt;&quot;sango.entity&quot;.ent_d+&gt; ;;</code></td></tr></table>
+<p>実体から値を読み出します。
+  この処理は原子的に実行されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity &lt;&quot;sango.entity&quot;.ent_d+&gt; *X
+  write | swap @public -&gt; &lt;&quot;sango.entity&quot;.ent_d+&gt; ;;</code></td></tr></table>
+<p>実体に値を書き込み，以前の値を返します。
+  この処理は原子的に実行されます。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.domain.3"></code>sango.entity.domain</code> - 弱参照</h2>
+
+<table border width="100%"><tr><td class="def"><code>
+</code></td></tr></table>
+<p>実体への弱参照を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;entity_h&gt; *Entity &lt;&lt;weak_holder_h void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;weak_holder_h&gt; ;;</code></td></tr></table>
+<p>ドメイン内に，実体への弱参照を生成します。
+  付与される固有番号は，<code>Entity</code>のそれとは無関係，別系列です。
+  ドメインは<code>Entity</code>の属するドメインとは異なっていても構いません。
+  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
+  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
+  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;weak_holder_h&gt; *Weak_holder weak_holder_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<p>弱参照が属するドメインを取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;entity_h maybe&gt; ;;</code></td></tr></table>
+<p>弱参照から参照（強参照）を取得します。
+  弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;weak_holder_h&gt; *Weak_holder clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>弱参照を無効にします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.domain.4"></code>sango.entity.domain</code> - 固有番号，大小比較</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity entity_unique_num | unique_num @public -&gt; &lt;int&gt; ;;
+eval &lt;weak_holder_h&gt; *Weak_holder weak_holder_unique_num | unique_num @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>固有番号を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *E0 &lt;entity_h&gt; *E1 entity_compare | compare @public -&gt; &lt;ordering&gt; ;;
+eval &lt;weak_holder_h&gt; *W0 &lt;weak_holder_h&gt; *W1 weak_holder_compare | compare @public -&gt; &lt;ordering&gt; ;; </code></td></tr></table>
+<p>固有番号に基づき，前者の後者に対する大小関係を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval entity_ord_fs @public -&gt; &lt;entity_h ord_fs&gt; ;;
+eval weak_holder_ord_fs @public -&gt; &lt;weak_holder_h ord_fs&gt; ;;</code></td></tr></table>
+<p>大小比較の機能群を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>alias type &lt;unique_num_invalidator&gt; @public := &lt;int void fun&gt; ;;</code></td></tr></table>
+<p>固有番号の無効化処理関数を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity &lt;unique_num_invalidator&gt; *Invalidator
+  entity_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;
+eval &lt;weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Invalidator
+  weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>固有番号の無効化処理関数を登録します。
+  無効化処理関数は，参照あるいは弱参照オブジェクトの消滅（回収）後に，それぞれ別のアクタとして起動されます。
+  また，実体の後処理関数の起動タイミングとも非同期です。
+  正常終了，例外による終了にかかわらず，登録された関数がすべて終了した後で，当該固有番号は再使用の対象になります。
+  この機能を使用する場合は，無効化処理関数が確実に成功するか，成功しなくても矛盾が発生しないようにしてください。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.fun"><code>sango.fun</code></h1>
@@ -2894,7 +3028,7 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>空のキューを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code> 【Alpha】</h1>
+<h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></h1>
 
 <p>AVL木によるランダム・アクセス・リストの実装です。</p>
 
@@ -3574,7 +3708,7 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <p>モジュールに組み込まれた乱数発生サービスに乱数発生器を設定しなおします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.ralist"><code>sango.util.ralist</code> 【Alpha】</h1>
+<h1 id="sango.util.ralist"><code>sango.util.ralist</code></h1>
 
 <p>リストの要素を指標によってアクセスするには，指標に比例するコストがかかります。
   このコストを下げたリスト・モデルの実装をランダム・アクセス・リストと呼び，このモジュールでフレームワークを提供します。</p>
@@ -3794,6 +3928,15 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て削除します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A bool fun&gt; *Filter filter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<p><code>Filter</code>の条件を満たす要素の集合を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 intersection @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<p><code>Set1</code>に含まれる<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の積集合）を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 difference @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<p><code>Set1</code>に含まれない<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の差集合）を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.set.2"><code>sango.util.set</code> - 実装者向け情報</h2>

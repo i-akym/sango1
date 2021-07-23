@@ -23,7 +23,10 @@
  ***************************************************************************/
 package org.sango_lang;
 
+import java.lang.reflect.Method;
+
 abstract public class RObjItem extends RVMItem {
+  private Integer hashValue;
 
   public RObjItem(RuntimeEngine e) { super(e); }
 
@@ -31,7 +34,74 @@ abstract public class RObjItem extends RVMItem {
 
   abstract public RType.Sig getTsig();
 
-  public Cstr debugRepr() {
+  final public void objHash(RNativeImplHelper helper, RClosureItem self) {
+    Object ri = helper.getAndClearResumeInfo();
+    if (ri == null) {
+      Integer h = this.peekHashValue();
+      if (h != null) {
+        helper.setReturnValue(helper.getIntItem(h));
+      } else {
+        this.scheduleDoHash(helper, this);
+      }
+    } else {
+      RIntItem h = (RIntItem)helper.getInvocationResult().getReturnValue();
+      this.setHashValue(h.getValue());
+      helper.setReturnValue(h);
+    }
+  }
+
+  final public Integer peekHashValue() {
+    synchronized (this) {
+      return this.hashValue;
+    }
+  }
+
+  private void scheduleDoHash(RNativeImplHelper helper, Object resumeInfo) {
+    RType.Sig tsig = this.getTsig();
+    RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_hash_" + tsig.name.toJavaString());
+    if (c != null) {
+      helper.scheduleInvocation(c, new RObjItem[] { this }, resumeInfo);
+    } else {
+      Method impl = null;
+      try {
+        impl = this.getClass().getMethod(
+          "doHash", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+      } catch (Exception ex) {
+        throw new RuntimeException("Unexpected exception. " + ex.toString());
+      }
+      c = helper.createClosureOfNativeImpl(
+        new Cstr("sango.lang"),
+        "do_hash_f",
+        0,
+        this,
+        impl);
+      helper.scheduleInvocation(c, new RObjItem[0], resumeInfo);
+    }
+  }
+
+  abstract public void doHash(RNativeImplHelper helper, RClosureItem self);
+
+  // you can set hash value in advance
+  final void setHashValue(Integer h) {
+    synchronized (this) {
+      if (this.hashValue == null) {
+        this.hashValue = h;
+      } else if (this.hashValue.equals(h)) {
+        ;  // OK, do nothing
+      } else {
+        throw new RuntimeException("Hash value mismatch.");
+      }
+    }
+  }
+
+  public Cstr dump() {
+    Cstr s = this.createDumpHeader();
+    s.append(this.dumpInside());
+    s.append(this.createDumpTrailer());
+    return s;
+  }
+
+  public Cstr createDumpHeader() {
     Cstr r = new Cstr();
     RType.Sig tsig = this.getTsig();
     r.append('{');
@@ -39,10 +109,50 @@ abstract public class RObjItem extends RVMItem {
     r.append('.');
     r.append(tsig.name.toJavaString());
     r.append('|');
-    r = r.append(this.debugReprOfContents());
+    return r;
+  }
+
+  abstract public Cstr dumpInside();
+
+  public Cstr createDumpTrailer() {
+    Cstr r = new Cstr();
     r.append('}');
     return r;
   }
 
-  abstract public Cstr debugReprOfContents();
+  final public void objDebugRepr(RNativeImplHelper helper, RClosureItem self) {
+    if (helper.getAndClearResumeInfo() == null) {
+      this.scheduleDoDebugRepr(helper, this);
+    } else {
+      helper.setReturnValue(helper.getInvocationResult().getReturnValue());
+    }
+  }
+
+  private void scheduleDoDebugRepr(RNativeImplHelper helper, Object resumeInfo) {
+    RType.Sig tsig = this.getTsig();
+    RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_debug_repr_" + tsig.name.toJavaString());
+    if (c != null) {
+      helper.scheduleInvocation(c, new RObjItem[] { this }, resumeInfo);
+    } else {
+      Method impl = null;
+      try {
+        impl = this.getClass().getMethod(
+          "doDebugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+      } catch (Exception ex) {
+        throw new RuntimeException("Unexpected exception. " + ex.toString());
+      }
+      c = helper.createClosureOfNativeImpl(
+        new Cstr("sango.debug"),
+        "do_debug_repr_f",
+        0,
+        this,
+        impl);
+      helper.scheduleInvocation(c, new RObjItem[0], resumeInfo);
+    }
+  }
+
+  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
+    // default implementation; override this for contained RObjItems
+    helper.setReturnValue(helper.cstrToArrayItem(this.dump()));
+  }
 }

@@ -765,6 +765,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       PDataStmt dat = this.dataStmtList.get(i);
       if (dat.constrs != null) {
+        this.generateCallHashFun(dat, dat.srcInfo);
+        this.generateCallDebugReprFun(dat, dat.srcInfo);
         if (dat.acc == Module.ACC_PUBLIC || dat.acc == Module.ACC_PROTECTED) {
           this.generateInFun(dat, dat.srcInfo, null, null);
           this.generateNarrowFun(dat, dat.srcInfo, null, null);
@@ -778,6 +780,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
       PExtendStmt ext = this.extendStmtList.get(i);
+      this.generateCallHashFun(ext, ext.srcInfo);
+      this.generateCallDebugReprFun(ext, ext.srcInfo);
       if (ext.acc == Module.ACC_PUBLIC || ext.acc == Module.ACC_PROTECTED) {
         this.generateInFun(ext, ext.srcInfo, ext.baseMod, ext.baseTcon);
         this.generateNarrowFun(ext, ext.srcInfo, ext.baseMod, ext.baseTcon);
@@ -786,16 +790,78 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
   }
 
+  private void generateCallHashFun(PDataDef dd, Parser.SrcInfo srcInfo) throws CompileException {
+    // eval <*T0 *T1 .. TCON> *X _call_hash_TCON @private -> <int> {
+    //   X _hash_TCON
+    // }
+    String tcon = dd.getFormalTcon();
+    if (!this.funOfficialDict.containsKey("_hash_" + tcon)) { return; }
+    Parser.SrcInfo si = srcInfo.appendPostfix("_hash");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setOfficial("_call_hash_" + tcon);
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
+    for (int i = 0; i < paramNames.length; i++) {
+      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
+    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "int", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_hash_" + tcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    this.addEvalStmt(evalStmtBuilder.create());
+  }
+
+  private void generateCallDebugReprFun(PDataDef dd, Parser.SrcInfo srcInfo) throws CompileException {
+    // eval <*T0 *T1 .. TCON> *X _call_debug_repr_TCON @private -> <cstr> {
+    //   X _debug_repr_TCON
+    // }
+    String tcon = dd.getFormalTcon();
+    if (!this.funOfficialDict.containsKey("_debug_repr_" + tcon)) { return; }
+    Parser.SrcInfo si = srcInfo.appendPostfix("_debug_repr");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setOfficial("_call_debug_repr_" + tcon);
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
+    for (int i = 0; i < paramNames.length; i++) {
+      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
+    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "cstr", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_debug_repr_" + tcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    this.addEvalStmt(evalStmtBuilder.create());
+  }
+
   private void generateInFun(PDataDef dd, Parser.SrcInfo srcInfo, String baseModId, String baseTcon) throws CompileException {
-    // eval @availability <*T0 *T1 .. tcon+> *X _in_tcon? | tcon? @public -> <bool> {
+    // eval @availability <*T0 *T1 .. TCON+> *X _in_TCON? | TCON? @public -> <bool> {
     //   X case {
-    //   ; *** dcon0 -> true$
-    //   ; *** dcon1 -> true$
+    //   ; *** DCON0 -> true$
+    //   ; *** DCON1 -> true$
     //   ;  :
     // # when data stmt
     //   ; ** -> false$
     // # when extend stmt
-    //   ; ** -> X base._in_tcon?
+    //   ; ** -> X base._in_TCON?
     //   }
     // }
     String[] names = generateInFunNames(dd.getFormalTcon());  // official name and aliases
@@ -876,15 +942,15 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateNarrowFun(PDataDef dd, Parser.SrcInfo srcInfo, String baseModId, String baseTcon) throws CompileException {
-    // eval @availability <*T0 *T1 .. tcon+> *X _narrow_tcon | narrow @public -> <<T0 T1 .. tcon> maybe> {
+    // eval @availability <*T0 *T1 .. TCON+> *X _narrow_TCON | narrow @public -> <<T0 T1 .. TCON> maybe> {
     //   X case {
-    //   ; *V0 *V1 .. dcon0 -> (V0 V1 .. dcon0) value$
-    //   ; *V0 *V1 .. dcon1 -> (V0 V1 .. dcon1) value$
+    //   ; *V0 *V1 .. DCON0 -> (V0 V1 .. DCON0) value$
+    //   ; *V0 *V1 .. DCON1 -> (V0 V1 .. DCON1) value$
     //   ;  :
     // # when data stmt
     //   ; ** -> none$
     // # when extend stmt
-    //   ; ** -> X base._narrow_tcon
+    //   ; ** -> X base._narrow_TCON
     //   }
     // }
     String[] names = generateNarrowFunNames(dd.getFormalTcon());
@@ -992,8 +1058,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateAttrFunForDataStmt(PDataStmt dat, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
-    // eval @availability <*T0 *T1 .. tcon> *X _attr_tcon_a | a @xxx -> <a's type> {
-    //   X = a: *V *** dcon$,
+    // eval @availability <*T0 *T1 .. TCON> *X _attr_TCON_A | A @xxx -> <A's type> {
+    //   X = A: *V *** dcon$,
     //   V
     // }
     //  TODO: if ids in "sango.lang" are shadowed...
@@ -1060,9 +1126,9 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   private void generateMaybeAttrFun(String tcon, PVarDef[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
-    // eval @availability <*T0 *T1 .. tcon> *X _maybe_attr_tcon_a | maybe_a @xxx -> <<a's type> maybe> {
+    // eval @availability <*T0 *T1 .. TCON> *X _maybe_attr_TCON_A | maybe_A @xxx -> <<A's type> maybe> {
     //   X case {
-    //   ; a: *V *** dcon -> V value$
+    //   ; A: *V *** DCON -> V value$
     //   ; ** -> none$
     //   }
     // }

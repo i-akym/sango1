@@ -80,26 +80,80 @@ public class RArrayItem extends RObjItem {
     return b;
   }
 
-  public Cstr debugReprOfContents() {
-    boolean allChar = true;
-    for (int i = 0; allChar && i < this.items.length; i++) {
-      allChar = this.items[i] instanceof RIntItem.CharObj;
-    }
-    Cstr s = new Cstr();
-    if (this.items.length > 0 && allChar) {
-      s.append('\"');
-      for (int i = 0; i < this.items.length; i++) {
-        s.append(Cstr.codePointToRawRepr(((RIntItem.CharObj)this.items[i]).value, true));
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      int h = -1;
+      if (this.items.length > 0) {
+        helper.scheduleHash(this.items[0], new Object[] { 0, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
       }
-      s.append('\"');
     } else {
-      String sep = "";
-      for (int i = 0; i < this.items.length; i++) {
-        s.append(sep);
-        s = s.append(this.items[i].debugReprOfContents());
-        sep = ",";
+      RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      int h = (Integer)ris[1] * 31;  // multiply by prime num
+      h ^= hx.getValue();
+      int next = current + 1;
+      if (next < this.items.length) {
+        helper.scheduleHash(this.items[next], new Object[] { next, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
       }
+    }
+  }
+
+  public Cstr dumpInside() {
+    // TODO: improve performance ; many copying of chars
+    Cstr s = new Cstr();
+    String sep = "";
+    for (int i = 0; i < this.items.length; i++) {
+      s.append(sep);
+      s.append(this.items[i].dump());
+      sep = ",";
     }
     return s;
+  }
+
+  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      if (this.items.length == 0) {
+        Cstr r = this.createDumpHeader();
+        r.append(this.createDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      } else {
+        boolean allChar = true;
+        for (int i = 0; allChar && i < this.items.length; i++) {
+          allChar = this.items[i] instanceof RIntItem.CharObj;
+        }
+        if (allChar) {
+          Cstr r = this.createDumpHeader();
+          r.append('\"');
+          for (int i = 0; i < this.items.length; i++) {
+            r.append(Cstr.codePointToRawRepr(((RIntItem.CharObj)this.items[i]).value, true));
+          }
+          r.append('\"');
+          r.append(this.createDumpTrailer());
+          helper.setReturnValue(helper.cstrToArrayItem(r));
+        } else {
+          Cstr r = this.createDumpHeader();
+          helper.scheduleDebugRepr(this.items[0], new Object[] { 0, r });
+        }
+      }
+    } else {
+      RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      Cstr r = (Cstr)ris[1];
+      r.append(helper.arrayItemToCstr(rx));
+      int next = current + 1;
+      if (next < this.items.length) {
+        r.append(',');
+        helper.scheduleDebugRepr(this.items[next], new Object[] { next, r });
+      } else {
+        r.append(this.createDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      }
+    }
   }
 }

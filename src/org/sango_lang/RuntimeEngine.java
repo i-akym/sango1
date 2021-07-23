@@ -408,7 +408,7 @@ public class RuntimeEngine {
       }
       ps.print("Exception  ");
       RStructItem desc = (RStructItem)e.getFieldAt(0);
-      ps.print(desc.debugRepr().toJavaString());
+      ps.print(desc.dump().toJavaString());
       ps.print("  ");
       RArrayItem msg = (RArrayItem)e.getFieldAt(1);
       ps.println(RMemMgr.arrayItemToCstr(msg).toJavaString());

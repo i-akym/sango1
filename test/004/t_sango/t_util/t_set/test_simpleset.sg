@@ -16,6 +16,7 @@ eval _main_ -> <void> {
 eval test -> <void> {
   test101,
   test200,
+  test300,
   void$
 } ;;
 
@@ -58,5 +59,12 @@ eval test200 -> <void> {
   S [ 1, 3, 5, 7, 9 ] set.contain_just? = true$,
   S [ 1, 3, 7, 9 ] set.contain_just? = false$,
   S [ 1, 3, 4, 5, 7, 9 ] set.contain_just? = false$,
+  void$
+} ;;
+eval test300 -> <void> {
+  simpleset.new_set [ 2, 3, 4, 5, 6 ] set.add_list = *S0,
+  simpleset.new_set [ 1, 3, 5, 7 ] set.add_list = *S1,
+  (S0 S1 set.intersection) [ 3, 5 ] set.contain_just? = true$,
+  (S0 S1 set.difference) [ 2, 4, 6 ] set.contain_just? = true$,
   void$
 } ;;

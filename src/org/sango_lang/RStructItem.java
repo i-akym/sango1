@@ -78,25 +78,81 @@ public class RStructItem extends RObjItem {
     return tsig;
   }
 
-  public Cstr debugReprOfContents() {
-    Cstr s = new Cstr();
-    String sep;
-    if (this.dataConstr == RDataConstr.pseudoOfTuple) {
-      sep = "";
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      int h;
+      if (this.dataConstr == RDataConstr.pseudoOfTuple) {
+        h = -1;
+      } else {
+        h = this.dataConstr.modName.hashCode() ^ this.dataConstr.name.hashCode();
+      }
+      if (this.fields.length > 0) {
+        helper.scheduleHash(this.fields[0], new Object[] { 0, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
+      }
     } else {
-      s.append(this.dataConstr.name);  // dcon's module name is included the type info
-      sep = ";";
-    }
-    if (this.fields.length > 0) {
-      s.append(sep);
-      sep = "";
-      for (int i = 0; i < this.fields.length; i++) {
-        s.append(sep);
-        s = s.append(this.fields[i].debugRepr());
-        sep = ",";
+      RIntItem hx = (RIntItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      int h = (Integer)ris[1] * 31;  // multiply by prime num
+      h ^= hx.getValue();
+      int next = current + 1;
+      if (next < this.fields.length) {
+        helper.scheduleHash(this.fields[next], new Object[] { next, h });
+      } else {
+        helper.setReturnValue(helper.getIntItem(h));
       }
     }
+  }
+
+  public Cstr dumpInside() {
+    Cstr s = new Cstr();
+    String sep;
+    if (this.dataConstr != RDataConstr.pseudoOfTuple) {
+      s.append(this.dataConstr.name);
+      sep = ";";
+    } else {
+      sep = "";
+    }
+    for (int i = 0; i < this.fields.length; i++) {
+      s.append(sep);
+      s.append(this.fields[i].dump());
+      sep = ",";
+    }
     return s;
+  }
+
+  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      if (this.fields.length == 0) {
+        Cstr r = this.createDumpHeader();
+        r.append(this.dataConstr.name);
+        r.append(this.createDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      } else {
+        Cstr r = this.createDumpHeader();
+        if (this.dataConstr != RDataConstr.pseudoOfTuple) {
+          r.append(this.dataConstr.name);
+          r.append(';');
+        }
+        helper.scheduleDebugRepr(this.fields[0], new Object[] { 0, r });
+      }
+    } else {
+      RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      Cstr r = (Cstr)ris[1];
+      r.append(helper.arrayItemToCstr(rx));
+      int next = current + 1;
+      if (next < this.fields.length) {
+        r.append(',');
+        helper.scheduleDebugRepr(this.fields[next], new Object[] { next, r });
+      } else {
+        r.append(this.createDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      }
+    }
   }
 
   public boolean equals(Object o) {

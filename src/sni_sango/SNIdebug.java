@@ -44,7 +44,7 @@ import org.sango_lang.RuntimeEngine;
   }
 
   public void sni_repr(RNativeImplHelper helper, RClosureItem self, RObjItem x) {
-    helper.setReturnValue(helper.cstrToArrayItem(x.debugRepr()));
+    x.objDebugRepr(helper, self);
   }
 
   public void sni_check_assertion_Q_(RNativeImplHelper helper, RClosureItem self) {

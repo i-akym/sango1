@@ -77,5 +77,6 @@ public class SNIruntime {
 
   public void sni_gc(RNativeImplHelper helper, RClosureItem self) {
     System.gc();
+    helper.getCore().requestGC();
   }
 }

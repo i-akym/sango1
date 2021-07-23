@@ -1,0 +1,606 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "sango.entity.domain" ;;
+
+import "sango.actor" -> act ;;
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.list" -> list ;;
+import "sango.util.avltree.base" -> avl ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.map" -> map ;;
+
+data <domain_h> @opaque :=
+  svr: <act.post_h>
+  domain_h$ ;;
+
+data <i> :=
+  default_domain: <domain_h> i$ ;;
+
+eval default_domain @public -> <domain_h> {
+  _initd_ >> default_domain
+} ;;
+
+eval create_domain @public -> <domain_h> {
+  svr: _startup_domain_svr domain_h$
+} ;;
+
+alias type <unique_num_invalidator> @public := <int void fun> ;;
+
+data <entity_h> @opaque :=
+  domain_h: <domain_h>
+  unique: <int>
+  eref_holder: <ent.eref>
+  entity_h$ ;;
+
+eval <entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entity domain_h } ;;
+eval <entity_h> *Entity entity_unique_num | unique_num @public -> <int> { Entity unique } ;;
+
+eval <entity_h> *E0 <entity_h> *E1 entity_compare | compare @public -> <ordering> {
+  E0 = domain_h: *D0 unique: *N0 *** entity_h$,
+  E1 = domain_h: *D1 unique: *N1 *** entity_h$,
+  D0 case {
+  ; D1 ->
+  ; ** -> bad_arg$ "In different domains." new_exception >> throw
+  },
+  N0 N1 compare
+} ;;
+
+eval entity_ord_fs @public -> <entity_h ord_fs> {
+  compare_f: ^entity_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
+data <weak_holder_h> @opaque :=
+  domain_h: <domain_h>
+  unique: <int>
+  wref_holder: <ent.eref>
+  weak_holder_h$ ;;
+
+eval <weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <domain_h> { Weak_holder domain_h } ;;
+eval <weak_holder_h> *Weak_holder weak_holder_unique_num | unique_num @public -> <int> { Weak_holder unique } ;;
+
+eval <weak_holder_h> *W0 <weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
+  W0 = domain_h: *D0 unique: *N0 *** weak_holder_h$,
+  W1 = domain_h: *D1 unique: *N1 *** weak_holder_h$,
+  D0 case {
+  ; D1 ->
+  ; ** -> bad_arg$ "In different domains." new_exception >> throw
+  },
+  N0 N1 compare
+} ;;
+
+eval weak_holder_ord_fs @public -> <weak_holder_h ord_fs> {
+  compare_f: ^weak_holder_compare
+    eq?_f_: none$
+    lt?_f_: none$
+    le?_f_: none$
+    gt?_f_: none$
+    ge?_f_: none$
+    ord_fs$
+} ;;
+
+extend <ent.ent_d> :=
+| eun: <int> eref: <ent.eref> eref_holder_d$
+| wun: <int> wref: <ent.wref> wref_holder_d$ ;;
+
+eval <domain_h> *Domain <ent.ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public
+    -> <entity_h> {
+  Domain (X Invalidator_ ent.create_entity) contain_eref
+} ;;
+
+eval <domain_h> *Domain <ent.eref> *Eref contain_eref @public -> <entity_h> {
+  Domain svr = *Svr,
+  Svr _get_new_eun = *N,
+  (eun: N eref: Eref eref_holder_d$)
+    (\\ <void> {
+       # will keep server
+       Svr (N eun_released$) act.send
+     } value$)
+    ent.create_entity= *Eref_holder,
+  domain_h: Domain unique: N eref_holder: Eref_holder entity_h$
+} ;;
+
+eval <entity_h> *Entity <unique_num_invalidator> *Invalidator
+    entity_add_unique_num_invalidator | add_unique_num_invalidator @public -> <void> {
+  (Entity domain >> svr) Entity Invalidator _add_eun_invalidator
+} ;;
+
+eval <entity_h> *Entity read @public -> <ent.ent_d+> {
+  Entity eref_holder >> ent.read = eref: *Eref *** eref_holder_d$,
+  Eref ent.read
+} ;;
+
+eval <entity_h> *Entity <ent.ent_d+> *X write | swap @public -> <ent.ent_d+> {
+  Entity eref_holder >> ent.read = eref: *Eref *** eref_holder_d$,
+  Eref X ent.write
+} ;;
+
+eval <domain_h> *Domain <entity_h> *Entity <<weak_holder_h void fun> maybe> *Listener_
+    create_weak_holder @public -> <weak_holder_h> {
+  Domain svr = *Svr,
+  Svr _get_new_wun = *N,
+  ent.existence$
+    (\\ <void> { 
+       # will keep server
+       Svr (N wun_released$) act.send
+     } value$)
+    ent.create_entity = *Wref_holder,  # create and get eref first
+  Listener_ case {
+  ; *L value$ ->
+    \ <ent.wref> *W -> <void> {
+      Wref_holder ent.read = wun: *N wref: *W wref_holder_d$,
+      (domain_h: Domain unique: N wref_holder: Wref_holder weak_holder_h$) &L
+    } value$
+  ; ** -> none$
+  } = *L_,
+  (Entity eref_holder) L_ ent.create_weak_holder = *Wref,
+  Wref_holder (wun: N wref: Wref wref_holder_d$) ent.write,
+  domain_h: Domain unique: N wref_holder: Wref_holder weak_holder_h$
+} ;;
+
+eval <weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
+    weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -> <void> {
+  (Weak_holder domain >> svr) Weak_holder Invalidator _add_wun_invalidator
+} ;;
+
+eval <weak_holder_h> *Weak_holder get @public -> <entity_h maybe> {
+  Weak_holder wref_holder >> ent.read = wref: *W *** wref_holder_d$,
+  W ent.get >> case {
+  ; *E value$ ->
+    E ent.read = eun: *N *** eref_holder_d$,
+    (domain_h:(Weak_holder domain_h) unique: N eref_holder: E entity_h$) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <weak_holder_h> *Weak_holder clear @public -> <void> {
+  Weak_holder wref_holder >> ent.read = wref: *W *** wref_holder_d$,
+  W ent.clear
+} ;;
+
+
+# -- client --
+
+extend <act.msg> :=
+| <void result> void_res$
+| <act.post_h> get_new_eun_req$
+| <act.post_h> get_new_wun_req$
+| <int result> get_new_un_res$
+| <act.post_h> <entity_h> <unique_num_invalidator> add_eun_invalidator_req$
+| <act.post_h> <weak_holder_h> <unique_num_invalidator> add_wun_invalidator_req$
+| <int> eun_released$
+| <int> wun_released$
+| <int> eun_invalidated$
+| <int> wun_invalidated$ ;;
+
+eval _startup_domain_svr -> <act.post_h> {
+  \ <act.post_h void fun> *R -> <void> { R domain_svr } actu.startup_svr = (| *A, *P |),
+  A true$ act.run_background,
+  A 8 act.set_priority,  # tentative
+  P
+} ;;
+
+eval <act.post_h> *Svr _get_new_eun -> <int> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post get_new_eun_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res get_new_un_res$) value$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Svr _get_new_wun -> <int> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post get_new_wun_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res get_new_un_res$) value$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Svr <entity_h> *Entity <unique_num_invalidator> *Invalidator
+    _add_eun_invalidator -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post Entity Invalidator add_eun_invalidator_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res void_res$) value$,
+  Res unwrap
+} ;;
+
+eval <act.post_h> *Svr <weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
+    _add_wun_invalidator -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Svr (Post Weak_holder Invalidator add_wun_invalidator_req$) act.send,
+  Box act.wait_forever$ act.listen,
+  Box act.receive = (*Res void_res$) value$,
+  Res unwrap
+} ;;
+
+
+# -- server --
+
+alias type <un_invalidator_tab> := <int <unique_num_invalidator list> map.map> ;;
+
+data <svr_d> :=
+  ppost_h: <act.preserved_post_h>
+  free_euns: <seg avl.tree>
+  free_wuns: <seg avl.tree>
+  eun_invalidator_tab: <un_invalidator_tab>
+  wun_invalidator_tab: <un_invalidator_tab>
+  svr_d$ ;;
+
+eval <act.post_h void fun> *Reply domain_svr -> <void> {
+  act.open_mbox = (| *Box, *Post |),
+  Post &Reply,
+  ppost_h: (Post act.preserve_post_h_for_receiver)
+    free_euns: new_free_uns
+    free_wuns: new_free_uns
+    eun_invalidator_tab: (int_ord_fs avlmap.new_map)
+    wun_invalidator_tab: (int_ord_fs avlmap.new_map)
+    svr_d$ = *D,
+  (D value$) &\ <svr_d maybe> *D_ -> <void> {
+    D_ case {
+    ; *D value$ ->
+      Box act.wait_forever$ act.listen,
+      Box act.receive = *M value$,
+      (D M svr_dispatch) &&
+    ; ** ->  # exit
+    }
+  }
+} ;;
+
+eval <svr_d> *D <act.msg+> *Msg svr_dispatch -> <svr_d maybe> {
+  Msg case {
+  ; *P get_new_eun_req$ -> (D P svr_get_new_eun) value$
+  ; *P get_new_wun_req$ -> (D P svr_get_new_wun) value$
+  ; *P *E *I add_eun_invalidator_req$ -> (D P E I svr_add_eun_invalidator) value$
+  ; *P *W *I add_wun_invalidator_req$ -> (D P W I svr_add_wun_invalidator) value$
+  ; *N eun_released$ -> (D N svr_eun_released) value$
+  ; *N wun_released$ -> (D N svr_wun_released) value$
+  ; *N eun_invalidated$ -> (D N svr_eun_invalidated) value$
+  ; *N wun_invalidated$ -> (D N svr_wun_invalidated) value$
+  ; act.no_post$ -> none$
+  ;  ** -> D value$
+  }
+} ;;
+
+eval <svr_d> *D <act.post_h> *P svr_get_new_eun -> <svr_d> {
+  D free_euns = *FNs,
+  \\ <int <seg avl.tree> tuple> { FNs get_new_un } try >> case {
+  ; (| *N, *FNs' |) fin$ -> (| N fin$, free_euns: FNs' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res get_new_un_res$) act.send,
+  D'
+} ;;
+
+eval <svr_d> *D <act.post_h> *P svr_get_new_wun -> <svr_d> {
+  D free_wuns = *FNs,
+  \\ <int <seg avl.tree> tuple> { FNs get_new_un } try >> case {
+  ; (| *N, *FNs' |) fin$ -> (| N fin$, free_wuns: FNs' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res get_new_un_res$) act.send,
+  D'
+} ;;
+
+eval <svr_d> *D <act.post_h> *P <entity_h> *E <unique_num_invalidator> *Inv
+    svr_add_eun_invalidator -> <svr_d> {
+  # entity has been kept here
+  D eun_invalidator_tab = *Inv_tab,
+  \\ <un_invalidator_tab> { Inv_tab (E unique) Inv add_un_invalidator } try >> case {
+  ; *Inv_tab' fin$ -> (| void$ fin$, eun_invalidator_tab: Inv_tab' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res void_res$) act.send,
+  D'
+} ;;
+
+eval <svr_d> *D <act.post_h> *P <weak_holder_h> *W <unique_num_invalidator> *Inv
+    svr_add_wun_invalidator -> <svr_d> {
+  # weak holder has been kept here
+  D wun_invalidator_tab = *Inv_tab,
+  \\ <un_invalidator_tab> { Inv_tab (W unique) Inv add_un_invalidator } try >> case {
+  ; *Inv_tab' fin$ -> (| void$ fin$, wun_invalidator_tab: Inv_tab' :: D svr_d$ |)
+  ; *E exc$ -> (| E exc$, D |)
+  } = (| *Res, *D' |),
+  P (Res void_res$) act.send,
+  D'
+} ;;
+
+eval <un_invalidator_tab> *Tab <int> *N <unique_num_invalidator> *Inv add_un_invalidator
+    -> <un_invalidator_tab> {
+  Tab N map.assoc >> case {
+  ; *Is value$ -> Tab N [ Inv ; Is ] map.add
+  ; none$ -> Tab N [ Inv ] map.add
+  }
+} ;;
+
+eval <svr_d> *D <int> *N svr_eun_released -> <svr_d> {
+  D = ppost_h: *PP free_euns: *FNs eun_invalidator_tab: *Inv_tab *** svr_d$,
+  Inv_tab N map.assoc >> case {
+  ; *Is value$ ->
+    PP act.get_post_h >> case {
+    ; *P value$ -> N Is P (N eun_invalidated$) start_un_invalidators, FNs  # keep unique num
+    ; none$ -> FNs N put_released
+    } = *FNs',
+    Inv_tab N map.delete = *Inv_tab',
+    free_euns: FNs' eun_invalidator_tab: Inv_tab' :: D svr_d$
+  ; none$ ->
+    FNs N put_released = *FNs',
+    free_euns: FNs' :: D svr_d$
+  }
+} ;;
+
+eval <svr_d> *D <int> *N svr_wun_released -> <svr_d> {
+  D = ppost_h: *PP free_wuns: *FNs wun_invalidator_tab: *Inv_tab *** svr_d$,
+  Inv_tab N map.assoc >> case {
+  ; *Is value$ ->
+    PP act.get_post_h >> case {
+    ; *P value$ -> N Is P (N wun_invalidated$) start_un_invalidators, FNs  # keep unique num
+    ; none$ -> FNs N put_released
+    } = *FNs',
+    Inv_tab N map.delete = *Inv_tab',
+    free_wuns: FNs' wun_invalidator_tab: Inv_tab' :: D svr_d$
+  ; none$ ->
+    FNs N put_released = *FNs',
+    free_wuns: FNs' :: D svr_d$
+  }
+} ;;
+
+eval <int> *N <unique_num_invalidator list> *Is <act.post_h> *P <act.msg+> *M start_un_invalidators -> <void> {
+  \\ <void> {
+    Is
+      \ <unique_num_invalidator> *I -> <act.actor_h> {
+        \\ <void> { N &I } act.spawn >> act.actor_h = *Actor_h,
+        Actor_h act.start,
+        Actor_h
+      }
+      list.map = *As,  # start all invalidators
+    As
+      \ <act.actor_h> *A -> <void> {
+        A act.wait_forever$ act.wait_actor_ended >> ignore
+      }
+      list.map,  # wait all invalidators' end; do not care end condition
+    P M act.send
+  } act.spawn >> act.start
+} ;;
+
+eval <svr_d> *D <int> *N svr_eun_invalidated -> <svr_d> {
+  D free_euns = *FNs,
+  FNs N put_released = *FNs',
+  free_euns: FNs' :: D svr_d$
+} ;;
+
+eval <svr_d> *D <int> *N svr_wun_invalidated -> <svr_d> {
+  D free_wuns = *FNs,
+  FNs N put_released = *FNs',
+  free_wuns: FNs' :: D svr_d$
+} ;;
+
+
+# -- free id management --
+
+data <seg> :=
+  start: <int>
+  end: <int>
+  seg$ ;;
+
+extend <*A avl.aux> :=
+  min: <int>
+  max: <int>
+  subtree_range$ ;;
+
+extend <*A avl.info> :=
+| <int> to_add_start$  # this seg's start
+| <int> to_add_end$  # this seg's end
+| <int> <int> to_join_left$  # left seg's end, this seg's start
+| <int> <int> to_join_right$ ;;  # this seg's end, right seg's start
+
+eval min_un -> <int> { min_int 2 sum } ;;
+eval max_un -> <int> { max_int 2 diff } ;;
+
+eval new_free_uns -> <seg avl.tree> {
+  ^build_aux avl.new_tree = *Tree,
+  Tree (min_un max_un seg_locator) (start: min_un end: max_un seg$) avl.put = *Tree' avl.put_new_done$,
+  Tree'
+} ;;
+
+eval <seg> *Seg <<seg avl.node> maybe> *Left_ <<seg avl.node> maybe> *Right_ build_aux -> <seg avl.aux+> {
+  (| Left_, Right_|) case {
+  ; (| none$, none$ |) ->
+    min: (Seg start) max: (Seg end) subtree_range$
+  ; (| (aux: (min: *Min *** subtree_range$) *** avl.node$) value$, none$ |) ->
+    min: Min max: (Seg end) subtree_range$
+  ; (| none$, (aux: (max: *Max *** subtree_range$) *** avl.node$) value$ |) ->
+    min: (Seg start) max: Max subtree_range$
+  ; (| (aux: (min: *Min *** subtree_range$) *** avl.node$) value$,
+        (aux: (max: *Max *** subtree_range$) *** avl.node$) value$ |) ->
+    min: Min max: Max subtree_range$
+  }
+} ;;
+
+eval <seg avl.tree> *Segs get_new_un -> <int <seg avl.tree> tuple> {  # may throw exception
+  Segs left_locator avl.remove = *Segs' (start: *S end: *E seg$) avl.remove_done$,
+  (| S, E |) case {
+  ; (| ** , S |) -> (| S, Segs' |)
+  ; ** ->
+    S inc = *S',
+    Segs' (S' E seg_locator) (start: S' end: E seg$) avl.put = *Segs'' avl.put_new_done$,
+    (| S, Segs'' |)
+  }
+} ;;
+
+eval <seg avl.tree> *Segs <int> *N put_released -> <seg avl.tree> {
+  Segs (N put_released_locator) (start: N end: N seg$) avl.put >> case {
+  ; *Segs' avl.put_new_done$ ->
+    Segs'
+  ; (*S to_add_start$) avl.put_aborted$ ->
+    Segs (S S seg_locator) avl.remove = *Segs' (start: S end: *E seg$) avl.remove_done$,
+    Segs' (N E seg_locator) (start: N end: E seg$) avl.put = *Segs'' avl.put_new_done$,
+    Segs''
+  ; (*E to_add_end$) avl.put_aborted$ ->
+    Segs (E E seg_locator) avl.remove = *Segs' (start: *S end: E seg$) avl.remove_done$,
+    Segs' (S N seg_locator) (start: S end: N seg$) avl.put = *Segs'' avl.put_new_done$,
+    Segs''
+  ; (*LE *S to_join_left$) avl.put_aborted$ ->
+    Segs (LE LE seg_locator) avl.remove = *Segs' (start: *LS end: LE seg$) avl.remove_done$,
+    Segs' (S S seg_locator) avl.remove = *Segs'' (start: S end: *E seg$) avl.remove_done$,
+    Segs'' (LS E seg_locator) (start: LS end: E seg$) avl.put = *Segs''' avl.put_new_done$,
+    Segs'''
+  ; (*E *RS to_join_right$) avl.put_aborted$ ->
+    Segs (E E seg_locator) avl.remove = *Segs' (start: *S end: E seg$) avl.remove_done$,
+    Segs' (RS RS seg_locator) avl.remove = *Segs'' (start: RS end: *RE seg$) avl.remove_done$,
+    Segs'' (S RE seg_locator) (start: S end: RE seg$) avl.put = *Segs''' avl.put_new_done$,
+    Segs'''
+  }
+} ;;
+
+eval left_locator -> <seg avl.locator> {
+  \ <seg avl.node> *Node -> <seg avl.locate> {
+    Node avl.left_ >> case {
+    ; ** value$ -> ^^ avl.left$
+    ; ** -> avl.just$
+    }
+  }
+} ;;
+
+eval <int> *Start <int> *End seg_locator -> <seg avl.locator> {
+  if { Start End le? -> ; otherwise -> bad_arg$ "Invalid range." new_exception >> throw },
+  \ <seg avl.node> *N -> <seg avl.locate> {
+    N avl.assoc = start: *S end: *E seg$,
+    if {
+    ; End S lt? -> ^^ avl.left$
+    ; Start E gt? -> ^^ avl.right$
+    ; otherwise -> avl.just$
+    }
+  }
+} ;;
+
+eval <int> *N put_released_locator -> <seg avl.locator> {
+  \ <seg avl.node> *NN -> <seg avl.locate> {
+    NN N min_int max_int locate_released_un  # min_int and max_int are sentinels
+  }
+} ;;
+
+eval <seg avl.node> *Node <int> *N <int> *Lmax <int> *Rmin locate_released_un -> <seg avl.locate> {
+  Node avl.assoc = start: *S end: *E seg$,
+  if {
+  ; N S lt? -> 
+    Node avl.left_ >> case {
+    ; *L value$ -> L avl.aux = max: *Max *** subtree_range$, Max
+    ; ** -> Lmax
+    } = *Lmax',
+    (| Lmax' inc, S dec |) case {
+    ; (| N, N |) -> (Lmax' S to_join_left$) avl.abort$
+    ; (| **, N |) -> (S to_add_start$) avl.abort$
+    ; ** ->
+      Node avl.right_ >> case {
+      ; *R value$ ->
+        R avl.aux = min: *Min *** subtree_range$, Min
+      ; ** -> Rmin
+      } = *Rmin',
+      \ <seg avl.node> *NN -> <seg avl.locate> { NN N Lmax Rmin' locate_released_un } avl.left$
+    }
+  ; N E gt? -> 
+    Node avl.right_ >> case {
+    ; *R value$ ->
+      R avl.aux = min: *Min *** subtree_range$, Min
+    ; ** -> Rmin
+    } = *Rmin',
+    (| E inc, Rmin' dec |) case {
+    ; (| N, N |) -> (E Rmin' to_join_right$) avl.abort$
+    ; (| N, ** |) -> (E to_add_end$) avl.abort$
+    ; ** ->
+      Node avl.left_ >> case {
+      ; *L value$ ->
+        L avl.aux = max: *Max *** subtree_range$, Max
+      ; ** -> Lmax
+      } = *Lmax',
+      \ <seg avl.node> *NN -> <seg avl.locate> { NN N Lmax' Rmin locate_released_un } avl.right$
+    }
+  # ; otherwise ->  # not reached here
+  }
+} ;;
+
+
+# -- initialization --
+
+eval _init_ -> <i> {
+  default_domain: create_domain i$
+} ;;
+
+
+# -- test routines --
+
+eval @limited test @public -> <void> {
+  test000
+} ;;
+
+# id management
+eval test000 -> <void> {
+  new_free_uns = *FNs0,  # [-2147483646..max]
+  FNs0 avl.size = 1,
+  FNs0 get_new_un = (| -2147483646, *FNs1 |),  # [-2147483645..max]
+  FNs1 avl.size = 1,
+  FNs1 get_new_un = (| -2147483645, *FNs2 |),  # [-2147483644..max]
+  FNs2 avl.size = 1,
+  FNs2 get_new_un = (| -2147483644, *FNs3 |),  # [-2147483643..max]
+  FNs3 avl.size = 1,
+  FNs3 get_new_un = (| -2147483643, *FNs4 |),  # [-2147483642..max]
+  FNs4 avl.size = 1,
+  FNs4 -2147483645 put_released = *FNs4a,  # [-2147483645] [-2147483642..max]
+  FNs4a avl.size = 2,
+  FNs4a get_new_un = (| -2147483645, *FNs4a1 |),  # [-2147483642..max]
+  FNs4a1 avl.size = 1,
+  FNs4a -2147483646 put_released = *FNs4b,  # [-2147483646..-2147483645] [-2147483642..max]
+  FNs4b avl.size = 2,
+  FNs4b -2147483644 put_released = *FNs4b1,  # [-2147483646..-2147483644] [-2147483642..max]
+  FNs4b1 avl.size = 2,
+  FNs4b1 -2147483643 put_released = *FNs4b2,  # [-2147483646..max]
+  FNs4b2 avl.size = 1,
+  FNs4 get_new_un = (| -2147483642, *FNs5 |),  # [-2147483641..max]
+  FNs5 avl.size = 1,
+  FNs5 get_new_un = (| -2147483641, *FNs6 |),  # [-2147483640..max]
+  FNs6 avl.size = 1,
+  FNs6 -2147483646 put_released = *FNs6a,  # [-2147483646] [-2147483640..max]
+  FNs6a avl.size = 2,
+  FNs6a -2147483643 put_released = *FNs6a1,  # [-2147483646] [-2147483643] [-2147483640..max]
+  FNs6a1 avl.size = 3,
+  FNs6a1 -2147483644 put_released = *FNs6a2,  # [-2147483646] [-2147483644..-2147483643] [-2147483640..max]
+  FNs6a1 avl.size = 3,
+  FNs6a1 -2147483642 put_released = *FNs6a3,  # [-2147483646] [-2147483643..-2147483642] [-2147483640..max]
+  FNs6a3 avl.size = 3,
+  FNs6a3 -2147483641 put_released = *FNs6a4,  # [-2147483646] [-2147483643..max]
+  FNs6a4 avl.size = 2,
+  FNs6a4 -2147483645 put_released = *FNs6a5,  # [-2147483646..-2147483645] [-2147483643..max]
+  FNs6a5 avl.size = 2,
+  FNs6a5 -2147483644 put_released = *FNs6a6,  # [-2147483646..max]
+  FNs6a6 avl.size = 1,
+  void$
+} ;;

@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -25,6 +25,7 @@ module "sango.actor.util" ;;
 
 import "sango.actor" -> act ;;
 import "sango.entity" -> ent ;;
+import "sango.entity.domain" -> ed ;;
 
 extend <act.msg> :=
 | <act.post_h> started$  # startup response
@@ -84,7 +85,7 @@ data <serialize_svr_d> :=
   serialize_svr_d$ ;;
 
 eval startup_serialize_svr -> <act.post_h> {
-  \ <act.post_h void fun> *R -> { R serialize_svr } startup_svr = (| *A, *P |),
+  \ <act.post_h void fun> *R -> <void> { R serialize_svr } startup_svr = (| *A, *P |),
   A true$ act.run_background,
   A 8 act.set_priority,  # tentative
   P
@@ -137,7 +138,7 @@ eval <serialize_svr_d> *SD <act.post_h maybe> *Ret_ <act.actor_h> *Actor seriali
 eval <serialize_svr_d> *SD serialize_svr_end -> <void> {} ;;
 
 
-# -- entity monitor --
+# -- entity monitor for sango.entity.eref --
 
 data <monitor_h> @opaque := <ent.eref> <serializer_h> monitor_h$ ;;
 
@@ -147,5 +148,18 @@ eval <ent.eref> *E create_monitor @public -> <monitor_h> {
 
 eval <monitor_h> *M <ent.eref *A fun> *F run_monitor | run @public -> <A> {
   M = *Entity *Serializer monitor_h$,
+  Serializer \\ <A> { Entity &F } run_serialized
+} ;;
+
+# -- entity monitor for sango.entity.domain.entity_h --
+
+data <monitor2_h> @opaque := <ed.entity_h> <serializer_h> monitor2_h$ ;;
+
+eval <ed.entity_h> *E create_monitor2 | create_monitor @public -> <monitor2_h> {
+  E start_serializer monitor2_h$
+} ;;
+
+eval <monitor2_h> *M <ed.entity_h *A fun> *F run_monitor2 | run @public -> <A> {
+  M = *Entity *Serializer monitor2_h$,
   Serializer \\ <A> { Entity &F } run_serialized
 } ;;

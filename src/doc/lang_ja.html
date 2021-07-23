@@ -1293,7 +1293,7 @@ eval _initd_ -&gt; &lt;t&gt; ;;</code></blockquote>
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.1">17.1. 「実体」に「記述」を紐づける</h2>
 <p>「実体」は手続き型言語における変数に相当し，オブジェクトを入れておく箱や，つなぎとめるフックのようなものです。</p>
-<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>を使います。
+<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>あるいは<code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>を使います<span class="note-ref">*1</span>。
   参照は手続き型言語における変数へのポインタに相当します。
   「実体」を作成すると参照が返されますので，それを使います。
   「実体」に紐づけられるオブジェクトは<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>です。
@@ -1303,10 +1303,15 @@ eval _initd_ -&gt; &lt;t&gt; ;;</code></blockquote>
 module &quot;sango.entity&quot; ;;
 eval &lt;eref&gt; *Entity read @public -&gt; &lt;ent_d+&gt; ;;
 eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d+&gt; ;;</code>
-  # それまで紐づけられていたオブジェクトが返される</blockquote>
-<p>入出力処理は「実体」をロックして行われますので，<code>read</code>と<code>write</code>が交錯しても整合性が保たれます<span class="note-ref">*1</span>。</p>
+  # それまで紐づけられていたオブジェクトが返される
+<code>module &quot;sango.entity.domain&quot; ;;
+import &quot;sango.entity&quot; -&gt; ent ;;</code> # 本章これ以降省略
+<code>eval &lt;entity_h&gt; *Entity read @public -&gt; &lt;ent.ent_d+&gt; ;;
+eval &lt;entity_h&gt; *Entity &lt;ent.ent_d+&gt; *X write | swap @public -&gt; &lt;ent.ent_d+&gt; ;;</code></blockquote>
+<p>入出力処理は「実体」をロックして行われますので，<code>read</code>と<code>write</code>が交錯しても整合性が保たれます<span class="note-ref">*2</span>。</p>
 
-<blockquote class="note">*1：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
+<blockquote class="note">*1：<code>&quot;sango.entity&quot;</code>は「実体」の基本機能を提供するライブラリ，<code>&quot;sango.entity.domain&quot;</code>はこれを拡張したライブラリです。</blockquote>
+<blockquote class="note">*2：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.2">17.2. 「実体」消滅後の後処理</h2>
@@ -1318,7 +1323,10 @@ eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d
 <blockquote class="def">定義<code>
 module &quot;sango.entity&quot; ;;
 eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;eref&gt; ;;</code></blockquote>
+  create_entity @public -&gt; &lt;eref&gt; ;;
+module &quot;sango.entity.domain&quot; ;;
+eval &lt;domain_h&gt; *Domain &lt;ent.ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_entity @public -&gt; &lt;entity_h&gt; ;;</code></blockquote>
 <p>後処理関数は<code>&lt;void fun&gt;</code>で，「実体」が回収され消滅した後に，新たなスレッドとして起動されます<span class="note-ref">*2</span>。</p>
 
 <blockquote class="note">*1：どこからも参照されなくなった場合。</blockquote>
@@ -1326,17 +1334,22 @@ eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.3">17.3. 弱参照</h2>
-<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
+<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
   弱参照が指し示す（かもしれない）「実体」にアクセスするには，まず弱参照から強参照を取得し，強参照が存在すればそれを使って「実体」にアクセスします。</p>
 <blockquote class="def">定義<code>
 module &quot;sango.entity&quot; ;;
-eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></blockquote>
+eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;
+module &quot;sango.entity.domain&quot; ;;
+eval &lt;weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;entity_h maybe&gt; ;;</code></blockquote>
 <p>弱参照が無効化された（弱参照が切れた）ときに通知を受け取ることができます。
   通知を受けるリスナ関数は生成時に指定します。</p>
 <blockquote class="def">定義<code>
 module &quot;sango.entity&quot; ;;
 eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;wref&gt; ;;</code></blockquote>
+  create_weak_holder @public -&gt; &lt;wref&gt; ;;
+module &quot;sango.entity.domain&quot; ;;
+eval &lt;domain_h&gt; *Domain &lt;entity_h&gt; *Entity &lt;&lt;weak_holder_h void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;weak_holder_h&gt; ;;</code></blockquote>
 <p>このリスナ関数は，後処理関数と同様に，弱参照が無効化された後に，新たなスレッドとして起動されます。</p>
 
 <blockquote class="note">*1：弱参照は他のプログラミング言語の弱参照と同じです。説明は割愛します。</blockquote>
@@ -1692,7 +1705,7 @@ M6 map.size = 4</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.8">20.8. ランダム・アクセス・リスト</h2>
-<p>【Tentative】指標で要素にアクセスするリスト状のコレクションです。
+<p>指標で要素にアクセスするリスト状のコレクションです。
   リストも指標によって要素アクセスすることは可能ですが，指標に比例したコストがかかります。
   長いリストで指標の大きい要素を頻繁に扱う場合，ランダム・アクセス・リストが実行効率を改善する可能性があります。
   <code>&quot;sango.util.ralist&quot;</code>モジュールからランダム・アクセス・リストのフレームワークが，<code>&quot;sango.util.avltree.ralist&quot;</code>モジュールからAVL木による実装が提供されています。</p>
@@ -2107,6 +2120,16 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <ul>
 <li>アベイラビリティの設定・検査を追加</li>
 <li><code>&quot;sango.arith.math&quot;</code>に複素数の四則演算を追加</li>
+</ul>
+
+<p>■　1.4.0</p>
+<ul>
+<li>【非互換：Javaネイティブ実装】Sangoオブジェクトの基底クラス<code>RObjItem</code>を変更</li>
+<li><code>&quot;sango.lang&quot;.hash</code>とハッシュ値算出アルゴリズムのカスタマイズ機能を追加</li>
+<li><code>&quot;sango.debug&quot;.repr</code>のカスタマイズ機能を追加</li>
+<li><code>&quot;sango.entity.domain&quot;</code>を追加</li>
+<li><code>&quot;sango.util.set&quot;</code>に<code>filter</code>，<code>intersection</code>，<code>difference</code>を追加</li>
+<li><code>&quot;sango.actor&quot;</code>に<code>&lt;preserved_post_h&gt;</code>と，それを扱う関数を追加</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

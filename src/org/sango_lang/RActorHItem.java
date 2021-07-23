@@ -52,7 +52,11 @@ public class RActorHItem extends RObjItem {
     return RType.createTsig(new Cstr("sango.actor"), "actor_h", 0);
   }
 
-  public Cstr debugReprOfContents() {
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(this.hashCode()));
+  }
+
+  public Cstr dumpInside() {
     return new Cstr(this.toString());
   }
 }

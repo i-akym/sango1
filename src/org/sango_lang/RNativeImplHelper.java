@@ -136,6 +136,14 @@ public class RNativeImplHelper {
     return this.theEngine.getClientHelper().listToListItem(os);
   }
 
+  public RClosureItem createClosureOfNativeImpl(Cstr modName, String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl) {
+    RModule mod = this.theEngine.modMgr.getRMod(modName);
+    if (mod == null) {
+      throw new IllegalArgumentException("Invalid module name.");
+    }
+    return this.theEngine.memMgr.createClosureOfNativeImpl(mod, name, paramCount, nativeImplTargetObject, nativeImpl);
+  }
+
   public RClosureItem createClosureOfNativeImplHere(String name, int paramCount, Object nativeImplTargetObject, Method nativeImpl) {
     return this.theEngine.memMgr.createClosureOfNativeImpl(
       this.frame.closure.impl.mod,
@@ -205,6 +213,40 @@ public class RNativeImplHelper {
 
   // for further invocation
 
+  public RResult apply(RObjItem[] params, RClosureItem closure) {
+    RTaskControl execTask = this.theEngine.taskMgr.createTask(
+      RTaskMgr.PRIO_DEFAULT,  // HERE: my priority
+      RTaskMgr.TASK_TYPE_APPL,
+      closure,
+      params);
+    ResultHolder rh = new ResultHolder();
+    ResultSetter setter = new ResultSetter(execTask, rh);
+    Method setterImpl = null;
+    try {
+      setterImpl = setter.getClass().getMethod(
+        "transfer", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+    } catch (Exception ex) {
+      throw new RuntimeException("Unexpected exception. " + ex.toString());
+    }
+    RClosureItem resClosure = this.createClosureOfNativeImpl(
+      Module.MOD_LANG,
+      "transfer_result",
+      0,
+      setter,
+      setterImpl);
+    RTaskControl resTask = this.theEngine.taskMgr.createTask(
+      8,  // good?
+      RTaskMgr.TASK_TYPE_APPL,
+      resClosure);
+    resTask.terminateOnAbnormalEnd = true;  // hmmm,,,
+    execTask.start();
+    resTask.startWaitingFor(execTask);
+    RResult result = rh.getResult();
+    return rh.getResult();
+  }
+
+  // -- basic
+
   Object getResumeInfo() { return this.resumeInfo; }
 
   public Object getAndClearResumeInfo() {
@@ -235,6 +277,46 @@ public class RNativeImplHelper {
 
   public void mayRunLong() {
     this.theEngine.taskMgr.taskMayRunLong(this.frame.theTaskControl);
+  }
+
+  public void scheduleHash(RObjItem obj, Object resumeInfo) {
+    RType.Sig tsig = obj.getTsig();
+    RClosureItem c = this.core.getClosureItem(tsig.mod, "_call_hash_" + tsig.name.toJavaString());
+    if (c != null) {
+      this.scheduleInvocation(c, new RObjItem[] { obj }, resumeInfo);
+    } else {
+      Method impl = null;
+      try {
+        impl = obj.getClass().getMethod(
+          "objHash", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+      } catch (Exception ex) {
+        throw new RuntimeException("Unexpected exception. " + ex.toString());
+      }
+      c = this.createClosureOfNativeImpl(
+        new Cstr("sango.lang"),
+        "hash_f",
+        0,
+        obj,
+        impl);
+      this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
+    }
+  }
+
+  public void scheduleDebugRepr(RObjItem obj, Object resumeInfo) {
+    Method impl = null;
+    try {
+      impl = obj.getClass().getMethod(
+        "objDebugRepr", new Class[] { RNativeImplHelper.class, RClosureItem.class });
+    } catch (Exception ex) {
+      throw new RuntimeException("Unexpected exception. " + ex.toString());
+    }
+    RClosureItem c = this.createClosureOfNativeImpl(
+      new Cstr("sango.debug"),
+      "debug_repr_f",
+      0,
+      obj,
+      impl);
+    this.scheduleInvocation(c, new RObjItem[0], resumeInfo);
   }
 
   public class Core {  // for core features
@@ -322,29 +404,12 @@ public class RNativeImplHelper {
       return RNativeImplHelper.this.theEngine.taskMgr.peekTaskResult(a.taskControl);
     }
 
-    public void addActorMonitor(RObjItem actorH, RObjItem postH) {
-      RStructItem p = (RStructItem)postH;
-      RErefItem mboxpEWE = (RErefItem)p.getFieldAt(0);
-      RWrefItem mboxpEW = (RWrefItem)((RStructItem)mboxpEWE.read()).getFieldAt(0);
-      RErefItem mboxpE = mboxpEW.get();
-      if (mboxpE == null) {
-        ;  // mbox is already GC'd.
-      } else if (mboxpE instanceof RErefItem) {
-        RObjItem mboxp = ((RStructItem)((RErefItem)mboxpE).read()).getFieldAt(0);
-        if (mboxp instanceof RMboxPItem) {
-          RNativeImplHelper.this.theEngine.taskMgr.addActorMonitor((RActorHItem)actorH, mboxpEWE);
-        } else {
-          throw new IllegalArgumentException("Not <post_h>.");
-        }
-      } else {
-        throw new IllegalArgumentException("Not <post_h>.");
-      }
+    public void addActorMonitor(RObjItem actorH, RErefItem senderE) {
+      RNativeImplHelper.this.theEngine.taskMgr.addActorMonitor((RActorHItem)actorH, senderE);
     }
 
-    public void removeActorMonitor(RObjItem actorH, RObjItem postH) {
-      RStructItem p = (RStructItem)postH;
-      RErefItem mboxpEWE = (RErefItem)p.getFieldAt(0);
-      RNativeImplHelper.this.theEngine.taskMgr.removeActorMonitor((RActorHItem)actorH, mboxpEWE);
+    public void removeActorMonitor(RObjItem actorH, RErefItem senderE) {
+      RNativeImplHelper.this.theEngine.taskMgr.removeActorMonitor((RActorHItem)actorH, senderE);
     }
 
     // messaging
@@ -353,40 +418,28 @@ public class RNativeImplHelper {
       return RNativeImplHelper.this.theEngine.taskMgr.createMbox(RNativeImplHelper.this.frame.theTaskControl);
     }
 
-    public void notifySysMsg(RObjItem bpew) {
-      RNativeImplHelper.this.theEngine.memMgr.notifySysMsg(bpew);
+    public void notifySysMsg(RErefItem be) {
+      RNativeImplHelper.this.theEngine.memMgr.notifySysMsg(be);
     }
 
-    public RActorHItem getOwnerOfMbox(RObjItem b) {
-      return this.getBoxBody(b).owner.actorH;
+    public RActorHItem getOwnerOfMbox(RErefItem be) {
+      return this.getMboxBody(be).owner.actorH;
     }
 
-    public void putMsg(RObjItem bp, RObjItem m) {
-      ((RMboxPItem)bp).mbox.putMsg(m);
+    public void putMsg(RErefItem be, RObjItem m) {
+      this.getMboxBody(be).putMsg(m);
     }
 
-    public List<RObjItem> listenMboxes(List<RObjItem> bs, Integer expiration) {
-      List<RMbox> boxes = new ArrayList<RMbox>();
-      for (int i = 0; i < bs.size(); i++) {
-        boxes.add(this.getBoxBody(bs.get(i)));
-      }
-      List<RMbox> rboxes = RNativeImplHelper.this.frame.theTaskControl.listenMboxes(boxes, expiration);
-      List<RObjItem> receivables = new ArrayList<RObjItem>();
-      for (int i = 0; i < rboxes.size(); i++) {
-        receivables.add(rboxes.get(i).getHandleItem());
-      }
-      return receivables;
+    public List<RErefItem> listenMboxes(List<RErefItem> bes, Integer expiration) {
+      return RNativeImplHelper.this.frame.theTaskControl.listenMboxes(bes, expiration);
     }
 
-    public RObjItem receiveMsg(RObjItem b) {
-      return this.getBoxBody(b).receiveMsg();
+    public RObjItem receiveMsg(RErefItem mboxE) {
+      return this.getMboxBody(mboxE).receiveMsg();
     }
 
-    RMbox getBoxBody(RObjItem mboxH) {
-      RStructItem h = (RStructItem)mboxH;
-      RErefItem e =(RErefItem)h.getFieldAt(0);
-      RMboxPItem p = (RMboxPItem)((RStructItem)e.read()).getFieldAt(0);  // mbox_p mbox_p_ent_d$ -> mbox_p
-      return p.mbox;
+    RMbox getMboxBody(RErefItem mboxE) {
+      return RNativeImplHelper.this.theEngine.memMgr.getMboxBody(mboxE);
     }
 
     // runtime features
@@ -460,6 +513,51 @@ public class RNativeImplHelper {
 
     public void terminateOnAbnormalEnd(RActorHItem actorH) {
       RNativeImplHelper.this.theEngine.taskMgr.terminateOnAbnormalEnd(actorH.taskControl);
+    }
+
+    public void requestGC() {
+      RNativeImplHelper.this.theEngine.memMgr.maintainFull();
+    }
+  }
+
+  private class ResultHolder {
+    RResult result;
+
+    RResult getResult() {
+      RResult r = null;
+      while (r == null) {
+        synchronized (this) {
+          r = this.result;
+          if (r == null) {
+            RNativeImplHelper.this.mayRunLong();
+            try {
+              this.wait();
+            } catch (InterruptedException ex) {}
+          }
+        }
+      }
+      return r;
+    }
+
+    void putResult(RResult r) {
+      synchronized (this) {
+        this.result = r;
+        this.notify();
+      }
+    }
+  }
+
+  private class ResultSetter {
+    RTaskControl execTask;
+    ResultHolder resultHolder;
+
+    ResultSetter(RTaskControl exec, ResultHolder res) {
+      this.execTask = exec;
+      this.resultHolder = res;
+    }
+
+    public void transfer(RNativeImplHelper helper, RClosureItem self) {
+      this.resultHolder.putResult(this.execTask.getResult());
     }
   }
 }

@@ -29,6 +29,7 @@ public class RRealItem extends RObjItem {
   RRealItem(RuntimeEngine e, double value) {
     super(e);
     this.value = value;
+    this.setHashValue(Double.hashCode(this.value));
   }
 
   // public static RRealItem get(RuntimeEngine e, double value) {
@@ -53,7 +54,12 @@ public class RRealItem extends RObjItem {
 
   public double getValue() { return this.value; }
 
-  public Cstr debugReprOfContents() {
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    throw new RuntimeException("Hash value is already set.");
+    // helper.setReturnValue(helper.getIntItem(Double.hashCode(this.value)));
+  }
+
+  public Cstr dumpInside() {
     return new Cstr(Double.toString(this.value));
   }
 }

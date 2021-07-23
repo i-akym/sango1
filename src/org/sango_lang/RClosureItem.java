@@ -65,20 +65,55 @@ public class RClosureItem extends RObjItem {
 
   int getParamCount() { return this.impl.paramCount; }
 
-  public Cstr debugReprOfContents() {
+  public void doHash(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getIntItem(0));  // TODO: improve!
+  }
+
+  public Cstr dumpInside() {
     Cstr s = new Cstr();
     s.append(this.impl.mod.name.repr());
     s.append('.');
     s.append(this.impl.name);
-    if (this.env.length > 0) {
-      s.append(';');
-      String sep = "";
-      for (int i = 0; i < this.env.length; i++) {
-        s.append(sep);
-        s = s.append(this.env[i].debugRepr());
-        sep = ",";
-      }
+    s.append('/');
+    s.append(Integer.toString(this.impl.paramCount));
+    String sep = ";";
+    for (int i = 0; i < this.env.length; i++) {
+      s.append(sep);
+      s.append(this.env[i].dump());
+      sep = ",";
     }
     return s;
+  }
+
+  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
+    Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    if (ris == null) {
+      Cstr r = this.createDumpHeader();
+      r.append(this.impl.mod.name.repr());
+      r.append('.');
+      r.append(this.impl.name);
+      r.append('/');
+      r.append(Integer.toString(this.impl.paramCount));
+      if (this.env.length == 0) {
+        r.append(this.createDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      } else {
+        r.append(';');
+        helper.scheduleDebugRepr(this.env[0], new Object[] { 0, r });
+      }
+    } else {
+      RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+      int current = (Integer)ris[0];
+      Cstr r = (Cstr)ris[1];
+      r.append(helper.arrayItemToCstr(rx));
+      int next = current + 1;
+      if (next < this.env.length) {
+        r.append(',');
+        helper.scheduleDebugRepr(this.env[next], new Object[] { next, r });
+      } else {
+        r.append(this.createDumpTrailer());
+        helper.setReturnValue(helper.cstrToArrayItem(r));
+      }
+    }
   }
 }

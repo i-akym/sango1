@@ -264,27 +264,27 @@ class RTaskMgr {
     return s;
   }
 
-  void addActorMonitor(RActorHItem actorH, RErefItem mboxpEWE) {
+  void addActorMonitor(RActorHItem actorH, RErefItem senderE) {
     RTaskControl t = actorH.taskControl;
     if (t.theMgr != this) {
       throw new IllegalArgumentException("Not my task.");
     }
     RLock.Client lc = this.lock.createClient();
     lc.require(RLock.EXCLUSIVE);  // ENTER CRITCAL SECTION
-    t.addMonitor(mboxpEWE);
+    t.addMonitor(senderE);
     this.scheduleNotifyActorState(lc, t);
     this.scheduleMaintenance();
     lc.release();  // EXIT CRITICAL SECTION
   }
 
-  void removeActorMonitor(RActorHItem actorH, RErefItem mboxpEWE) {
+  void removeActorMonitor(RActorHItem actorH, RErefItem senderE) {
     RTaskControl t = actorH.taskControl;
     if (t.theMgr != this) {
       throw new IllegalArgumentException("Not my task.");
     }
     RLock.Client lc = this.lock.createClient();
     lc.require(RLock.EXCLUSIVE);  // ENTER CRITCAL SECTION
-    t.removeMonitor(mboxpEWE);
+    t.removeMonitor(senderE);
     lc.release();  // EXIT CRITICAL SECTION
   }
 
@@ -446,16 +446,17 @@ class RTaskMgr {
     }
   }
 
-  List<RMbox> listenMboxes(RTaskControl t, List<RMbox> bs, Integer expiration) {
-    List<RMbox> receivables = new ArrayList<RMbox>();
+  List<RErefItem> listenMboxes(RTaskControl t, List<RErefItem> bes, Integer expiration) {
+    List<RErefItem> receivables = new ArrayList<RErefItem>();
     List<RLock.Client> lockClients = new ArrayList<RLock.Client>();
-    for (int i = 0; i < bs.size(); i++) {
-      RMbox b = bs.get(i);
+    for (int i = 0; i < bes.size(); i++) {
+      RErefItem be = bes.get(i);
+      RMbox b = this.theEngine.memMgr.getMboxBody(be);
       RLock.Client blc = b.lock.createClient();
       blc.require(RLock.EXCLUSIVE);  // LOCK
       lockClients.add(blc);
       if (!b.msgQueue.isEmpty()) {
-        receivables.add(b);
+        receivables.add(be);
       }
     }
     if (receivables.isEmpty() && (expiration == null || expiration > 0)) {
@@ -465,8 +466,8 @@ class RTaskMgr {
       case TASK_RUNNING:
         this.removeFromRunningList(lc, t);
         this.addToBlockedList(lc, t);
-        for (int i = 0; i < bs.size(); i++) {
-          RMbox b = bs.get(i);
+        for (int i = 0; i < bes.size(); i++) {
+          RMbox b = this.theEngine.memMgr.getMboxBody(bes.get(i));
           b.addBlockedTask(t);
           t.addBlocker(b);
         }
@@ -758,9 +759,9 @@ class RTaskMgr {
     RObjItem oShutdown = this.theEngine.memMgr.getStructItem(dcShutdown, new RObjItem[0]);
     RDataConstr dcMsg = this.theEngine.memMgr.getDataConstr(new Cstr("sango.actor"), "sys_msg$");
     RObjItem oMsg = this.theEngine.memMgr.getStructItem(dcMsg, new RObjItem[] { oShutdown });
-    WeakReference<RMemMgr.Entity> pew;
+    WeakReference<RErefItem> pew;
     while ((pew = this.theEngine.memMgr.pollSysMsgReceiver()) != null) {
-      RMemMgr.Entity pe = pew.get();
+      RErefItem pe = pew.get();
       if (pe != null) {
         ((RMboxPItem)((RStructItem)pe.read()).getFieldAt(0)).mbox.putMsg(oMsg);
       }
@@ -968,19 +969,18 @@ class RTaskMgr {
   }
 
   class MsgReq {
-    RErefItem mboxpEWE;
+    RErefItem senderE;
     RObjItem msg;
 
-    MsgReq(RErefItem mboxpEWE, RObjItem msg) {
-      this.mboxpEWE = mboxpEWE;
+    MsgReq(RErefItem senderE, RObjItem msg) {
+      this.senderE = senderE;
       this.msg = msg;
     }
 
     void doSend() {
-      RWrefItem mboxpEW = (RWrefItem)((RStructItem)this.mboxpEWE.read()).getFieldAt(0);
-      RErefItem mboxpE = (RErefItem)mboxpEW.get();
-      if (mboxpE != null) {
-        ((RMboxPItem)((RStructItem)mboxpE.read()).getFieldAt(0)).mbox.putMsg(this.msg);
+      RMbox b = RTaskMgr.this.theEngine.memMgr.tryGetMboxBodyFromSenderEntity(this.senderE);
+      if (b != null) {
+        b.putMsg(this.msg);
       }
     }
   }
