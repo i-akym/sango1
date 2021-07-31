@@ -84,7 +84,6 @@ class PCaseClause extends PDefaultTypedElem {
     }
 
     void addPtnMatch(PCasePtnMatch ptnMatch) {
-      ptnMatch.parent = this.clause;
       this.ptnMatchList.add(ptnMatch);
     }
 
@@ -95,7 +94,6 @@ class PCaseClause extends PDefaultTypedElem {
     }
 
     void addGuardExpr(PExpr expr) {
-      expr.parent = this.clause;
       this.guardExprList.add(expr);
     }
 
@@ -106,7 +104,6 @@ class PCaseClause extends PDefaultTypedElem {
     }
 
     void addActionExpr(PExpr expr) {
-      expr.parent = this.clause;
       this.actionExprList.add(expr);
     }
 

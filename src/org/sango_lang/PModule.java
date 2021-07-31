@@ -505,7 +505,6 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addImportStmt(PImportStmt imp) throws CompileException {
     StringBuffer emsg;
-    imp.parent = this;
     if (imp.modName.equals(this.name)) {
       emsg = new StringBuffer();
       emsg.append("Cannot import myself at ");
@@ -538,7 +537,6 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
-    dat.parent = this;
     dat.setupScope(PScope.create(this));
     if (this.tconDict.containsKey(dat.tcon)) {
       emsg = new StringBuffer();
@@ -624,7 +622,6 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addAliasStmt(PAliasStmt alias) throws CompileException {
     StringBuffer emsg;
-    alias.parent = this;
     alias.setupScope(PScope.create(this));
     if (this.tconDict.containsKey(alias.tcon)) {
       emsg = new StringBuffer();
@@ -650,7 +647,6 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
-    eval.parent = this;
     eval.setupScope(PScope.create(this));
     String official = eval.official;
     String[] aliases = eval.aliases;

@@ -26,11 +26,6 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
-
-  // static final int TYPE_NOT_ALLOWED = 1;
-  // static final int TYPE_MAYBE_SPECIFIED = 2;
-  // static final int TYPE_NEEDED = 3;
-
   String name;
   // boolean polymorphic;
   PTVarSlot varSlot;
@@ -140,8 +135,4 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   public PTypeVarSkel getSkel() {
     return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
   }
-
-  // public GFlow.Node setupFlow(GFlow flow) {
-    // return flow.createNodeForVarDef(this.srcInfo, this.varSlot);
-  // }
 }

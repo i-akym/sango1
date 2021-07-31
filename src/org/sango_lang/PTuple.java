@@ -61,7 +61,6 @@ class PTuple extends PDefaultEvalElem {
     }
 
     void addElem(PEvalElem elem) {
-      elem.setParent(this.tuple);
       this.elemList.add(elem);
     }
 

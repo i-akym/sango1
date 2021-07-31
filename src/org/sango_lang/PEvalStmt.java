@@ -94,7 +94,6 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     }
 
     void addParam(PEVarDef param) {
-      param.parent = this.eval;
       this.paramList.add(param);
     }
 
@@ -128,7 +127,6 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     }
 
     void addImplExpr(PExpr expr) {
-      expr.parent = this.eval;
       this.implExprList.add(expr);
     }
 

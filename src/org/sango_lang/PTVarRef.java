@@ -129,8 +129,4 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
   }
 
   public PTypeSkel getFixedType() { return this.varSlot.varDef.getFixedType(); }
-
-  // public GFlow.Node setupFlow(GFlow flow) {
-    // return flow.createNodeForVarRef(this.srcInfo, this.varSlot);
-  // }
 }

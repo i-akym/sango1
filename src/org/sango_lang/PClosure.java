@@ -76,7 +76,6 @@ class PClosure extends PDefaultEvalElem {
     }
 
     void addParam(PEVarDef param) {
-      param.parent = this.closure;
       this.paramList.add(param);
     }
 
@@ -91,7 +90,6 @@ class PClosure extends PDefaultEvalElem {
     }
 
     void addImplExpr(PExpr expr) {
-      expr.parent = this.closure;
       this.implExprList.add(expr);
     }
 

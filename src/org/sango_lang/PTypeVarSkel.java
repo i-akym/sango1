@@ -348,10 +348,6 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this.varSlot)) != null)? t: this;
   }
 
-  // public GFlow.Node setupFlow(GFlow flow, PScope scope, PTypeSkelBindings bindings) {  // when unbound only
-    // return flow.createNodeForVarRef(this.srcInfo, this.varSlot);
-  // }
-
   public String repr() {
     return this.varSlot.repr();
   }

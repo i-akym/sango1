@@ -23,7 +23,7 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PEVarRef extends PDefaultEvalAndPtnElem /* implements PTypeDesc */ {
+class PEVarRef extends PDefaultEvalAndPtnElem {
   String name;
   PEVarSlot varSlot;
 
@@ -96,10 +96,6 @@ class PEVarRef extends PDefaultEvalAndPtnElem /* implements PTypeDesc */ {
     }
   }
 
-  // public PTypeVarSkel normalize() {  // called when top level
-    // return (PTypeVarSkel)this.getSkel();
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
     return graph.createVarRefNode(this, name, this.varSlot.varDef.typeGraphNode);
@@ -108,11 +104,6 @@ class PEVarRef extends PDefaultEvalAndPtnElem /* implements PTypeDesc */ {
   public PTypeGraph.Node getTypeGraphNode() {
     return this.varSlot.varDef.typeGraphNode;
   }
-
-  // public PTypeSkel getSkel() {
-    // /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
-    // return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
-  // }
 
   public PTypeSkel getFixedType() { return this.varSlot.varDef.getFixedType(); }
 

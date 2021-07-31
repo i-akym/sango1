@@ -37,11 +37,7 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
     PDataAttrDef attr = new PDataAttrDef();
     attr.srcInfo = srcInfo;
     attr.name = name;
-    // type.parent = attr;
     attr.type = type;
-    if (var != null) {
-      var.parent = attr;
-    }
     attr.var = var;
     return attr;
   }

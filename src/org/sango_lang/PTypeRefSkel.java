@@ -452,22 +452,6 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  // public GFlow.Node setupFlow(GFlow flow, PScope scope, PTypeSkelBindings bindings) {
-    // GFlow.DataConstrNode node = flow.createNodeForDataConstrBody(
-      // this.srcInfo, scope.theMod.modNameToModRefIndex(Module.MOD_LANG), "type$", "type", 0);
-    // GFlow.Node n = flow.createNodeForEmptyListBody(this.srcInfo);
-    // for (int i = this.params.length - 1; i >= 0; i--) {
-      // GFlow.ListNode ln = flow.createNodeForList(this.srcInfo);
-      // ln.addChild(this.params[i].resolveBindings(bindings).setupFlow(flow, scope, bindings));
-      // ln.addChild(n);
-      // n = ln;
-    // }
-    // node.addChild(n);
-    // node.addChild(flow.createNodeForCstr(this.srcInfo, this.tconInfo.key.modName));
-    // node.addChild(flow.createNodeForCstr(this.srcInfo, this.tconInfo.key.tcon));
-    // return node;
-  // }
-
   public String repr() {
     StringBuffer buf = new StringBuffer();
     if (this.params.length > 0) {

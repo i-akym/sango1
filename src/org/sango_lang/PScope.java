@@ -59,22 +59,6 @@ class PScope {
     return new PScope(theMod);
   }
 
-  // PScope copy() {
-    // PScope s = new PScope(this.theMod);
-    // s.theMod = this.theMod;
-    // s.parent = this.parent;
-    // s.funLevel = this.funLevel;
-    // s.evalStmt = this.evalStmt;
-    // s.closure = this.closure;
-    // s.tvarDict.putAll(this.tvarDict);
-    // s.evarDict.putAll(this.evarDict);
-    // s.outerTVarDict.putAll(this.outerTVarDict);
-    // s.outerEVarDict.putAll(this.outerEVarDict);
-    // s.envTVarList = this.envTVarList;
-    // s.envEVarList = this.envEVarList;
-    // return s;
-  // }
-
   PScope start() {
     if (this.funLevel != -2) {
       throw new IllegalStateException("Cannot start.");

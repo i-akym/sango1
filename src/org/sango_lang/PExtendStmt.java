@@ -95,7 +95,6 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
 
     void addConstr(PDataConstrDef constr) {
-      constr.parent = this.ext;
       this.constrList.add(constr);
     }
 

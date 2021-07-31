@@ -66,12 +66,10 @@ class PCasePtnMatch extends PDefaultProgElem {
     }
 
     void setPtnMatch(PPtnMatch ptnMatch) {
-      ptnMatch.parent = this.casePtnMatch;
       this.casePtnMatch.ptnMatch = ptnMatch;
     }
 
     void addDetail(PPtnDetail detail) {
-      detail.parent = this.casePtnMatch;
       this.detailList.add(detail);
     }
 

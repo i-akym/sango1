@@ -182,18 +182,10 @@ class PEVarDef extends PDefaultPtnElem {
     }
   }
 
-  // public PTypeVarSkel normalize() {
-    // return (PTypeVarSkel)this.getSkel();
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.typeGraphNode = graph.createVarNode(this, this.name);
     return this.typeGraphNode;
   }
-
-  // public PTypeVarSkel getSkel() {
-    // return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
-  // }
 
   public GFlow.Node setupFlow(GFlow flow) {
     return flow.createNodeForVarDef(this.srcInfo, this.varSlot);

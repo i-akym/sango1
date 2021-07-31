@@ -72,7 +72,6 @@ class PIfClause extends PDefaultTypedElem {
     }
 
     void addGuardExpr(PExpr expr) {
-      expr.parent = this.clause;
       this.guardExprList.add(expr);
     }
 
@@ -83,7 +82,6 @@ class PIfClause extends PDefaultTypedElem {
     }
 
     void addActionExpr(PExpr expr) {
-      expr.parent = this.clause;
       this.actionExprList.add(expr);
     }
 

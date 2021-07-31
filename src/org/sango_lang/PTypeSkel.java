@@ -58,8 +58,6 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(PTypeSkelBindings bindings);
 
-  // GFlow.Node setupFlow(GFlow flow, PScope scope, PTypeSkelBindings bindings);
-
   String repr();
 
   public static class InstanciationBindings {

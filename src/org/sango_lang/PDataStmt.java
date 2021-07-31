@@ -102,7 +102,6 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
 
     void addConstr(PDataConstrDef constr) throws CompileException {
       StringBuffer emsg;
-      constr.parent = this.dat;
       for (int i = 0; i < constr.attrs.length; i++) {
         String name = constr.attrs[i].name;
         if (name != null) {

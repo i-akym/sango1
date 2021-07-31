@@ -79,7 +79,6 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     }
 
     void setBody(PTypeDesc body) {
-      // body.parent = this.alias;
       this.alias.body = body;
     }
 
