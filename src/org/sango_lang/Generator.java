@@ -140,7 +140,7 @@ class Generator {
   }
 
   void generateDataDefGeneric(PDataDef dd) {
-    PVarSlot[] pvs = dd.getParamVarSlots();
+    PTVarSlot[] pvs = dd.getParamVarSlots();
     if (pvs == null) { return; }  // fun, tuple
     PDefDict.TconKey btk = dd.getBaseTconKey();
     if (btk != null) {
@@ -149,7 +149,7 @@ class Generator {
     } else {
       this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length);
     }
-    List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
+    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
     }
@@ -160,7 +160,7 @@ class Generator {
 
   }
 
-  void generateConstrDef(PDataDef.Constr constrDef, List<PVarSlot> varSlotList) {
+  void generateConstrDef(PDataDef.Constr constrDef, List<PTVarSlot> varSlotList) {
     this.modBuilder.startConstrDef(constrDef.getDcon());
     for (int i = 0; i < constrDef.getAttrCount(); i++) {
       this.generateAttrDef(constrDef.getAttrAt(i), varSlotList);
@@ -168,7 +168,7 @@ class Generator {
     this.modBuilder.endConstrDef();
   }
 
-  void generateAttrDef(PDataDef.Attr attrDef, List<PVarSlot> varSlotList) {
+  void generateAttrDef(PDataDef.Attr attrDef, List<PTVarSlot> varSlotList) {
     this.modBuilder.startAttrDef(attrDef.getName());
     this.modBuilder.setAttrType(attrDef.getNormalizedType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.endAttrDef();
@@ -188,10 +188,10 @@ class Generator {
   }
 
   void generateAliasTypeDefGeneric(PAliasDef alias) {
-    PVarSlot[] pvs = alias.getParamVarSlots();
+    PTVarSlot[] pvs = alias.getParamVarSlots();
     MAliasTypeDef atd = MAliasTypeDef.create(
       alias.getTcon(), alias.getAvailability(), alias.getAcc(), pvs.length);
-    List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
+    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
     }
@@ -218,7 +218,7 @@ class Generator {
     for (int i = 0; i < eval.aliases.length; i++) {
       b.addAlias(eval.aliases[i]);
     }
-    List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
+    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     for (int i = 0; i < eval.params.length; i++) {
       b.addParamType(eval.params[i].nTypeSkel.toMType(this.parser.mod, varSlotList));
     }
@@ -230,7 +230,7 @@ class Generator {
     MFunDef.Builder b = MFunDef.Builder.newInstance();
     b.setName(fd.getOfficialName());
     b.setAcc(Module.ACC_PUBLIC);
-    List<PVarSlot> varSlotList = new ArrayList<PVarSlot>();
+    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     PTypeSkel[] pts = fd.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
       b.addParamType(pts[i].toMType(this.parser.mod, varSlotList));
@@ -246,7 +246,7 @@ class Generator {
   }
 
   void generateFunImpl(PEvalStmt eval) {
-    PVarSlot[] paramVarSlots = new PVarSlot[eval.params.length];
+    PEVarSlot[] paramVarSlots = new PEVarSlot[eval.params.length];
     for (int i = 0; i < eval.params.length; i++) {
       paramVarSlots[i] = eval.params[i].varSlot;
     }
@@ -329,16 +329,6 @@ class Generator {
       this.modBuilder.endClosureImplVMCode();
       this.modBuilder.endClosureImpl();
     } else {
-      // List<PVarSlot> actualParamVarSlotList = new ArrayList<PVarSlot>();
-      // for (int i = 0; i < paramVarSlots.length; i++) {
-        // actualParamVarSlotList.add(paramVarSlots[i]);
-      // }
-      // for (int i = 0; i < paramVarSlots.length; i++) {
-        // List<PVarSlot> justExtracted = eval.getParamTypes()[i].extractVars(actualParamVarSlotList);
-        // if (justExtracted != null) {
-          // actualParamVarSlotList.addAll(justExtracted);
-        // }
-      // }
       this.modBuilder.startClosureImpl(eval.official, paramVarSlots.length /* , actualParamVarSlotList.size() */);
       this.modBuilder.endClosureImpl();
     }

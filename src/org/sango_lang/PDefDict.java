@@ -74,7 +74,7 @@ public interface PDefDict {
 
     PDataDef getDataDef() throws CompileException;
 
-    FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PVarSlot> givenVarList) throws CompileException;
+    FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException;
 
     PFunDef getFunDef() throws CompileException;  // get by official name
 

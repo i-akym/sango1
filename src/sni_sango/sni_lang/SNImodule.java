@@ -38,7 +38,7 @@ import org.sango_lang.PTypeSkel;
 import org.sango_lang.PTypeSkelBindings;
 import org.sango_lang.PTypeRefSkel;
 import org.sango_lang.PTypeVarSkel;
-import org.sango_lang.PVarSlot;
+import org.sango_lang.PTVarSlot;
 import org.sango_lang.RActorHItem;
 import org.sango_lang.RArrayItem;
 import org.sango_lang.RClosureItem;
@@ -433,7 +433,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PVarSlot.createInternal());
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal());
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
@@ -480,10 +480,10 @@ public class SNImodule {
 
     public String getFormalTcon() { return this.sigTcon; }
 
-    public PVarSlot[] getParamVarSlots() {
-      PVarSlot[] pvs;
+    public PTVarSlot[] getParamVarSlots() {
+      PTVarSlot[] pvs;
       if (this.sigParams != null) {
-        pvs = new PVarSlot[this.sigParams.length];
+        pvs = new PTVarSlot[this.sigParams.length];
         for (int i = 0; i < this.sigParams.length; i++) {
           pvs[i] = this.sigParams[i].getVarSlot();
         }

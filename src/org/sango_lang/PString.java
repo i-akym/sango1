@@ -66,7 +66,6 @@ class PString extends PDefaultEvalElem {
     }
 
     void addElem(PEvalElem elem) {
-      elem.setParent(this.string);
       this.elemList.add(elem);
     }
 

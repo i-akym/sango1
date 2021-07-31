@@ -198,8 +198,8 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     }
     PTypeDesc ret = null;
     if (this.isSimple()) {
-      PVarSlot varSlot;
-      if ((varSlot = scope.referSimpleId(this.name)) != null) {
+      PTVarSlot varSlot;
+      if ((varSlot = scope.referSimpleTid(this.name)) != null) {
         if (!this.maybeCat(PTypeId.CAT_VAR)) {
           emsg = new StringBuffer();
           emsg.append("Variable not allowed at ");
@@ -208,15 +208,15 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
           emsg.append(this.name);
           throw new CompileException(emsg.toString());
         }
-        if ((varSlot.varDef.cat & PVarDef.CAT_TYPE_PARAM) == 0) {
-          emsg = new StringBuffer();
-          emsg.append("Cannot refer either fun param or local var as type para at ");
-          emsg.append(this.srcInfo);
-          emsg.append(". - ");
-          emsg.append(this.name);
-          throw new CompileException(emsg.toString());
-        }
-        ret = PVarRef.create(this.srcInfo, this.name, varSlot).setupScope(scope);
+        // if ((varSlot.varDef.cat & PVarDef.CAT_TYPE_PARAM) == 0) {
+          // emsg = new StringBuffer();
+          // emsg.append("Cannot refer either fun param or local var as type para at ");
+          // emsg.append(this.srcInfo);
+          // emsg.append(". - ");
+          // emsg.append(this.name);
+          // throw new CompileException(emsg.toString());
+        // }
+        ret = PTVarRef.create(this.srcInfo, this.name, varSlot).setupScope(scope);
       } else {
         ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]).setupScope(scope);
       }

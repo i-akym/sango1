@@ -29,19 +29,15 @@ import java.util.List;
 
 class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
   String name;
-  PVarDef var;
+  PEVarDef var;
 
   private PDataAttrDef() {}
 
-  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PTypeDesc type, PVarDef var) {
+  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PTypeDesc type, PEVarDef var) {
     PDataAttrDef attr = new PDataAttrDef();
     attr.srcInfo = srcInfo;
     attr.name = name;
-    // type.parent = attr;
     attr.type = type;
-    if (var != null) {
-      var.parent = attr;
-    }
     attr.var = var;
     return attr;
   }
@@ -66,7 +62,7 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
     Parser.SrcInfo si = null;
     String name = null;
     PTypeDesc type = null;
-    PVarDef var = null;
+    PEVarDef var = null;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     int state = 0;
     DataAttrName aname;
@@ -101,15 +97,6 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
         }
         break;
       case 2:  // [name:] <type>
-        // if ((var = PVarDef.accept(reader, PVarDef.CAT_ATTR, PVarDef.TYPE_NOT_ALLOWED)) != null) {
-          // attrList.add(create(si, name, type, var));
-          // si = null;
-          // name = null;
-          // type = null;
-          // var = null;
-          // spc = ParserA.SPACE_NEEDED;
-          // state = 0;
-        // } else
 	if ((aname = acceptDataAttrName(reader, ParserA.SPACE_NEEDED)) != null) {
           attrList.add(create(si, name, type, var));
           si = aname.srcInfo;

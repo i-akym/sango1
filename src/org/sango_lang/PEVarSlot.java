@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,18 +23,39 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PProgElem {
+public class PEVarSlot {
+  static int hashValue = 0;
 
-  void setSrcInfo(Parser.SrcInfo srcInfo);
+  int hash;
+  PEVarDef varDef;
 
-  Parser.SrcInfo getSrcInfo();
+  private PEVarSlot() {}
 
-  PProgElem setupScope(PScope scope) throws CompileException;
+  static PEVarSlot create(PEVarDef varDef) {
+    PEVarSlot s = createInternal();
+    s.varDef = varDef;
+    return s;
+  }
 
-  PScope getScope();
+  public static PEVarSlot createInternal() {
+    PEVarSlot s = new PEVarSlot();
+    s.hash = hashValue++;
+    return s;
+  }
 
-  PProgElem resolveId() throws CompileException;
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    if (this.varDef != null) {
+      buf.append(this.varDef.name);
+      buf.append(":VE");
+    } else {
+      buf.append("PSEUDO");
+    }
+    buf.append(this.hash);
+    return buf.toString();
+  }
 
-  void normalizeTypes() throws CompileException;
-
+  String repr() {
+    return (this.varDef != null)? this.varDef.name: "$" + this.hash;
+  }
 }

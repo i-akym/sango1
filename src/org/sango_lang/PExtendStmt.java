@@ -32,7 +32,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
   String baseMod;
   String baseTcon;
   String tcon;
-  PVarDef[] tparams;
+  PTVarDef[] tparams;
   PTypeDesc sig;
   int acc;
   PDataConstrDef[] constrs;
@@ -95,7 +95,6 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
 
     void addConstr(PDataConstrDef constr) {
-      constr.parent = this.ext;
       this.constrList.add(constr);
     }
 
@@ -111,7 +110,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
         this.ext.baseMod = (ti.mod != null)? ti.mod: PModule.MOD_ID_LANG;
         this.ext.baseTcon = ti.name;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        this.ext.tparams = new PVarDef[0];
+        this.ext.tparams = new PTVarDef[0];
         this.ext.sig = PTypeId.create(
           ti.srcInfo,
           null,
@@ -122,9 +121,9 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
         this.ext.baseMod = (tr.mod != null)? tr.mod: PModule.MOD_ID_LANG;
         this.ext.baseTcon = tr.tcon;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        this.ext.tparams = new PVarDef[tr.params.length];
+        this.ext.tparams = new PTVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.ext.tparams[i] = (PVarDef)tr.params[i];
+          this.ext.tparams[i] = (PTVarDef)tr.params[i];
         }
         this.ext.sig = PTypeRef.create(
           tr.srcInfo,
@@ -230,7 +229,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PVarDef var = PVarDef.acceptXTvar(ee);
+        PTVarDef var = PTVarDef.acceptX(ee);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -321,8 +320,8 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
-  public PVarSlot[] getParamVarSlots() {
-    PVarSlot[] pvs = new PVarSlot[this.tparams.length];
+  public PTVarSlot[] getParamVarSlots() {
+    PTVarSlot[] pvs = new PTVarSlot[this.tparams.length];
     for (int i = 0; i < this.tparams.length; i++) {
       pvs[i] = this.tparams[i].varSlot;
     }

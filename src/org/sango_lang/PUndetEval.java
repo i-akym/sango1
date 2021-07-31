@@ -65,7 +65,7 @@ class PUndetEval extends PDefaultEvalElem {
     }
     PEvalElem e;
     PEvalElem a = this.anchor.setupScope(scope);
-    if (a instanceof PVarRef) {
+    if (a instanceof PEVarRef) {
       e = a;
     } else {
       this.anchor = (PExprId)a;

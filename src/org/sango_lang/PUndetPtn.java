@@ -55,7 +55,7 @@ class PUndetPtn extends PDefaultPtnElem {
     this.idResolved = false;
     PPtnElem a = this.anchor.setupScope(scope);
     PPtnElem p;
-    if (a instanceof PVarRef) {
+    if (a instanceof PEVarRef) {
       p = a;
     } else {
       PExprId dcon = (PExprId)a;
@@ -64,11 +64,6 @@ class PUndetPtn extends PDefaultPtnElem {
         this.srcInfo, dcon, new PPtnElem[0], new PPtnItem[0], false).setupScope(this.scope);
     }
     return p;
-
-    // return (a instanceof PVarRef)?
-      // a:
-      // PDataConstrPtn.create(
-        // this.srcInfo, (PExprId)a, new PPtnElem[0], new PPtnItem[0], false).setupScope(this.scope);
   }
 
   public PUndetPtn resolveId() throws CompileException {

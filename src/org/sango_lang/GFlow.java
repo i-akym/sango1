@@ -39,11 +39,11 @@ class GFlow {
   Generator theGenerator;
   List<RootNode> rootList;
 
-  static GFlow create(Generator g, Parser.SrcInfo srcInfo, String name, PVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
+  static GFlow create(Generator g, Parser.SrcInfo srcInfo, String name, PEVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
     return new GFlow(g, srcInfo, name, paramVarSlots, paramTypes);
   }
 
-  private GFlow(Generator g, Parser.SrcInfo srcInfo, String name, PVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
+  private GFlow(Generator g, Parser.SrcInfo srcInfo, String name, PEVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
     this.theGenerator = g;
     this.rootList = new ArrayList<RootNode>();
     this.rootList.add(new RootNode(srcInfo, name, paramVarSlots, paramTypes));
@@ -137,11 +137,11 @@ class GFlow {
     return new FunRefNode(srcInfo, modRefIndex, official);
   }
 
-  VarRefNode createNodeForVarRef(Parser.SrcInfo srcInfo, PVarSlot varSlot) {
+  VarRefNode createNodeForVarRef(Parser.SrcInfo srcInfo, PEVarSlot varSlot) {
     return new VarRefNode(srcInfo, varSlot);
   }
 
-  RootNode createNodeForClosureImpl(Parser.SrcInfo srcInfo, String name, PVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
+  RootNode createNodeForClosureImpl(Parser.SrcInfo srcInfo, String name, PEVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
     RootNode c = new RootNode(srcInfo, name, paramVarSlots, paramTypes);
     this.rootList.add(c);
     return c;
@@ -233,7 +233,7 @@ class GFlow {
     return new SeqNode(srcInfo);
   }
 
-  VarDefNode createNodeForVarDef(Parser.SrcInfo srcInfo, PVarSlot varSlot) {
+  VarDefNode createNodeForVarDef(Parser.SrcInfo srcInfo, PEVarSlot varSlot) {
     return new VarDefNode(srcInfo, varSlot);
   }
 
@@ -300,7 +300,7 @@ class GFlow {
 
     void generateClearExtraVars(RootNode frameRoot, AllocMap allocMap) {
       for (int i = 0; i < allocMap.size(); i++) {
-        PVarSlot slot = allocMap.allocatedAt(i);
+        PEVarSlot slot = allocMap.allocatedAt(i);
         /* DEBUG */ if (this.varSetReferredLater == null) { System.out.println("varset null: " + this.toString()); }
         if (slot != null && !this.varSetReferredLater.contains(slot)) {
           this.codeChunk.addChild(frameRoot.createCode(MInstruction.OP_CLEAR_LOCAL, GFlow.this.theGenerator.createIntParam(i)));
@@ -411,7 +411,7 @@ class GFlow {
 
     BranchNode getOuterBranch() { return this.outerBranch; }
 
-    PVarSlot getVarToRewind() {
+    PEVarSlot getVarToRewind() {
       return ((ForkNode)this.parent).rewindTo;
     }
 
@@ -432,7 +432,7 @@ class GFlow {
   class ForkNode extends Node {
     List<BranchNode> branchList;
     Generator.CodeSeq onExit;
-    PVarSlot rewindTo;
+    PEVarSlot rewindTo;
 
     ForkNode(Parser.SrcInfo srcInfo) {
       super(srcInfo);
@@ -463,7 +463,7 @@ class GFlow {
     }
 
     VarSet scanVars(RootNode frameRoot, VarSet varSet) {
-      this.rewindTo = PVarSlot.createInternal();
+      this.rewindTo = PEVarSlot.createInternal();
       VarSet vs = varSet.add(this.rewindTo);
       VarSet cvs = GFlow.this.createVarSet();
       for (int i = this.branchList.size() - 1; i >= 0 ; i--) {
@@ -501,21 +501,21 @@ class GFlow {
 
   class RootNode extends EndValueSupplierSeqNode {
     String name;
-    PVarSlot[] paramVarSlots;
+    PEVarSlot[] paramVarSlots;
     PTypeSkel[] paramTypes;
-    PVarSlot selfRef;
-    List<PVarSlot> definedVarList;
-    List<PVarSlot> envVarList;
+    PEVarSlot selfRef;
+    List<PEVarSlot> definedVarList;
+    List<PEVarSlot> envVarList;
     AllocMap allocMap;
 
-    RootNode(Parser.SrcInfo srcInfo, String name, PVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
+    RootNode(Parser.SrcInfo srcInfo, String name, PEVarSlot[] paramVarSlots, PTypeSkel[] paramTypes) {
       super(srcInfo);
       this.name = name;
       this.paramVarSlots = paramVarSlots;
       this.paramTypes = paramTypes;
-      this.selfRef = PVarSlot.createInternal();
-      this.definedVarList = new ArrayList<PVarSlot>();
-      this.envVarList = new ArrayList<PVarSlot>();
+      this.selfRef = PEVarSlot.createInternal();
+      this.definedVarList = new ArrayList<PEVarSlot>();
+      this.envVarList = new ArrayList<PEVarSlot>();
       this.allocMap = GFlow.this.createAllocMap();
     }
 
@@ -535,7 +535,7 @@ class GFlow {
 
     void collectVars(RootNode frameRoot) {
       for (int i = 0; i < this.paramVarSlots.length; i++) {
-        PVarSlot slot = this.paramVarSlots[i];
+        PEVarSlot slot = this.paramVarSlots[i];
         this.addDefinedVar(slot);
       }
       super.collectVars(this);
@@ -546,7 +546,7 @@ class GFlow {
       VarSet newVarSet = super.scanVars(this, GFlow.this.createVarSet());
       this.allocMap.allocVar(this.selfRef);
       for (int i = 0; i < this.paramVarSlots.length; i++) {
-        PVarSlot slot = this.paramVarSlots[i];
+        PEVarSlot slot = this.paramVarSlots[i];
         this.allocMap.allocVar(slot);
       }
       this.varSetReferredLater = newVarSet;
@@ -562,22 +562,22 @@ class GFlow {
       this.codeChunk.addChild(this.createCode(MInstruction.OP_RETURN));
     }
 
-    void addDefinedVar(PVarSlot varSlot) {
+    void addDefinedVar(PEVarSlot varSlot) {
       if (this.definedVarList.contains(varSlot)) { throw new IllegalArgumentException("Defined var already registered. " + varSlot); }
       this.definedVarList.add(varSlot);
     }
 
-    boolean isDefinedHere(PVarSlot varSlot) {
+    boolean isDefinedHere(PEVarSlot varSlot) {
       return this.definedVarList.contains(varSlot);
     }
 
-    void addEnvVar(PVarSlot varSlot) {
+    void addEnvVar(PEVarSlot varSlot) {
       if (!this.envVarList.contains(varSlot)) {
         this.envVarList.add(varSlot);
       }
     }
 
-    int envIndexOf(PVarSlot varSlot) {  // -1 : not found
+    int envIndexOf(PEVarSlot varSlot) {  // -1 : not found
       return this.envVarList.indexOf(varSlot);
     }
 
@@ -963,11 +963,11 @@ class GFlow {
   }
 
   class VarRefNode extends Node {
-    PVarSlot varSlot;
+    PEVarSlot varSlot;
     int ref;
     int index;
 
-    VarRefNode(Parser.SrcInfo srcInfo, PVarSlot varSlot) {
+    VarRefNode(Parser.SrcInfo srcInfo, PEVarSlot varSlot) {
       super(srcInfo);
       this.varSlot = varSlot;
     }
@@ -1012,10 +1012,10 @@ class GFlow {
   }
 
   class VarDefNode extends Node {
-    PVarSlot varSlot;
+    PEVarSlot varSlot;
     boolean referredLater;
 
-    VarDefNode(Parser.SrcInfo srcInfo, PVarSlot varSlot) {
+    VarDefNode(Parser.SrcInfo srcInfo, PEVarSlot varSlot) {
       super(srcInfo);
       this.varSlot = varSlot;
     }
@@ -1388,12 +1388,12 @@ class GFlow {
   }
 
   private class VarSet {
-    PVarSlot varSlot;  // null at the last elem in chain
+    PEVarSlot varSlot;  // null at the last elem in chain
     VarSet next;
 
     private VarSet() {}
 
-    boolean contains(PVarSlot varSlot) {
+    boolean contains(PEVarSlot varSlot) {
       VarSet vs = this;
       boolean b = false;
       while (!b && vs.varSlot != null) {
@@ -1403,7 +1403,7 @@ class GFlow {
       return b;
     }
 
-    VarSet add(PVarSlot varSlot) {
+    VarSet add(PEVarSlot varSlot) {
       if (varSlot == null) { throw new IllegalArgumentException("Null VarSlot."); }
       VarSet vs = this;
       if (!this.contains(varSlot)) {
@@ -1432,10 +1432,10 @@ class GFlow {
   }
 
   private class AllocMap {
-    List<PVarSlot> map;
+    List<PEVarSlot> map;
 
     AllocMap() {
-      this.map = new ArrayList<PVarSlot>();
+      this.map = new ArrayList<PEVarSlot>();
     }
 
     int size() { return this.map.size(); }
@@ -1448,7 +1448,7 @@ class GFlow {
       return am;
     }
 
-    int allocVar(PVarSlot varSlot) {
+    int allocVar(PEVarSlot varSlot) {
       if (this.map.contains(varSlot)) { throw new RuntimeException("VarSlot already allocated. " + varSlot); }
       int i = this.map.indexOf(null);
       if (i >= 0) {
@@ -1460,13 +1460,13 @@ class GFlow {
       return i;
     }
 
-    void deallocVar(PVarSlot varSlot) {
+    void deallocVar(PEVarSlot varSlot) {
       int i = this.map.indexOf(varSlot);
       if (i < 0) { throw new RuntimeException("VarSlot not allocated. " + GFlow.this.getTopRoot().name + " " + varSlot.toString()); }
       this.map.set(i, null);
     }
 
-    int varIndexOf(PVarSlot varSlot) {
+    int varIndexOf(PEVarSlot varSlot) {
       return this.map.indexOf(varSlot);
     }
 
@@ -1474,7 +1474,7 @@ class GFlow {
       return this.map.get(i) != null;
     }
 
-    PVarSlot allocatedAt(int i) { return this.map.get(i); }
+    PEVarSlot allocatedAt(int i) { return this.map.get(i); }
 
     void expandTo(int size) {
       for (int i = this.map.size(); i < size; i++) {

@@ -34,7 +34,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
   PTypeDesc sig;  // null means variable params
   String tcon;
   int acc;
-  PVarDef[] tparams;  // null means variable params
+  PTVarDef[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
 
   public String toString() {
@@ -102,7 +102,6 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
 
     void addConstr(PDataConstrDef constr) throws CompileException {
       StringBuffer emsg;
-      constr.parent = this.dat;
       for (int i = 0; i < constr.attrs.length; i++) {
         String name = constr.attrs[i].name;
         if (name != null) {
@@ -137,13 +136,13 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       } else if (this.dat.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.dat.sig;
         this.dat.tcon = ti.name;
-        this.dat.tparams = new PVarDef[0];
+        this.dat.tparams = new PTVarDef[0];
       } else if (this.dat.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.dat.sig;
         this.dat.tcon = tr.tcon;
-        this.dat.tparams = new PVarDef[tr.params.length];
+        this.dat.tparams = new PTVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.dat.tparams[i] = (PVarDef)tr.params[i];
+          this.dat.tparams[i] = (PTVarDef)tr.params[i];
         }
       } else {
         throw new RuntimeException("Unexpected type.");
@@ -243,7 +242,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PVarDef var = PVarDef.acceptXTvar(ee);
+        PTVarDef var = PTVarDef.acceptX(ee);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -369,10 +368,10 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
-  public PVarSlot[] getParamVarSlots() {
-    PVarSlot[] pvs;
+  public PTVarSlot[] getParamVarSlots() {
+    PTVarSlot[] pvs;
     if (this.tparams != null) {
-      pvs = new PVarSlot[this.tparams.length];
+      pvs = new PTVarSlot[this.tparams.length];
       for (int i = 0; i < this.tparams.length; i++) {
         pvs[i] = this.tparams[i].varSlot;
       }

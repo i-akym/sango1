@@ -63,7 +63,6 @@ class PIfBlock extends PDefaultEvalElem {
     }
 
     void addClause(PIfClause clause) {
-      clause.parent = this.ifBlock;
       this.clauseList.add(clause);
     }
 

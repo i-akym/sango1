@@ -29,7 +29,7 @@ import java.util.List;
 
 class PEvalStmt extends PDefaultProgElem implements PFunDef {
   int availability;  // Module.AVAILABILITY_xxx
-  PVarDef[] params;
+  PEVarDef[] params;
   String official;
   String[] aliases;
   int acc;  // Module.ACC_xxx
@@ -70,7 +70,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
 
   static class Builder {
     PEvalStmt eval;
-    List<PVarDef> paramList;
+    List<PEVarDef> paramList;
     List<String> aliasList;
     List<PExpr> implExprList;
 
@@ -80,7 +80,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
 
     Builder() {
       this.eval = new PEvalStmt();
-      this.paramList = new ArrayList<PVarDef>();
+      this.paramList = new ArrayList<PEVarDef>();
       this.aliasList = new ArrayList<String>();
       // implExprList will be initialized later
     }
@@ -93,12 +93,11 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       this.eval.availability = availability;
     }
 
-    void addParam(PVarDef param) {
-      param.parent = this.eval;
+    void addParam(PEVarDef param) {
       this.paramList.add(param);
     }
 
-    void addParamList(List<PVarDef> paramList) {
+    void addParamList(List<PEVarDef> paramList) {
       for (int i = 0; i < paramList.size(); i++) {
         this.addParam(paramList.get(i));
       }
@@ -128,7 +127,6 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     }
 
     void addImplExpr(PExpr expr) {
-      expr.parent = this.eval;
       this.implExprList.add(expr);
     }
 
@@ -139,7 +137,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     }
 
     PEvalStmt create() throws CompileException {
-      this.eval.params = this.paramList.toArray(new PVarDef[this.paramList.size()]);
+      this.eval.params = this.paramList.toArray(new PEVarDef[this.paramList.size()]);
       this.eval.aliases = this.aliasList.toArray(new String[this.aliasList.size()]);
       if (this.implExprList != null) {
         this.eval.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
@@ -244,7 +242,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PVarDef var = PVarDef.acceptX(ee, PVarDef.CAT_FUN_PARAM, PVarDef.TYPE_NEEDED);
+        PEVarDef var = PEVarDef.acceptX(ee, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -298,10 +296,10 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     return builder.create();
   }
 
-  private static List<PVarDef> acceptParamList(ParserA.TokenReader reader) throws CompileException, IOException {
-    List<PVarDef> paramList = new ArrayList<PVarDef>();
-    PVarDef param;
-    while ((param = PVarDef.accept(reader, PVarDef.CAT_FUN_PARAM, PVarDef.TYPE_NEEDED)) != null) {
+  private static List<PEVarDef> acceptParamList(ParserA.TokenReader reader) throws CompileException, IOException {
+    List<PEVarDef> paramList = new ArrayList<PEVarDef>();
+    PEVarDef param;
+    while ((param = PEVarDef.accept(reader, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED)) != null) {
       paramList.add(param);
     }
     return paramList;

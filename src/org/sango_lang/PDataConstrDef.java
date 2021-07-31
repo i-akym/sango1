@@ -92,7 +92,6 @@ class PDataConstrDef extends PDefaultProgElem implements PDataDef.Constr {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      attr.parent = this.constr;
       this.attrList.add(attr);
     }
 

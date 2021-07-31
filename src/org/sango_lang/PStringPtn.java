@@ -66,7 +66,6 @@ class PStringPtn extends PDefaultPtnElem {
     }
 
     void addElem(PPtnMatch elem) {
-      elem.parent = this.string;
       this.elemList.add(elem);
     }
 

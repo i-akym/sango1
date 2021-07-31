@@ -45,8 +45,6 @@ class PListConstr extends PList {
 
   static PListConstr create(Parser.SrcInfo srcInfo, PEvalElem elem, PEvalElem tail) {
     PListConstr c = new PListConstr();
-    elem.setParent(c);
-    tail.setParent(c);
     c.srcInfo = srcInfo;
     c.elem = elem;
     c.tail = tail;

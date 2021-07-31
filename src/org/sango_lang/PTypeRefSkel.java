@@ -56,8 +56,8 @@ public class PTypeRefSkel implements PTypeSkel {
     t.ext = this.ext;
     t.params = new PTypeSkel[this.params.length];
     for (int i = 0; i < t.params.length; i++) {
-      PVarDef d = var.varSlot.varDef;
-      PVarSlot s = PVarSlot.create(d);
+      PTVarDef d = var.varSlot.varDef;
+      PTVarSlot s = PTVarSlot.create(d);
       t.params[i] = PTypeVarSkel.create((d != null)? d.getSrcInfo(): null, (d != null)? d.scope: null, s);
     }
     bindings.bind(var.varSlot, t);
@@ -180,7 +180,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#apply2 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
       PTypeVarSkel tv = (PTypeVarSkel)type;
-      if (trialBindings.isGivenTvar(tv.varSlot)) {
+      if (trialBindings.isGivenTVar(tv.varSlot)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#apply2 2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -284,7 +284,7 @@ if (PTypeGraph.DEBUG > 1) {
       Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
   }
 
-  public boolean includesVar(PVarSlot varSlot, PTypeSkelBindings bindings) {
+  public boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;
     for (int i = 0; !b && i < this.params.length; i++) {
       b = this.params[i].includesVar(varSlot, bindings);
@@ -292,7 +292,7 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public PVarSlot getVarSlot() { return null; }
+  public PTVarSlot getVarSlot() { return null; }
 
   public PTypeSkel join(PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
@@ -404,7 +404,7 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTypeSkel[] getParams() { return this.params; }
 
-  public MType toMType(PModule mod, List<PVarSlot> slotList) {
+  public MType toMType(PModule mod, List<PTVarSlot> slotList) {
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     if (!this.tconInfo.key.modName.equals(mod.name)) {
       b.setModName(this.tconInfo.key.modName);
@@ -417,10 +417,10 @@ if (PTypeGraph.DEBUG > 1) {
     return b.create();
   }
 
-  public List<PVarSlot> extractVars(List<PVarSlot> alreadyExtracted) {
-    List<PVarSlot> newlyExtracted = new ArrayList<PVarSlot>();
+  public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
+    List<PTVarSlot> newlyExtracted = new ArrayList<PTVarSlot>();
     for (int i = 0; i < this.params.length; i++) {
-      List<PVarSlot> justExtracted = this.params[i].extractVars(alreadyExtracted);
+      List<PTVarSlot> justExtracted = this.params[i].extractVars(alreadyExtracted);
       if (justExtracted != null) {
         newlyExtracted.addAll(justExtracted);
       }
@@ -450,22 +450,6 @@ if (PTypeGraph.DEBUG > 1) {
       tr = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
     }
     return tr;
-  }
-
-  public GFlow.Node setupFlow(GFlow flow, PScope scope, PTypeSkelBindings bindings) {
-    GFlow.DataConstrNode node = flow.createNodeForDataConstrBody(
-      this.srcInfo, scope.theMod.modNameToModRefIndex(Module.MOD_LANG), "type$", "type", 0);
-    GFlow.Node n = flow.createNodeForEmptyListBody(this.srcInfo);
-    for (int i = this.params.length - 1; i >= 0; i--) {
-      GFlow.ListNode ln = flow.createNodeForList(this.srcInfo);
-      ln.addChild(this.params[i].resolveBindings(bindings).setupFlow(flow, scope, bindings));
-      ln.addChild(n);
-      n = ln;
-    }
-    node.addChild(n);
-    node.addChild(flow.createNodeForCstr(this.srcInfo, this.tconInfo.key.modName));
-    node.addChild(flow.createNodeForCstr(this.srcInfo, this.tconInfo.key.tcon));
-    return node;
   }
 
   public String repr() {

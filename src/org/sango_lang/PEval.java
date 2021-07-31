@@ -199,7 +199,7 @@ abstract class PEval {
       if (this.state != 5 && item.elem instanceof PClosure) {
         PClosure closure = (PClosure)item.elem;
         for (int i = 0; i < closure.params.length; i++) {
-          PVarDef param = closure.params[i];
+          PEVarDef param = closure.params[i];
           if (param.type == null) {
             emsg = new StringBuffer();
             emsg.append("Parameter type missing at ");
@@ -605,7 +605,7 @@ abstract class PEval {
       ;
     } else if ((eval = PFunRef.acceptX(elem)) != null) {
       ;
-    } else if ((eval = PVarRef.acceptXEvar(elem)) != null) {
+    } else if ((eval = PEVarRef.acceptX(elem)) != null) {
       ;
     } else if ((eval = PStaticInvEval.acceptX(elem)) != null) {
       ;
