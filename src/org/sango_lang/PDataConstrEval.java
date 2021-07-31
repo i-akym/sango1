@@ -301,26 +301,26 @@ class PDataConstrEval extends PDefaultEvalElem {
     // /* DEBUG */ System.out.print("break down 1 - ");
     // /* DEBUG */ System.out.println(this);
     try {
-      PVarDef[] posdVarDefs = new PVarDef[this.posdAttrs.length];
+      PEVarDef[] posdVarDefs = new PEVarDef[this.posdAttrs.length];
       PExprId[] posdVarRefs = new PExprId[this.posdAttrs.length];
       for (int i = 0; i < this.posdAttrs.length; i++) {
         String varName = this.scope.generateId();
-        posdVarDefs[i] = PVarDef.create(this.srcInfo, PVarDef.CAT_LOCAL_VAR, null, varName);
+        posdVarDefs[i] = PEVarDef.create(this.srcInfo, /* PEVarDef.CAT_LOCAL_VAR, */ null, varName);
         posdVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
       }
-      PVarDef[] namedVarDefs = new PVarDef[this.namedAttrs.length];
+      PEVarDef[] namedVarDefs = new PEVarDef[this.namedAttrs.length];
       PExprId[] namedVarRefs = new PExprId[this.namedAttrs.length];
       for (int i = 0; i < this.namedAttrs.length; i++) {
         String varName = this.scope.generateId();
-        namedVarDefs[i] = PVarDef.create(this.srcInfo, PVarDef.CAT_LOCAL_VAR, null, varName);
+        namedVarDefs[i] = PEVarDef.create(this.srcInfo, /* PEVarDef.CAT_LOCAL_VAR, */ null, varName);
         namedVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
       }
-      PVarDef[] usingVarDefs = new PVarDef[attrSrcs.length];
+      PEVarDef[] usingVarDefs = new PEVarDef[attrSrcs.length];
       PExprId[] usingVarRefs = new PExprId[attrSrcs.length];
       for (int i = 0; i < attrSrcs.length; i++) {
         if (attrSrcs[i] == ATTR_FROM_USING) {
           String varName = this.scope.generateId();
-          usingVarDefs[i] = PVarDef.create(this.srcInfo, PVarDef.CAT_LOCAL_VAR, null, varName);
+          usingVarDefs[i] = PEVarDef.create(this.srcInfo, /* PEVarDef.CAT_LOCAL_VAR, */ null, varName);
           usingVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
         } else {
           usingVarDefs[i] = null;

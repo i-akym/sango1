@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PClosure extends PDefaultEvalElem {
-  PVarDef[] params;
+  PEVarDef[] params;
   PRetDef retDef;
   PExpr[] implExprs;
   PScope outerScope;
@@ -58,7 +58,7 @@ class PClosure extends PDefaultEvalElem {
 
   static class Builder {
     PClosure closure;
-    List<PVarDef> paramList;
+    List<PEVarDef> paramList;
     List<PExpr> implExprList;
 
     static Builder newInstance() {
@@ -67,7 +67,7 @@ class PClosure extends PDefaultEvalElem {
 
     Builder() {
       this.closure = new PClosure();
-      this.paramList = new ArrayList<PVarDef>();
+      this.paramList = new ArrayList<PEVarDef>();
       this.implExprList = new ArrayList<PExpr>();
     }
 
@@ -75,12 +75,12 @@ class PClosure extends PDefaultEvalElem {
       this.closure.srcInfo = si;
     }
 
-    void addParam(PVarDef param) {
+    void addParam(PEVarDef param) {
       param.parent = this.closure;
       this.paramList.add(param);
     }
 
-    void addParamList(List<PVarDef> paramList) {
+    void addParamList(List<PEVarDef> paramList) {
       for (int i = 0; i < paramList.size(); i++) {
         this.addParam(paramList.get(i));
       }
@@ -102,7 +102,7 @@ class PClosure extends PDefaultEvalElem {
     }
 
     PClosure create() {
-      this.closure.params = this.paramList.toArray(new PVarDef[this.paramList.size()]);
+      this.closure.params = this.paramList.toArray(new PEVarDef[this.paramList.size()]);
       this.closure.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
       return this.closure;
     }
@@ -129,7 +129,7 @@ class PClosure extends PDefaultEvalElem {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PVarDef var = PVarDef.acceptX(ee, PVarDef.CAT_FUN_PARAM, PVarDef.TYPE_NEEDED);
+        PEVarDef var = PEVarDef.acceptX(ee, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -222,8 +222,8 @@ class PClosure extends PDefaultEvalElem {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
-    PVarDef param;
-    while ((param = PVarDef.accept(reader, PVarDef.CAT_FUN_PARAM, PVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    PEVarDef param;
+    while ((param = PEVarDef.accept(reader, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       builder.addParam(param);
     }
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -348,9 +348,7 @@ class PClosure extends PDefaultEvalElem {
 
   public GFlow.Node setupFlow(GFlow flow) {
     String name = this.scope.getFunOfficial() + ":" + this.scope.generateId();
-    // List<PVarSlot> envList = this.scope.getEnvList();
-    // PVarSlot[] envVarSlots = envList.toArray(new PVarSlot[envList.size()]);
-    PVarSlot[] paramVarSlots = new PVarSlot[this.params.length];
+    PEVarSlot[] paramVarSlots = new PEVarSlot[this.params.length];
     PTypeSkel[] paramTypes = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       paramVarSlots[i] = this.params[i].varSlot;
@@ -363,9 +361,6 @@ class PClosure extends PDefaultEvalElem {
     }
     implNode.addChild(this.implExprs[this.implExprs.length - 1].setupFlow(flow));
     GFlow.SeqNode constrNode = flow.createNodeForClosureConstr(this.srcInfo, implNode /*, envList.size()*/);
-    // for (int i = 0; i < envVarSlots.length; i++) {
-      // constrNode.addChild(flow.createNodeForVarRef(this.srcInfo, envVarSlots[i]));
-    // }
     return constrNode;
   }
 }

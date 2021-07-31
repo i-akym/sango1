@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,59 +23,39 @@
  ***************************************************************************/
 package org.sango_lang;
 
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+public class PEVarSlot {
+  static int hashValue = 0;
 
-public class PTypeSkelBindings {
-  Map<PTVarSlot, PTypeSkel> bindingDict;
-  List<PTVarSlot> givenTVarList;
+  int hash;
+  PEVarDef varDef;
 
-  private PTypeSkelBindings() {}
+  private PEVarSlot() {}
 
-  public static PTypeSkelBindings create() {
-    return create(new ArrayList<PTVarSlot>());
+  static PEVarSlot create(PEVarDef varDef) {
+    PEVarSlot s = createInternal();
+    s.varDef = varDef;
+    return s;
   }
 
-  static PTypeSkelBindings create(List<PTVarSlot> givenTVarList) {
-    PTypeSkelBindings b = new PTypeSkelBindings();
-    b.bindingDict = new HashMap<PTVarSlot, PTypeSkel>();
-    b.givenTVarList = givenTVarList;
-    return b;
+  public static PEVarSlot createInternal() {
+    PEVarSlot s = new PEVarSlot();
+    s.hash = hashValue++;
+    return s;
   }
 
   public String toString() {
-    return this.bindingDict.toString()
-      + " G" + this.givenTVarList.toString();
-  }
-
-  boolean isBound(PTVarSlot var) {
-    return this.bindingDict.containsKey(var);
-  }
-
-  void bind(PTVarSlot var, PTypeSkel typeSkel) {
-    this.bindingDict.put(var, typeSkel);
-  }
-
-  PTypeSkel lookup(PTVarSlot var) {
-// /* DEBUG */ System.out.println("PTypeSkelBindings#lookup called " + var);
-    PTypeSkel t = this.bindingDict.get(var);
-    if (t != null) {
-      PTVarSlot varSlot = t.getVarSlot();
-      while (varSlot != null) {
-        PTypeSkel t2 = this.bindingDict.get(varSlot);
-        if (t2 != null) {
-          varSlot = t.getVarSlot();
-          t = t2;
-        } else {
-          varSlot = null;
-        }
-      }
+    StringBuffer buf = new StringBuffer();
+    if (this.varDef != null) {
+      buf.append(this.varDef.name);
+      buf.append(":VE");
+    } else {
+      buf.append("PSEUDO");
     }
-// /* DEBUG */ System.out.println("PTypeSkelBindings#lookup returns " + t);
-    return t;
+    buf.append(this.hash);
+    return buf.toString();
   }
 
-  boolean isGivenTVar(PTVarSlot var) { return this.givenTVarList.contains(var); }
+  String repr() {
+    return (this.varDef != null)? this.varDef.name: "$" + this.hash;
+  }
 }

@@ -114,7 +114,7 @@ abstract class PPtn {
         this.addDataObj(ACCEPT_STRING, item);
       } else if (elem instanceof PExprId) {
         this.addId(item);
-      } else if (elem instanceof PVarDef) {
+      } else if (elem instanceof PEVarDef) {
         this.addVarDef(item);
       } else if (elem instanceof PWildCard) {
         this.addWildCard(item);
@@ -157,13 +157,13 @@ abstract class PPtn {
     }
 
     private void addVarDef(PPtnItem item) {
-      PVarDef v = (PVarDef)item.elem;
+      PEVarDef v = (PEVarDef)item.elem;
       if ((v.type == null && (acceptablesTab[this.state] & ACCEPT_VARDEF_NOT_CASTED) == 0)
           || (v.type != null && (acceptablesTab[this.state] & ACCEPT_VARDEF_CASTED) == 0)) {
         throw new IllegalArgumentException("Invalid item");
       }
       if (this.state == 1) {
-        ((PVarDef)item.elem).type = this.leadingCast;
+        ((PEVarDef)item.elem).type = this.leadingCast;
       }
       this.itemList.add(item);
       switch (this.state) {
@@ -240,7 +240,7 @@ abstract class PPtn {
             || anchorElem instanceof PListPtn
             || anchorElem instanceof PTuplePtn
             || anchorElem instanceof PStringPtn
-            || anchorElem instanceof PVarDef
+            || anchorElem instanceof PEVarDef
             || anchorElem instanceof PWildCard
             || anchorElem instanceof PPtnElem) {
           p = this.createTermPtn();
@@ -380,11 +380,11 @@ abstract class PPtn {
       ;
     } else if ((ptn = PStringPtn.acceptX(elem)) != null) {
       ;
-    } else if ((ptn = PVarDef.acceptX(elem, PVarDef.CAT_LOCAL_VAR, PVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    } else if ((ptn = PEVarDef.acceptX(elem, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       ;
     } else if ((ptn = PWildCard.acceptX(elem)) != null) {
       ;
-    } else if ((ptn = PVarRef.acceptXEvar(elem)) != null) {
+    } else if ((ptn = PEVarRef.acceptX(elem)) != null) {
       ;
     } else if ((ptn = PDataConstrPtn.acceptX(elem)) != null) {
       ;

@@ -258,11 +258,11 @@ class PCaseClause extends PDefaultTypedElem {
     if (this.ptnMatches.length == 1) {
       this.ptnMatches[0] = this.ptnMatches[0].setupScope(this.scope);
     } else {
-      this.scope.enableDefineVar(false);
+      this.scope.enableDefineEVar(false);
       for (int i = 0; i < this.ptnMatches.length; i++) {
         ptnMatches[i].setupScope(this.scope);
       }
-      this.scope.enableDefineVar(true);
+      this.scope.enableDefineEVar(true);
     }
     if (this.guardExprs != null) {
       for (int i = 0; i < this.guardExprs.length; i++) {

@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,22 +23,22 @@
  ***************************************************************************/
 package org.sango_lang;
 
-public class PVarSlot {
+public class PTVarSlot {
   static int hashValue = 0;
 
   int hash;
-  PVarDef varDef;
+  PTVarDef varDef;
 
-  private PVarSlot() {}
+  private PTVarSlot() {}
 
-  static PVarSlot create(PVarDef varDef) {
-    PVarSlot s = createInternal();
+  static PTVarSlot create(PTVarDef varDef) {
+    PTVarSlot s = createInternal();
     s.varDef = varDef;
     return s;
   }
 
-  public static PVarSlot createInternal() {
-    PVarSlot s = new PVarSlot();
+  public static PTVarSlot createInternal() {
+    PTVarSlot s = new PTVarSlot();
     s.hash = hashValue++;
     return s;
   }
@@ -47,14 +47,7 @@ public class PVarSlot {
     StringBuffer buf = new StringBuffer();
     if (this.varDef != null) {
       buf.append(this.varDef.name);
-      buf.append(":V");
-      if ((this.varDef.cat & PVarDef.CAT_TYPE_PARAM) > 0) {
-        buf.append("T");
-      } else if ((this.varDef.cat & PVarDef.CAT_FUN_PARAM) > 0) {
-        buf.append("F");
-      } else if ((this.varDef.cat & PVarDef.CAT_LOCAL_VAR) > 0) {
-        buf.append("L");
-      }
+      buf.append(":VT");
     } else {
       buf.append("PSEUDO");
     }

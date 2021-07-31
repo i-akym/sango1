@@ -805,10 +805,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+      paramTypeBuilder.addItem(PTVarDef.create(si, /* PVarDef.CAT_TYPE_PARAM, null, */ paramNames[i]));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
-    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "int", false));
@@ -836,10 +836,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+      paramTypeBuilder.addItem(PTVarDef.create(si, /* PVarDef.CAT_TYPE_PARAM, null, */ paramNames[i]));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
-    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "cstr", false));
@@ -877,10 +877,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+      paramTypeBuilder.addItem(PTVarDef.create(si, /* PVarDef.CAT_TYPE_PARAM, null, */ paramNames[i]));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dd.getFormalTcon(), true));
-    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "bool", false));
@@ -966,10 +966,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, paramNames[i]));
+      paramTypeBuilder.addItem(PTVarDef.create(si, /* PVarDef.CAT_TYPE_PARAM, null, */ paramNames[i]));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dd.getFormalTcon(), true));
-    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ paramTypeBuilder.create(), "X"));
     PType.Builder retMaybeTypeBuilder = PType.Builder.newInstance();
     retMaybeTypeBuilder.setSrcInfo(si);
     PType.Builder retDataTypeBuilder = PType.Builder.newInstance();
@@ -997,7 +997,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       ptnBuilder.setSrcInfo(si);
       String[] attrs = generateIds("V", constr.getAttrCount());
       for (int j = 0; j < constr.getAttrCount(); j++) {
-        ptnBuilder.addItem(PPtnItem.create(PVarDef.create(si, PVarDef.CAT_LOCAL_VAR, null, attrs[j])));
+        ptnBuilder.addItem(PPtnItem.create(PEVarDef.create(si, /* PVarDef.CAT_LOCAL_VAR, */ null, attrs[j])));
       }
       ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.getDcon())));
       casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
@@ -1075,10 +1075,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < dat.tparams.length; i++) {
-      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, dat.tparams[i].name));
+      paramTypeBuilder.addItem(PTVarDef.create(si, /* PVarDef.CAT_TYPE_PARAM, null, */ dat.tparams[i].name));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dat.tcon, false));
-    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ paramTypeBuilder.create(), "X"));
     evalStmtBuilder.setRetDef(PRetDef.create(attr.type.deepCopy(si)));
     evalStmtBuilder.startImplExprSeq();
     PEval.Builder matchEvalBuilder = PEval.Builder.newInstance();
@@ -1086,7 +1086,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     matchEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
     PPtn.Builder matchPtnBuilder = PPtn.Builder.newInstance();
     matchPtnBuilder.setSrcInfo(si);
-    matchPtnBuilder.addItem(PPtnItem.create(si, attr.name, PVarDef.create(si, PVarDef.CAT_LOCAL_VAR, null, "V")));
+    matchPtnBuilder.addItem(PPtnItem.create(si, attr.name, PEVarDef.create(si, /* PVarDef.CAT_LOCAL_VAR, */ null, "V")));
     matchPtnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
     matchPtnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.dcon)));
     evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, null, matchPtnBuilder.create())));
@@ -1125,7 +1125,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
   }
 
-  private void generateMaybeAttrFun(String tcon, PVarDef[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
+  private void generateMaybeAttrFun(String tcon, PTVarDef[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
     // eval @availability <*T0 *T1 .. TCON> *X _maybe_attr_TCON_A | maybe_A @xxx -> <<A's type> maybe> {
     //   X case {
     //   ; A: *V *** DCON -> V value$
@@ -1144,10 +1144,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < tparams.length; i++) {
-      paramTypeBuilder.addItem(PVarDef.create(si, PVarDef.CAT_TYPE_PARAM, null, tparams[i].name));
+      paramTypeBuilder.addItem(PTVarDef.create(si, /* PVarDef.CAT_TYPE_PARAM, null, */ tparams[i].name));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
-    evalStmtBuilder.addParam(PVarDef.create(si, PVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(attrType.deepCopy(si));
@@ -1165,7 +1165,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     casePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
     ptnBuilder.setSrcInfo(si);
-    ptnBuilder.addItem(PPtnItem.create(si, attrName, PVarDef.create(si, PVarDef.CAT_FUN_PARAM, null, "V")));
+    ptnBuilder.addItem(PPtnItem.create(si, attrName, PEVarDef.create(si, /* PVarDef.CAT_FUN_PARAM, */ null, "V")));
     ptnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
     ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, dcon)));
     casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
@@ -1387,17 +1387,17 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PVarSlot> givenVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
-      } else if ((r = PModule.this.selectFun(this.funName, paramTypes, givenVarList)) != null) {
+      } else if ((r = PModule.this.selectFun(this.funName, paramTypes, givenTVarList)) != null) {
         ;
       } else if (this.searchInLang) {
         PDefDict.EidProps p = PModule.this.theCompiler.getReferredDefDict(Module.MOD_LANG).resolveEid(
           this.funName, PExprId.CAT_FUN, Module.ACC_PUBLIC);
         if (p != null) {
-          r = p.defGetter.selectFunDef(paramTypes, givenVarList);
+          r = p.defGetter.selectFunDef(paramTypes, givenTVarList);
         }
       }
       if (r != null) {
@@ -1456,7 +1456,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     public PAliasDef getAliasDef() { return this.aliasDef; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PVarSlot> givenVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
     List<Integer> indices = this.funDict.get(name);
     PDefDict.FunSelRes sel = null;
     if (indices == null) { return null; }
@@ -1464,7 +1464,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       PFunDef fd = this.evalStmtList.get(indices.get(i));
       PTypeSkel[] pts = fd.getParamTypes();
       if (pts.length != paramTypes.length) { continue; }
-      PTypeSkelBindings b = PTypeSkelBindings.create(givenVarList);
+      PTypeSkelBindings b = PTypeSkelBindings.create(givenTVarList);
       for (int j = 0; b != null && j < pts.length; j++) {
         b = pts[j].applyTo(paramTypes[j], b);
       }
@@ -1823,7 +1823,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
     public String getFormalTcon() { return this.referredDataDef.getFormalTcon(); }
 
-    public PVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
+    public PTVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 

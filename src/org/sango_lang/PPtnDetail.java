@@ -130,15 +130,15 @@ class PPtnDetail extends PExpr {
   public PPtnDetail setupScope(PScope scope) throws CompileException {
     StringBuffer emsg;
     PPtnDetail pd = (PPtnDetail)super.setupScope(scope);
-    if (!(pd.eval instanceof PVarRef)) {
+    if (!(pd.eval instanceof PEVarRef)) {
       emsg = new StringBuffer();
       emsg.append("Only variable can be specified for matching at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()); 
     }
-    PVarRef var = (PVarRef)this.eval;
-    if (scope.lookupVar(var.name).varDef.scope != scope) {
+    PEVarRef var = (PEVarRef)this.eval;
+    if (scope.lookupEVar(var.name).varDef.scope != scope) {
       emsg = new StringBuffer();
       emsg.append("Variable \"");
       emsg.append(var.name);
