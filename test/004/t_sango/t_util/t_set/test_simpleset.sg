@@ -14,6 +14,7 @@ eval _main_ -> <void> {
 } ;;
 
 eval test -> <void> {
+  simpleset.new_set test001,
   test101,
   test200,
   test300,

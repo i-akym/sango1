@@ -210,6 +210,8 @@ kbd {
 <a href="#sango.util.set"><code>sango.util.set</code></a>
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
+<a href="#sango.util.set.hashset"><code>sango.util.set.hashset</code></a>
+  <a href="#sango.util.set.hashset.1">生成</a>
 <a href="#sango.util.set.holder"><code>sango.util.set.holder</code></a> 【Alpha】
   <a href="#sango.util.set.holder.1">生成</a>
   <a href="#sango.util.set.holder.2">要素処理</a>
@@ -3975,6 +3977,22 @@ eval &lt;*A *B holder_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt
 <p>値をセットから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.set.hashset"><code>sango.util.set.hashset</code></h1>
+
+<p>オブジェクトのハッシュ値を使用して，コレクション内部の探索を高速化したセットです。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.set.hashset.1"><code>sango.util.set.hashset</code> - 生成</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval new_set @public -&gt; &lt;*A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
+<p>セットを生成します。
+  オブジェクトの等価比較以外で比較する場合は，次の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_set_eq | new_set @public -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
+<p>セットを生成します。
+  <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.set.holder"><code>sango.util.set.holder</code> 【Alpha】</h1>
 
 <p>セットをホルダに入れ，変更可能なオブジェクトとして扱うことを可能にします。
@@ -4028,12 +4046,12 @@ eval &lt;*A holder_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &
   サイズに比例したアクセスコストがかかります。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval new_set @public -&gt; &lt;*A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
-<p>simple setのオブジェクトを生成します。
-  オブジェクトの等価比較以外でキーを比較する場合は，次の関数を使用します。</p>
+<p>セットを生成します。
+  オブジェクトの等価比較以外で比較する場合は，次の関数を使用します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_set_eq | new_set @public
   -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
-<p>simple setのオブジェクトを生成します。
+<p>セットを生成します。
   <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
