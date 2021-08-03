@@ -1578,7 +1578,7 @@ S6 set.size = 4</code></blockquote>
 </ul>
 <p>関数の詳細はライブラリ解説を参照してください。</p>
 <p>simple setは，<code>contain?</code>，<code>remove</code>等の操作に，セットの大きさに比例したコストがかかります。
-  大きなセットを扱う場合，値の大小比較が可能であれば<code>&quot;sango.util.avltree.set&quot;</code>を使うとよいでしょう。</p>
+  大きなセットを扱う場合には，<code>&quot;sango.util.set.hashset&quot;</code>，あるいは値の大小比較が可能であれば<code>&quot;sango.util.avltree.set&quot;</code>を使うとよいでしょう。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.3">20.3. バッグ</h2>
@@ -1676,7 +1676,7 @@ M6 map.size = 4</code></blockquote>
 </ul>
 <p>関数の詳細はライブラリ解説を参照してください。</p>
 <p>simple mapは，<code>put</code>，<code>assoc</code>，<code>remove</code>等の操作に，マップの大きさに比例したコストがかかります。
-  大きなマップを扱う場合，キーの大小比較が可能であれば<code>&quot;sango.util.avltree.map&quot;</code>を使うとよいでしょう。</p>
+  大きなマップを扱う場合には，<code>&quot;sango.util.map.hashmap&quot;</code>，あるいはキーの大小比較が可能であれば<code>&quot;sango.util.avltree.map&quot;</code>を使うとよいでしょう。</p>
 
 <blockquote class="note">*1：「辞書」や「連想リスト」とも呼ばれるものです。</blockquote>
  
@@ -2134,6 +2134,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 
 <p>■　NEXT VERSION</p>
 <ul>
+<li><code>&quot;sango.util.map.hashmap&quot;</code>を追加</li>
 <li><code>&quot;sango.util.set.hashset&quot;</code>を追加</li>
 </ul>
 

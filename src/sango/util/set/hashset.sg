@@ -86,18 +86,18 @@ eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
   Elem hash = *H,
   Col H map.assoc >> case {
   ; *S value$ ->
-    S Elem set.put = (| *S', *R_ |),
-    (| Col H S' map.add, R_ |)
+    S Elem set.put >> case {
+    ; (| *S', none$ |) -> (| Col H S' map.add, Count inc, none$ |)
+    ; (| *S', *R |) -> (| Col H S' map.add, Count, R |)
+    } = (| *Col', *Count', *Replaced_ |),
+    (| col: Col' count: Count' :: Set_d hash_set_d$, Replaced_ |)
   ; ** ->
     Eq sset.new_set = *S,
-    S Elem set.put = (| *S', *R_ |),
-    (| Col H S' map.add, R_ |)
-  } = (| *Col',*Replaced_ |),
-  Replaced_ case {
-  ; ** value$ -> Count
-  ; ** -> Count inc
-  } = *Count',
-  (| col: Col' count: Count' :: Set_d hash_set_d$, Replaced_ |)
+    S Elem set.add = *S',
+    Col H S' map.add = *Col',
+    Count inc = *Count',
+    (| col: Col' count: Count' :: Set_d hash_set_d$, none$ |)
+  }
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem put_new -> <<A set.set_d+> bool tuple> {
@@ -117,18 +117,14 @@ eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple>
   Elem hash = *H,
   Col H map.assoc >> case {
   ; *S value$ ->
-    S Elem set.remove = (| *S', *R_ |),
-    S' set.empty? >> case {
-    ; true$ -> (| Col H map.delete, R_ |)
-    ; ** -> (| Col H S' map.add, R_ |)
-    }
-  ; ** -> (| Col, none$ |)
-  } = (| *Col',*Removed_ |),
-  Removed_ case {
-  ; ** value$ -> Count dec
-  ; ** -> Count
-  } = *Count',
-  (| col: Col' count: Count' :: Set_d hash_set_d$, Removed_ |)
+    S Elem set.remove >> case {
+    ; (| **, none$ |) -> (| Col, Count, none$ |)
+    ; (| *S', *R |) || S' set.empty? -> (| Col H map.delete, Count dec, R |)
+    ; (| *S', *R |) -> (| Col H S' map.add, Count dec, R |)
+    } = (| *Col', *Count', *Removed_ |),
+    (| col: Col' count: Count' :: Set_d hash_set_d$, Removed_ |)
+  ; ** -> (| Set_d, none$ |)
+  }
 } ;;
 
 eval <*A set.set_d+> *Set_d <A> *Elem delete -> <A set.set_d+> {
