@@ -193,6 +193,8 @@ kbd {
 <a href="#sango.util.map"><code>sango.util.map</code></a>
   <a href="#sango.util.map.1">フレームワーク</a>
   <a href="#sango.util.map.2">実装者向け情報</a>
+<a href="#sango.util.map.hashmap"><code>sango.util.map.hashmap</code></a>
+  <a href="#sango.util.map.hashmap.1">生成</a>
 <a href="#sango.util.map.holder"><code>sango.util.map.holder</code></a> 【Alpha】
   <a href="#sango.util.map.holder.1">生成</a>
   <a href="#sango.util.map.holder.2">要素処理</a>
@@ -3543,6 +3545,22 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_delete_f | delete_f @public  -&gt; &lt;&lt;A B map_d+&gt; A &lt;A B map_d+&gt; fun&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除する関数を返します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.map.hashmap"><code>sango.util.map.hashmap</code></h1>
+
+<p>オブジェクトのハッシュ値を使用して，コレクション内部のキー探索を高速化したマップです。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.map.hashmap.1"><code>sango.util.map.hashmap</code> - 生成</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval new_map @public -&gt; &lt;*A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
+<p>マップを生成します。
+  オブジェクトの等価比較以外でキーを比較する場合は，次の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
+<p>マップを生成します。
+  <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.map.holder"><code>sango.util.map.holder</code> 【Alpha】</h1>
