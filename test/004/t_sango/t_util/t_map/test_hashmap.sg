@@ -1,0 +1,81 @@
+import "sango.debug" -> debug ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.hashmap" -> hashmap ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+data <d> := <int> d$ ;;
+
+eval <d> *X _hash_d -> <int> { 3 } ;;
+
+eval test -> <void> {
+  test000,
+  test001,
+  void$
+} ;;
+
+eval test000 -> <void> {
+  hashmap.new_map = *M0,
+  M0 map.empty? = true$,
+  M0 1 "abc" map.put = (| *M1, none$ |),
+  M1 1 "ABC" map.put_new = (| M1, false$ |),
+  M1 2 "def" map.put_new = (| *M2, true$ |),
+  M2 2 "DEF" map.put = (| *M3, (| 2, "def" |) value$ |),
+  M3 map.size = 2,
+  M3 2 map.assoc = "DEF" value$,
+  M3 3 "ghi" map.put = (| *M4, none$ |),
+  M4 2 map.remove = (| *M5, (| 2, "DEF" |) value$ |),
+  M5 map.take >> case {
+  ; (| (| 1, "abc" |), *M5' |) value$ ->
+    M5' map.take = (| (| 3, "ghi" |), *M5'' |) value$,
+    M5'' map.take = none$
+  ; (| (| 3, "ghi" |), *M5' |) value$ ->
+    M5' map.take = (| (| 1, "abc" |), *M5'' |) value$,
+    M5'' map.take = none$
+  },
+  M5 map.clear >> map.empty? = true$,
+  M5 [ (| 4, "jkl" |), (| 5, "mno" |) ] map.add_list = *M6,
+  M6 map.size = 4,
+  M6 map.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  M6 [ 4, 5 ] map.delete_list >> map.size = 2,
+  void$
+} ;;
+eval test001 -> <void> {
+  hashmap.new_map = *M0,
+  M0 map.empty? = true$,
+  M0 (1 d$) "abc" map.put = (| *M1, none$ |),
+  M1 (1 d$) "ABC" map.put_new = (| M1, false$ |),
+  M1 (2 d$) "def" map.put_new = (| *M2, true$ |),
+  M2 (2 d$) "DEF" map.put = (| *M3, (| 2 d$, "def" |) value$ |),
+  M3 map.size = 2,
+  M3 (2 d$) map.assoc = "DEF" value$,
+  M3 (3 d$) "ghi" map.put = (| *M4, none$ |),
+  M4 (2 d$) map.remove = (| *M5, (| 2 d$, "DEF" |) value$ |),
+  M5 map.take >> case {
+  ; (| (| 1 d$, "abc" |), *M5' |) value$ ->
+    M5' map.take = (| (| 3 d$, "ghi" |), *M5'' |) value$,
+    M5'' map.take = none$
+  ; (| (| 3 d$, "ghi" |), *M5' |) value$ ->
+    M5' map.take = (| (| 1 d$, "abc" |), *M5'' |) value$,
+    M5'' map.take = none$
+  },
+  M5 map.clear >> map.empty? = true$,
+  M5 [ (| 4 d$, "jkl" |), (| 5 d$, "mno" |) ] map.add_list = *M6,
+  M6 map.size = 4,
+  M6 map.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  M6 [ 4 d$, 5 d$ ] map.delete_list >> map.size = 2,
+  void$
+} ;;
