@@ -427,9 +427,12 @@ kbd {
 <table border width="100%"><tr><td class="def"><code>data &lt;*A eq_fs&gt; @public :=
   eq?_f: &lt;A A bool fun&gt;
   ne?_f_: &lt;&lt;A A bool fun&gt; maybe&gt;
+  hash_f: &lt;A int fun&gt;
   eq_fs$ ;;</code></td></tr></table>
 <p>等価判定の機能群を表します。
-  「hardに等しい」か「softに等しい」かによらず，抽象的な等価判定に使います。</p>
+  「hardに等しい」か「softに等しい」かによらず，抽象的な等価判定に使います。
+  <code>hash_f</code>には，この等価判定の一環として使用するハッシュ関数を指定します。
+  ハッシュ関数が返す値（ハッシュ値）の制約条件については，関数<code>hash</code>の説明を参照してください。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval hard_eq_fs @public -&gt; &lt;*A eq_fs&gt; ;;</code></td></tr></table>
 <p>「hardに等しい」判定の機能群を返します。</p>
@@ -452,7 +455,7 @@ eval &lt;*A&gt; *X0 &lt;A&gt; *X1 &lt;A eq_fs&gt; *Funs eqcmp_ne? | ne? @public 
   ハッシュ値は，主にコレクションの中から等価なオブジェクトを探索するために使われます。
   「XとYが等価ならばXのハッシュ値とYのハッシュ値が等しい」「Xのハッシュ値とYのハッシュ値が異なればXとYは等価ではない」（＝先の命題の待遇）が成り立ちます。
   被構築データのハッシュ値はランタイムエンジンの内部アルゴリズムにより算出しますが，使用者が定義した型は算出アルゴリズムを変更することができます。
-  そのためには，定義しているモジュールの中で「<code>eval &lt;t&gt; *X _hash_T -&gt; &lt;int&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。</p>
+  そのためには，データ定義しているモジュールの中で上記制約条件を満たすように「<code>eval &lt;t&gt; *X _hash_T -&gt; &lt;int&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.4"><code>sango.lang</code> - 論理演算</h2>

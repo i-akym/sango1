@@ -72,7 +72,7 @@ eval <*A *B map.map_d+> *Map_d size -> <int> {
 
 eval <*A *B map.map_d+> *Map_d <A> *Key get -> <<A B tuple> maybe> {
   Map_d = *Eq *Tab *Count hash_map_d$,
-  Tab (Key hash) map.assoc >> case {
+  Tab (Key &(Eq hash_f)) map.assoc >> case {
   ; *M value$ -> M Key map.get
   ; ** -> none$
   }
@@ -88,7 +88,7 @@ eval <*A *B map.map_d+> *Map_d <A> *Key contain_key? -> <bool> {
 
 eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value put -> <<A B map.map_d+> <<A B tuple> maybe> tuple> {
   Map_d = *Eq *Tab *Count hash_map_d$,
-  Key hash = *H,
+  Key &(Eq hash_f) = *H,
   Tab H map.assoc >> case {
   ; *M value$ ->
     M Key Value map.put >> case {
@@ -118,7 +118,7 @@ eval <*A *B map.map_d+> *Map_d <A> *Key <B> *Value add -> <A B map.map_d+> {
 
 eval <*A *B map.map_d+> *Map_d <A> *Key remove -> <<A B map.map_d+> <<A B tuple> maybe> tuple> {
   Map_d = *Eq *Tab *Count hash_map_d$,
-  Key hash = *H,
+  Key &(Eq hash_f) = *H,
   Tab H map.assoc >> case {
   ; *M value$ ->
     M Key map.remove >> case {
