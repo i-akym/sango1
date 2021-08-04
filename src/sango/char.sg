@@ -44,8 +44,9 @@ eval <char> *C0 <char> *C1 eq_ignore_case? @public -> <bool> {
 
 eval eq_ignore_case_fs @public -> <char eq_fs> {
   eq?_f: ^eq_ignore_case?
-  ne?_f_: none$
-  eq_fs$
+    ne?_f_: none$
+    hash_f: \ <char> *C -> <int> { C upper_case >> hash }
+    eq_fs$
 } ;;
 
 data <repr_context> @public :=

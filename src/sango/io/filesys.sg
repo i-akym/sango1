@@ -251,6 +251,7 @@ eval <cstr> *Path create_dirs @public -> <cstr> {
 eval path_eq_fs @public -> <cstr eq_fs> {
   eq?_f: ^same_path?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 

@@ -117,6 +117,7 @@ data <*A maybe> @public :=
 data <*A eq_fs> @public :=
   eq?_f: <A A bool fun>
   ne?_f_: <<A A bool fun> maybe>
+  hash_f: <A int fun>
   eq_fs$ ;;
 
 data <ordering> @public :=
@@ -161,6 +162,7 @@ eval <*A> *X0 <A> *X1 hard_ne? @public -> <bool> {
 eval hard_eq_fs @public -> <*A eq_fs> {
   eq?_f: ^hard_eq?
     ne?_f_: (^hard_ne? value$)
+    hash_f: ^hash
     eq_fs$
 } ;;
 
@@ -500,16 +502,19 @@ eval <real> *R real_int_convertible? | int_convertible? @public -> <bool> {
 eval int_eq_fs @public -> <int eq_fs> {
   eq?_f: ^int_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 eval real_eq_fs @public -> <real eq_fs> {
   eq?_f: ^real_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 eval byte_eq_fs @public -> <byte eq_fs> {
   eq?_f: ^byte_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 
@@ -586,6 +591,7 @@ eval <char> *C0 <char> *C1 char_compare | compare @public -> <ordering> {
 eval char_eq_fs @public -> <char eq_fs> {
   eq?_f: ^char_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 

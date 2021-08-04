@@ -71,7 +71,7 @@ eval <*A set.set_d+> *Set_d size -> <int> {
 
 eval <*A set.set_d+> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = *Eq *Col *Count hash_set_d$,
-  Col (Elem hash) map.assoc >> case {
+  Col (Elem &(Eq hash_f)) map.assoc >> case {
   ; *S value$ -> S Elem set.get
   ; ** -> none$
   }
@@ -83,7 +83,7 @@ eval <*A set.set_d+> *Set_d <A> *Elem contain? -> <bool> {
 
 eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
   Set_d = *Eq *Col *Count hash_set_d$,
-  Elem hash = *H,
+  Elem &(Eq hash_f) = *H,
   Col H map.assoc >> case {
   ; *S value$ ->
     S Elem set.put >> case {
@@ -114,7 +114,7 @@ eval <*A set.set_d+> *Set_d <A> *Elem add -> <A set.set_d+> {
 
 eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple> {
   Set_d = *Eq *Col *Count hash_set_d$,
-  Elem hash = *H,
+  Elem &(Eq hash_f) = *H,
   Col H map.assoc >> case {
   ; *S value$ ->
     S Elem set.remove >> case {
