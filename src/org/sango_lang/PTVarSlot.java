@@ -28,18 +28,20 @@ public class PTVarSlot {
 
   int hash;
   PTVarDef varDef;
+  boolean needsConcrete;
 
   private PTVarSlot() {}
 
   static PTVarSlot create(PTVarDef varDef) {
-    PTVarSlot s = createInternal();
+    PTVarSlot s = createInternal((varDef != null)? varDef.needsConcrete: false);  // is accepting null ok?
     s.varDef = varDef;
     return s;
   }
 
-  public static PTVarSlot createInternal() {
+  public static PTVarSlot createInternal(boolean needsConcrete) {
     PTVarSlot s = new PTVarSlot();
     s.hash = hashValue++;
+    s.needsConcrete = needsConcrete;
     return s;
   }
 

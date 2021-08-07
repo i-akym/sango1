@@ -205,7 +205,7 @@ class PCompiledModule implements PDefDict {
     dd.acc = dataDef.acc;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < dataDef.paramCount; i++) {
-      PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal());
+      PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
       dd.sigParams[i] = v;
       varList.add(v);
     }
@@ -301,7 +301,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal());
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasDef.body, mod, varList, unresolvedTypeRefList);
@@ -569,7 +569,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal());
+      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.needsConcrete));
       varList.add(v);
     } else {
       throw new RuntimeException("Slot number is not sequential.");

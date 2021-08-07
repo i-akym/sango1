@@ -27,15 +27,16 @@ import java.io.IOException;
 
 class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   String name;
-  // boolean polymorphic;
+  boolean needsConcrete;
   PTVarSlot varSlot;
 
   private PTVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name) {
+  static PTVarDef create(Parser.SrcInfo srcInfo, String name, boolean needsConcrete) {
     PTVarDef var = new PTVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
+    var.needsConcrete = needsConcrete;
     return var;
   }
 
@@ -46,6 +47,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append(this.srcInfo);
     buf.append(",name=");
     buf.append(this.name);
+    if (this.needsConcrete) {
+      buf.append("!");
+    }
     if (this.varSlot != null) {
       buf.append(",slot=");
       buf.append(this.varSlot);
@@ -58,6 +62,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     PTVarDef v = new PTVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
+    v.needsConcrete = this.needsConcrete;
     v.scope = this.scope;
     return v;
   }
@@ -68,14 +73,15 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (varSym == null) { return null; }
     ParserA.Token varId;
-    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE))== null) {
+    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Variable/parameter name missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(si, varId.value.token);
+    boolean needsConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+    return create(si, varId.value.token, needsConcrete);
   }
 
   static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
@@ -89,7 +95,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), id);
+    return create(elem.getSrcInfo(), id, false);  // HERE
   }
 
   public PTVarDef setupScope(PScope scope) throws CompileException {

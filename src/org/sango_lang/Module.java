@@ -120,6 +120,7 @@ public class Module {
   static final String ATTR_MOD = "mod";
   static final String ATTR_MOD_INDEX = "mod_index";
   static final String ATTR_NAME = "name";
+  static final String ATTR_NEEDS_CONCRETE = "needs_concrete";
   static final String ATTR_O = "o";  // operation
   static final String ATTR_P = "p";  // param #1
   static final String ATTR_PARAM_COUNT = "param_count";

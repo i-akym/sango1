@@ -113,6 +113,14 @@ public class PTypeRefSkel implements PTypeSkel {
       this.tconInfo.key.tcon.equals(Module.TCON_EXPOSED) ;
   }
 
+  public boolean isConcrete() {
+    boolean b = true;
+    for (int i = 0; b & i < this.params.length; i++) {
+      b &= this.params[i].isConcrete();
+    }
+    return b;
+  }
+
   public PDefDict.TconInfo getTconInfo() {
     if (this.tconInfo == null) {
       throw new IllegalStateException("Tcon info not set up.");

@@ -76,6 +76,8 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
+  public boolean isConcrete() { return this.varSlot.needsConcrete; }
+
   boolean isPolymorphic() { return this.polymorphic; }
 
   void setPolymorphic(boolean b) {
@@ -171,8 +173,18 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          trialBindings.bind(tv.varSlot, this);
-          b = trialBindings;
+          if (tv.varSlot.needsConcrete & !this.varSlot.needsConcrete) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            b = null;
+          } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            trialBindings.bind(tv.varSlot, this);
+            b = trialBindings;
+          }
         } else {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
@@ -203,8 +215,18 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          trialBindings.bind(this.varSlot, type);
-          b = trialBindings;
+          if (this.varSlot.needsConcrete & !type.isConcrete()) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            b = null;
+          } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            trialBindings.bind(this.varSlot, type);
+            b = trialBindings;
+          }
         }
       } else if (v == this.varSlot) {
 if (PTypeGraph.DEBUG > 1) {
@@ -215,8 +237,18 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-        trialBindings.bind(this.varSlot, type);
-        b = trialBindings;
+        if (this.varSlot.needsConcrete & !type.isConcrete()) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+          b = null;
+        } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+          trialBindings.bind(this.varSlot, type);
+          b = trialBindings;
+        }
       }
     }
     return b;
@@ -325,7 +357,7 @@ if (PTypeGraph.DEBUG > 1) {
       index = slotList.size();
       slotList.add(this.varSlot);
     }
-    return MTypeVar.create(index);
+    return MTypeVar.create(index, this.varSlot.needsConcrete);
   }
 
   public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {

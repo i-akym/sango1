@@ -71,6 +71,7 @@ public class LToken {
   public static final int TILD = 67;
   public static final int COL_EQ = 71;
   public static final int HYPH_GT = 72;
+  public static final int EXCLA = 75;
   public static final int OTHER = 99;
 
   public int tag;

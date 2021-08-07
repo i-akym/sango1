@@ -30,12 +30,14 @@ import org.w3c.dom.Node;
 
 class MTypeVar implements MType {
   int slot;
+  boolean needsConcrete;
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot) {
+  static MTypeVar create(int slot, boolean needsConcrete) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
+    t.needsConcrete = needsConcrete;
     return t;
   }
 
@@ -44,6 +46,9 @@ class MTypeVar implements MType {
     buf.append("<");
     buf.append("_");
     buf.append(this.slot);
+    if (this.needsConcrete) {
+      buf.append("!");
+    }
     buf.append(">");
     return buf.toString();
   }
@@ -51,6 +56,9 @@ class MTypeVar implements MType {
   public Element externalize(Document doc) {
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
+    if (this.needsConcrete) {
+      node.setAttribute(Module.ATTR_NEEDS_CONCRETE, Module.REPR_YES);
+    }
     return node;
   }
 
@@ -66,7 +74,19 @@ class MTypeVar implements MType {
     // if (slot < 0 || slot > builder.typeVarCount) {
       // throw new FormatException("Invalid slot: " + aSlot.getNodeValue());
     // }
-    return create(slot);
+    boolean needsConcrete = false;
+    Node aNeedsConcrete = attrs.getNamedItem(Module.ATTR_NEEDS_CONCRETE);
+    if (aNeedsConcrete != null) {
+      String sNeedsConcrete = aNeedsConcrete.getNodeValue();
+      if (sNeedsConcrete.equals(Module.REPR_YES)) {
+        needsConcrete = true;
+      } else if (sNeedsConcrete.equals(Module.REPR_NO)) {
+        ;
+      } else {
+        throw new FormatException("Invalid 'needs_concrete': " + sNeedsConcrete);
+      }
+    }
+    return create(slot, needsConcrete);
   }
 
   public boolean isCompatible(Cstr defModName, MType type) {

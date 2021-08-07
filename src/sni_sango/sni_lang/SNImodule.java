@@ -433,7 +433,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal());
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
