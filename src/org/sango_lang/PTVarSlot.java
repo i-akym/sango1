@@ -54,10 +54,13 @@ public class PTVarSlot {
       buf.append("PSEUDO");
     }
     buf.append(this.hash);
+    if (this.needsConcrete) {
+      buf.append("!");
+    }
     return buf.toString();
   }
 
   String repr() {
-    return (this.varDef != null)? this.varDef.name: "$" + this.hash;
+    return (this.varDef != null)? this.varDef.name: "$" + this.hash + (this.needsConcrete? "!": "");
   }
 }

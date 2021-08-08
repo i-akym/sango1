@@ -71,7 +71,7 @@ class PCompiledModule implements PDefDict {
         PDefDict.DataDefGetter g = createDataDefGetter(dd);
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           (dds[j].baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-          dds[j].paramCount, dds[j].acc, g);
+          (dds[j].params != null)? dds[j].params.length: -1, dds[j].acc, g);
         cm.foreignTconDict.put(tk, tp);
       }
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
@@ -95,7 +95,7 @@ class PCompiledModule implements PDefDict {
       PDefDict.DataDefGetter g = createDataDefGetter(dd);
       PDefDict.TconProps tp = PDefDict.TconProps.create(
         (mdd.baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-        mdd.paramCount, mdd.acc, g);
+        (mdd.params != null)? mdd.params.length: -1, mdd.acc, g);
       cm.tconDict.put(mdd.tcon, tp);
       for (int j = 0; j < mdd.constrs.length; j++) {
         MConstrDef mcd = mdd.constrs[j];
@@ -201,14 +201,16 @@ class PCompiledModule implements PDefDict {
     DataDef dd = new DataDef();
     dd.availability = dataDef.availability;
     dd.sigTcon = dataDef.tcon;
-    dd.sigParams = (dataDef.paramCount >= 0)? new PTypeVarSkel[dataDef.paramCount]: null;
-    dd.acc = dataDef.acc;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
-    for (int i = 0; i < dataDef.paramCount; i++) {
-      PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
-      dd.sigParams[i] = v;
-      varList.add(v);
+    if (dataDef.params != null) {
+      dd.sigParams = new PTypeVarSkel[dataDef.params.length];
+      for (int i = 0; i < dataDef.params.length; i++) {
+        PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+        dd.sigParams[i] = v;
+        varList.add(v);
+      }
     }
+    dd.acc = dataDef.acc;
     for (int i = 0; i < dataDef.constrs.length; i++) {
       MConstrDef mcd = dataDef.constrs[i];
       ConstrDef cd = dd.addConstr(mcd.dcon);

@@ -160,7 +160,11 @@ public class Module {
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;
 
-  static final String CUR_FORMAT_VERSION = "1.0";
+  // module file format version
+  // static final String CUR_FORMAT_VERSION = "1.0";
+  // initial
+  static final String CUR_FORMAT_VERSION = "1.1";
+  // add needs_concrete attribute to type var slot, which must be checked for type consistency
 
   Cstr name;
   int availability;
@@ -268,7 +272,10 @@ public class Module {
     String formatVersion = aFormatVersion.getNodeValue();
     // /* DEBUG */ System.out.print("format_version = ");
     // /* DEBUG */ System.out.println(formatVersion);
-    if (!formatVersion.equals(CUR_FORMAT_VERSION)) {
+    if (formatVersion.equals(CUR_FORMAT_VERSION)
+      || formatVersion.equals("1.0")) {
+      ;
+    } else {
       throw new FormatException("Non-supported format version: " + formatVersion);
     }
 
@@ -430,22 +437,42 @@ public class Module {
     if (aBaseModIndex != null) {
       Node aBaseTcon = attrs.getNamedItem(ATTR_BASE_TCON);
       String baseTcon = (aBaseTcon != null)? aBaseTcon.getNodeValue(): aTcon.getNodeValue();
-      builder.startDataDef(aTcon.getNodeValue(), av, acc, paramCount, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
+      builder.startDataDef(aTcon.getNodeValue(), av, acc, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
     } else {
-      builder.startDataDef(aTcon.getNodeValue(), av, acc, paramCount);
+      builder.startDataDef(aTcon.getNodeValue(), av, acc);
     }
     Node n = node.getFirstChild();
+    int state = 0;
     while (n != null) {
       if (isIgnorable(n)) {
         ;
+      } else if (state == 0 & n.getNodeName().equals(TAG_PARAMS)) {  // appears first if any
+        internalizeParams(n, builder);
+        state = 1;
       } else if (n.getNodeName().equals(TAG_CONSTR)) {
         internalizeConstr(n, builder);
+        state = 1;
       } else {
         throw new FormatException("Unknown element under '" + TAG_DATA_DEF + "' element: " + n.getNodeName());
       }
       n = n.getNextSibling();
     }
     builder.endDataDef();
+  }
+
+  static void internalizeParams(Node node, Builder builder) throws FormatException {
+    Node n = node.getFirstChild();
+    MTypeVar v;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if ((v = MTypeVar.internalize(n)) != null) {
+        builder.putDataDefParam(v);
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
   }
 
   static void internalizeConstr(Node node, Builder builder) throws FormatException {
@@ -1223,7 +1250,7 @@ public class Module {
   Element externalizeDataDefs(Document doc, MDataDef[] dds) {
     Element dataDefsNode = doc.createElement(TAG_DATA_DEFS);
     for (int i = 0; i < dds.length; i++) {
-      if (dds[i].paramCount >= 0) {  // exclude "fun", "tuple"
+      if (dds[i].params != null) {  // exclude "fun", "tuple"
         dataDefsNode.appendChild(this.externalizeDataDef(doc, dds[i]));
       }
     }
@@ -1382,9 +1409,9 @@ public class Module {
 
     void endForeignMod() {
       if (this.currentForeignModName != null && this.currentForeignModName.equals(MOD_LANG)) {
-        this.startDataDef(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
+        this.startDataDefSpecial(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC);
         this.endDataDef();
-        this.startDataDef(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
+        this.startDataDefSpecial(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC);
         this.endDataDef();
       }
       this.foreignModList.add(this.currentForeignModName);
@@ -1398,18 +1425,32 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
-    void startDataDef(String tcon, int availability, int acc, int paramCount) {
-      this.startDataDef(tcon, availability, acc, paramCount, 0, null);
-    }
-
-    void startDataDef(String tcon, int availability, int acc, int paramCount, int baseModIndex, String baseTcon) {
+    void startDataDefSpecial(String tcon, int availability, int acc) {
+      // for tuple, fun
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.setTcon(tcon);
       this.dataDefBuilder.setAvailability(availability);
       this.dataDefBuilder.setAcc(acc);
-      this.dataDefBuilder.setParamCount(paramCount);
+      this.dataDefBuilder.setBaseModIndex(0);
+      this.dataDefBuilder.setBaseTcon(null);
+    }
+
+    void startDataDef(String tcon, int availability, int acc) {
+      this.startDataDef(tcon, availability, acc, 0, null);
+    }
+
+    void startDataDef(String tcon, int availability, int acc, int baseModIndex, String baseTcon) {
+      this.dataDefBuilder = MDataDef.Builder.newInstance();
+      this.dataDefBuilder.prepareForParams();
+      this.dataDefBuilder.setTcon(tcon);
+      this.dataDefBuilder.setAvailability(availability);
+      this.dataDefBuilder.setAcc(acc);
       this.dataDefBuilder.setBaseModIndex(baseModIndex);
       this.dataDefBuilder.setBaseTcon(baseTcon);
+    }
+
+    void putDataDefParam(MTypeVar v) {
+      this.dataDefBuilder.addParam(v);
     }
 
     void endDataDef() {
@@ -1615,9 +1656,9 @@ public class Module {
         this.mod.modTab[i] = this.foreignModList.get(j);
       }
       if (this.mod.name != null && this.mod.name.equals(MOD_LANG)) {
-        this.startDataDef(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
+        this.startDataDefSpecial(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC);
         this.endDataDef();
-        this.startDataDef(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC, -1);
+        this.startDataDefSpecial(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC);
         this.endDataDef();
       }
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();

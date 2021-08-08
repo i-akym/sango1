@@ -144,13 +144,14 @@ class Generator {
     if (pvs == null) { return; }  // fun, tuple
     PDefDict.TconKey btk = dd.getBaseTconKey();
     if (btk != null) {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length,
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(),
         this.parser.mod.modNameToModRefIndex(btk.modName), btk.tcon);
     } else {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(), pvs.length);
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc());
     }
     List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
+      this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].needsConcrete));
       varSlotList.add(pvs[i]);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {
