@@ -151,7 +151,7 @@ class Generator {
     }
     List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
-      this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].needsConcrete));
+      this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].requiresConcrete));
       varSlotList.add(pvs[i]);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {

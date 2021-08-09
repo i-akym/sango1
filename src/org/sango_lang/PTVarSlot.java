@@ -28,20 +28,20 @@ public class PTVarSlot {
 
   int hash;
   PTVarDef varDef;
-  boolean needsConcrete;
+  boolean requiresConcrete;
 
   private PTVarSlot() {}
 
   static PTVarSlot create(PTVarDef varDef) {
-    PTVarSlot s = createInternal((varDef != null)? varDef.needsConcrete: false);  // is accepting null ok?
+    PTVarSlot s = createInternal((varDef != null)? varDef.requiresConcrete: false);  // is accepting null ok?
     s.varDef = varDef;
     return s;
   }
 
-  public static PTVarSlot createInternal(boolean needsConcrete) {
+  public static PTVarSlot createInternal(boolean requiresConcrete) {
     PTVarSlot s = new PTVarSlot();
     s.hash = hashValue++;
-    s.needsConcrete = needsConcrete;
+    s.requiresConcrete = requiresConcrete;
     return s;
   }
 
@@ -54,13 +54,13 @@ public class PTVarSlot {
       buf.append("PSEUDO");
     }
     buf.append(this.hash);
-    if (this.needsConcrete) {
+    if (this.requiresConcrete) {
       buf.append("!");
     }
     return buf.toString();
   }
 
   String repr() {
-    return (this.varDef != null)? this.varDef.name: "$" + this.hash + (this.needsConcrete? "!": "");
+    return (this.varDef != null)? this.varDef.name: "$" + this.hash + (this.requiresConcrete? "!": "");
   }
 }

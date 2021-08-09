@@ -391,11 +391,15 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   static boolean willNotReturn(PTypeSkel type) {
-    return isLangType(type, "_");
+    return isLangType(type, Module.TCON_NORET);
   }
 
   static boolean isList(PTypeSkel type) {
-    return isLangType(type, "list");
+    return isLangType(type, Module.TCON_LIST);
+  }
+
+  static boolean isFun(PTypeSkel type) {
+    return isLangType(type, Module.TCON_FUN);
   }
 
   public static boolean isLangType(PTypeSkel type, String tcon) {

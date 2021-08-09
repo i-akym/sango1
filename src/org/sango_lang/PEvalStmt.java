@@ -386,8 +386,10 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolveId();
+      this.params[i].type.checkRequiringConcreteIn();
     }
     this.retDef = this.retDef.resolveId();
+    this.retDef.type.checkRequiringConcreteOut();
     if (this.implExprs != null) {
       for (int i = 0; i < this.implExprs.length; i++) {
         this.implExprs[i] = this.implExprs[i].resolveId();

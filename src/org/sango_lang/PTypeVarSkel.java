@@ -76,7 +76,7 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
-  public boolean isConcrete() { return this.varSlot.needsConcrete; }
+  public boolean isConcrete() { return this.varSlot.requiresConcrete; }
 
   boolean isPolymorphic() { return this.polymorphic; }
 
@@ -173,7 +173,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          if (tv.varSlot.needsConcrete & !this.varSlot.needsConcrete) {
+          if (tv.varSlot.requiresConcrete & !this.varSlot.requiresConcrete) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -215,7 +215,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          if (this.varSlot.needsConcrete & !type.isConcrete()) {
+          if (this.varSlot.requiresConcrete & !type.isConcrete()) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -237,7 +237,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-        if (this.varSlot.needsConcrete & !type.isConcrete()) {
+        if (this.varSlot.requiresConcrete & !type.isConcrete()) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -357,7 +357,7 @@ if (PTypeGraph.DEBUG > 1) {
       index = slotList.size();
       slotList.add(this.varSlot);
     }
-    return MTypeVar.create(index, this.varSlot.needsConcrete);
+    return MTypeVar.create(index, this.varSlot.requiresConcrete);
   }
 
   public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {

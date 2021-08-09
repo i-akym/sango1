@@ -30,14 +30,14 @@ import org.w3c.dom.Node;
 
 class MTypeVar implements MType {
   int slot;
-  boolean needsConcrete;
+  boolean requiresConcrete;
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, boolean needsConcrete) {
+  static MTypeVar create(int slot, boolean requiresConcrete) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
-    t.needsConcrete = needsConcrete;
+    t.requiresConcrete = requiresConcrete;
     return t;
   }
 
@@ -46,7 +46,7 @@ class MTypeVar implements MType {
     buf.append("<");
     buf.append("_");
     buf.append(this.slot);
-    if (this.needsConcrete) {
+    if (this.requiresConcrete) {
       buf.append("!");
     }
     buf.append(">");
@@ -56,8 +56,8 @@ class MTypeVar implements MType {
   public Element externalize(Document doc) {
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
-    if (this.needsConcrete) {
-      node.setAttribute(Module.ATTR_NEEDS_CONCRETE, Module.REPR_YES);
+    if (this.requiresConcrete) {
+      node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
     return node;
   }
@@ -74,19 +74,19 @@ class MTypeVar implements MType {
     // if (slot < 0 || slot > builder.typeVarCount) {
       // throw new FormatException("Invalid slot: " + aSlot.getNodeValue());
     // }
-    boolean needsConcrete = false;
-    Node aNeedsConcrete = attrs.getNamedItem(Module.ATTR_NEEDS_CONCRETE);
-    if (aNeedsConcrete != null) {
-      String sNeedsConcrete = aNeedsConcrete.getNodeValue();
-      if (sNeedsConcrete.equals(Module.REPR_YES)) {
-        needsConcrete = true;
-      } else if (sNeedsConcrete.equals(Module.REPR_NO)) {
+    boolean requiresConcrete = false;
+    Node aRequiresConcrete = attrs.getNamedItem(Module.ATTR_REQUIRES_CONCRETE);
+    if (aRequiresConcrete != null) {
+      String sRequiresConcrete = aRequiresConcrete.getNodeValue();
+      if (sRequiresConcrete.equals(Module.REPR_YES)) {
+        requiresConcrete = true;
+      } else if (sRequiresConcrete.equals(Module.REPR_NO)) {
         ;
       } else {
-        throw new FormatException("Invalid 'needs_concrete': " + sNeedsConcrete);
+        throw new FormatException("Invalid 'requires_concrete': " + sRequiresConcrete);
       }
     }
-    return create(slot, needsConcrete);
+    return create(slot, requiresConcrete);
   }
 
   public boolean isCompatible(Cstr defModName, MType type) {

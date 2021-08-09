@@ -571,7 +571,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.needsConcrete));
+      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.requiresConcrete));
       varList.add(v);
     } else {
       throw new RuntimeException("Slot number is not sequential.");

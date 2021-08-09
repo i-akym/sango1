@@ -27,16 +27,16 @@ import java.io.IOException;
 
 class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   String name;
-  boolean needsConcrete;
+  boolean requiresConcrete;
   PTVarSlot varSlot;
 
   private PTVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name, boolean needsConcrete) {
+  static PTVarDef create(Parser.SrcInfo srcInfo, String name, boolean requiresConcrete) {
     PTVarDef var = new PTVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
-    var.needsConcrete = needsConcrete;
+    var.requiresConcrete = requiresConcrete;
     return var;
   }
 
@@ -47,7 +47,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append(this.srcInfo);
     buf.append(",name=");
     buf.append(this.name);
-    if (this.needsConcrete) {
+    if (this.requiresConcrete) {
       buf.append("!");
     }
     if (this.varSlot != null) {
@@ -62,7 +62,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     PTVarDef v = new PTVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
-    v.needsConcrete = this.needsConcrete;
+    v.requiresConcrete = this.requiresConcrete;
     v.scope = this.scope;
     return v;
   }
@@ -80,8 +80,8 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    boolean needsConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, varId.value.token, needsConcrete);
+    boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+    return create(si, varId.value.token, requiresConcrete);
   }
 
   static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
@@ -124,6 +124,19 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   public PDefDict.TconInfo getTconInfo() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
+
+  public void checkRequiringConcreteIn() throws CompileException {}
+
+  public void checkRequiringConcreteOut() throws CompileException {
+    if (this.requiresConcrete) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Requiring concrete is not allowed at ");
+      emsg.append(this.srcInfo);
+      emsg.append(". - ");
+      emsg.append(this.name);
+      throw new CompileException(emsg.toString());
+    }
+  }
 
   public void normalizeTypes() {
     this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "type").getSkel();

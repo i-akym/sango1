@@ -104,6 +104,10 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
 
   public void excludePrivateAcc() throws CompileException {}
 
+  public void checkRequiringConcreteIn() throws CompileException {}
+
+  public void checkRequiringConcreteOut() throws CompileException {}
+
   public void normalizeTypes() {
     if (this.varSlot.varDef.nTypeSkel == null) {
       this.varSlot.varDef.normalizeTypes();
