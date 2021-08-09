@@ -31,6 +31,9 @@ abstract class PType {
   static final int ACCEPTABLE_NONE = 0;
   static final int ACCEPTABLE_VARDEF = 1;
 
+  static final int INHIBIT_REQUIRE_CONCRETE = 0;
+  static final int ALLOW_REQUIRE_CONCRETE = 1;
+
   static class Builder {
     Parser.SrcInfo srcInfo;
     List<PTypeDesc> itemList;
@@ -154,7 +157,7 @@ abstract class PType {
     return builder.create();
   }
 
-  static PTypeDesc acceptSig(ParserA.TokenReader reader, int qual) throws CompileException, IOException {
+  static PTypeDesc acceptSig(ParserA.TokenReader reader, int qual, int concrete) throws CompileException, IOException {
     StringBuffer emsg;
     PTypeDesc sig = accept(reader, ParserA.SPACE_DO_NOT_CARE);
     if (sig instanceof PTVarDef) {
@@ -174,8 +177,16 @@ abstract class PType {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
+        PTVarDef v = (PTVarDef)tr.params[i];
+        if (concrete == INHIBIT_REQUIRE_CONCRETE && v.requiresConcrete) {
+          emsg = new StringBuffer();
+          emsg.append("Requiring concrete type is not allowed at ");
+          emsg.append(tr.params[i].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
       }
-      if (qual == PExprId.ID_NO_QUAL && (/* tr.omod != null || */ tr.mod != null)) {
+      if (qual == PExprId.ID_NO_QUAL && tr.mod != null) {
         emsg = new StringBuffer();
         emsg.append("Module id not allowed at ");
         emsg.append(tr.tconSrcInfo);

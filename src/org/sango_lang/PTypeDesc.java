@@ -35,6 +35,10 @@ interface PTypeDesc extends PProgElem {
 
   void excludePrivateAcc() throws CompileException;
 
+  void checkRequiringConcreteIn() throws CompileException;
+
+  void checkRequiringConcreteOut() throws CompileException;
+
   PTypeSkel getSkel();
 
   PTypeSkel normalize();

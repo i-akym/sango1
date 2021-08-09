@@ -32,7 +32,7 @@ public class MDataDef implements Module.Elem {
   String tcon;
   int availability;
   int acc;
-  int paramCount;
+  MTypeVar[] params;
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
   String baseTcon;
   MConstrDef[] constrs;
@@ -41,6 +41,7 @@ public class MDataDef implements Module.Elem {
 
   static class Builder {
     MDataDef dataDef;
+    List<MTypeVar> paramList;
     List<MConstrDef> constrList;
 
     static Builder newInstance() {
@@ -50,6 +51,10 @@ public class MDataDef implements Module.Elem {
     Builder() {
       this.dataDef = new MDataDef();
       this.constrList = new ArrayList<MConstrDef>();
+    }
+
+    void prepareForParams() {
+      this.paramList = new ArrayList<MTypeVar>();
     }
 
     void setTcon(String tcon) {
@@ -64,8 +69,8 @@ public class MDataDef implements Module.Elem {
       this.dataDef.acc = acc;
     }
 
-    void setParamCount(int count) {
-      this.dataDef.paramCount = count;
+    void addParam(MTypeVar param) {
+      this.paramList.add(param);
     }
 
     void setBaseModIndex(int baseModIndex) {
@@ -82,6 +87,9 @@ public class MDataDef implements Module.Elem {
     }
 
     MDataDef create() {
+      this.dataDef.params = (this.paramList != null)?
+        this.paramList.toArray(new MTypeVar[this.paramList.size()]):
+        null;
       this.dataDef.constrs = this.constrList.toArray(new MConstrDef[this.constrList.size()]);
       return this.dataDef;
     }
@@ -90,7 +98,7 @@ public class MDataDef implements Module.Elem {
   public Element externalize(Document doc) {
     Element dataDefNode = doc.createElement(Module.TAG_DATA_DEF);
     dataDefNode.setAttribute(Module.ATTR_TCON, this.tcon);
-    dataDefNode.setAttribute(Module.ATTR_PARAM_COUNT, Integer.toString(this.paramCount));
+    // dataDefNode.setAttribute(Module.ATTR_PARAM_COUNT, Integer.toString(this.paramCount));
     if (this.availability != Module.AVAILABILITY_GENERAL) {
       dataDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
     }
@@ -102,6 +110,13 @@ public class MDataDef implements Module.Elem {
     }
     if (this.baseTcon != null) {
       dataDefNode.setAttribute(Module.ATTR_BASE_TCON, this.baseTcon);
+    }
+    if (this.params.length > 0) {
+      Element paramsNode = doc.createElement(Module.TAG_PARAMS);
+      for (int i = 0; i < this.params.length; i++) {
+        paramsNode.appendChild(this.params[i].externalize(doc));
+      }
+      dataDefNode.appendChild(paramsNode);
     }
     if (this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {
@@ -130,7 +145,9 @@ public class MDataDef implements Module.Elem {
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
-    if (dd.paramCount == this.paramCount) {
+    if (dd.params == null && this.params == null) {
+      ;
+    } else if (dd.params != null && this.params != null && dd.params.length == this.params.length) {
       ;
     } else {
       emsg = new StringBuffer();

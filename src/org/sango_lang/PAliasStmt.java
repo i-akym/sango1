@@ -116,7 +116,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc tsig;
-    if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL)) == null) {
+    if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL, PType.INHIBIT_REQUIRE_CONCRETE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());

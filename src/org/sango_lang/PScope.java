@@ -264,9 +264,8 @@ class PScope {
   }
 
   PTVarDef getNewTVar(Parser.SrcInfo srcInfo) {
-    PTVarDef v = PTVarDef.create(srcInfo, /* PVarDef.CAT_TYPE_PARAM, null, */ this.generateId());
+    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), false);
     try {
-      // v.setPolymorphic(true);
       v.setupScope(this);
       v = v.resolveId();
     } catch (CompileException ex) {

@@ -152,7 +152,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc base;
-    if ((base = PType.acceptSig(reader, PExprId.ID_MAYBE_QUAL)) == null) {
+    if ((base = PType.acceptSig(reader, PExprId.ID_MAYBE_QUAL, PType.ALLOW_REQUIRE_CONCRETE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());

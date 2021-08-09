@@ -55,6 +55,8 @@ class PNoRetSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
+  public boolean isConcrete() { return false; }
+
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     return this;
   }

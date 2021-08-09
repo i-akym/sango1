@@ -113,6 +113,14 @@ public class PTypeRefSkel implements PTypeSkel {
       this.tconInfo.key.tcon.equals(Module.TCON_EXPOSED) ;
   }
 
+  public boolean isConcrete() {
+    boolean b = true;
+    for (int i = 0; b & i < this.params.length; i++) {
+      b &= this.params[i].isConcrete();
+    }
+    return b;
+  }
+
   public PDefDict.TconInfo getTconInfo() {
     if (this.tconInfo == null) {
       throw new IllegalStateException("Tcon info not set up.");
@@ -383,11 +391,15 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   static boolean willNotReturn(PTypeSkel type) {
-    return isLangType(type, "_");
+    return isLangType(type, Module.TCON_NORET);
   }
 
   static boolean isList(PTypeSkel type) {
-    return isLangType(type, "list");
+    return isLangType(type, Module.TCON_LIST);
+  }
+
+  static boolean isFun(PTypeSkel type) {
+    return isLangType(type, Module.TCON_FUN);
   }
 
   public static boolean isLangType(PTypeSkel type, String tcon) {

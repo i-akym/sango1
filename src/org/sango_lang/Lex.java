@@ -375,6 +375,7 @@ public class Lex {
       case ']': this.setStart(); this.consumed(); this.setSymToken(LToken.RBRACKET); this.transit(0); return true;
       case ',': this.setStart(); this.consumed(); this.setSymToken(LToken.COMMA); this.transit(0); return true;
       case '.': this.setStart(); this.consumed(); this.setSymToken(LToken.DOT); this.transit(0); return true;
+      case '!': this.setStart(); this.consumed(); this.setSymToken(LToken.EXCLA); this.transit(0); return true;
       case '~': this.setStart(); this.consumed(); this.setSymToken(LToken.TILD); this.transit(0); return true;
       default:
         errmsg = new StringBuffer();

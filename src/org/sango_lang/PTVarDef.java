@@ -27,15 +27,16 @@ import java.io.IOException;
 
 class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   String name;
-  // boolean polymorphic;
+  boolean requiresConcrete;
   PTVarSlot varSlot;
 
   private PTVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name) {
+  static PTVarDef create(Parser.SrcInfo srcInfo, String name, boolean requiresConcrete) {
     PTVarDef var = new PTVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
+    var.requiresConcrete = requiresConcrete;
     return var;
   }
 
@@ -46,6 +47,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append(this.srcInfo);
     buf.append(",name=");
     buf.append(this.name);
+    if (this.requiresConcrete) {
+      buf.append("!");
+    }
     if (this.varSlot != null) {
       buf.append(",slot=");
       buf.append(this.varSlot);
@@ -58,6 +62,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     PTVarDef v = new PTVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
+    v.requiresConcrete = this.requiresConcrete;
     v.scope = this.scope;
     return v;
   }
@@ -68,14 +73,15 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (varSym == null) { return null; }
     ParserA.Token varId;
-    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE))== null) {
+    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Variable/parameter name missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(si, varId.value.token);
+    boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+    return create(si, varId.value.token, requiresConcrete);
   }
 
   static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
@@ -89,7 +95,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), id);
+    return create(elem.getSrcInfo(), id, false);  // HERE
   }
 
   public PTVarDef setupScope(PScope scope) throws CompileException {
@@ -118,6 +124,19 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   public PDefDict.TconInfo getTconInfo() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
+
+  public void checkRequiringConcreteIn() throws CompileException {}
+
+  public void checkRequiringConcreteOut() throws CompileException {
+    if (this.requiresConcrete) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Requiring concrete is not allowed at ");
+      emsg.append(this.srcInfo);
+      emsg.append(". - ");
+      emsg.append(this.name);
+      throw new CompileException(emsg.toString());
+    }
+  }
 
   public void normalizeTypes() {
     this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "type").getSkel();
