@@ -1,0 +1,39 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.box" -> map_box ;;
+import "sango.util.map.simplemap" -> simplemap ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval new_map -> <int cstr map.map> {
+  simplemap.new_map
+} ;;
+
+eval test000 -> <void> {
+  new_map map_box.create_box = *M,
+  M map_box.empty? = true$,
+  M 1 "abc" map_box.put = none$,
+  M 1 "ABC" map_box.put_new = false$,
+  M 2 "def" map_box.put_new = true$,
+  M 2 "DEF" map_box.put = (| 2, "def" |) value$,
+  M map_box.size = 2,
+  M 2 map_box.get = (| 2, "DEF" |) value$,
+  M 2 map_box.assoc = "DEF" value$,
+  M 3 "ghi" map_box.put = none$,
+  M 2 map_box.remove = (| 2, "DEF" |) value$,
+  M map_box.clear,
+  M map_box.empty? = true$,
+  M [ (| 4, "jkl" |), (| 5, "mno" |) ] map_box.add_list,
+  M map_box.snapshot = *MD,
+  MD map.size = 2,
+  void$
+} ;;
