@@ -25,6 +25,7 @@ module "sango.actor.util" ;;
 
 import "sango.actor" -> act ;;
 import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.entity.domain" -> ed ;;
 
 extend <act.msg> :=
@@ -162,4 +163,17 @@ eval <ed.entity_h> *E create_monitor2 | create_monitor @public -> <monitor2_h> {
 eval <monitor2_h> *M <ed.entity_h *A fun> *F run_monitor2 | run @public -> <A> {
   M = *Entity *Serializer monitor2_h$,
   Serializer \\ <A> { Entity &F } run_serialized
+} ;;
+
+# -- entity box monitor --
+
+data <*A box_monitor_h> @opaque := <A box.box_h> <serializer_h> box_monitor_h$ ;;
+
+eval <*A box.box_h> *Box create_box_monitor | create_monitor @public -> <A box_monitor_h> {
+  Box start_serializer box_monitor_h$
+} ;;
+
+eval <*A box_monitor_h> *M <<A box.box_h> *B fun> *F run_box_monitor | run @public -> <B> {
+  M = *Box *Serializer box_monitor_h$,
+  Serializer \\ <B> { Box &F } run_serialized
 } ;;

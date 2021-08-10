@@ -2,6 +2,7 @@ import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
 import "sango.debug" -> debug ;;
 import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.entity.domain" -> ed ;;
 import "sango.system.runtime" -> runtime ;;
 
@@ -17,6 +18,7 @@ eval test -> <void> {
   test301,
   test400,
   test410,
+  test420,
   void$
 } ;;
 
@@ -36,5 +38,11 @@ eval test410 -> <void> {
   ed.default_domain (4 ee$) none$ ed.create_entity = *E,
   E actu.create_monitor = *M,
   M \ <ed.entity_h> *EE -> <int> { EE ed.read = *X ee$, X } actu.run = 4,
+  void$
+} ;;
+eval test420 -> <void> {
+  9 none$ box.create_box = *B,
+  B actu.create_monitor = *M,
+  M \ <int box.box_h> *BB -> <int> { BB 7 box.write } actu.run = 9,
   void$
 } ;;
