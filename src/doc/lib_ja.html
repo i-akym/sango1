@@ -977,7 +977,7 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.actor.util.3"><code>sango.actor.util</code> - entity monitor</h2>
 
-<p>「実体」（entity）の読み書き（<code>&quot;sango.entity&quot;</code>あるいは<code>&quot;sango.entity.domain&quot;</code>の<code>read</code>，<code>write</code>）は原子的に行われますが，読み出しと書き込みの間には他の処理が割り込むことがあります。
+<p>「実体」（entity）の読み書き（<code>&quot;sango.entity&quot;</code>，<code>&quot;sango.entity.domain&quot;</code>あるいは<code>&quot;sango.entity.box&quot;</code>の<code>read</code>，<code>write</code>）は原子的に行われますが，読み出しと書き込みの間には他の処理が割り込むことがあります。
   「実体」に対する一連の処理に原子性を持たせるために，entity monitorが提供されています。
   「実体」単位にentity monitorを生成し，それ経由でタスクを実行します。</p>
 
@@ -987,12 +987,18 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>data &lt;monitor2_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
+<table border width="100%"><tr><td class="def"><code>data &lt;*A box_monitor_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.entity&quot;.eref&gt; *E create_monitor @public -&gt; &lt;monitor_h&gt; ;;
-eval &lt;&quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;monitor2_h&gt; ;;</code></td></tr></table>
+eval &lt;&quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;monitor2_h&gt; ;;
+eval &lt;*A &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;
+</code></td></tr></table>
 <p>entity monitorを生成します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;monitor_h&gt; *M &lt;&quot;sango.entity&quot;.eref *A fun&gt; *F run_monitor | run @public -&gt; &lt;A&gt; ;;
-eval &lt;monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *A fun&gt; *F run_monitor2 | run @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+eval &lt;monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *A fun&gt; *F run_monitor2 | run @public -&gt; &lt;A&gt; ;;
+eval &lt;*A box_monitor_h&gt; *M &lt;&lt;A &quot;sango.entity.box&quot;.box_h&gt; *B fun&gt; *F run_box_monitor | run @public -&gt; &lt;B&gt; ;; </code></td></tr></table>
 <p>タスク<code>F</code>を実行します。
   タスクは実体への参照を受け取り，処理を行い結果を返します。
   タスクから返された値が，この関数の結果となります。
