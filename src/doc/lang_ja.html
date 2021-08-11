@@ -152,6 +152,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#B.1">B.1. 型の扱い</a>
   <a href="#B.2">B.2. 型と型との関係</a>
   <a href="#B.3">B.3. narrowとcast</a>
+  <a href="#B.4">B.4. 具象型</a>
 <a href="#C">C. アベイラビリティ</a>
 <a href="#D">D. 主な変更点</a>
 <a href="#E">E. Known bugs and restrictions</a></div>
@@ -2052,6 +2053,20 @@ eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<v
 <blockquote class="code-sample">コード例<code>
 [] = &lt;int list&gt; *X</code></blockquote>
  
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.4">B.4. 具象型</h2>
+<p>型パラメタを持っていない型，または，全ての型パラメタが（再帰的に）決定している型を具象型（concrete type）と呼びます。
+  例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
+  一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
+<p>関数のパラメタやデータ構築時の属性の型として具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。</p>
+<blockquote class="code-sample">コード例<code>
+module &quot;sango.entity.box&quot; ;;
+eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ create_box @public -&gt; &lt;A box_h&gt; ...</code></blockquote>
+<blockquote class="code-sample">コード例<code>
+module &quot;sango.util.map.box&quot; ;;
+import &quot;sango.util.map&quot; -&gt; map ;;
+eval &lt;*A! *B! map.map&gt; *Map create_box @public -&gt; &lt;A B map_h&gt;  ...</code></blockquote>
+
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="C">C. アベイラビリティ</h1>
 <p>ライブラリが提供する機能は，開発中，公開されて自由に使用できる状態，推奨されない状態など，ライフサイクルに応じて変化していきます。
