@@ -1313,6 +1313,13 @@ eval &lt;entity_h&gt; *Entity &lt;ent.ent_d+&gt; *X write | swap @public -&gt; &
 
 <blockquote class="note">*1：<code>&quot;sango.entity&quot;</code>は「実体」の基本機能を提供するライブラリ，<code>&quot;sango.entity.domain&quot;</code>はこれを拡張したライブラリです。</blockquote>
 <blockquote class="note">*2：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
+
+<p>■ ボックス</p>
+<p>固定された型のデータを紐づける「実体」として「ボックス」が提供されています。
+  ボックスは，紐づけたいデータを<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>にラップする必要がないため，手続き型言語の変数のように使用することができます。
+  読み出し，書き込み，後処理，弱参照などは<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>と同様です。
+  ただし，ボックスを作成するときには，初期値の型が<a href="#B.4">「具象型」</a>でなければなりません。
+  使用方法の詳細は，<code>&quot;sango.entity.box&quot;</code>の解説を参照してください。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.2">17.2. 「実体」消滅後の後処理</h2>
