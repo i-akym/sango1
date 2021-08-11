@@ -98,6 +98,9 @@ kbd {
 <a href="#sango.entity"><code>sango.entity</code></a>
   <a href="#sango.entity.1">実体</a>
   <a href="#sango.entity.2">弱参照</a>
+<a href="#sango.entity.box"><code>sango.entity.box</code></a>
+  <a href="#sango.entity.box.1">ボックス</a>
+  <a href="#sango.entity.box.2">弱参照</a>
 <a href="#sango.entity.domain"><code>sango.entity.domain</code></a>
   <a href="#sango.entity.domain.1">ドメイン</a>
   <a href="#sango.entity.domain.2">実体</a>
@@ -1491,6 +1494,51 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
   弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;wref&gt; *W clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>弱参照を無効にします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.entity.box"><code>sango.entity.box</code></h1>
+
+<p>特定の型のデータだけを保持する「実体」（entity）を提供します。この「実体」をボックスと呼びます。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.box.1"></code>sango.entity.box</code> - ボックス</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A box_h&gt; @opaque ;;</code></td></tr></table>
+<p>ボックスへの参照を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_box @public -&gt; &lt;A box_h&gt; ;;</code></td></tr></table>
+<p><code>X</code>を初期値としてボックスを生成します。
+  <code>X</code>の型は具象型（不定の型パラメタを含まない型）でなければなりません。
+  ボックスがガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A box_h&gt; *Box read @public -&gt; &lt;A&gt; ;; </code></td></tr></table>
+<p>ボックスから値を読み出します。
+  この処理は原子的に実行されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>ボックスに値を書き込み，以前の値を返します。
+  この処理は原子的に実行されます。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.box.2"></code>sango.entity.box</code> - 弱参照</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A wbox_h&gt; @opaque ;;</code></td></tr></table>
+<p>ボックスへの弱参照を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;A wbox_h&gt; ;;</code></td></tr></table>
+<p>ボックスへの弱参照を生成します。
+  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
+  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
+  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A wbox_h&gt; *W get @public -&gt; &lt;&lt;A box_h&gt; maybe&gt; ;;</code></td></tr></table>
+<p>弱参照から参照（強参照）を取得します。
+  弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A wbox_h&gt; *W clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
