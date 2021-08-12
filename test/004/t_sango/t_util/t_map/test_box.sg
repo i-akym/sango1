@@ -32,8 +32,9 @@ eval test000 -> <void> {
   M 2 map_box.remove = (| 2, "DEF" |) value$,
   M map_box.clear,
   M map_box.empty? = true$,
-  M [ (| 4, "jkl" |), (| 5, "mno" |) ] map_box.add_list,
+  M [ (| 4, "jkl" |), (| 5, "mno" |), (| 6, "pqr" |) ] map_box.add_list,
+  M [ 4, 6 ] map_box.delete_list,
   M map_box.snapshot = *MD,
-  MD map.size = 2,
+  MD map.size = 1,
   void$
 } ;;
