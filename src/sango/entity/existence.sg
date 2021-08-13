@@ -21,43 +21,14 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.entity.box" ;;
+module "sango.entity.existence" ;;
 
-import "sango.entity.existence" -> ex ;;
+data <existence> @opaque := @native ;;
+data <weak_ref> @opaque := @native ;;
 
-data <*A box_h> @opaque := <ex.existence> box_h$ ;;  # body has no type, so casting is needed at creation
-data <*A wbox_h> @opaque := <ex.weak_ref> wbox_h$ ;;  # body has no type, so casting is needed at creation
+eval <*A> *X <<void fun> maybe> *Invalidator_ create_existence @public -> <existence> @native ;;
 
-eval <*A!> *X <<void fun> maybe> *Invalidator_ create_box @public -> <A box_h> {
-  (X Invalidator_ ex.create_existence) box_h$  # to be casted as return value
-} ;;
+eval <existence> *Ex <<weak_ref void fun> maybe> *Listener_ create_weak_ref @public -> <weak_ref> @native ;;
 
-eval <*A box_h> *Box existence @public -> <ex.existence> {
-  Box = *Ex box_h$,
-  Ex
-} ;;
-
-eval <*A box_h> *Box read @public -> <A> @native ;;
-eval <*A box_h> *Box <A> *X write | swap @public -> <A> @native ;;
-
-eval <*A box_h> *Box <<<A wbox_h> void fun> maybe> *Listener_ create_weak_holder @public -> <A wbox_h> {
-  Listener_ case {
-  ; *Listener value$ ->
-    \ <ex.weak_ref> *WR -> <void> { (WR wbox_h$) &Listener } value$  # to be casted at applying
-  ; ** -> none$
-  } = *L_,
-  ((Box existence) L_ ex.create_weak_ref) wbox_h$  # to be casted as return value
-} ;;
-
-eval <*A wbox_h> *W get @public -> <<A box_h> maybe> {
-  W = *WR wbox_h$,
-  WR ex.get >> case {
-  ; *Ex value$ -> (Ex box_h$) value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <*A wbox_h> *W clear @public -> <void> {
-  W = *WR wbox_h$,
-  WR ex.clear
-} ;;
+eval <weak_ref> *WR get @public -> <existence maybe> @native ;;
+eval <weak_ref> *WR clear @public -> <void> @native ;;

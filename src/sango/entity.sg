@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -23,25 +23,44 @@
 ###########################################################################
 module "sango.entity" ;;
 
+import "sango.entity.existence" -> ex ;;
+
 extend <independent> -> ent_d @public :=
 | existence$ ;;
 
-data <eref> @opaque := @native ;;  # entity ref
-data <wref> @opaque := @native ;;  # weak ref
+data <eref> @opaque := <ex.existence> eref$ ;;
+data <wref> @opaque := <ex.weak_ref> wref$ ;;
 
-eval
-  <ent_d+> *X
-  <<void fun> maybe> *Invalidator_
-  create_entity @public -> <eref> @native ;;
+eval <ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public -> <eref> {
+  (X Invalidator_ ex.create_existence) eref$
+} ;;
+
+eval <eref> *Entity existence @public -> <ex.existence> {
+  Entity = *Ex eref$,
+  Ex
+} ;;
 
 eval <eref> *Entity read @public -> <ent_d+> @native ;;
 eval <eref> *Entity <ent_d+> *X write | swap @public -> <ent_d+> @native ;;
 
-eval
-  <eref> *Entity
-  <<wref void fun> maybe> *Listener_
-  create_weak_holder @public -> <wref> @native ;;
+eval <eref> *Entity <<wref void fun> maybe> *Listener_ create_weak_holder @public -> <wref> {
+  Listener_ case {
+  ; *Listener value$ ->
+    \ <ex.weak_ref> *WR -> <void> { (WR wref$) &Listener } value$
+  ; ** -> none$
+  } = *L_,
+  ((Entity existence) L_ ex.create_weak_ref) wref$
+} ;;
 
-eval <wref> *W get @public -> <eref maybe> @native ;;
-eval <wref> *W clear @public -> <void> @native ;;
+eval <wref> *W get @public -> <eref maybe> {
+  W = *WR wref$,
+  WR ex.get >> case {
+  ; *Ex value$ -> (Ex eref$) value$
+  ; ** -> none$
+  }
+} ;;
 
+eval <wref> *W clear @public -> <void> {
+  W = *WR wref$,
+  WR ex.clear
+} ;;

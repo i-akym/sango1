@@ -43,7 +43,7 @@ class RTaskControl implements RTaskMgr.Blocker {
   List<RTaskControl> blockedTaskList;
   List<RTaskMgr.Blocker> blockerList;
   RTaskMgr.Wakeup wakeup;
-  List<RErefItem> monitorList;
+  List<RObjItem> monitorList;
   boolean background;
 
   private RTaskControl() {}
@@ -65,7 +65,7 @@ class RTaskControl implements RTaskMgr.Blocker {
     tc.currentFrame = RFrame.create(tc, c, params);
     tc.blockedTaskList = new ArrayList<RTaskControl>();
     tc.blockerList = new ArrayList<RTaskMgr.Blocker>();
-    tc.monitorList = new ArrayList<RErefItem>();
+    tc.monitorList = new ArrayList<RObjItem>();
     return tc;
   }
 
@@ -111,7 +111,7 @@ class RTaskControl implements RTaskMgr.Blocker {
     return !this.theMgr.joinSomeOfTasks(this, ts, expiration).isEmpty();
   }
 
-  List<RErefItem> listenMboxes(List<RErefItem> bes, Integer expiration) {
+  List<RObjItem> listenMboxes(List<RObjItem> bes, Integer expiration) {
     return this.theMgr.listenMboxes(this, bes, expiration);
   }
 
@@ -135,11 +135,11 @@ class RTaskControl implements RTaskMgr.Blocker {
     return (this.blockedTaskList.size() > 0)? this.blockedTaskList.remove(0): null;
   }
 
-  void addMonitor(RErefItem senderE) {
+  void addMonitor(RObjItem senderE) {
     this.monitorList.add(senderE);
   }
 
-  void removeMonitor(RErefItem senderE) {
+  void removeMonitor(RObjItem senderE) {
     this.monitorList.remove(senderE);
   }
 
