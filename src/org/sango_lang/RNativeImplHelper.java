@@ -324,14 +324,14 @@ public class RNativeImplHelper {
 
     Core() {}
 
-    // entity
+    // existence
 
-    public RErefItem createEntity(RObjItem item, RClosureItem invalidator) {
-      return RNativeImplHelper.this.theEngine.memMgr.createEntity(item, invalidator);
+    public RMemMgr.ExistenceItem createExistence(RObjItem item, RClosureItem invalidator) {
+      return RNativeImplHelper.this.theEngine.memMgr.createExistence(item, invalidator);
     }
 
-    public RWrefItem createWeakHolder(RErefItem eref, RClosureItem listener) {
-      return RNativeImplHelper.this.theEngine.memMgr.createWeakHolder(eref, listener);
+    public RMemMgr.WeakRefItem createWeakRef(RMemMgr.ExistenceItem existence, RClosureItem listener) {
+      return RNativeImplHelper.this.theEngine.memMgr.createWeakRef(existence, listener);
     }
 
     // scheduling control
@@ -404,11 +404,11 @@ public class RNativeImplHelper {
       return RNativeImplHelper.this.theEngine.taskMgr.peekTaskResult(a.taskControl);
     }
 
-    public void addActorMonitor(RObjItem actorH, RErefItem senderE) {
+    public void addActorMonitor(RObjItem actorH, RObjItem senderE) {
       RNativeImplHelper.this.theEngine.taskMgr.addActorMonitor((RActorHItem)actorH, senderE);
     }
 
-    public void removeActorMonitor(RObjItem actorH, RErefItem senderE) {
+    public void removeActorMonitor(RObjItem actorH, RObjItem senderE) {
       RNativeImplHelper.this.theEngine.taskMgr.removeActorMonitor((RActorHItem)actorH, senderE);
     }
 
@@ -418,28 +418,28 @@ public class RNativeImplHelper {
       return RNativeImplHelper.this.theEngine.taskMgr.createMbox(RNativeImplHelper.this.frame.theTaskControl);
     }
 
-    public void notifySysMsg(RErefItem be) {
+    public void notifySysMsg(RObjItem be) {
       RNativeImplHelper.this.theEngine.memMgr.notifySysMsg(be);
     }
 
-    public RActorHItem getOwnerOfMbox(RErefItem be) {
+    public RActorHItem getOwnerOfMbox(RObjItem be) {
       return this.getMboxBody(be).owner.actorH;
     }
 
-    public void putMsg(RErefItem be, RObjItem m) {
+    public void putMsg(RObjItem be, RObjItem m) {
       this.getMboxBody(be).putMsg(m);
     }
 
-    public List<RErefItem> listenMboxes(List<RErefItem> bes, Integer expiration) {
+    public List<RObjItem> listenMboxes(List<RObjItem> bes, Integer expiration) {
       return RNativeImplHelper.this.frame.theTaskControl.listenMboxes(bes, expiration);
     }
 
-    public RObjItem receiveMsg(RErefItem mboxE) {
+    public RObjItem receiveMsg(RObjItem mboxE) {
       return this.getMboxBody(mboxE).receiveMsg();
     }
 
-    RMbox getMboxBody(RErefItem mboxE) {
-      return RNativeImplHelper.this.theEngine.memMgr.getMboxBody(mboxE);
+    RMbox getMboxBody(RObjItem mboxE) {
+      return RNativeImplHelper.this.theEngine.memMgr.getMboxBodyFromEref(mboxE);
     }
 
     // runtime features

@@ -264,7 +264,7 @@ class RTaskMgr {
     return s;
   }
 
-  void addActorMonitor(RActorHItem actorH, RErefItem senderE) {
+  void addActorMonitor(RActorHItem actorH, RObjItem senderE) {
     RTaskControl t = actorH.taskControl;
     if (t.theMgr != this) {
       throw new IllegalArgumentException("Not my task.");
@@ -277,7 +277,7 @@ class RTaskMgr {
     lc.release();  // EXIT CRITICAL SECTION
   }
 
-  void removeActorMonitor(RActorHItem actorH, RErefItem senderE) {
+  void removeActorMonitor(RActorHItem actorH, RObjItem senderE) {
     RTaskControl t = actorH.taskControl;
     if (t.theMgr != this) {
       throw new IllegalArgumentException("Not my task.");
@@ -446,12 +446,12 @@ class RTaskMgr {
     }
   }
 
-  List<RErefItem> listenMboxes(RTaskControl t, List<RErefItem> bes, Integer expiration) {
-    List<RErefItem> receivables = new ArrayList<RErefItem>();
+  List<RObjItem> listenMboxes(RTaskControl t, List<RObjItem> bes, Integer expiration) {
+    List<RObjItem> receivables = new ArrayList<RObjItem>();
     List<RLock.Client> lockClients = new ArrayList<RLock.Client>();
     for (int i = 0; i < bes.size(); i++) {
-      RErefItem be = bes.get(i);
-      RMbox b = this.theEngine.memMgr.getMboxBody(be);
+      RObjItem be = bes.get(i);
+      RMbox b = this.theEngine.memMgr.getMboxBodyFromEref(be);
       RLock.Client blc = b.lock.createClient();
       blc.require(RLock.EXCLUSIVE);  // LOCK
       lockClients.add(blc);
@@ -467,7 +467,7 @@ class RTaskMgr {
         this.removeFromRunningList(lc, t);
         this.addToBlockedList(lc, t);
         for (int i = 0; i < bes.size(); i++) {
-          RMbox b = this.theEngine.memMgr.getMboxBody(bes.get(i));
+          RMbox b = this.theEngine.memMgr.getMboxBodyFromEref(bes.get(i));
           b.addBlockedTask(t);
           t.addBlocker(b);
         }
@@ -759,11 +759,11 @@ class RTaskMgr {
     RObjItem oShutdown = this.theEngine.memMgr.getStructItem(dcShutdown, new RObjItem[0]);
     RDataConstr dcMsg = this.theEngine.memMgr.getDataConstr(new Cstr("sango.actor"), "sys_msg$");
     RObjItem oMsg = this.theEngine.memMgr.getStructItem(dcMsg, new RObjItem[] { oShutdown });
-    WeakReference<RErefItem> pew;
+    WeakReference<RObjItem> pew;
     while ((pew = this.theEngine.memMgr.pollSysMsgReceiver()) != null) {
-      RErefItem pe = pew.get();
+      RObjItem pe = pew.get();
       if (pe != null) {
-        ((RMboxPItem)((RStructItem)pe.read()).getFieldAt(0)).mbox.putMsg(oMsg);
+        this.theEngine.memMgr.getMboxBodyFromEref(pe).putMsg(oMsg);
       }
     }
   }
@@ -969,10 +969,10 @@ class RTaskMgr {
   }
 
   class MsgReq {
-    RErefItem senderE;
+    RObjItem senderE;
     RObjItem msg;
 
-    MsgReq(RErefItem senderE, RObjItem msg) {
+    MsgReq(RObjItem senderE, RObjItem msg) {
       this.senderE = senderE;
       this.msg = msg;
     }

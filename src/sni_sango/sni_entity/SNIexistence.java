@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -21,7 +21,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       *
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  *
  ***************************************************************************/
-package sni_sango;
+package sni_sango.sni_entity;
 
 import org.sango_lang.Module;
 import org.sango_lang.RClosureItem;
@@ -34,20 +34,43 @@ import org.sango_lang.RStructItem;
 import org.sango_lang.RuntimeEngine;
 import org.sango_lang.RWrefItem;
 
-public class SNIentity {
-  public static SNIentity getInstance(RuntimeEngine e) {
-    return new SNIentity();
+public class SNIexistence {
+  public static SNIexistence getInstance(RuntimeEngine e) {
+    return new SNIexistence();
   }
 
-  public void sni_read(RNativeImplHelper helper, RClosureItem self, RObjItem entity) {
-    RStructItem eref = (RStructItem)entity;
-    RMemMgr.ExistenceItem ex = (RMemMgr.ExistenceItem)eref.getFieldAt(0);
-    helper.setReturnValue(ex.read());
+  public void sni_create_existence(RNativeImplHelper helper, RClosureItem self, RObjItem x, RObjItem invalidator) {
+    RStructItem maybeInvalidator = (RStructItem)invalidator;
+    RClosureItem inv = (RClosureItem)sni_sango.SNIlang.unwrapMaybeItem(helper, maybeInvalidator);
+    helper.setReturnValue(helper.getCore().createExistence(x, inv));
   }
 
-  public void sni_write(RNativeImplHelper helper, RClosureItem self, RObjItem entity, RObjItem x) {
-    RStructItem eref = (RStructItem)entity;
-    RMemMgr.ExistenceItem ex = (RMemMgr.ExistenceItem)eref.getFieldAt(0);
-    helper.setReturnValue(ex.write(x));
+  public void sni_read(RNativeImplHelper helper, RClosureItem self, RObjItem existence) {
+    RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
+    helper.setReturnValue(e.read());
+  }
+
+  public void sni_write(RNativeImplHelper helper, RClosureItem self, RObjItem existence, RObjItem x) {
+    RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
+    helper.setReturnValue(e.write(x));
+  }
+
+  public void sni_create_weak_ref(RNativeImplHelper helper, RClosureItem self, RObjItem existence, RObjItem listener) {
+    RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
+    RStructItem maybeListener = (RStructItem)listener;
+    RClosureItem lis = (RClosureItem)sni_sango.SNIlang.unwrapMaybeItem(helper, maybeListener);
+    helper.setReturnValue(helper.getCore().createWeakRef(e, lis));
+  }
+
+  public void sni_get(RNativeImplHelper helper, RClosureItem self, RObjItem w) {
+    RMemMgr.WeakRefItem wr = (RMemMgr.WeakRefItem)w;
+    RObjItem e = wr.get();
+    RObjItem ret = sni_sango.SNIlang.getMaybeItem(helper, e);
+    helper.setReturnValue(ret);
+  }
+
+  public void sni_clear(RNativeImplHelper helper, RClosureItem self, RObjItem w) {
+    RMemMgr.WeakRefItem wr = (RMemMgr.WeakRefItem)w;
+    wr.clear();
   }
 }
