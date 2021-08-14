@@ -125,7 +125,7 @@ eval <*A *B map_h> *Map_h snapshot @public -> <A B map.map> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <A B map.map> {
-      d: (Box box.read) fs: (Map_h map_fs) map.map$
+      d: (Box box.read) fs: Mfs map.map$
     }
     actu.run
 } ;;

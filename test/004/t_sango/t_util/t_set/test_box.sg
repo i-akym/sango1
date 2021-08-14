@@ -1,0 +1,48 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.box" -> set_box ;;
+import "sango.util.set.simpleset" -> simpleset ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval new_set -> <int set.set> {
+  simpleset.new_set
+} ;;
+
+eval test000 -> <void> {
+  new_set set_box.create_box = *S,
+  S set_box.empty? = true$,
+  S 1 set_box.put = none$,
+  S 1 set_box.put_new = false$,
+  S 2 set_box.put_new = true$,
+  S 2 set_box.put = 2 value$,
+  S set_box.size = 2,
+  S 2 set_box.contain? = true$,
+  S 3 set_box.contain? = false$,
+  S 3 set_box.put = none$,
+  S 2 set_box.remove = 2 value$,
+  S set_box.take >> case {
+  ; 1 value$ ->
+    S set_box.take = 3 value$,
+    S set_box.take = none$
+  ; 3 value$ ->
+    S set_box.take = 1 value$,
+    S set_box.take = none$
+  },
+  S set_box.clear,
+  S set_box.empty? = true$,
+  S [ 4, 5 ] set_box.add_list,
+  S set_box.snapshot = *SD,
+  SD set.size = 2,
+  void$
+} ;;
