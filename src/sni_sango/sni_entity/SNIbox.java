@@ -25,7 +25,6 @@ package sni_sango.sni_entity;
 
 import org.sango_lang.Cstr;
 import org.sango_lang.RClosureItem;
-import org.sango_lang.RErefItem;
 import org.sango_lang.RMemMgr;
 import org.sango_lang.RFrame;
 import org.sango_lang.RNativeImplHelper;
@@ -33,7 +32,6 @@ import org.sango_lang.RObjItem;
 import org.sango_lang.RStructItem;
 import org.sango_lang.RType;
 import org.sango_lang.RuntimeEngine;
-import org.sango_lang.RWrefItem;
 
 public class SNIbox {
   public static SNIbox getInstance(RuntimeEngine e) {

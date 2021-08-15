@@ -26,13 +26,11 @@ package sni_sango;
 import org.sango_lang.Module;
 import org.sango_lang.RClosureItem;
 import org.sango_lang.RDataConstr;
-import org.sango_lang.RErefItem;
 import org.sango_lang.RMemMgr;
 import org.sango_lang.RNativeImplHelper;
 import org.sango_lang.RObjItem;
 import org.sango_lang.RStructItem;
 import org.sango_lang.RuntimeEngine;
-import org.sango_lang.RWrefItem;
 
 public class SNIentity {
   public static SNIentity getInstance(RuntimeEngine e) {

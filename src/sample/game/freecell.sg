@@ -261,7 +261,7 @@ eval <card list> *Cards <int> *Count setup_cascade -> <<card list> <card list> t
     N case {
     ; 0 -> (| Col, Rem |)
     ; ** ->
-      Rem (rand.generate ((Rem list.length) real) prod >> int) list.remove_at >> value = (| *Rem', *C |),
+      Rem (rand.generate ((Rem list.length) real) prod >> int) list.remove_at2 = (| *Rem', *C value$ |),
       (N dec) [ C ; Col ] Rem' &&
     }
   }
