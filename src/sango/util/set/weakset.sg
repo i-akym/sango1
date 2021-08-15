@@ -1,0 +1,299 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.set.weakset" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
+import "sango.list" -> list ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.hashmap" -> hashmap ;;
+import "sango.util.set" -> set ;;
+
+alias type <lookup_tab> := <int <ent.wref list> map.map> ;;  # eref's hash -> wref list
+alias type <purge_tab> := <ent.wref int map.map> ;;  # wref -> eref's hash
+
+data <d> :=
+  lookup_tab: <lookup_tab>
+  purge_tab: <purge_tab>
+  d$ ;;
+
+data <weakset_h> @opaque :=
+  mon: <d actu.box_monitor_h>
+  weakset_h$ ;;
+
+
+eval new_set @public -> <weakset_h> {
+  lookup_tab: (int_ord_fs avlmap.new_map)
+    purge_tab: hashmap.new_map
+    d$ = *D,
+  D none$ box.create_box = *Box,
+  Box actu.create_monitor = *Mon,
+  mon: Mon weakset_h$
+} ;;
+
+eval <weakset_h> *Set_h empty? -> <bool> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <bool> {
+      Box box.read = *D,
+      D purge_tab >> map.empty?
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h size -> <int> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <int> {
+      Box box.read = *D,
+      D purge_tab >> map.size
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref get -> <ent.eref maybe> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <ent.eref maybe> {
+      Box box.read = *D,
+      D Eref d_find = (| *E_, *D' |),
+      Box D' box.write,
+      E_
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref contain? -> <bool> {
+  Set_h Eref get >> something?
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref put -> <ent.eref maybe> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <ent.eref maybe> {
+      Box box.read = *D,
+      D Eref d_remove = (| *Removed_, *D' |),
+      D' Eref (Set_h mon) d_add = *D'',
+      Box D'' box.write,
+      Removed_
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref put_new -> <bool> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <bool> {
+      Box box.read = *D,
+      D Eref d_find = (| *E_, *D' |),
+      E_ case {
+      ; none$ -> (| true$, D' Eref (Set_h mon) d_add |)
+      ; ** -> (| false$, D' |)
+      } = (| *Succeeded?, *D'' |),
+      Box D'' box.write,
+      Succeeded?
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref add -> <void> {
+  Set_h Eref put >> ignore
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref remove -> <ent.eref maybe> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <ent.eref maybe> {
+      Box box.read = *D,
+      D Eref d_remove = (| *Removed_, *D' |),
+      Box D' box.write,
+      Removed_
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h <ent.eref> *Eref delete -> <void> {
+  Set_h Eref remove >> ignore
+} ;;
+
+eval <weakset_h> *Set_h take -> <ent.eref maybe> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <ent.eref maybe> {
+      Box box.read = *D,
+      D d_take = (| *E_, *D' |),
+      Box D' box.write,
+      E_
+    }
+    actu.run
+} ;;
+
+eval <weakset_h> *Set_h clear -> <void> {
+  (Set_h mon)
+    \ <d box.box_h> *Box -> <void> {
+      Box box.read = *D,
+      D d_clear = *D',
+      Box D' box.write >> ignore
+    }
+    actu.run
+} ;;
+
+# -- data manipulation routines --
+
+eval <d> *D <ent.eref> *Eref d_find -> <<ent.eref maybe> d tuple> {
+  D = lookup_tab: *LT purge_tab: *PT *** d$,
+  Eref hash = *EH,
+  LT EH map.assoc >> case {
+  ; *Ws value$ ->
+    Ws Eref find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
+    Found_ case {
+    ; (| *E, *W, *WW |) value$ -> (| E value$, WW [ W ; Scanned ] list.cons_each |)
+    ; ** -> (| none$, Scanned |)
+    } = (| *Res, *Ws' |),
+    Ws' case {
+    ; [] -> LT EH map.delete
+    ; ** -> LT EH Ws' map.add
+    } = *LT',
+    PT To_be_purged map.delete_list = *PT',
+    (| Res, lookup_tab: LT' purge_tab: PT' :: D d$ |) 
+  ; ** -> (| none$, D |)
+  }
+} ;;
+
+eval <d> *D <ent.eref> *Eref <d actu.box_monitor_h> *Mon d_add -> <d> {  # add without duplication check
+  D = lookup_tab: *LT purge_tab: *PT *** d$,
+  Eref hash = *EH,
+  \ <ent.wref> *Purged -> <void> {
+    Mon
+      \ <d box.box_h> *BB -> <void> {
+        BB box.read = *DD,
+        DD Purged d_purge = *DD',
+        BB DD' box.write >> ignore
+      }
+      actu.run
+  } = *Lis,
+  Eref (Lis value$) ent.create_weak_holder = *W,
+  LT EH map.assoc >> case {
+  ; *Ws value$ -> [ W ; Ws ]
+  ; ** -> [ W ]
+  } = *Ws',
+  LT EH Ws' map.add = *LT',
+  PT W EH map.add = *PT',
+  lookup_tab: LT' purge_tab: PT' :: D d$
+} ;;
+
+eval <d> *D <ent.eref> *Eref d_remove -> <<ent.eref maybe> d tuple> {
+  D = lookup_tab: *LT purge_tab: *PT *** d$,
+  Eref hash = *EH,
+  LT EH map.assoc >> case {
+  ; *Ws value$ ->
+    Ws Eref find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
+    Found_ case {
+    ; (| *E, *W, *WW |) value$ -> (| E value$, WW Scanned list.cons_each, [ W ; To_be_purged ] |)
+    ; ** -> (| none$, Scanned, To_be_purged |)
+    } = (| *Res, *Ws', *To_be_purged' |),
+    Ws' case {
+    ; [] -> LT EH map.delete
+    ; ** -> LT EH Ws' map.add
+    } = *LT',
+    PT To_be_purged' map.delete_list = *PT',
+    (| Res, lookup_tab: LT' purge_tab: PT' :: D d$ |) 
+  ; ** -> (| none$, D |)
+  }
+} ;;
+
+eval <d> *D <ent.wref> *Wref d_purge -> <d> {
+  D = lookup_tab: *LT purge_tab: *PT *** d$,
+  PT Wref map.remove >> case {
+  ; (| *PT', (| **, *EH |) value$ |)  ->
+    LT EH map.assoc >> case {
+    ; *Ws value$ ->
+      Ws [] [] &\ <ent.wref list> *To_be_scanned <ent.wref list> *Scanned <ent.wref list> *To_be_purged
+          -> <<ent.wref list> <ent.wref list> tuple> {
+        To_be_scanned case {
+        ; [ Wref ; *To_be_scanned' ] -> (| To_be_scanned' Scanned list.cons_each, To_be_purged |)
+        ; [ *W ; *To_be_scanned' ] ->
+          W ent.get >> case {
+          ; ** value$ -> To_be_scanned' [ W ; Scanned ] To_be_purged &&
+          ; ** -> To_be_scanned' Scanned [ W ; To_be_purged ] &&
+          }
+        ; [] -> (| Scanned, To_be_purged |)
+        }
+      } = (| *Ws', *PWs |),
+      Ws' case {
+      ; [] -> LT EH map.delete
+      ; ** -> LT EH Ws' map.add
+      } = *LT',
+      PT' PWs map.delete_list = *PT'',
+      lookup_tab: LT' purge_tab: PT'' :: D d$
+    ; ** -> D  # not reached here
+    }
+  ; ** -> D  # already purged
+  }
+} ;;
+
+eval <d> *D d_take -> <<ent.eref maybe> d tuple> {
+  D = lookup_tab: *LT purge_tab: *PT *** d$,
+  [] 0 LT PT &\ <ent.wref list> *Ws <int> *EH <lookup_tab> *Ltab <purge_tab> *Ptab
+      -> <<ent.eref maybe> d tuple> {
+    Ws case {
+    ; [ *W ; *Ws' ] ->
+      Ptab W map.delete = *Ptab',
+      W ent.get >> case {
+      ; *E value$ ->
+        Ws' case {
+        ; [] ->
+          (| E value$, lookup_tab: Ltab purge_tab: Ptab' :: D d$ |)
+        ; ** ->
+          Ltab EH Ws' map.add = *Ltab',  # push back
+          (| E value$, lookup_tab: Ltab' purge_tab: Ptab' :: D d$ |)
+        }
+      ; none$ ->
+        Ws' EH Ltab Ptab' &&
+      }
+    ; [] ->
+      Ltab map.take >> case {
+      ; (| (| *EH', *Ws' |), *Ltab' |) value$ -> Ws' EH' Ltab' Ptab &&
+      ; none$ -> (| none$, lookup_tab: Ltab purge_tab: Ptab :: D d$ |)
+      }
+    }
+  }
+} ;;
+
+eval <d> *D d_clear -> <d> {
+  D = lookup_tab: *LT purge_tab: *PT *** d$,
+  lookup_tab: (LT map.clear) purge_tab: (PT map.clear) :: D d$
+} ;;
+
+eval <ent.wref list> *Ws <ent.eref> *Eref find_in_candidates
+    -> <<<ent.eref ent.wref <ent.wref list> tuple> maybe> <ent.wref list> <ent.wref list> tuple> {
+      # (eref, container wref, not yet scanned)?, scanned, to be purged
+  Ws [] [] &\ <ent.wref list> *To_be_scanned <ent.wref list> *Scanned <ent.wref list> *To_be_purged
+      -> <<<ent.eref ent.wref <ent.wref list> tuple> maybe> <ent.wref list> <ent.wref list> tuple> {
+    To_be_scanned case {
+    ; [ *W ; *To_be_scanned' ] ->
+      W ent.get >> case {
+      ; Eref value$ -> (| (| Eref, W, To_be_scanned |) value$, Scanned, To_be_purged |)
+      ; ** value$ -> To_be_scanned' [ W ; Scanned ] To_be_purged &&
+      ; none$ -> To_be_scanned' Scanned [ W ; To_be_purged ] &&
+      }
+    ; [] -> (| none$, Scanned, To_be_purged |)
+    }
+  }
+} ;;

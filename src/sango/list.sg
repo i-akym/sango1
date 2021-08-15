@@ -160,8 +160,7 @@ eval <*A list> *Xs <int> *Index <A> *Y insert_at @public -> <A list> {
   }
 } ;;
 
-# DEPRECATED
-eval <*A list> *Xs <int> *Index remove_at @public -> <<<A list> A tuple> maybe> {
+eval @deprecated <*A list> *Xs <int> *Index remove_at @public -> <<<A list> A tuple> maybe> {
   if {
   ; Index lt0? -> none$
   ; otherwise ->
@@ -189,8 +188,7 @@ eval <*A list> *Xs <int> *Index remove_at2 @public -> <<A list> <A maybe> tuple>
   }
 } ;;
 
-# DEPRECATED
-eval <*A list> *Xs <int> *Index <A> *Y replace_at @public -> <<<A list> A tuple> maybe> {
+eval @deprecated <*A list> *Xs <int> *Index <A> *Y replace_at @public -> <<<A list> A tuple> maybe> {
   if {
   ; Index lt0? -> none$
   ; otherwise ->
