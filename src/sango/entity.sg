@@ -23,44 +23,39 @@
 ###########################################################################
 module "sango.entity" ;;
 
+import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
 
 extend <independent> -> ent_d @public :=
 | existence$ ;;
 
-data <eref> @opaque := <ex.existence> eref$ ;;
-data <wref> @opaque := <ex.weak_ref> wref$ ;;
+alias type <eref> @public := <ent_d+ box.box_h> ;;
+alias type <wref> @public := <ent_d+ box.wbox_h> ;;
 
 eval <ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public -> <eref> {
-  (X Invalidator_ ex.create_existence) eref$
+  X Invalidator_ box.create_box
 } ;;
 
 eval <eref> *Entity existence @public -> <ex.existence> {
-  Entity = *Ex eref$,
-  Ex
+  Entity box.existence
 } ;;
 
-eval <eref> *Entity read @public -> <ent_d+> @native ;;
-eval <eref> *Entity <ent_d+> *X write | swap @public -> <ent_d+> @native ;;
+eval <eref> *Entity read @public -> <ent_d+> {
+  Entity box.read
+} ;;
+
+eval <eref> *Entity <ent_d+> *X write | swap @public -> <ent_d+> {
+  Entity X box.write
+} ;;
 
 eval <eref> *Entity <<wref void fun> maybe> *Listener_ create_weak_holder @public -> <wref> {
-  Listener_ case {
-  ; *Listener value$ ->
-    \ <ex.weak_ref> *WR -> <void> { (WR wref$) &Listener } value$
-  ; ** -> none$
-  } = *L_,
-  ((Entity existence) L_ ex.create_weak_ref) wref$
+  Entity Listener_ box.create_weak_holder
 } ;;
 
 eval <wref> *W get @public -> <eref maybe> {
-  W = *WR wref$,
-  WR ex.get >> case {
-  ; *Ex value$ -> (Ex eref$) value$
-  ; ** -> none$
-  }
+  W box.get
 } ;;
 
 eval <wref> *W clear @public -> <void> {
-  W = *WR wref$,
-  WR ex.clear
+  W box.clear
 } ;;

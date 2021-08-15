@@ -1462,7 +1462,7 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
   必要に応じて拡張して使用します。
   <code>existence$</code>は，実体としての存在のみに意味がありデータが不要な場合に使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;eref&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>alias type &lt;eref&gt; @public := &lt;ent_d+ &quot;sango.entity.box&quot;.box_h&gt; ;;</code></td></tr></table>
 <p>実体への参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
@@ -1481,7 +1481,7 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.2"></code>sango.entity</code> - 弱参照</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;wref&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>alias type &lt;wref&gt; @public := &lt;ent_d+ &quot;sango.entity.box&quot;.wbox_h&gt; ;;</code></td></tr></table>
 <p>実体への弱参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_

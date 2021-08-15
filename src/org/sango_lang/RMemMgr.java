@@ -325,8 +325,9 @@ public class RMemMgr {
       new RObjItem[] { bp });
     // create existence
     ExistenceItem bpx = this.createExistence(d, null);
+    // create eref (= ent_d+ box)
     RStructItem bpe = this.getStructItem(
-      this.getDataConstr(new Cstr("sango.entity"), "eref$"),
+      this.getDataConstr(new Cstr("sango.entity.box"), "box_h$"),
       new RObjItem[] { bpx });
     return bpe;
   }
@@ -340,19 +341,19 @@ public class RMemMgr {
     return p.mbox;
   }
 
-  RMbox tryGetMboxBodyFromSenderEntity(RObjItem senderE) {  // <eref>
+  RMbox tryGetMboxBodyFromSenderEntity(RObjItem senderE) {  // <eref> = <ent_d+ box_h>
     RStructItem mboxpEWd = (RStructItem)this.readEref((RStructItem)senderE);  // <wref> ent_d
-    RStructItem mboxpEW = (RStructItem)mboxpEWd.getFieldAt(0);  // <wref> = WeakRefItem wref$
+    RStructItem mboxpEW = (RStructItem)mboxpEWd.getFieldAt(0);  // <wref>
     ExistenceItem mboxpEx = this.getWref(mboxpEW);
     return (mboxpEx != null)?  this.getMboxBodyFromEntd(mboxpEx.read()): null;
   }
 
-  RObjItem readEref(RStructItem eref) {
+  RObjItem readEref(RStructItem eref) {  // <eref> = <ent_d+ box_h> ==> <existence> box_h$
     ExistenceItem x = (ExistenceItem)eref.getFieldAt(0);
     return x.read();
   }
 
-  ExistenceItem getWref(RStructItem wref) {
+  ExistenceItem getWref(RStructItem wref) {  // <wref> = <ent_d+ wbox_h> ==> <weak_ref> wbox_h$
     WeakRefItem w = (WeakRefItem)wref.getFieldAt(0);
     return w.get();
   }
