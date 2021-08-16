@@ -980,20 +980,20 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>data &lt;monitor_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;monitor2_h&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A monitor2_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A box_monitor_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.entity&quot;.eref&gt; *E create_monitor @public -&gt; &lt;monitor_h&gt; ;;
-eval &lt;&quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;monitor2_h&gt; ;;
+eval &lt;*A &quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;A monitor2_h&gt; ;;
 eval &lt;*A &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;
 </code></td></tr></table>
 <p>entity monitorを生成します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;monitor_h&gt; *M &lt;&quot;sango.entity&quot;.eref *A fun&gt; *F run_monitor | run @public -&gt; &lt;A&gt; ;;
-eval &lt;monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *A fun&gt; *F run_monitor2 | run @public -&gt; &lt;A&gt; ;;
+eval &lt;*A monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *B fun&gt; *F run_monitor2 | run @public -&gt; &lt;B&gt; ;;
 eval &lt;*A box_monitor_h&gt; *M &lt;&lt;A &quot;sango.entity.box&quot;.box_h&gt; *B fun&gt; *F run_box_monitor | run @public -&gt; &lt;B&gt; ;; </code></td></tr></table>
 <p>タスク<code>F</code>を実行します。
   タスクは実体への参照を受け取り，処理を行い結果を返します。
@@ -1566,40 +1566,38 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.domain.2"></code>sango.entity.domain</code> - 実体</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;entity_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A entity_h&gt; @opaque ;;</code></td></tr></table>
 <p>実体への参照を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;ent.ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;entity_h&gt; ;;</code></td></tr></table></p>
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_entity @public -&gt; &lt;A entity_h&gt; ;;</code></td></tr></table></p>
 <p>ドメイン内に，<code>X</code>を初期値として実体を生成します。
   実体がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;&quot;sango.entity&quot;.eref&gt; *Eref contain_eref @public -&gt; &lt;entity_h&gt; ;;</code></td></tr></table>
-<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>をドメインに取り込み，参照を作成します。
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box contain_box @public -&gt; &lt;A entity_h&gt; ;;</code></td></tr></table>
+<p><code>ボックスをドメインに取り込み，参照を作成します。
   一つの参照を複数の異なったドメインに取り込むことは可能ですが，作成される参照は異なります。
   同一のドメイン内に複数回取り込んだ場合も，そのたびに作成される参照は異なります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity entity_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity entity_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
 <p>参照が属するドメインを取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity read @public -&gt; &lt;&quot;sango.entity&quot;.ent_d+&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>実体から値を読み出します。
   この処理は原子的に実行されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity &lt;&quot;sango.entity&quot;.ent_d+&gt; *X
-  write | swap @public -&gt; &lt;&quot;sango.entity&quot;.ent_d+&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>実体に値を書き込み，以前の値を返します。
   この処理は原子的に実行されます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.domain.3"></code>sango.entity.domain</code> - 弱参照</h2>
 
-<table border width="100%"><tr><td class="def"><code>
-</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A weak_holder_h&gt; @opaque ;;</code></td></tr></table>
 <p>実体への弱参照を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;entity_h&gt; *Entity &lt;&lt;weak_holder_h void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;weak_holder_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;A weak_holder_h&gt; ;;</code></td></tr></table>
 <p>ドメイン内に，実体への弱参照を生成します。
   付与される固有番号は，<code>Entity</code>のそれとは無関係，別系列です。
   ドメインは<code>Entity</code>の属するドメインとは異なっていても構いません。
@@ -1607,37 +1605,37 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
   リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
   なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;weak_holder_h&gt; *Weak_holder weak_holder_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A weak_holder_h&gt; *Weak_holder weak_holder_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
 <p>弱参照が属するドメインを取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;entity_h maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;&lt;A entity_h&gt; maybe&gt; ;;</code></td></tr></table>
 <p>弱参照から参照（強参照）を取得します。
   弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;weak_holder_h&gt; *Weak_holder clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A weak_holder_h&gt; *Weak_holder clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.domain.4"></code>sango.entity.domain</code> - 固有番号，大小比較</h2>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity entity_unique_num | unique_num @public -&gt; &lt;int&gt; ;;
-eval &lt;weak_holder_h&gt; *Weak_holder weak_holder_unique_num | unique_num @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity entity_unique_num | unique_num @public -&gt; &lt;int&gt; ;;
+eval &lt;*A weak_holder_h&gt; *Weak_holder weak_holder_unique_num | unique_num @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>固有番号を取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *E0 &lt;entity_h&gt; *E1 entity_compare | compare @public -&gt; &lt;ordering&gt; ;;
-eval &lt;weak_holder_h&gt; *W0 &lt;weak_holder_h&gt; *W1 weak_holder_compare | compare @public -&gt; &lt;ordering&gt; ;; </code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *E0 &lt;*B entity_h&gt; *E1 entity_compare | compare @public -&gt; &lt;ordering&gt; ;;
+eval &lt;*A weak_holder_h&gt; *W0 &lt;*B weak_holder_h&gt; *W1 weak_holder_compare | compare @public -&gt; &lt;ordering&gt; ;; </code></td></tr></table>
 <p>固有番号に基づき，前者の後者に対する大小関係を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval entity_ord_fs @public -&gt; &lt;entity_h ord_fs&gt; ;;
-eval weak_holder_ord_fs @public -&gt; &lt;weak_holder_h ord_fs&gt; ;;</code></td></tr></table>
+eval weak_holder_ord_fs @public -&gt; &lt;*A weak_holder_h ord_fs&gt; ;;</code></td></tr></table>
 <p>大小比較の機能群を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;unique_num_invalidator&gt; @public := &lt;int void fun&gt; ;;</code></td></tr></table>
 <p>固有番号の無効化処理関数を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;entity_h&gt; *Entity &lt;unique_num_invalidator&gt; *Invalidator
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity &lt;unique_num_invalidator&gt; *Invalidator
   entity_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;
-eval &lt;weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Invalidator
+eval &lt;*A weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Invalidator
   weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>固有番号の無効化処理関数を登録します。
   無効化処理関数は，参照あるいは弱参照オブジェクトの消滅（回収）後に，それぞれ別のアクタとして起動されます。

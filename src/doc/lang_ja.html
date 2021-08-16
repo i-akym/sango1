@@ -103,7 +103,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#16.2">16.2. 初期化</a>
 <a href="#17">17. モデリング ― 「記述」と「実体」</a>
   <a href="#17.1">17.1. 「実体」に「記述」を紐づける</a>
-  <a href="#17.2">17.2. 「実体」消滅後の後処理</a>
+  <a href="#17.2">17.2. 「実体」の生成と消滅の後処理</a>
   <a href="#17.3">17.3. 弱参照</a>
 <a href="#18">18. 並行プログラミング ― アクタにタスクを実行させる</a>
   <a href="#18.1">18.1. アクタの生成・開始</a>
@@ -1293,37 +1293,34 @@ eval _initd_ -&gt; &lt;t&gt; ;;</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.1">17.1. 「実体」に「記述」を紐づける</h2>
-<p>「実体」は手続き型言語における変数に相当し，オブジェクトを入れておく箱や，つなぎとめるフックのようなものです。</p>
-<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>あるいは<code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>を使います<span class="note-ref">*1</span>。
-  参照は手続き型言語における変数へのポインタに相当します。
+<p>「実体」はオブジェクトを入れておく箱のようなもので，スコープを超えてプログラムメモリ上に存続します。
+  「実体」は，「<a href="#B.4">具象型</a>」のオブジェクトに対して生成します。
+  生成については，次節を参照してください。</p>
+<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>，<code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>を使います<span class="note-ref">*1</span>。
   「実体」を作成すると参照が返されますので，それを使います。
-  「実体」に紐づけられるオブジェクトは<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>です。
-   <code>&lt;&quot;sango.entity&quot;.ent_d&gt;</code>を拡張して定義します。
   「実体」に紐づいたオブジェクトの取得，紐づけ直しは，以下の関数で入出力のように行います。</p>
 <blockquote class="def">定義<code>
 module &quot;sango.entity&quot; ;;
 eval &lt;eref&gt; *Entity read @public -&gt; &lt;ent_d+&gt; ;;
 eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d+&gt; ;;</code>
-  # それまで紐づけられていたオブジェクトが返される
-<code>module &quot;sango.entity.domain&quot; ;;
-import &quot;sango.entity&quot; -&gt; ent ;;</code> # 本章これ以降省略
-<code>eval &lt;entity_h&gt; *Entity read @public -&gt; &lt;ent.ent_d+&gt; ;;
-eval &lt;entity_h&gt; *Entity &lt;ent.ent_d+&gt; *X write | swap @public -&gt; &lt;ent.ent_d+&gt; ;;</code></blockquote>
+  # それまで紐づけられていたオブジェクトが返される</blockquote>
+<blockquote class="def">定義<code>
+module &quot;sango.entity.box&quot; ;;
+eval &lt;*A box_h&gt; *Box read @public -&gt; &lt;A&gt; ;;
+eval &lt;*A box_h&gt; *Box &lt;ent.ent_d+&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></blockquote>
+<blockquote class="def">定義<code>
+module &quot;sango.entity.domain&quot; ;;
+eval &lt;*A entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;
+eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></blockquote>
 <p>入出力処理は「実体」をロックして行われますので，<code>read</code>と<code>write</code>が交錯しても整合性が保たれます<span class="note-ref">*2</span>。</p>
 
-<blockquote class="note">*1：<code>&quot;sango.entity&quot;</code>は「実体」の基本機能を提供するライブラリ，<code>&quot;sango.entity.domain&quot;</code>はこれを拡張したライブラリです。なお，<code>&quot;sango.entity&quot;</code>の実装は「ボックス」（後述）に統合されました。</blockquote>
+<blockquote class="note">*1：<code>&quot;sango.entity&quot;</code>はSango初期から提供されている「実体」の基本機能ライブラリ，<code>&quot;sango.entity.box&quot;</code>は，これを拡張した「ボックス」を提供するライブラリ，<code>&quot;sango.entity.domain&quot;</code>はボックスを拡張したライブラリです。なお，<code>&quot;sango.entity&quot;.eref</code>の実装はボックスに統合され，<code>&lt;&quot;sango.entity&quot;.ent_d+ &quot;sango.entity.box&quot;.box_h&gt;</code>の別名になっています。ボックスは，紐づけたいデータを<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>にラップする必要がないため，手続き型言語の変数のように使用することができます。</blockquote>
 <blockquote class="note">*2：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
 
-<p>■ ボックス</p>
-<p>固定された型のデータを紐づける「実体」として「ボックス」が提供されています。
-  ボックスは，紐づけたいデータを<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>にラップする必要がないため，手続き型言語の変数のように使用することができます。
-  読み出し，書き込み，後処理，弱参照などは<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>と同様です。
-  ただし，ボックスを作成するときには，初期値の型が<a href="#B.4">「具象型」</a>でなければなりません。
-  使用方法の詳細は，<code>&quot;sango.entity.box&quot;</code>の解説を参照してください。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="17.2">17.2. 「実体」消滅後の後処理</h2>
-<p>他のプログラミング言語と同様に，Sangoのオブジェクトはメモリ空間に存在し，不必要になると<span class="note-ref">*1</span>システムによって回収されます（ゴミ集め。Garbage Collection，GC）。
+<h2 id="17.2">17.2. 「実体」の生成と消滅の後処理</h2>
+<p>他のプログラミング言語と同様に，Sangoのオブジェクトは不必要になると<span class="note-ref">*1</span>システムによって回収されます（ゴミ集め。Garbage Collection，GC）。
   「記述」のGCはオブジェクトを消去するだけです。
   一方，「実体」の場合は後処理が必要になることがあります。
   例えば，ファイルやネットワークセッションをクローズしてリソースを解放するといったことです。
@@ -1331,10 +1328,15 @@ eval &lt;entity_h&gt; *Entity &lt;ent.ent_d+&gt; *X write | swap @public -&gt; &
 <blockquote class="def">定義<code>
 module &quot;sango.entity&quot; ;;
 eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;eref&gt; ;;
+  create_entity @public -&gt; &lt;eref&gt; ;;</code></blockquote>
+<blockquote class="def">定義<code>
+module &quot;sango.entity.box&quot; ;;
+eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_box @public -&gt; &lt;A box_h&gt; ;;</code></blockquote>
+<blockquote class="def">定義<code>
 module &quot;sango.entity.domain&quot; ;;
-eval &lt;domain_h&gt; *Domain &lt;ent.ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;entity_h&gt; ;;</code></blockquote>
+eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_entity @public -&gt; &lt;A entity_h&gt; ;;</code></blockquote>
 <p>後処理関数は<code>&lt;void fun&gt;</code>で，「実体」が回収され消滅した後に，新たなスレッドとして起動されます<span class="note-ref">*2</span>。</p>
 
 <blockquote class="note">*1：どこからも参照されなくなった場合。</blockquote>
@@ -1342,26 +1344,36 @@ eval &lt;domain_h&gt; *Domain &lt;ent.ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&g
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.3">17.3. 弱参照</h2>
-<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;&quot;sango.entity.domain&quot;.entity_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
-  弱参照が指し示す（かもしれない）「実体」にアクセスするには，まず弱参照から強参照を取得し，強参照が存在すればそれを使って「実体」にアクセスします。</p>
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;entity_h maybe&gt; ;;</code></blockquote>
-<p>弱参照が無効化された（弱参照が切れた）ときに通知を受け取ることができます。
-  通知を受けるリスナ関数は生成時に指定します。</p>
+<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>，<code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
+  その際，弱参照が無効化された（弱参照が切れた）ときに通知を受け取る関数を指定することができます。
+  この関数は，後処理関数と同様に，弱参照が無効化された後に，新たなスレッドとして起動されます。</p>
+
+<blockquote class="note">*1：弱参照は他のプログラミング言語の弱参照と同じです。説明は割愛します。</blockquote>
+ 
 <blockquote class="def">定義<code>
 module &quot;sango.entity&quot; ;;
 eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;wref&gt; ;;
+</code></blockquote>
+<blockquote class="def">定義<code>
+module &quot;sango.entity.box&quot; ;;
+eval &lt;*A box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;A wbox_h&gt; ;;</code></blockquote>
+<blockquote class="def">定義<code>
 module &quot;sango.entity.domain&quot; ;;
-eval &lt;domain_h&gt; *Domain &lt;entity_h&gt; *Entity &lt;&lt;weak_holder_h void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;weak_holder_h&gt; ;;</code></blockquote>
-<p>このリスナ関数は，後処理関数と同様に，弱参照が無効化された後に，新たなスレッドとして起動されます。</p>
+eval &lt;domain_h&gt; *Domain &lt;*A entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
+  create_weak_holder @public -&gt; &lt;A weak_holder_h&gt; ;;</code></blockquote>
+<p>弱参照が指し示す（かもしれない）「実体」にアクセスするには，まず弱参照から強参照を取得し，強参照が存在すればそれを使って「実体」にアクセスします。</p>
+<blockquote class="def">定義<code>
+module &quot;sango.entity&quot; ;;
+eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></blockquote>
+<blockquote class="def">定義<code>
+module &quot;sango.entity.box&quot; ;;
+eval &lt;*A wbox_h&gt; *W get @public -&gt; &lt;&lt;A box_h&gt; maybe&gt; ;;</code></blockquote>
+<blockquote class="def">定義<code>
+module &quot;sango.entity.domain&quot; ;;
+eval &lt;*A weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;A entity_h maybe&gt; ;;</code></blockquote>
 
-<blockquote class="note">*1：弱参照は他のプログラミング言語の弱参照と同じです。説明は割愛します。</blockquote>
- 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="18">18. 並行プログラミング ― アクタにタスクを実行させる</h1>
 <p>Sangoプログラムは，並行して実行されるスレッドから構成されます。
@@ -2157,6 +2169,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <p>■　NEXT VERSION</p>
 <ul>
 <li>【非互換】<code>&lt;A &quot;sango.lang&quot;.eq_fs&gt;</code>に属性を追加</li>
+<li>【非互換】<code>&quot;sango.entity.domain&quot;</code>を変更</li>
 <li><code>&quot;sango.entity.box&quot;</code>を追加</li>
 <li><code>&quot;sango.entity&quot;</code>を<code>&quot;sango.entity.box&quot;</code>に統合。<code>&lt;eref&gt;</code>，<code>&lt;wref&gt;</code>の定義が変更されましたが，プログラミングには影響ありません。</li>
 <li><code>&quot;sango.util.map.hashmap&quot;</code>を追加</li>

@@ -37,25 +37,28 @@ extend <ent.ent_d> :=
 | <graph_d> graph_ent_d$
 | <node_d> node_ent_d$ ;;
 
+alias type <entity_h> := <ent.ent_d+ ed.entity_h> ;;
+alias type <weak_holder_h> := <ent.ent_d+ ed.weak_holder_h> ;;
+
 data <graph_d> :=
-  nodes: <ed.entity_h set.set>
+  nodes: <entity_h set.set>
   graph_d$ ;;
 
 data <node_d> :=
-  wself: <ed.weak_holder_h>  # you can get wref in entity data in order to avoid making wref again
+  wself: <weak_holder_h>  # you can get wref in entity data in order to avoid making wref again
   alive: <bool>
   content: <ent.ent_d+>
-  links: <cstr ed.weak_holder_h map.map>
+  links: <cstr weak_holder_h map.map>
   node_d$ ;;
 
 data <graph_h> @opaque :=
   ent_domain: <ed.domain_h>
-  de: <ed.entity_h>
+  de: <entity_h>
   graph_h$ ;;
 
 data <node_h> @opaque :=
   graph_h: <graph_h>
-  dew: <ed.weak_holder_h>
+  dew: <weak_holder_h>
   node_h$ ;;
 
 eval <node_h> *Node node_graph | graph @public -> <graph_h> { Node graph_h } ;;
@@ -72,7 +75,7 @@ eval <graph_h> *Graph <ent.ent_d+> *X <<void fun> maybe> *Invalidator_
   Graph = ent_domain: *Dom de: *GDE *** graph_h$,
   GDE ed.read = *Graph_d graph_ent_d$,
   Graph_d = nodes: *Nodes graph_d$,
-  Dom ent.existence$ Invalidator_ ed.create_entity = *NDE,  # create and get ref
+  Dom (&\\<ent.ent_d+> { ent.existence$ }) Invalidator_ ed.create_entity = *NDE,  # create and get ref
   Dom NDE none$ ed.create_weak_holder = *NDEW,
   wself: NDEW alive: true$ content: X links: (smap.new_map) node_d$ = *Node_d,
   NDE (Node_d node_ent_d$) ed.write,
@@ -84,11 +87,11 @@ eval <graph_h> *Graph <ent.ent_d+> *X <<void fun> maybe> *Invalidator_
 eval <graph_h> *Graph graph_nodes | nodes @public -> <node_h list> {
   (Graph de) ed.read = *Graph_d graph_ent_d$,
   (Graph_d nodes >> set.iter >> list.new_list)
-    \ <ed.entity_h> *E -> <node_h> { Graph E reconstruct_node_h }
+    \ <entity_h> *E -> <node_h> { Graph E reconstruct_node_h }
     list.map
 } ;;
 
-eval <graph_h> *Graph <ed.entity_h> *NDE reconstruct_node_h -> <node_h> {
+eval <graph_h> *Graph <entity_h> *NDE reconstruct_node_h -> <node_h> {
   NDE ed.read = (wself: *W *** node_d$) node_ent_d$,
   graph_h: Graph dew: W node_h$
 } ;;
@@ -99,19 +102,19 @@ eval <node_h list> *Nodes nodes_reachable_nodes | reachable_nodes @public -> <no
     Nodes ensure_in_one_graph >> value = *Graph,
     Graph Nodes collect_reachable_nodes = *NDEs,
     (NDEs set.iter)
-      \ <ed.entity_h> *E -> <node_h> { Graph E reconstruct_node_h }
+      \ <entity_h> *E -> <node_h> { Graph E reconstruct_node_h }
       iter.add_modifier
     >> list.new_list
   ; ** -> []
   }
 } ;;
 
-eval <graph_h> *Graph <node_h list> *Nodes collect_reachable_nodes -> <ed.entity_h set.set> {
+eval <graph_h> *Graph <node_h list> *Nodes collect_reachable_nodes -> <entity_h set.set> {
   Nodes
-    \ <node_h> *N -> <ed.entity_h> { N read_live_node >> tuple.pair_first }
+    \ <node_h> *N -> <entity_h> { N read_live_node >> tuple.pair_first }
     list.map = *NDEs,
   NDEs (ed.entity_ord_fs avlset.new_set)
-      &\ <ed.entity_h list> *To_scan <ed.entity_h set.set> *Collected -> <ed.entity_h set.set> {
+      &\ <entity_h list> *To_scan <entity_h set.set> *Collected -> <entity_h set.set> {
     To_scan case {
     ; [ *NDE ; *To_scan' ] ->
       Collected NDE set.contain? >> case {
@@ -120,7 +123,7 @@ eval <graph_h> *Graph <node_h list> *Nodes collect_reachable_nodes -> <ed.entity
         NDE ed.read = (links: *Links *** node_d$) node_ent_d$,
         To_scan'
           (((Links map.iter) ^tuple.pair_second iter.add_modifier) >> list.new_list)
-          \ <ed.entity_h list> *LL <ed.weak_holder_h> *W -> <ed.entity_h list> {
+          \ <entity_h list> *LL <weak_holder_h> *W -> <entity_h list> {
             [ W ed.get >> value ; LL]
           }
           list.fold = *To_scan'',
@@ -136,7 +139,7 @@ eval <graph_h> *Graph graph_clear | clear @public -> <void> {
   GDE ed.read = *Graph_d graph_ent_d$,
   Graph_d nodes = *Nodes,
   (Nodes set.iter >> list.new_list)
-    \ <ed.entity_h> *E -> <void> {
+    \ <entity_h> *E -> <void> {
       E ed.read = *ND node_ent_d$,
       E ((ND node_d_destroy) node_ent_d$) ed.write >> ignore
     }
@@ -162,7 +165,7 @@ eval <graph_h> *Graph <node_h list> *Nodes do_kill_unreachable_nodes -> <void> {
   Graph_d = nodes: *NDEs *** graph_d$,
   NDEs RNDEs set.difference = *URNDEs,
   (URNDEs set.iter >> list.new_list)
-    \ <ed.entity_h> *E -> <void> { Graph E kill_node }
+    \ <entity_h> *E -> <void> { Graph E kill_node }
     list.map >> ignore
 } ;;
 
@@ -201,7 +204,7 @@ eval <node_h> *Node node_kill | kill @public -> <void> {
   }
 } ;;
 
-eval <graph_h> *Graph <ed.entity_h> *NDE kill_node -> <void> {
+eval <graph_h> *Graph <entity_h> *NDE kill_node -> <void> {
   Graph = de: *GDE *** graph_h$,
   NDE ed.read = *Node_d node_ent_d$,
   Node_d case {
@@ -211,7 +214,7 @@ eval <graph_h> *Graph <ed.entity_h> *NDE kill_node -> <void> {
     Graph_d = nodes: *Nodes *** graph_d$,
     Nodes NDE set.delete = *Nodes',
     (Nodes' set.iter) (Nodes' set.clear)
-        &\ <ed.entity_h iter> *I <ed.entity_h set.set> *NN -> <ed.entity_h set.set> {
+        &\ <entity_h iter> *I <entity_h set.set> *NN -> <entity_h set.set> {
       I next >> case {
       ; (| *E, *I' |) value$ ->
         E ed.read = *ND node_ent_d$,
@@ -264,7 +267,7 @@ eval <node_h> *Node <cstr> *Tag node_traverse | traverse @public -> <node_h mayb
   }
 } ;;
 
-eval <node_h> *Node read_live_node -> <ed.entity_h node_d tuple> {
+eval <node_h> *Node read_live_node -> <entity_h node_d tuple> {
   Node = graph_h: *Graph dew: *NDEW *** node_h$,
   NDEW ed.get >> case {
   ; *NDE value$ ->
@@ -281,10 +284,10 @@ eval <node_d> *Node_d node_d_destroy -> <node_d> {
   alive: false$ links: smap.new_map :: Node_d node_d$
 } ;;
 
-eval <node_d> *Node_d <ed.weak_holder_h> *To node_d_purge_dangling_links -> <node_d> {
+eval <node_d> *Node_d <weak_holder_h> *To node_d_purge_dangling_links -> <node_d> {
   Node_d links = *Links,
-  (Links map.iter) Links &\ <<cstr ed.weak_holder_h tuple> iter> *I <cstr ed.weak_holder_h map.map> *Ls
-      -> <cstr ed.weak_holder_h map.map> {
+  (Links map.iter) Links &\ <<cstr weak_holder_h tuple> iter> *I <cstr weak_holder_h map.map> *Ls
+      -> <cstr weak_holder_h map.map> {
     I next >> case {
     ; (| (| *T, To |), *I' |) value$ -> I' (Ls T map.delete) &&
     ; (| **, *I' |) value$ -> I' Ls &&
