@@ -37,7 +37,7 @@ eval test400 -> <void> {
 eval test410 -> <void> {
   ed.default_domain (4 ee$) none$ ed.create_entity = *E,
   E actu.create_monitor = *M,
-  M \ <ed.entity_h> *EE -> <int> { EE ed.read = *X ee$, X } actu.run = 4,
+  M \ <ent_d ed.entity_h> *EE -> <int> { EE ed.read = *X ee$, X } actu.run = 4,
   void$
 } ;;
 eval test420 -> <void> {

@@ -60,7 +60,7 @@ eval test002 -> <void> {
 } ;;
 eval test010 -> <void> {
   entd.create_domain = *D,
-  D ent.existence$ none$ entd.create_entity = *E,
+  D (&\\ <ent.ent_d+> { ent.existence$ }) none$ entd.create_entity = *E,
   E entd.read = ent.existence$,
   E my_ent_d$ entd.write = ent.existence$,
   void$
