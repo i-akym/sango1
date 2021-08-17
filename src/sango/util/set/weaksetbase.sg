@@ -21,23 +21,23 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.set.weakset" ;;
+module @alpha "sango.util.set.weaksetbase" ;;
 
 import "sango.actor.util" -> actu ;;
-import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hashmap ;;
 import "sango.util.set" -> set ;;
 
-alias type <lookup_tab> := <int <ent.wref list> map.map> ;;  # eref's hash -> wref list
-alias type <purge_tab> := <ent.wref int map.map> ;;  # wref -> eref's hash
+alias type <etab> := <int <ex.weak_ref list> map.map> ;;  # existence's hash -> weakref list
+alias type <wtab> := <ex.weak_ref int map.map> ;;  # weakref -> existence's hash
 
 data <d> :=
-  lookup_tab: <lookup_tab>
-  purge_tab: <purge_tab>
+  etab: <etab>
+  wtab: <wtab>
   d$ ;;
 
 data <weakset_h> @opaque :=
@@ -46,8 +46,8 @@ data <weakset_h> @opaque :=
 
 
 eval new_set @public -> <weakset_h> {
-  lookup_tab: (int_ord_fs avlmap.new_map)
-    purge_tab: hashmap.new_map
+  etab: (int_ord_fs avlmap.new_map)
+    wtab: hashmap.new_map
     d$ = *D,
   D none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
@@ -58,7 +58,7 @@ eval <weakset_h> *Set_h empty? -> <bool> {
   (Set_h mon)
     \ <d box.box_h> *Box -> <bool> {
       Box box.read = *D,
-      D purge_tab >> map.empty?
+      D wtab >> map.empty?
     }
     actu.run
 } ;;
@@ -67,45 +67,45 @@ eval <weakset_h> *Set_h size -> <int> {
   (Set_h mon)
     \ <d box.box_h> *Box -> <int> {
       Box box.read = *D,
-      D purge_tab >> map.size
+      D wtab >> map.size
     }
     actu.run
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref get -> <ent.eref maybe> {
+eval <weakset_h> *Set_h <ex.existence> *Ex get -> <ex.existence maybe> {
   (Set_h mon)
-    \ <d box.box_h> *Box -> <ent.eref maybe> {
+    \ <d box.box_h> *Box -> <ex.existence maybe> {
       Box box.read = *D,
-      D Eref d_find = (| *E_, *D' |),
+      D Ex d_find = (| *E_, *D' |),
       Box D' box.write,
       E_
     }
     actu.run
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref contain? -> <bool> {
-  Set_h Eref get >> something?
+eval <weakset_h> *Set_h <ex.existence> *Ex contain? -> <bool> {
+  Set_h Ex get >> something?
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref put -> <ent.eref maybe> {
+eval <weakset_h> *Set_h <ex.existence> *Ex put -> <ex.existence maybe> {
   (Set_h mon)
-    \ <d box.box_h> *Box -> <ent.eref maybe> {
+    \ <d box.box_h> *Box -> <ex.existence maybe> {
       Box box.read = *D,
-      D Eref d_remove = (| *Removed_, *D' |),
-      D' Eref (Set_h mon) d_add = *D'',
+      D Ex d_remove = (| *Replaced_, *D' |),
+      D' Ex (Set_h mon) d_add = *D'',
       Box D'' box.write,
-      Removed_
+      Replaced_
     }
     actu.run
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref put_new -> <bool> {
+eval <weakset_h> *Set_h <ex.existence> *Ex put_new -> <bool> {
   (Set_h mon)
     \ <d box.box_h> *Box -> <bool> {
       Box box.read = *D,
-      D Eref d_find = (| *E_, *D' |),
+      D Ex d_find = (| *E_, *D' |),
       E_ case {
-      ; none$ -> (| true$, D' Eref (Set_h mon) d_add |)
+      ; none$ -> (| true$, D' Ex (Set_h mon) d_add |)
       ; ** -> (| false$, D' |)
       } = (| *Succeeded?, *D'' |),
       Box D'' box.write,
@@ -114,28 +114,28 @@ eval <weakset_h> *Set_h <ent.eref> *Eref put_new -> <bool> {
     actu.run
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref add -> <void> {
-  Set_h Eref put >> ignore
+eval <weakset_h> *Set_h <ex.existence> *Ex add -> <void> {
+  Set_h Ex put >> ignore
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref remove -> <ent.eref maybe> {
+eval <weakset_h> *Set_h <ex.existence> *Ex remove -> <ex.existence maybe> {
   (Set_h mon)
-    \ <d box.box_h> *Box -> <ent.eref maybe> {
+    \ <d box.box_h> *Box -> <ex.existence maybe> {
       Box box.read = *D,
-      D Eref d_remove = (| *Removed_, *D' |),
+      D Ex d_remove = (| *Removed_, *D' |),
       Box D' box.write,
       Removed_
     }
     actu.run
 } ;;
 
-eval <weakset_h> *Set_h <ent.eref> *Eref delete -> <void> {
-  Set_h Eref remove >> ignore
+eval <weakset_h> *Set_h <ex.existence> *Ex delete -> <void> {
+  Set_h Ex remove >> ignore
 } ;;
 
-eval <weakset_h> *Set_h take -> <ent.eref maybe> {
+eval <weakset_h> *Set_h take -> <ex.existence maybe> {
   (Set_h mon)
-    \ <d box.box_h> *Box -> <ent.eref maybe> {
+    \ <d box.box_h> *Box -> <ex.existence maybe> {
       Box box.read = *D,
       D d_take = (| *E_, *D' |),
       Box D' box.write,
@@ -156,80 +156,80 @@ eval <weakset_h> *Set_h clear -> <void> {
 
 # -- data manipulation routines --
 
-eval <d> *D <ent.eref> *Eref d_find -> <<ent.eref maybe> d tuple> {
-  D = lookup_tab: *LT purge_tab: *PT *** d$,
-  Eref hash = *EH,
-  LT EH map.assoc >> case {
+eval <d> *D <ex.existence> *Ex d_find -> <<ex.existence maybe> d tuple> {
+  D = etab: *ET wtab: *WT *** d$,
+  Ex hash = *EH,
+  ET EH map.assoc >> case {
   ; *Ws value$ ->
-    Ws Eref find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
+    Ws Ex find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
     Found_ case {
     ; (| *E, *W, *WW |) value$ -> (| E value$, WW [ W ; Scanned ] list.cons_each |)
     ; ** -> (| none$, Scanned |)
     } = (| *Res, *Ws' |),
     Ws' case {
-    ; [] -> LT EH map.delete
-    ; ** -> LT EH Ws' map.add
-    } = *LT',
-    PT To_be_purged map.delete_list = *PT',
-    (| Res, lookup_tab: LT' purge_tab: PT' :: D d$ |) 
+    ; [] -> ET EH map.delete
+    ; ** -> ET EH Ws' map.add
+    } = *ET',
+    WT To_be_purged map.delete_list = *WT',
+    (| Res, etab: ET' wtab: WT' :: D d$ |) 
   ; ** -> (| none$, D |)
   }
 } ;;
 
-eval <d> *D <ent.eref> *Eref <d actu.box_monitor_h> *Mon d_add -> <d> {  # add without duplication check
-  D = lookup_tab: *LT purge_tab: *PT *** d$,
-  Eref hash = *EH,
-  \ <ent.wref> *Purged -> <void> {
+eval <d> *D <ex.existence> *Ex <d actu.box_monitor_h> *Mon d_add -> <d> {  # add without duplication check
+  D = etab: *ET wtab: *WT *** d$,
+  Ex hash = *EH,
+  \ <ex.weak_ref> *Cleared -> <void> {
     Mon
       \ <d box.box_h> *BB -> <void> {
         BB box.read = *DD,
-        DD Purged d_purge = *DD',
+        DD Cleared d_purge = *DD',
         BB DD' box.write >> ignore
       }
       actu.run
   } = *Lis,
-  Eref (Lis value$) ent.create_weak_holder = *W,
-  LT EH map.assoc >> case {
+  Ex (Lis value$) ex.create_weak_ref = *W,
+  ET EH map.assoc >> case {
   ; *Ws value$ -> [ W ; Ws ]
   ; ** -> [ W ]
   } = *Ws',
-  LT EH Ws' map.add = *LT',
-  PT W EH map.add = *PT',
-  lookup_tab: LT' purge_tab: PT' :: D d$
+  ET EH Ws' map.add = *ET',
+  WT W EH map.add = *WT',
+  etab: ET' wtab: WT' :: D d$
 } ;;
 
-eval <d> *D <ent.eref> *Eref d_remove -> <<ent.eref maybe> d tuple> {
-  D = lookup_tab: *LT purge_tab: *PT *** d$,
-  Eref hash = *EH,
-  LT EH map.assoc >> case {
+eval <d> *D <ex.existence> *Ex d_remove -> <<ex.existence maybe> d tuple> {
+  D = etab: *ET wtab: *WT *** d$,
+  Ex hash = *EH,
+  ET EH map.assoc >> case {
   ; *Ws value$ ->
-    Ws Eref find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
+    Ws Ex find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
     Found_ case {
     ; (| *E, *W, *WW |) value$ -> (| E value$, WW Scanned list.cons_each, [ W ; To_be_purged ] |)
     ; ** -> (| none$, Scanned, To_be_purged |)
     } = (| *Res, *Ws', *To_be_purged' |),
     Ws' case {
-    ; [] -> LT EH map.delete
-    ; ** -> LT EH Ws' map.add
-    } = *LT',
-    PT To_be_purged' map.delete_list = *PT',
-    (| Res, lookup_tab: LT' purge_tab: PT' :: D d$ |) 
+    ; [] -> ET EH map.delete
+    ; ** -> ET EH Ws' map.add
+    } = *ET',
+    WT To_be_purged' map.delete_list = *WT',
+    (| Res, etab: ET' wtab: WT' :: D d$ |) 
   ; ** -> (| none$, D |)
   }
 } ;;
 
-eval <d> *D <ent.wref> *Wref d_purge -> <d> {
-  D = lookup_tab: *LT purge_tab: *PT *** d$,
-  PT Wref map.remove >> case {
-  ; (| *PT', (| **, *EH |) value$ |)  ->
-    LT EH map.assoc >> case {
+eval <d> *D <ex.weak_ref> *Weak_ref d_purge -> <d> {
+  D = etab: *ET wtab: *WT *** d$,
+  WT Weak_ref map.remove >> case {
+  ; (| *WT', (| **, *EH |) value$ |)  ->
+    ET EH map.assoc >> case {
     ; *Ws value$ ->
-      Ws [] [] &\ <ent.wref list> *To_be_scanned <ent.wref list> *Scanned <ent.wref list> *To_be_purged
-          -> <<ent.wref list> <ent.wref list> tuple> {
+      Ws [] [] &\ <ex.weak_ref list> *To_be_scanned <ex.weak_ref list> *Scanned <ex.weak_ref list> *To_be_purged
+          -> <<ex.weak_ref list> <ex.weak_ref list> tuple> {
         To_be_scanned case {
-        ; [ Wref ; *To_be_scanned' ] -> (| To_be_scanned' Scanned list.cons_each, To_be_purged |)
+        ; [ Weak_ref ; *To_be_scanned' ] -> (| To_be_scanned' Scanned list.cons_each, To_be_purged |)
         ; [ *W ; *To_be_scanned' ] ->
-          W ent.get >> case {
+          W ex.get >> case {
           ; ** value$ -> To_be_scanned' [ W ; Scanned ] To_be_purged &&
           ; ** -> To_be_scanned' Scanned [ W ; To_be_purged ] &&
           }
@@ -237,59 +237,59 @@ eval <d> *D <ent.wref> *Wref d_purge -> <d> {
         }
       } = (| *Ws', *PWs |),
       Ws' case {
-      ; [] -> LT EH map.delete
-      ; ** -> LT EH Ws' map.add
-      } = *LT',
-      PT' PWs map.delete_list = *PT'',
-      lookup_tab: LT' purge_tab: PT'' :: D d$
+      ; [] -> ET EH map.delete
+      ; ** -> ET EH Ws' map.add
+      } = *ET',
+      WT' PWs map.delete_list = *WT'',
+      etab: ET' wtab: WT'' :: D d$
     ; ** -> D  # not reached here
     }
   ; ** -> D  # already purged
   }
 } ;;
 
-eval <d> *D d_take -> <<ent.eref maybe> d tuple> {
-  D = lookup_tab: *LT purge_tab: *PT *** d$,
-  [] 0 LT PT &\ <ent.wref list> *Ws <int> *EH <lookup_tab> *Ltab <purge_tab> *Ptab
-      -> <<ent.eref maybe> d tuple> {
+eval <d> *D d_take -> <<ex.existence maybe> d tuple> {
+  D = etab: *ET wtab: *WT *** d$,
+  [] 0 ET WT &\ <ex.weak_ref list> *Ws <int> *EH <etab> *Etab <wtab> *Wtab
+      -> <<ex.existence maybe> d tuple> {
     Ws case {
     ; [ *W ; *Ws' ] ->
-      Ptab W map.delete = *Ptab',
-      W ent.get >> case {
+      Wtab W map.delete = *Wtab',
+      W ex.get >> case {
       ; *E value$ ->
         Ws' case {
         ; [] ->
-          (| E value$, lookup_tab: Ltab purge_tab: Ptab' :: D d$ |)
+          (| E value$, etab: Etab wtab: Wtab' :: D d$ |)
         ; ** ->
-          Ltab EH Ws' map.add = *Ltab',  # push back
-          (| E value$, lookup_tab: Ltab' purge_tab: Ptab' :: D d$ |)
+          Etab EH Ws' map.add = *Etab',  # push back
+          (| E value$, etab: Etab' wtab: Wtab' :: D d$ |)
         }
       ; none$ ->
-        Ws' EH Ltab Ptab' &&
+        Ws' EH Etab Wtab' &&
       }
     ; [] ->
-      Ltab map.take >> case {
-      ; (| (| *EH', *Ws' |), *Ltab' |) value$ -> Ws' EH' Ltab' Ptab &&
-      ; none$ -> (| none$, lookup_tab: Ltab purge_tab: Ptab :: D d$ |)
+      Etab map.take >> case {
+      ; (| (| *EH', *Ws' |), *Etab' |) value$ -> Ws' EH' Etab' Wtab &&
+      ; none$ -> (| none$, etab: Etab wtab: Wtab :: D d$ |)
       }
     }
   }
 } ;;
 
 eval <d> *D d_clear -> <d> {
-  D = lookup_tab: *LT purge_tab: *PT *** d$,
-  lookup_tab: (LT map.clear) purge_tab: (PT map.clear) :: D d$
+  D = etab: *ET wtab: *WT *** d$,
+  etab: (ET map.clear) wtab: (WT map.clear) :: D d$
 } ;;
 
-eval <ent.wref list> *Ws <ent.eref> *Eref find_in_candidates
-    -> <<<ent.eref ent.wref <ent.wref list> tuple> maybe> <ent.wref list> <ent.wref list> tuple> {
-      # (eref, container wref, not yet scanned)?, scanned, to be purged
-  Ws [] [] &\ <ent.wref list> *To_be_scanned <ent.wref list> *Scanned <ent.wref list> *To_be_purged
-      -> <<<ent.eref ent.wref <ent.wref list> tuple> maybe> <ent.wref list> <ent.wref list> tuple> {
+eval <ex.weak_ref list> *Ws <ex.existence> *Ex find_in_candidates
+    -> <<<ex.existence ex.weak_ref <ex.weak_ref list> tuple> maybe> <ex.weak_ref list> <ex.weak_ref list> tuple> {
+      # (existence, container weak_ref, not yet scanned)?, scanned, to be purged
+  Ws [] [] &\ <ex.weak_ref list> *To_be_scanned <ex.weak_ref list> *Scanned <ex.weak_ref list> *To_be_purged
+      -> <<<ex.existence ex.weak_ref <ex.weak_ref list> tuple> maybe> <ex.weak_ref list> <ex.weak_ref list> tuple> {
     To_be_scanned case {
     ; [ *W ; *To_be_scanned' ] ->
-      W ent.get >> case {
-      ; Eref value$ -> (| (| Eref, W, To_be_scanned |) value$, Scanned, To_be_purged |)
+      W ex.get >> case {
+      ; Ex value$ -> (| (| Ex, W, To_be_scanned |) value$, Scanned, To_be_purged |)
       ; ** value$ -> To_be_scanned' [ W ; Scanned ] To_be_purged &&
       ; none$ -> To_be_scanned' Scanned [ W ; To_be_purged ] &&
       }
