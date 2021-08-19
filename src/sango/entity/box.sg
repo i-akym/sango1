@@ -61,3 +61,15 @@ eval <*A wbox_h> *W clear @public -> <void> {
   W = *WR wbox_h$,
   WR ex.clear
 } ;;
+
+
+# -- undress/redress for weak collection --
+
+# must cast to handle concret type
+eval for_weak_collection @public -> <<*A box_h> <ex.existence <ex.existence <A box_h> fun> tuple> fun> {
+  ^undress
+} ;;
+
+eval <*A box_h> *Box undress -> <ex.existence <ex.existence <A box_h> fun> tuple> {
+  (| Box existence, \ <ex.existence> *E -> <A box_h> { E box_h$ } |)
+} ;;
