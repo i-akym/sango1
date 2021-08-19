@@ -29,7 +29,6 @@ import java.util.List;
 
 public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
-  boolean polymorphic;
   PTVarSlot varSlot;
 
   private PTypeVarSkel() {}
@@ -78,12 +77,6 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isConcrete() { return this.varSlot.requiresConcrete; }
 
-  boolean isPolymorphic() { return this.polymorphic; }
-
-  void setPolymorphic(boolean b) {
-    this.polymorphic = b;
-  }
-
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel t;
     if (iBindings.isGivenTVar(this.varSlot)) {
@@ -105,7 +98,6 @@ public class PTypeVarSkel implements PTypeSkel {
 // /* DEBUG */ System.out.println("instanciate 5 " + this.toString());
       PTVarSlot s = PTVarSlot.create(this.varSlot.varDef);
       PTypeVarSkel v = this.copy();
-      v.polymorphic = true;
       v.varSlot = s;
       iBindings.bind(this.varSlot, v);
       t = v;
