@@ -32,3 +32,14 @@ eval <existence> *Ex <<weak_ref void fun> maybe> *Listener_ create_weak_ref @pub
 
 eval <weak_ref> *WR get @public -> <existence maybe> @native ;;
 eval <weak_ref> *WR clear @public -> <void> @native ;;
+
+
+# -- undress/redress for weak collection --
+
+eval for_weak_collection @public -> <existence <existence <existence existence fun> tuple> fun> {
+  ^undress
+} ;;
+
+eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
+  (| Ex, ^itself |)
+} ;;

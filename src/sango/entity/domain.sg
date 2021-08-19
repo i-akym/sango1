@@ -25,7 +25,6 @@ module "sango.entity.domain" ;;
 
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
-# import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
@@ -178,6 +177,25 @@ eval <*A weak_holder_h> *Weak_holder get @public -> <<A entity_h> maybe> {
 
 eval <*A weak_holder_h> *Weak_holder clear @public -> <void> {
   Weak_holder weak_ref >> box.clear
+} ;;
+
+
+# -- undress/redress for weak collection --
+
+# must cast to handle concret type
+eval for_weak_collection @public -> <<*A entity_h> <ex.existence <ex.existence <A entity_h> fun> tuple> fun> {
+  ^undress
+} ;;
+
+eval <*A entity_h> *Entity undress -> <ex.existence <ex.existence <A entity_h> fun> tuple> {
+  Entity = domain_h: *Domain unique: *Unique box_holder: *Box_holder entity_h$,
+  Box_holder &(box.for_weak_collection) = (| *Ex, *Box_redress_f |),
+  (|
+    Ex,
+    \ <ex.existence> *E -> <A entity_h> {
+      domain_h: Domain unique: Unique box_holder: (E &Box_redress_f) entity_h$
+    }
+  |)
 } ;;
 
 
