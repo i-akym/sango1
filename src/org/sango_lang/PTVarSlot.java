@@ -61,6 +61,6 @@ public class PTVarSlot {
   }
 
   String repr() {
-    return (this.varDef != null)? this.varDef.name: "$" + this.hash + (this.requiresConcrete? "!": "");
+    return ((this.varDef != null)? this.varDef.name: "$" + this.hash) + (this.requiresConcrete? "!": "");
   }
 }
