@@ -208,24 +208,30 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
   }
 
   public void checkRequiringConcreteIn() throws CompileException {
-    this.checkRequiringConcrete();
-  }
-
-  public void checkRequiringConcreteOut() throws CompileException {
-    this.checkRequiringConcrete();
-  }
-
-  void checkRequiringConcrete() throws CompileException {
     if (isFun(this)) {
-      for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].checkRequiringConcreteIn();
-      }
-      this.params[this.params.length - 1].checkRequiringConcreteOut();
+      this.checkRequiringConcreteFun();
     } else {
       for (int i = 0; i < this.params.length; i++) {
         this.params[i].checkRequiringConcreteIn();
       }
     }
+  }
+
+  public void checkRequiringConcreteOut() throws CompileException {
+    if (isFun(this)) {
+      this.checkRequiringConcreteFun();
+    } else {
+      for (int i = 0; i < this.params.length; i++) {
+        this.params[i].checkRequiringConcreteOut();
+      }
+    }
+  }
+
+  void checkRequiringConcreteFun() throws CompileException {
+    for (int i = 0; i < this.params.length - 1; i++) {
+      this.params[i].checkRequiringConcreteIn();
+    }
+    this.params[this.params.length - 1].checkRequiringConcreteOut();
   }
 
   public void normalizeTypes() {
