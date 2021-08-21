@@ -117,7 +117,6 @@ eval <domain_h> *Domain <*A!> *X <<void fun> maybe> *Invalidator_ create_entity 
 } ;;
 
 eval <domain_h> *Domain <*A! box.box_h> *Box contain_box @public -> <A entity_h> {
-    # ! is needed... bug?
   Domain svr = *Svr,
   Svr _get_new_eun = *N,
   (eun: N box: Box e$)
@@ -180,16 +179,16 @@ eval <*A weak_holder_h> *Weak_holder clear @public -> <void> {
 } ;;
 
 
-# -- undress/redress for weak collection --
+# -- undress/redress --
 
 # must cast to handle concret type
-eval for_weak_collection @public -> <<*A entity_h> <ex.existence <ex.existence <A entity_h> fun> tuple> fun> {
-  ^undress
+eval dress_fs @public -> <<*A entity_h> ex.dress_fs> {
+  undress_f: ^undress ex.dress_fs$
 } ;;
 
-eval <*A entity_h> *Entity undress -> <ex.existence <ex.existence <A entity_h> fun> tuple> {
+eval <*A entity_h> *Entity undress -> <ex.existence <<A entity_h> ex.redress_f> tuple> {
   Entity = domain_h: *Domain unique: *Unique box_holder: *Box_holder entity_h$,
-  Box_holder &(box.for_weak_collection) = (| *Ex, *Box_redress_f |),
+  Box_holder &(box.dress_fs >> ex.undress_f) = (| *Ex, *Box_redress_f |),
   (|
     Ex,
     \ <ex.existence> *E -> <A entity_h> {

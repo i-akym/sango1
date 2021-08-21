@@ -34,10 +34,21 @@ eval <weak_ref> *WR get @public -> <existence maybe> @native ;;
 eval <weak_ref> *WR clear @public -> <void> @native ;;
 
 
-# -- undress/redress for weak collection --
+# -- undress/redress ;  This is mainly for weak collections, so use carefully. --
 
-eval for_weak_collection @public -> <existence <existence <existence existence fun> tuple> fun> {
-  ^undress
+# framework
+
+alias type <*A undress_f> @public := <A <existence <A redress_f> tuple> fun> ;;
+alias type <*A redress_f> @public := <existence A fun> ;;
+
+data <*A dress_fs> @public :=
+  undress_f: <A undress_f>
+  dress_fs$ ;;
+
+# implementation
+
+eval dress_fs @public -> <existence dress_fs> {
+  undress_f: ^undress dress_fs$
 } ;;
 
 eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
