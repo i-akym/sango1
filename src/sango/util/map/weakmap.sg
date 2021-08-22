@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.set.weakset" ;;
+module @alpha "sango.util.map.weakmap" ;;
 
 import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
@@ -32,59 +32,62 @@ import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hashmap ;;
 import "sango.util.set" -> set ;;
 
-data <*A einfo> :=
+data <*A *B einfo> :=
   hash: <int>
   redress_f: <A ex.redress_f>
+  assoc: <B>
   einfo$ ;;
 
 alias type <etab> := <int <ex.weak_ref list> map.map> ;;  # existence's hash -> weakref list
-alias type <*A wtab> := <ex.weak_ref <A einfo> map.map> ;;  # weakref -> existence's info
+alias type <*A *B wtab> := <ex.weak_ref <A B einfo> map.map> ;;  # weakref -> existence's info
 
-data <*A d> :=
+data <*A *B d> :=
   etab: <etab>
-  wtab: <A wtab>
+  wtab: <A B wtab>
   d$ ;;
 
-data <*A weakset_h> @opaque :=
-  mon: <<A d> actu.box_monitor_h>
+data <*A *B weak_key_map_h> @opaque :=
+  mon: <<A B d> actu.box_monitor_h>
   undress_f: <A ex.undress_f>
-  weakset_h$ ;;
+  dummy: <B B fun>
+  weak_key_map_h$ ;;
 
 
-eval <*A! ex.dress_fs> *Dress_fs new_set @public -> <A weakset_h> {
+eval <*A! ex.dress_fs> *Dress_fs <*B! B fun> *Assoc new_weak_key_map @public -> <A B weak_key_map_h> {
   etab: (int_ord_fs avlmap.new_map)
-    wtab: (&\\ <A wtab> { hashmap.new_map})
+    wtab: (&\\ <A B wtab> { hashmap.new_map})
     d$ = *D,
   D none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
-  mon: Mon undress_f: (Dress_fs ex.undress_f) weakset_h$
+  mon: Mon undress_f: (Dress_fs ex.undress_f) dummy: Assoc weak_key_map_h$
 } ;;
 
-eval <*A weakset_h> *Set_h empty? @public -> <bool> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
+
+eval <*A *B weak_key_map_h> *Map_h empty? @public -> <bool> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
   Mon
-    \ <<A d> box.box_h> *Box -> <bool> {
+    \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
       D wtab >> map.empty?
     }
     actu.run
 } ;;
 
-eval <*A weakset_h> *Set_h size @public -> <int> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
+eval <*A *B weak_key_map_h> *Map_h size @public -> <int> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
   Mon
-    \ <<A d> box.box_h> *Box -> <int> {
+    \ <<A B d> box.box_h> *Box -> <int> {
       Box box.read = *D,
       D wtab >> map.size
     }
     actu.run
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X get @public -> <A maybe> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
-  X &UF = (| *Ex, *RF |),
+eval <*A *B weak_key_map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+  Key &UF = (| *Ex, *RF |),
   Mon
-    \ <<A d> box.box_h> *Box -> <<A ex.redress_f> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A B einfo> maybe> {
       Box box.read = *D,
       D Ex d_find = (| *Found_, *D' |),
       Box D' box.write,
@@ -92,42 +95,49 @@ eval <*A weakset_h> *Set_h <A> *X get @public -> <A maybe> {
     }
     actu.run
   >> case {
-  ; *Redress_f value$ -> (Ex &Redress_f) value$
+  ; (redress_f: *Redress_f assoc: *Assoc *** einfo$) value$ -> (| Ex &Redress_f, Assoc |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X contain? @public -> <bool> {
-  Set_h X get >> something?
+eval <*A *B weak_key_map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
+  Map_h Key get >> case {
+  ; (| **, *Assoc |) value$ -> Assoc value$
+  ; ** -> none$
+  }
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X put @public -> <A maybe> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
-  X &UF = (| *Ex, *RF |),
+eval <*A *B weak_key_map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
+  Map_h Key get >> something?
+} ;;
+
+eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+  Key &UF = (| *Ex, *RF |),
   Mon
-    \ <<A d> box.box_h> *Box -> <<A ex.redress_f> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A B einfo> maybe> {
       Box box.read = *D,
       D Ex d_remove = (| *Replaced_, *D' |),
-      D' Ex RF Mon d_add = *D'',
+      D' Ex RF Value Mon d_add = *D'',
       Box D'' box.write,
       Replaced_
     }
     actu.run
   >> case {
-  ; *Redress_f value$ -> (Ex & Redress_f) value$
+  ; (redress_f: *Redress_f assoc: *Assoc *** einfo$) value$ -> (| Ex &Redress_f, Assoc |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X put_new @public -> <bool> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
-  X &UF = (| *Ex, *RF |),
+eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+  Key &UF = (| *Ex, *RF |),
   Mon
-    \ <<A d> box.box_h> *Box -> <bool> {
+    \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
       D Ex d_find = (| *Found_, *D' |),
       Found_ case {
-      ; none$ -> (| true$, D' Ex RF Mon d_add |)
+      ; none$ -> (| true$, D' Ex RF Value Mon d_add |)
       ; ** -> (| false$, D' |)
       } = (| *Succeeded?, *D'' |),
       Box D'' box.write,
@@ -136,15 +146,15 @@ eval <*A weakset_h> *Set_h <A> *X put_new @public -> <bool> {
     actu.run
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X add @public -> <void> {
-  Set_h X put >> ignore
+eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value add @public -> <void> {
+  Map_h Key Value put >> ignore
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X remove @public -> <A maybe> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
-  X &UF = (| *Ex, *RF |),
+eval <*A *B weak_key_map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+  Key &UF = (| *Ex, *RF |),
   Mon
-    \ <<A d> box.box_h> *Box -> <<A ex.redress_f> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A B einfo> maybe> {
       Box box.read = *D,
       D Ex d_remove = (| *Removed_, *D' |),
       Box D' box.write,
@@ -152,35 +162,35 @@ eval <*A weakset_h> *Set_h <A> *X remove @public -> <A maybe> {
     }
     actu.run
   >> case {
-  ; *Redress_f value$ -> (Ex &Redress_f) value$
+  ; (redress_f: *Redress_f assoc: *Assoc *** einfo$) value$ -> (| Ex &Redress_f, Assoc |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A weakset_h> *Set_h <A> *X delete @public -> <void> {
-  Set_h X remove >> ignore
+eval <*A *B weak_key_map_h> *Map_h <A> *Key delete @public -> <void> {
+  Map_h Key remove >> ignore
 } ;;
 
-eval <*A weakset_h> *Set_h take -> <A maybe> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
+eval <*A *B weak_key_map_h> *Map_h take @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
   Mon
-    \ <<A d> box.box_h> *Box -> <<ex.existence <A ex.redress_f> tuple> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<ex.existence <A B einfo> tuple> maybe> {
       Box box.read = *D,
-      D d_take = (| *E_, *D' |),
+      D d_take = (| *EI_, *D' |),
       Box D' box.write,
-      E_
+      EI_
     }
     actu.run
   >> case {
-  ; (| *Ex, *Redress_f |) value$ -> (Ex &Redress_f) value$
+  ; (| *Ex, redress_f: *Redress_f assoc: *Assoc *** einfo$ |) value$ -> (| Ex &Redress_f, Assoc |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A weakset_h> *Set_h clear @public -> <void> {
-  Set_h = mon: *Mon undress_f: *UF weakset_h$,
+eval <*A *B weak_key_map_h> *Map_h clear @public -> <void> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
   Mon
-    \ <<A d> box.box_h> *Box -> <void> {
+    \ <<A B d> box.box_h> *Box -> <void> {
       Box box.read = *D,
       D d_clear = *D',
       Box D' box.write >> ignore
@@ -188,9 +198,10 @@ eval <*A weakset_h> *Set_h clear @public -> <void> {
     actu.run
 } ;;
 
+
 # -- data manipulation routines --
 
-eval <*A d> *D <ex.existence> *Ex d_find -> <<<A ex.redress_f> maybe> <A d> tuple> {
+eval <*A *B d> *D <ex.existence> *Ex d_find -> <<<A B einfo> maybe> <A B d> tuple> {
   D = etab: *ET wtab: *WT *** d$,
   Ex hash = *EH,
   ET EH map.assoc >> case {
@@ -198,7 +209,7 @@ eval <*A d> *D <ex.existence> *Ex d_find -> <<<A ex.redress_f> maybe> <A d> tupl
     Ws Ex find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
     Found_ case {
     ; (| *W, *WW |) value$ ->
-      (| (WT W map.assoc >> value >> redress_f) value$, WW [ W ; Scanned ] list.cons_each |)
+      (| (WT W map.assoc >> value) value$, WW [ W ; Scanned ] list.cons_each |)
     ; ** -> (| none$, Scanned |)
     } = (| *Res, *Ws' |),
     Ws' case {
@@ -211,13 +222,13 @@ eval <*A d> *D <ex.existence> *Ex d_find -> <<<A ex.redress_f> maybe> <A d> tupl
   }
 } ;;
 
-eval <*A d> *D <ex.existence> *Ex <A ex.redress_f> *RF <<A d> actu.box_monitor_h> *Mon d_add -> <A d> {
+eval <*A *B d> *D <ex.existence> *Ex <A ex.redress_f> *RF <B> *Value <<A B d> actu.box_monitor_h> *Mon d_add -> <A B d> {
     # add without duplication check
   D = etab: *ET wtab: *WT *** d$,
   Ex hash = *EH,
   \ <ex.weak_ref> *Cleared -> <void> {
     Mon
-      \ <<A d> box.box_h> *BB -> <void> {
+      \ <<A B d> box.box_h> *BB -> <void> {
         BB box.read = *DD,
         DD Cleared d_purge = *DD',
         BB DD' box.write >> ignore
@@ -230,11 +241,11 @@ eval <*A d> *D <ex.existence> *Ex <A ex.redress_f> *RF <<A d> actu.box_monitor_h
   ; ** -> [ W ]
   } = *Ws',
   ET EH Ws' map.add = *ET',
-  WT W (hash: EH redress_f: RF einfo$) map.add = *WT',
+  WT W (hash: EH redress_f: RF assoc: Value einfo$) map.add = *WT',
   etab: ET' wtab: WT' :: D d$
 } ;;
 
-eval <*A d> *D <ex.existence> *Ex d_remove -> <<<A ex.redress_f> maybe> <A d> tuple> {
+eval <*A *B d> *D <ex.existence> *Ex d_remove -> <<<A B einfo> maybe> <A B d> tuple> {
   D = etab: *ET wtab: *WT *** d$,
   Ex hash = *EH,
   ET EH map.assoc >> case {
@@ -242,7 +253,8 @@ eval <*A d> *D <ex.existence> *Ex d_remove -> <<<A ex.redress_f> maybe> <A d> tu
     Ws Ex find_in_candidates = (| *Found_, *Scanned, *To_be_purged |),
     Found_ case {
     ; (| *W, *WW |) value$ ->
-      (| (WT W map.assoc >> value >> redress_f) value$, WW Scanned list.cons_each, [ W ; To_be_purged ] |)
+      
+      (| (WT W map.assoc >> value) value$, WW Scanned list.cons_each, [ W ; To_be_purged ] |)
     ; ** -> (| none$, Scanned, To_be_purged |)
     } = (| *Res, *Ws', *To_be_purged' |),
     Ws' case {
@@ -255,7 +267,7 @@ eval <*A d> *D <ex.existence> *Ex d_remove -> <<<A ex.redress_f> maybe> <A d> tu
   }
 } ;;
 
-eval <*A d> *D <ex.weak_ref> *Weak_ref d_purge -> <A d> {
+eval <*A *B d> *D <ex.weak_ref> *Weak_ref d_purge -> <A B d> {
   D = etab: *ET wtab: *WT *** d$,
   WT Weak_ref map.remove >> case {
   ; (| *WT', (| **, *EI |) value$ |)  ->
@@ -286,10 +298,10 @@ eval <*A d> *D <ex.weak_ref> *Weak_ref d_purge -> <A d> {
   }
 } ;;
 
-eval <*A d> *D d_take -> <<<ex.existence <A ex.redress_f> tuple> maybe> <A d> tuple> {
+eval <*A *B d> *D d_take -> <<<ex.existence <A B einfo> tuple> maybe> <A B d> tuple> {
   D = etab: *ET wtab: *WT *** d$,
-  [] 0 ET WT &\ <ex.weak_ref list> *Ws <int> *E_hash <etab> *Etab <A wtab> *Wtab
-      -> <<<ex.existence <A ex.redress_f> tuple> maybe> <A d> tuple> {
+  [] 0 ET WT &\ <ex.weak_ref list> *Ws <int> *E_hash <etab> *Etab <A B wtab> *Wtab
+      -> <<<ex.existence <A B einfo> tuple> maybe> <A B d> tuple> {
     Ws case {
     ; [ *W ; *Ws' ] ->
       Wtab W map.remove = (| *Wtab',  (| **, *EI |) value$ |),
@@ -299,7 +311,7 @@ eval <*A d> *D d_take -> <<<ex.existence <A ex.redress_f> tuple> maybe> <A d> tu
         ; [] -> Etab
         ; ** -> Etab E_hash Ws' map.add
         } = *Etab',
-        (| (| E, EI redress_f |) value$, etab: Etab' wtab: Wtab' :: D d$ |)
+        (| (| E, EI |) value$, etab: Etab' wtab: Wtab' :: D d$ |)
       ; none$ ->
         Ws' E_hash Etab Wtab' &&
       }
@@ -312,7 +324,7 @@ eval <*A d> *D d_take -> <<<ex.existence <A ex.redress_f> tuple> maybe> <A d> tu
   }
 } ;;
 
-eval <*A d> *D d_clear -> <A d> {
+eval <*A *B d> *D d_clear -> <A B d> {
   D = etab: *ET wtab: *WT *** d$,
   etab: (ET map.clear) wtab: (WT map.clear) :: D d$
 } ;;
