@@ -38,8 +38,8 @@ data <*A *B einfo> :=
   assoc: <B>
   einfo$ ;;
 
-alias type <etab> := <int <ex.weak_ref list> map.map> ;;  # existence's hash -> weakref list
-alias type <*A *B wtab> := <ex.weak_ref <A B einfo> map.map> ;;  # weakref -> existence's info
+alias type <etab> := <int <ex.weak_ref list> map.map> ;;  # existence's hash -> weak ref list
+alias type <*A *B wtab> := <ex.weak_ref <A B einfo> map.map> ;;  # weak ref -> existence's info
 
 data <*A *B d> :=
   etab: <etab>
@@ -49,19 +49,34 @@ data <*A *B d> :=
 data <*A *B weak_key_map_h> @opaque :=
   mon: <<A B d> actu.box_monitor_h>
   undress_f: <A ex.undress_f>
-  dummy: <B B fun>
   weak_key_map_h$ ;;
-
 
 eval <*A! ex.dress_fs> *Dress_fs <*B! B fun> *Assoc new_weak_key_map @public -> <A B weak_key_map_h> {
   etab: (int_ord_fs avlmap.new_map)
-    wtab: (&\\ <A B wtab> { hashmap.new_map})
+    wtab: (&\\ <A B wtab> { hashmap.new_map })
     d$ = *D,
   D none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
-  mon: Mon undress_f: (Dress_fs ex.undress_f) dummy: Assoc weak_key_map_h$
+  mon: Mon undress_f: (Dress_fs ex.undress_f) weak_key_map_h$
 } ;;
 
+eval <*A *B weak_key_map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
+  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+  Mon
+    \ <<A B d> box.box_h> *Box -> <<ex.existence <A B einfo> tuple> list> {
+      Box box.read = *D,
+      D d_lives = (| *Ls, *D' |),
+      Box D' box.write,
+      Ls
+    }
+    actu.run = *Lives,
+  Lives
+    \ <ex.existence <A B einfo> tuple> *L -> <A B tuple> {
+      L = (| *Ex, redress_f: *Redress_f assoc: *Assoc *** einfo$ |),
+      (| Ex &Redress_f, Assoc |)
+    }
+    list.map
+} ;;
 
 eval <*A *B weak_key_map_h> *Map_h empty? @public -> <bool> {
   Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
@@ -200,6 +215,38 @@ eval <*A *B weak_key_map_h> *Map_h clear @public -> <void> {
 
 
 # -- data manipulation routines --
+
+eval <*A *B d> *D d_lives -> <<<ex.existence <A B einfo> tuple> list> <A B d> tuple> {
+  D = etab: *ET wtab: *WT *** d$,
+  [] 0 ET [] [] (ET map.clear) WT &\
+      <ex.weak_ref list> *Ws  # staged weak refs
+      <int> *EH  # hash of statged weak refs; initial 0 will not be used
+      <etab> *Etab  # weak refs to be scanned
+      <<ex.existence <A B einfo> tuple> list> *Ls  # result
+      <ex.weak_ref list> *Ws2  # new staged weak refs
+      <etab> *ET2  # new etab
+      <A B wtab> *WT2  # wtab
+      -> <<<ex.existence <A B einfo> tuple> list> <A B d> tuple> {
+    Ws case {
+    ; [ *W ; *Ws' ] ->
+      W ex.get >> case {
+      ; *E value$ ->
+        Ws' EH Etab [ (| E, WT2 W map.assoc >> value |) ; Ls ] [ W ; Ws2 ] ET2 WT2 &&
+      ; none$ ->
+        Ws' EH Etab Ls Ws2 ET2 (WT2 W map.delete) &&
+      }
+    ; [] ->  # all staged weak refs are scanned
+      Ws2 case {
+      ; [] -> ET
+      ; ** -> ET EH Ws2 map.add
+      } = *ET2',
+      Etab map.take >> case {
+      ; (| (| *EH', *Ws' |), *Etab' |) value$ -> Ws' EH' Etab' Ls [] ET2' WT2 &&  # stage weak refs newly
+      ; none$ -> (| Ls, etab: ET2' wtab: WT2 :: D d$ |)
+      }
+    }
+  }
+} ;;
 
 eval <*A *B d> *D <ex.existence> *Ex d_find -> <<<A B einfo> maybe> <A B d> tuple> {
   D = etab: *ET wtab: *WT *** d$,
