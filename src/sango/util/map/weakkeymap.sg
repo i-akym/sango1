@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.map.weakmap" ;;
+module @alpha "sango.util.map.weakkeymap" ;;
 
 import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
@@ -46,22 +46,22 @@ data <*A *B d> :=
   wtab: <A B wtab>
   d$ ;;
 
-data <*A *B weak_key_map_h> @opaque :=
+data <*A *B map_h> @opaque :=
   mon: <<A B d> actu.box_monitor_h>
   undress_f: <A ex.undress_f>
-  weak_key_map_h$ ;;
+  map_h$ ;;
 
-eval <*A! ex.dress_fs> *Dress_fs <*B! B fun> *Assoc new_weak_key_map @public -> <A B weak_key_map_h> {
+eval <*A! ex.dress_fs> *Dress_fs <*B! B fun> *Assoc create_weak_key_map @public -> <A B map_h> {
   etab: (int_ord_fs avlmap.new_map)
     wtab: (&\\ <A B wtab> { hashmap.new_map })
     d$ = *D,
   D none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
-  mon: Mon undress_f: (Dress_fs ex.undress_f) weak_key_map_h$
+  mon: Mon undress_f: (Dress_fs ex.undress_f) map_h$
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<ex.existence <A B einfo> tuple> list> {
       Box box.read = *D,
@@ -78,8 +78,8 @@ eval <*A *B weak_key_map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
     list.map
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h empty? @public -> <bool> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h empty? @public -> <bool> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
@@ -88,8 +88,8 @@ eval <*A *B weak_key_map_h> *Map_h empty? @public -> <bool> {
     actu.run
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h size @public -> <int> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h size @public -> <int> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <int> {
       Box box.read = *D,
@@ -98,8 +98,8 @@ eval <*A *B weak_key_map_h> *Map_h size @public -> <int> {
     actu.run
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
     \ <<A B d> box.box_h> *Box -> <<A B einfo> maybe> {
@@ -115,19 +115,19 @@ eval <*A *B weak_key_map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
+eval <*A *B map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
   Map_h Key get >> case {
   ; (| **, *Assoc |) value$ -> Assoc value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
+eval <*A *B map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
   Map_h Key get >> something?
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
     \ <<A B d> box.box_h> *Box -> <<A B einfo> maybe> {
@@ -144,8 +144,8 @@ eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tupl
   }
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
     \ <<A B d> box.box_h> *Box -> <bool> {
@@ -161,12 +161,12 @@ eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool>
     actu.run
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key <B> *Value add @public -> <void> {
+eval <*A *B map_h> *Map_h <A> *Key <B> *Value add @public -> <void> {
   Map_h Key Value put >> ignore
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
     \ <<A B d> box.box_h> *Box -> <<A B einfo> maybe> {
@@ -182,12 +182,12 @@ eval <*A *B weak_key_map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe
   }
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h <A> *Key delete @public -> <void> {
+eval <*A *B map_h> *Map_h <A> *Key delete @public -> <void> {
   Map_h Key remove >> ignore
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h take @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h take @public -> <<A B tuple> maybe> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<ex.existence <A B einfo> tuple> maybe> {
       Box box.read = *D,
@@ -202,8 +202,8 @@ eval <*A *B weak_key_map_h> *Map_h take @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A *B weak_key_map_h> *Map_h clear @public -> <void> {
-  Map_h = mon: *Mon undress_f: *UF *** weak_key_map_h$,
+eval <*A *B map_h> *Map_h clear @public -> <void> {
+  Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <void> {
       Box box.read = *D,
@@ -211,6 +211,28 @@ eval <*A *B weak_key_map_h> *Map_h clear @public -> <void> {
       Box D' box.write >> ignore
     }
     actu.run
+} ;;
+
+eval <*A *B map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
+  Map_h (KVs list.iter) add_iter
+} ;;
+
+eval <*A *B map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
+  Iter next >> case {
+  ; (| (| *K, *V |), *Iter' |) value$ -> Map_h K V add, Map_h Iter' &&
+  ; ** ->
+  }
+} ;;
+
+eval <*A *B map_h> *Map_h <A list> *Ks delete_list @public -> <void> {
+  Map_h (Ks list.iter) delete_iter
+} ;;
+
+eval <*A *B map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
+  Iter next >> case {
+  ; (| *K, *Iter' |) value$ -> Map_h K delete, Map_h Iter' &&
+  ; ** ->
+  }
 } ;;
 
 
@@ -384,7 +406,7 @@ eval <ex.weak_ref list> *Ws <ex.existence> *Ex find_in_candidates
     To_be_scanned case {
     ; [ *W ; *To_be_scanned' ] ->
       W ex.get >> case {
-      ; Ex value$ -> (| (| W, To_be_scanned |) value$, Scanned, To_be_purged |)
+      ; Ex value$ -> (| (| W, To_be_scanned' |) value$, Scanned, To_be_purged |)
       ; ** value$ -> To_be_scanned' [ W ; Scanned ] To_be_purged &&
       ; none$ -> To_be_scanned' Scanned [ W ; To_be_purged ] &&
       }
