@@ -30,7 +30,6 @@ import "sango.list" -> list ;;
 import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hashmap ;;
-import "sango.util.set" -> set ;;
 
 data <*A *B einfo> :=
   hash: <int>
