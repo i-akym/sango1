@@ -77,7 +77,7 @@ eval <*A set_h> *Set_h <A> *X delete @public -> <void> {
   (Set_h map) X wkmap.delete
 } ;;
 
-eval <*A set_h> *Set_h take -> <A maybe> {
+eval <*A set_h> *Set_h take @public -> <A maybe> {
   ((Set_h map) wkmap.take) ^tuple.pair_first apply_to_something
 } ;;
 
