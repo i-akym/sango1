@@ -55,6 +55,12 @@ eval test000 -> <void> {
   M wkm.empty? = true$,
   M [ (| K3, "ghi" |), (| K4, "jkl" |), (| K5, "mno" |) ] wkm.add_list,
   M wkm.size = 3,
+  M wkm.take >> something? = true$,
+  M wkm.take >> something? = true$,
+  M wkm.take >> something? = true$,
+  M wkm.take >> something? = false$,
+  M wkm.empty? = true$,
+  M [ (| K3, "ghi" |), (| K4, "jkl" |), (| K5, "mno" |) ] wkm.add_list,
   M [ K3, K4 ] wkm.delete_list,
   M wkm.size = 1,
   void$

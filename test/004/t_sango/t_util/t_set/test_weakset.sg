@@ -53,6 +53,12 @@ eval test000 -> <void> {
   S ws.empty? = true$,
   S [ E3, E4, E5 ] ws.add_list,
   S ws.size = 3,
+  S ws.take >> something? = true$,
+  S ws.take >> something? = true$,
+  S ws.take >> something? = true$,
+  S ws.take >> something? = false$,
+  S ws.empty? = true$,
+  S [ E3, E4, E5 ] ws.add_list,
   S [ E3, E4 ] ws.delete_list,
   S ws.size = 1,
   void$
