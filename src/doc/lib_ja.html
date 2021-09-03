@@ -106,6 +106,10 @@ kbd {
   <a href="#sango.entity.domain.2">実体</a>
   <a href="#sango.entity.domain.3">弱参照</a>
   <a href="#sango.entity.domain.4">固有番号，大小比較</a>
+<a href="#sango.entity.existence"><code>sango.entity.existence</code></a>
+  <a href="#sango.entity.existence.1">存在</a>
+  <a href="#sango.entity.existence.2">弱参照</a>
+  <a href="#sango.entity.existence.3">undress・redress</a>
 <a href="#sango.fun"><code>sango.fun</code></a>
   <a href="#sango.fun.1">1引数関数への変換</a>
 <a href="#sango.io"><code>sango.io</code></a>
@@ -1642,6 +1646,61 @@ eval &lt;*A weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Inval
   また，実体の後処理関数の起動タイミングとも非同期です。
   正常終了，例外による終了にかかわらず，登録された関数がすべて終了した後で，当該固有番号は再使用の対象になります。
   この機能を使用する場合は，無効化処理関数が確実に成功するか，成功しなくても矛盾が発生しないようにしてください。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.entity.existence"><code>sango.entity.existence</code></h1>
+
+<p>「存在」は「実体」の中核になるもので，一つの「実体」は必ず一つの「存在」を持ちます。
+  「存在」の一つ一つは，お互いに異なるものです。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.existence.1"></code>sango.entity.existence</code> - 存在</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;existence&gt; @opaque ;;</code></td></tr></table>
+<p>「存在」を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_existence @public -&gt; &lt;existence&gt; ;;</code></td></tr></table>
+<p>存在を生成します。
+  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。
+  <code>X</code>によらず，生成された存在は，お互いが異なります。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.existence.2"></code>sango.entity.existence</code> - 弱参照</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;weak_ref&gt; @opaque ;;</code></td></tr></table>
+<p>存在への弱参照を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;&lt;weak_ref void fun&gt; maybe&gt; *Listener_
+  create_weak_ref @public -&gt; &lt;weak_ref&gt; ;;</code></td></tr></table>
+<p>存在への弱参照を生成します。
+  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
+  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
+  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;weak_ref&gt; *WR get @public -&gt; &lt;existence maybe&gt; ;;</code></td></tr></table>
+<p>弱参照から参照（強参照）を取得します。
+  弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;weak_ref&gt; *WR clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>弱参照を無効にします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.existence.3"></code>sango.entity.existence</code> - undress・redress</h2>
+<p>存在が種々の情報をまとっているように実体を見立て，実体から存在を取り出すことを「undress」，存在をもとに実体を再構築することを「redress」と呼びます。</p>
+
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A undress_f&gt; @public := &lt;A &lt;existence &lt;A redress_f&gt; tuple&gt; fun&gt; ;;
+alias type &lt;*A redress_f&gt; @public := &lt;existence A fun&gt; ;;</code></td></tr></table>
+<p>undress，redress関数を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A dress_fs&gt; @public :=
+  undress_f: &lt;A undress_f&gt;
+  dress_fs$ ;;</code></td></tr></table>
+<p>undress，redress機能群を表します。
+  実際に含まれるのはundress関数のみです。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval dress_fs @public -&gt; &lt;existence dress_fs&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.entity&quot;.existence</code>のundress・redress機能群を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.fun"><code>sango.fun</code></h1>
