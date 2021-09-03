@@ -1717,7 +1717,7 @@ M6 map.size = 4</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.7">20.7. 配列</h2>
-<p>【Tentative】固定個数の要素を持つコレクションです。
+<p>【Alpha】固定個数の要素を持つコレクションです。
   列挙（<code>&lt;A &quot;sango.util.enum&quot;enum&gt;</code>）を指標として使用し，個々の要素の参照と更新ができます。
   ストリングは，要素の参照は低コスト（O(1)）で実行できますが，要素の変更においては他の要素のコピーが発生するため，要素数に比例した（O(n)の）コストがかかります。
   配列は，参照のコストと更新のコストをバランスしています。
@@ -2067,10 +2067,11 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<var>T</var> maybe&gt; ;;</code></blockquote>
 <p>「cast」は，未束縛の型パラメタを決定し，より具体的な型にすることです。
   例えば，<code>&lt;A list&gt;</code>を<code>&lt;int list&gt;</code>にすることです。
-  これは，変数の束縛時にcast先の型を指定して行います。
-  ただし，Sangoのプログラミングにおいて，castを行うことは通常ありません。</p>
+  これには，cast先の型を変数束縛の際に指定する方法と，関数の返り値の型として指定する方法があります。
+  ただし，Sangoのプログラミングにおいて，castを行う必要は限られています。</p>
 <blockquote class="code-sample">コード例<code>
-[] = &lt;int list&gt; *X</code></blockquote>
+[] = &lt;int list&gt; *X
+&amp;\\ &lt;int list&gt; { [] }</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.4">B.4. 具象型</h2>
@@ -2170,6 +2171,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <ul>
 <li>【非互換】<code>&lt;A &quot;sango.lang&quot;.eq_fs&gt;</code>に属性を追加</li>
 <li>【非互換】<code>&quot;sango.entity.domain&quot;</code>を変更</li>
+<li><code>&quot;sango.entity.existence&quot;</code>を追加</li>
 <li><code>&quot;sango.entity.box&quot;</code>を追加</li>
 <li><code>&quot;sango.entity&quot;</code>を<code>&quot;sango.entity.box&quot;</code>に統合。<code>&lt;eref&gt;</code>，<code>&lt;wref&gt;</code>の定義が変更されましたが，プログラミングには影響ありません。</li>
 <li><code>&quot;sango.util.map.hashmap&quot;</code>を追加</li>
