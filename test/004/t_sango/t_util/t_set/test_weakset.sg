@@ -1,0 +1,77 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.entity.existence" -> ex ;;
+import "sango.entity.box" -> box ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.weakset" -> ws ;;
+
+eval _main_ -> <void> {
+  test,
+  stdio.flush
+} ;;
+
+eval test -> <void> {
+  test000,
+  test010,
+  void$
+} ;;
+
+eval make -> <<int box.box_h> ws.set_h> {
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ws.create_weak_set = *S,
+  1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E1, S E1 ws.add,
+  2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E2, S E2 ws.add,
+  3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E3, S E3 ws.add,
+  4 (\\ <void> { "4 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E4, S E4 ws.add,
+  5 (\\ <void> { "5 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E5, S E5 ws.add,
+  S
+} ;;
+
+eval test000 -> <void> {
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ws.create_weak_set = *S,
+  1 none$ box.create_box = *E1,
+  2 none$ box.create_box = *E2,
+  3 none$ box.create_box = *E3,
+  4 none$ box.create_box = *E4,
+  5 none$ box.create_box = *E5,
+  S ws.empty? = true$,
+  S E1 ws.put = none$,
+  S E1 ws.put_new = false$,
+  S E2 ws.put_new = true$,
+  S E2 ws.put = E2 value$,
+  S ws.size = 2,
+  S E2 ws.contain? = true$,
+  S E3 ws.contain? = false$,
+  S ws.all_elems >> case {
+  ; [ E1, E2 ] ->
+  ; [ E2, E1 ] ->
+  },
+  S E3 ws.put = none$,
+  S E2 ws.remove = E2 value$,
+  S ws.clear,
+  S ws.empty? = true$,
+  S [ E3, E4, E5 ] ws.add_list,
+  S ws.size = 3,
+  S ws.take >> something? = true$,
+  S ws.take >> something? = true$,
+  S ws.take >> something? = true$,
+  S ws.take >> something? = false$,
+  S ws.empty? = true$,
+  S [ E3, E4, E5 ] ws.add_list,
+  S [ E3, E4 ] ws.delete_list,
+  S ws.size = 1,
+  void$
+} ;;
+eval test010 -> <void> {
+  make = *S,
+  6 (\\ <void> { "6 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E6, S E6 ws.add,
+  7 (\\ <void> { "7 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E7, S E7 ws.add,
+  S ws.all_elems >> debug.repr >> stdio.print_and_newline,
+  runtime.gc,
+  act.yield,
+  S ws.all_elems >> debug.repr >> stdio.print_and_newline,
+  E6,  # keep to here
+  E7,  # keep to here
+  void$
+} ;;

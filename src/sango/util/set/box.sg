@@ -1,0 +1,229 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.set.box" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity.box" -> box ;;
+import "sango.list" -> list ;;
+import "sango.util.set" -> set ;;
+
+data <*A box_fs> @public :=
+  empty?_f:   <<<A set.set_d+> box.box_h> bool fun>
+  size_f:     <<<A set.set_d+> box.box_h> int fun>
+  get_f:      <<<A set.set_d+> box.box_h> A <A maybe> fun>
+  contain?_f: <<<A set.set_d+> box.box_h> A bool fun>
+  put_f:      <<<A set.set_d+> box.box_h> A <A maybe> fun>
+  put_new_f:  <<<A set.set_d+> box.box_h> A bool fun>
+  add_f:      <<<A set.set_d+> box.box_h> A void fun>
+  remove_f:   <<<A set.set_d+> box.box_h> A <A maybe> fun>
+  delete_f:   <<<A set.set_d+> box.box_h> A void fun>
+  take_f:     <<<A set.set_d+> box.box_h> <A maybe> fun>
+  clear_f:    <<<A set.set_d+> box.box_h> void fun>
+  box_fs$ ;;
+
+eval <*A set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
+  empty?_f:
+    \ <<A set.set_d+> box.box_h> *Box -> <bool> {
+      (Box box.read) &(Set_fs set.empty?_f)
+    }
+  size_f:
+    \ <<A set.set_d+> box.box_h> *Box -> <int> {
+      (Box box.read) &(Set_fs set.size_f)
+    }
+  get_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <A maybe> {
+      (Box box.read) X &(Set_fs set.get_f)
+    }
+  contain?_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <bool> {
+      (Box box.read) X &(Set_fs set.contain?_f)
+    }
+  put_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <A maybe> {
+      (Box box.read) X &(Set_fs set.put_f) = (| *D', *Replaced_ |),
+      Box D' box.write,
+      Replaced_
+    }
+  put_new_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <bool> {
+      (Box box.read) X &(Set_fs set.put_new_f) = (| *D', *Succeeded? |),
+      Box D' box.write,
+      Succeeded?
+    }
+  add_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <void> {
+      (Box box.read) X &(Set_fs set.add_f) = *D',
+      Box D' box.write >> ignore
+    }
+  remove_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <A maybe> {
+      (Box box.read) X &(Set_fs set.remove_f) = (| *D', *Removed_ |),
+      Box D' box.write,
+      Removed_
+    }
+  delete_f:
+    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <void> {
+      (Box box.read) X &(Set_fs set.delete_f) = *D',
+      Box D' box.write >> ignore
+    }
+  take_f:
+    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> {
+      (Box box.read) &(Set_fs set.take_f) >> case {
+      ; (| *X, *D' |) value$ ->
+        Box D' box.write,
+        X value$
+      ; ** -> none$
+      }
+    }
+  clear_f:
+    \ <<A set.set_d+> box.box_h> *Box -> <void> {
+      (Box box.read) &(Set_fs set.clear_f) = *D',
+      Box D' box.write >> ignore
+    }
+  box_fs$
+} ;;
+
+data <*A set_h> @opaque :=
+  mon: <<A set.set_d+> actu.box_monitor_h>
+  set_fs: <A set.set_fs>
+  box_fs: <A box_fs>
+  set_h$ ;;
+
+eval <*A! set.set> *Set create_box @public -> <A set_h> {
+  (Set set.d) none$ box.create_box = *Box,
+  Box actu.create_monitor = *M,
+  mon: M set_fs: (Set set.fs) box_fs: (Set set.fs >> box_fs) set_h$
+} ;;
+
+eval <*A set_h> *Set_h snapshot @public -> <A set.set> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <A set.set> {
+      d: (Box box.read) fs: (Set_h set_fs) set.set$
+    }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h empty? @public -> <bool> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <bool> { Box &(Fs empty?_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h size @public -> <int> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <int> { Box &(Fs size_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem get @public -> <A maybe> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs get_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem contain? @public -> <bool> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <bool> { Box Elem &(Fs contain?_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem put @public -> <A maybe> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs put_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem put_new @public -> <bool> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <bool> { Box Elem &(Fs put_new_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem add @public -> <void> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <void> { Box Elem &(Fs add_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem remove @public -> <A maybe> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs remove_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A> *Elem delete @public -> <void> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <void> { Box Elem &(Fs delete_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h take @public -> <A maybe> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box &(Fs take_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h clear @public -> <void> {
+  Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
+  Monitor
+    \ <<A set.set_d+> box.box_h> *Box -> <void> { Box &(Fs clear_f) }
+    actu.run
+} ;;
+
+eval <*A set_h> *Set_h <A list> *Elems add_list @public -> <void> {
+  Set_h (Elems list.iter) add_iter
+} ;;
+
+eval <*A set_h> *Set_h <A iter> *Iter add_iter @public -> <void> {
+  Iter next >> case {
+  ; (| *X, *Iter' |) value$ ->
+    Set_h X add,
+    Set_h Iter' &&
+  ; ** ->
+  }
+} ;;
+
+eval <*A set_h> *Set_h <A list> *Elems delete_list @public -> <void> {
+  Set_h (Elems list.iter) delete_iter
+} ;;
+
+eval <*A set_h> *Set_h <A iter> *Iter delete_iter @public -> <void> {
+  Iter next >> case {
+  ; (| *X, *Iter' |) value$ ->
+    Set_h X delete,
+    Set_h Iter' &&
+  ; ** ->
+  }
+} ;;

@@ -63,7 +63,6 @@ class PCaseBlock extends PDefaultTypedElem {
     }
 
     void addClause(PCaseClause clause) {
-      clause.parent = this.caseBlock;
       this.clauseList.add(clause);
     }
 

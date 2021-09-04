@@ -1,0 +1,45 @@
+import "sango.debug" -> debug ;;
+import "sango.entity.box" -> box ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  test,
+  stdio.flush
+} ;;
+
+eval test -> <void> {
+  test000,
+  test001,
+  void$
+} ;;
+
+eval test000 -> <void> {
+  3 none$ box.create_box = *B,
+  B box.read = 3,
+  B 5 box.write = 3,
+  B box.read = 5,
+  B none$ box.create_weak_holder = *W,
+  W box.get = B value$,
+  B box.read = 5,
+  W box.clear,
+  W box.get = none$,
+  void$
+} ;;
+eval test001 -> <void> {
+  test900 >> test901 = *W,
+  runtime.gc,
+  runtime.gc,
+  runtime.gc,
+  runtime.gc,
+  W,  # keep
+  void$
+} ;;
+eval test900 -> <int box.box_h> {
+  \\ <void> { "purged" stdio.print_and_newline, stdio.flush } = *Inv,
+  7 (Inv value$) box.create_box
+} ;;
+eval <int box.box_h> *B test901 -> <int box.wbox_h> {
+  \ <int box.wbox_h> *B -> <void> { "cleared" stdio.print_and_newline, stdio.flush } = *Lis,
+  B (Lis value$) box.create_weak_holder
+} ;;

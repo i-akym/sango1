@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,14 +23,14 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
+class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
   String name;
-  PVarSlot varSlot;
+  PTVarSlot varSlot;
 
-  private PVarRef() {}
+  private PTVarRef() {}
 
-  static PVarRef create(Parser.SrcInfo srcInfo, String name, PVarSlot varSlot) {
-    PVarRef v = new PVarRef();
+  static PTVarRef create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
+    PTVarRef v = new PTVarRef();
     v.srcInfo = srcInfo;
     v.name = name;
     v.varSlot = varSlot;
@@ -88,14 +88,14 @@ class PVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
     return PTypeId.create(srcInfo, /* null, */ null, this.name, false);
   }
 
-  public PVarRef setupScope(PScope scope) throws CompileException {
+  public PTVarRef setupScope(PScope scope) throws CompileException {
     if (scope == this.scope) { return this; }
     this.scope = scope;
     this.idResolved = false;
     return this;
   }
 
-  public PVarRef resolveId() throws CompileException {
+  public PTVarRef resolveId() throws CompileException {
     this.idResolved = true;
     return this;
   }
@@ -103,6 +103,10 @@ class PVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
   public PDefDict.TconInfo getTconInfo() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
+
+  public void checkRequiringConcreteIn() throws CompileException {}
+
+  public void checkRequiringConcreteOut() throws CompileException {}
 
   public void normalizeTypes() {
     if (this.varSlot.varDef.nTypeSkel == null) {
@@ -114,32 +118,9 @@ class PVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
     return (PTypeVarSkel)this.getSkel();
   }
 
-  // public PTypeDesc instanciate(PTypeBindings bindings) {
-    // PTypeDesc t;
-    // /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
-    // if (bindings.isBound(this.varSlot)) {
-      // t = bindings.lookup(this.varSlot);
-    // } else if (bindings.isBoundFreeVar(this.varSlot)) {
-      // t = bindings.lookupFreeVar(this.varSlot);
-    // } else if (this.scope.isDefinedOuter(this.name)) {
-      // t = this;
-    // } else {
-      // PVarDef v = this.varSlot.varDef.deepCopy(this.varSlot.varDef.srcInfo);
-      // PVarSlot s = PVarSlot.create(v);
-      // v.varSlot = s;
-      // bindings.bindFreeVar(s, v);
-      // t = v;
-    // }
-    // return t;
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
     return graph.createVarRefNode(this, name, this.varSlot.varDef.typeGraphNode);
-    // return (this.varSlot.varDef.typeGraphNode != null)?  // defined as type param, referred as local var
-      // this.varSlot.varDef.typeGraphNode:
-      // this.varSlot.varDef.setupTypeGraph(graph);
-
   }
 
   public PTypeGraph.Node getTypeGraphNode() {
@@ -152,8 +133,4 @@ class PVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
   }
 
   public PTypeSkel getFixedType() { return this.varSlot.varDef.getFixedType(); }
-
-  public GFlow.Node setupFlow(GFlow flow) {
-    return flow.createNodeForVarRef(this.srcInfo, this.varSlot);
-  }
 }

@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,30 +25,24 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PVarDef extends PDefaultPtnElem implements PTypeDesc {
-  static final int CAT_TYPE_PARAM = 1;
-  static final int CAT_FUN_PARAM = 2;
-  static final int CAT_LOCAL_VAR = 4;
-  // static final int CAT_ATTR = 8;  // can be used as a comment
+class PEVarDef extends PDefaultPtnElem {
+  // static final int CAT_FUN_PARAM = 1;
+  // static final int CAT_LOCAL_VAR = 2;
 
   static final int TYPE_NOT_ALLOWED = 1;
   static final int TYPE_MAYBE_SPECIFIED = 2;
   static final int TYPE_NEEDED = 3;
 
-  int cat;
   String name;
-  // boolean polymorphic;
-  PVarSlot varSlot;
+  PEVarSlot varSlot;
 
-  private PVarDef() {}
+  private PEVarDef() {}
 
-  static PVarDef create(Parser.SrcInfo srcInfo, int cat, PTypeDesc type, String name) {
-    PVarDef var = new PVarDef();
+  static PEVarDef create(Parser.SrcInfo srcInfo, /* int cat, */ PTypeDesc type, String name) {
+    PEVarDef var = new PEVarDef();
     var.srcInfo = srcInfo;
-    var.cat = cat;
-    var.type = // (cat == CAT_TYPE_PARAM)?
-      // PTypeRef.getLangDefinedType(srcInfo, "type", new PTypeDesc[0]):  // type == null
-      type;
+    // var.cat = cat;
+    var.type = type;
     var.name = name;
     return var;
   }
@@ -58,8 +52,8 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append("newvar[");
     buf.append("src=");
     buf.append(this.srcInfo);
-    buf.append(",cat=");
-    buf.append(this.cat);
+    // buf.append(",cat=");
+    // buf.append(this.cat);
     buf.append(",name=");
     buf.append(this.name);
     if (this.type != null) {
@@ -74,16 +68,16 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PVarDef deepCopy(Parser.SrcInfo srcInfo) {
-    PVarDef v = new PVarDef();
+  public PEVarDef deepCopy(Parser.SrcInfo srcInfo) {
+    PEVarDef v = new PEVarDef();
     v.srcInfo = srcInfo;
-    v.cat = this.cat;
+    // v.cat = this.cat;
     v.name = this.name;
     v.scope = this.scope;
     return v;
   }
 
-  static PVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
+  static PEVarDef accept(ParserA.TokenReader reader, /* int cat, */ int typeSpec) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PTypeDesc type = null;
@@ -116,10 +110,10 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(si, cat, type, varId.value.token);
+    return create(si, /* cat, */ type, varId.value.token);
   }
 
-  static PVarDef acceptX(ParserB.Elem elem, int cat, int typeSpec) throws CompileException {
+  static PEVarDef acceptX(ParserB.Elem elem, /* int cat, */ int typeSpec) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -142,14 +136,10 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), cat, type, id);
+    return create(elem.getSrcInfo(), /* cat, */ type, id);
   }
 
-  static PVarDef acceptXTvar(ParserB.Elem elem) throws CompileException {
-    return acceptX(elem, CAT_TYPE_PARAM, TYPE_NOT_ALLOWED);
-  }
-
-  public PVarDef setupScope(PScope scope) throws CompileException {
+  public PEVarDef setupScope(PScope scope) throws CompileException {
     StringBuffer emsg;
     if (scope == this.scope) { return this; }
     this.scope = scope;
@@ -157,7 +147,7 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
     if (this.type != null) {
       this.type = (PTypeDesc)this.type.setupScope(scope);
     }
-    if (!scope.canDefineVar(this)) {
+    if (!scope.canDefineEVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
@@ -165,11 +155,11 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(this.name);
       throw new CompileException(emsg.toString());
     }
-    this.varSlot = scope.defineVar(this);
+    this.varSlot = scope.defineEVar(this);
     return this;
   }
 
-  public PVarDef resolveId() throws CompileException {
+  public PEVarDef resolveId() throws CompileException {
     if (this.idResolved) { return this; }
     if (this.type != null) {
       this.type = (PTypeDesc)this.type.resolveId();
@@ -189,38 +179,12 @@ class PVarDef extends PDefaultPtnElem implements PTypeDesc {
   public void normalizeTypes() {
     if (this.type != null) {
       this.nTypeSkel = this.type.normalize();
-    } else if ((this.cat & CAT_TYPE_PARAM) > 0) {
-      this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "type").getSkel();
     }
   }
-
-  public PTypeVarSkel normalize() {
-    return (PTypeVarSkel)this.getSkel();
-  }
-
-  // public PVarDef instanciate(PTypeBindings bindings) {
-    // PVarDef v;
-    // if (bindings.isBoundFreeVar(this.varSlot)) {
-      // v = bindings.lookupFreeVar(this.varSlot);
-    // } else if (this.scope.isDefinedOuter(this.name)) {
-      // v = this;
-    // } else {
-      // v = this.deepCopy(this.srcInfo);
-      // // v.polymorphic = true;
-      // PVarSlot s = PVarSlot.create(v);
-      // v.varSlot = s;
-      // bindings.bindFreeVar(this.varSlot, v);
-    // }
-    // return v;
-  // }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.typeGraphNode = graph.createVarNode(this, this.name);
     return this.typeGraphNode;
-  }
-
-  public PTypeVarSkel getSkel() {
-    return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
   }
 
   public GFlow.Node setupFlow(GFlow flow) {

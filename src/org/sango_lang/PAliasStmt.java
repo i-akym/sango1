@@ -33,7 +33,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   String tcon;
   int availability;
   int acc;
-  PVarDef[] tparams;
+  PTVarDef[] tparams;
   PTypeDesc body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
 
@@ -79,7 +79,6 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     }
 
     void setBody(PTypeDesc body) {
-      // body.parent = this.alias;
       this.alias.body = body;
     }
 
@@ -87,13 +86,13 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       if (this.alias.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.alias.sig;
         this.alias.tcon = ti.name;
-        this.alias.tparams = new PVarDef[0];
+        this.alias.tparams = new PTVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.alias.sig;
         this.alias.tcon = tr.tcon;
-        this.alias.tparams = new PVarDef[tr.params.length];
+        this.alias.tparams = new PTVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.alias.tparams[i] = (PVarDef)tr.params[i];
+          this.alias.tparams[i] = (PTVarDef)tr.params[i];
         }
       } else {
         throw new RuntimeException("Unexpected type.");
@@ -117,7 +116,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc tsig;
-    if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL)) == null) {
+    if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL, PType.INHIBIT_REQUIRE_CONCRETE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -178,7 +177,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PVarDef var = PVarDef.acceptXTvar(ee);
+        PTVarDef var = PTVarDef.acceptX(ee);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -335,8 +334,8 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
 
   public String getTcon() { return this.tcon; }
 
-  public PVarSlot[] getParamVarSlots() {
-    PVarSlot[] vs = new PVarSlot[this.tparams.length] ;
+  public PTVarSlot[] getParamVarSlots() {
+    PTVarSlot[] vs = new PTVarSlot[this.tparams.length] ;
     for (int i = 0; i < this.tparams.length; i++) {
       vs[i] = this.tparams[i].varSlot;
     }
@@ -348,8 +347,6 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   public int getAcc() { return this.acc; }
 
   public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.getSkel().collectTconInfo(list); }
-
-  // PDefDict.TconInfo unaliasTconInfo() { return ((PTypeRef)this.body).tconInfo; }
 
   public PTypeRefSkel getBody() {
     if (this.bodySkel == null) {

@@ -31,6 +31,9 @@ abstract class PType {
   static final int ACCEPTABLE_NONE = 0;
   static final int ACCEPTABLE_VARDEF = 1;
 
+  static final int INHIBIT_REQUIRE_CONCRETE = 0;
+  static final int ALLOW_REQUIRE_CONCRETE = 1;
+
   static class Builder {
     Parser.SrcInfo srcInfo;
     List<PTypeDesc> itemList;
@@ -70,7 +73,7 @@ abstract class PType {
         } else {
           t = anchor;
         }
-      } else if (anchor instanceof PVarDef) {
+      } else if (anchor instanceof PTVarDef) {
         if (this.itemList.size() > 0) {
           emsg = new StringBuffer();
           emsg.append("No type constructor at ");
@@ -154,10 +157,10 @@ abstract class PType {
     return builder.create();
   }
 
-  static PTypeDesc acceptSig(ParserA.TokenReader reader, int qual) throws CompileException, IOException {
+  static PTypeDesc acceptSig(ParserA.TokenReader reader, int qual, int concrete) throws CompileException, IOException {
     StringBuffer emsg;
     PTypeDesc sig = accept(reader, ParserA.SPACE_DO_NOT_CARE);
-    if (sig instanceof PVarDef) {
+    if (sig instanceof PTVarDef) {
       emsg = new StringBuffer();
       emsg.append("Type constructor missing at ");
       emsg.append(sig.getSrcInfo());
@@ -167,15 +170,23 @@ abstract class PType {
     if (sig instanceof PTypeRef) {
       PTypeRef tr = (PTypeRef)sig;
       for (int i = 0; i < tr.params.length; i++) {
-        if (!(tr.params[i] instanceof PVarDef)) {
+        if (!(tr.params[i] instanceof PTVarDef)) {
           emsg = new StringBuffer();
           emsg.append("Type parameter missing at ");
           emsg.append(tr.params[i].getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
+        PTVarDef v = (PTVarDef)tr.params[i];
+        if (concrete == INHIBIT_REQUIRE_CONCRETE && v.requiresConcrete) {
+          emsg = new StringBuffer();
+          emsg.append("Requiring concrete type is not allowed at ");
+          emsg.append(tr.params[i].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
       }
-      if (qual == PExprId.ID_NO_QUAL && (/* tr.omod != null || */ tr.mod != null)) {
+      if (qual == PExprId.ID_NO_QUAL && tr.mod != null) {
         emsg = new StringBuffer();
         emsg.append("Module id not allowed at ");
         emsg.append(tr.tconSrcInfo);
@@ -214,13 +225,13 @@ abstract class PType {
   static PTypeDesc acceptItem(ParserA.TokenReader reader, int spc, int acceptables) throws CompileException, IOException {
     StringBuffer emsg;
     PTypeId id;
-    PVarDef var;
+    PTVarDef var;
     PType type;
     PTypeDesc item;
     if ((item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
       ;
     } else if (((acceptables & ACCEPTABLE_VARDEF) > 0)
-        && (item = PVarDef.accept(reader, PVarDef.CAT_TYPE_PARAM, PVarDef.TYPE_NOT_ALLOWED)) != null) {
+        && (item = PTVarDef.accept(reader)) != null) {
       ;
     } else if ((item = accept(reader, spc, acceptables)) != null) {
       ;
@@ -234,10 +245,10 @@ abstract class PType {
     PTypeDesc item;
     if ((item = PTypeRef.acceptX(elem, acceptables)) != null) {
       ;
-    } else if ((item = PVarRef.acceptXTvar(elem)) != null) {
+    } else if ((item = PTVarRef.acceptXTvar(elem)) != null) {
       ;
     } else if (((acceptables & ACCEPTABLE_VARDEF) > 0)
-        && (item = PVarDef.acceptXTvar(elem)) != null) {
+        && (item = PTVarDef.acceptX(elem)) != null) {
       ;
     } else {
       item = null;

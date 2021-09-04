@@ -29,12 +29,11 @@ import java.util.List;
 
 public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
-  boolean polymorphic;
-  PVarSlot varSlot;
+  PTVarSlot varSlot;
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, PScope scope, PVarSlot varSlot) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, PScope scope, PTVarSlot varSlot) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
     // /* DEBUG */ if (scope == null) { throw new IllegalArgumentException("scope is null. " + srcInfo + " " + varSlot.toString()); }
@@ -76,15 +75,11 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
-  boolean isPolymorphic() { return this.polymorphic; }
-
-  void setPolymorphic(boolean b) {
-    this.polymorphic = b;
-  }
+  public boolean isConcrete() { return this.varSlot.requiresConcrete; }
 
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel t;
-    if (iBindings.isGivenTvar(this.varSlot)) {
+    if (iBindings.isGivenTVar(this.varSlot)) {
 // /* DEBUG */ System.out.println("instanciate 1 " + this.toString());
       t = this;
     } else if (iBindings.isBoundAppl(this.varSlot)) {
@@ -101,9 +96,8 @@ public class PTypeVarSkel implements PTypeSkel {
       // t = v;
     } else {
 // /* DEBUG */ System.out.println("instanciate 5 " + this.toString());
-      PVarSlot s = PVarSlot.create(this.varSlot.varDef);
+      PTVarSlot s = PTVarSlot.create(this.varSlot.varDef);
       PTypeVarSkel v = this.copy();
-      v.polymorphic = true;
       v.varSlot = s;
       iBindings.bind(this.varSlot, v);
       t = v;
@@ -153,7 +147,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
-    if (trialBindings.isGivenTvar(this.varSlot)) {
+    if (trialBindings.isGivenTVar(this.varSlot)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -167,12 +161,22 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
           b = trialBindings;
-        } else if (!trialBindings.isGivenTvar(tv.varSlot)) {
+        } else if (!trialBindings.isGivenTVar(tv.varSlot)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          trialBindings.bind(tv.varSlot, this);
-          b = trialBindings;
+          if (tv.varSlot.requiresConcrete & !this.varSlot.requiresConcrete) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            b = null;
+          } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-2-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            trialBindings.bind(tv.varSlot, this);
+            b = trialBindings;
+          }
         } else {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 1-1-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
@@ -189,7 +193,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-      PVarSlot v = type.getVarSlot();
+      PTVarSlot v = type.getVarSlot();
       if (v == null) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
@@ -203,8 +207,18 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          trialBindings.bind(this.varSlot, type);
-          b = trialBindings;
+          if (this.varSlot.requiresConcrete & !type.isConcrete()) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            b = null;
+          } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-1-2-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+            trialBindings.bind(this.varSlot, type);
+            b = trialBindings;
+          }
         }
       } else if (v == this.varSlot) {
 if (PTypeGraph.DEBUG > 1) {
@@ -215,14 +229,24 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-        trialBindings.bind(this.varSlot, type);
-        b = trialBindings;
+        if (this.varSlot.requiresConcrete & !type.isConcrete()) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+          b = null;
+        } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#apply2 2-3-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+          trialBindings.bind(this.varSlot, type);
+          b = trialBindings;
+        }
       }
     }
     return b;
   }
 
-  public boolean includesVar(PVarSlot varSlot, PTypeSkelBindings bindings) {
+  public boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;
     if (this.varSlot == varSlot) {
       b = true;
@@ -232,7 +256,7 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public PVarSlot getVarSlot() { return this.varSlot; }
+  public PTVarSlot getVarSlot() { return this.varSlot; }
 
   public PTypeSkel join(PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
@@ -266,7 +290,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     PTypeSkel t;
-    if (bindings.isGivenTvar(this.varSlot)) {
+    if (bindings.isGivenTVar(this.varSlot)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -280,7 +304,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2 1-1-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
           t = this;
-        } else if (bindings.isGivenTvar(tv.varSlot)) {
+        } else if (bindings.isGivenTVar(tv.varSlot)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2 1-1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -318,20 +342,20 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public MType toMType(PModule mod, List<PVarSlot> slotList) {
+  public MType toMType(PModule mod, List<PTVarSlot> slotList) {
     MTypeVar tv;
     int index = slotList.indexOf(this.varSlot);
     if (index < 0) {
       index = slotList.size();
       slotList.add(this.varSlot);
     }
-    return MTypeVar.create(index);
+    return MTypeVar.create(index, this.varSlot.requiresConcrete);
   }
 
-  public List<PVarSlot> extractVars(List<PVarSlot> alreadyExtracted) {
-    List<PVarSlot> newlyExtracted = null;
+  public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
+    List<PTVarSlot> newlyExtracted = null;
     if (!alreadyExtracted.contains(this.varSlot)) {
-      newlyExtracted = new ArrayList<PVarSlot>();
+      newlyExtracted = new ArrayList<PTVarSlot>();
       newlyExtracted.add(this.varSlot);
     }
     return newlyExtracted;
@@ -346,10 +370,6 @@ if (PTypeGraph.DEBUG > 1) {
   public PTypeSkel unalias(PTypeSkelBindings bindings) {
     PTypeSkel t;
     return ((t = bindings.lookup(this.varSlot)) != null)? t: this;
-  }
-
-  public GFlow.Node setupFlow(GFlow flow, PScope scope, PTypeSkelBindings bindings) {  // when unbound only
-    return flow.createNodeForVarRef(this.srcInfo, this.varSlot);
   }
 
   public String repr() {

@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,49 +23,44 @@
  ***************************************************************************/
 package org.sango_lang;
 
-import java.lang.ref.WeakReference;
+public class PTVarSlot {
+  static int hashValue = 0;
 
-public class RWrefItem extends RObjItem {
-  WeakReference<RErefItem> entityWref;
+  int hash;
+  PTVarDef varDef;
+  boolean requiresConcrete;
 
-  RWrefItem(RuntimeEngine e) { super(e); }
+  private PTVarSlot() {}
 
-  public static RWrefItem create(RuntimeEngine e, WeakReference<RErefItem> wr) {
-    RWrefItem wref = new RWrefItem(e);
-    wref.entityWref = wr;
-    return wref;
+  static PTVarSlot create(PTVarDef varDef) {
+    PTVarSlot s = createInternal((varDef != null)? varDef.requiresConcrete: false);  // is accepting null ok?
+    s.varDef = varDef;
+    return s;
   }
 
-  public boolean objEquals(RFrame frame, RObjItem item) {
-    boolean eq;
-    if (item == this) {
-      eq = true;
-    } else if (!(item instanceof RWrefItem)) {
-      eq = false;
+  public static PTVarSlot createInternal(boolean requiresConcrete) {
+    PTVarSlot s = new PTVarSlot();
+    s.hash = hashValue++;
+    s.requiresConcrete = requiresConcrete;
+    return s;
+  }
+
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    if (this.varDef != null) {
+      buf.append(this.varDef.name);
+      buf.append(":VT");
     } else {
-      RWrefItem w = (RWrefItem)item;
-      eq = w.entityWref == this.entityWref;
+      buf.append("PSEUDO");
     }
-    return eq;
+    buf.append(this.hash);
+    if (this.requiresConcrete) {
+      buf.append("!");
+    }
+    return buf.toString();
   }
 
-  public RType.Sig getTsig() {
-    return RType.createTsig(new Cstr("sango.entity"), "wref", 0);
-  }
-
-  public void doHash(RNativeImplHelper helper, RClosureItem self) {
-    helper.setReturnValue(helper.getIntItem(this.hashCode()));
-  }
-
-  public Cstr dumpInside() {
-    return new Cstr(this.toString());
-  }
-
-  public RErefItem get() {
-    return this.entityWref.get();
-  }
-
-  public void clear() {
-    this.entityWref.clear();
+  String repr() {
+    return ((this.varDef != null)? this.varDef.name: "$" + this.hash) + (this.requiresConcrete? "!": "");
   }
 }

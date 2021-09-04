@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-class RMemMgr {
+public class RMemMgr {
   static final int MAINTENANCE_INTERVAL = 100;  // tentatively
   static final int INT_INT_CACHE_MIN = -10;
   static final int INT_INT_CACHE_MAX = 100;
@@ -43,9 +43,9 @@ class RMemMgr {
   static final int CHAR_INT_CACHE_MAX = 127;
 
   RuntimeEngine theEngine;
-  List<EntityInvalidationInfo> entityInvalidationInfoList;
-  List<WrefNotificationInfo> wrefNotificationInfoList;
-  List<WeakReference<RErefItem>> sysMsgReceiverList;
+  List<ExistenceInvalidationInfo> entityInvalidationInfoList;
+  List<WeakRefNotificationInfo> weakRefNotificationInfoList;
+  List<WeakReference<RObjItem>> sysMsgReceiverList;
   int maintenanceInterval;
   // cache
   RRealItem nanItem;
@@ -60,9 +60,9 @@ class RMemMgr {
 
   RMemMgr(RuntimeEngine e) {
     this.theEngine = e;
-    this.entityInvalidationInfoList = Collections.synchronizedList(new LinkedList<EntityInvalidationInfo>());
-    this.wrefNotificationInfoList = Collections.synchronizedList(new LinkedList<WrefNotificationInfo>());
-    this.sysMsgReceiverList = Collections.synchronizedList(new LinkedList<WeakReference<RErefItem>>());
+    this.entityInvalidationInfoList = Collections.synchronizedList(new LinkedList<ExistenceInvalidationInfo>());
+    this.weakRefNotificationInfoList = Collections.synchronizedList(new LinkedList<WeakRefNotificationInfo>());
+    this.sysMsgReceiverList = Collections.synchronizedList(new LinkedList<WeakReference<RObjItem>>());
     this.maintenanceInterval = MAINTENANCE_INTERVAL;
     this.makeCache();
   }
@@ -228,22 +228,20 @@ class RMemMgr {
     return r;
   }
 
-  RErefItem createEntity(RObjItem item, RClosureItem invalidator) {
-    RErefItem eref = RErefItem.create(this.theEngine, new Entity(item));
+  ExistenceItem createExistence(RObjItem item, RClosureItem invalidator) {
+    ExistenceItem e = new ExistenceItem(this.theEngine, item);
     if (invalidator != null) {
-      this.entityInvalidationInfoList.add(new EntityInvalidationInfo(eref, invalidator));
+      this.entityInvalidationInfoList.add(new ExistenceInvalidationInfo(e, invalidator));
     }
-    return eref;
+    return e;
   }
 
-  RWrefItem createWeakHolder(RObjItem entity, RClosureItem listener) {
-    RErefItem eref = (RErefItem)entity;
-    WeakReference<Entity> wr;
-    RWrefItem wref = RWrefItem.create(this.theEngine, new WeakReference<RErefItem>(eref));
+  WeakRefItem createWeakRef(ExistenceItem existence, RClosureItem listener) {
+    WeakRefItem wr = new WeakRefItem(this.theEngine, existence);
     if (listener != null) {
-      this.wrefNotificationInfoList.add(new WrefNotificationInfo(wref, listener));
+      this.weakRefNotificationInfoList.add(new WeakRefNotificationInfo(wr, listener));
     }
-    return wref;
+    return wr;
   }
 
   public RClosureItem createClosureOfNativeImpl(RModule mod, String name, int paramCount, /* String implFor, */ Object nativeImplTargetObject, Method nativeImpl) {
@@ -252,7 +250,7 @@ class RMemMgr {
 
   private void doMaintainFull() {
     this.notifyPurgedEntities(this.entityInvalidationInfoList.size());
-    this.notifyClearedWrefs(this.wrefNotificationInfoList.size());
+    this.notifyClearedWeakRefs(this.weakRefNotificationInfoList.size());
     this.maintainSysMsgReceivers(sysMsgReceiverList.size());
   }
 
@@ -260,8 +258,8 @@ class RMemMgr {
     int n;
     n = this.entityInvalidationInfoList.size();
     this.notifyPurgedEntities((n > 0)? n / 10 + 1: 0);  // limit by 1/10 of length
-    n = this.wrefNotificationInfoList.size();
-    this.notifyClearedWrefs((n > 0)? n / 10 + 1: 0);  // limit by 1/10 of length
+    n = this.weakRefNotificationInfoList.size();
+    this.notifyClearedWeakRefs((n > 0)? n / 10 + 1: 0);  // limit by 1/10 of length
     this.maintainSysMsgReceivers(1);
   }
 
@@ -269,8 +267,8 @@ class RMemMgr {
 // /* DEBUG */ System.out.println("start notifyPurgedEntities");
     for (int i = 0; i < count; i++) {
       if (this.entityInvalidationInfoList.isEmpty()) { break; }
-      EntityInvalidationInfo info = this.entityInvalidationInfoList.remove(0);  // dequeue
-      if (info.weref.get() != null) {
+      ExistenceInvalidationInfo info = this.entityInvalidationInfoList.remove(0);  // dequeue
+      if (info.weakRef.get() != null) {
         this.entityInvalidationInfoList.add(info);  // requeue
       } else {
 // /* DEBUG */ System.out.println("Detected purged entity.");
@@ -282,32 +280,32 @@ class RMemMgr {
 // /* DEBUG */ System.out.println("end notifyPurgedEntities");
   }
 
-  private void notifyClearedWrefs(int count) {
-// /* DEBUG */ System.out.println("start notifyClearedWrefs");
+  private void notifyClearedWeakRefs(int count) {
+// /* DEBUG */ System.out.println("start notifyClearedWeakRefs");
     for (int i = 0; i < count; i++) {
-      if (this.wrefNotificationInfoList.isEmpty()) { break; }
-      WrefNotificationInfo info = this.wrefNotificationInfoList.remove(0);  // dequeue
-      RWrefItem wref;
-      if ((wref = info.wwref.get()) != null) {
-        if (wref.get() != null) {
-          this.wrefNotificationInfoList.add(info);  // requeue
+      if (this.weakRefNotificationInfoList.isEmpty()) { break; }
+      WeakRefNotificationInfo info = this.weakRefNotificationInfoList.remove(0);  // dequeue
+      WeakRefItem weakRef;
+      if ((weakRef = info.wweakRef.get()) != null) {
+        if (weakRef.get() != null) {
+          this.weakRefNotificationInfoList.add(info);  // requeue
         } else {
 // /* DEBUG */ System.out.println("Detected cleared wref.");
           this.theEngine.taskMgr.createTask(
-            RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, info.listener, new RObjItem[] { wref })
+            RTaskMgr.PRIO_DEFAULT, RTaskMgr.TASK_TYPE_APPL, info.listener, new RObjItem[] { weakRef })
           .start();
         }
       } else {
         ;  // dispose
       }
     }
-// /* DEBUG */ System.out.println("end notifyClearedWrefs");
+// /* DEBUG */ System.out.println("end notifyClearedWeakRefs");
   }
 
   private void maintainSysMsgReceivers(int count) {
     for (int i = 0; i < count; i++) {
       if (this.sysMsgReceiverList.isEmpty()) { break; }
-      WeakReference<RErefItem> wr = this.sysMsgReceiverList.remove(0);  // dequeue
+      WeakReference<RObjItem> wr = this.sysMsgReceiverList.remove(0);  // dequeue
       if (wr.get() != null) {
         this.sysMsgReceiverList.add(wr);  // requeue
       } else {
@@ -316,7 +314,7 @@ class RMemMgr {
     }
   }
 
-  RErefItem createMbox(RTaskControl owner) {
+  RStructItem createMbox(RTaskControl owner) {
     // create body
     RMbox b = RMbox.create(this.theEngine, owner);
     // wrap to RMBoxPItem(RObjItem)
@@ -325,42 +323,120 @@ class RMemMgr {
     RObjItem d = this.getStructItem(
       this.getDataConstr(new Cstr("sango.actor"), "mbox_p_ent_d$"),
       new RObjItem[] { bp });
-    // create entity
-    RErefItem bpe = this.createEntity(d, null);
+    // create existence
+    ExistenceItem bpx = this.createExistence(d, null);
+    // create eref (= ent_d+ box)
+    RStructItem bpe = this.getStructItem(
+      this.getDataConstr(new Cstr("sango.entity.box"), "box_h$"),
+      new RObjItem[] { bpx });
     return bpe;
   }
 
-  RMbox getMboxBody(RErefItem mboxE) {
-    RMboxPItem p = (RMboxPItem)((RStructItem)mboxE.read()).getFieldAt(0);  // mbox_p mbox_p_ent_d$ -> mbox_p
+  RMbox getMboxBodyFromEref(RObjItem mboxE) {
+    return this.getMboxBodyFromEntd(this.readEref((RStructItem)mboxE));
+  }
+
+  RMbox getMboxBodyFromEntd(RObjItem mboxp) {
+    RMboxPItem p = (RMboxPItem)((RStructItem)mboxp).getFieldAt(0);  // mbox_p mbox_p_ent_d$ -> mbox_p
     return p.mbox;
   }
 
-  RMbox tryGetMboxBodyFromSenderEntity(RErefItem senderE) {
-    RMbox b = null;
-    RWrefItem mboxpEW = (RWrefItem)((RStructItem)senderE.read()).getFieldAt(0);
-    RErefItem mboxpE = mboxpEW.get();
-    if (mboxpE == null) {
-      ;  // mbox is already GC'd.
-    } else if (mboxpE instanceof RErefItem) {
-      RObjItem mboxp = ((RStructItem)((RErefItem)mboxpE).read()).getFieldAt(0);
-      if (mboxp instanceof RMboxPItem) {
-        b = ((RMboxPItem)mboxp).mbox;
-      } else {
-        throw new IllegalArgumentException("Not <post_h>.");
-      }
-    } else {
-      throw new IllegalArgumentException("Not <post_h>.");
-    }
-    return b;
+  RMbox tryGetMboxBodyFromSenderEntity(RObjItem senderE) {  // <eref> = <ent_d+ box_h>
+    RStructItem mboxpEWd = (RStructItem)this.readEref((RStructItem)senderE);  // <wref> ent_d
+    RStructItem mboxpEW = (RStructItem)mboxpEWd.getFieldAt(0);  // <wref>
+    ExistenceItem mboxpEx = this.getWref(mboxpEW);
+    return (mboxpEx != null)?  this.getMboxBodyFromEntd(mboxpEx.read()): null;
   }
 
-  public void notifySysMsg(RErefItem be) {
-    this.sysMsgReceiverList.add(new WeakReference<RErefItem>(be));  // synchronized
+  RObjItem readEref(RStructItem eref) {  // <eref> = <ent_d+ box_h> ==> <existence> box_h$
+    ExistenceItem x = (ExistenceItem)eref.getFieldAt(0);
+    return x.read();
   }
 
-  WeakReference<RErefItem> pollSysMsgReceiver() {
+  ExistenceItem getWref(RStructItem wref) {  // <wref> = <ent_d+ wbox_h> ==> <weak_ref> wbox_h$
+    WeakRefItem w = (WeakRefItem)wref.getFieldAt(0);
+    return w.get();
+  }
+
+  public void notifySysMsg(RObjItem be) {
+    this.sysMsgReceiverList.add(new WeakReference<RObjItem>(be));  // synchronized
+  }
+
+  WeakReference<RObjItem> pollSysMsgReceiver() {
     synchronized (this.sysMsgReceiverList) {  // is synchronization needed here?
       return (!this.sysMsgReceiverList.isEmpty())? this.sysMsgReceiverList.remove(0): null;
+    }
+  }
+
+  public class ExistenceItem extends RObjItem {
+    RObjItem associatedData;
+
+    ExistenceItem(RuntimeEngine e, RObjItem associatedData) {
+      super(e);
+      this.associatedData = associatedData;
+    }
+
+    public boolean objEquals(RFrame frame, RObjItem item) {
+      return item == this;
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.entity.existence"), "existence", 0);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
+    public Cstr dumpInside() {
+      return new Cstr(this.toString());
+    }
+
+    public RObjItem read() {
+      synchronized (this) {
+        return this.associatedData;
+      }
+    }
+
+    public RObjItem write(RObjItem item) {
+      synchronized (this) {
+        RObjItem old = this.associatedData;
+        this.associatedData = item;
+        return old;
+      }
+    }
+  }
+
+  public class WeakRefItem extends RObjItem {
+    WeakReference<ExistenceItem> weakRef;
+
+    WeakRefItem(RuntimeEngine e, ExistenceItem existence) {
+      super(e);
+      this.weakRef = new WeakReference<ExistenceItem>(existence);
+    }
+
+    public boolean objEquals(RFrame frame, RObjItem item) {
+      return item == this;
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.entity.existence"), "weak_ref", 0);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
+    public Cstr dumpInside() {
+      return new Cstr(this.toString());
+    }
+
+    public ExistenceItem get() {
+      return this.weakRef.get();
+    }
+
+    public void clear() {
+      this.weakRef.clear();
     }
   }
 
@@ -386,22 +462,22 @@ class RMemMgr {
     }
   }
 
-  private class EntityInvalidationInfo {
-    WeakReference<RErefItem> weref;
+  private class ExistenceInvalidationInfo {
+    WeakReference<ExistenceItem> weakRef;
     RClosureItem invalidator;
 
-    EntityInvalidationInfo(RErefItem eref, RClosureItem invalidator) {
-      this.weref = new WeakReference<RErefItem>(eref);
+    ExistenceInvalidationInfo(ExistenceItem existence, RClosureItem invalidator) {
+      this.weakRef = new WeakReference<ExistenceItem>(existence);
       this.invalidator = invalidator;
     }
   }
 
-  private class WrefNotificationInfo {
-    WeakReference<RWrefItem> wwref;
+  private class WeakRefNotificationInfo {
+    WeakReference<WeakRefItem> wweakRef;
     RClosureItem listener;
 
-    WrefNotificationInfo(RWrefItem wref, RClosureItem listener) {
-      this.wwref = new WeakReference<RWrefItem>(wref);
+    WeakRefNotificationInfo(WeakRefItem weakRef, RClosureItem listener) {
+      this.wweakRef = new WeakReference<WeakRefItem>(weakRef);
       this.listener = listener;
     }
   }

@@ -59,6 +59,8 @@ class RModMgr implements PDefDict.DefDictGetter {
     List<Cstr> loadQueue = new ArrayList<Cstr>();
     loadQueue.add(modName);
     loadQueue.add(Module.MOD_LANG);
+    loadQueue.add(new Cstr("sango.entity.existence"));
+    loadQueue.add(new Cstr("sango.entity.box"));
     loadQueue.add(new Cstr("sango.actor"));
     while (!loadQueue.isEmpty()) {
       Cstr m = loadQueue.remove(0);

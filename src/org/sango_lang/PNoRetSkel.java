@@ -55,6 +55,8 @@ class PNoRetSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
+  public boolean isConcrete() { return false; }
+
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     return this;
   }
@@ -100,7 +102,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PNoRetSkel#apply 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
       PTypeVarSkel tv = (PTypeVarSkel)type;
-      if (trialBindings.isGivenTvar(tv.varSlot)) {
+      if (trialBindings.isGivenTVar(tv.varSlot)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PNoRetSkel#apply 2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -116,11 +118,11 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public boolean includesVar(PVarSlot varSlot, PTypeSkelBindings bindings) {
+  public boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings) {
     return false;
   }
 
-  public PVarSlot getVarSlot() { return null; }
+  public PTVarSlot getVarSlot() { return null; }
 
   public PTypeSkel join(PTypeSkel type, PTypeSkelBindings bindings) {
     return this.join2(type.resolveBindings(bindings), bindings);
@@ -133,14 +135,14 @@ if (PTypeGraph.DEBUG > 1) {
     return type;
   }
 
-  public MType toMType(PModule mod, List<PVarSlot> slotList) {
+  public MType toMType(PModule mod, List<PTVarSlot> slotList) {
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     b.setModName(mod.isLang()? null: Module.MOD_LANG);
     b.setTcon(Module.TCON_NORET);
     return b.create();
   }
 
-  public List<PVarSlot> extractVars(List<PVarSlot> alreadyExtracted) {
+  public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
     return null;
   }
 

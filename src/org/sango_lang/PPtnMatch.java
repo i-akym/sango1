@@ -49,7 +49,6 @@ class PPtnMatch extends PDefaultPtnElem {
 
   static PPtnMatch create(Parser.SrcInfo srcInfo, PImpose impose, PPtnElem ptn) {
     PPtnMatch pm = new PPtnMatch();
-    ptn.setParent(pm);
     pm.srcInfo = srcInfo;
     pm.impose = impose;
     pm.ptn = ptn;

@@ -29,40 +29,40 @@ import java.util.List;
 import java.util.Map;
 
 public class PTypeSkelBindings {
-  Map<PVarSlot, PTypeSkel> bindingDict;
-  List<PVarSlot> givenTvarList;
+  Map<PTVarSlot, PTypeSkel> bindingDict;
+  List<PTVarSlot> givenTVarList;
 
   private PTypeSkelBindings() {}
 
   public static PTypeSkelBindings create() {
-    return create(new ArrayList<PVarSlot>());
+    return create(new ArrayList<PTVarSlot>());
   }
 
-  static PTypeSkelBindings create(List<PVarSlot> givenTvarList) {
+  static PTypeSkelBindings create(List<PTVarSlot> givenTVarList) {
     PTypeSkelBindings b = new PTypeSkelBindings();
-    b.bindingDict = new HashMap<PVarSlot, PTypeSkel>();
-    b.givenTvarList = givenTvarList;
+    b.bindingDict = new HashMap<PTVarSlot, PTypeSkel>();
+    b.givenTVarList = givenTVarList;
     return b;
   }
 
   public String toString() {
     return this.bindingDict.toString()
-      + " G" + this.givenTvarList.toString();
+      + " G" + this.givenTVarList.toString();
   }
 
-  boolean isBound(PVarSlot var) {
+  boolean isBound(PTVarSlot var) {
     return this.bindingDict.containsKey(var);
   }
 
-  void bind(PVarSlot var, PTypeSkel typeSkel) {
+  void bind(PTVarSlot var, PTypeSkel typeSkel) {
     this.bindingDict.put(var, typeSkel);
   }
 
-  PTypeSkel lookup(PVarSlot var) {
+  PTypeSkel lookup(PTVarSlot var) {
 // /* DEBUG */ System.out.println("PTypeSkelBindings#lookup called " + var);
     PTypeSkel t = this.bindingDict.get(var);
     if (t != null) {
-      PVarSlot varSlot = t.getVarSlot();
+      PTVarSlot varSlot = t.getVarSlot();
       while (varSlot != null) {
         PTypeSkel t2 = this.bindingDict.get(varSlot);
         if (t2 != null) {
@@ -77,5 +77,5 @@ public class PTypeSkelBindings {
     return t;
   }
 
-  boolean isGivenTvar(PVarSlot var) { return this.givenTvarList.contains(var); }
+  boolean isGivenTVar(PTVarSlot var) { return this.givenTVarList.contains(var); }
 }

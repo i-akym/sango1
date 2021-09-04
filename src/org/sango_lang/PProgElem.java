@@ -29,10 +29,6 @@ interface PProgElem {
 
   Parser.SrcInfo getSrcInfo();
 
-  void setParent(PProgElem parent);
-
-  PProgElem getParent();
-
   PProgElem setupScope(PScope scope) throws CompileException;
 
   PScope getScope();

@@ -106,8 +106,9 @@ eval <bigint> *B to_int | int @public -> <int> @native ;;
 
 eval eq_fs @public -> <bigint eq_fs> {
   eq?_f: ^eq?
-  ne?_f_: none$
-  eq_fs$
+    ne?_f_: none$
+    hash_f: ^hash
+    eq_fs$
 } ;;
 
 eval ord_fs @public -> <bigint ord_fs> {

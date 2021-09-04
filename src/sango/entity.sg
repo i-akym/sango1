@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -23,25 +23,39 @@
 ###########################################################################
 module "sango.entity" ;;
 
+import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
+
 extend <independent> -> ent_d @public :=
 | existence$ ;;
 
-data <eref> @opaque := @native ;;  # entity ref
-data <wref> @opaque := @native ;;  # weak ref
+alias type <eref> @public := <ent_d+ box.box_h> ;;
+alias type <wref> @public := <ent_d+ box.wbox_h> ;;
 
-eval
-  <ent_d+> *X
-  <<void fun> maybe> *Invalidator_
-  create_entity @public -> <eref> @native ;;
+eval <ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public -> <eref> {
+  X Invalidator_ box.create_box
+} ;;
 
-eval <eref> *Entity read @public -> <ent_d+> @native ;;
-eval <eref> *Entity <ent_d+> *X write | swap @public -> <ent_d+> @native ;;
+eval <eref> *Entity existence @public -> <ex.existence> {
+  Entity box.existence
+} ;;
 
-eval
-  <eref> *Entity
-  <<wref void fun> maybe> *Listener_
-  create_weak_holder @public -> <wref> @native ;;
+eval <eref> *Entity read @public -> <ent_d+> {
+  Entity box.read
+} ;;
 
-eval <wref> *W get @public -> <eref maybe> @native ;;
-eval <wref> *W clear @public -> <void> @native ;;
+eval <eref> *Entity <ent_d+> *X write | swap @public -> <ent_d+> {
+  Entity X box.write
+} ;;
 
+eval <eref> *Entity <<wref void fun> maybe> *Listener_ create_weak_holder @public -> <wref> {
+  Entity Listener_ box.create_weak_holder
+} ;;
+
+eval <wref> *W get @public -> <eref maybe> {
+  W box.get
+} ;;
+
+eval <wref> *W clear @public -> <void> {
+  W box.clear
+} ;;

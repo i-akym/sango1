@@ -61,7 +61,6 @@ class PTuplePtn extends PDefaultPtnElem {
     }
 
     void addElem(PPtnMatch elem) {
-      elem.parent = this.tuple;
       this.elemList.add(elem);
     }
 

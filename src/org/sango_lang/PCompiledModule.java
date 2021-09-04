@@ -71,7 +71,7 @@ class PCompiledModule implements PDefDict {
         PDefDict.DataDefGetter g = createDataDefGetter(dd);
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           (dds[j].baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-          dds[j].paramCount, dds[j].acc, g);
+          (dds[j].params != null)? dds[j].params.length: -1, dds[j].acc, g);
         cm.foreignTconDict.put(tk, tp);
       }
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
@@ -95,7 +95,7 @@ class PCompiledModule implements PDefDict {
       PDefDict.DataDefGetter g = createDataDefGetter(dd);
       PDefDict.TconProps tp = PDefDict.TconProps.create(
         (mdd.baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-        mdd.paramCount, mdd.acc, g);
+        (mdd.params != null)? mdd.params.length: -1, mdd.acc, g);
       cm.tconDict.put(mdd.tcon, tp);
       for (int j = 0; j < mdd.constrs.length; j++) {
         MConstrDef mcd = mdd.constrs[j];
@@ -201,14 +201,16 @@ class PCompiledModule implements PDefDict {
     DataDef dd = new DataDef();
     dd.availability = dataDef.availability;
     dd.sigTcon = dataDef.tcon;
-    dd.sigParams = (dataDef.paramCount >= 0)? new PTypeVarSkel[dataDef.paramCount]: null;
-    dd.acc = dataDef.acc;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
-    for (int i = 0; i < dataDef.paramCount; i++) {
-      PTypeVarSkel v = PTypeVarSkel.create(null, null, PVarSlot.createInternal());
-      dd.sigParams[i] = v;
-      varList.add(v);
+    if (dataDef.params != null) {
+      dd.sigParams = new PTypeVarSkel[dataDef.params.length];
+      for (int i = 0; i < dataDef.params.length; i++) {
+        PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+        dd.sigParams[i] = v;
+        varList.add(v);
+      }
     }
+    dd.acc = dataDef.acc;
     for (int i = 0; i < dataDef.constrs.length; i++) {
       MConstrDef mcd = dataDef.constrs[i];
       ConstrDef cd = dd.addConstr(mcd.dcon);
@@ -240,10 +242,10 @@ class PCompiledModule implements PDefDict {
 
     public String getFormalTcon() { return this.sigTcon; }
 
-    public PVarSlot[] getParamVarSlots() {
-      PVarSlot[] pvs;
+    public PTVarSlot[] getParamVarSlots() {
+      PTVarSlot[] pvs;
       if (this.sigParams != null) {
-        pvs = new PVarSlot[this.sigParams.length];
+        pvs = new PTVarSlot[this.sigParams.length];
         for (int i = 0; i < this.sigParams.length; i++) {
           pvs[i] = this.sigParams[i].varSlot;
         }
@@ -301,7 +303,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PVarSlot.createInternal());
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasDef.body, mod, varList, unresolvedTypeRefList);
@@ -317,8 +319,8 @@ class PCompiledModule implements PDefDict {
 
     public String getTcon() { return this.tconInfo.key.tcon; }
 
-    public PVarSlot[] getParamVarSlots() {
-      PVarSlot[] vs = new PVarSlot[this.tparams.length];
+    public PTVarSlot[] getParamVarSlots() {
+      PTVarSlot[] vs = new PTVarSlot[this.tparams.length];
       for (int i = 0; i < this.tparams.length; i++) {
         vs[i] = this.tparams[i].varSlot;
       }
@@ -431,7 +433,7 @@ class PCompiledModule implements PDefDict {
     public PTypeSkel getRetType() { return this.retType; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PVarSlot> givenVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenVarList) throws CompileException {
     List<FunDef> funList = this.funListDict.get(name);
     if (funList == null) { return null; }
     PDefDict.FunSelRes sel = null;
@@ -478,7 +480,7 @@ class PCompiledModule implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PVarSlot> givenVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
@@ -486,11 +488,6 @@ class PCompiledModule implements PDefDict {
         ;
       } else if (this.searchInLang) {
         throw new RuntimeException("PCompiledModule.ExprDefGetter#selectFunDef when 'search in lang' is on.");
-        // PDefDict.EidProps p = PModule.this.defDictGetter.getDefDict(Module.MOD_LANG).resolveEid(
-          // this.funName, PExprId.CAT_FUN, Module.ACC_PUBLIC);
-        // if (p != null) {
-          // r = p.defGetter.selectFunDef(paramTypes, givenVarList);
-        // }
       }
       return r;
     }
@@ -574,7 +571,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PVarSlot.createInternal());
+      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.requiresConcrete));
       varList.add(v);
     } else {
       throw new RuntimeException("Slot number is not sequential.");

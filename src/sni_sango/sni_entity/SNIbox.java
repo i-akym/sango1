@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -21,48 +21,32 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       *
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  *
  ***************************************************************************/
-package org.sango_lang;
+package sni_sango.sni_entity;
 
-public class PVarSlot {
-  static int hashValue = 0;
+import org.sango_lang.Cstr;
+import org.sango_lang.RClosureItem;
+import org.sango_lang.RMemMgr;
+import org.sango_lang.RFrame;
+import org.sango_lang.RNativeImplHelper;
+import org.sango_lang.RObjItem;
+import org.sango_lang.RStructItem;
+import org.sango_lang.RType;
+import org.sango_lang.RuntimeEngine;
 
-  int hash;
-  PVarDef varDef;
-
-  private PVarSlot() {}
-
-  static PVarSlot create(PVarDef varDef) {
-    PVarSlot s = createInternal();
-    s.varDef = varDef;
-    return s;
+public class SNIbox {
+  public static SNIbox getInstance(RuntimeEngine e) {
+    return new SNIbox();
   }
 
-  public static PVarSlot createInternal() {
-    PVarSlot s = new PVarSlot();
-    s.hash = hashValue++;
-    return s;
+  public void sni_read(RNativeImplHelper helper, RClosureItem self, RObjItem box) {
+    RStructItem b = (RStructItem)box;
+    RMemMgr.ExistenceItem ex = (RMemMgr.ExistenceItem)b.getFieldAt(0);
+    helper.setReturnValue(ex.read());
   }
 
-  public String toString() {
-    StringBuffer buf = new StringBuffer();
-    if (this.varDef != null) {
-      buf.append(this.varDef.name);
-      buf.append(":V");
-      if ((this.varDef.cat & PVarDef.CAT_TYPE_PARAM) > 0) {
-        buf.append("T");
-      } else if ((this.varDef.cat & PVarDef.CAT_FUN_PARAM) > 0) {
-        buf.append("F");
-      } else if ((this.varDef.cat & PVarDef.CAT_LOCAL_VAR) > 0) {
-        buf.append("L");
-      }
-    } else {
-      buf.append("PSEUDO");
-    }
-    buf.append(this.hash);
-    return buf.toString();
-  }
-
-  String repr() {
-    return (this.varDef != null)? this.varDef.name: "$" + this.hash;
+  public void sni_write(RNativeImplHelper helper, RClosureItem self, RObjItem box, RObjItem x) {
+    RStructItem b = (RStructItem)box;
+    RMemMgr.ExistenceItem ex = (RMemMgr.ExistenceItem)b.getFieldAt(0);
+    helper.setReturnValue(ex.write(x));
   }
 }

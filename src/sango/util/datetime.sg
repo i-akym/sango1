@@ -240,18 +240,21 @@ eval <int> *Year leap_year? @public -> <bool> {
 eval date_eq_fs @public -> <date eq_fs> {
   eq?_f: ^date_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 
 eval time_eq_fs @public -> <time eq_fs> {
   eq?_f: ^time_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 
 eval date_time_eq_fs @public -> <date_time eq_fs> {
   eq?_f: ^date_time_eq?
     ne?_f_: none$
+    hash_f: ^hash
     eq_fs$
 } ;;
 

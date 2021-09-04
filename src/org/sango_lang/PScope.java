@@ -32,37 +32,31 @@ class PScope {
   PModule theMod;
   PScope parent;
   int funLevel;  // -2:inactive  -1:in data def  0,1,..:in fun def
-  boolean enablesDefineVar;
-  Map<String, PVarSlot> varDict;
-  Map<String, PVarSlot> outerDict;
-  List<PVarSlot> envList;
   PEvalStmt evalStmt;  // set if funLevel == 0
   PClosure closure;  // set if funLevel > 0
-  List<PVarSlot> givenTvarList;
+  boolean enablesDefineTVar;
+  boolean enablesDefineEVar;
+  Map<String, PTVarSlot> tvarDict;
+  Map<String, PEVarSlot> evarDict;
+  Map<String, PTVarSlot> outerTVarDict;
+  Map<String, PEVarSlot> outerEVarDict;
+  List<PTVarSlot> envTVarList;
+  List<PEVarSlot> envEVarList;
+  List<PTVarSlot> givenTVarList;
 
   private PScope(PModule theMod) {
     this.theMod = theMod;
     this.funLevel = -2;
-    this.enablesDefineVar = true;
-    this.varDict = new HashMap<String, PVarSlot>();
-    this.outerDict = new HashMap<String, PVarSlot>();
+    this.enablesDefineTVar = true;
+    this.enablesDefineEVar = true;
+    this.tvarDict = new HashMap<String, PTVarSlot>();
+    this.evarDict = new HashMap<String, PEVarSlot>();
+    this.outerTVarDict = new HashMap<String, PTVarSlot>();
+    this.outerEVarDict = new HashMap<String, PEVarSlot>();
   }
 
   static PScope create(PModule theMod) {
     return new PScope(theMod);
-  }
-
-  PScope copy() {
-    PScope s = new PScope(this.theMod);
-    s.theMod = this.theMod;
-    s.parent = this.parent;
-    s.funLevel = this.funLevel;
-    s.varDict.putAll(this.varDict);
-    s.outerDict.putAll(this.outerDict);
-    s.envList = this.envList;
-    s.evalStmt = this.evalStmt;
-    s.closure = this.closure;
-    return s;
   }
 
   PScope start() {
@@ -89,7 +83,8 @@ class PScope {
     PScope s = new PScope(this.theMod);
     s.parent = this;
     s.funLevel = this.funLevel + 1;
-    s.envList = new ArrayList<PVarSlot>();
+    s.envTVarList = new ArrayList<PTVarSlot>();
+    s.envEVarList = new ArrayList<PEVarSlot>();
     s.closure = closure;
     return s;
   }
@@ -107,55 +102,89 @@ class PScope {
     return s;
   }
 
-  PVarSlot lookupVar(String var) {
+  PTVarSlot lookupTVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PVarSlot v = this.varDict.get(var);
+    PTVarSlot v = this.tvarDict.get(var);
     if (v == null) {
-      v = this.outerDict.get(var);
+      v = this.outerTVarDict.get(var);
     }
-    return (v != null || this.parent == null)? v: this.parent.lookupVar(var);
+    return (v != null || this.parent == null)? v: this.parent.lookupTVar(var);
   }
 
-  void enableDefineVar(boolean b) {
-    this.enablesDefineVar = b;
-  }
-
-  boolean canDefineVar(PVarDef varDef) {
+  PEVarSlot lookupEVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    return this.enablesDefineVar
-      && !this.varDict.containsKey(varDef.name)
-      && !this.outerDict.containsKey(varDef.name);
+    PEVarSlot v = this.evarDict.get(var);
+    if (v == null) {
+      v = this.outerEVarDict.get(var);
+    }
+    return (v != null || this.parent == null)? v: this.parent.lookupEVar(var);
   }
 
-  PVarSlot defineVar(PVarDef varDef) {
-  // PVarSlot defineVar(int defineAs, String var, PTypeDesc type) {
+  void enableDefineTVar(boolean b) {
+    this.enablesDefineTVar = b;
+  }
+
+  void enableDefineEVar(boolean b) {
+    this.enablesDefineEVar = b;
+  }
+
+  boolean canDefineTVar(PTVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PVarSlot slot = PVarSlot.create(varDef);
-    this.varDict.put(varDef.name, slot);
-    // PVarSlot slot = PVarSlot.create(this, defineAs, type);
-    // this.varDict.put(var, slot);
+    return this.enablesDefineTVar
+      && !this.tvarDict.containsKey(varDef.name)
+      && !this.evarDict.containsKey(varDef.name)
+      && !this.outerTVarDict.containsKey(varDef.name)
+      && !this.outerEVarDict.containsKey(varDef.name);
+  }
+
+  boolean canDefineEVar(PEVarDef varDef) {
+    if (this.funLevel < -1) {
+      throw new IllegalStateException("Not active.");
+    }
+    return this.enablesDefineEVar
+      && !this.tvarDict.containsKey(varDef.name)
+      && !this.evarDict.containsKey(varDef.name)
+      && !this.outerTVarDict.containsKey(varDef.name)
+      && !this.outerEVarDict.containsKey(varDef.name);
+  }
+
+  PTVarSlot defineTVar(PTVarDef varDef) {
+    if (this.funLevel < -1) {
+      throw new IllegalStateException("Not active.");
+    }
+    PTVarSlot slot = PTVarSlot.create(varDef);
+    this.tvarDict.put(varDef.name, slot);
     return slot;
   }
 
-  PVarSlot referSimpleId(String id) {
+  PEVarSlot defineEVar(PEVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PVarSlot v = this.varDict.get(id);
+    PEVarSlot slot = PEVarSlot.create(varDef);
+    this.evarDict.put(varDef.name, slot);
+    return slot;
+  }
+
+  PTVarSlot referSimpleTid(String id) {
+    if (this.funLevel < -1) {
+      throw new IllegalStateException("Not active.");
+    }
+    PTVarSlot v = this.tvarDict.get(id);
     if (v == null) {
-      v = this.outerDict.get(id);
+      v = this.outerTVarDict.get(id);
       if (v == null && this.parent != null) {
-        v = this.parent.referSimpleId(id);
+        v = this.parent.referSimpleTid(id);
         if (v != null) {
-          this.outerDict.put(id, v);
+          this.outerTVarDict.put(id, v);
           if (this.parent.funLevel != this.funLevel) {  // in top scope of closure
-            this.envList.add(v);
+            this.envTVarList.add(v);
           }
         }
       }
@@ -163,15 +192,37 @@ class PScope {
     return v;
   }
 
-  boolean isDefinedOuter(String id) {
-    return (this.funLevel >= 0)? this.outerDict.containsKey(id): false;
+  PEVarSlot referSimpleEid(String id) {
+    if (this.funLevel < -1) {
+      throw new IllegalStateException("Not active.");
+    }
+    PEVarSlot v = this.evarDict.get(id);
+    if (v == null) {
+      v = this.outerEVarDict.get(id);
+      if (v == null && this.parent != null) {
+        v = this.parent.referSimpleEid(id);
+        if (v != null) {
+          this.outerEVarDict.put(id, v);
+          if (this.parent.funLevel != this.funLevel) {  // in top scope of closure
+            this.envEVarList.add(v);
+          }
+        }
+      }
+    }
+    return v;
   }
 
-  boolean isDefinedOuter(PVarSlot varSlot) {
-    return (this.funLevel >= 0)? this.outerDict.containsValue(varSlot): false;
-  }
+  // boolean isDefinedOuter(String id) {
+    // return (this.funLevel >= 0)? this.outerDict.containsKey(id): false;
+  // }
 
-  List<PVarSlot> getEnvList() { return this.envList; }
+  // boolean isDefinedOuter(PVarSlot varSlot) {
+    // return (this.funLevel >= 0)? this.outerDict.containsValue(varSlot): false;
+  // }
+
+  List<PTVarSlot> getEnvTVarList() { return this.envTVarList; }
+
+  List<PEVarSlot> getEnvEVarList() { return this.envEVarList; }
 
   Compiler getCompiler() { return this.theMod.theCompiler; }
 
@@ -212,10 +263,9 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PTypeDesc[0]);
   }
 
-  PVarDef getNewTvar(Parser.SrcInfo srcInfo) {
-    PVarDef v = PVarDef.create(srcInfo, PVarDef.CAT_TYPE_PARAM, null, this.generateId());
+  PTVarDef getNewTVar(Parser.SrcInfo srcInfo) {
+    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), false);
     try {
-      // v.setPolymorphic(true);
       v.setupScope(this);
       v = v.resolveId();
     } catch (CompileException ex) {
@@ -225,12 +275,12 @@ class PScope {
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    PVarDef nv = this.getNewTvar(srcInfo);
+    PTVarDef nv = this.getNewTVar(srcInfo);
     return this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    PVarDef nv = this.getNewTvar(srcInfo);
+    PTVarDef nv = this.getNewTVar(srcInfo);
     return this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel();
   }
 
@@ -254,38 +304,38 @@ class PScope {
     return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels);
   }
 
-  List<PVarSlot> getGivenTvarList() {
-    if (this.givenTvarList == null) {
+  List<PTVarSlot> getGivenTVarList() {
+    if (this.givenTVarList == null) {
       if (this.parent == null) {
-        this.setupGivenTvarListForFun();
+        this.setupGivenTVarListForFun();
       } else if (this.parent.funLevel != this.funLevel) {
-        this.setupGivenTvarListForClosure();
+        this.setupGivenTVarListForClosure();
       } else {
-        this.givenTvarList = this.parent.getGivenTvarList();
+        this.givenTVarList = this.parent.getGivenTVarList();
       }
     }
-    return this.givenTvarList;
+    return this.givenTVarList;
   }
 
-  private void setupGivenTvarListForFun() {
-    this.givenTvarList = new ArrayList<PVarSlot>();
+  private void setupGivenTVarListForFun() {
+    this.givenTVarList = new ArrayList<PTVarSlot>();
     PTypeSkel[] pts = this.evalStmt.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
-      List<PVarSlot> justExtracted = pts[i].extractVars(this.givenTvarList);
+      List<PTVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
       if (justExtracted != null) {
-        this.givenTvarList.addAll(justExtracted);
+        this.givenTVarList.addAll(justExtracted);
       }
     }
   }
 
-  private void setupGivenTvarListForClosure() {
-    this.givenTvarList = new ArrayList<PVarSlot>(this.parent.getGivenTvarList());
+  private void setupGivenTVarListForClosure() {
+    this.givenTVarList = new ArrayList<PTVarSlot>(this.parent.getGivenTVarList());
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
     for (int i = 0; i < pts.length; i++) {
       if (pts[i] != null) {
-        List<PVarSlot> justExtracted = pts[i].extractVars(this.givenTvarList);
+        List<PTVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
         if (justExtracted != null) {
-          this.givenTvarList.addAll(justExtracted);
+          this.givenTVarList.addAll(justExtracted);
         }
       }
     }

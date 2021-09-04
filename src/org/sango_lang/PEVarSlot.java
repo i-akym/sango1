@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2021 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,43 +23,39 @@
  ***************************************************************************/
 package org.sango_lang;
 
-public class RErefItem extends RObjItem {
-  RMemMgr.Entity entity;
+public class PEVarSlot {
+  static int hashValue = 0;
 
-  RErefItem(RuntimeEngine e) { super(e); }
+  int hash;
+  PEVarDef varDef;
 
-  public static RErefItem create(RuntimeEngine e, RMemMgr.Entity entity) {
-    RErefItem eref = new RErefItem(e);
-    eref.entity = entity;
-    return eref;
+  private PEVarSlot() {}
+
+  static PEVarSlot create(PEVarDef varDef) {
+    PEVarSlot s = createInternal();
+    s.varDef = varDef;
+    return s;
   }
 
-  public boolean objEquals(RFrame frame, RObjItem item) {
-    boolean eq;
-    if (item == this) {
-      eq = true;
-    } else if (!(item instanceof RErefItem)) {
-      eq = false;
+  public static PEVarSlot createInternal() {
+    PEVarSlot s = new PEVarSlot();
+    s.hash = hashValue++;
+    return s;
+  }
+
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    if (this.varDef != null) {
+      buf.append(this.varDef.name);
+      buf.append(":VE");
     } else {
-      RErefItem r = (RErefItem)item;
-      eq = r.entity == this.entity;
+      buf.append("PSEUDO");
     }
-    return eq;
+    buf.append(this.hash);
+    return buf.toString();
   }
 
-  public RType.Sig getTsig() {
-    return RType.createTsig(new Cstr("sango.entity"), "eref", 0);
+  String repr() {
+    return (this.varDef != null)? this.varDef.name: "$" + this.hash;
   }
-
-  public void doHash(RNativeImplHelper helper, RClosureItem self) {
-    helper.setReturnValue(helper.getIntItem(this.hashCode()));
-  }
-
-  public Cstr dumpInside() {
-    return new Cstr(this.toString());
-  }
-
-  public RObjItem read() { return this.entity.read(); }
-
-  public RObjItem write(RObjItem item) { return this.entity.write(item); }
 }

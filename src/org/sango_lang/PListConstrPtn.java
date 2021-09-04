@@ -45,8 +45,6 @@ class PListConstrPtn extends PListPtn {
 
   static PListConstrPtn create(Parser.SrcInfo srcInfo, PPtnMatch elem, PPtnMatch tail) {
     PListConstrPtn c = new PListConstrPtn();
-    elem.parent = c;
-    tail.parent = c;
     c.srcInfo = srcInfo;
     c.elem = elem;
     c.tail = tail;

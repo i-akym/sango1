@@ -179,8 +179,8 @@ class PExprId extends PDefaultEvalAndPtnElem {
     this.idResolved = false;
     PEvalAndPtnElem ret = this;
     if (this.isSimple()) {
-      PVarSlot varSlot;
-      if ((varSlot = scope.referSimpleId(this.name)) != null) {
+      PEVarSlot varSlot;
+      if ((varSlot = scope.referSimpleEid(this.name)) != null) {
         if (!this.maybeVar()) {
           emsg = new StringBuffer();
           emsg.append("Variable name \"");
@@ -190,15 +190,15 @@ class PExprId extends PDefaultEvalAndPtnElem {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        if ((varSlot.varDef.cat & PVarDef.CAT_TYPE_PARAM) > 0) {
-          emsg = new StringBuffer();
-          emsg.append("Cannot refer type parameter at ");
-          emsg.append(this.srcInfo);
-          emsg.append(". - ");
-          emsg.append(this.name);
-          throw new CompileException(emsg.toString());
-        }
-        ret = PVarRef.create(this.srcInfo, this.name, varSlot).setupScope(scope);
+        // if ((varSlot.varDef.cat & PVarDef.CAT_TYPE_PARAM) > 0) {
+          // emsg = new StringBuffer();
+          // emsg.append("Cannot refer type parameter at ");
+          // emsg.append(this.srcInfo);
+          // emsg.append(". - ");
+          // emsg.append(this.name);
+          // throw new CompileException(emsg.toString());
+        // }
+        ret = PEVarRef.create(this.srcInfo, this.name, varSlot).setupScope(scope);
       } else if (this.maybeDcon() || this.maybeFun()) {
         this.cutOffVar();
       } else {
