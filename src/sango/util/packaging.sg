@@ -37,6 +37,14 @@ data <tag> @opaque :=
   ex: <ex.existence>
   tag$ ;;
 
+eval tag_dress_fs @public -> <tag ex.dress_fs> {
+  undress_f: ^tag_undress ex.dress_fs$
+} ;;
+
+eval <tag> *Tag tag_undress -> <ex.existence <tag ex.redress_f> tuple> {
+  (| Tag ex, \ <ex.existence> *E -> <tag> { E tag$ } |)
+} ;;
+
 eval <*A! A fun> *Content create_package_mgr @public -> <A package_mgr_h> {
   (&\\ <ex.existence ex.dress_fs> { ex.dress_fs })
     (&\\ <<A v> <A v> fun> { ^itself })
