@@ -23,276 +23,208 @@
 ###########################################################################
 module @alpha "sango.entity.graph" ;;
 
-import "sango.entity" -> ent ;;
-import "sango.entity.domain" -> ed ;;
+import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
-import "sango.util.avltree.set" -> avlset ;;
-import "sango.util.iter" -> iter ;;
 import "sango.util.map" -> map ;;
+import "sango.util.map.hashmap" -> hmap ;;
 import "sango.util.map.simplemap" -> smap ;;
 import "sango.util.set" -> set ;;
+import "sango.util.set.hashset" -> hset ;;
+import "sango.util.set.simpleset" -> sset ;;
 
-extend <ent.ent_d> :=
-| <graph_d> graph_ent_d$
-| <node_d> node_ent_d$ ;;
+data <*A graph> @opaque :=
+  undress_f: <A ex.undress_f>
+  tab: <A tab>
+  graph$ ;;
 
-alias type <entity_h> := <ent.ent_d+ ed.entity_h> ;;
-alias type <weak_holder_h> := <ent.ent_d+ ed.weak_holder_h> ;;
+alias type <*A tab> := <ex.existence <A n> map.map> ;;
 
-data <graph_d> :=
-  nodes: <entity_h set.set>
-  graph_d$ ;;
+data <*A n> :=
+  redress_f: <A ex.redress_f>
+  weak_ref: <ex.weak_ref>
+  link_tab: <cstr ex.weak_ref map.map>
+  refs: <<ex.weak_ref cstr tuple> set.set>
+  n$ ;;
 
-data <node_d> :=
-  wself: <weak_holder_h>  # you can get wref in entity data in order to avoid making wref again
-  alive: <bool>
-  content: <ent.ent_d+>
-  links: <cstr weak_holder_h map.map>
-  node_d$ ;;
-
-data <graph_h> @opaque :=
-  ent_domain: <ed.domain_h>
-  de: <entity_h>
-  graph_h$ ;;
-
-data <node_h> @opaque :=
-  graph_h: <graph_h>
-  dew: <weak_holder_h>
-  node_h$ ;;
-
-eval <node_h> *Node node_graph | graph @public -> <graph_h> { Node graph_h } ;;
-
-eval create_graph @public -> <graph_h> {
-  ed.create_domain = *Dom,
-  nodes: (ed.entity_ord_fs avlset.new_set) graph_d$ = *Graph_d,
-  Dom (Graph_d graph_ent_d$) none$ ed.create_entity = *GDE,
-  ent_domain: Dom de: GDE graph_h$
+eval <*A! ex.dress_fs> *Dress_fs create_graph @public -> <A graph> {
+  undress_f: (Dress_fs ex.undress_f)
+    tab: hmap.new_map
+    graph$
 } ;;
 
-eval <graph_h> *Graph <ent.ent_d+> *X <<void fun> maybe> *Invalidator_
-    graph_create_node | create_node @public -> <node_h> {
-  Graph = ent_domain: *Dom de: *GDE *** graph_h$,
-  GDE ed.read = *Graph_d graph_ent_d$,
-  Graph_d = nodes: *Nodes graph_d$,
-  Dom (&\\<ent.ent_d+> { ent.existence$ }) Invalidator_ ed.create_entity = *NDE,  # create and get ref
-  Dom NDE none$ ed.create_weak_holder = *NDEW,
-  wself: NDEW alive: true$ content: X links: (smap.new_map) node_d$ = *Node_d,
-  NDE (Node_d node_ent_d$) ed.write,
-  nodes: (Nodes NDE set.add) :: Graph_d graph_d$ = *Graph_d',
-  GDE (Graph_d' graph_ent_d$) ed.write,
-  graph_h: Graph dew: NDEW node_h$
-} ;;
-
-eval <graph_h> *Graph graph_nodes | nodes @public -> <node_h list> {
-  (Graph de) ed.read = *Graph_d graph_ent_d$,
-  (Graph_d nodes >> set.iter >> list.new_list)
-    \ <entity_h> *E -> <node_h> { Graph E reconstruct_node_h }
+eval <*A graph> *Graph graph_nodes | nodes @public -> <A list> {
+  (Graph tab >> map.iter >> list.new_list)
+    \ <ex.existence <A n> tuple> *EN -> <A> {
+      EN = (| *Ex, redress_f: *Redress_f *** n$ |),
+      Ex &Redress_f
+    }
     list.map
 } ;;
 
-eval <graph_h> *Graph <entity_h> *NDE reconstruct_node_h -> <node_h> {
-  NDE ed.read = (wself: *W *** node_d$) node_ent_d$,
-  graph_h: Graph dew: W node_h$
+eval <*A graph> *Graph <A> *Node contain? @public -> <bool> {
+  Graph = undress_f: *Undress_f tab: *Tab *** graph$,
+  Node &Undress_f = (| *Ex, ** |),
+  Tab Ex map.contain_key?
 } ;;
 
-eval <node_h list> *Nodes nodes_reachable_nodes | reachable_nodes @public -> <node_h list> {
-  Nodes case {
-  ; [ ** ; ** ] ->
-    Nodes ensure_in_one_graph >> value = *Graph,
-    Graph Nodes collect_reachable_nodes = *NDEs,
-    (NDEs set.iter)
-      \ <entity_h> *E -> <node_h> { Graph E reconstruct_node_h }
-      iter.add_modifier
-    >> list.new_list
-  ; ** -> []
+eval <*A graph> *Graph <A> *Node ensure_in_graph -> <void> {
+  Graph Node contain? >> case {
+  ; true$ ->
+  ; ** -> bad_arg$ "Out of graph." new_exception >> throw
   }
 } ;;
 
-eval <graph_h> *Graph <node_h list> *Nodes collect_reachable_nodes -> <entity_h set.set> {
+eval <*A graph> *Graph <A> *Node include @public -> <A graph> {
+  Graph = undress_f: *Undress_f tab: *Tab *** graph$,
+  Node &Undress_f = (| *Ex, *Redress_f |),
+  Tab Ex map.contain_key? >> case {
+  ; true$ -> Tab
+  ; ** ->
+    Tab Ex
+      (redress_f: Redress_f weak_ref: (Ex none$ ex.create_weak_ref) link_tab: smap.new_map refs: sset.new_set n$)
+      map.add
+  } = *Tab',
+  tab: Tab' :: Graph graph$
+} ;;
+
+eval <*A graph> *Graph <A> *Node node_links | links @public -> <cstr list> {
+  Graph Node ensure_in_graph,
+  Graph = undress_f: *Undress_f tab: *Tab *** graph$,
+  Node &Undress_f = (| *Ex, ** |),
+  Tab Ex map.assoc >> value >> link_tab = *LT,
+  (LT map.iter >> list.new_list) ^tuple.pair_first list.map
+} ;;
+
+eval <*A graph> *Graph <A> *Node <cstr> *Tag traverse @public -> <A maybe> {
+  Graph Node ensure_in_graph,
+  Graph = undress_f: *Undress_f tab: *Tab *** graph$,
+  Node &Undress_f = (| *Ex, ** |),
+  Tab Ex map.assoc >> case {
+  ; (link_tab: *LT *** n$) value$ ->
+    LT Tag map.assoc >> case {
+    ; *W value$ ->
+      W ex.get >> value = *To_ex,
+      Tab To_ex map.assoc >> value >> redress_f = *To_redress_f,
+      (To_ex &To_redress_f) value$
+    ; ** -> none$
+    }
+  ; ** -> bad_arg$ "Unknown node." new_exception >> throw
+  }
+} ;;
+
+eval <*A graph> *Graph <A> *Node <cstr> *Tag <A> *To link @public -> <A graph> {
+  Graph Node Tag unlink = *Graph',
+  Graph' To contain? >> case {
+  ; true$ -> Graph'
+  ; ** -> Graph' To include
+  } = *Graph'',
+  Graph'' = undress_f: *Undress_f tab: *Tab *** graph$,
+  Node &Undress_f = (| *Ex, ** |),
+  Tab Ex map.assoc >> value = *N,
+  N = weak_ref: *W link_tab: *LT refs: *Refs *** n$,
+  To case {
+  ; Node ->
+    LT Tag W map.add = *LT',
+    Refs (| W, Tag |) set.add = *Refs',
+    Tab Ex (link_tab: LT' refs: Refs' :: N n$) map.add
+  ; ** ->
+    To &Undress_f = (| *To_ex, ** |),
+    Tab To_ex map.assoc >> value = *To_n,
+    To_n = weak_ref: *To_w refs: *To_refs *** n$,
+    To_refs (| W, Tag |) set.add = *To_refs',
+    Tab To_ex (refs: To_refs' :: To_n n$) map.add = *Tab2,
+    LT Tag To_w map.add = *LT',
+    Tab2 Ex (link_tab: LT' :: N n$) map.add
+  } = *Tab',
+  tab: Tab' :: Graph'' graph$
+} ;;
+
+eval <*A graph> *Graph <A> *Node <cstr> *Tag unlink @public -> <A graph> {
+  Graph Node ensure_in_graph,
+  Graph = undress_f: *Undress_f tab: *Tab *** graph$,
+  Node &Undress_f = (| *Ex, ** |),
+  Tab Ex Tag unlink_by_ex = *Tab',
+  tab: Tab' :: Graph graph$
+} ;;
+
+eval <*A tab> *Tab <ex.existence> *Ex <cstr> *Tag unlink_by_ex -> <A tab> {
+  Tab Ex map.assoc >> value = *N,
+  N = weak_ref: *W link_tab: *LT refs: *Refs *** n$,
+  LT Tag map.assoc >> case {
+  ; W value$ ->
+    LT Tag map.delete = *LT',
+    Refs (| W, Tag |) set.delete = *Refs',
+    Tab Ex (link_tab: LT' refs: Refs' :: N n$) map.add
+  ; *To value$ ->
+    LT Tag map.delete = *LT',
+    To ex.get >> value = *To_ex,
+    Tab To_ex map.assoc >> value = *To_n,
+    (To_n refs) (| W, Tag |) set.delete = *To_refs',
+    Tab Ex (link_tab: LT' ::N n$) map.add = *Tab2,
+    Tab2 To_ex (refs: To_refs' :: To_n n$) map.add
+  ; none$ -> Tab
+  }
+} ;;
+
+eval <*A graph> *Graph <A> *Node exclude @public -> <A graph> {
+  Graph Node contain? >> case {
+  ; true$ ->
+    Graph = undress_f: *Undress_f tab: *Tab *** graph$,
+    Node &Undress_f = (| *Ex, ** |),
+    Graph Node links = *Links,
+    Graph Links
+      \ <A graph> *G <cstr> *L -> <A graph> { G Node L unlink }
+      list.fold = *Graph',
+    (Graph' tab) Ex map.assoc >> value >> refs = *Refs,
+    Graph' (Refs set.iter >> list.new_list)
+      \ <A graph> *G <ex.weak_ref cstr tuple> *R -> <A graph> {
+        R = (| *WW, *LL |),
+        (G tab) (WW ex.get >> value) LL unlink_by_ex = *T',
+        tab: T' :: G graph$
+      }
+      list.fold = *Graph'',
+    (Graph'' tab) Ex map.delete = *Tab',
+    tab: Tab' :: Graph'' graph$
+  ; ** -> Graph
+  }
+} ;;
+
+eval <*A graph> *Graph graph_clear | clear @public -> <A graph> {
+  Graph = tab: *Tab *** graph$,
+  tab: (Tab map.clear) :: Graph graph$
+} ;;
+
+eval <*A graph> *Graph <A list> *Nodes nodes_reachable_nodes | reachable_nodes @public -> <A list> {
+  Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Nodes
-    \ <node_h> *N -> <entity_h> { N read_live_node >> tuple.pair_first }
-    list.map = *NDEs,
-  NDEs (ed.entity_ord_fs avlset.new_set)
-      &\ <entity_h list> *To_scan <entity_h set.set> *Collected -> <entity_h set.set> {
-    To_scan case {
-    ; [ *NDE ; *To_scan' ] ->
-      Collected NDE set.contain? >> case {
-      ; true$ -> To_scan' Collected &&
+    \ <A> *N -> <ex.existence> { N &Undress_f >> tuple.pair_first }
+    list.map = *Exs,
+  Tab Exs collect_reachable_exs = *Reachables,
+  (Reachables set.iter >> list.new_list)
+    \ <ex.existence> *Ex -> <A> {
+      Tab Ex map.assoc >> value >> redress_f = *Redress_f,
+      Ex &Redress_f
+    }
+    list.map
+} ;;
+
+eval <*A tab> *Tab <ex.existence list> *Exs collect_reachable_exs -> <ex.existence set.set> {
+  Exs hset.new_set
+      &\ <ex.existence list> *To_check <ex.existence set.set> *Collected
+      -> <ex.existence set.set> {
+    To_check case {
+    ; [ *E ; *EE ] ->
+      Collected E set.contain? >> case {
+      ; true$ -> EE Collected &&
       ; ** ->
-        NDE ed.read = (links: *Links *** node_d$) node_ent_d$,
-        To_scan'
-          (((Links map.iter) ^tuple.pair_second iter.add_modifier) >> list.new_list)
-          \ <entity_h list> *LL <weak_holder_h> *W -> <entity_h list> {
-            [ W ed.get >> value ; LL]
-          }
-          list.fold = *To_scan'',
-        To_scan'' (Collected NDE set.add) &&
+        Tab E map.assoc >> value >> link_tab = *LT,
+        (LT map.iter >> list.new_list)
+          \ <cstr ex.weak_ref tuple> *L -> <ex.existence> { L tuple.pair_second >> ex.get >> value }
+          list.map = *To_exs,
+        (To_exs EE list.cons_each) (Collected E set.add) &&
       }
-    ; [] -> Collected  # scan finished
+    ; ** -> Collected
     }
   }
-} ;;
-
-eval <graph_h> *Graph graph_clear | clear @public -> <void> {
-  Graph = de: *GDE *** graph_h$,
-  GDE ed.read = *Graph_d graph_ent_d$,
-  Graph_d nodes = *Nodes,
-  (Nodes set.iter >> list.new_list)
-    \ <entity_h> *E -> <void> {
-      E ed.read = *ND node_ent_d$,
-      E ((ND node_d_destroy) node_ent_d$) ed.write >> ignore
-    }
-    list.map,
-  nodes: (Nodes set.clear) :: Graph_d graph_d$ = *Graph_d',
-  GDE (Graph_d' graph_ent_d$) ed.write >> ignore
-} ;;
-
-eval <graph_h> *Graph <node_h list> *Nodes
-    graph_kill_unreachable_nodes | kill_unreachable_nodes @public -> <void> {
-  Nodes case {
-  ; [ ** ; ** ] -> Graph Nodes do_kill_unreachable_nodes
-  ; ** -> Graph clear
-  }
-} ;;
-
-eval <graph_h> *Graph <node_h list> *Nodes do_kill_unreachable_nodes -> <void> {
-  Nodes ensure_in_one_graph >> value = *G,
-  G case { Graph -> ; ** -> bad_arg$ "Out of graph." new_exception >> throw },
-  Graph Nodes collect_reachable_nodes = *RNDEs,
-  Graph = de: *GDE *** graph_h$,
-  GDE ed.read = *Graph_d graph_ent_d$,
-  Graph_d = nodes: *NDEs *** graph_d$,
-  NDEs RNDEs set.difference = *URNDEs,
-  (URNDEs set.iter >> list.new_list)
-    \ <entity_h> *E -> <void> { Graph E kill_node }
-    list.map >> ignore
-} ;;
-
-eval <node_h> *Node node_alive? | alive? @public -> <bool> {
-  Node dew >> ed.get >> case {
-  ; *NDE value$ ->
-    NDE ed.read = (alive: *A *** node_d$) node_ent_d$,
-    A
-  ; ** -> false$
-  }
-} ;;
-
-eval <node_h list> *Nodes ensure_in_one_graph -> <graph_h maybe> {
-  Nodes case {
-  ; [] -> none$
-  ; [ *N ] -> (N graph_h) value$
-  ; [ *N ; *Ns ] ->
-    N graph_h = *G,
-    Ns 
-      \ <node_h> *NN -> <void> {
-        NN graph_h >> case {
-        ; G ->
-        ; ** -> bad_arg$ "Multiple graphs." new_exception >> throw
-        }
-      }
-      list.map,
-    G value$
-  }
-} ;;
-
-eval <node_h> *Node node_kill | kill @public -> <void> {
-  Node = graph_h: *Graph dew: *NDEW *** node_h$,
-  NDEW ed.get >> case {
-  ; *NDE value$ -> Graph NDE kill_node
-  ; ** ->  # purged
-  }
-} ;;
-
-eval <graph_h> *Graph <entity_h> *NDE kill_node -> <void> {
-  Graph = de: *GDE *** graph_h$,
-  NDE ed.read = *Node_d node_ent_d$,
-  Node_d case {
-  ; alive: true$ wself: *NDEW *** node_d$ ->
-    NDE ((Node_d node_d_destroy) node_ent_d$) ed.write,
-    GDE ed.read = *Graph_d graph_ent_d$,
-    Graph_d = nodes: *Nodes *** graph_d$,
-    Nodes NDE set.delete = *Nodes',
-    (Nodes' set.iter) (Nodes' set.clear)
-        &\ <entity_h iter> *I <entity_h set.set> *NN -> <entity_h set.set> {
-      I next >> case {
-      ; (| *E, *I' |) value$ ->
-        E ed.read = *ND node_ent_d$,
-        E ((ND NDEW node_d_purge_dangling_links) node_ent_d$) ed.write,
-        I' (NN E set.add) &&
-      ; ** -> NN
-      }
-    } = *Nodes'',
-    nodes: Nodes'' :: Graph_d graph_d$ = *Graph_d',
-    GDE (Graph_d' graph_ent_d$) ed.write >> ignore
-  ; ** ->  # dead
-  }
-} ;;
-
-eval <node_h> *Node node_read | read @public -> <ent.ent_d+> {
-  Node read_live_node = (| *NDE, *Node_d |),
-  Node_d content
-} ;;
-
-eval <node_h> *Node <ent.ent_d+> *X node_write | write @public -> <void> {
-  Node read_live_node = (| *NDE, *Node_d |),
-  content: X :: Node_d node_d$ = *Node_d',
-  NDE (Node_d' node_ent_d$) ed.write >> ignore
-} ;;
-
-eval <node_h> *Node node_links | links @public -> <cstr list> {
-  Node read_live_node = (| *NDE, *Node_d |),
-  (Node_d links >> map.iter >> list.new_list) ^tuple.pair_first list.map
-} ;;
-
-eval <node_h> *Node1_h <cstr> *Tag <node_h> *Node2_h node_link | link @public -> <void> {
-  Node1_h read_live_node = (| *NDE1, *Node_d |),
-  Node2_h node_alive?
-    >> case { true$ -> ; ** -> bad_arg$ "Attempt to link dead node." new_exception >> throw },
-  links: ((Node_d links) Tag (Node2_h dew) map.add) :: Node_d node_d$ = *Node_d',
-  NDE1 (Node_d' node_ent_d$) ed.write >> ignore
-} ;;
-
-eval <node_h> *Node <cstr> *Tag node_unlink | unlink @public -> <void> {
-  Node read_live_node = (| *NDE, *Node_d |),
-  links: ((Node_d links) Tag map.delete) :: Node_d node_d$ = *Node_d',
-  NDE (Node_d' node_ent_d$) ed.write >> ignore 
-} ;;
-
-eval <node_h> *Node <cstr> *Tag node_traverse | traverse @public -> <node_h maybe> {
-  Node read_live_node = (| *NDE, *Node_d |),
-  (Node_d links) Tag map.assoc >> case {
-  ; *W value$ -> (graph_h: (Node graph_h) dew: W node_h$) value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <node_h> *Node read_live_node -> <entity_h node_d tuple> {
-  Node = graph_h: *Graph dew: *NDEW *** node_h$,
-  NDEW ed.get >> case {
-  ; *NDE value$ ->
-    NDE ed.read = *Node_d node_ent_d$,
-    Node_d case {
-    ; alive: true$ *** node_d$ -> (| NDE, Node_d |)
-    ; ** -> bad_arg$ "Not alive." new_exception >> throw
-    }
-  ; ** -> bad_arg$ "Not alive." new_exception >> throw
-  }
-} ;;
-
-eval <node_d> *Node_d node_d_destroy -> <node_d> {
-  alive: false$ links: smap.new_map :: Node_d node_d$
-} ;;
-
-eval <node_d> *Node_d <weak_holder_h> *To node_d_purge_dangling_links -> <node_d> {
-  Node_d links = *Links,
-  (Links map.iter) Links &\ <<cstr weak_holder_h tuple> iter> *I <cstr weak_holder_h map.map> *Ls
-      -> <cstr weak_holder_h map.map> {
-    I next >> case {
-    ; (| (| *T, To |), *I' |) value$ -> I' (Ls T map.delete) &&
-    ; (| **, *I' |) value$ -> I' Ls &&
-    ; ** -> Ls
-    }
-  } = *Links',
-  links: Links' :: Node_d node_d$
 } ;;
