@@ -28,7 +28,7 @@ public class Version {
   static final int MINOR = 5;
   static final int MICRO = 0;
   static final String LEVEL = null;
-  static final int BUILD = 1;
+  static final int BUILD = 2;
 
   static final Version instance = new Version(MAJOR, MINOR, MICRO, LEVEL, BUILD);
 
