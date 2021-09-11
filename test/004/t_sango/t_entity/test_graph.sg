@@ -1,5 +1,6 @@
 import "sango.debug" -> debug ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
 import "sango.entity.graph" -> gr ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.list" -> list ;;
@@ -11,49 +12,47 @@ eval _main_ -> <void> {
   test
 } ;;
 
-extend <ent.ent_d> := <cstr> my_ent_d$ ;;
-
 eval test -> <void> {
   test000,
   void$
 } ;;
 
 eval test000 -> <void> {
-  gr.create_graph = *G,
-  G gr.nodes = [],
-  G ("N0" my_ent_d$) none$ gr.create_node = *N0,
-  G gr.nodes = [ N0 ],
-  G ("N1" my_ent_d$) none$ gr.create_node = *N1,
-  G ("N2" my_ent_d$) none$ gr.create_node = *N2,
-  G ("N3" my_ent_d$) none$ gr.create_node = *N3,
-  G ("NN" my_ent_d$) none$ gr.create_node = *NN,
-  G gr.nodes >> list.length = 5,
-  N0 gr.alive? = true$,
-  N0 "first-child" N1 gr.link,
-  N0 "last-child" N3 gr.link,
-  N1 "next-sibling" N2 gr.link,
-  N2 "next-sibling" N3 gr.link,
-  N2 "prev-sibling" N1 gr.link,
-  N2 "self" N2 gr.link,  # cyclic
-  N3 "prev-sibling" N2 gr.link,
-  N3 "parent" N0 gr.link,
-  NN "foo" N0 gr.link,
-  N3 gr.links >> case { [ "prev-sibling", "parent" ] -> ; [ "parent", "prev-sibling" ] -> },
-  N0 "first-child" gr.traverse = N1 value$,
-  N1 "parent" gr.traverse = none$,
-  [ N1 ] gr.reachable_nodes >> list.length = 4,  # N0, N1, N2, N3
-  [ N1, N3 ] gr.reachable_nodes >> list.length = 4,  # N0, N1, N2, N3
-  [ NN ] gr.reachable_nodes >> list.length = 5,  # N0, N1, N2, N3, NN
-  N2 gr.kill,
-  N2 gr.alive? = false$,
-  G gr.nodes >> list.length = 4,
-  N1 "next-sibling" gr.traverse = none$,
-  N1 gr.links = [],
-  G [ N3 ] gr.kill_unreachable_nodes,
-  G gr.nodes >> list.length = 3,  # N0, N1, N3
-  NN gr.alive? = false$,
-  G gr.clear,
-  G gr.nodes = [],
-  N0 gr.alive? = false$,
+  "N0" none$ box.create_box = *N0,
+  "N1" none$ box.create_box = *N1,
+  "N2" none$ box.create_box = *N2,
+  "N3" none$ box.create_box = *N3,
+  "NN" none$ box.create_box = *NN,
+  (&\\ <<cstr box.box_h> ex.dress_fs> { box.dress_fs }) gr.create_graph = *G0,
+  G0 gr.nodes = [],
+  G0 N0 gr.contain? = false$,
+  G0 N0 gr.include = *G1,  # N0
+  G1 gr.nodes = [ N0 ],
+  G1 N0 gr.contain? = true$,
+  G1 N1 gr.include = *G2,  # N0, N1
+  G2 gr.nodes >> list.length = 2,
+  G2 N0 "first-child" N1 gr.link = *G3,  # N0, N1
+  G3 N0 "last-child" N3 gr.link = *G4,  # N0, N1, N3
+  G4 N1 "next-sibling" N2 gr.link = *G5,  # N0, N1, N2, N3
+  G5 N2 "next-sibling" N3 gr.link = *G6,  # N0, N1, N2, N3
+  G6 gr.nodes >> list.length = 4,
+  G6 N2 "prev-sibling" N1 gr.link = *G7,
+  G7 N2 "self" N2 gr.link = *G8,  # cyclic
+  G8 N3 "prev-sibling" N2 gr.link = *G9,
+  G9 N3 "parent" N0 gr.link = *G10,
+  G10 NN gr.include = *G11,  # N0, N1, N2, N3, NN
+  G11 NN "foo" N0 gr.link = *G12,
+  G12 N3 gr.links >> case { [ "prev-sibling", "parent" ] -> ; [ "parent", "prev-sibling" ] -> },
+  G12 N0 "first-child" gr.traverse = N1 value$,
+  G12 N1 "parent" gr.traverse = none$,
+  G12 [ N1 ] gr.reachable_nodes >> list.length = 4,  # N0, N1, N2, N3
+  G12 [ N1, N3 ] gr.reachable_nodes >> list.length = 4,  # N0, N1, N2, N3
+  G12 [ NN ] gr.reachable_nodes >> list.length = 5,  # N0, N1, N2, N3, NN
+  G12 N2 gr.exclude = *G13,  # N0, N1, N3, NN
+  G13 gr.nodes >> list.length = 4,
+  G13 N1 "next-sibling" gr.traverse = none$,
+  G13 N1 gr.links = [],
+  G13 gr.clear = *G20,
+  G20 gr.nodes = [],
   void$
 } ;;

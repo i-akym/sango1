@@ -21,36 +21,48 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.entity.existence" ;;
+module @alpha "sango.util.packaging" ;;
 
-data <existence> @opaque := @native ;;
-data <weak_ref> @opaque := @native ;;
+import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
+import "sango.util.map.weakkeymap" -> wkm ;;
 
-eval <*A> *X <<void fun> maybe> *Invalidator_ create_existence @public -> <existence> @native ;;
+data <*A package_mgr_h> @opaque :=
+  tab: <ex.existence <A v> wkm.map_h>
+  package_mgr_h$ ;;
 
-eval <existence> *Ex <<weak_ref void fun> maybe> *Listener_ create_weak_ref @public -> <weak_ref> @native ;;
+alias type <*A v> := <<A box.box_h> ex.redress_f> ;;
 
-eval <weak_ref> *WR get @public -> <existence maybe> @native ;;
-eval <weak_ref> *WR clear @public -> <void> @native ;;
+data <tag> @opaque :=
+  ex: <ex.existence>
+  tag$ ;;
 
-
-# -- undress/redress ;  This is mainly for weak collections, so use carefully. --
-
-# framework
-
-alias type <*A undress_f> @public := <A <existence <A redress_f> tuple> fun> ;;
-alias type <*A redress_f> @public := <existence A fun> ;;
-
-data <*A dress_fs> @public :=
-  undress_f: <A undress_f>
-  dress_fs$ ;;
-
-# implementation
-
-eval dress_fs @public -> <existence dress_fs> {
-  undress_f: ^undress dress_fs$
+eval tag_dress_fs @public -> <tag ex.dress_fs> {
+  undress_f: ^tag_undress ex.dress_fs$
 } ;;
 
-eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
-  (| Ex, ^itself |)
+eval <tag> *Tag tag_undress -> <ex.existence <tag ex.redress_f> tuple> {
+  (| Tag ex, \ <ex.existence> *E -> <tag> { E tag$ } |)
+} ;;
+
+eval <*A! A fun> *Content create_package_mgr @public -> <A package_mgr_h> {
+  (&\\ <ex.existence ex.dress_fs> { ex.dress_fs })
+    (&\\ <<A v> <A v> fun> { ^itself })
+    wkm.create_weak_key_map = *Tab,
+  Tab package_mgr_h$
+} ;;
+
+eval <*A! package_mgr_h> *Mgr <A> *X pack @public -> <tag> {
+  X none$ box.create_box = *Pkg,
+  Pkg &(box.dress_fs >> ex.undress_f) = (| *Ex, *Redress_f |),
+  (Mgr tab) Ex Redress_f wkm.add,
+  Ex tag$
+} ;;
+
+eval <*A package_mgr_h> *Mgr <tag> *Tag get @public -> <A maybe> {
+  Tag ex = *Ex,
+  (Mgr tab) Ex wkm.assoc >> case {
+  ; *Redress_f value$ -> (Ex &Redress_f >> box.read) value$
+  ; ** -> none$
+  }
 } ;;
