@@ -326,8 +326,8 @@ public class RNativeImplHelper {
 
     // existence
 
-    public RMemMgr.ExistenceItem createExistence(RObjItem item, RClosureItem invalidator) {
-      return RNativeImplHelper.this.theEngine.memMgr.createExistence(item, invalidator);
+    public RMemMgr.ExistenceItem createExistence(RClosureItem invalidator) {
+      return RNativeImplHelper.this.theEngine.memMgr.createExistence(invalidator);
     }
 
     public RMemMgr.WeakRefItem createWeakRef(RMemMgr.ExistenceItem existence, RClosureItem listener) {

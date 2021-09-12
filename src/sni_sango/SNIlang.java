@@ -320,6 +320,12 @@
     return helper.createException(ed, msg, org);
   }
 
+  public static RObjItem createBadStatusException(RNativeImplHelper helper, Cstr msg, RObjItem org) {
+    RDataConstr edc = helper.getDataConstr(Module.MOD_LANG, "bad_status$");
+    RObjItem ed = helper.getStructItem(edc, new RObjItem[0]);
+    return helper.createException(ed, msg, org);
+  }
+
   public static RObjItem createUnsupportedException(RNativeImplHelper helper, Cstr msg, RObjItem org) {
     RDataConstr edc = helper.getDataConstr(Module.MOD_LANG, "unsupported$");
     RObjItem ed = helper.getStructItem(edc, new RObjItem[0]);
