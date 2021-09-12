@@ -228,8 +228,8 @@ public class RMemMgr {
     return r;
   }
 
-  ExistenceItem createExistence(RObjItem item, RClosureItem invalidator) {
-    ExistenceItem e = new ExistenceItem(this.theEngine, item);
+  ExistenceItem createExistence(RClosureItem invalidator) {
+    ExistenceItem e = new ExistenceItem(this.theEngine);
     if (invalidator != null) {
       this.entityInvalidationInfoList.add(new ExistenceInvalidationInfo(e, invalidator));
     }
@@ -323,12 +323,13 @@ public class RMemMgr {
     RObjItem d = this.getStructItem(
       this.getDataConstr(new Cstr("sango.actor"), "mbox_p_ent_d$"),
       new RObjItem[] { bp });
-    // create existence
-    ExistenceItem bpx = this.createExistence(d, null);
+    // create existence and set assoc
+    ExistenceItem bpx = this.createExistence(null);
+    SlotItem s = bpx.openSlot(d);
     // create eref (= ent_d+ box)
     RStructItem bpe = this.getStructItem(
       this.getDataConstr(new Cstr("sango.entity.box"), "box_h$"),
-      new RObjItem[] { bpx });
+      new RObjItem[] { bpx, s });
     return bpe;
   }
 
@@ -369,11 +370,10 @@ public class RMemMgr {
   }
 
   public class ExistenceItem extends RObjItem {
-    RObjItem associatedData;
+    SlotItem slot;
 
-    ExistenceItem(RuntimeEngine e, RObjItem associatedData) {
+    ExistenceItem(RuntimeEngine e) {
       super(e);
-      this.associatedData = associatedData;
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
@@ -392,18 +392,73 @@ public class RMemMgr {
       return new Cstr(this.toString());
     }
 
-    public RObjItem read() {
+    public SlotItem openSlot(RObjItem item) {
       synchronized (this) {
-        return this.associatedData;
+        if (this.slot != null) {
+          throw new IllegalStateException("Already open.");
+        }
+        this.slot = new SlotItem(this.theEngine, item);
+      }
+      return this.slot;
+    }
+
+    public RObjItem peekAssoc(SlotItem slot) {
+      synchronized (this) {
+        if (slot == null) {
+          throw new IllegalStateException("Not open.");
+        }
+        if (slot != this.slot) {
+          throw new IllegalArgumentException("Invalid slot.");
+        }
+        return this.slot.assoc;
       }
     }
 
-    public RObjItem write(RObjItem item) {
+    public RObjItem swapAssoc(SlotItem slot, RObjItem item) {
       synchronized (this) {
-        RObjItem old = this.associatedData;
-        this.associatedData = item;
+        if (slot == null) {
+          throw new IllegalStateException("Not open.");
+        }
+        if (slot != this.slot) {
+          throw new IllegalArgumentException("Invalid slot.");
+        }
+        RObjItem old = this.slot.assoc;
+        this.slot.assoc = item;
         return old;
       }
+    }
+
+    public RObjItem read() {  // shortcut for native routines
+      return this.peekAssoc(this.slot);
+    }
+
+    public RObjItem write(RObjItem x) {  // shortcut for native routines
+      return this.swapAssoc(this.slot, x);
+    }
+  }
+
+  public class SlotItem extends RObjItem {
+    RObjItem assoc;
+
+    SlotItem(RuntimeEngine e, RObjItem item) {
+      super(e);
+      this.assoc = item;
+    }
+
+    public boolean objEquals(RFrame frame, RObjItem item) {
+      return item == this;
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.entity.existence"), "slot", 1);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
+    public Cstr dumpInside() {
+      return new Cstr(this.toString());
     }
   }
 

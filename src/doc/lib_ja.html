@@ -1660,11 +1660,29 @@ eval &lt;*A weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Inval
 <table border width="100%"><tr><td class="def"><code>data &lt;existence&gt; @opaque ;;</code></td></tr></table>
 <p>「存在」を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+<table border width="100%"><tr><td class="def"><code>data &lt;*A slot&gt; @opaque ;;</code></td></tr></table>
+<p>存在に結び付けられるデータ（関連データ）の格納場所を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
   create_existence @public -&gt; &lt;existence&gt; ;;</code></td></tr></table>
 <p>存在を生成します。
-  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。
-  <code>X</code>によらず，生成された存在は，お互いが異なります。</p>
+  生成された存在は，お互いに異なります。
+  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A!&gt; *X open_slot @public -&gt; &lt;A slot&gt; ;;</code></td></tr></table>
+<p>関連データの格納場所を使用可能にして<code>X</code>を格納し，格納場所を返します。
+  この関数は存在に対して高々1回呼び出すことができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A slot&gt; *Slot peek_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>関連データを取得します。
+  この関数は原子的に実行されます。
+  <code>Ex</code>と<code>Slot</code>の整合性がとれていなければなりません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A slot&gt; *Slot &lt;A&gt; *X swap_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>関連データを置換します。
+  以前に格納されていたデータが返されます。
+  この関数は原子的に実行されます。
+  <code>Ex</code>と<code>Slot</code>の整合性がとれていなければなりません。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.existence.2"></code>sango.entity.existence</code> - 弱参照</h2>

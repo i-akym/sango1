@@ -24,9 +24,16 @@
 module @beta "sango.entity.existence" ;;
 
 data <existence> @opaque := @native ;;
-data <weak_ref> @opaque := @native ;;
 
-eval <*A> *X <<void fun> maybe> *Invalidator_ create_existence @public -> <existence> @native ;;
+eval <<void fun> maybe> *Invalidator_ create_existence @public -> <existence> @native ;;
+
+data <*A slot> @opaque := @native ;;
+
+eval <existence> *Ex <*A!> *X open_slot @public -> <A slot> @native ;;
+eval <existence> *Ex <*A slot> *Slot peek_assoc @public -> <A> @native ;;
+eval <existence> *Ex <*A slot> *Slot <A> *X swap_assoc @public -> <A> @native ;;
+
+data <weak_ref> @opaque := @native ;;
 
 eval <existence> *Ex <<weak_ref void fun> maybe> *Listener_ create_weak_ref @public -> <weak_ref> @native ;;
 

@@ -25,40 +25,51 @@ module "sango.entity.box" ;;
 
 import "sango.entity.existence" -> ex ;;
 
-data <*A box_h> @opaque := <ex.existence> box_h$ ;;  # body has no type, so casting is needed at creation
-data <*A wbox_h> @opaque := <ex.weak_ref> wbox_h$ ;;  # body has no type, so casting is needed at creation
+data <*A box_h> @opaque := <ex.existence> <A ex.slot> box_h$ ;;
+
+data <*A wbox_h> @opaque := <ex.weak_ref> <A ex.slot> wbox_h$ ;;
 
 eval <*A!> *X <<void fun> maybe> *Invalidator_ create_box @public -> <A box_h> {
-  (X Invalidator_ ex.create_existence) box_h$  # to be casted as return value
+  Invalidator_ ex.create_existence = *Ex,
+  Ex X ex.open_slot = *Slot,
+  Ex Slot box_h$
 } ;;
 
 eval <*A box_h> *Box existence @public -> <ex.existence> {
-  Box = *Ex box_h$,
+  Box = *Ex *Slot box_h$,
   Ex
 } ;;
 
-eval <*A box_h> *Box read @public -> <A> @native ;;
-eval <*A box_h> *Box <A> *X write | swap @public -> <A> @native ;;
+eval <*A box_h> *Box read @public -> <A> {
+  Box = *Ex *Slot box_h$,
+  Ex Slot ex.peek_assoc
+} ;;
+
+eval <*A box_h> *Box <A> *X write | swap @public -> <A> {
+  Box = *Ex *Slot box_h$,
+  Ex Slot X ex.swap_assoc
+} ;;
 
 eval <*A box_h> *Box <<<A wbox_h> void fun> maybe> *Listener_ create_weak_holder @public -> <A wbox_h> {
+  Box = *Ex *Slot box_h$,
   Listener_ case {
   ; *Listener value$ ->
-    \ <ex.weak_ref> *WR -> <void> { (WR wbox_h$) &Listener } value$  # to be casted at applying
+    \ <ex.weak_ref> *WR -> <void> { (WR Slot wbox_h$) &Listener } value$
   ; ** -> none$
   } = *L_,
-  ((Box existence) L_ ex.create_weak_ref) wbox_h$  # to be casted as return value
+  (Ex L_ ex.create_weak_ref) Slot wbox_h$
 } ;;
 
 eval <*A wbox_h> *W get @public -> <<A box_h> maybe> {
-  W = *WR wbox_h$,
+  W = *WR *Slot wbox_h$,
   WR ex.get >> case {
-  ; *Ex value$ -> (Ex box_h$) value$
+  ; *Ex value$ -> (Ex Slot box_h$) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*A wbox_h> *W clear @public -> <void> {
-  W = *WR wbox_h$,
+  W = *WR *Slot wbox_h$,
   WR ex.clear
 } ;;
 
@@ -71,5 +82,6 @@ eval dress_fs @public -> <<*A box_h> ex.dress_fs> {
 } ;;
 
 eval <*A box_h> *Box undress -> <ex.existence <<A box_h> ex.redress_f> tuple> {
-  (| Box existence, \ <ex.existence> *E -> <A box_h> { E box_h$ } |)
+  Box = *Ex *Slot box_h$,
+  (| Ex, \ <ex.existence> *E -> <A box_h> { E Slot box_h$ } |)
 } ;;
