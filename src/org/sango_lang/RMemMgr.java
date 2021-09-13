@@ -319,44 +319,45 @@ public class RMemMgr {
     RMbox b = RMbox.create(this.theEngine, owner);
     // wrap to RMBoxPItem(RObjItem)
     RMboxPItem bp = RMboxPItem.create(this.theEngine, b);
-    // wrap to entity data
-    RObjItem d = this.getStructItem(
-      this.getDataConstr(new Cstr("sango.actor"), "mbox_p_ent_d$"),
-      new RObjItem[] { bp });
-    // create existence and set assoc
-    ExistenceItem bpx = this.createExistence(null);
-    SlotItem s = bpx.openSlot(d);
-    // create eref (= ent_d+ box)
+    // create box
+    ExistenceItem bpx = this.createExistence(null);  // no invalidator
+    SlotItem s = bpx.openSlot(bp);  // set boxp
     RStructItem bpe = this.getStructItem(
-      this.getDataConstr(new Cstr("sango.entity.box"), "box_h$"),
+      RDataConstr.create(new Cstr("sango.entity.box"), "box_h$", 2, "box_h", 1),
       new RObjItem[] { bpx, s });
     return bpe;
   }
 
-  RMbox getMboxBodyFromEref(RObjItem mboxE) {
-    return this.getMboxBodyFromEntd(this.readEref((RStructItem)mboxE));
+  RMbox getMboxBodyFromEntity(RObjItem mboxE) {  // <mboxp box_h>
+    RMboxPItem mboxp = (RMboxPItem)this.readBox((RStructItem)mboxE);
+    return mboxp.mbox;
   }
 
-  RMbox getMboxBodyFromEntd(RObjItem mboxp) {
-    RMboxPItem p = (RMboxPItem)((RStructItem)mboxp).getFieldAt(0);  // mbox_p mbox_p_ent_d$ -> mbox_p
-    return p.mbox;
+  RMbox tryGetMboxBodyFromSenderEntity(RObjItem senderE) {  // <<mboxp wbox_h> box_h>
+    RStructItem mboxpEW = (RStructItem)this.readBox((RStructItem)senderE);  // <mboxp wbox_h>
+    RStructItem mboxpE = (RStructItem)this.getBoxFromWeakBox(mboxpEW);  // <mboxp box_h> or null
+    return (mboxpE != null)?  this.getMboxBodyFromEntity(mboxpE): null;
   }
 
-  RMbox tryGetMboxBodyFromSenderEntity(RObjItem senderE) {  // <eref> = <ent_d+ box_h>
-    RStructItem mboxpEWd = (RStructItem)this.readEref((RStructItem)senderE);  // <wref> ent_d
-    RStructItem mboxpEW = (RStructItem)mboxpEWd.getFieldAt(0);  // <wref>
-    ExistenceItem mboxpEx = this.getWref(mboxpEW);
-    return (mboxpEx != null)?  this.getMboxBodyFromEntd(mboxpEx.read()): null;
+  RObjItem readBox(RStructItem box) {
+    ExistenceItem e = (ExistenceItem)box.getFieldAt(0);
+    SlotItem s = (SlotItem)box.getFieldAt(1);
+    return e.peekAssoc(s);
   }
 
-  RObjItem readEref(RStructItem eref) {  // <eref> = <ent_d+ box_h> ==> <existence> box_h$
-    ExistenceItem x = (ExistenceItem)eref.getFieldAt(0);
-    return x.read();
-  }
-
-  ExistenceItem getWref(RStructItem wref) {  // <wref> = <ent_d+ wbox_h> ==> <weak_ref> wbox_h$
-    WeakRefItem w = (WeakRefItem)wref.getFieldAt(0);
-    return w.get();
+  RStructItem getBoxFromWeakBox(RStructItem wbox) {  // wbox -> box
+    WeakRefItem w = (WeakRefItem)wbox.getFieldAt(0);
+    SlotItem s = (SlotItem)wbox.getFieldAt(1);
+    ExistenceItem e = w.get();
+    RStructItem box;
+    if (e != null) {
+      box = this.getStructItem(
+        RDataConstr.create(new Cstr("sango.entity.box"), "box_h$", 2, "box_h", 1),
+        new RObjItem[] { e, s });
+    } else {
+      box = null;
+    }
+    return box;
   }
 
   public void notifySysMsg(RObjItem be) {
@@ -426,14 +427,6 @@ public class RMemMgr {
         this.slot.assoc = item;
         return old;
       }
-    }
-
-    public RObjItem read() {  // shortcut for native routines
-      return this.peekAssoc(this.slot);
-    }
-
-    public RObjItem write(RObjItem x) {  // shortcut for native routines
-      return this.swapAssoc(this.slot, x);
     }
   }
 

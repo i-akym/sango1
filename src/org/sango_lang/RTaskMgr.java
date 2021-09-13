@@ -451,7 +451,7 @@ class RTaskMgr {
     List<RLock.Client> lockClients = new ArrayList<RLock.Client>();
     for (int i = 0; i < bes.size(); i++) {
       RObjItem be = bes.get(i);
-      RMbox b = this.theEngine.memMgr.getMboxBodyFromEref(be);
+      RMbox b = this.theEngine.memMgr.getMboxBodyFromEntity(be);
       RLock.Client blc = b.lock.createClient();
       blc.require(RLock.EXCLUSIVE);  // LOCK
       lockClients.add(blc);
@@ -467,7 +467,7 @@ class RTaskMgr {
         this.removeFromRunningList(lc, t);
         this.addToBlockedList(lc, t);
         for (int i = 0; i < bes.size(); i++) {
-          RMbox b = this.theEngine.memMgr.getMboxBodyFromEref(bes.get(i));
+          RMbox b = this.theEngine.memMgr.getMboxBodyFromEntity(bes.get(i));
           b.addBlockedTask(t);
           t.addBlocker(b);
         }
@@ -763,7 +763,7 @@ class RTaskMgr {
     while ((pew = this.theEngine.memMgr.pollSysMsgReceiver()) != null) {
       RObjItem pe = pew.get();
       if (pe != null) {
-        this.theEngine.memMgr.getMboxBodyFromEref(pe).putMsg(oMsg);
+        this.theEngine.memMgr.getMboxBodyFromEntity(pe).putMsg(oMsg);
       }
     }
   }
