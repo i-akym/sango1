@@ -488,28 +488,6 @@ public class RMemMgr {
     }
   }
 
-  public class Entity {
-    RObjItem item;
-
-    Entity(RObjItem item) {
-      this.item = item;
-    }
-
-    public RObjItem read() {
-      synchronized (this) {
-        return this.item;
-      }
-    }
-
-    public RObjItem write(RObjItem newItem) {
-      synchronized (this) {
-        RObjItem oldItem = this.item;
-        this.item = newItem;
-        return oldItem;
-      }
-    }
-  }
-
   private class ExistenceInvalidationInfo {
     WeakReference<ExistenceItem> weakRef;
     RClosureItem invalidator;
