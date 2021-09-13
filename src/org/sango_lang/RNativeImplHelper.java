@@ -439,7 +439,7 @@ public class RNativeImplHelper {
     }
 
     RMbox getMboxBody(RObjItem mboxE) {
-      return RNativeImplHelper.this.theEngine.memMgr.getMboxBodyFromEref(mboxE);
+      return RNativeImplHelper.this.theEngine.memMgr.getMboxBodyFromEntity(mboxE);
     }
 
     // runtime features
