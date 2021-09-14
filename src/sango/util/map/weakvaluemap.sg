@@ -225,7 +225,7 @@ eval <*A *B map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
 eval <*A *B container> *D d_lives -> <<<A ex.existence <B v> tuple> list> <A B container> tuple> {
   D [] (D map.clear) &\
       <A B container> *DD  # current
-      <<A ex.existence <B v> tuple> list> *Ls  # result
+      <<A ex.existence <B v> tuple> list> *Ls  # result in reverse order
       <A B container> *DD2  # new
       -> <<<A ex.existence <B v> tuple> list> <A B container> tuple> {
     DD map.take >> case {
@@ -234,7 +234,7 @@ eval <*A *B container> *D d_lives -> <<<A ex.existence <B v> tuple> list> <A B c
       ; *E value$ -> DD' [ (| K, E, V |) ; Ls ] (DD2 K V map.add) &&
       ; none$ -> DD' Ls DD2 &&
       }
-    ; none$ -> (| Ls, DD2 |)
+    ; none$ -> (| Ls list.reverse, DD2 |)
     }
   }
 } ;;
