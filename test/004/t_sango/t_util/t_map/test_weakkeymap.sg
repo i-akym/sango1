@@ -21,7 +21,7 @@ eval test -> <void> {
 } ;;
 
 eval make -> <<int box.box_h> cstr wkm.map_h> {
-  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) (&\\ <cstr cstr fun> { ^itself }) wkm.create_weak_key_map = *M,
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ("" dummy_obj$) wkm.create_weak_key_map = *M,
   1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K1, M K1 "a" wkm.add,
   2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K2, M K2 "b" wkm.add,
   3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K3, M K3 "c" wkm.add,
@@ -31,7 +31,7 @@ eval make -> <<int box.box_h> cstr wkm.map_h> {
 } ;;
 
 eval test000 -> <void> {
-  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) (&\\ <cstr cstr fun> { ^itself }) wkm.create_weak_key_map = *M,
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ("" dummy_obj$) wkm.create_weak_key_map = *M,
   1 none$ box.create_box = *K1,
   2 none$ box.create_box = *K2,
   3 none$ box.create_box = *K3,
