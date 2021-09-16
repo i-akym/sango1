@@ -33,7 +33,7 @@ data <*A set_h> @opaque :=
   set_h$ ;;
 
 eval <*A! ex.dress_fs> *Dress_fs create_weak_set @public -> <A set_h> {
-  Dress_fs (\ <void> *X -> <void> { X }) wkmap.create_weak_key_map = *M,
+  Dress_fs (void$ dummy_obj$) wkmap.create_weak_key_map = *M,
   map: M set_h$
 } ;;
 

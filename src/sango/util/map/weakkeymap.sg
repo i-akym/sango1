@@ -50,7 +50,7 @@ data <*A *B map_h> @opaque :=
   undress_f: <A ex.undress_f>
   map_h$ ;;
 
-eval <*A! ex.dress_fs> *Dress_fs <*B! B fun> *Assoc create_weak_key_map @public -> <A B map_h> {
+eval <*A! ex.dress_fs> *Dress_fs <*B! dummy> *Assoc create_weak_key_map @public -> <A B map_h> {
   ktab: (&\\ <A B ktab> { int_ord_fs avlmap.new_map })
     wtab: (&\\ <wtab> { hashmap.new_map })
     d$ = *D,

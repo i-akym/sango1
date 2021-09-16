@@ -45,9 +45,9 @@ eval <tag> *Tag tag_undress -> <ex.existence <tag ex.redress_f> tuple> {
   (| Tag ex, \ <ex.existence> *E -> <tag> { E tag$ } |)
 } ;;
 
-eval <*A! A fun> *Content create_package_mgr @public -> <A package_mgr_h> {
+eval <*A! dummy> *Content create_package_mgr @public -> <A package_mgr_h> {
   (&\\ <ex.existence ex.dress_fs> { ex.dress_fs })
-    (&\\ <<A v> <A v> fun> { ^itself })
+    (&\\ <<A v> dummy> { ^ignore dummy_fun$ })
     wkm.create_weak_key_map = *Tab,
   Tab package_mgr_h$
 } ;;
