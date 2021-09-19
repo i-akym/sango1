@@ -1669,25 +1669,37 @@ eval &lt;*A weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Inval
 <table border width="100%"><tr><td class="def"><code>data &lt;existence&gt; @opaque ;;</code></td></tr></table>
 <p>「存在」を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A slot&gt; @opaque ;;</code></td></tr></table>
-<p>存在に結び付けられるデータ（関連データ）の格納場所を表します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A ro_slot&gt; @opaque ;;</code></td></tr></table>
+<p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
+  この格納場所からは読み出しのみが可能です。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_existence @public -&gt; &lt;existence&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A rw_slot&gt; @opaque ;;</code></td></tr></table>
+<p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
+  この格納場所は同一の型のオブジェクトで更新可能です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A maybe&gt; *Assoc_ &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ 
+  create_immutable_existence @public -&gt; &lt;existence &lt;&lt;A ro_slot&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>存在を生成します。
   生成された存在は，お互いに異なります。
+  生成にあたり，関連データを指定することができます。
+  このデータは，返される<code>ro_slot</code>を使用して読み出しが可能です。
   存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A!&gt; *X open_slot @public -&gt; &lt;A slot&gt; ;;</code></td></tr></table>
-<p>関連データの格納場所を使用可能にして<code>X</code>を格納し，格納場所を返します。
-  この関数は存在に対して高々1回呼び出すことができます。</p>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A!&gt; *Assoc &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_mutable_existence @public -&gt; &lt;existence &lt;A rw_slot&gt; tuple&gt; ;;</code></td></tr></table>
+<p>関連データを指定して，存在を生成します。
+  生成された存在は，お互いに異なります。
+  関連データは，返される<code>rw_slot</code>を使用して参照・更新が可能です。
+  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A slot&gt; *Slot peek_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A ro_slot&gt; *Slot imut_peek_assoc | peek_assoc @public -&gt; &lt;A&gt; ;;
+eval &lt;existence&gt; *Ex &lt;*A rw_slot&gt; *Slot mut_peek_assoc | peek_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>関連データを取得します。
   この関数は原子的に実行されます。
   <code>Ex</code>と<code>Slot</code>の整合性がとれていなければなりません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A slot&gt; *Slot &lt;A&gt; *X swap_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A rw_slot&gt; *Slot &lt;A&gt; *New_assoc
+  mut_replace_assoc | replace_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>関連データを置換します。
   以前に格納されていたデータが返されます。
   この関数は原子的に実行されます。
