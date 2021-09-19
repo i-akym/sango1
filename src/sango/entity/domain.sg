@@ -144,7 +144,7 @@ eval <domain_h> *Domain <*A entity_h> *Entity <<<A weak_holder_h> void fun> mayb
     create_weak_holder @public -> <A weak_holder_h> {
   Domain svr = *Svr,
   Svr _get_new_wun = *N,
-  (\\ <void> { Svr (N wun_released$) act.send } value$) ex.create_existence = *Ex,
+  none$ (\\ <void> { Svr (N wun_released$) act.send } value$) ex.create_immutable_existence = (| *Ex, ** |),
   Listener_ case {
   ; *L value$ ->
     \ <<A e> box.wbox_h> *W -> <void> {

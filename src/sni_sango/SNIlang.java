@@ -392,6 +392,18 @@
     return r;
   }
 
+  public static RStructItem wrapMaybeItem(RNativeImplHelper helper, RObjItem o) {
+    RStructItem m;
+    if (o != null) {
+      RDataConstr dcValue = helper.getDataConstr(Module.MOD_LANG, "value$");
+      m = helper.getStructItem(dcValue, new RObjItem[] { o });
+    } else {
+      RDataConstr dcNone = helper.getDataConstr(Module.MOD_LANG, "none$");
+      m = helper.getStructItem(dcNone, new RObjItem[0]);
+    }
+    return m;
+  }
+
   public static RObjItem unwrapMaybeItem(RNativeImplHelper helper, RObjItem o) {
     RStructItem s = (RStructItem)o;
     RDataConstr sd = s.getDataConstr();

@@ -46,7 +46,8 @@ eval <tag> *Tag tag_undress -> <ex.existence <tag ex.redress_f> tuple> {
 } ;;
 
 eval <*A> *X pack @public -> <A package> {
-  key: (none$ ex.create_existence) val: X package$
+  none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
+  key: Ex val: X package$
 } ;;
 
 eval <*A package> *Pkg content @public -> <A> {
@@ -54,7 +55,8 @@ eval <*A package> *Pkg content @public -> <A> {
 } ;;
 
 eval <*A package> *Pkg create_tag @public -> <tag> {
-  ex: (none$ ex.create_existence) key: (Pkg key) tag$
+  none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
+  ex: Ex key: (Pkg key) tag$
 } ;;
 
 eval <tag> *Tag <*A package> *Pkg tag_on? @public -> <bool> {
