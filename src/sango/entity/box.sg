@@ -25,13 +25,12 @@ module "sango.entity.box" ;;
 
 import "sango.entity.existence" -> ex ;;
 
-data <*A box_h> @opaque := <ex.existence> <A ex.slot> box_h$ ;;
+data <*A box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$ ;;
 
-data <*A wbox_h> @opaque := <ex.weak_ref> <A ex.slot> wbox_h$ ;;
+data <*A wbox_h> @opaque := <ex.weak_ref> <A ex.rw_slot> wbox_h$ ;;
 
 eval <*A!> *X <<void fun> maybe> *Invalidator_ create_box @public -> <A box_h> {
-  Invalidator_ ex.create_existence = *Ex,
-  Ex X ex.open_slot = *Slot,
+  X Invalidator_ ex.create_mutable_existence = (| *Ex, *Slot |),
   Ex Slot box_h$
 } ;;
 
@@ -47,7 +46,7 @@ eval <*A box_h> *Box read @public -> <A> {
 
 eval <*A box_h> *Box <A> *X write | swap @public -> <A> {
   Box = *Ex *Slot box_h$,
-  Ex Slot X ex.swap_assoc
+  Ex Slot X ex.replace_assoc
 } ;;
 
 eval <*A box_h> *Box <<<A wbox_h> void fun> maybe> *Listener_ create_weak_holder @public -> <A wbox_h> {

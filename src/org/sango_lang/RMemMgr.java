@@ -228,8 +228,18 @@ public class RMemMgr {
     return r;
   }
 
-  ExistenceItem createExistence(RClosureItem invalidator) {
-    ExistenceItem e = new ExistenceItem(this.theEngine);
+  ExistenceItem createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
+    RoSlotItem s = (assoc != null)? new RoSlotItem(this.theEngine, assoc): null;
+    ExistenceItem e = new ExistenceItem(this.theEngine, s);
+    if (invalidator != null) {
+      this.entityInvalidationInfoList.add(new ExistenceInvalidationInfo(e, invalidator));
+    }
+    return e;
+  }
+
+  ExistenceItem createMutableExistence(RObjItem assoc, RClosureItem invalidator) {
+    RwSlotItem s = new RwSlotItem(this.theEngine, assoc);  // assoc != null
+    ExistenceItem e = new ExistenceItem(this.theEngine, s);
     if (invalidator != null) {
       this.entityInvalidationInfoList.add(new ExistenceInvalidationInfo(e, invalidator));
     }
@@ -320,11 +330,10 @@ public class RMemMgr {
     // wrap to RMBoxPItem(RObjItem)
     RMboxPItem bp = RMboxPItem.create(this.theEngine, b);
     // create box
-    ExistenceItem bpx = this.createExistence(null);  // no invalidator
-    SlotItem s = bpx.openSlot(bp);  // set boxp
+    ExistenceItem bpx = this.createMutableExistence(bp, null);  // no invalidator
     RStructItem bpe = this.getStructItem(
       RDataConstr.create(new Cstr("sango.entity.box"), "box_h$", 2, "box_h", 1),
-      new RObjItem[] { bpx, s });
+      new RObjItem[] { bpx, bpx.slot });
     return bpe;
   }
 
@@ -371,10 +380,11 @@ public class RMemMgr {
   }
 
   public class ExistenceItem extends RObjItem {
-    SlotItem slot;
+    public SlotItem slot;
 
-    ExistenceItem(RuntimeEngine e) {
+    ExistenceItem(RuntimeEngine e, SlotItem slot) {
       super(e);
+      this.slot = slot;
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
@@ -393,21 +403,8 @@ public class RMemMgr {
       return new Cstr(this.toString());
     }
 
-    public SlotItem openSlot(RObjItem item) {
-      synchronized (this) {
-        if (this.slot != null) {
-          throw new IllegalStateException("Already open.");
-        }
-        this.slot = new SlotItem(this.theEngine, item);
-      }
-      return this.slot;
-    }
-
     public RObjItem peekAssoc(SlotItem slot) {
       synchronized (this) {
-        if (slot == null) {
-          throw new IllegalStateException("Not open.");
-        }
         if (slot != this.slot) {
           throw new IllegalArgumentException("Invalid slot.");
         }
@@ -415,11 +412,8 @@ public class RMemMgr {
       }
     }
 
-    public RObjItem swapAssoc(SlotItem slot, RObjItem item) {
+    public RObjItem replaceAssoc(SlotItem slot, RObjItem item) {
       synchronized (this) {
-        if (slot == null) {
-          throw new IllegalStateException("Not open.");
-        }
         if (slot != this.slot) {
           throw new IllegalArgumentException("Invalid slot.");
         }
@@ -430,7 +424,7 @@ public class RMemMgr {
     }
   }
 
-  public class SlotItem extends RObjItem {
+  abstract public class SlotItem extends RObjItem {
     RObjItem assoc;
 
     SlotItem(RuntimeEngine e, RObjItem item) {
@@ -442,16 +436,32 @@ public class RMemMgr {
       return item == this;
     }
 
-    public RType.Sig getTsig() {
-      return RType.createTsig(new Cstr("sango.entity.existence"), "slot", 1);
-    }
-
     public void doHash(RNativeImplHelper helper, RClosureItem self) {
       helper.setReturnValue(helper.getIntItem(this.hashCode()));
     }
 
     public Cstr dumpInside() {
       return new Cstr(this.toString());
+    }
+  }
+
+  public class RoSlotItem extends SlotItem {
+    RoSlotItem(RuntimeEngine e, RObjItem item) {
+      super(e, item);
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.entity.existence"), "ro_slot", 1);
+    }
+  }
+
+  public class RwSlotItem extends SlotItem {
+    RwSlotItem(RuntimeEngine e, RObjItem item) {
+      super(e, item);
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.entity.existence"), "rw_slot", 1);
     }
   }
 
