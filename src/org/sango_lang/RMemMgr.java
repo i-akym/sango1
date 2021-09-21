@@ -228,22 +228,22 @@ public class RMemMgr {
     return r;
   }
 
-  ExistenceItem createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
-    RoSlotItem s = (assoc != null)? new RoSlotItem(this.theEngine, assoc): null;
-    ExistenceItem e = new ExistenceItem(this.theEngine, s);
+  RObjItem[] createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
+    ExistenceItem e = new ExistenceItem(this.theEngine);
+    SlotItem s = (assoc != null)? new SlotItem(this.theEngine, e, false, assoc): null;
     if (invalidator != null) {
       this.entityInvalidationInfoList.add(new ExistenceInvalidationInfo(e, invalidator));
     }
-    return e;
+    return new RObjItem[] { e, s };
   }
 
-  ExistenceItem createMutableExistence(RObjItem assoc, RClosureItem invalidator) {
-    RwSlotItem s = new RwSlotItem(this.theEngine, assoc);  // assoc != null
-    ExistenceItem e = new ExistenceItem(this.theEngine, s);
+  RObjItem[] createMutableExistence(RObjItem assoc, RClosureItem invalidator) {
+    ExistenceItem e = new ExistenceItem(this.theEngine);
+    SlotItem s = new SlotItem(this.theEngine, e, true, assoc);  // assoc != null
     if (invalidator != null) {
       this.entityInvalidationInfoList.add(new ExistenceInvalidationInfo(e, invalidator));
     }
-    return e;
+    return new RObjItem[] { e, s };
   }
 
   WeakRefItem createWeakRef(ExistenceItem existence, RClosureItem listener) {
@@ -330,10 +330,10 @@ public class RMemMgr {
     // wrap to RMBoxPItem(RObjItem)
     RMboxPItem bp = RMboxPItem.create(this.theEngine, b);
     // create box
-    ExistenceItem bpx = this.createMutableExistence(bp, null);  // no invalidator
+    RObjItem[] es = this.createMutableExistence(bp, null);  // no invalidator
     RStructItem bpe = this.getStructItem(
       RDataConstr.create(new Cstr("sango.entity.box"), "box_h$", 2, "box_h", 1),
-      new RObjItem[] { bpx, bpx.slot });
+      new RObjItem[] { es[0], es[1] });
     return bpe;
   }
 
@@ -351,7 +351,7 @@ public class RMemMgr {
   RObjItem readBox(RStructItem box) {
     ExistenceItem e = (ExistenceItem)box.getFieldAt(0);
     SlotItem s = (SlotItem)box.getFieldAt(1);
-    return e.peekAssoc(s);
+    return s.peekAssoc(e);
   }
 
   RStructItem getBoxFromWeakBox(RStructItem wbox) {  // wbox -> box
@@ -380,11 +380,11 @@ public class RMemMgr {
   }
 
   public class ExistenceItem extends RObjItem {
-    public SlotItem slot;
+    Object key;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
 
-    ExistenceItem(RuntimeEngine e, SlotItem slot) {
+    ExistenceItem(RuntimeEngine e) {
       super(e);
-      this.slot = slot;
+      this.key = new Object();
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
@@ -402,38 +402,26 @@ public class RMemMgr {
     public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
-
-    public RObjItem peekAssoc(SlotItem slot) {
-      synchronized (this) {
-        if (slot != this.slot) {
-          throw new IllegalArgumentException("Invalid slot.");
-        }
-        return this.slot.assoc;
-      }
-    }
-
-    public RObjItem replaceAssoc(SlotItem slot, RObjItem item) {
-      synchronized (this) {
-        if (slot != this.slot) {
-          throw new IllegalArgumentException("Invalid slot.");
-        }
-        RObjItem old = this.slot.assoc;
-        this.slot.assoc = item;
-        return old;
-      }
-    }
   }
 
-  abstract public class SlotItem extends RObjItem {
+  public class SlotItem extends RObjItem {
+    Object key;
+    boolean updatable;
     RObjItem assoc;
 
-    SlotItem(RuntimeEngine e, RObjItem item) {
+    SlotItem(RuntimeEngine e, ExistenceItem ex, boolean updatable, RObjItem assoc) {
       super(e);
-      this.assoc = item;
+      this.key = ex.key;
+      this.updatable = updatable;
+      this.assoc = assoc;
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
       return item == this;
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.entity.existence"), this.updatable? "rw_slot": "ro_slot", 1);
     }
 
     public void doHash(RNativeImplHelper helper, RClosureItem self) {
@@ -443,25 +431,25 @@ public class RMemMgr {
     public Cstr dumpInside() {
       return new Cstr(this.toString());
     }
-  }
 
-  public class RoSlotItem extends SlotItem {
-    RoSlotItem(RuntimeEngine e, RObjItem item) {
-      super(e, item);
+    public RObjItem peekAssoc(ExistenceItem ex) {
+      if (ex.key != this.key) {
+        throw new IllegalArgumentException("Invalid slot.");
+      }
+      synchronized (this) {
+        return this.assoc;
+      }
     }
 
-    public RType.Sig getTsig() {
-      return RType.createTsig(new Cstr("sango.entity.existence"), "ro_slot", 1);
-    }
-  }
-
-  public class RwSlotItem extends SlotItem {
-    RwSlotItem(RuntimeEngine e, RObjItem item) {
-      super(e, item);
-    }
-
-    public RType.Sig getTsig() {
-      return RType.createTsig(new Cstr("sango.entity.existence"), "rw_slot", 1);
+    public RObjItem replaceAssoc(ExistenceItem ex, RObjItem item) {
+      if (ex.key != this.key) {
+        throw new IllegalArgumentException("Invalid slot.");
+      }
+      synchronized (this) {
+        RObjItem old = this.assoc;
+        this.assoc = item;
+        return old;
+      }
     }
   }
 

@@ -326,11 +326,11 @@ public class RNativeImplHelper {
 
     // existence
 
-    public RMemMgr.ExistenceItem createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
+    public RObjItem[] createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
       return RNativeImplHelper.this.theEngine.memMgr.createImmutableExistence(assoc, invalidator);
     }
 
-    public RMemMgr.ExistenceItem createMutableExistence(RObjItem assoc, RClosureItem invalidator) {
+    public RObjItem[] createMutableExistence(RObjItem assoc, RClosureItem invalidator) {
       return RNativeImplHelper.this.theEngine.memMgr.createMutableExistence(assoc, invalidator);
     }
 
