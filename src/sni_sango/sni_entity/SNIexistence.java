@@ -43,23 +43,23 @@ public class SNIexistence {
     RObjItem a = sni_sango.SNIlang.unwrapMaybeItem(helper, maybeAssoc);
     RStructItem maybeInvalidator = (RStructItem)invalidator;
     RClosureItem inv = (RClosureItem)sni_sango.SNIlang.unwrapMaybeItem(helper, maybeInvalidator);
-    RMemMgr.ExistenceItem e = helper.getCore().createImmutableExistence(a, inv);
-    RStructItem maybeRoSlot = sni_sango.SNIlang.wrapMaybeItem(helper, e.slot);
-    helper.setReturnValue(helper.getTupleItem(new RObjItem[] { e, maybeRoSlot }));
+    RObjItem[] es = helper.getCore().createImmutableExistence(a, inv);
+    RStructItem maybeRoSlot = sni_sango.SNIlang.wrapMaybeItem(helper, es[1]);
+    helper.setReturnValue(helper.getTupleItem(new RObjItem[] { es[0], maybeRoSlot }));
   }
 
   public void sni_create_mutable_existence(RNativeImplHelper helper, RClosureItem self, RObjItem assoc, RObjItem invalidator) {
     RStructItem maybeInvalidator = (RStructItem)invalidator;
     RClosureItem inv = (RClosureItem)sni_sango.SNIlang.unwrapMaybeItem(helper, maybeInvalidator);
-    RMemMgr.ExistenceItem e = helper.getCore().createMutableExistence(assoc, inv);
-    helper.setReturnValue(helper.getTupleItem(new RObjItem[] { e, e.slot }));
+    RObjItem[] es = helper.getCore().createMutableExistence(assoc, inv);
+    helper.setReturnValue(helper.getTupleItem(new RObjItem[] { es[0], es[1] }));
   }
 
   public void sni_imut_peek_assoc(RNativeImplHelper helper, RClosureItem self, RObjItem existence, RObjItem roSlot) {
     RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
-    RMemMgr.RoSlotItem s = (RMemMgr.RoSlotItem)roSlot;
+    RMemMgr.SlotItem s = (RMemMgr.SlotItem)roSlot;
     try {
-      helper.setReturnValue(e.peekAssoc(s));
+      helper.setReturnValue(s.peekAssoc(e));
     } catch (IllegalArgumentException ex) {
       helper.setException(sni_sango.SNIlang.createBadArgException(helper, new Cstr(ex.toString()), null));
     }
@@ -67,9 +67,9 @@ public class SNIexistence {
 
   public void sni_mut_peek_assoc(RNativeImplHelper helper, RClosureItem self, RObjItem existence, RObjItem rwSlot) {
     RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
-    RMemMgr.RwSlotItem s = (RMemMgr.RwSlotItem)rwSlot;
+    RMemMgr.SlotItem s = (RMemMgr.SlotItem)rwSlot;
     try {
-      helper.setReturnValue(e.peekAssoc(s));
+      helper.setReturnValue(s.peekAssoc(e));
     } catch (IllegalArgumentException ex) {
       helper.setException(sni_sango.SNIlang.createBadArgException(helper, new Cstr(ex.toString()), null));
     }
@@ -77,9 +77,9 @@ public class SNIexistence {
 
   public void sni_mut_replace_assoc(RNativeImplHelper helper, RClosureItem self, RObjItem existence, RObjItem rwSlot, RObjItem newAssoc) {
     RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
-    RMemMgr.RwSlotItem s = (RMemMgr.RwSlotItem)rwSlot;
+    RMemMgr.SlotItem s = (RMemMgr.SlotItem)rwSlot;
     try {
-      helper.setReturnValue(e.replaceAssoc(s, newAssoc));
+      helper.setReturnValue(s.replaceAssoc(e, newAssoc));
     } catch (IllegalArgumentException ex) {
       helper.setException(sni_sango.SNIlang.createBadArgException(helper, new Cstr(ex.toString()), null));
     }
