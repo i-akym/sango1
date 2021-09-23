@@ -52,6 +52,7 @@ abstract class Parser {
   void parse4() throws CompileException {
     this.mod.normalizeTypes();
     this.mod.checkCyclicExtension();
+    this.mod.checkConcreteness();
   }
 
   void parse5() throws CompileException {

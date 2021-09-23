@@ -433,4 +433,12 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       }
     }
   }
+
+  public void checkConcreteness() {
+    if (this.constrs != null) {
+      for (int i = 0; i < this.constrs.length; i++) {
+        this.constrs[i].checkConcreteness();
+      }
+    }
+  }
 }

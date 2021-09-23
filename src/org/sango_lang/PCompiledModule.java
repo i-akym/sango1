@@ -69,9 +69,18 @@ class PCompiledModule implements PDefDict {
         DataDef dd = cm.convertDataDef(mod, dds[j], unresolvedTypeRefList);
         PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], dds[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(dd);
+        PDefDict.TparamProps[] paramPropss;
+        if (dds[j].params != null) {
+          paramPropss = new PDefDict.TparamProps[dds[j].params.length];
+          for (int k = 0; k < dds[j].params.length; k++) {
+            paramPropss[k] = new PDefDict.TparamProps(dds[j].params[k].requiresConcrete);
+          }
+        } else {
+          paramPropss = null;
+        }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           (dds[j].baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-          (dds[j].params != null)? dds[j].params.length: -1, dds[j].acc, g);
+          paramPropss, dds[j].acc, g);
         cm.foreignTconDict.put(tk, tp);
       }
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
@@ -79,8 +88,12 @@ class PCompiledModule implements PDefDict {
         AliasDef ad = cm.convertAliasDef(mod, ads[j], unresolvedTypeRefList);
         PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], ads[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
+        PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
+        for (int k = 0; k < paramPropss.length; k++) {
+          paramPropss[k] = new PDefDict.TparamProps(false);
+        }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          PTypeId.SUBCAT_ALIAS, ads[j].paramCount, ads[j].acc, g);
+          PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
         cm.foreignTconDict.put(tk, tp);
       }
     }
@@ -93,9 +106,18 @@ class PCompiledModule implements PDefDict {
       MDataDef mdd = mdds[i];
       DataDef dd = cm.convertDataDef(mod, mdd, unresolvedTypeRefList);
       PDefDict.DataDefGetter g = createDataDefGetter(dd);
+      PDefDict.TparamProps[] paramPropss;
+      if (mdd.params != null) {
+        paramPropss = new PDefDict.TparamProps[mdd.params.length];
+        for (int k = 0; k < mdd.params.length; k++) {
+          paramPropss[k] = new PDefDict.TparamProps(mdd.params[k].requiresConcrete);
+        }
+      } else {
+        paramPropss = null;
+      }
       PDefDict.TconProps tp = PDefDict.TconProps.create(
         (mdd.baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-        (mdd.params != null)? mdd.params.length: -1, mdd.acc, g);
+        paramPropss, mdd.acc, g);
       cm.tconDict.put(mdd.tcon, tp);
       for (int j = 0; j < mdd.constrs.length; j++) {
         MConstrDef mcd = mdd.constrs[j];
@@ -106,9 +128,13 @@ class PCompiledModule implements PDefDict {
     MAliasTypeDef[] matds = mod.getAliasTypeDefs();
     for (int i = 0; i < matds.length; i++) {
       MAliasTypeDef matd = matds[i];
+      PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[matd.paramCount];
+      for (int k = 0; k < matd.paramCount; k++) {
+        paramPropss[k] = new PDefDict.TparamProps(false);
+      }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
-        matd.paramCount, matd.acc, createDataDefGetter(cm.convertAliasDef(mod, matd, unresolvedTypeRefList))));
+        paramPropss, matd.acc, createDataDefGetter(cm.convertAliasDef(mod, matd, unresolvedTypeRefList))));
     }
     cm.funOfficialDict = new HashMap<String, FunDef>();
     cm.funListDict = new HashMap<String, List<FunDef>>();
@@ -295,8 +321,12 @@ class PCompiledModule implements PDefDict {
     AliasDef ad = new AliasDef();
     PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasDef.tcon);
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
+    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasDef.paramCount];
+    for (int k = 0; k < paramPropss.length; k++) {
+      paramPropss[k] = new PDefDict.TparamProps(false);
+    }
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-      PTypeId.SUBCAT_ALIAS, aliasDef.paramCount, aliasDef.acc, g);
+      PTypeId.SUBCAT_ALIAS, paramPropss, aliasDef.acc, g);
     ad.tconInfo = PDefDict.TconInfo.create(tk, tp);
     ad.availability = aliasDef.availability;
     ad.acc = aliasDef.acc;

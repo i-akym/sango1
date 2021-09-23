@@ -491,8 +491,12 @@ public class RNativeImplHelper {
         }
         tis[pts.length] = fd.getRetType().instanciate(ibs);
         PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, "fun");
+        PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[pts.length];
+        for (int i = 0; i < pts.length; i++) {
+          paramPropss[i] = new PDefDict.TparamProps(false);  // TEMPORAL
+        }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          PTypeId.SUBCAT_NOT_FOUND, pts.length, Module.ACC_OPAQUE, null);
+          PTypeId.SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
         PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
         t = PTypeRefSkel.create(this.getDefDictGetter(), null, ti, false, tis);
       } catch (CompileException ex) {}

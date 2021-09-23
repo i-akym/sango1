@@ -217,4 +217,8 @@ class PDataConstrDef extends PDefaultProgElem implements PDataDef.Constr {
       this.attrs[i].normalizeTypes();
     }
   }
+
+  public void checkConcreteness() {
+    // HERE
+  }
 }

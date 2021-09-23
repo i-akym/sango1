@@ -495,7 +495,7 @@ class PDataConstrEval extends PDefaultEvalElem {
     // /* DEBUG */ System.out.println(type.tconInfo);
     GFlow.DataConstrNode n = flow.createNodeForDataConstrBody(
       this.srcInfo, this.scope.theMod.modNameToModRefIndex(this.dcon.props.modName), this.dcon.name,
-      type.tconInfo.key.tcon, type.tconInfo.props.paramCount);
+      type.tconInfo.key.tcon, type.tconInfo.props.paramCount());
     for (int i = 0; i < this.bdAttrs.length; i++) {
       n.addChild(this.bdAttrs[i].setupFlow(flow));
     }

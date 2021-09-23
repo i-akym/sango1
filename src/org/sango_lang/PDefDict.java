@@ -132,19 +132,23 @@ public interface PDefDict {
 
   static class TconProps {
     int subcat;
-    int paramCount;  // -1 means variable
+    TparamProps[] paramProps;  // null means variable
     int acc;
     DataDefGetter defGetter;
 
-    public static TconProps create(int subcat, int paramCount, int acc, DataDefGetter getter) {
-      return new TconProps(subcat, paramCount, acc, getter);
+    public static TconProps create(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
+      return new TconProps(subcat, paramProps, acc, getter);
     }
 
-    TconProps(int subcat, int paramCount, int acc, DataDefGetter getter) {
+    TconProps(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
       this.subcat = subcat;
-      this.paramCount = paramCount;
+      this.paramProps = paramProps;
       this.acc = acc;
       this.defGetter = getter;
+    }
+
+    int paramCount() {
+      return (this.paramProps != null)? this.paramProps.length: -1;
     }
 
     public String toString() {
@@ -152,7 +156,7 @@ public interface PDefDict {
       buf.append("tconprops[subcat=");
       buf.append(this.subcat);
       buf.append(",paramcount=");
-      buf.append(this.paramCount);
+      buf.append(this.paramCount());
       buf.append(",acc=");
       buf.append(this.acc);
       buf.append("]");
@@ -194,6 +198,26 @@ public interface PDefDict {
         b = ti.key.equals(this.key);
       }
       return b;
+    }
+  }
+
+  public static TparamProps createTparamProps(boolean concrete) {
+    return new TparamProps(concrete);
+  }
+
+  static class TparamProps {
+    boolean concrete;
+
+    TparamProps(boolean concrete) {
+      this.concrete = concrete;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("tparamprops[concrete=");
+      buf.append(this.concrete);
+      buf.append("]");
+      return buf.toString();
     }
   }
 
