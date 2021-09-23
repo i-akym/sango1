@@ -218,7 +218,9 @@ class PDataConstrDef extends PDefaultProgElem implements PDataDef.Constr {
     }
   }
 
-  public void checkConcreteness() {
-    // HERE
+  public void checkConcreteness() throws CompileException {
+    for (int i = 0; i < this.attrs.length; i++) {
+      this.attrs[i].checkConcreteness();
+    }
   }
 }

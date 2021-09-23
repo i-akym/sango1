@@ -390,7 +390,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
   }
 
-  public void checkConcreteness() {
+  public void checkConcreteness() throws CompileException {
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].checkConcreteness();
     }
