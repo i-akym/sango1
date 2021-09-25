@@ -231,7 +231,7 @@ class PCompiledModule implements PDefDict {
     if (dataDef.params != null) {
       dd.sigParams = new PTypeVarSkel[dataDef.params.length];
       for (int i = 0; i < dataDef.params.length; i++) {
-        PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+        PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(dataDef.params[i].requiresConcrete));
         dd.sigParams[i] = v;
         varList.add(v);
       }

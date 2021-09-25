@@ -57,8 +57,17 @@ public class PTypeRefSkel implements PTypeSkel {
     t.params = new PTypeSkel[this.params.length];
     for (int i = 0; i < t.params.length; i++) {
       PTVarDef d = var.varSlot.varDef;
-      PTVarSlot s = PTVarSlot.create(d);
-      t.params[i] = PTypeVarSkel.create((d != null)? d.getSrcInfo(): null, (d != null)? d.scope: null, s);
+      PTypeVarSkel v;
+      if (d != null) {
+        PTVarSlot s = PTVarSlot.create(d);
+        v = PTypeVarSkel.create(d.getSrcInfo(), d.scope, s);
+      } else {
+        PTVarSlot s = PTVarSlot.createInternal(var.varSlot.requiresConcrete);
+        v = PTypeVarSkel.create(null, null, s);
+      }
+      t.params[i] = v;
+      // PTVarSlot s = PTVarSlot.create(d);
+      // t.params[i] = PTypeVarSkel.create((d != null)? d.getSrcInfo(): null, (d != null)? d.scope: null, s);
     }
     bindings.bind(var.varSlot, t);
     return t;
