@@ -549,11 +549,20 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
     int datIndex = this.dataStmtList.size();
     this.dataStmtList.add(dat);
+    PDefDict.TparamProps[] paramPropss;
+    if (dat.tparams != null) {
+      paramPropss = new PDefDict.TparamProps[dat.tparams.length];
+      for (int i = 0; i < dat.tparams.length; i++) {
+        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].requiresConcrete);
+      }
+    } else {
+      paramPropss = null;
+    }
     this.tconDict.put(
       dat.tcon,
       PDefDict.TconProps.create(
         PTypeId.SUBCAT_DATA,
-        (dat.tparams != null)? dat.tparams.length: -1,
+        paramPropss,
         dat.acc,
         DataDefGetter.createForDataDef(dat)));
     if (dat.constrs != null) {
@@ -594,11 +603,20 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
     int extIndex = this.extendStmtList.size();
     this.extendStmtList.add(ext);
+    PDefDict.TparamProps[] paramPropss;
+    if (ext.tparams != null) {
+      paramPropss = new PDefDict.TparamProps[ext.tparams.length];
+      for (int i = 0; i < ext.tparams.length; i++) {
+        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].requiresConcrete);
+      }
+    } else {
+      paramPropss = null;
+    }
     this.tconDict.put(
       ext.tcon,
       PDefDict.TconProps.create(
         PTypeId.SUBCAT_EXTEND,
-        ext.tparams.length,
+        paramPropss,
         ext.acc,
         DataDefGetter.createForDataDef(ext)));
     // /* DEBUG */ System.out.print("added to tcondict  "); System.out.println(ext.tcon);
@@ -634,11 +652,20 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
     int aliasIndex = this.aliasStmtList.size();
     this.aliasStmtList.add(alias);
+    PDefDict.TparamProps[] paramPropss;
+    if (alias.tparams != null) {
+      paramPropss = new PDefDict.TparamProps[alias.tparams.length];
+      for (int i = 0; i < alias.tparams.length; i++) {
+        paramPropss[i] = new PDefDict.TparamProps(alias.tparams[i].requiresConcrete);
+      }
+    } else {
+      paramPropss = null;
+    }
     this.tconDict.put(
       alias.tcon,
       PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
-        alias.tparams.length,
+        paramPropss,
         alias.acc,
         DataDefGetter.createForAliasDef(alias)));
     // /* DEBUG */ System.out.print("alias stmt added: ");
@@ -1516,6 +1543,15 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
   }
 
+  void checkConcreteness() throws CompileException {
+    for (int i = 0; i < this.dataStmtList.size(); i++) {
+      this.dataStmtList.get(i).checkConcreteness();
+    }
+    for (int i = 0; i < this.extendStmtList.size(); i++) {
+      this.extendStmtList.get(i).checkConcreteness();
+    }
+  }
+
   void makeSureTypeConsistency() throws CompileException {
     PTypeGraph g = PTypeGraph.create(this.theCompiler, this);
     for (int i = 0; i < this.evalStmtList.size(); i++) {
@@ -1772,7 +1808,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
 
     ForeignTconRef(PDefDict.TconProps props, int acc) {
-      this.paramCount = props.paramCount;
+      this.paramCount = props.paramCount();
       this.acc = acc;
       this.dataDef = props.defGetter.getDataDef();
     }

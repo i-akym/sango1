@@ -160,7 +160,7 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (this.tconInfo.props.paramCount >= 0 && this.params.length != this.tconInfo.props.paramCount) {
+    if (this.tconInfo.props.paramCount() >= 0 && this.params.length != this.tconInfo.props.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
       emsg.append(PTypeId.repr(this.mod, this.tcon, false));

@@ -307,7 +307,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconInfo);
-    if (this.baseTconInfo.props.paramCount >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount) {
+    if (this.baseTconInfo.props.paramCount() >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of 'extend' definition mismatch at ");
       emsg.append(this.srcInfo);
@@ -387,6 +387,12 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
       PDefDict.TconInfo bti = this.scope.resolveTconDirect(btk);
       PDataDef dd = bti.props.defGetter.getDataDef();
       btk = (dd != null)? dd.getBaseTconKey(): null;
+    }
+  }
+
+  public void checkConcreteness() throws CompileException {
+    for (int i = 0; i < this.constrs.length; i++) {
+      this.constrs[i].checkConcreteness();
     }
   }
 
