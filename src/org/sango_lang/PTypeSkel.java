@@ -36,6 +36,8 @@ public interface PTypeSkel {
 
   boolean isConcrete();
 
+  boolean isConcrete(PTypeSkelBindings bindings);
+
   PTypeSkel instanciate(InstanciationBindings iBindings);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
