@@ -130,6 +130,14 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
+  public boolean isConcrete(PTypeSkelBindings bindings) {
+    boolean b = true;
+    for (int i = 0; b & i < this.params.length; i++) {
+      b &= this.params[i].isConcrete(bindings);
+    }
+    return b;
+  }
+
   public PDefDict.TconInfo getTconInfo() {
     if (this.tconInfo == null) {
       throw new IllegalStateException("Tcon info not set up.");
@@ -232,7 +240,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
     b = trialBindings;
     for (int i = 0; b != null && i < this.params.length -1; i++) {
-      b = tr.params[i].applyTo(this.params[i], b);
+      b = this.params[i].applyTo(tr.params[i], b);
     }
     if (b != null) {
       b = this.params[this.params.length -1 ].applyTo(tr.params[this.params.length -1 ], b);

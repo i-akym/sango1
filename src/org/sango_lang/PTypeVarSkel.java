@@ -77,6 +77,17 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isConcrete() { return this.varSlot.requiresConcrete; }
 
+  public boolean isConcrete(PTypeSkelBindings bindings) {
+    PTypeSkel t = this.resolveBindings(bindings);
+    boolean b;
+    if (t == this) {
+      b = this.isConcrete();
+    } else {
+      b = t.isConcrete(bindings);
+    }
+    return b;
+  }
+
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel t;
     if (iBindings.isGivenTVar(this.varSlot)) {
@@ -186,7 +197,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply A-2-1-2"); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-          if (this.varSlot.requiresConcrete & !type.isConcrete()) {
+          if (this.varSlot.requiresConcrete & !type.isConcrete(trialBindings)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply A-2-1-2-1"); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -210,17 +221,18 @@ if (PTypeGraph.DEBUG > 1) {
 }
         trialBindings.bind(this.varSlot, type);
         b = trialBindings;
-      } else if (type.isConcrete()) {
+      } else if (type.isConcrete(trialBindings)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply A-2-4"); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
         trialBindings.bind(this.varSlot, type);
         b = trialBindings;
-      } else {
+      } else {  // this is concrete, and type is not concrete
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#apply A-2-5"); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-        b = null;
+        ((PTypeVarSkel)type).constrainAs(this, trialBindings);
+        b = trialBindings;
       }
     }
     return b;
@@ -343,6 +355,14 @@ if (PTypeGraph.DEBUG > 1) {
 
   PTypeRefSkel castTo(PTypeRefSkel tr, PTypeSkelBindings bindings) {
     return tr.castFor(this, bindings);
+  }
+
+  PTypeVarSkel constrainAs(PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    PTypeVarSkel var = new PTypeVarSkel();
+    var.srcInfo = this.srcInfo;
+    var.varSlot = PTVarSlot.createInternal(tv.varSlot.requiresConcrete);
+    bindings.bind(this.varSlot, var);
+    return var;
   }
 
   public void collectTconInfo(List<PDefDict.TconInfo> list) {}

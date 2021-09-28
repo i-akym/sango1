@@ -57,6 +57,8 @@ class PNoRetSkel implements PTypeSkel {
 
   public boolean isConcrete() { return false; }
 
+  public boolean isConcrete(PTypeSkelBindings bindings) { return false; }
+
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     return this;
   }
