@@ -1,0 +1,64 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2021 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+
+# Collatz problem
+#   Shows sequence to 1.
+# Usage: sango -m sample_dir collatz N
+
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.system.runtime" -> runtime ;;
+
+eval _main_ -> <void> {
+  runtime.args = [ *N ; ** ],
+  N bi.parse = *Init,
+  if {
+  ; Init bi.gt0? ->
+  ; otherwise -> bad_arg$ "Initial value must be positive." new_exception >> throw
+  },
+  0 bi.bigint = *Zero,
+  1 bi.bigint = *One,
+  2 bi.bigint = *Two,
+  3 bi.bigint = *Three,
+  Init bi.format >> stdio.print,
+  Init Zero &\ <bi.bigint> *I <bi.bigint> *S -> <void> {
+    S bi.inc = *S',
+    I Two bi.div = (| *Q, *R |),
+    if {
+    ; R bi.zero? -> Q
+    ; otherwise -> I Three bi.prod >> bi.inc
+    } = *I',
+    "  " stdio.print, I' bi.format >> stdio.print, 
+    if {
+    ; I' One bi.eq? ->
+      "\n==> " stdio.print,
+      S' bi.format >> stdio.print,
+      " steps." stdio.print_and_newline
+    ; otherwise ->
+      I' S' &&
+    }
+  },
+  stdio.flush
+} ;;
