@@ -66,7 +66,7 @@ eval <tag> *Tag <*A package> *Pkg tag_on? @public -> <bool> {
 
 # -- package manager --
 
-data <*A package_mgr_h> @opaque :=
+data <*A! package_mgr_h> @opaque :=
   tab: <tag A wkm.map_h>
   package_mgr_h$ ;;
 
@@ -75,12 +75,12 @@ eval <*A! dummy> *Content create_package_mgr @public -> <A package_mgr_h> {
   Tab package_mgr_h$
 } ;;
 
-eval <*A package_mgr_h> *Mgr <tag> *Tag <A package> *Pkg put @public -> <void> {
+eval <*A! package_mgr_h> *Mgr <tag> *Tag <A package> *Pkg put @public -> <void> {
   Pkg key = *Key,
   Tag key = Key,
   (Mgr tab) Tag (Pkg val) wkm.add
 } ;;
 
-eval <*A package_mgr_h> *Mgr <tag> *Tag get @public -> <A maybe> {
+eval <*A! package_mgr_h> *Mgr <tag> *Tag get @public -> <A maybe> {
   (Mgr tab) Tag wkm.assoc
 } ;;

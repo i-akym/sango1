@@ -43,7 +43,7 @@ data <*A *B box_fs> @public :=
   clear_f:        <<<A B map.map_d+> box.box_h> void fun>
   box_fs$ ;;
 
-eval <*A *B map.map_fs> *Map_fs map_fs_to_box_fs | box_fs @public -> <A B box_fs> {
+eval <*A! *B! map.map_fs> *Map_fs map_fs_to_box_fs | box_fs @public -> <A B box_fs> {
   empty?_f:
     \ <<A B map.map_d+> box.box_h> *Box -> <bool> {
       (Box box.read) &(Map_fs map.empty?_f)
@@ -109,7 +109,7 @@ eval <*A *B map.map_fs> *Map_fs map_fs_to_box_fs | box_fs @public -> <A B box_fs
   box_fs$
 } ;;
 
-data <*A *B map_h> @opaque :=
+data <*A! *B! map_h> @opaque :=
   mon: <<A B map.map_d+> actu.box_monitor_h>
   map_fs: <A B map.map_fs>
   box_fs: <A B box_fs>
@@ -121,7 +121,7 @@ eval <*A! *B! map.map> *Map create_box @public -> <A B map_h> {
   mon: M map_fs: (Map map.fs) box_fs: (Map map.fs >> box_fs) map_h$
 } ;;
 
-eval <*A *B map_h> *Map_h snapshot @public -> <A B map.map> {
+eval <*A! *B! map_h> *Map_h snapshot @public -> <A B map.map> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <A B map.map> {
@@ -130,88 +130,88 @@ eval <*A *B map_h> *Map_h snapshot @public -> <A B map.map> {
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h empty? @public -> <bool> {
+eval <*A! *B! map_h> *Map_h empty? @public -> <bool> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <bool> { Box &(Fs empty?_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h size @public -> <int> {
+eval <*A! *B! map_h> *Map_h size @public -> <int> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <int> { Box &(Fs size_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <<A B tuple> maybe> { Box Key &(Fs get_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <B maybe> { Box Key &(Fs assoc_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
+eval <*A! *B! map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <bool> { Box Key &(Fs contain_key?_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key <B> *Assoc put @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key <B> *Assoc put @public -> <<A B tuple> maybe> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <<A B tuple> maybe> { Box Key Assoc &(Fs put_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key <B> *Assoc put_new @public -> <bool> {
+eval <*A! *B! map_h> *Map_h <A> *Key <B> *Assoc put_new @public -> <bool> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <bool> { Box Key Assoc &(Fs put_new_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key <B> *Assoc add @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A> *Key <B> *Assoc add @public -> <void> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <void> { Box Key Assoc &(Fs add_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <<A B tuple> maybe> { Box Key &(Fs remove_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key delete @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A> *Key delete @public -> <void> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <void> { Box Key &(Fs delete_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h clear @public -> <void> {
+eval <*A! *B! map_h> *Map_h clear @public -> <void> {
   Map_h = mon: *Monitor map_fs: *Mfs box_fs: *Fs map_h$,
   Monitor
     \ <<A B map.map_d+> box.box_h> *Box -> <void> { Box &(Fs clear_f) }
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
+eval <*A! *B! map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
   Map_h (KVs list.iter) add_iter
 } ;;
 
-eval <*A *B map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
+eval <*A! *B! map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
   Iter next >> case {
   ; (| (| *K, *V |), *Iter' |) value$ ->
     Map_h K V add,
@@ -220,11 +220,11 @@ eval <*A *B map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
   }
 } ;;
 
-eval <*A *B map_h> *Map_h <A list> *Keys delete_list @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A list> *Keys delete_list @public -> <void> {
   Map_h (Keys list.iter) delete_iter
 } ;;
 
-eval <*A *B map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
   Iter next >> case {
   ; (| *K, *Iter' |) value$ ->
     Map_h K delete,

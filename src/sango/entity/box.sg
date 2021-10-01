@@ -25,31 +25,31 @@ module "sango.entity.box" ;;
 
 import "sango.entity.existence" -> ex ;;
 
-data <*A box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$ ;;
+data <*A! box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$ ;;
 
-data <*A wbox_h> @opaque := <ex.weak_ref> <A ex.rw_slot> wbox_h$ ;;
+data <*A! wbox_h> @opaque := <ex.weak_ref> <A ex.rw_slot> wbox_h$ ;;
 
 eval <*A!> *X <<void fun> maybe> *Invalidator_ create_box @public -> <A box_h> {
   X Invalidator_ ex.create_mutable_existence = (| *Ex, *Slot |),
   Ex Slot box_h$
 } ;;
 
-eval <*A box_h> *Box existence @public -> <ex.existence> {
+eval <*A! box_h> *Box existence @public -> <ex.existence> {
   Box = *Ex *Slot box_h$,
   Ex
 } ;;
 
-eval <*A box_h> *Box read @public -> <A> {
+eval <*A! box_h> *Box read @public -> <A> {
   Box = *Ex *Slot box_h$,
   Ex Slot ex.peek_assoc
 } ;;
 
-eval <*A box_h> *Box <A> *X write | swap @public -> <A> {
+eval <*A! box_h> *Box <A> *X write | swap @public -> <A> {
   Box = *Ex *Slot box_h$,
   Ex Slot X ex.replace_assoc
 } ;;
 
-eval <*A box_h> *Box <<<A wbox_h> void fun> maybe> *Listener_ create_weak_holder @public -> <A wbox_h> {
+eval <*A! box_h> *Box <<<A wbox_h> void fun> maybe> *Listener_ create_weak_holder @public -> <A wbox_h> {
   Box = *Ex *Slot box_h$,
   Listener_ case {
   ; *Listener value$ ->
@@ -59,7 +59,7 @@ eval <*A box_h> *Box <<<A wbox_h> void fun> maybe> *Listener_ create_weak_holder
   (Ex L_ ex.create_weak_ref) Slot wbox_h$
 } ;;
 
-eval <*A wbox_h> *W get @public -> <<A box_h> maybe> {
+eval <*A! wbox_h> *W get @public -> <<A box_h> maybe> {
   W = *WR *Slot wbox_h$,
   WR ex.get >> case {
   ; *Ex value$ -> (Ex Slot box_h$) value$
@@ -67,7 +67,7 @@ eval <*A wbox_h> *W get @public -> <<A box_h> maybe> {
   }
 } ;;
 
-eval <*A wbox_h> *W clear @public -> <void> {
+eval <*A! wbox_h> *W clear @public -> <void> {
   W = *WR *Slot wbox_h$,
   WR ex.clear
 } ;;
@@ -80,7 +80,7 @@ eval dress_fs @public -> <<*A box_h> ex.dress_fs> {
   undress_f: ^undress ex.dress_fs$
 } ;;
 
-eval <*A box_h> *Box undress -> <ex.existence <<A box_h> ex.redress_f> tuple> {
+eval <*A! box_h> *Box undress -> <ex.existence <<A box_h> ex.redress_f> tuple> {
   Box = *Ex *Slot box_h$,
   (| Ex, \ <ex.existence> *E -> <A box_h> { E Slot box_h$ } |)
 } ;;

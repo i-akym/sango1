@@ -25,7 +25,7 @@ module @beta "sango.entity.existence" ;;
 
 data <existence> @opaque := @native ;;
 data <*A ro_slot> @opaque := @native ;;
-data <*A rw_slot> @opaque := @native ;;
+data <*A! rw_slot> @opaque := @native ;;
 
 eval <*A maybe> *Assoc_ <<void fun> maybe> *Invalidator_ 
   create_immutable_existence @public -> <existence <<A ro_slot> maybe> tuple> @native ;;
@@ -34,8 +34,8 @@ eval <*A!> *Assoc <<void fun> maybe> *Invalidator_
   create_mutable_existence @public -> <existence <A rw_slot> tuple> @native ;;
 
 eval <existence> *Ex <*A ro_slot> *Slot imut_peek_assoc | peek_assoc @public -> <A> @native ;;
-eval <existence> *Ex <*A rw_slot> *Slot mut_peek_assoc | peek_assoc @public -> <A> @native ;;
-eval <existence> *Ex <*A rw_slot> *Slot <A> *New_assoc mut_replace_assoc | replace_assoc @public -> <A> @native ;;
+eval <existence> *Ex <*A! rw_slot> *Slot mut_peek_assoc | peek_assoc @public -> <A> @native ;;
+eval <existence> *Ex <*A! rw_slot> *Slot <A> *New_assoc mut_replace_assoc | replace_assoc @public -> <A> @native ;;
 
 data <weak_ref> @opaque := @native ;;
 

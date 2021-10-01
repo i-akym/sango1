@@ -45,7 +45,7 @@ data <*A *B d> :=
   wtab: <wtab>
   d$ ;;
 
-data <*A *B map_h> @opaque :=
+data <*A! *B! map_h> @opaque :=
   mon: <<A B d> actu.box_monitor_h>
   undress_f: <A ex.undress_f>
   map_h$ ;;
@@ -59,7 +59,7 @@ eval <*A! ex.dress_fs> *Dress_fs <*B! dummy> *Assoc create_weak_key_map @public 
   mon: Mon undress_f: (Dress_fs ex.undress_f) map_h$
 } ;;
 
-eval <*A *B map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
+eval <*A! *B! map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<ex.existence <A B k> tuple> list> {
@@ -77,7 +77,7 @@ eval <*A *B map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
     list.map
 } ;;
 
-eval <*A *B map_h> *Map_h empty? @public -> <bool> {
+eval <*A! *B! map_h> *Map_h empty? @public -> <bool> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <bool> {
@@ -87,7 +87,7 @@ eval <*A *B map_h> *Map_h empty? @public -> <bool> {
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h size @public -> <int> {
+eval <*A! *B! map_h> *Map_h size @public -> <int> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <int> {
@@ -97,7 +97,7 @@ eval <*A *B map_h> *Map_h size @public -> <int> {
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
@@ -114,18 +114,18 @@ eval <*A *B map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
   Map_h Key get >> case {
   ; (| **, *Assoc |) value$ -> Assoc value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
+eval <*A! *B! map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
   Map_h Key get >> something?
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
@@ -143,7 +143,7 @@ eval <*A *B map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe>
   }
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
+eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
@@ -160,11 +160,11 @@ eval <*A *B map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key <B> *Value add @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value add @public -> <void> {
   Map_h Key Value put >> ignore
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Key &UF = (| *Ex, *RF |),
   Mon
@@ -181,11 +181,11 @@ eval <*A *B map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A *B map_h> *Map_h <A> *Key delete @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A> *Key delete @public -> <void> {
   Map_h Key remove >> ignore
 } ;;
 
-eval <*A *B map_h> *Map_h take @public -> <<A B tuple> maybe> {
+eval <*A! *B! map_h> *Map_h take @public -> <<A B tuple> maybe> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<ex.existence <A B k> tuple> maybe> {
@@ -201,7 +201,7 @@ eval <*A *B map_h> *Map_h take @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A *B map_h> *Map_h clear @public -> <void> {
+eval <*A! *B! map_h> *Map_h clear @public -> <void> {
   Map_h = mon: *Mon undress_f: *UF *** map_h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <void> {
@@ -212,22 +212,22 @@ eval <*A *B map_h> *Map_h clear @public -> <void> {
     actu.run
 } ;;
 
-eval <*A *B map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
+eval <*A! *B! map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
   Map_h (KVs list.iter) add_iter
 } ;;
 
-eval <*A *B map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
+eval <*A! *B! map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
   Iter next >> case {
   ; (| (| *K, *V |), *Iter' |) value$ -> Map_h K V add, Map_h Iter' &&
   ; ** ->
   }
 } ;;
 
-eval <*A *B map_h> *Map_h <A list> *Ks delete_list @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A list> *Ks delete_list @public -> <void> {
   Map_h (Ks list.iter) delete_iter
 } ;;
 
-eval <*A *B map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
+eval <*A! *B! map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
   Iter next >> case {
   ; (| *K, *Iter' |) value$ -> Map_h K delete, Map_h Iter' &&
   ; ** ->
@@ -237,7 +237,7 @@ eval <*A *B map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
 
 # -- data manipulation routines --
 
-eval <*A *B d> *D d_lives -> <<<ex.existence <A B k> tuple> list> <A B d> tuple> {
+eval <*A! *B! d> *D d_lives -> <<<ex.existence <A B k> tuple> list> <A B d> tuple> {
   D = ktab: *KT wtab: *WT *** d$,
   [] 0 KT [] [] (KT map.clear) WT &\
       <<A B k> list> *Ks  # staged key infos
@@ -270,7 +270,7 @@ eval <*A *B d> *D d_lives -> <<<ex.existence <A B k> tuple> list> <A B d> tuple>
   }
 } ;;
 
-eval <*A *B d> *D <ex.existence> *Ex d_find -> <<<A B k> maybe> <A B d> tuple> {
+eval <*A! *B! d> *D <ex.existence> *Ex d_find -> <<<A B k> maybe> <A B d> tuple> {
   D = ktab: *KT wtab: *WT *** d$,
   Ex hash = *EH,
   KT EH map.assoc >> case {
@@ -291,7 +291,7 @@ eval <*A *B d> *D <ex.existence> *Ex d_find -> <<<A B k> maybe> <A B d> tuple> {
   }
 } ;;
 
-eval <*A *B d> *D <ex.existence> *Ex <A ex.redress_f> *RF <B> *Value <<A B d> actu.box_monitor_h> *Mon d_add -> <A B d> {
+eval <*A! *B! d> *D <ex.existence> *Ex <A ex.redress_f> *RF <B> *Value <<A B d> actu.box_monitor_h> *Mon d_add -> <A B d> {
     # add without duplication check
   D = ktab: *KT wtab: *WT *** d$,
   Ex hash = *EH,
@@ -315,7 +315,7 @@ eval <*A *B d> *D <ex.existence> *Ex <A ex.redress_f> *RF <B> *Value <<A B d> ac
   ktab: KT' wtab: WT' :: D d$
 } ;;
 
-eval <*A *B d> *D <ex.existence> *Ex d_remove -> <<<A B k> maybe> <A B d> tuple> {
+eval <*A! *B! d> *D <ex.existence> *Ex d_remove -> <<<A B k> maybe> <A B d> tuple> {
   D = ktab: *KT wtab: *WT *** d$,
   Ex hash = *EH,
   KT EH map.assoc >> case {
@@ -338,7 +338,7 @@ eval <*A *B d> *D <ex.existence> *Ex d_remove -> <<<A B k> maybe> <A B d> tuple>
   }
 } ;;
 
-eval <*A *B d> *D <ex.weak_ref> *Weak_ref d_purge -> <A B d> {
+eval <*A! *B! d> *D <ex.weak_ref> *Weak_ref d_purge -> <A B d> {
   D = ktab: *KT wtab: *WT *** d$,
   WT Weak_ref map.remove >> case {
   ; (| *WT', (| **, *EH |) value$ |)  ->
@@ -370,7 +370,7 @@ eval <*A *B d> *D <ex.weak_ref> *Weak_ref d_purge -> <A B d> {
   }
 } ;;
 
-eval <*A *B d> *D d_take -> <<<ex.existence <A B k> tuple> maybe> <A B d> tuple> {
+eval <*A! *B! d> *D d_take -> <<<ex.existence <A B k> tuple> maybe> <A B d> tuple> {
   D = ktab: *KT wtab: *WT *** d$,
   [] 0 KT WT &\
       <<A B k> list> *Ks  # staged key infos
@@ -402,12 +402,12 @@ eval <*A *B d> *D d_take -> <<<ex.existence <A B k> tuple> maybe> <A B d> tuple>
   }
 } ;;
 
-eval <*A *B d> *D d_clear -> <A B d> {
+eval <*A! *B! d> *D d_clear -> <A B d> {
   D = ktab: *KT wtab: *WT *** d$,
   ktab: (KT map.clear) wtab: (WT map.clear) :: D d$
 } ;;
 
-eval <<*A *B k> list> *Ks <ex.existence> *Ex find_in_candidates
+eval <<*A! *B! k> list> *Ks <ex.existence> *Ex find_in_candidates
     -> <<<<A B k> <<A B k> list> tuple> maybe> <<A B k> list> <ex.weak_ref list> tuple> {
       # (key info, not yet scanned)?, scanned, to be purged
   Ks [] [] &\ <<A B k> list> *To_be_scanned <<A B k> list> *Scanned <ex.weak_ref list> *To_be_purged

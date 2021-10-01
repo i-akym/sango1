@@ -49,19 +49,19 @@ eval create_domain @public -> <domain_h> {
 
 alias type <unique_num_invalidator> @public := <int void fun> ;;
 
-data <*A entity_h> @opaque :=
+data <*A! entity_h> @opaque :=
   domain_h: <domain_h>
   unique: <int>
   box_holder: <<A e> box.box_h>
   entity_h$ ;;
 
-data <*A e> := eun: <int> box: <A box.box_h> e$ ;;
+data <*A! e> := eun: <int> box: <A box.box_h> e$ ;;
 
-eval <*A entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entity domain_h } ;;
-eval <*A entity_h> *Entity entity_unique_num | unique_num @public -> <int> { Entity unique } ;;
-eval <*A entity_h> *Entity entity_existence | existence @public -> <ex.existence> { Entity box_holder >> box.existence } ;;
+eval <*A! entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entity domain_h } ;;
+eval <*A! entity_h> *Entity entity_unique_num | unique_num @public -> <int> { Entity unique } ;;
+eval <*A! entity_h> *Entity entity_existence | existence @public -> <ex.existence> { Entity box_holder >> box.existence } ;;
 
-eval <*A entity_h> *E0 <*B entity_h> *E1 entity_compare | compare @public -> <ordering> {
+eval <*A! entity_h> *E0 <*B! entity_h> *E1 entity_compare | compare @public -> <ordering> {
   E0 = domain_h: *D0 unique: *N0 *** entity_h$,
   E1 = domain_h: *D1 unique: *N1 *** entity_h$,
   D0 case {
@@ -71,7 +71,7 @@ eval <*A entity_h> *E0 <*B entity_h> *E1 entity_compare | compare @public -> <or
   N0 N1 compare
 } ;;
 
-eval entity_ord_fs @public -> <<*A entity_h> ord_fs> {
+eval entity_ord_fs @public -> <<*A! entity_h> ord_fs> {
   compare_f: ^entity_compare
     eq?_f_: none$
     lt?_f_: none$
@@ -81,18 +81,18 @@ eval entity_ord_fs @public -> <<*A entity_h> ord_fs> {
     ord_fs$
 } ;;
 
-data <*A weak_holder_h> @opaque :=
+data <*A! weak_holder_h> @opaque :=
   domain_h: <domain_h>
   unique: <int>
   existence: <ex.existence>
   weak_ref: <<A e> box.wbox_h>
   weak_holder_h$ ;;
 
-eval <*A weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <domain_h> { Weak_holder domain_h } ;;
-eval <*A weak_holder_h> *Weak_holder weak_holder_unique_num | unique_num @public -> <int> { Weak_holder unique } ;;
-eval <*A weak_holder_h> *Weak_holder weak_holder_existence | existence @public -> <ex.existence> { Weak_holder existence } ;;
+eval <*A! weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <domain_h> { Weak_holder domain_h } ;;
+eval <*A! weak_holder_h> *Weak_holder weak_holder_unique_num | unique_num @public -> <int> { Weak_holder unique } ;;
+eval <*A! weak_holder_h> *Weak_holder weak_holder_existence | existence @public -> <ex.existence> { Weak_holder existence } ;;
 
-eval <*A weak_holder_h> *W0 <*B weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
+eval <*A! weak_holder_h> *W0 <*B weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
   W0 = domain_h: *D0 unique: *N0 *** weak_holder_h$,
   W1 = domain_h: *D1 unique: *N1 *** weak_holder_h$,
   D0 case {
@@ -102,7 +102,7 @@ eval <*A weak_holder_h> *W0 <*B weak_holder_h> *W1 weak_holder_compare | compare
   N0 N1 compare
 } ;;
 
-eval weak_holder_ord_fs @public -> <<*A weak_holder_h> ord_fs> {
+eval weak_holder_ord_fs @public -> <<*A! weak_holder_h> ord_fs> {
   compare_f: ^weak_holder_compare
     eq?_f_: none$
     lt?_f_: none$
@@ -127,20 +127,20 @@ eval <domain_h> *Domain <*A! box.box_h> *Box contain_box @public -> <A entity_h>
   domain_h: Domain unique: N box_holder: Box_holder entity_h$
 } ;;
 
-eval <*A entity_h> *Entity <unique_num_invalidator> *Invalidator
+eval <*A! entity_h> *Entity <unique_num_invalidator> *Invalidator
     entity_add_unique_num_invalidator | add_unique_num_invalidator @public -> <void> {
   (Entity domain >> svr) Entity Invalidator _add_eun_invalidator
 } ;;
 
-eval <*A entity_h> *Entity read @public -> <A> {
+eval <*A! entity_h> *Entity read @public -> <A> {
   Entity box_holder >> box.read >> box >> box.read
 } ;;
 
-eval <*A entity_h> *Entity <A> *X write | swap @public -> <A> {
+eval <*A! entity_h> *Entity <A> *X write | swap @public -> <A> {
   (Entity box_holder >> box.read >> box) X box.write
 } ;;
 
-eval <domain_h> *Domain <*A entity_h> *Entity <<<A weak_holder_h> void fun> maybe> *Listener_
+eval <domain_h> *Domain <*A! entity_h> *Entity <<<A weak_holder_h> void fun> maybe> *Listener_
     create_weak_holder @public -> <A weak_holder_h> {
   Domain svr = *Svr,
   Svr _get_new_wun = *N,
@@ -156,12 +156,12 @@ eval <domain_h> *Domain <*A entity_h> *Entity <<<A weak_holder_h> void fun> mayb
   domain_h: Domain unique: N existence: Ex weak_ref: Wbox weak_holder_h$
 } ;;
 
-eval <*A weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
+eval <*A! weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
     weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -> <void> {
   (Weak_holder domain >> svr) Weak_holder Invalidator _add_wun_invalidator
 } ;;
 
-eval <*A weak_holder_h> *Weak_holder get @public -> <<A entity_h> maybe> {
+eval <*A! weak_holder_h> *Weak_holder get @public -> <<A entity_h> maybe> {
   Weak_holder weak_ref >> box.get >> case {
   ; *E value$ ->
     E box.read = eun: *N *** e$,
@@ -170,7 +170,7 @@ eval <*A weak_holder_h> *Weak_holder get @public -> <<A entity_h> maybe> {
   }
 } ;;
 
-eval <*A weak_holder_h> *Weak_holder clear @public -> <void> {
+eval <*A! weak_holder_h> *Weak_holder clear @public -> <void> {
   Weak_holder weak_ref >> box.clear
 } ;;
 
@@ -178,11 +178,11 @@ eval <*A weak_holder_h> *Weak_holder clear @public -> <void> {
 # -- undress/redress --
 
 # must cast to handle concret type
-eval dress_fs @public -> <<*A entity_h> ex.dress_fs> {
+eval dress_fs @public -> <<*A! entity_h> ex.dress_fs> {
   undress_f: ^undress ex.dress_fs$
 } ;;
 
-eval <*A entity_h> *Entity undress -> <ex.existence <<A entity_h> ex.redress_f> tuple> {
+eval <*A! entity_h> *Entity undress -> <ex.existence <<A entity_h> ex.redress_f> tuple> {
   Entity = domain_h: *Domain unique: *Unique box_holder: *Box_holder entity_h$,
   Box_holder &(box.dress_fs >> ex.undress_f) = (| *Ex, *Box_redress_f |),
   (|
@@ -231,7 +231,7 @@ eval <act.post_h> *Svr _get_new_wun -> <int> {
   Res unwrap
 } ;;
 
-eval <act.post_h> *Svr <*A entity_h> *Entity <unique_num_invalidator> *Invalidator
+eval <act.post_h> *Svr <*A! entity_h> *Entity <unique_num_invalidator> *Invalidator
     _add_eun_invalidator -> <void> {
   act.open_mbox = (| *Box, *Post |),
   Svr (Post (Entity unique_num) Invalidator add_eun_invalidator_req$) act.send,
@@ -240,7 +240,7 @@ eval <act.post_h> *Svr <*A entity_h> *Entity <unique_num_invalidator> *Invalidat
   Res unwrap
 } ;;
 
-eval <act.post_h> *Svr <*A weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
+eval <act.post_h> *Svr <*A! weak_holder_h> *Weak_holder <unique_num_invalidator> *Invalidator
     _add_wun_invalidator -> <void> {
   act.open_mbox = (| *Box, *Post |),
   Svr (Post (Weak_holder unique_num) Invalidator add_wun_invalidator_req$) act.send,
