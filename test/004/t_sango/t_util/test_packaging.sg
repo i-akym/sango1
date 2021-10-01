@@ -22,7 +22,7 @@ eval test000 -> <void> {
   (0 dummy_obj$) pkg.create_package_mgr = *M,
   M T3 P3 pkg.put,
   \\ <void> { M T9 P3 pkg.put } try = ** exc$,
-  M T3 pkg.get = 3 value$,
+  M T3 pkg.get = P3 value$,
   M T9 pkg.get = none$,
   void$
 } ;;
