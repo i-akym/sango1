@@ -44,8 +44,6 @@ public interface PTypeSkel {
 
   PTypeSkelBindings applyTo(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
 
-  PTypeSkelBindings applyTo2(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
-
   boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings);
 
   PTVarSlot getVarSlot();

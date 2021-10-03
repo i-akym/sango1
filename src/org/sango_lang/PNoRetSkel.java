@@ -68,54 +68,21 @@ class PNoRetSkel implements PTypeSkel {
   }
 
   public PTypeSkelBindings applyTo(PTypeSkel type, PTypeSkelBindings trialBindings) {
-    return this.applyTo2(type.resolveBindings(trialBindings), trialBindings);
-  }
-
-  public PTypeSkelBindings applyTo2(PTypeSkel type, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PNoRetSkel#apply 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
+    PTypeSkel t = type.resolveBindings(trialBindings);
     PTypeSkelBindings b;
-    if (type instanceof PNoRetSkel) {
+    if (t instanceof PNoRetSkel) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#apply A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+    /* DEBUG */ System.out.print("PNoRetSkel#apply A "); System.out.print(this); System.out.print(" "); System.out.print(t); System.out.print(" "); System.out.println(trialBindings);
 }
       b = trialBindings;
-    } else if (type instanceof PTypeRefSkel) {
+    } else {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#apply 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+    /* DEBUG */ System.out.print("PNoRetSkel#apply 1 "); System.out.print(this); System.out.print(" "); System.out.print(t); System.out.print(" "); System.out.println(trialBindings);
 }
-      b = trialBindings;
-      // PNoRetSkel tr = (PNoRetSkel)type;
-      // if (type instanceof PNoRetSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#apply 1-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
-}
-        // b = trialBindings;
-        // for (int i = 0; b != null && i < this.params.length; i++) {
-          // b = this.params[i].applyTo(tr.params[i], b);
-        // }
-      // } else {
-    // /* DEBUG */ System.out.print("PNoRetSkel#apply 1-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
-        // b = null;
-      // }
-    } else {  // 'type' is guaranteed to be unbound by applyTo
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#apply 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
-}
-      PTypeVarSkel tv = (PTypeVarSkel)type;
-      if (trialBindings.isGivenTVar(tv.varSlot)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#apply 2-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
-}
-        b = trialBindings;
-      } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#apply 2-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
-}
-        trialBindings.bind(tv.varSlot, this);
-        b = trialBindings;
-      }
+      b = null;
     }
     return b;
   }
