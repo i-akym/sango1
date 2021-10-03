@@ -226,9 +226,17 @@ if (PTypeGraph.DEBUG > 1) {
       for (int i = 0; b != null && i < this.params.length; i++) {
         b = this.params[i].applyTo(tr.params[i], b);
       }
-    } else {
+    } else if (isTconOfExtensionOf(this.tconInfo, tr.tconInfo, this.defDictGetter)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#apply TypeRef 4 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = trialBindings;
+      for (int i = 0; b != null && i < this.params.length; i++) {
+        b = this.params[i].applyTo(tr.params[i], b);
+      }
+    } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeRefSkel#apply TypeRef 5 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
 }
       b = null;
     }
