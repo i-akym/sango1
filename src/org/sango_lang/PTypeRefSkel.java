@@ -218,11 +218,14 @@ if (PTypeGraph.DEBUG > 1) {
 }
         b = null;
       }
-    } else if (this.ext) {
+    } else if (this.ext && isTconOfExtensionOf(tr.tconInfo, this.tconInfo, this.defDictGetter)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#apply TypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
 }
-       b = isTconOfExtensionOf(tr.tconInfo, this.tconInfo, this.defDictGetter)? trialBindings: null;
+      b = trialBindings;
+      for (int i = 0; b != null && i < this.params.length; i++) {
+        b = this.params[i].applyTo(tr.params[i], b);
+      }
     } else {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#apply TypeRef 4 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
