@@ -271,4 +271,8 @@ class RModMgr implements PDefDict.DefDictGetter {
     }
     return d;
   }
+
+  public PDefDict.GlobalDefDict getGlobalDefDict() {
+    return null;  // HERE
+  }
 }

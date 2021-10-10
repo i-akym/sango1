@@ -1068,8 +1068,10 @@ if (DEBUG > 1) {
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
       if (tr.tconInfo.key.equals(sig.tconInfo.key)
-          || PTypeRefSkel.isTconOfExtensionOf(tr.tconInfo, sig.tconInfo, PTypeGraph.this.theCompiler)
-          || tr.ext && PTypeRefSkel.isTconOfExtensionOf(sig.tconInfo, tr.tconInfo, PTypeGraph.this.theCompiler)) {
+          || PTypeGraph.this.theCompiler.isBaseOf(sig.tconInfo.key, tr.tconInfo.key)
+          // || PTypeRefSkel.isTconOfExtensionOf(tr.tconInfo, sig.tconInfo, PTypeGraph.this.theCompiler)
+          || tr.ext && PTypeGraph.this.theCompiler.isBaseOf(tr.tconInfo.key, sig.tconInfo.key)) {
+          // || tr.ext && PTypeRefSkel.isTconOfExtensionOf(sig.tconInfo, tr.tconInfo, PTypeGraph.this.theCompiler)) {
         ;
       } else {
         emsg = new StringBuffer();
