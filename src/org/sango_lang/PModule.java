@@ -1537,7 +1537,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
   }
 
-  void setupExtensionGraph(Compiler.ExtGraph g) throws CompileException {
+  void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
     for (int i = 0; i < this.extendStmtList.size(); i++) {
       this.extendStmtList.get(i).setupExtensionGraph(g);
     }
