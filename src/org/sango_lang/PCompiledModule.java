@@ -194,7 +194,7 @@ class PCompiledModule implements PDefDict {
     return cm;
   }
 
-  void setupExtensionGraph(Compiler.ExtGraph g) throws CompileException {
+  void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
     Iterator<String> i = this.tconDict.keySet().iterator();
     while (i.hasNext()) {
       String tcon = i.next();

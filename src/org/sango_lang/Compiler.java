@@ -59,7 +59,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
   List<CompileEntry> generateQueue;
   Map<Cstr, Parser> parserDict;
   Map<Cstr, PDefDict> defDictDict;
-  ExtGraph extGraph;
+  PDefDict.ExtGraph extGraph;
   List<File> sysLibPathList;
   List<File> userModPathList;
   List<File> modPathList;
@@ -153,7 +153,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     this.generateQueue = new ArrayList<CompileEntry>();
     this.parserDict = new HashMap<Cstr, Parser>();
     this.defDictDict = new HashMap<Cstr, PDefDict>();
-    this.extGraph = new ExtGraph();
+    this.extGraph = PDefDict.createExtGraph();
     this.sysLibPathList = new ArrayList<File>();
     this.sysLibPathList.add(new File("lib"));
     this.userModPathList = new ArrayList<File>();
@@ -853,86 +853,6 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   public boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
     return this.extGraph.isBaseOf(b, e);
-  }
-
-  class ExtGraph {
-    Map<PDefDict.TconKey, ExtNode> nodeMap;
-
-    ExtGraph() {
-      this.nodeMap = new HashMap<PDefDict.TconKey, ExtNode>();
-    }
-
-    void addExtension(PDefDict.TconKey base, PDefDict.TconKey ext) throws CompileException {
-// /* DEBUG */ System.out.print("ExtGraph "); System.out.print(base.toRepr()); System.out.print(" "); System.out.println(ext.toRepr());
-      ExtNode en;
-      if ((en = this.nodeMap.get(ext)) == null) {
-        en = this.createNode(ext);
-      } else if (en.includesInDescendant(base)) {
-        throw new CompileException("Detected cyclic extension definition. " + base.toString());
-      } else {
-        ;
-      }
-      ExtNode bn;
-      if ((bn = this.nodeMap.get(base)) == null) {
-        bn = this.createNode(base);
-        en.base = bn;
-        bn.exts.add(en);
-      } else if (bn.includesInAncestor(ext)) {
-        throw new CompileException("Detected cyclic extension definition. " + ext.toString());
-      } else {
-        en.base = bn;
-        bn.exts.add(en);
-      }
-    }
-
-    private ExtNode createNode(PDefDict.TconKey tcon) {
-      ExtNode n = new ExtNode(tcon);
-      this.nodeMap.put(tcon, n);
-      return n;
-    }
-
-    boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
-// /* DEBUG */ System.out.print("is base of "); System.out.print(b.toRepr()); System.out.print(" "); System.out.println(e.toRepr());
-      ExtNode en = this.nodeMap.get(e);
-      return (en != null)? en.includesInAncestor(b): false;
-    }
-  }
-
-  private class ExtNode {
-    PDefDict.TconKey tcon;
-    ExtNode base;  // maybe null
-    List<ExtNode> exts;
-
-    ExtNode(PDefDict.TconKey tcon) {
-      this.tcon = tcon;
-      this.base = null;
-      this.exts = new ArrayList<ExtNode>();
-    }
-
-    boolean includesInDescendant(PDefDict.TconKey t) {
-      boolean b;
-      if (this.tcon.equals(t)) {
-        b = true;
-      } else {
-        b = false;
-        for (int i = 0; !b && i < this.exts.size(); i++) {
-          this.exts.get(i).includesInDescendant(t);
-        }
-      }
-      return b;
-    }
-
-    boolean includesInAncestor(PDefDict.TconKey t) {
-      boolean b = false;
-      ExtNode n = this;
-      while (!b && n != null) {
-        if (n.tcon.equals(t)) {
-          b = true;
-        }
-        n = n.base;
-      }
-      return b;
-    }
   }
 
   static void printVersion(PrintStream out) {
