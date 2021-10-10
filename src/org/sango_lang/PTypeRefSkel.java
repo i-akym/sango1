@@ -218,7 +218,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
         b = null;
       }
-    } else if (this.ext && isTconOfExtensionOf(tr.tconInfo, this.tconInfo, this.defDictGetter)) {
+    } else if (this.ext && this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconInfo.key, tr.tconInfo.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#apply TypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -254,25 +254,25 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  static boolean isTconOfExtensionOf(PDefDict.TconInfo ti0, PDefDict.TconInfo ti1, PDefDict.DefDictGetter defDictGetter) throws CompileException {
-if (PTypeGraph.DEBUG > 1) {
-/* DEBUG */ if (ti0 == null) { System.out.println("no ti0 " + ti1); }
-/* DEBUG */ if (ti0.props == null) { System.out.println("no tcon props " + ti0); }
-}
-    PDataDef dd = ti0.props.defGetter.getDataDef();
-    PDefDict.TconKey btk = (dd != null)? dd.getBaseTconKey(): null;
-    boolean b = false;
-    while (!b && btk != null) {
-      if (btk.equals(ti1.key)) {
-        b = true;
-      } else {
-        PDefDict.TconInfo bti = resolveTcon(btk, defDictGetter);
-        dd = bti.props.defGetter.getDataDef();
-        btk = (dd != null)? dd.getBaseTconKey(): null;
-      }
-    }
-    return b;
-  }
+  // static boolean isTconOfExtensionOf(PDefDict.TconInfo ti0, PDefDict.TconInfo ti1, PDefDict.DefDictGetter defDictGetter) throws CompileException {
+// if (PTypeGraph.DEBUG > 1) {
+// /* DEBUG */ if (ti0 == null) { System.out.println("no ti0 " + ti1); }
+// /* DEBUG */ if (ti0.props == null) { System.out.println("no tcon props " + ti0); }
+// }
+    // PDataDef dd = ti0.props.defGetter.getDataDef();
+    // PDefDict.TconKey btk = (dd != null)? dd.getBaseTconKey(): null;
+    // boolean b = false;
+    // while (!b && btk != null) {
+      // if (btk.equals(ti1.key)) {
+        // b = true;
+      // } else {
+        // PDefDict.TconInfo bti = resolveTcon(btk, defDictGetter);
+        // dd = bti.props.defGetter.getDataDef();
+        // btk = (dd != null)? dd.getBaseTconKey(): null;
+      // }
+    // }
+    // return b;
+  // }
 
   static PDefDict.TconInfo resolveTcon(PDefDict.TconKey key, PDefDict.DefDictGetter defDictGetter) throws CompileException {
     return defDictGetter.getReferredDefDict(key.modName).resolveTcon(
@@ -339,7 +339,7 @@ if (PTypeGraph.DEBUG > 1) {
         // r.ext = this.ext | tr.ext;
         // r.params = ps;
         // t = r;
-      } else if (isTconOfExtensionOf(this.tconInfo, tr.tconInfo, this.defDictGetter)) {
+      } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconInfo.key, this.tconInfo.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2 3-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -354,7 +354,7 @@ if (PTypeGraph.DEBUG > 1) {
         // r.ext = this.ext;
         // r.params = ps;
         // t = r;
-      } else if (isTconOfExtensionOf(tr.tconInfo, this.tconInfo, this.defDictGetter)) {
+      } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconInfo.key, tr.tconInfo.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2 3-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }

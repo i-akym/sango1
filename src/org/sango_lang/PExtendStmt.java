@@ -369,25 +369,26 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
   }
 
-  void checkCyclicExtension() throws CompileException {
-    List<PDefDict.TconKey> chain = new ArrayList<PDefDict.TconKey>();
-    chain.add(PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
-    PDefDict.TconKey btk = this.baseTconInfo.key;
-    while (btk != null) {
-      if (chain.contains(btk)) {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Cyclic extention detected for \"");
-        emsg.append(this.tcon);
-        emsg.append("\" at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      chain.add(btk);
-      PDefDict.TconInfo bti = this.scope.resolveTconDirect(btk);
-      PDataDef dd = bti.props.defGetter.getDataDef();
-      btk = (dd != null)? dd.getBaseTconKey(): null;
-    }
+  public void setupExtensionGraph(Compiler.ExtGraph g) throws CompileException {
+    g.addExtension(this.baseTconInfo.key, PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
+    // List<PDefDict.TconKey> chain = new ArrayList<PDefDict.TconKey>();
+    // chain.add(PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
+    // PDefDict.TconKey btk = this.baseTconInfo.key;
+    // while (btk != null) {
+      // if (chain.contains(btk)) {
+        // StringBuffer emsg = new StringBuffer();
+        // emsg.append("Cyclic extention detected for \"");
+        // emsg.append(this.tcon);
+        // emsg.append("\" at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+      // chain.add(btk);
+      // PDefDict.TconInfo bti = this.scope.resolveTconDirect(btk);
+      // PDataDef dd = bti.props.defGetter.getDataDef();
+      // btk = (dd != null)? dd.getBaseTconKey(): null;
+    // }
   }
 
   public void checkConcreteness() throws CompileException {

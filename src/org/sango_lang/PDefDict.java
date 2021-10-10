@@ -38,6 +38,14 @@ public interface PDefDict {
 
     PDefDict getReferredDefDict(Cstr mod) throws CompileException;
 
+    GlobalDefDict getGlobalDefDict();
+
+  }
+
+  interface GlobalDefDict {
+
+    boolean isBaseOf(TconKey b, TconKey e);
+
   }
 
   static class EidProps {

@@ -51,7 +51,7 @@ abstract class Parser {
 
   void parse4() throws CompileException {
     this.mod.normalizeTypes();
-    this.mod.checkCyclicExtension();
+    this.mod.setupExtensionGraph(this.theCompiler.extGraph);
     this.mod.checkConcreteness();
   }
 

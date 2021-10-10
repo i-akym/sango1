@@ -42,7 +42,7 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-public class Compiler implements PDefDict.DefDictGetter {
+public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict {
   static final int ACTION_IGNORE = 0;
   static final int ACTION_WARN = 1;
   static final int ACTION_ERROR = 2;
@@ -59,6 +59,7 @@ public class Compiler implements PDefDict.DefDictGetter {
   List<CompileEntry> generateQueue;
   Map<Cstr, Parser> parserDict;
   Map<Cstr, PDefDict> defDictDict;
+  ExtGraph extGraph;
   List<File> sysLibPathList;
   List<File> userModPathList;
   List<File> modPathList;
@@ -152,6 +153,7 @@ public class Compiler implements PDefDict.DefDictGetter {
     this.generateQueue = new ArrayList<CompileEntry>();
     this.parserDict = new HashMap<Cstr, Parser>();
     this.defDictDict = new HashMap<Cstr, PDefDict>();
+    this.extGraph = new ExtGraph();
     this.sysLibPathList = new ArrayList<File>();
     this.sysLibPathList.add(new File("lib"));
     this.userModPathList = new ArrayList<File>();
@@ -564,7 +566,7 @@ public class Compiler implements PDefDict.DefDictGetter {
     }
   }
 
-  void performReferMod(ReferEntry re) throws IOException, FormatException {
+  void performReferMod(ReferEntry re) throws IOException, FormatException, CompileException {
     StringBuffer emsg;
     if (this.verboseModule) {
       this.msgOut.print("Importing ");
@@ -573,7 +575,7 @@ public class Compiler implements PDefDict.DefDictGetter {
       this.msgOut.print(re.file.getCanonicalPath());
       this.msgOut.println(" ...");
     }
-    PDefDict d = null;
+    PCompiledModule d = null;
     ZipInputStream zis = null;
     try {
       zis = new ZipInputStream(new FileInputStream(re.file));
@@ -610,6 +612,7 @@ public class Compiler implements PDefDict.DefDictGetter {
       }
     }
     this.defDictDict.put(re.modName, d);
+    d.setupExtensionGraph(this.extGraph);
   }
 
   void determineActionToImport(Cstr modName) throws IOException {
@@ -647,6 +650,10 @@ public class Compiler implements PDefDict.DefDictGetter {
       throw new CompileException(emsg.toString());
     }
     return d;
+  }
+
+  public PDefDict.GlobalDefDict getGlobalDefDict() {
+    return this;
   }
 
   void compileErrorDetected(Cstr modName, Exception ex) throws AbortException {
@@ -842,6 +849,90 @@ public class Compiler implements PDefDict.DefDictGetter {
       b = modName.equals(referQueue.get(i).modName);
     }
     return b;
+  }
+
+  public boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
+    return this.extGraph.isBaseOf(b, e);
+  }
+
+  class ExtGraph {
+    Map<PDefDict.TconKey, ExtNode> nodeMap;
+
+    ExtGraph() {
+      this.nodeMap = new HashMap<PDefDict.TconKey, ExtNode>();
+    }
+
+    void addExtension(PDefDict.TconKey base, PDefDict.TconKey ext) throws CompileException {
+// /* DEBUG */ System.out.print("ExtGraph "); System.out.print(base.toRepr()); System.out.print(" "); System.out.println(ext.toRepr());
+      ExtNode en;
+      if ((en = this.nodeMap.get(ext)) == null) {
+        en = this.createNode(ext);
+      } else if (en.includesInDescendant(base)) {
+        throw new CompileException("Detected cyclic extension definition. " + base.toString());
+      } else {
+        ;
+      }
+      ExtNode bn;
+      if ((bn = this.nodeMap.get(base)) == null) {
+        bn = this.createNode(base);
+        en.base = bn;
+        bn.exts.add(en);
+      } else if (bn.includesInAncestor(ext)) {
+        throw new CompileException("Detected cyclic extension definition. " + ext.toString());
+      } else {
+        en.base = bn;
+        bn.exts.add(en);
+      }
+    }
+
+    private ExtNode createNode(PDefDict.TconKey tcon) {
+      ExtNode n = new ExtNode(tcon);
+      this.nodeMap.put(tcon, n);
+      return n;
+    }
+
+    boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
+// /* DEBUG */ System.out.print("is base of "); System.out.print(b.toRepr()); System.out.print(" "); System.out.println(e.toRepr());
+      ExtNode en = this.nodeMap.get(e);
+      return (en != null)? en.includesInAncestor(b): false;
+    }
+  }
+
+  private class ExtNode {
+    PDefDict.TconKey tcon;
+    ExtNode base;  // maybe null
+    List<ExtNode> exts;
+
+    ExtNode(PDefDict.TconKey tcon) {
+      this.tcon = tcon;
+      this.base = null;
+      this.exts = new ArrayList<ExtNode>();
+    }
+
+    boolean includesInDescendant(PDefDict.TconKey t) {
+      boolean b;
+      if (this.tcon.equals(t)) {
+        b = true;
+      } else {
+        b = false;
+        for (int i = 0; !b && i < this.exts.size(); i++) {
+          this.exts.get(i).includesInDescendant(t);
+        }
+      }
+      return b;
+    }
+
+    boolean includesInAncestor(PDefDict.TconKey t) {
+      boolean b = false;
+      ExtNode n = this;
+      while (!b && n != null) {
+        if (n.tcon.equals(t)) {
+          b = true;
+        }
+        n = n.base;
+      }
+      return b;
+    }
   }
 
   static void printVersion(PrintStream out) {

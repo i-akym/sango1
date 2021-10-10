@@ -26,6 +26,7 @@ package org.sango_lang;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -191,6 +192,18 @@ class PCompiledModule implements PDefDict {
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" funofficialdict="); System.out.println(cm.funOfficialDict);
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" funlistdict="); System.out.println(cm.funListDict);
     return cm;
+  }
+
+  void setupExtensionGraph(Compiler.ExtGraph g) throws CompileException {
+    Iterator<String> i = this.tconDict.keySet().iterator();
+    while (i.hasNext()) {
+      String tcon = i.next();
+      PDefDict.TconProps p = this.tconDict.get(tcon);
+      if (p.subcat == PTypeId.SUBCAT_EXTEND) {
+        PDataDef dd = p.defGetter.getDataDef();
+        g.addExtension(dd.getBaseTconKey(), PDefDict.TconKey.create(this.name, tcon));
+      }
+    }
   }
 
   private void mergeFunToEidDict(String name, int cat, int acc) {
