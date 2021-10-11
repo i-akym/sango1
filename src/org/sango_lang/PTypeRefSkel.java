@@ -283,86 +283,72 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-    PTypeSkel tt;
-    PTypeSkel t = type.resolveBindings(bindings);
-    if (t instanceof PNoRetSkel) {
+    PTypeSkel t;
+    PTypeSkel tt = type.resolveBindings(bindings);
+    if (tt instanceof PNoRetSkel) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      tt = t.join2(this, bindings);
+      t = tt.join2(this, bindings);  // forward to PNoRetSkel
     } else {
-      tt = this.join2(t, bindings);
+      t = this.join2(tt, bindings);
     }
-    return tt;
+    return t;
   }
 
   public PTypeSkel join2(PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
     PTypeSkel t;
-    if (type instanceof PTypeVarSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      t = type.join2(this, bindings);
+    if (type instanceof PTypeRefSkel) {
+      t = this.join2TypeRef((PTypeRefSkel)type, bindings);
     } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      PTypeRefSkel tr = (PTypeRefSkel)type;
-      if (this.params.length != tr.params.length) { return null; }  // apparently differs; including fun, tuple, extended
-      if (this.tconInfo.key.equals(tr.tconInfo.key)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 3-1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        PTypeSkel[] ps = new PTypeSkel[this.params.length];
-        for (int i = 0; i < this.params.length; i++) {
-          ps[i] = this.params[i].join(tr.params[i], bindings);
-          if (ps[i] == null) { return null; }
-        }
-        t = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext | tr.ext, ps);
-        // PTypeRefSkel r = new PTypeRefSkel();
-        // r.tconInfo = this.tconInfo;
-        // r.ext = this.ext | tr.ext;
-        // r.params = ps;
-        // t = r;
-      } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconInfo.key, this.tconInfo.key)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 3-2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        PTypeSkel[] ps = new PTypeSkel[this.params.length];
-        for (int i = 0; i < this.params.length; i++) {
-          ps[i] = this.params[i].join(tr.params[i], bindings);
-          if (ps[i] == null) { return null; }
-        }
-        t = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
-        // PTypeRefSkel r = new PTypeRefSkel();
-        // r.tconInfo = this.tconInfo;
-        // r.ext = this.ext;
-        // r.params = ps;
-        // t = r;
-      } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconInfo.key, tr.tconInfo.key)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 3-3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        PTypeSkel[] ps = new PTypeSkel[this.params.length];
-        for (int i = 0; i < this.params.length; i++) {
-          ps[i] = this.params[i].join(tr.params[i], bindings);
-          if (ps[i] == null) { return null; }
-        }
-        t = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
-        // PTypeRefSkel r = new PTypeRefSkel();
-        // r.tconInfo = tr.tconInfo;
-        // r.ext = tr.ext;
-        // r.params = ps;
-        // t = r;
-      } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2 3-4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        t = null;
+      t = this.join2Var((PTypeVarSkel)type, bindings);
+    }
+    return t;
+  }
+
+  PTypeSkel join2TypeRef(PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+    PTypeSkel t;
+    if (this.params.length != tr.params.length) {
+      t = null;
+    } else if (this.tconInfo.key.equals(tr.tconInfo.key)) {
+      PTypeSkel[] ps = new PTypeSkel[this.params.length];
+      boolean cont = true;
+      for (int i = 0; cont && i < this.params.length; i++) {
+        ps[i] = this.params[i].join(tr.params[i], bindings);
+        cont = ps[i] != null;
       }
+      t = cont? create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext | tr.ext, ps): null;
+    } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconInfo.key, this.tconInfo.key)) {
+      PTypeSkel[] ps = new PTypeSkel[this.params.length];
+      boolean cont = true;
+      for (int i = 0; cont && i < this.params.length; i++) {
+        ps[i] = this.params[i].join(tr.params[i], bindings);
+        cont = ps[i] != null;
+      }
+      t = cont? create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps): null;
+    } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconInfo.key, tr.tconInfo.key)) {
+      PTypeSkel[] ps = new PTypeSkel[this.params.length];
+      boolean cont = true;
+      for (int i = 0; cont && i < this.params.length; i++) {
+        ps[i] = this.params[i].join(tr.params[i], bindings);
+        cont = ps[i] != null;
+      }
+      t = cont? create(this.defDictGetter, tr.srcInfo, tr.tconInfo, tr.ext, ps): null;
+    } else {
+      t = null;
+    }
+    return t;
+  }
+
+  PTypeSkel join2Var(PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    PTypeSkel t;
+    if (bindings.isGivenTVar(tv.varSlot)) {
+      t = null;
+    } else if (this.includesVar(tv.varSlot, bindings)) {
+      t = null;
+    } else {
+      bindings.bind(tv.varSlot, this);
+      t = this;
     }
     return t;
   }
