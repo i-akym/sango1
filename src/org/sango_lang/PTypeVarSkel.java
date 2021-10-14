@@ -130,6 +130,24 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
+  public PTypeSkelBindings applyToA(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#applyToA 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+    PTypeSkelBindings b;
+    PTypeSkel tt = this.resolveBindings(trialBindings);
+    if (tt == this) {
+      if (trialBindings.isGivenTVar(this.varSlot)) {
+        b = this.applyGivenTo(type.resolveBindings(trialBindings), trialBindings);
+      } else {
+        b = this.applyFreeTo(type.resolveBindings(trialBindings), trialBindings);
+      }
+    } else {
+      b = tt.applyToA(type, trialBindings);
+    }
+    return b;
+  }
+
   PTypeSkelBindings applyGivenTo(PTypeSkel type, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#applyTo Givin 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
