@@ -358,10 +358,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.getSkel()).unalias(PTypeSkelBindings.create());
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     this.bodySkel.collectTconInfo(tis);
-    for (int i = 0; i < tis.size(); i++) {
-      PDefDict.TconInfo ti = tis.get(i);
-      this.scope.addReferredTcon(ti);
-    }
+    this.scope.addReferredTcons(tis);
   }
 
   private static class AliasGraphNode {

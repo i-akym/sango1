@@ -428,9 +428,14 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
 
   public void normalizeTypes() {
     if (this.constrs != null) {
+      List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i].normalizeTypes();
+        for (int j = 0; j < constrs[i].attrs.length; j++) {
+          constrs[i].attrs[j].nTypeSkel.collectTconInfo(tis);
+        }
       }
+      this.scope.addReferredTcons(tis);
     }
   }
 

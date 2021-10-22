@@ -42,10 +42,12 @@ public interface PTypeSkel {
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
-  // base type is acceptable
-  PTypeSkelBindings applyTo(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
-  // only same type is acceptable
-  PTypeSkelBindings applyToA(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  PTypeSkelBindings applyTo(int width, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  // where, width is
+  static final int EQUAL = 0;
+  static final int NARROWER = 1;
+  static final int WIDER = - NARROWER;
+
 
   boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings);
 

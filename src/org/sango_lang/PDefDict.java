@@ -212,20 +212,24 @@ public interface PDefDict {
     }
   }
 
-  public static TparamProps createTparamProps(boolean concrete) {
-    return new TparamProps(concrete);
+  public static TparamProps createTparamProps(int variance, boolean concrete) {
+    return new TparamProps(variance, concrete);
   }
 
   static class TparamProps {
+    int variance;
     boolean concrete;
 
-    TparamProps(boolean concrete) {
+    TparamProps(int variance, boolean concrete) {
+      this.variance = variance;
       this.concrete = concrete;
     }
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
-      buf.append("tparamprops[concrete=");
+      buf.append("tparamprops[variance=");
+      buf.append(this.variance);
+      buf.append(",concrete=");
       buf.append(this.concrete);
       buf.append("]");
       return buf.toString();

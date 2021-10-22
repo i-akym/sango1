@@ -408,12 +408,16 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
   }
 
   public void normalizeTypes() throws CompileException {
+    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     if (this.params != null) {
       for (int i = 0; i < this.params.length; i++) {
         this.params[i].normalizeTypes();
+        this.params[i].nTypeSkel.collectTconInfo(tis);
       }
     }
     this.retDef.normalizeTypes();
+    this.retDef.nTypeSkel.collectTconInfo(tis);
+    this.scope.addReferredTcons(tis);
     if (this.implExprs != null) {
       for (int i = 0; i < this.implExprs.length; i++) {
         this.implExprs[i].normalizeTypes();

@@ -74,7 +74,7 @@ class PCompiledModule implements PDefDict {
         if (dds[j].params != null) {
           paramPropss = new PDefDict.TparamProps[dds[j].params.length];
           for (int k = 0; k < dds[j].params.length; k++) {
-            paramPropss[k] = new PDefDict.TparamProps(dds[j].params[k].requiresConcrete);
+            paramPropss[k] = new PDefDict.TparamProps(dds[j].params[k].variance, dds[j].params[k].requiresConcrete);
           }
         } else {
           paramPropss = null;
@@ -91,7 +91,7 @@ class PCompiledModule implements PDefDict {
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
         for (int k = 0; k < paramPropss.length; k++) {
-          paramPropss[k] = new PDefDict.TparamProps(false);
+          paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
@@ -111,7 +111,7 @@ class PCompiledModule implements PDefDict {
       if (mdd.params != null) {
         paramPropss = new PDefDict.TparamProps[mdd.params.length];
         for (int k = 0; k < mdd.params.length; k++) {
-          paramPropss[k] = new PDefDict.TparamProps(mdd.params[k].requiresConcrete);
+          paramPropss[k] = new PDefDict.TparamProps(mdd.params[k].variance, mdd.params[k].requiresConcrete);
         }
       } else {
         paramPropss = null;
@@ -131,7 +131,7 @@ class PCompiledModule implements PDefDict {
       MAliasTypeDef matd = matds[i];
       PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[matd.paramCount];
       for (int k = 0; k < matd.paramCount; k++) {
-        paramPropss[k] = new PDefDict.TparamProps(false);
+        paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
       }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
@@ -174,7 +174,7 @@ class PCompiledModule implements PDefDict {
       }
     }
 
-    // /* DEBUG */ System.out.println("foreign tcon dict " + cm.foreignTconDict);
+// /* DEBUG */ System.out.println("foreign tcon dict " + cm.foreignTconDict);
 
     for (int i = 0; i < unresolvedTypeRefList.size(); i++) {
       PTypeRefSkel tr = unresolvedTypeRefList.get(i);
@@ -183,8 +183,8 @@ class PCompiledModule implements PDefDict {
       } else {
         tr.tconInfo.props = cm.foreignTconDict.get(tr.tconInfo.key);
       }
-      // temporal implementation: props may not be resolved, when alias body.
-      // /* DEBUG */ if (tr.tconInfo.props == null) { throw new RuntimeException(cm.name.toJavaString() + " tcon props not resolved. " + tr); }
+      // HERE: props may not be resolved?
+// /* DEBUG */ if (tr.tconInfo.props == null) { System.out.print("PN "); System.out.print(cm.name.toJavaString()); System.out.print(" "); System.out.println(tr); }
     }
 
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" tcondict="); System.out.println(cm.tconDict);
@@ -244,7 +244,8 @@ class PCompiledModule implements PDefDict {
     if (dataDef.params != null) {
       dd.sigParams = new PTypeVarSkel[dataDef.params.length];
       for (int i = 0; i < dataDef.params.length; i++) {
-        PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(dataDef.params[i].requiresConcrete));
+        PTypeVarSkel v = PTypeVarSkel.create(null, null,
+          PTVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete));
         dd.sigParams[i] = v;
         varList.add(v);
       }
@@ -298,8 +299,8 @@ class PCompiledModule implements PDefDict {
       if (this.sig == null) {
         if (this.sigTcon.equals(Module.TCON_NORET)) {
           throw new RuntimeException("Attempted to make sig of NORET.");
-        } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
-          throw new RuntimeException("Attempted to make sig of EXPOSED.");
+        // } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
+          // throw new RuntimeException("Attempted to make sig of EXPOSED.");
         } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(PCompiledModule.this.name, this.sigTcon);
           PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
@@ -336,7 +337,7 @@ class PCompiledModule implements PDefDict {
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
     PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
-      paramPropss[k] = new PDefDict.TparamProps(false);
+      paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
     }
     PDefDict.TconProps tp = PDefDict.TconProps.create(
       PTypeId.SUBCAT_ALIAS, paramPropss, aliasDef.acc, g);
@@ -346,7 +347,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false));
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasDef.body, mod, varList, unresolvedTypeRefList);
@@ -486,7 +487,7 @@ class PCompiledModule implements PDefDict {
       if (pts.length != paramTypes.length) { continue; }
       PTypeSkelBindings b = PTypeSkelBindings.create(givenVarList);
       for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].applyTo(paramTypes[j], b);
+        b = pts[j].applyTo(PTypeSkel.NARROWER, paramTypes[j], b);
       }
       if (b != null) {
         sel = PDefDict.FunSelRes.create(fd, b);
@@ -614,7 +615,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.requiresConcrete));
+      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.variance, tv.requiresConcrete));
       varList.add(v);
     } else {
       throw new RuntimeException("Slot number is not sequential.");
