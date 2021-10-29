@@ -1359,6 +1359,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
       Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
   }
 
+  void addReferredTcon(PDefDict.TconInfo ti) {
+    this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.tcon, ti.props);
+  }
+
   public int getModAvailability() { return this.availability; }
 
   public Cstr[] getForeignMods() {
@@ -1617,7 +1621,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.print(tcon); 
 // /* DEBUG */ System.out.print(" "); 
-// /* DEBUG */ System.out.print(tp); 
+// /* DEBUG */ System.out.println(tp); 
       switch (tp.subcat) {
       case PTypeId.SUBCAT_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");

@@ -273,37 +273,12 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
 // /* DEBUG */ System.out.println("unalias " + this.tcon);
 // /* DEBUG */ System.out.println(((PTypeRef)this.sig).tconInfo.toString());
     AliasGraphNode n = AliasGraphNode.createRoot(((PTypeRef)this.sig).tconInfo);
-    checkUnalias(n);
-
-    // List<PDefDict.TconKey> aliasChain = new ArrayList<PDefDict.TconKey>();
-    // aliasChain.add(PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
-    // PDefDict.TconInfo uti = this.unaliasTconInfo();
-    // while (uti != null) {
-      // if (aliasChain.contains(uti.key)) {
-        // emsg = new StringBuffer();
-        // emsg.append("Circular definition detected for \"");
-        // emsg.append(this.tcon);
-        // emsg.append("\" at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // String sep = "\n  ";
-        // for (int i = 0; i < aliasChain.size(); i++) {
-          // emsg.append(sep);
-          // emsg.append(aliasChain.get(i));
-          // sep = " -> ";
-        // }
-        // emsg.append(sep);
-        // emsg.append(uti.key);
-        // throw new CompileException(emsg.toString());
-      // }
-      // aliasChain.add(uti.key);
-      // uti = (uti.props.subcat == PTypeId.SUBCAT_ALIAS)?
-        // uti.props.defGetter.getAliasDef().unaliasTconInfo(): null;
-    // }
+    this.checkUnalias(n);
   }
 
   void checkUnalias(AliasGraphNode a) throws CompileException {
     StringBuffer emsg;
+// /* DEBUG */ System.out.println(this);
     if (a.ti.props.subcat != PTypeId.SUBCAT_ALIAS) { return; }
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     a.ti.props.defGetter.getAliasDef().collectUnaliasTconInfo(tis);
@@ -376,28 +351,17 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     // /* DEBUG */ System.out.print(" ...start instanciation... ");
     // /* DEBUG */ System.out.print(bindings.toString());
     PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
-    // /* DEBUG */ System.out.print(" ...end instanciation... ");
-    // for (int i = 0; i < tr.params.length; i++) {
-      // PTypeSkel p = tr.params[i];
-      // if (p instanceof PTypeRefSkel) {
-        // PTypeRefSkel ptr = (PTypeRefSkel)p;
-        // PAliasDef pa;
-        // if ((pa = ptr.tconInfo.props.defGetter.getAliasDef()) != null) {
-          // tr.params[i] = pa.unalias(ptr.params);
-        // }
-      // }
-    // }
-    // /* DEBUG */ System.out.print(" -> ");
-    // /* DEBUG */ System.out.println(tr);
     return tr;
-    // PAliasDef a;
-    // return ((a = tr.tconInfo.props.defGetter.getAliasDef()) != null)?
-      // a.unalias(tr.params): tr;
   }
 
   void setupBodySkel() {
     this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.getSkel()).unalias(PTypeSkelBindings.create());
-// /* DEBUG */ System.out.println("alias body -> " + this.bodySkel.toString());
+    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    this.bodySkel.collectTconInfo(tis);
+    for (int i = 0; i < tis.size(); i++) {
+      PDefDict.TconInfo ti = tis.get(i);
+      this.scope.addReferredTcon(ti);
+    }
   }
 
   private static class AliasGraphNode {
@@ -410,6 +374,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     }
 
     private AliasGraphNode(PDefDict.TconInfo ti) {
+// /* DEBUG */ System.out.println(ti);
       this.ti = ti;
       this.children = new ArrayList<AliasGraphNode>();
     }
