@@ -246,6 +246,10 @@ class PScope {
     return this.theMod.resolveTcon(mod, name);
   }
 
+  void addReferredTcon(PDefDict.TconInfo ti) {
+    this.theMod.addReferredTcon(ti);
+  }
+
   PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PTypeDesc[] paramTypeDescs) {
     PTypeRef t = null;
     try {
