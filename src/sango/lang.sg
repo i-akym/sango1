@@ -52,11 +52,11 @@ data <char> @opaque := @native ;;  # charset is unicode
 
 # list type
 
-data <*A list> @opaque := @native ;;
+data <*+A list> @opaque := @native ;;
 
 # string type
 
-data <*A string> @opaque := @native ;;
+data <*+A string> @opaque := @native ;;
 
 alias type <bstr> @public := <byte string> ;;
 alias type <cstr> @public := <char string> ;;
@@ -106,11 +106,11 @@ data <*A seal_fs> @public :=
 
 # miscellaneous types
 
-data <*A result> @public :=
+data <*+A result> @public :=
 | fin: <A> fin$
 | <exception> exc$ ;;
 
-data <*A maybe> @public :=
+data <*+A maybe> @public :=
 | <A> value$
 | none$ ;;
 

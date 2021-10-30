@@ -147,7 +147,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.applyTo(this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.applyTo(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -204,7 +204,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.inNode.type.applyTo(this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.inNode.type.applyTo(PTypeSkel.NARROWER, this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -249,7 +249,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.inNode.type.applyTo(this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.inNode.type.applyTo(PTypeSkel.NARROWER, this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -289,7 +289,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.applyTo(this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.applyTo(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -537,7 +537,7 @@ if (DEBUG > 1) {
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
         PTypeSkelBindings bb = this.bindings;  // before looks for debug
-        this.bindings = ctr.params[i].applyTo(t, this.bindings);
+        this.bindings = ctr.params[i].applyTo(PTypeSkel.NARROWER, t, this.bindings);
         if (this.bindings == null) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
@@ -864,7 +864,7 @@ if (DEBUG > 1) {
           /* DEBUG */ System.out.print("bindings: ");
           /* DEBUG */ System.out.println(b);
 }
-        if ((b = at.applyTo(t, b)) == null) {
+        if ((b = at.applyTo(PTypeSkel.NARROWER, t, b)) == null) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(this.typedElem.getSrcInfo());

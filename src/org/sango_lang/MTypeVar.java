@@ -30,13 +30,15 @@ import org.w3c.dom.Node;
 
 class MTypeVar implements MType {
   int slot;
+  int variance;
   boolean requiresConcrete;
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, boolean requiresConcrete) {
+  static MTypeVar create(int slot, int variance, boolean requiresConcrete) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
+    t.variance = variance;
     t.requiresConcrete = requiresConcrete;
     return t;
   }
@@ -44,6 +46,14 @@ class MTypeVar implements MType {
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("<");
+    switch (this.variance) {
+    case Module.COVARIANT:
+      buf.append("+");
+      break;
+    case Module.CONTRAVARIANT:
+      buf.append("-");
+      break;
+    }
     buf.append("_");
     buf.append(this.slot);
     if (this.requiresConcrete) {
@@ -56,6 +66,14 @@ class MTypeVar implements MType {
   public Element externalize(Document doc) {
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
+    switch (this.variance) {
+    case Module.COVARIANT:
+      node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
+      break;
+    case Module.CONTRAVARIANT:
+      node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
+      break;
+    }
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
@@ -74,6 +92,20 @@ class MTypeVar implements MType {
     // if (slot < 0 || slot > builder.typeVarCount) {
       // throw new FormatException("Invalid slot: " + aSlot.getNodeValue());
     // }
+    int variance = Module.INVARIANT;
+    Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
+    if (aVariance != null) {
+      String sVariance = aVariance.getNodeValue();
+      if (sVariance.equals(Module.REPR_INVARIANT)) {
+        ;
+      } else if (sVariance.equals(Module.REPR_COVARIANT)) {
+        variance = Module.COVARIANT;
+      } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
+        variance = Module.COVARIANT;
+      } else {
+        throw new FormatException("Invalid 'variance': " + sVariance);
+      }
+    }
     boolean requiresConcrete = false;
     Node aRequiresConcrete = attrs.getNamedItem(Module.ATTR_REQUIRES_CONCRETE);
     if (aRequiresConcrete != null) {
@@ -86,7 +118,7 @@ class MTypeVar implements MType {
         throw new FormatException("Invalid 'requires_concrete': " + sRequiresConcrete);
       }
     }
-    return create(slot, requiresConcrete);
+    return create(slot, variance, requiresConcrete);
   }
 
   public boolean isCompatible(Cstr defModName, MType type) {

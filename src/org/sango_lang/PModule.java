@@ -553,7 +553,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (dat.tparams != null) {
       paramPropss = new PDefDict.TparamProps[dat.tparams.length];
       for (int i = 0; i < dat.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].requiresConcrete);
+        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].variance, dat.tparams[i].requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -607,7 +607,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (ext.tparams != null) {
       paramPropss = new PDefDict.TparamProps[ext.tparams.length];
       for (int i = 0; i < ext.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].requiresConcrete);
+        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].variance, ext.tparams[i].requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -656,7 +656,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (alias.tparams != null) {
       paramPropss = new PDefDict.TparamProps[alias.tparams.length];
       for (int i = 0; i < alias.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(alias.tparams[i].requiresConcrete);
+        paramPropss[i] = new PDefDict.TparamProps(alias.tparams[i].variance, alias.tparams[i].requiresConcrete);
+          // actually (invariant, false)
       }
     } else {
       paramPropss = null;
@@ -828,7 +829,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, paramTypeBuilder.create(), "X"));
@@ -859,7 +860,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, paramTypeBuilder.create(), "X"));
@@ -900,7 +901,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dd.getFormalTcon(), true));
     evalStmtBuilder.addParam(PEVarDef.create(si, paramTypeBuilder.create(), "X"));
@@ -989,7 +990,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = generateIds("T", dd.getParamVarSlots().length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dd.getFormalTcon(), true));
     evalStmtBuilder.addParam(PEVarDef.create(si, paramTypeBuilder.create(), "X"));
@@ -1098,7 +1099,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < dat.tparams.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, dat.tparams[i].name, false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, dat.tparams[i].name, Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dat.tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, paramTypeBuilder.create(), "X"));
@@ -1167,7 +1168,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < tparams.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, tparams[i].name, false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, tparams[i].name, Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, paramTypeBuilder.create(), "X"));
@@ -1493,7 +1494,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       if (pts.length != paramTypes.length) { continue; }
       PTypeSkelBindings b = PTypeSkelBindings.create(givenTVarList);
       for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].applyTo(paramTypes[j], b);
+        b = pts[j].applyTo(PTypeSkel.NARROWER, paramTypes[j], b);
       }
       if (b != null) {
         sel = PDefDict.FunSelRes.create(fd, b);

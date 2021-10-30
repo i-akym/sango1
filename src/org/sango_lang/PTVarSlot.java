@@ -28,25 +28,42 @@ public class PTVarSlot {
 
   int hash;
   PTVarDef varDef;
+  int variance;
   boolean requiresConcrete;
 
   private PTVarSlot() {}
 
   static PTVarSlot create(PTVarDef varDef) {
-    PTVarSlot s = createInternal((varDef != null)? varDef.requiresConcrete: false);  // is accepting null ok?
+    PTVarSlot s;
+    if (varDef != null) {
+      s = createInternal(varDef.variance, varDef.requiresConcrete);
+    } else {
+      s = createInternal(Module.INVARIANT, false);  // hmmm...
+    }
     s.varDef = varDef;
     return s;
   }
 
-  public static PTVarSlot createInternal(boolean requiresConcrete) {
+  public static PTVarSlot createInternal(int variance, boolean requiresConcrete) {
     PTVarSlot s = new PTVarSlot();
     s.hash = hashValue++;
+    s.variance = variance;
     s.requiresConcrete = requiresConcrete;
     return s;
   }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
+    switch (this.variance) {
+    case Module.COVARIANT:
+      buf.append("+");
+      break;
+    case Module.CONTRAVARIANT:
+      buf.append("-");
+      break;
+    default:
+      break;
+    }
     if (this.varDef != null) {
       buf.append(this.varDef.name);
       buf.append(":VT");
@@ -61,6 +78,26 @@ public class PTVarSlot {
   }
 
   String repr() {
-    return ((this.varDef != null)? this.varDef.name: "$" + this.hash) + (this.requiresConcrete? "!": "");
+    StringBuffer buf = new StringBuffer();
+    switch (this.variance) {
+    case Module.COVARIANT:
+      buf.append("+");
+      break;
+    case Module.CONTRAVARIANT:
+      buf.append("-");
+      break;
+    default:
+      break;
+    }
+    if (this.varDef != null) {
+      buf.append(this.varDef.name);
+    } else {
+      buf.append("$");
+      buf.append(this.hash);
+    }
+    if (this.requiresConcrete) {
+      buf.append("!");
+    }
+    return buf.toString();
   }
 }
