@@ -644,7 +644,7 @@ if (DEBUG > 1) {
       if (tt.size() > 0) {
         t = tt.get(0);
         for (int i = 1; i < tt.size(); i++) {
-          PTypeSkel t1 = t.join(tt.get(i), PTypeSkelBindings.create(this.getGivenTvarList()));
+          PTypeSkel t1 = t.join(tt.get(i), this.getGivenTvarList());
           if (t1 == null) {
             emsg = new StringBuffer();
             emsg.append("Results of clauses cannot join at - ");
@@ -755,7 +755,7 @@ if (DEBUG > 1) {
         emsg.append(tt);  // HERE: convert to readable expression
         throw new CompileException(emsg.toString());
       }
-      PTypeSkel t = et.join(((PTypeRefSkel)tt).params[0], PTypeSkelBindings.create(this.getGivenTvarList()));
+      PTypeSkel t = et.join(((PTypeRefSkel)tt).params[0], this.getGivenTvarList());
       if (t == null) {
 // /* DEBUG */ System.out.print("joining "); System.out.print(et); System.out.print(" "); System.out.println(((PTypeRefSkel)tt).params[0]);
         emsg = new StringBuffer();
@@ -805,7 +805,7 @@ if (DEBUG > 1) {
         if (t == null) {  // [0]
           t = t2;
         } else {
-          t = t.join(t2, PTypeSkelBindings.create(this.getGivenTvarList()));
+          t = t.join(t2, this.getGivenTvarList());
           if (t == null) {
             emsg = new StringBuffer();
             emsg.append("Element types incompatible at - ");
