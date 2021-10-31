@@ -93,13 +93,13 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTVarSlot getVarSlot() { return null; }
 
-  public PTypeSkel join(PTypeSkel type, PTypeSkelBindings bindings) {
-    return this.join2(type.resolveBindings(bindings), bindings);
+  public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) {
+    return this.join2(type, givenTVarList);
   }
 
-  public PTypeSkel join2(PTypeSkel type, PTypeSkelBindings bindings) {
+  public PTypeSkel join2(PTypeSkel type, List<PTVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PNoRetSkel#join 0 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PNoRetSkel#join 0 "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
     return type;
   }
