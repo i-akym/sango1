@@ -273,10 +273,10 @@ kbd {
 <p>文字を表します。
   内部表現はUnicodeです。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A list&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A list&gt; @opaque ;;</code></td></tr></table>
 <p>リストを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A string&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A string&gt; @opaque ;;</code></td></tr></table>
 <p>ストリングを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;bstr&gt; @public := &lt;byte string&gt; ;;</code></td></tr></table>
@@ -296,7 +296,7 @@ kbd {
   seal_fs$ ;;</code></td></tr></table>
 <p>オブジェクトを<code>&lt;independent+&gt;</code>に変換する関数，その逆の関数を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
@@ -376,7 +376,7 @@ kbd {
 <p>例外の発生状況を表します。
   このオブジェクトから情報を得る関数が<code>&quot;sango.debug&quot;</code>から提供されています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A result&gt; @public := fin: &lt;A&gt; fin$ | &lt;exception&gt; exc$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A result&gt; @public := fin: &lt;A&gt; fin$ | &lt;exception&gt; exc$ ;;</code></td></tr></table>
 <p>関数の実行結果として，正常終了して結果が返された場合か，例外が発生した場合を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg &lt;exception maybe&gt; *Original_exc_
