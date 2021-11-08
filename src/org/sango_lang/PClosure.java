@@ -127,7 +127,7 @@ class PClosure extends PDefaultEvalElem {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEVarDef var = PEVarDef.acceptX(ee, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED);
+        PEVarDef var = PEVarDef.acceptX(ee, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -221,7 +221,7 @@ class PClosure extends PDefaultEvalElem {
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
     PEVarDef param;
-    while ((param = PEVarDef.accept(reader, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    while ((param = PEVarDef.accept(reader, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       builder.addParam(param);
     }
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {

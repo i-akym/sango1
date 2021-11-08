@@ -380,7 +380,7 @@ abstract class PPtn {
       ;
     } else if ((ptn = PStringPtn.acceptX(elem)) != null) {
       ;
-    } else if ((ptn = PEVarDef.acceptX(elem, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    } else if ((ptn = PEVarDef.acceptX(elem, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       ;
     } else if ((ptn = PWildCard.acceptX(elem)) != null) {
       ;

@@ -159,11 +159,6 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     return (PTypeVarSkel)this.getSkel();
   }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createVarNode(this, this.name);
-    return this.typeGraphNode;
-  }
-
   public PTypeVarSkel getSkel() {
     return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
   }

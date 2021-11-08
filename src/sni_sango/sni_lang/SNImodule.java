@@ -174,7 +174,7 @@ public class SNImodule {
         PDataDef.Attr a = c.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
         PTypeSkelBindings bb = b;
-        if ((b = at.applyTo(PTypeSkel.NARROWER, tv.type, b)) == null) {
+        if ((b = at.accept(PTypeSkel.NARROWER, true, tv.type, b)) == null) {
           StringBuffer emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(Integer.toString(i));
@@ -221,7 +221,7 @@ public class SNImodule {
     PDataDef.Constr c = dd.getConstr(dconName);
     PTypeSkelBindings b = PTypeSkelBindings.create();
     try {
-      b = ts.applyTo(PTypeSkel.NARROWER, constrTao.type, b);
+      b = ts.accept(PTypeSkel.NARROWER, true, constrTao.type, b);
     } catch (CompileException ex) {
       throw new RuntimeException("Unexpected exception. - " + ex.toString());
     }
@@ -273,7 +273,7 @@ public class SNImodule {
         }
         RListItem.Cell lc = (RListItem.Cell)L;
         TaoItem p = (TaoItem)lc.head;
-        PTypeSkelBindings bb = pts[i].applyTo(PTypeSkel.NARROWER, p.type, b);
+        PTypeSkelBindings bb = pts[i].accept(PTypeSkel.NARROWER, true, p.type, b);
         if (bb == null) {
           helper.setException(sni_sango.SNIlang.createBadArgException(
             helper, new Cstr("Parameter type mismatch."), null));

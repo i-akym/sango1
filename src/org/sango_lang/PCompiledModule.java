@@ -487,7 +487,7 @@ class PCompiledModule implements PDefDict {
       if (pts.length != paramTypes.length) { continue; }
       PTypeSkelBindings b = PTypeSkelBindings.create(givenVarList);
       for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].applyTo(PTypeSkel.NARROWER, paramTypes[j], b);
+        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], b);
       }
       if (b != null) {
         sel = PDefDict.FunSelRes.create(fd, b);
