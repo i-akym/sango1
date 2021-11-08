@@ -2170,16 +2170,17 @@ data &lt;*+<var>T<sub>1</sub></var> *+<var>T<sub>2</sub></var> ... *+<var>T<sub>
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.5">B.5. narrowとcast</h2>
 <p>オブジェクト指向言語には「narrow」や「cast」があります。Sangoにもこれらの用語がありますが，以下の意味です。</p>
-<p>「narrow」は，拡張型<code>&lt;<var>T</var>+&gt;</code>として扱われているオブジェクトを元の型<code>&lt;<var>T</var>&gt;</code>に落とし込むことです。
-  これは，コンパイラが生成する<code>_narrow_<var>T</var></code>関数（別名は型に共通で<code>narrow</code>）によって行います。
-  落とし込めれば<code>&lt;<var>T</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
+<p>「narrow」は，拡張型として扱われているオブジェクトを基底型に落とし込むことです。
+これは，コンパイラが生成する<code>_narrow_<var>T</var></code>関数（<code><var>T</var></code>は型構築子名。関数の別名は型に共通で<code>narrow</code>）によって行います。
+落とし込めれば<code>&lt;<var>T</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
 <blockquote class="def">疑似定義<code>
 eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<var>T</var> maybe&gt; ;;</code></blockquote>
-<p>「cast」は，未束縛の型パラメタを決定し，より具体的な型にすることです。
-  例えば，<code>&lt;A list&gt;</code>を<code>&lt;int list&gt;</code>にすることです。
-  これには，cast先の型を変数束縛の際に指定する方法と，関数の返り値の型として指定する方法があります。
-  ただし，Sangoのプログラミングにおいて，castを行う必要は限られています。</p>
-<blockquote class="code-sample">コード例<code>
+
+<p>「cast」は，型を指定することで，未束縛の型パラメタを具体的な型に束縛すること，拡張型を指定することができます。
+<blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にcastが必要になることはあまりありません。</blockquote>
+関数の戻り値の実際の型は，宣言した型に暗黙的にcastされます。
+また，変数束縛の際にcast先の型を指定することができます。</p>
+<blockquote class="code-sample"><code>&lt;A list&gt;</code> を <code>&lt;int list&gt;</code> にcastするコード例<code>
 [] = &lt;int list&gt; *X
 &amp;\\ &lt;int list&gt; { [] }</code></blockquote>
  
