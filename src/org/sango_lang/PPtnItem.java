@@ -91,9 +91,9 @@ class PPtnItem extends PDefaultProgElem {
       ;
     } else if ((acceptables & PPtn.ACCEPT_ID) > 0 && (elem = PExprId.accept(reader, PExprId.ID_MAYBE_QUAL, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_VARDEF_NOT_CASTED) > 0 && (elem = PEVarDef.accept(reader, /* PEVarDef.CAT_LOCAL_VAR, */ PEVarDef.TYPE_NOT_ALLOWED)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_VARDEF_NOT_CASTED) > 0 && (elem = PEVarDef.accept(reader, PEVarDef.CAT_LOCAL_VAR, PEVarDef.TYPE_NOT_ALLOWED)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_VARDEF_CASTED) > 0 && (elem = PEVarDef.accept(reader, /* PEVarDef.CAT_LOCAL_VAR, */ PEVarDef.TYPE_NEEDED)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_VARDEF_CASTED) > 0 && (elem = PEVarDef.accept(reader, PEVarDef.CAT_LOCAL_VAR, PEVarDef.TYPE_NEEDED)) != null) {
       ;
     } else if ((acceptables & PPtn.ACCEPT_WILD_CARD) > 0 && (elem = PWildCard.accept(reader, space)) != null) {
       ;

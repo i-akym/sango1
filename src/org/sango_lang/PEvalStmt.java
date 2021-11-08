@@ -242,7 +242,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEVarDef var = PEVarDef.acceptX(ee, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED);
+        PEVarDef var = PEVarDef.acceptX(ee, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -299,7 +299,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
   private static List<PEVarDef> acceptParamList(ParserA.TokenReader reader) throws CompileException, IOException {
     List<PEVarDef> paramList = new ArrayList<PEVarDef>();
     PEVarDef param;
-    while ((param = PEVarDef.accept(reader, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED)) != null) {
+    while ((param = PEVarDef.accept(reader, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED)) != null) {
       paramList.add(param);
     }
     return paramList;

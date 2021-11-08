@@ -26,22 +26,23 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PEVarDef extends PDefaultPtnElem {
-  // static final int CAT_FUN_PARAM = 1;
-  // static final int CAT_LOCAL_VAR = 2;
+  static final int CAT_FUN_PARAM = 1;
+  static final int CAT_LOCAL_VAR = 2;
 
   static final int TYPE_NOT_ALLOWED = 1;
   static final int TYPE_MAYBE_SPECIFIED = 2;
   static final int TYPE_NEEDED = 3;
 
   String name;
+  int cat;
   PEVarSlot varSlot;
 
   private PEVarDef() {}
 
-  static PEVarDef create(Parser.SrcInfo srcInfo, /* int cat, */ PTypeDesc type, String name) {
+  static PEVarDef create(Parser.SrcInfo srcInfo, int cat, PTypeDesc type, String name) {
     PEVarDef var = new PEVarDef();
     var.srcInfo = srcInfo;
-    // var.cat = cat;
+    var.cat = cat;
     var.type = type;
     var.name = name;
     return var;
@@ -52,8 +53,8 @@ class PEVarDef extends PDefaultPtnElem {
     buf.append("newvar[");
     buf.append("src=");
     buf.append(this.srcInfo);
-    // buf.append(",cat=");
-    // buf.append(this.cat);
+     buf.append(",cat=");
+    buf.append(this.cat);
     buf.append(",name=");
     buf.append(this.name);
     if (this.type != null) {
@@ -68,16 +69,16 @@ class PEVarDef extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  public PEVarDef deepCopy(Parser.SrcInfo srcInfo) {
-    PEVarDef v = new PEVarDef();
-    v.srcInfo = srcInfo;
-    // v.cat = this.cat;
-    v.name = this.name;
-    v.scope = this.scope;
-    return v;
-  }
+  // public PEVarDef deepCopy(Parser.SrcInfo srcInfo) {
+    // PEVarDef v = new PEVarDef();
+    // v.srcInfo = srcInfo;
+    // // v.cat = this.cat;
+    // v.name = this.name;
+    // v.scope = this.scope;
+    // return v;
+  // }
 
-  static PEVarDef accept(ParserA.TokenReader reader, /* int cat, */ int typeSpec) throws CompileException, IOException {
+  static PEVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PTypeDesc type = null;
@@ -110,10 +111,10 @@ class PEVarDef extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(si, /* cat, */ type, varId.value.token);
+    return create(si, cat, type, varId.value.token);
   }
 
-  static PEVarDef acceptX(ParserB.Elem elem, /* int cat, */ int typeSpec) throws CompileException {
+  static PEVarDef acceptX(ParserB.Elem elem, int cat, int typeSpec) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -136,7 +137,7 @@ class PEVarDef extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), /* cat, */ type, id);
+    return create(elem.getSrcInfo(), cat, type, id);
   }
 
   public PEVarDef setupScope(PScope scope) throws CompileException {
@@ -183,7 +184,7 @@ class PEVarDef extends PDefaultPtnElem {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createVarNode(this, this.name);
+    this.typeGraphNode = graph.createVarNode(this, this.name, this.cat);
     return this.typeGraphNode;
   }
 
