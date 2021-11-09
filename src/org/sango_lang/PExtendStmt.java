@@ -314,6 +314,19 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
     }
+    if (this.baseTconInfo.props.paramProps != null) {
+      for (int i = 0; i < this.tparams.length; i++) {
+        if (this.tparams[i].variance != this.baseTconInfo.props.paramProps[i].variance) {
+          emsg = new StringBuffer();
+          emsg.append("Variance of *");
+          emsg.append(this.tparams[i].name);
+          emsg.append(" mismatch with that of base definition at ");
+          emsg.append(this.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString()) ;
+        }
+      }
+    }
     this.idResolved = true;
     return this;
   }
