@@ -114,6 +114,55 @@ public class PTypeVarSkel implements PTypeSkel {
       this;
   }
 
+  public void checkVariance(int width) throws CompileException {
+    boolean b;
+    switch (width) {
+    case PTypeSkel.EQUAL:
+      switch (this.varSlot.variance) {
+      case Module.INVARIANT:
+        b = true;
+        break;
+      default:
+        b = false;
+      }
+      break;
+    case PTypeSkel.NARROWER:
+      switch (this.varSlot.variance) {
+      case Module.INVARIANT:
+      case Module.CONTRAVARIANT:
+        b = true;
+        break;
+      default:
+        b = false;
+      }
+      break;
+    default:
+      switch (this.varSlot.variance) {
+      case Module.INVARIANT:
+      case Module.COVARIANT:
+        b = true;
+        break;
+      default:
+        b = false;
+      }
+      break;
+    }
+    if (!b) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Incoherent variance ");
+      if (this.varSlot.varDef != null) {  // should be true!
+        emsg.append("for *");
+        emsg.append(this.varSlot.varDef.name);
+      }
+      if (this.srcInfo != null) {  // should be true!
+        emsg.append(" at ");
+        emsg.append(this.srcInfo.toString());
+      }
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+  }
+
   public PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
