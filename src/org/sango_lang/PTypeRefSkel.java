@@ -202,6 +202,13 @@ public class PTypeRefSkel implements PTypeSkel {
     return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
   }
 
+  public void checkVariance(int width) throws CompileException {
+    int[] ww = paramWidths(width, this.paramVariances());
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].checkVariance(ww[i]);
+    }
+  }
+
   public PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);

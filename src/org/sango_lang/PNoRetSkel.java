@@ -67,6 +67,8 @@ class PNoRetSkel implements PTypeSkel {
     return this;
   }
 
+  public void checkVariance(int width) throws CompileException {}
+
   public PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PNoRetSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);

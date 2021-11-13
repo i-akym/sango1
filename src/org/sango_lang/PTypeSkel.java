@@ -42,6 +42,8 @@ public interface PTypeSkel {
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
+  void checkVariance(int width) throws CompileException;
+
   PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
   // where, width is
   static final int EQUAL = 0;
