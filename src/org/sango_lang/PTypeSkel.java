@@ -36,21 +36,27 @@ public interface PTypeSkel {
 
   boolean isConcrete();
 
+  boolean isConcrete(PTypeSkelBindings bindings);
+
   PTypeSkel instanciate(InstanciationBindings iBindings);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
-  PTypeSkelBindings applyTo(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  void checkVariance(int width) throws CompileException;
 
-  PTypeSkelBindings applyTo2(PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  // where, width is
+  static final int EQUAL = 0;
+  static final int NARROWER = 1;
+  static final int WIDER = - NARROWER;
 
   boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings);
 
   PTVarSlot getVarSlot();
 
-  PTypeSkel join(PTypeSkel type, PTypeSkelBindings bindings) throws CompileException;
-
-  PTypeSkel join2(PTypeSkel type, PTypeSkelBindings bindings) throws CompileException;
+  PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException;
+    // foward to following method by combination of target and param
+  PTypeSkel join2(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException;
 
   MType toMType(PModule mod, List<PTVarSlot> slotList);
 

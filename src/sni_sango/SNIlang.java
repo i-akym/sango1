@@ -320,6 +320,12 @@
     return helper.createException(ed, msg, org);
   }
 
+  public static RObjItem createBadStatusException(RNativeImplHelper helper, Cstr msg, RObjItem org) {
+    RDataConstr edc = helper.getDataConstr(Module.MOD_LANG, "bad_status$");
+    RObjItem ed = helper.getStructItem(edc, new RObjItem[0]);
+    return helper.createException(ed, msg, org);
+  }
+
   public static RObjItem createUnsupportedException(RNativeImplHelper helper, Cstr msg, RObjItem org) {
     RDataConstr edc = helper.getDataConstr(Module.MOD_LANG, "unsupported$");
     RObjItem ed = helper.getStructItem(edc, new RObjItem[0]);
@@ -384,6 +390,18 @@
       r = helper.getStructItem(dcNone, new RObjItem[0]);
     }
     return r;
+  }
+
+  public static RStructItem wrapMaybeItem(RNativeImplHelper helper, RObjItem o) {
+    RStructItem m;
+    if (o != null) {
+      RDataConstr dcValue = helper.getDataConstr(Module.MOD_LANG, "value$");
+      m = helper.getStructItem(dcValue, new RObjItem[] { o });
+    } else {
+      RDataConstr dcNone = helper.getDataConstr(Module.MOD_LANG, "none$");
+      m = helper.getStructItem(dcNone, new RObjItem[0]);
+    }
+    return m;
   }
 
   public static RObjItem unwrapMaybeItem(RNativeImplHelper helper, RObjItem o) {

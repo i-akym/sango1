@@ -174,7 +174,7 @@ public class SNImodule {
         PDataDef.Attr a = c.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
         PTypeSkelBindings bb = b;
-        if ((b = at.applyTo(tv.type, b)) == null) {
+        if ((b = at.accept(PTypeSkel.NARROWER, true, tv.type, b)) == null) {
           StringBuffer emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(Integer.toString(i));
@@ -221,7 +221,7 @@ public class SNImodule {
     PDataDef.Constr c = dd.getConstr(dconName);
     PTypeSkelBindings b = PTypeSkelBindings.create();
     try {
-      b = ts.applyTo(constrTao.type, b);
+      b = ts.accept(PTypeSkel.NARROWER, true, constrTao.type, b);
     } catch (CompileException ex) {
       throw new RuntimeException("Unexpected exception. - " + ex.toString());
     }
@@ -273,7 +273,7 @@ public class SNImodule {
         }
         RListItem.Cell lc = (RListItem.Cell)L;
         TaoItem p = (TaoItem)lc.head;
-        PTypeSkelBindings bb = pts[i].applyTo(p.type, b);
+        PTypeSkelBindings bb = pts[i].accept(PTypeSkel.NARROWER, true, p.type, b);
         if (bb == null) {
           helper.setException(sni_sango.SNIlang.createBadArgException(
             helper, new Cstr("Parameter type mismatch."), null));
@@ -421,7 +421,7 @@ public class SNImodule {
     PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, tcon);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, 0, Module.ACC_PUBLIC, ddg);
+        PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
       helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams);
@@ -433,14 +433,14 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false));  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
     PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, 1, Module.ACC_PUBLIC, ddg);
+        PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
       helper.getCore().getDefDictGetter(), null, ti, false, elemTypes);
@@ -502,9 +502,13 @@ public class SNImodule {
         } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(this.mod, this.sigTcon);
           PDefDict.DataDefGetter ddg = new DataDefGetter(this);
+          PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
+          for (int i = 0; i < this.sigParams.length; i++) {
+            paramPropss[i] = PDefDict.createTparamProps(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
+          }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
             (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
-            this.sigParams.length, this.acc, ddg);
+            paramPropss, this.acc, ddg);
           this.sig = PTypeRefSkel.create(
             this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
         }

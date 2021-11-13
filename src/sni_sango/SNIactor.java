@@ -149,15 +149,15 @@ public class SNIactor {
     helper.getCore().notifySysMsg(be);
   }
 
-  public void sni_mbe_put_msg(RNativeImplHelper helper, RClosureItem self, RObjItem be, RObjItem m) {
+  public void sni_be_put_msg(RNativeImplHelper helper, RClosureItem self, RObjItem be, RObjItem m) {
     helper.getCore().putMsg(be, m);
   }
 
-  public void sni_mbe_owner(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
+  public void sni_be_owner(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
     helper.setReturnValue(helper.getCore().getOwnerOfMbox(be));
   }
 
-  public void sni_mbe_listen_multiple(RNativeImplHelper helper, RClosureItem self, RObjItem bes, RObjItem wait) {
+  public void sni_be_listen_multiple(RNativeImplHelper helper, RClosureItem self, RObjItem bes, RObjItem wait) {
     RNativeImplHelper.Core core = helper.getCore();
     BEListHolder belh;
     if ((belh = (BEListHolder)helper.getAndClearResumeInfo()) == null) {
@@ -206,7 +206,7 @@ public class SNIactor {
     }
   }
 
-  public void sni_mbe_receive_msg(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
+  public void sni_be_receive_msg(RNativeImplHelper helper, RClosureItem self, RObjItem be) {
     RActorHItem myActorH = helper.getCore().myActorH();
     if (helper.objEquals(helper.getCore().getOwnerOfMbox(be), myActorH)) {
       RObjItem m = helper.getCore().receiveMsg(be);

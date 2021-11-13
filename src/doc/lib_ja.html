@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.5.0　ライブラリ解説</title>
+<title>Sango 1.5.1　ライブラリ解説</title>
 </head>
 
 <body>
@@ -217,10 +217,6 @@ kbd {
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
 <a href="#sango.util.set.hashset"><code>sango.util.set.hashset</code></a>
-<a href="#sango.util.set.holder"><code>sango.util.set.holder</code></a> 【Alpha】
-  <a href="#sango.util.set.holder.1">生成</a>
-  <a href="#sango.util.set.holder.2">要素処理</a>
-  <a href="#sango.util.set.holder.3">参照，更新</a>
 <a href="#sango.util.set.simpleset"><code>sango.util.set.simpleset</code></a>
 <a href="#sango.util.set.weakset"><code>sango.util.set.weakset</code></a> 【Alpha】
 <a href="#sango.util.shell"><code>sango.util.shell</code></a> 【Alpha】
@@ -277,10 +273,10 @@ kbd {
 <p>文字を表します。
   内部表現はUnicodeです。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A list&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A list&gt; @opaque ;;</code></td></tr></table>
 <p>リストを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A string&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A string&gt; @opaque ;;</code></td></tr></table>
 <p>ストリングを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;bstr&gt; @public := &lt;byte string&gt; ;;</code></td></tr></table>
@@ -300,7 +296,7 @@ kbd {
   seal_fs$ ;;</code></td></tr></table>
 <p>オブジェクトを<code>&lt;independent+&gt;</code>に変換する関数，その逆の関数を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
@@ -311,6 +307,15 @@ kbd {
 <p>イテレータの実行結果を表します。
   値の供給は，値とイテレータのタプルを返すことによって行われます。
   返されたイテレータを使用して，次の供給を要求します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A dummy&gt; @public :=
+| &lt;A&gt; dummy_obj$
+| &lt;A void fun&gt; dummy_fun$ ;;</code></td></tr></table></code></td></tr></table>
+<p>【Beta】型情報を渡すためのダミーのオブジェクトを表します。
+  Sangoの関数呼び出しにはオブジェクトを渡しますが，具象型を要求するコンテナオブジェクトの生成時など，型情報だけが必要なことがあります。
+  そのような場合にこの型を使用します。</p>
+<p><code>dummy_fun$</code>の場合，<code>T</code>を渡したい型として，<code>ignore</code>を使用して次のように書くことができます。</p>
+<blockquote class="code-sample"><code>&amp;\\ &lt;T dummy&gt; { ^ignore dummy_fun$ }</code></blockquote>
 
 <table border width="100%"><tr><td class="def"><code>eval max_byte @public -&gt; &lt;byte&gt; ;;</code></td></tr></table></code></td></tr></table>
 <p>バイトの最大値（255）を返します。</p>
@@ -371,7 +376,7 @@ kbd {
 <p>例外の発生状況を表します。
   このオブジェクトから情報を得る関数が<code>&quot;sango.debug&quot;</code>から提供されています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A result&gt; @public := fin: &lt;A&gt; fin$ | &lt;exception&gt; exc$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*+A result&gt; @public := fin: &lt;A&gt; fin$ | &lt;exception&gt; exc$ ;;</code></td></tr></table>
 <p>関数の実行結果として，正常終了して結果が返された場合か，例外が発生した場合を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg &lt;exception maybe&gt; *Original_exc_
@@ -985,21 +990,21 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>data &lt;monitor_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A monitor2_h&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! monitor2_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;A! &quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A box_monitor_h&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_monitor_h&gt; @opaque ;;</code></td></tr></table>
+<p><code>&lt;A! &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.entity&quot;.eref&gt; *E create_monitor @public -&gt; &lt;monitor_h&gt; ;;
-eval &lt;*A &quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;A monitor2_h&gt; ;;
-eval &lt;*A &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;
+eval &lt;*A! &quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;A monitor2_h&gt; ;;
+eval &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;
 </code></td></tr></table>
 <p>entity monitorを生成します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;monitor_h&gt; *M &lt;&quot;sango.entity&quot;.eref *A fun&gt; *F run_monitor | run @public -&gt; &lt;A&gt; ;;
-eval &lt;*A monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *B fun&gt; *F run_monitor2 | run @public -&gt; &lt;B&gt; ;;
-eval &lt;*A box_monitor_h&gt; *M &lt;&lt;A &quot;sango.entity.box&quot;.box_h&gt; *B fun&gt; *F run_box_monitor | run @public -&gt; &lt;B&gt; ;; </code></td></tr></table>
+eval &lt;*A! monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *B fun&gt; *F run_monitor2 | run @public -&gt; &lt;B&gt; ;;
+eval &lt;*A! box_monitor_h&gt; *M &lt;&lt;A &quot;sango.entity.box&quot;.box_h&gt; *B fun&gt; *F run_box_monitor | run @public -&gt; &lt;B&gt; ;; </code></td></tr></table>
 <p>タスク<code>F</code>を実行します。
   タスクは実体への参照を受け取り，処理を行い結果を返します。
   タスクから返された値が，この関数の結果となります。
@@ -1511,7 +1516,7 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.1"></code>sango.entity.box</code> - ボックス</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A box_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_h&gt; @opaque ;;</code></td></tr></table>
 <p>ボックスへの参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
@@ -1520,32 +1525,32 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
   <code>X</code>の型は具象型（不定の型パラメタを含まない型）でなければなりません。
   ボックスがガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A box_h&gt; *Box read @public -&gt; &lt;A&gt; ;; </code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! box_h&gt; *Box read @public -&gt; &lt;A&gt; ;; </code></td></tr></table>
 <p>ボックスから値を読み出します。
   この処理は原子的に実行されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>ボックスに値を書き込み，以前の値を返します。
   この処理は原子的に実行されます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.2"></code>sango.entity.box</code> - 弱参照</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A wbox_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! wbox_h&gt; @opaque ;;</code></td></tr></table>
 <p>ボックスへの弱参照を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;A wbox_h&gt; ;;</code></td></tr></table>
 <p>ボックスへの弱参照を生成します。
   弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
   リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
   なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A wbox_h&gt; *W get @public -&gt; &lt;&lt;A box_h&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! wbox_h&gt; *W get @public -&gt; &lt;&lt;A box_h&gt; maybe&gt; ;;</code></td></tr></table>
 <p>弱参照から参照（強参照）を取得します。
   弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A wbox_h&gt; *W clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! wbox_h&gt; *W clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -1571,7 +1576,7 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.domain.2"></code>sango.entity.domain</code> - 実体</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A entity_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! entity_h&gt; @opaque ;;</code></td></tr></table>
 <p>実体への参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
@@ -1584,24 +1589,24 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
   一つの参照を複数の異なったドメインに取り込むことは可能ですが，作成される参照は異なります。
   同一のドメイン内に複数回取り込んだ場合も，そのたびに作成される参照は異なります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity entity_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity entity_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
 <p>参照が属するドメインを取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>実体から値を読み出します。
   この処理は原子的に実行されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>実体に値を書き込み，以前の値を返します。
   この処理は原子的に実行されます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.domain.3"></code>sango.entity.domain</code> - 弱参照</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A weak_holder_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! weak_holder_h&gt; @opaque ;;</code></td></tr></table>
 <p>実体への弱参照を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
+<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A! entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;A weak_holder_h&gt; ;;</code></td></tr></table>
 <p>ドメイン内に，実体への弱参照を生成します。
   付与される固有番号は，<code>Entity</code>のそれとは無関係，別系列です。
@@ -1610,37 +1615,37 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
   リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
   なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A weak_holder_h&gt; *Weak_holder weak_holder_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! weak_holder_h&gt; *Weak_holder weak_holder_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
 <p>弱参照が属するドメインを取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;&lt;A entity_h&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;&lt;A entity_h&gt; maybe&gt; ;;</code></td></tr></table>
 <p>弱参照から参照（強参照）を取得します。
   弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A weak_holder_h&gt; *Weak_holder clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! weak_holder_h&gt; *Weak_holder clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.domain.4"></code>sango.entity.domain</code> - 固有番号，大小比較</h2>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity entity_unique_num | unique_num @public -&gt; &lt;int&gt; ;;
-eval &lt;*A weak_holder_h&gt; *Weak_holder weak_holder_unique_num | unique_num @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity entity_unique_num | unique_num @public -&gt; &lt;int&gt; ;;
+eval &lt;*A! weak_holder_h&gt; *Weak_holder weak_holder_unique_num | unique_num @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>固有番号を取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *E0 &lt;*B entity_h&gt; *E1 entity_compare | compare @public -&gt; &lt;ordering&gt; ;;
-eval &lt;*A weak_holder_h&gt; *W0 &lt;*B weak_holder_h&gt; *W1 weak_holder_compare | compare @public -&gt; &lt;ordering&gt; ;; </code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *E0 &lt;*B! entity_h&gt; *E1 entity_compare | compare @public -&gt; &lt;ordering&gt; ;;
+eval &lt;*A! weak_holder_h&gt; *W0 &lt;*B! weak_holder_h&gt; *W1 weak_holder_compare | compare @public -&gt; &lt;ordering&gt; ;; </code></td></tr></table>
 <p>固有番号に基づき，前者の後者に対する大小関係を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval entity_ord_fs @public -&gt; &lt;entity_h ord_fs&gt; ;;
-eval weak_holder_ord_fs @public -&gt; &lt;*A weak_holder_h ord_fs&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval entity_ord_fs @public -&gt; &lt;*A! entity_h ord_fs&gt; ;;
+eval weak_holder_ord_fs @public -&gt; &lt;*A! weak_holder_h ord_fs&gt; ;;</code></td></tr></table>
 <p>大小比較の機能群を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;unique_num_invalidator&gt; @public := &lt;int void fun&gt; ;;</code></td></tr></table>
 <p>固有番号の無効化処理関数を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A entity_h&gt; *Entity &lt;unique_num_invalidator&gt; *Invalidator
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity &lt;unique_num_invalidator&gt; *Invalidator
   entity_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;
-eval &lt;*A weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Invalidator
+eval &lt;*A! weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Invalidator
   weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>固有番号の無効化処理関数を登録します。
   無効化処理関数は，参照あるいは弱参照オブジェクトの消滅（回収）後に，それぞれ別のアクタとして起動されます。
@@ -1660,11 +1665,41 @@ eval &lt;*A weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Inval
 <table border width="100%"><tr><td class="def"><code>data &lt;existence&gt; @opaque ;;</code></td></tr></table>
 <p>「存在」を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_existence @public -&gt; &lt;existence&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A ro_slot&gt; @opaque ;;</code></td></tr></table>
+<p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
+  この格納場所からは読み出しのみが可能です。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! rw_slot&gt; @opaque ;;</code></td></tr></table>
+<p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
+  この格納場所は同一の型のオブジェクトで更新可能です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A maybe&gt; *Assoc_ &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ 
+  create_immutable_existence @public -&gt; &lt;existence &lt;&lt;A ro_slot&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>存在を生成します。
-  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。
-  <code>X</code>によらず，生成された存在は，お互いが異なります。</p>
+  生成された存在は，お互いに異なります。
+  生成にあたり，関連データを指定することができます。
+  このデータは，返される<code>ro_slot</code>を使用して読み出しが可能です。
+  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A!&gt; *Assoc &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
+  create_mutable_existence @public -&gt; &lt;existence &lt;A rw_slot&gt; tuple&gt; ;;</code></td></tr></table>
+<p>関連データを指定して，存在を生成します。
+  生成された存在は，お互いに異なります。
+  関連データは，返される<code>rw_slot</code>を使用して参照・更新が可能です。
+  存在がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A ro_slot&gt; *Slot imut_peek_assoc | peek_assoc @public -&gt; &lt;A&gt; ;;
+eval &lt;existence&gt; *Ex &lt;*A! rw_slot&gt; *Slot mut_peek_assoc | peek_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>関連データを取得します。
+  この関数は原子的に実行されます。
+  <code>Ex</code>と<code>Slot</code>の整合性がとれていなければなりません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;existence&gt; *Ex &lt;*A! rw_slot&gt; *Slot &lt;A&gt; *New_assoc
+  mut_replace_assoc | replace_assoc @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>関連データを置換します。
+  以前に格納されていたデータが返されます。
+  この関数は原子的に実行されます。
+  <code>Ex</code>と<code>Slot</code>の整合性がとれていなければなりません。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.existence.2"></code>sango.entity.existence</code> - 弱参照</h2>
@@ -3691,45 +3726,35 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
   キーは弱参照で保持され，これ以外からの参照がなくなると，当該キーと関連データが自動的に削除されます。
   このマップは複数のアクタから共有可能です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! *B! map_h&gt; @opaque ;;</code></td></tr></table>
 <p>マップへのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.existence&quot;.dress_fs&gt; *Dress_fs &lt;*B! B fun&gt; *Assoc
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.existence&quot;.dress_fs&gt; *Dress_fs &lt;*B! dummy&gt; *Assoc
   create_weak_key_map @public -&gt; &lt;A B map_h&gt; ;;</code></td></tr></table>
 <p>マップを生成し，ハンドルを返します。
   <code>Dress_fs</code>には，キーとする実体のundress・redress機能関数群を指定します。
-  <code>Assoc</code>は関連データの型を指定するためのものであり，引数と返り値の型だけが使われ，関数の処理内容はどんなものでも構いません。
+  <code>Assoc</code>は関連データの型を指定するためのものです。
   以下に呼び出し例を示します。</p>
-<blockquote class="code-sample">コード例
-<code>import &quot;sango.util.map.weakkeymap&quot; -&gt; wkm ;;
-import &quot;sango.entity.existence&quot; -&gt; ex ;;
-import &quot;sango.entity.box&quot; -&gt; box ;;
-(&amp;\\ &lt;&lt;int box.box_h&gt; ex.dress_fs&gt; { box.dress_fs })
-  (&amp;\\ &lt;cstr cstr fun&gt; { ^itself })
-  wkm.create_weak_key_map = ...</code></blockquote>
-<p>この例では，キーが<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>，関連データが<code>&lt;cstr&gt;</code>のマップを生成しています。
-  引数を具象型にするためcastします。
-  第二パラメータは <code>\ &lt;cstr&gt; *X -&gt; &lt;cstr&gt; { X }</code> のように書くこともできます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_h&gt; *Map_h all_kvs @public -&gt; &lt;&lt;A B tuple&gt; list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h all_kvs @public -&gt; &lt;&lt;A B tuple&gt; list&gt; ;;</code></td></tr></table>
 <p>有効なキーと関連データの組をリストします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A list&gt; *Ks delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A list&gt; *Ks delete_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>マップの対応する関数の機能を提供します。
   ただし，マップ本体は返り値に含まれません。
   <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
@@ -3770,25 +3795,25 @@ import &quot;sango.util.map.simplemap&quot; -&gt; smap ;;
 <p>この例では，キーが<code>&lt;cstr&gt;</code>，関連データが<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>のマップを生成しています。
   引数を具象型にするためcastします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_h&gt; *Map_h all_kvs @public -&gt; &lt;&lt;A B tuple&gt; list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h all_kvs @public -&gt; &lt;&lt;A B tuple&gt; list&gt; ;;</code></td></tr></table>
 <p>有効なキーと関連データの組をリストします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A list&gt; *Ks delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A *B map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A list&gt; *Ks delete_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>マップの対応する関数の機能を提供します。
   ただし，マップ本体は返り値に含まれません。
   <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
@@ -4178,53 +4203,6 @@ eval &lt;*A *B map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &
   <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.set.holder"><code>sango.util.set.holder</code> 【Alpha】</h1>
-
-<p>セットをホルダに入れ，変更可能なオブジェクトとして扱うことを可能にします。
-  複数アクタで共有することが主な用途です。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.set.holder.1"><code>sango.util.set.holder</code> - 生成</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A holder_h&gt; @opaque ;;</code></td></tr></table>
-<p>ホルダへのハンドルを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A &quot;sango.util.set&quot;.set&gt; *Set &lt;&lt;A &quot;sango.util.set&quot;.set&gt; seal_fs&gt; *Seal_fs
-  create_holder @public -&gt; &lt;A holder_h&gt; ;;</code></td></tr></table>
-<p>ホルダを生成します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.set.holder.2"><code>sango.util.set.holder</code> - 要素処理</h2>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A holder_h&gt; *Set_h empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h size @public -&gt; &lt;int&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem get @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem contain? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem put @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem remove @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A&gt; *Elem delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h take @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A list&gt; *Elems add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A list&gt; *Elems delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A holder_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p><code>&quot;sango.util.set&quot;</code>の同名の関数と同じ機能を提供します。
-  処理は原子的に実行されます。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.set.holder.3"><code>sango.util.set.holder</code> - 参照，更新</h2>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A holder_h&gt; *Set_h read @public -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
-<p>ホルダからセットを取得します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A holder_h&gt; *Set_h &lt;A &quot;sango.util.set&quot;.set&gt; *Set write @public -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
-<p>ホルダにセットを設定します。
-  それまで保持されていたセットが返ります。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.set.simpleset"><code>sango.util.set.simpleset</code></h1>
 
 <p>簡易なセットの実装を提供します。
@@ -4246,7 +4224,7 @@ eval &lt;*A holder_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &
   要素は弱参照で保持され，これ以外からの参照がなくなると，自動的に削除されます。
   このセットは複数のアクタから共有可能です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A set_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! set_h&gt; @opaque ;;</code></td></tr></table>
 <p>セットへのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.existence&quot;.dress_fs&gt; *Dress_fs create_weak_set @public -&gt; &lt;A set_h&gt; ;;</code></td></tr></table>
@@ -4262,24 +4240,24 @@ import &quot;sango.entity.box&quot; -&gt; box ;;
 <p>この例では，要素が<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>のセットを生成しています。
   引数を具象型にするためcastします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_h&gt; *Set_h all_elems @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! set_h&gt; *Set_h all_elems @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>有効な要素をリストします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_h&gt; *Set_h empty? @public -&gt; &lt;bool&gt;  ;;
-eval &lt;*A set_h&gt; *Set_h size @public -&gt; &lt;int&gt;  ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X get @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X contain? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X put @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X remove @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A&gt; *X delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A set_h&gt; *Set_h take @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A set_h&gt; *Set_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A list&gt; *Xs add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A list&gt; *Xs delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! set_h&gt; *Set_h empty? @public -&gt; &lt;bool&gt;  ;;
+eval &lt;*A! set_h&gt; *Set_h size @public -&gt; &lt;int&gt;  ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X get @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X contain? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X put @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X put_new @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X add @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X remove @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X delete @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h take @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h clear @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A list&gt; *Xs add_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A list&gt; *Xs delete_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>セットの対応する関数の機能を提供します。
   ただし，セット本体は返り値に含まれません。
   <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>

@@ -26,6 +26,7 @@ package org.sango_lang;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,9 +70,18 @@ class PCompiledModule implements PDefDict {
         DataDef dd = cm.convertDataDef(mod, dds[j], unresolvedTypeRefList);
         PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], dds[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(dd);
+        PDefDict.TparamProps[] paramPropss;
+        if (dds[j].params != null) {
+          paramPropss = new PDefDict.TparamProps[dds[j].params.length];
+          for (int k = 0; k < dds[j].params.length; k++) {
+            paramPropss[k] = new PDefDict.TparamProps(dds[j].params[k].variance, dds[j].params[k].requiresConcrete);
+          }
+        } else {
+          paramPropss = null;
+        }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           (dds[j].baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-          (dds[j].params != null)? dds[j].params.length: -1, dds[j].acc, g);
+          paramPropss, dds[j].acc, g);
         cm.foreignTconDict.put(tk, tp);
       }
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
@@ -79,8 +89,12 @@ class PCompiledModule implements PDefDict {
         AliasDef ad = cm.convertAliasDef(mod, ads[j], unresolvedTypeRefList);
         PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], ads[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
+        PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
+        for (int k = 0; k < paramPropss.length; k++) {
+          paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
+        }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          PTypeId.SUBCAT_ALIAS, ads[j].paramCount, ads[j].acc, g);
+          PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
         cm.foreignTconDict.put(tk, tp);
       }
     }
@@ -93,9 +107,18 @@ class PCompiledModule implements PDefDict {
       MDataDef mdd = mdds[i];
       DataDef dd = cm.convertDataDef(mod, mdd, unresolvedTypeRefList);
       PDefDict.DataDefGetter g = createDataDefGetter(dd);
+      PDefDict.TparamProps[] paramPropss;
+      if (mdd.params != null) {
+        paramPropss = new PDefDict.TparamProps[mdd.params.length];
+        for (int k = 0; k < mdd.params.length; k++) {
+          paramPropss[k] = new PDefDict.TparamProps(mdd.params[k].variance, mdd.params[k].requiresConcrete);
+        }
+      } else {
+        paramPropss = null;
+      }
       PDefDict.TconProps tp = PDefDict.TconProps.create(
         (mdd.baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
-        (mdd.params != null)? mdd.params.length: -1, mdd.acc, g);
+        paramPropss, mdd.acc, g);
       cm.tconDict.put(mdd.tcon, tp);
       for (int j = 0; j < mdd.constrs.length; j++) {
         MConstrDef mcd = mdd.constrs[j];
@@ -106,9 +129,13 @@ class PCompiledModule implements PDefDict {
     MAliasTypeDef[] matds = mod.getAliasTypeDefs();
     for (int i = 0; i < matds.length; i++) {
       MAliasTypeDef matd = matds[i];
+      PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[matd.paramCount];
+      for (int k = 0; k < matd.paramCount; k++) {
+        paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
+      }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
-        matd.paramCount, matd.acc, createDataDefGetter(cm.convertAliasDef(mod, matd, unresolvedTypeRefList))));
+        paramPropss, matd.acc, createDataDefGetter(cm.convertAliasDef(mod, matd, unresolvedTypeRefList))));
     }
     cm.funOfficialDict = new HashMap<String, FunDef>();
     cm.funListDict = new HashMap<String, List<FunDef>>();
@@ -147,7 +174,7 @@ class PCompiledModule implements PDefDict {
       }
     }
 
-    // /* DEBUG */ System.out.println("foreign tcon dict " + cm.foreignTconDict);
+// /* DEBUG */ System.out.println("foreign tcon dict " + cm.foreignTconDict);
 
     for (int i = 0; i < unresolvedTypeRefList.size(); i++) {
       PTypeRefSkel tr = unresolvedTypeRefList.get(i);
@@ -156,8 +183,8 @@ class PCompiledModule implements PDefDict {
       } else {
         tr.tconInfo.props = cm.foreignTconDict.get(tr.tconInfo.key);
       }
-      // temporal implementation: props may not be resolved, when alias body.
-      // /* DEBUG */ if (tr.tconInfo.props == null) { throw new RuntimeException(cm.name.toJavaString() + " tcon props not resolved. " + tr); }
+      // HERE: props may not be resolved?
+// /* DEBUG */ if (tr.tconInfo.props == null) { System.out.print("PN "); System.out.print(cm.name.toJavaString()); System.out.print(" "); System.out.println(tr); }
     }
 
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" tcondict="); System.out.println(cm.tconDict);
@@ -165,6 +192,18 @@ class PCompiledModule implements PDefDict {
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" funofficialdict="); System.out.println(cm.funOfficialDict);
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" funlistdict="); System.out.println(cm.funListDict);
     return cm;
+  }
+
+  void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
+    Iterator<String> i = this.tconDict.keySet().iterator();
+    while (i.hasNext()) {
+      String tcon = i.next();
+      PDefDict.TconProps p = this.tconDict.get(tcon);
+      if (p.subcat == PTypeId.SUBCAT_EXTEND) {
+        PDataDef dd = p.defGetter.getDataDef();
+        g.addExtension(dd.getBaseTconKey(), PDefDict.TconKey.create(this.name, tcon));
+      }
+    }
   }
 
   private void mergeFunToEidDict(String name, int cat, int acc) {
@@ -205,7 +244,8 @@ class PCompiledModule implements PDefDict {
     if (dataDef.params != null) {
       dd.sigParams = new PTypeVarSkel[dataDef.params.length];
       for (int i = 0; i < dataDef.params.length; i++) {
-        PTypeVarSkel v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+        PTypeVarSkel v = PTypeVarSkel.create(null, null,
+          PTVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete));
         dd.sigParams[i] = v;
         varList.add(v);
       }
@@ -259,8 +299,8 @@ class PCompiledModule implements PDefDict {
       if (this.sig == null) {
         if (this.sigTcon.equals(Module.TCON_NORET)) {
           throw new RuntimeException("Attempted to make sig of NORET.");
-        } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
-          throw new RuntimeException("Attempted to make sig of EXPOSED.");
+        // } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
+          // throw new RuntimeException("Attempted to make sig of EXPOSED.");
         } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(PCompiledModule.this.name, this.sigTcon);
           PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
@@ -295,15 +335,19 @@ class PCompiledModule implements PDefDict {
     AliasDef ad = new AliasDef();
     PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasDef.tcon);
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
+    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasDef.paramCount];
+    for (int k = 0; k < paramPropss.length; k++) {
+      paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
+    }
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-      PTypeId.SUBCAT_ALIAS, aliasDef.paramCount, aliasDef.acc, g);
+      PTypeId.SUBCAT_ALIAS, paramPropss, aliasDef.acc, g);
     ad.tconInfo = PDefDict.TconInfo.create(tk, tp);
     ad.availability = aliasDef.availability;
     ad.acc = aliasDef.acc;
     ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(false));
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false));
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasDef.body, mod, varList, unresolvedTypeRefList);
@@ -443,7 +487,7 @@ class PCompiledModule implements PDefDict {
       if (pts.length != paramTypes.length) { continue; }
       PTypeSkelBindings b = PTypeSkelBindings.create(givenVarList);
       for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].applyTo(paramTypes[j], b);
+        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], b);
       }
       if (b != null) {
         sel = PDefDict.FunSelRes.create(fd, b);
@@ -571,7 +615,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.requiresConcrete));
+      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.variance, tv.requiresConcrete));
       varList.add(v);
     } else {
       throw new RuntimeException("Slot number is not sequential.");

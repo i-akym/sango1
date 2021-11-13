@@ -11,14 +11,18 @@ eval test -> <void> {
 } ;;
 
 eval test000 -> <void> {
-  (&\\ <int int fun> { ^itself }) pkg.create_package_mgr = *M,
-  (&\\ <int int fun> { ^itself }) pkg.create_package_mgr = *M2,
-  M 3 pkg.pack = *T3,
-  M 9 pkg.pack = *T9,
-  M2 -5 pkg.pack = *T5,
-  M T3 pkg.get = 3 value$,
-  M T9 pkg.get = 9 value$,
-  M2 T5 pkg.get = -5 value$,
-  M2 T3 pkg.get = none$,
+  3 pkg.pack = *P3,
+  P3 pkg.content = 3,
+  P3 pkg.create_tag = *T3,
+  9 pkg.pack = *P9,
+  P9 pkg.content = 9,
+  P9 pkg.create_tag = *T9,
+  T3 P3 pkg.tag_on? = true$,
+  T3 P9 pkg.tag_on? = false$,
+  (0 dummy_obj$) pkg.create_package_mgr = *M,
+  M T3 P3 pkg.put,
+  \\ <void> { M T9 P3 pkg.put } try = ** exc$,
+  M T3 pkg.get = P3 value$,
+  M T9 pkg.get = none$,
   void$
 } ;;

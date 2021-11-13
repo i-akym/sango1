@@ -191,4 +191,26 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
   public void normalizeTypes() {
     this.nTypeSkel = this.type.normalize();
   }
+
+  public void checkConcreteness() throws CompileException {
+    if (this.nTypeSkel instanceof PTypeRefSkel) {
+      PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
+      if (t.tconInfo.key.equals(new PDefDict.TconKey(Module.MOD_LANG, Module.TCON_FUN))) {
+        // formally OK...
+      } else if (t.tconInfo.key.equals(new PDefDict.TconKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
+        // formally OK...
+      } else {
+        PDefDict.TparamProps[] ps = t.tconInfo.props.paramProps;
+        for (int i = 0; i < ps.length; i++) {
+          if (ps[i].concrete & !t.params[i].isConcrete()) {
+            StringBuffer emsg = new StringBuffer();
+            emsg.append("Non-concrete type definition for attribute at ");
+            emsg.append(this.getSrcInfo());
+            emsg.append(".");
+            throw new CompileException(emsg.toString());
+          }
+        }
+      }
+    }
+  }
 }

@@ -27,15 +27,17 @@ import java.io.IOException;
 
 class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   String name;
+  int variance;
   boolean requiresConcrete;
   PTVarSlot varSlot;
 
   private PTVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name, boolean requiresConcrete) {
+  static PTVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete) {
     PTVarDef var = new PTVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
+    var.variance = variance;
     var.requiresConcrete = requiresConcrete;
     return var;
   }
@@ -45,6 +47,8 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append("newvar[");
     buf.append("src=");
     buf.append(this.srcInfo);
+    buf.append(",variance=");
+    buf.append(this.variance);
     buf.append(",name=");
     buf.append(this.name);
     if (this.requiresConcrete) {
@@ -62,6 +66,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     PTVarDef v = new PTVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
+    v.variance = this.variance;
     v.requiresConcrete = this.requiresConcrete;
     v.scope = this.scope;
     return v;
@@ -72,6 +77,14 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (varSym == null) { return null; }
+    int variance;
+    if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
+      variance = Module.COVARIANT;
+    } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
+      variance = Module.CONTRAVARIANT;
+    } else {
+      variance = Module.INVARIANT;
+    }
     ParserA.Token varId;
     if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
@@ -81,7 +94,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       throw new CompileException(emsg.toString());
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, varId.value.token, requiresConcrete);
+    return create(si, varId.value.token, variance, requiresConcrete);
   }
 
   static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
@@ -95,7 +108,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), id, false);  // HERE
+    return create(elem.getSrcInfo(), id, Module.INVARIANT, false);  // HERE
   }
 
   public PTVarDef setupScope(PScope scope) throws CompileException {
@@ -144,11 +157,6 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
 
   public PTypeVarSkel normalize() {
     return (PTypeVarSkel)this.getSkel();
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createVarNode(this, this.name);
-    return this.typeGraphNode;
   }
 
   public PTypeVarSkel getSkel() {

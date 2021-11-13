@@ -246,6 +246,16 @@ class PScope {
     return this.theMod.resolveTcon(mod, name);
   }
 
+  void addReferredTcons(List<PDefDict.TconInfo> tis) {
+    for (int i = 0; i < tis.size(); i++) {
+      this.addReferredTcon(tis.get(i));
+    }
+  }
+
+  void addReferredTcon(PDefDict.TconInfo ti) {
+    this.theMod.addReferredTcon(ti);
+  }
+
   PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PTypeDesc[] paramTypeDescs) {
     PTypeRef t = null;
     try {
@@ -263,8 +273,8 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PTypeDesc[0]);
   }
 
-  PTVarDef getNewTVar(Parser.SrcInfo srcInfo) {
-    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), false);
+  PTVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
+    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false);
     try {
       v.setupScope(this);
       v = v.resolveId();
@@ -275,12 +285,12 @@ class PScope {
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    PTVarDef nv = this.getNewTVar(srcInfo);
+    PTVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
     return this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    PTVarDef nv = this.getNewTVar(srcInfo);
+    PTVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
     return this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel();
   }
 

@@ -307,12 +307,25 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconInfo);
-    if (this.baseTconInfo.props.paramCount >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount) {
+    if (this.baseTconInfo.props.paramCount() >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of 'extend' definition mismatch at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
+    }
+    if (this.baseTconInfo.props.paramProps != null) {
+      for (int i = 0; i < this.tparams.length; i++) {
+        if (this.tparams[i].variance != this.baseTconInfo.props.paramProps[i].variance) {
+          emsg = new StringBuffer();
+          emsg.append("Variance of *");
+          emsg.append(this.tparams[i].name);
+          emsg.append(" mismatch with that of base definition at ");
+          emsg.append(this.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString()) ;
+        }
+      }
     }
     this.idResolved = true;
     return this;
@@ -363,30 +376,25 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
   }
 
-  public void normalizeTypes() {
+  public void normalizeTypes() throws CompileException {
+    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].normalizeTypes();
+      for (int j = 0; j < constrs[i].attrs.length; j++) {
+        constrs[i].attrs[j].nTypeSkel.checkVariance(PTypeSkel.WIDER);
+        constrs[i].attrs[j].nTypeSkel.collectTconInfo(tis);
+      }
     }
+    this.scope.addReferredTcons(tis);
   }
 
-  void checkCyclicExtension() throws CompileException {
-    List<PDefDict.TconKey> chain = new ArrayList<PDefDict.TconKey>();
-    chain.add(PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
-    PDefDict.TconKey btk = this.baseTconInfo.key;
-    while (btk != null) {
-      if (chain.contains(btk)) {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Cyclic extention detected for \"");
-        emsg.append(this.tcon);
-        emsg.append("\" at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      chain.add(btk);
-      PDefDict.TconInfo bti = this.scope.resolveTconDirect(btk);
-      PDataDef dd = bti.props.defGetter.getDataDef();
-      btk = (dd != null)? dd.getBaseTconKey(): null;
+  public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
+    g.addExtension(this.baseTconInfo.key, PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
+  }
+
+  public void checkConcreteness() throws CompileException {
+    for (int i = 0; i < this.constrs.length; i++) {
+      this.constrs[i].checkConcreteness();
     }
   }
 

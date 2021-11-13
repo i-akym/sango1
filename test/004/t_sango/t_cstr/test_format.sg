@@ -27,8 +27,8 @@ eval test -> <void> {
 
 alias type <tab> := <fmt.obj_key fmt.obj map.map> ;;
 eval map001 -> <tab> {
-  simplemap.new_map 
-  [ (| "SSS", "SSS" fmt.cstr_fd$ |),
+  simplemap.new_map = <fmt.obj_key fmt.obj map.map> *M,
+  M [ (| "SSS", "SSS" fmt.cstr_fd$ |),
     (| "U", 'U' fmt.char_fd$ |),
     (| "0", 0 fmt.int_fd$ |),
     (| "345", 345 fmt.int_fd$ |),

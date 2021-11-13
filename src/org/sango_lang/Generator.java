@@ -50,6 +50,7 @@ class Generator {
   }
 
   void generate() throws IOException, TransformerException {
+    this.prepare();
     this.generateModInfo();
     this.generateForeignInfo();
     if (this.stop) { return; }
@@ -71,6 +72,16 @@ class Generator {
     this.modBuilder.create().writeTo(new StreamResult(zos));
     zos.closeEntry();
     zos.close();
+  }
+
+  void prepare() {
+    PModule m = this.parser.mod;
+    for (int i = 0; i < m.aliasStmtList.size(); i++) {
+      PAliasStmt a = m.aliasStmtList.get(i);
+      if (a.acc != Module.ACC_PRIVATE) {
+        a.getBody();  // finish all bodies' setup
+      }
+    }
   }
 
   void generateModInfo() {
@@ -151,7 +162,7 @@ class Generator {
     }
     List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
-      this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].requiresConcrete));
+      this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].variance, pvs[i].requiresConcrete));
       varSlotList.add(pvs[i]);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {

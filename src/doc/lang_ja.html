@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.5.0言語解説</title>
+<title>Sango 1.5.1言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -151,8 +151,10 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
 <a href="#B">B. 型について</a>
   <a href="#B.1">B.1. 型の扱い</a>
   <a href="#B.2">B.2. 型と型との関係</a>
-  <a href="#B.3">B.3. narrowとcast</a>
-  <a href="#B.4">B.4. 具象型</a>
+  <a href="#B.3">B.3. 拡張による型の大小</a>
+  <a href="#B.4">B.4. パラメタを持った型の大小</a>
+  <a href="#B.5">B.5. narrowとcast</a>
+  <a href="#B.6">B.6. 具象型</a>
 <a href="#C">C. アベイラビリティ</a>
 <a href="#D">D. 主な変更点</a>
 <a href="#E">E. Known bugs and restrictions</a></div>
@@ -2041,40 +2043,149 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 <h2 id="B.1">B.1. 型の扱い</h2>
 <p>「型」の概念を持つプログラミング言語は多くあります。例えば，整数は四則演算，大小比較などの対象になりますが，文字は四則演算の対象になりませんので，両者の型は異なると考えます。</p>
 <p>Sangoにおける型は，「プログラム文脈上での，オブジェクトの使用範囲の区別」です。
-  ここで，「プログラム文脈上での」は，実行時のオブジェクトによって型が決まるわけではないことを意味しています。
-  例えば以下のコードを考えます。</p>
+ここで，「プログラム文脈上での」は，実行時のオブジェクトによって型が決まるわけではないことを意味しています。
+例えば以下のコードを考えます。</p>
 <blockquote class="code-sample">コード例<code>
 [] = *X,
 &amp;\\ &lt;int list&gt; { X } = *Y</code></blockquote>
-<p><code>X</code>の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）です。
-  <code>Y</code>に実際に束縛されるオブジェクトは<code>[]</code>ですが，<code>Y</code>の型は<code>&lt;int list&gt;</code>になります。</p>
+<p><code>X</code>の型は <code>&lt;A list&gt;</code>（<code>A</code>は未束縛）です。
+<code>Y</code>に実際に束縛されるオブジェクトは<code>[]</code>ですが，<code>Y</code>の型は <code>&lt;int list&gt;</code> になります。</p>
 <p>プログラミング文脈上で型が決まるため，実行時にオブジェクトの型を取得する関数は提供されていません。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.2">B.2. 型と型との関係</h2>
-<p>Sangoにおける型は，基本的にはそれぞれ独立していて相互関係はありません。
-  例えば，数を表す<code>&lt;byte&gt;</code>，<code>&lt;int&gt;</code>，<code>&lt;real&gt;</code>，<code>&lt;&quot;sango.num.bigint&quot;.bigint&gt;</code>には相互関係はなく，コンパイラが型を自動変換することはありません。</p>
-<p>相互関係を持つのは，被構築型<code>&lt;<var>T</var>&gt;</code>とその拡張型<code>&lt;<var>T</var>+&gt;</code>です。
-  <code>&lt;<var>T</var>+&gt;</code>として扱われているオブジェクトが実際には<code>&lt;<var>T</var>&gt;</code>なのかを判定すること，<code>&lt;<var>T</var>&gt;</code>に落とし込むこと（narrow）ができます。</p>
- 
+<p>data文は，新しい独立した型を定義します。
+それらの型の間に関係はありません。</p>
+
+<blockquote class="note">注意：Sangoでは，数を表す <code>&lt;byte&gt;</code>，<code>&lt;int&gt;</code>，<code>&lt;real&gt;，&lt;"sango.num.bigint".bigint&gt;</code> を提供していますが，これらの間に型としての関係はなく，コンパイラが型を自動変換することはありません。</blockquote>
+
+<p>型を拡張した場合に，拡張の元となった型（基底型）と拡張した型（拡張型）の間に，「より広い」「より狭い」という関係が発生します。
+ここではこれを「型の大小関係」と呼びます。</p>
+
+<p>「より広い」とは，より広い範囲のオブジェクトを含み得ることを意味します。
+<blockquote class="note">厳密に表現すれば「<code>&lt;<var>T</var>&gt;</code> の任意のオブジェクトが <code>&lt;<var>U</var>&gt;</code> のオブジェクトとして扱えるとき，<code>&lt;<var>T</var>&gt;</code> より <code>&lt;<var>U</var>&gt;</code> が広い」です。</blockquote>
+ここでは，「<code>&lt;<var>T</var>&gt;</code> より <code>&lt;<var>U</var>&gt;</code> が広い」，あるいは「<code>&lt;<var>T</var>&gt;</code> は <code>&lt;<var>U</var>&gt;</code> より狭い」ことを
+<blockquote class="def"><code>&lt;<var>T</var>&gt;</code> ⊆ <code>&lt;<var>U</var>&gt;</code></blockquote>
+と表すことにします。</p>
+
+<p>次節以降で，大小関係の詳細を見ていきます。</p>
+
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="B.3">B.3. narrowとcast</h2>
+<h2 id="B.3">B.3. 拡張による型の大小</h2>
+<p>例えば，次の定義があったとします。（以降，説明に必須でないものは適宜省略します）</p>
+<blockquote class="code-sample">モジュール<code>m1</code>
+<code>data &lt;t&gt; := t1$ | t2$ ;;
+eval &lt;t&gt; *X t_to_int -&gt; &lt;int&gt; {
+  X case {
+  ; t1$ -&gt; 1
+  ; t2$ -&gt; 2
+  }
+} ;;</code></blockquote>
+
+<code>&lt;m1.t&gt;</code> をモジュール<code>m2</code>で拡張します。
+
+<blockquote class="code-sample">モジュール<code>m2</code>
+<code>extend &lt;m1.t&gt; := tt$ ;;</code></blockquote>
+
+<p>さらに，モジュール<code>m2</code>において，<code>&lt;m1.t&gt;</code> に対する <code>m1.t_to_int </code>に相当する関数を定義することを考えます。
+いわば，<code>m1.t_to_int</code> の拡張です。
+それは，次のように定義するのが自然でしょう。</p>
+
+<blockquote class="code-sample">モジュール<code>m2</code>
+<code>eval &lt;t&gt; *X t_to_int -&gt; &lt;int&gt; {
+  X case {
+  ; tt$ -&gt; 3
+  ; ** -&gt; X m1.t_to_int
+  }
+} ;;</code></blockquote>
+
+<p>ここで，<code>m2.t_to_int</code> は，<code>&lt;m1.t&gt;</code> を含めて <code>&lt;m2.t&gt;</code> を受け取れることが望ましいと考えられます。
+そうでないと，この関数を呼び出す側で，渡したいオブジェクトが <code>m1.t1$</code> あるいは <code>m1.t2$</code> なのか，<code>m2.tt$</code> なのかを区別する必要が出てくるからです。</p>
+
+<p>そこでSangoでは，基底型のオブジェクトはその拡張型のオブジェクトとしても扱えるようになっています。</p>
+
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.4">B.4. パラメタを持った型の大小</h2>
+<p>型にはパラメタ（型パラメタ）を持つものがあります。
+<code>&lt;A list&gt;</code>，<code>&lt;A maybe&gt;</code> などがそうです。
+ここでは，<code>&lt;A list&gt;</code> を例に考えていきます。</p>
+
+<p><code>[ m1.t1$, m1.t2$ ]</code> は要素が <code>&lt;m1.t&gt;</code> のため <code>&lt;m1.t list&gt;</code> です。
+さて，要素は <code>&lt;m2.t&gt;</code> でもあるので，このリストを <code>&lt;m2.t list&gt;</code> として扱ってもよいかを考えてみます。
+結論としては，リストの操作全般を考慮しても，矛盾が生じないことがわかります。
+すなわち <code>&lt;m1.t list&gt;</code> ⊆ <code>&lt;m2.t list&gt;</code> が成り立ちます。</p>
+
+<blockquote class="note">静的な型システムをサポートする多くの手続き型言語において，一般的にはこの関係は成り立ちません。
+例えば，<code>&lt;m1.t list&gt;</code> を関数に渡し，関数がそれを <code>&lt;m2.t list&gt;</code> として受け取り要素を <code>m2.tt$</code> に置換したとすると，呼び出し元では <code>&lt;m1.t list&gt;</code> として扱えなくなるからです。
+<code>&lt;m1.t list&gt;</code> ⊆ <code>&lt;m2.t list&gt;</code> が成り立つのは，Sangoのリストが不変(immutable)であるからです。</blockquote>
+
+<p>■型パラメタの変位</p>
+
+<p>さて，型の大小とパラメタの大小は常に一致するのでしょうか。
+結論としては，必ずしもそうはなりません。</p>
+
+<p>その例として，クロージャを受け取る次のような関数を考えます。</p>
+
+<blockquote class="code-sample">eval &lt;Fin Fout fun&gt; *F f -&gt; &lt;Res&gt; { ... Some_value &amp;F ... } ;;</blockquote>
+
+<p><code>F</code>に渡せるクロージャの型を <code>&lt;Cin Cout fun&gt;</code> とするとき，<code>&lt;Cin&gt;</code> と <code>&lt;Fin&gt;</code>，<code>&lt;Cout&gt;</code> と <code>&lt;Fout&gt;</code> の大小は
+<code>&lt;Fin&gt;</code> ⊆ <code>&lt;Cin&gt;</code> かつ <code>&lt;Cout&gt;</code> ⊆ <code>&lt;Fout&gt;</code>
+でなければならないことがわかります。
+これを満たす <code>&lt;Cin&gt;</code>，<code>&lt;Cout&gt;</code> をそれぞれ <code>&lt;Wider_than_Fin&gt;</code>，<code>&lt;Narrower_than_Fout&gt;</code> と書くとすると，<code>F</code>に渡せるクロージャの型は <code>&lt;Wider_than_Fin Narrower_than_Fout fun&gt;</code> になります（書き換えただけです）。</p>
+
+<p>一般に関数パラメタにはより狭い型のオブジェクトが渡せるので <code>&lt;Wider_than_Fin Narrower_than_Fout fun&gt;</code> ⊆ <code>&lt;Fin Fout fun&gt;</code> という関係が成り立ちます。
+これを見ると，返り値の型はクロージャ型の大小と同じ関係になっていいますが，パラメタの型はクロージャの型の大小と反対の関係であることがわかります。</p>
+
+<p>以上のことから，Sangoでは，型パラメタの性質を次の三つに分類して扱います。
+<ul>
+<li>大小が型の大小に同じ方向の影響を与える → 「共変(covariant)」</li>
+<li>大小が型の大小に反対方向の影響を与える → 「反変(contravariant)」</li>
+<li>大小が型の大小に影響を与えない → 「非変(invariant)」 </li>
+</ul>
+<code>&lt;A list&gt;</code> の<code>A</code>は共変であり，<code>&lt;A B fun&gt;</code> の<code>A</code>は反変，<code>B</code>は共変です。</p>
+
+<p>型パラメタのこの性質を変位(variance)と呼び，プログラマはこれをコンパイラに伝えるため，型定義（<code>data</code>文，<code>extend</code>文）において指定します。
+具体的には，型パラメタ宣言において，共変の場合は「<code>+</code>」，反変の場合には「<code>-</code>」をパラメタ名の前に置きます。
+いずれも付けない場合は非変を表します。</p>
+
+<blockquote class="code-sample"><code>data &lt;*+A *-B *C foo&gt; := ...</code> # <code>A</code>は共変，<code>B</code>は反変，<code>C</code>は非変</blockquote>
+
+<p>型を拡張するとき，それぞれ型パラメタは，基底型のそれと一致しなければなりません。
+なお，クロージャとタプルの型パラメタは，コンパイラによって，次のように扱われます。</p>
+
+<blockquote class="code-sample">疑似定義<code>
+data &lt;*-<var>T<sub>1</sub></var> *-<var>T<sub>2</sub></var> ... *-<var>T<sub>n</sub></var> *+<var>T<sub>out</sub></var> fun&gt;
+data &lt;*+<var>T<sub>1</sub></var> *+<var>T<sub>2</sub></var> ... *+<var>T<sub>n</sub></var> tuple&gt;</code></blockquote>
+
+
+<p>■型の大小の判定</p>
+
+<p>次の全ての条件が満たされる場合，<code>&lt;<var>T<sub>1</sub> T<sub>2</sub> ... T<sub>n</sub> t</var>&gt;</code> ⊆ <code>&lt;<var>U<sub>1</sub> U<sub>2</sub> ... U<sub>n</sub> u</var>&gt;</code> とします。
+<ul>
+<li>型構築子<code><var>u</var></code>が<code><var>t</var></code>と同じか<code><var>t</var></code>を拡張したもの</li>
+<li>全てのパラメタにおいて：共変の場合 &lt;<var>T<sub>i</sub></var>&gt; ⊆ &lt;<var>U<sub>i</sub></var>&gt;，反変の場合 <code>&lt;<var>T<sub>i</sub></var>&gt;</code> ⊇ <code>&lt;<var>U<sub>i</sub></var>&gt;</code>，非変の場合 <code>&lt;<var>T<sub>i</sub><var>&gt;</code> ＝ <code>&lt;<var>U<sub>i</sub></var>&gt;</code></li>
+</ul></p>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="B.5">B.5. narrowとcast</h2>
 <p>オブジェクト指向言語には「narrow」や「cast」があります。Sangoにもこれらの用語がありますが，以下の意味です。</p>
-<p>「narrow」は，拡張型<code>&lt;<var>T</var>+&gt;</code>として扱われているオブジェクトを元の型<code>&lt;<var>T</var>&gt;</code>に落とし込むことです。
-  これは，コンパイラが生成する<code>_narrow_<var>T</var></code>関数（別名は型に共通で<code>narrow</code>）によって行います。
-  落とし込めれば<code>&lt;<var>T</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
+<p>「narrow」は，拡張型として扱われているオブジェクトを基底型に落とし込むことです。
+これは，コンパイラが生成する<code>_narrow_<var>T</var></code>関数（<code><var>T</var></code>は型構築子名。関数の別名は型に共通で<code>narrow</code>）によって行います。
+落とし込めれば<code>&lt;<var>T</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
 <blockquote class="def">疑似定義<code>
 eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<var>T</var> maybe&gt; ;;</code></blockquote>
-<p>「cast」は，未束縛の型パラメタを決定し，より具体的な型にすることです。
-  例えば，<code>&lt;A list&gt;</code>を<code>&lt;int list&gt;</code>にすることです。
-  これには，cast先の型を変数束縛の際に指定する方法と，関数の返り値の型として指定する方法があります。
-  ただし，Sangoのプログラミングにおいて，castを行う必要は限られています。</p>
-<blockquote class="code-sample">コード例<code>
+
+<p>「cast」は，型を指定することで，未束縛の型パラメタを具体的な型に束縛すること，拡張型を指定することができます。
+<blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にcastが必要になることはあまりありません。</blockquote>
+関数の戻り値の実際の型は，宣言した型に暗黙的にcastされます。
+また，変数束縛の際にcast先の型を指定することができます。</p>
+<blockquote class="code-sample"><code>&lt;A list&gt;</code> を <code>&lt;int list&gt;</code> にcastするコード例<code>
 [] = &lt;int list&gt; *X
 &amp;\\ &lt;int list&gt; { [] }</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="B.4">B.4. 具象型</h2>
+<h2 id="B.6">B.6. 具象型</h2>
 <p>型パラメタを持っていない型，または，全ての型パラメタが（再帰的に）決定している型を具象型（concrete type）と呼びます。
   例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
   一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
@@ -2178,6 +2289,13 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li><code>&quot;sango.util.set.hashset&quot;</code>を追加</li>
 <li>【Beta】<code>&quot;sango.entity.existence&quot;</code>を追加</li>
 <li>【Alpha】<code>&quot;sango.util.set.weakset&quot;</code>，<code>&quot;sango.util.map.weakkeymap&quot;</code>，<code>&quot;sango.util.map.weakvaluemap&quot;</code>を追加</li>
+</ul>
+
+<p>■　1.5.1</p>
+<ul>
+<li>型パラメタに変位(variance)を導入</li>
+<li>【Beta】<code>&quot;sango.entity.existence&quot;</code>を変更</li>
+<li>【Beta】<code>&quot;sango.lang&quot;</code>に<code>&lt;A dummy&gt;</code>型を追加</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

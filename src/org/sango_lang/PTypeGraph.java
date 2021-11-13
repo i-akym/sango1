@@ -147,7 +147,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.applyTo(this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -178,16 +178,18 @@ class PTypeGraph {
     }
   }
 
-  VarNode createVarNode(PTypedElem typedElem, String name) {
-    return new VarNode(typedElem, name);
+  VarNode createVarNode(PTypedElem typedElem, String name, int cat) {
+    return new VarNode(typedElem, name, cat);
   }
 
   class VarNode extends Node {
     String name;
+    int cat;  // PEVarDef.CAT_xx
 
-    VarNode(PTypedElem typedElem, String name) {
+    VarNode(PTypedElem typedElem, String name, int cat) {
       super(typedElem);
       this.name = name;
+      this.cat = cat;
       this.type = typedElem.getNormalizedType(); 
     }
 
@@ -204,9 +206,9 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.inNode.type.applyTo(this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.accept(PTypeSkel.NARROWER, this.cat == PEVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
-          emsg.append("Cannot cast ");
+          emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Util.repr(this.type));
@@ -249,7 +251,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.inNode.type.applyTo(this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -289,7 +291,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.applyTo(this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.accept(PTypeSkel.NARROWER, false, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -537,7 +539,7 @@ if (DEBUG > 1) {
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
         PTypeSkelBindings bb = this.bindings;  // before looks for debug
-        this.bindings = ctr.params[i].applyTo(t, this.bindings);
+        this.bindings = ctr.params[i].accept(PTypeSkel.NARROWER, true, t, this.bindings);
         if (this.bindings == null) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
@@ -644,7 +646,7 @@ if (DEBUG > 1) {
       if (tt.size() > 0) {
         t = tt.get(0);
         for (int i = 1; i < tt.size(); i++) {
-          PTypeSkel t1 = t.join(tt.get(i), PTypeSkelBindings.create(this.getGivenTvarList()));
+          PTypeSkel t1 = t.join(tt.get(i), this.getGivenTvarList());
           if (t1 == null) {
             emsg = new StringBuffer();
             emsg.append("Results of clauses cannot join at - ");
@@ -755,7 +757,7 @@ if (DEBUG > 1) {
         emsg.append(tt);  // HERE: convert to readable expression
         throw new CompileException(emsg.toString());
       }
-      PTypeSkel t = et.join(((PTypeRefSkel)tt).params[0], PTypeSkelBindings.create(this.getGivenTvarList()));
+      PTypeSkel t = et.join(((PTypeRefSkel)tt).params[0], this.getGivenTvarList());
       if (t == null) {
 // /* DEBUG */ System.out.print("joining "); System.out.print(et); System.out.print(" "); System.out.println(((PTypeRefSkel)tt).params[0]);
         emsg = new StringBuffer();
@@ -805,7 +807,7 @@ if (DEBUG > 1) {
         if (t == null) {  // [0]
           t = t2;
         } else {
-          t = t.join(t2, PTypeSkelBindings.create(this.getGivenTvarList()));
+          t = t.join(t2, this.getGivenTvarList());
           if (t == null) {
             emsg = new StringBuffer();
             emsg.append("Element types incompatible at - ");
@@ -864,7 +866,7 @@ if (DEBUG > 1) {
           /* DEBUG */ System.out.print("bindings: ");
           /* DEBUG */ System.out.println(b);
 }
-        if ((b = at.applyTo(t, b)) == null) {
+        if ((b = at.accept(PTypeSkel.NARROWER, true, t, b)) == null) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(this.typedElem.getSrcInfo());
@@ -1068,8 +1070,10 @@ if (DEBUG > 1) {
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
       if (tr.tconInfo.key.equals(sig.tconInfo.key)
-          || PTypeRefSkel.isTconOfExtensionOf(tr.tconInfo, sig.tconInfo, PTypeGraph.this.theCompiler)
-          || tr.ext && PTypeRefSkel.isTconOfExtensionOf(sig.tconInfo, tr.tconInfo, PTypeGraph.this.theCompiler)) {
+          || PTypeGraph.this.theCompiler.isBaseOf(sig.tconInfo.key, tr.tconInfo.key)
+          // || PTypeRefSkel.isTconOfExtensionOf(tr.tconInfo, sig.tconInfo, PTypeGraph.this.theCompiler)
+          || tr.ext && PTypeGraph.this.theCompiler.isBaseOf(tr.tconInfo.key, sig.tconInfo.key)) {
+          // || tr.ext && PTypeRefSkel.isTconOfExtensionOf(sig.tconInfo, tr.tconInfo, PTypeGraph.this.theCompiler)) {
         ;
       } else {
         emsg = new StringBuffer();

@@ -242,7 +242,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEVarDef var = PEVarDef.acceptX(ee, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED);
+        PEVarDef var = PEVarDef.acceptX(ee, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -299,7 +299,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
   private static List<PEVarDef> acceptParamList(ParserA.TokenReader reader) throws CompileException, IOException {
     List<PEVarDef> paramList = new ArrayList<PEVarDef>();
     PEVarDef param;
-    while ((param = PEVarDef.accept(reader, /* PEVarDef.CAT_FUN_PARAM, */ PEVarDef.TYPE_NEEDED)) != null) {
+    while ((param = PEVarDef.accept(reader, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED)) != null) {
       paramList.add(param);
     }
     return paramList;
@@ -386,10 +386,10 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolveId();
-      this.params[i].type.checkRequiringConcreteIn();
+      // this.params[i].type.checkRequiringConcreteIn();  // too strict check
     }
     this.retDef = this.retDef.resolveId();
-    this.retDef.type.checkRequiringConcreteOut();
+    // this.retDef.type.checkRequiringConcreteOut();  // too strict check
     if (this.implExprs != null) {
       for (int i = 0; i < this.implExprs.length; i++) {
         this.implExprs[i] = this.implExprs[i].resolveId();
@@ -408,12 +408,16 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
   }
 
   public void normalizeTypes() throws CompileException {
+    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     if (this.params != null) {
       for (int i = 0; i < this.params.length; i++) {
         this.params[i].normalizeTypes();
+        this.params[i].nTypeSkel.collectTconInfo(tis);
       }
     }
     this.retDef.normalizeTypes();
+    this.retDef.nTypeSkel.collectTconInfo(tis);
+    this.scope.addReferredTcons(tis);
     if (this.implExprs != null) {
       for (int i = 0; i < this.implExprs.length; i++) {
         this.implExprs[i].normalizeTypes();

@@ -23,7 +23,10 @@
  ***************************************************************************/
 package org.sango_lang;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface PDefDict {
   int getModAvailability();
@@ -37,6 +40,14 @@ public interface PDefDict {
   interface DefDictGetter {
 
     PDefDict getReferredDefDict(Cstr mod) throws CompileException;
+
+    GlobalDefDict getGlobalDefDict();
+
+  }
+
+  interface GlobalDefDict {
+
+    boolean isBaseOf(TconKey b, TconKey e);
 
   }
 
@@ -132,19 +143,23 @@ public interface PDefDict {
 
   static class TconProps {
     int subcat;
-    int paramCount;  // -1 means variable
+    TparamProps[] paramProps;  // null means variable
     int acc;
     DataDefGetter defGetter;
 
-    public static TconProps create(int subcat, int paramCount, int acc, DataDefGetter getter) {
-      return new TconProps(subcat, paramCount, acc, getter);
+    public static TconProps create(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
+      return new TconProps(subcat, paramProps, acc, getter);
     }
 
-    TconProps(int subcat, int paramCount, int acc, DataDefGetter getter) {
+    TconProps(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
       this.subcat = subcat;
-      this.paramCount = paramCount;
+      this.paramProps = paramProps;
       this.acc = acc;
       this.defGetter = getter;
+    }
+
+    int paramCount() {
+      return (this.paramProps != null)? this.paramProps.length: -1;
     }
 
     public String toString() {
@@ -152,7 +167,7 @@ public interface PDefDict {
       buf.append("tconprops[subcat=");
       buf.append(this.subcat);
       buf.append(",paramcount=");
-      buf.append(this.paramCount);
+      buf.append(this.paramCount());
       buf.append(",acc=");
       buf.append(this.acc);
       buf.append("]");
@@ -194,6 +209,114 @@ public interface PDefDict {
         b = ti.key.equals(this.key);
       }
       return b;
+    }
+  }
+
+  public static TparamProps createTparamProps(int variance, boolean concrete) {
+    return new TparamProps(variance, concrete);
+  }
+
+  static class TparamProps {
+    int variance;
+    boolean concrete;
+
+    TparamProps(int variance, boolean concrete) {
+      this.variance = variance;
+      this.concrete = concrete;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("tparamprops[variance=");
+      buf.append(this.variance);
+      buf.append(",concrete=");
+      buf.append(this.concrete);
+      buf.append("]");
+      return buf.toString();
+    }
+  }
+
+  static ExtGraph createExtGraph() {
+    return new ExtGraph();
+  }
+
+  static class ExtGraph {
+    Map<PDefDict.TconKey, ExtNode> nodeMap;
+
+    ExtGraph() {
+      this.nodeMap = new HashMap<PDefDict.TconKey, ExtNode>();
+    }
+
+    void addExtension(PDefDict.TconKey base, PDefDict.TconKey ext) throws CompileException {
+// /* DEBUG */ System.out.print("ExtGraph "); System.out.print(base.toRepr()); System.out.print(" "); System.out.println(ext.toRepr());
+      ExtNode en;
+      if ((en = this.nodeMap.get(ext)) == null) {
+        en = this.createNode(ext);
+      } else if (en.includesInDescendant(base)) {
+        throw new CompileException("Detected cyclic extension definition. " + base.toString());
+      } else {
+        ;
+      }
+      ExtNode bn;
+      if ((bn = this.nodeMap.get(base)) == null) {
+        bn = this.createNode(base);
+        en.base = bn;
+        bn.exts.add(en);
+      } else if (bn.includesInAncestor(ext)) {
+        throw new CompileException("Detected cyclic extension definition. " + ext.toString());
+      } else {
+        en.base = bn;
+        bn.exts.add(en);
+      }
+    }
+
+    private ExtNode createNode(PDefDict.TconKey tcon) {
+      ExtNode n = new ExtNode(tcon);
+      this.nodeMap.put(tcon, n);
+      return n;
+    }
+
+    boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
+// /* DEBUG */ System.out.print("is base of "); System.out.print(b.toRepr()); System.out.print(" "); System.out.println(e.toRepr());
+      ExtNode en = this.nodeMap.get(e);
+      return (en != null)? en.includesInAncestor(b): false;
+    }
+
+    private class ExtNode {
+      PDefDict.TconKey tcon;
+      ExtNode base;  // maybe null
+      List<ExtNode> exts;
+
+      ExtNode(PDefDict.TconKey tcon) {
+        this.tcon = tcon;
+        this.base = null;
+        this.exts = new ArrayList<ExtNode>();
+      }
+
+      boolean includesInDescendant(PDefDict.TconKey t) {
+        boolean b;
+        if (this.tcon.equals(t)) {
+          b = true;
+        } else {
+          b = false;
+          for (int i = 0; !b && i < this.exts.size(); i++) {
+            this.exts.get(i).includesInDescendant(t);
+          }
+        }
+        return b;
+      }
+
+      boolean includesInAncestor(PDefDict.TconKey t) {
+        boolean b = false;
+        ExtNode n = this;
+        while (!b && n != null) {
+          if (n.tcon.equals(t)) {
+            b = true;
+          }
+          n = n.base;
+        }
+        return b;
+      }
     }
   }
 

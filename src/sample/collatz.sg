@@ -21,47 +21,44 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.entity.existence" ;;
 
-data <existence> @opaque := @native ;;
-data <*A ro_slot> @opaque := @native ;;
-data <*A! rw_slot> @opaque := @native ;;
+# Collatz problem
+#   Shows sequence to 1.
+# Usage: sango -m sample_dir collatz N
 
-eval <*A maybe> *Assoc_ <<void fun> maybe> *Invalidator_ 
-  create_immutable_existence @public -> <existence <<A ro_slot> maybe> tuple> @native ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.num.bigint" -> bi ;;
+import "sango.system.runtime" -> runtime ;;
 
-eval <*A!> *Assoc <<void fun> maybe> *Invalidator_
-  create_mutable_existence @public -> <existence <A rw_slot> tuple> @native ;;
-
-eval <existence> *Ex <*A ro_slot> *Slot imut_peek_assoc | peek_assoc @public -> <A> @native ;;
-eval <existence> *Ex <*A! rw_slot> *Slot mut_peek_assoc | peek_assoc @public -> <A> @native ;;
-eval <existence> *Ex <*A! rw_slot> *Slot <A> *New_assoc mut_replace_assoc | replace_assoc @public -> <A> @native ;;
-
-data <weak_ref> @opaque := @native ;;
-
-eval <existence> *Ex <<weak_ref void fun> maybe> *Listener_ create_weak_ref @public -> <weak_ref> @native ;;
-
-eval <weak_ref> *WR get @public -> <existence maybe> @native ;;
-eval <weak_ref> *WR clear @public -> <void> @native ;;
-
-
-# -- undress/redress ;  This is mainly for weak collections, so use carefully. --
-
-# framework
-
-alias type <*A undress_f> @public := <A <existence <A redress_f> tuple> fun> ;;
-alias type <*A redress_f> @public := <existence A fun> ;;
-
-data <*A dress_fs> @public :=
-  undress_f: <A undress_f>
-  dress_fs$ ;;
-
-# implementation
-
-eval dress_fs @public -> <existence dress_fs> {
-  undress_f: ^undress dress_fs$
-} ;;
-
-eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
-  (| Ex, ^itself |)
+eval _main_ -> <void> {
+  runtime.args = [ *N ; ** ],
+  N bi.parse = *Init,
+  if {
+  ; Init bi.gt0? ->
+  ; otherwise -> bad_arg$ "Initial value must be positive." new_exception >> throw
+  },
+  0 bi.bigint = *Zero,
+  1 bi.bigint = *One,
+  2 bi.bigint = *Two,
+  3 bi.bigint = *Three,
+  Init bi.format >> stdio.print,
+  Init Zero &\ <bi.bigint> *I <bi.bigint> *S -> <void> {
+    S bi.inc = *S',
+    I Two bi.div = (| *Q, *R |),
+    if {
+    ; R bi.zero? -> Q
+    ; otherwise -> I Three bi.prod >> bi.inc
+    } = *I',
+    "  " stdio.print, I' bi.format >> stdio.print, 
+    if {
+    ; I' One bi.eq? ->
+      "\n==> " stdio.print,
+      S' bi.format >> stdio.print,
+      " steps." stdio.print_and_newline
+    ; otherwise ->
+      I' S' &&
+    }
+  },
+  stdio.flush
 } ;;

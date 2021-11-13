@@ -24,7 +24,7 @@ eval test -> <void> {
   void$
 } ;;
 
-eval version_test -> <cstr> { "1.5.0" } ;;  # VERSION
+eval version_test -> <cstr> { "1.5.1" } ;;  # VERSION
 
 eval test001 -> <void> { _name_ = *Name, runtime.prog_name = Name, runtime.args = [ "foo", "bar" ], void$ } ;;
 eval test011 -> <bool> { (runtime.version >> runtime.ver_full) version_test str.start_with? = true$ } ;;

@@ -42,6 +42,12 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 public class Module {
+  // module file format version
+  // static final String CUR_FORMAT_VERSION = "1.0";
+  // initial
+  static final String CUR_FORMAT_VERSION = "1.1";
+  // add needs_concrete attribute to type var slot, which must be checked for type consistency
+
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
   public static final Cstr MOD_ENTITY = new Cstr("sango.entity");
   public static final Cstr MOD_ACTOR = new Cstr("sango.actor");
@@ -133,6 +139,7 @@ public class Module {
   static final String ATTR_V = "v";  // src info value
   static final String ATTR_VALUE = "value";
   static final String ATTR_VAR_COUNT = "var_count";
+  static final String ATTR_VARIANCE = "variance";
 
   static final String REPR_YES = "yes";
   static final String REPR_NO = "no";
@@ -145,11 +152,14 @@ public class Module {
   static final String REPR_BETA = "beta";
   static final String REPR_LIMITED = "limited";
   static final String REPR_DEPRECATED = "deprecated";
+  static final String REPR_INVARIANT = "in";  // CAUTION: symbol differs from constant name
+  static final String REPR_COVARIANT = "co";  // CAUTION: symbol differs from constant name
+  static final String REPR_CONTRAVARIANT = "cx";  // CAUTION: symbol differs from constant name
 
-  public static final int ACC_PUBLIC = 1;
-  public static final int ACC_PROTECTED = 2;
-  public static final int ACC_OPAQUE = 4;
-  public static final int ACC_PRIVATE = 8;
+  public static final int ACC_PUBLIC = 1 << 0;
+  public static final int ACC_PROTECTED = 1 << 1;
+  public static final int ACC_OPAQUE = 1 << 2;
+  public static final int ACC_PRIVATE = 1 << 3;
 
   public static final int AVAILABILITY_GENERAL = 0;
   public static final int AVAILABILITY_ALPHA = 1;
@@ -157,14 +167,12 @@ public class Module {
   public static final int AVAILABILITY_LIMITED = 7;
   public static final int AVAILABILITY_DEPRECATED = 9;
 
+  public static final int INVARIANT = 0;
+  public static final int COVARIANT = 1;
+  public static final int CONTRAVARIANT = 2;
+
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;
-
-  // module file format version
-  // static final String CUR_FORMAT_VERSION = "1.0";
-  // initial
-  static final String CUR_FORMAT_VERSION = "1.1";
-  // add needs_concrete attribute to type var slot, which must be checked for type consistency
 
   Cstr name;
   int availability;

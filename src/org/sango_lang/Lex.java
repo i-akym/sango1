@@ -665,7 +665,7 @@ public class Lex {
         this.radix = 10;
         this.consumed(); this.transit(200); return false;
       } else {
-        this.setSymToken(LToken.COL); this.transit(0); return true;
+        this.setSymToken(LToken.MINUS); this.transit(0); return true;
       }
     }
   }

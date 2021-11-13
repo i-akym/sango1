@@ -42,7 +42,7 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-public class Compiler implements PDefDict.DefDictGetter {
+public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict {
   static final int ACTION_IGNORE = 0;
   static final int ACTION_WARN = 1;
   static final int ACTION_ERROR = 2;
@@ -59,6 +59,7 @@ public class Compiler implements PDefDict.DefDictGetter {
   List<CompileEntry> generateQueue;
   Map<Cstr, Parser> parserDict;
   Map<Cstr, PDefDict> defDictDict;
+  PDefDict.ExtGraph extGraph;
   List<File> sysLibPathList;
   List<File> userModPathList;
   List<File> modPathList;
@@ -152,6 +153,7 @@ public class Compiler implements PDefDict.DefDictGetter {
     this.generateQueue = new ArrayList<CompileEntry>();
     this.parserDict = new HashMap<Cstr, Parser>();
     this.defDictDict = new HashMap<Cstr, PDefDict>();
+    this.extGraph = PDefDict.createExtGraph();
     this.sysLibPathList = new ArrayList<File>();
     this.sysLibPathList.add(new File("lib"));
     this.userModPathList = new ArrayList<File>();
@@ -564,7 +566,7 @@ public class Compiler implements PDefDict.DefDictGetter {
     }
   }
 
-  void performReferMod(ReferEntry re) throws IOException, FormatException {
+  void performReferMod(ReferEntry re) throws IOException, FormatException, CompileException {
     StringBuffer emsg;
     if (this.verboseModule) {
       this.msgOut.print("Importing ");
@@ -573,7 +575,7 @@ public class Compiler implements PDefDict.DefDictGetter {
       this.msgOut.print(re.file.getCanonicalPath());
       this.msgOut.println(" ...");
     }
-    PDefDict d = null;
+    PCompiledModule d = null;
     ZipInputStream zis = null;
     try {
       zis = new ZipInputStream(new FileInputStream(re.file));
@@ -610,6 +612,7 @@ public class Compiler implements PDefDict.DefDictGetter {
       }
     }
     this.defDictDict.put(re.modName, d);
+    d.setupExtensionGraph(this.extGraph);
   }
 
   void determineActionToImport(Cstr modName) throws IOException {
@@ -647,6 +650,10 @@ public class Compiler implements PDefDict.DefDictGetter {
       throw new CompileException(emsg.toString());
     }
     return d;
+  }
+
+  public PDefDict.GlobalDefDict getGlobalDefDict() {
+    return this;
   }
 
   void compileErrorDetected(Cstr modName, Exception ex) throws AbortException {
@@ -842,6 +849,10 @@ public class Compiler implements PDefDict.DefDictGetter {
       b = modName.equals(referQueue.get(i).modName);
     }
     return b;
+  }
+
+  public boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
+    return this.extGraph.isBaseOf(b, e);
   }
 
   static void printVersion(PrintStream out) {
