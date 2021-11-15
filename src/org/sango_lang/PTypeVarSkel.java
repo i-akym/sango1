@@ -23,7 +23,6 @@
  ***************************************************************************/
 package org.sango_lang;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,7 +97,7 @@ public class PTypeVarSkel implements PTypeSkel {
       t = iBindings.lookupAppl(this.varSlot);
     } else if (iBindings.isBound(this.varSlot)) {
       t = iBindings.lookup(this.varSlot);
-    } else {
+    } else {  // HERE: what is this?
       PTVarSlot s = PTVarSlot.create(this.varSlot.varDef);
       PTypeVarSkel v = this.copy();
       v.varSlot = s;

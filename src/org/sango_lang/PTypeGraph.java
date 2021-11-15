@@ -546,7 +546,7 @@ if (DEBUG > 1) {
           emsg.append(this.typedElem.getSrcInfo());
           emsg.append(".");
           emsg.append("\n  parameter pos: ");
-          emsg.append(i);
+          emsg.append(i + 1);
           emsg.append("\n  parameter def: ");
           emsg.append(PTypeSkel.Util.repr(ctr.params[i]));
           emsg.append("\n  parameter def in context: ");
