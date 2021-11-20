@@ -212,14 +212,6 @@ class PScope {
     return v;
   }
 
-  // boolean isDefinedOuter(String id) {
-    // return (this.funLevel >= 0)? this.outerDict.containsKey(id): false;
-  // }
-
-  // boolean isDefinedOuter(PVarSlot varSlot) {
-    // return (this.funLevel >= 0)? this.outerDict.containsValue(varSlot): false;
-  // }
-
   List<PTVarSlot> getEnvTVarList() { return this.envTVarList; }
 
   List<PEVarSlot> getEnvEVarList() { return this.envEVarList; }
@@ -236,10 +228,6 @@ class PScope {
 
   PDefDict.EidProps resolveEid(PExprId id) throws CompileException {
     return this.theMod.resolveEid(id);
-  }
-
-  PDefDict.TconInfo resolveTconDirect(PDefDict.TconKey key) throws CompileException {
-    return this.theMod.resolveTconDirect(key);
   }
 
   PDefDict.TconInfo resolveTcon(String mod, String name) throws CompileException {
@@ -295,7 +283,7 @@ class PScope {
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
-    PTypeId c = PTypeId.create(srcInfo, /* PModule.MOD_ID_LANG, */ PModule.MOD_ID_LANG, "char", false);
+    PTypeId c = PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "char", false);
     PTypeDesc ct;
     try {
       ct = c.setupScope(this);
@@ -307,7 +295,7 @@ class PScope {
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {
-    PDefDict.TconInfo tconInfo = this.theMod.resolveTcon(/* PModule.MOD_ID_LANG, */ PModule.MOD_ID_LANG, tcon);
+    PDefDict.TconInfo tconInfo = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
     if (tconInfo == null) {
       throw new RuntimeException("Internal error.");
     }

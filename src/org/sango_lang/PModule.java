@@ -1314,13 +1314,6 @@ class PModule extends PDefaultProgElem implements PDefDict {
         + (((catOpts & PExprId.CAT_DCON) > 0)? Module.ACC_PROTECTED + Module.ACC_OPAQUE: 0));
   }
 
-  PDefDict.TconInfo resolveTconDirect(PDefDict.TconKey key) throws CompileException {
-    return this.theCompiler.getReferredDefDict(key.modName).resolveTcon(
-      key.tcon,
-      PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
-      Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
-  }
-
   PDefDict.TconInfo resolveTcon(String mod, String tcon) throws CompileException {
     return this.isLang()?  this.resolveTconInLang(mod, tcon): this.resolveTconInOther(mod, tcon);
   }
