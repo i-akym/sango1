@@ -33,6 +33,8 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
   int availability;
   PTypeDesc sig;  // null means variable params
   String tcon;
+  String feature;
+  String featureFor;
   int acc;
   PTVarDef[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
@@ -92,13 +94,17 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       this.dat.sig = sig;
     }
 
+    void setFeature(String feature) {
+      this.dat.feature = feature;
+    }
+
+    void setFeatureFor(String featureFor) {
+      this.dat.featureFor = featureFor;
+    }
+
     void setAcc(int acc) {
       this.dat.acc = acc;
     }
-
-    // void setNativeImpl() {
-      // this.constrList = null;
-    // }
 
     void addConstr(PDataConstrDef constr) throws CompileException {
       StringBuffer emsg;
@@ -188,6 +194,28 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       throw new CompileException(emsg.toString());
     }
     builder.setSig(tsig);
+    if (ParserA.acceptToken(reader, LToken.COL, ParserA.SPACE_DO_NOT_CARE) != null) {
+      PTypeId feature;
+      if ((feature = PTypeId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        emsg = new StringBuffer();
+        emsg.append("Feature name missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      builder.setFeature(feature.name);
+      if (ParserA.acceptToken(reader, LToken.SLASH, ParserA.SPACE_DO_NOT_CARE) != null) {
+        PTypeId featureFor;
+        if ((featureFor = PTypeId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+          emsg = new StringBuffer();
+          emsg.append("Variable name for feature missing at ");
+          emsg.append(reader.getCurrentSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        builder.setFeatureFor(featureFor.name);
+      }
+    }
     int acc = PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
     builder.setAcc(acc);
     if (ParserA.acceptToken(reader, LToken.COL_EQ, ParserA.SPACE_DO_NOT_CARE) == null) {

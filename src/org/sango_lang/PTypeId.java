@@ -28,6 +28,7 @@ import java.io.IOException;
 public class PTypeId extends PDefaultProgElem implements PTypeDesc {
   static final int CAT_VAR = 1;
   static final int CAT_TCON = 2;
+  static final int CAT_FEATURE = 3;
 
   public static final int SUBCAT_NOT_FOUND = 0;
   public static final int SUBCAT_DATA = 1;
@@ -65,9 +66,17 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     return id;
   }
 
+  static PTypeId createFeature(Parser.SrcInfo srcInfo, String name) {
+    PTypeId id = create(srcInfo, null, name, false);
+    id.setFeature();
+    return id;
+  }
+
   boolean isVar() { return this.isCat(CAT_VAR); }
 
   boolean isTcon() { return this.isCat(CAT_TCON); }
+
+  boolean isFeature() { return this.isCat(CAT_FEATURE); }
 
   boolean isCat(int cat) { return this.catOpt == cat; }
 
@@ -87,6 +96,10 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
 
   void setTcon() {
     this.setCat(CAT_TCON);
+  }
+
+  void setFeature() {
+    this.setCat(CAT_FEATURE);
   }
 
   void setCat(int cat) {
@@ -121,6 +134,9 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     }
     if (this.maybeTcon()) {
       buf.append(",(TCON)");
+    }
+    if (this.isFeature()) {
+      buf.append(",FX");
     }
     buf.append(",id=");
     buf.append(this.toRepr());
