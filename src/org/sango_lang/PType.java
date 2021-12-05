@@ -28,8 +28,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 abstract class PType {
-  static final int ACCEPTABLE_NONE = 0;
-  static final int ACCEPTABLE_VARDEF = 1;
+  private static final int ACCEPTABLE_NONE = 0;
+  private static final int ACCEPTABLE_ID = 1;
+  private static final int ACCEPTABLE_VARDEF = 2;
+  private static final int ACCEPTABLE_TYPE = 4;
+  private static final int ACCEPTABLE_BOUND = 8;
+
+  private static final int[] acceptable_tab = new int[] {
+    /* 0 */ ACCEPTABLE_NONE,  // no more
+    /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
+    /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
+    /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE + ACCEPTABLE_BOUND,  // -> 3; 4 if bound
+    /* 4 */ ACCEPTABLE_VARDEF  // -> 0
+  };
 
   static final int INHIBIT_REQUIRE_CONCRETE = 0;
   static final int ALLOW_REQUIRE_CONCRETE = 1;
@@ -37,6 +48,7 @@ abstract class PType {
   static class Builder {
     Parser.SrcInfo srcInfo;
     List<PTypeDesc> itemList;
+    PTVarDef bound;
 
     static Builder newInstance() {
       return new Builder();
@@ -54,6 +66,10 @@ abstract class PType {
       this.itemList.add(item);
     }
 
+    void setBound(PTVarDef varDef) {
+      this.bound = varDef;
+    }
+
     PTypeDesc create() throws CompileException {
       StringBuffer emsg;
       PTypeDesc t = null;
@@ -67,9 +83,9 @@ abstract class PType {
       PTypeDesc anchor = this.itemList.remove(this.itemList.size() - 1);
       if (anchor instanceof PTypeId) {
         PTypeId id = (PTypeId)anchor;
-        if (!id.maybeVar() || this.itemList.size() > 0) {
+        if (!id.maybeVar() || this.itemList.size() > 0 || this.bound != null) {
           // id.cutOffCatOpt(PTypeId.CAT_VAR);
-          t = PTypeRef.create(this.srcInfo, id, this.itemList.toArray(new PTypeDesc[this.itemList.size()]));
+          t = PTypeRef.create(this.srcInfo, id, this.itemList.toArray(new PTypeDesc[this.itemList.size()]), this.bound);
         } else {
           t = anchor;
         }
@@ -99,14 +115,14 @@ abstract class PType {
   }
 
   static PTypeDesc accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    return accept(reader, spc, ACCEPTABLE_VARDEF);
+    return accept(reader, spc, true);
   }
 
   static PTypeDesc acceptRO(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    return accept(reader, spc, ACCEPTABLE_NONE);
+    return accept(reader, spc, false);
   }
 
-  static PTypeDesc accept(ParserA.TokenReader reader, int spc, int acceptables) throws CompileException, IOException {
+  private static PTypeDesc accept(ParserA.TokenReader reader, int spc, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LT, spc)) == null) {
@@ -115,10 +131,39 @@ abstract class PType {
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
     PTypeDesc item;
+    int state = acceptsVarDef? 1: 2;
     int sp = ParserA.SPACE_DO_NOT_CARE;
-    while ((item = acceptItem(reader, sp, acceptables)) != null) {
-      builder.addItem(item);
-      sp = ParserA.SPACE_NEEDED;
+    while (state > 0) {
+      if ((item = acceptItem(reader, sp, acceptsVarDef, acceptable_tab[state])) != null) {
+        switch (state) {
+        case 1:
+          builder.addItem(item);
+          state = 3;
+          sp = ParserA.SPACE_NEEDED;
+          break;
+        case 2:
+          builder.addItem(item);
+          sp = ParserA.SPACE_NEEDED;
+          break;
+        case 3:
+          if (item instanceof Bound) {
+            sp = ParserA.SPACE_DO_NOT_CARE;;
+            state = 4;
+          } else {
+            builder.addItem(item);
+            sp = ParserA.SPACE_NEEDED;
+          }
+          break;
+        case 4:
+          builder.setBound((PTVarDef)item);
+          state = 0;
+          break;
+        default:
+          throw new RuntimeException("Should not reach here.");
+        }
+      } else {
+        state = 0;
+      }
     }
     if (ParserA.acceptToken(reader, LToken.GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -135,11 +180,15 @@ abstract class PType {
     return builder.create();
   }
 
+  static PTypeDesc acceptX(ParserB.Elem elem) throws CompileException {
+    return acceptX(elem, ACCEPTABLE_VARDEF);
+  }
+
   static PTypeDesc acceptXRO(ParserB.Elem elem) throws CompileException {
     return acceptX(elem, ACCEPTABLE_NONE);
   }
 
-  static PTypeDesc acceptX(ParserB.Elem elem, int acceptables) throws CompileException {
+  private static PTypeDesc acceptX(ParserB.Elem elem, int acceptables) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("type-spec")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -222,18 +271,23 @@ abstract class PType {
     return sig;
   }
 
-  static PTypeDesc acceptItem(ParserA.TokenReader reader, int spc, int acceptables) throws CompileException, IOException {
+  static PTypeDesc acceptItem(ParserA.TokenReader reader, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
     StringBuffer emsg;
     PTypeId id;
     PTVarDef var;
     PType type;
     PTypeDesc item;
-    if ((item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
+    if ((acceptables & ACCEPTABLE_ID) > 0
+        && (item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
       ;
-    } else if (((acceptables & ACCEPTABLE_VARDEF) > 0)
+    } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
         && (item = PTVarDef.accept(reader)) != null) {
       ;
-    } else if ((item = accept(reader, spc, acceptables)) != null) {
+    } else if ((acceptables & ACCEPTABLE_TYPE) > 0
+        && (item = accept(reader, spc, acceptsVarDef)) != null) {
+      ;
+    } else if ((acceptables & ACCEPTABLE_BOUND) > 0
+        && (item = Bound.accept(reader)) != null) {
       ;
     } else {
       item = null;
@@ -254,5 +308,63 @@ abstract class PType {
       item = null;
     }
     return item;
+  }
+
+  static class Bound extends PDefaultProgElem implements PTypeDesc {
+    private Bound() {}
+
+    static Bound accept(ParserA.TokenReader reader) throws CompileException, IOException {
+      ParserA.Token t;
+      if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        return null;
+      }
+      return new Bound();
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("bound");
+      return buf.toString();
+    }
+
+    public PTypeDesc setupScope(PScope scope) throws CompileException {
+      throw new RuntimeException("Bound#setupScope is called.");
+    }
+
+    public PTypeId deepCopy(Parser.SrcInfo srcInfo) {
+      throw new RuntimeException("Bound#deepCopy is called.");
+    }
+
+    public PTypeId resolveId() throws CompileException {
+      throw new RuntimeException("Bound#resolveId is called.");
+    }
+
+    public PDefDict.TconInfo getTconInfo() {
+      throw new RuntimeException("Bound#getTconInfo is called.");
+    }
+
+    public void excludePrivateAcc() throws CompileException {
+      throw new RuntimeException("Bound#excludePrivateAcc is called.");
+    }
+
+    public void checkRequiringConcreteIn() throws CompileException {
+      throw new RuntimeException("Bound#checkRequiringConcreteIn is called.");
+    }
+
+    public void checkRequiringConcreteOut() throws CompileException {
+      throw new RuntimeException("Bound#checkRequiringConcreteOut is called.");
+    }
+
+    public void normalizeTypes() {
+      throw new RuntimeException("Bound#normalizeTypes is called.");
+    }
+
+    public PTypeSkel normalize() {
+      throw new RuntimeException("Bound#normalize is called.");
+    }
+
+    public PTypeSkel getSkel() {
+      throw new RuntimeException("Bound#getSkel is called.");
+    }
   }
 }

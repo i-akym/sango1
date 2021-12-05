@@ -30,11 +30,12 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
   String tcon;
   boolean ext;
   PTypeDesc[] params;  // empty array if no params
+  PTVarDef bound;  // maybe null
   PDefDict.TconInfo tconInfo;
 
   private PTypeRef() {}
 
-  static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PTypeDesc[] param) {
+  static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PTypeDesc[] param, PTVarDef bound) {
     PTypeRef t = new PTypeRef();
     t.srcInfo = srcInfo;
     t.tconSrcInfo = id.srcInfo;
@@ -42,6 +43,7 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     t.tcon = id.name;
     t.ext = id.ext;
     t.params = (param != null)? param: new PTypeDesc[0];
+    t.bound = bound;
     return t;
   }
 
@@ -121,7 +123,8 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     return  create(
       srcInfo,
       PTypeId.create(srcInfo, PModule.MOD_ID_LANG, tcon, false),
-      paramTypeDescs);
+      paramTypeDescs,
+      null);
   }
 
   public PTypeRef setupScope(PScope scope) throws CompileException {
@@ -131,6 +134,9 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = (PTypeDesc)this.params[i].setupScope(scope);
+    }
+    if (this.bound != null) {
+      this.bound = (PTVarDef)this.bound.setupScope(scope);
     }
     if (this.mod != null) {
       this.modName = scope.resolveModId(this.mod);
@@ -179,6 +185,9 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
         throw new CompileException(emsg.toString());
       }
       this.params[i] = p;
+    }
+    if (this.bound != null) {
+      this.bound = (PTVarDef)this.bound.resolveId();
     }
     this.idResolved = true;
     return this;
@@ -251,7 +260,8 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       if ((a = this.tconInfo.props.defGetter.getAliasDef()) != null) {
         t = a.unalias(ps);
       } else {
-        t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+        t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps,
+          (this.bound != null)? (PTypeVarSkel)this.bound.normalize(): null);
       }
     }
     return t;
@@ -294,7 +304,8 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       for (int i = 0; i < ps.length; i++) {
         ps[i] = this.params[i].getSkel();
       }
-      t =  PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+      t =  PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps,
+        (this.bound != null)? (PTypeVarSkel)this.bound.getSkel(): null);
     }
     return t;
   }

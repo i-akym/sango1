@@ -108,7 +108,7 @@ class PPtnMatch extends PDefaultPtnElem {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      t = PType.acceptX(ee, PType.ACCEPTABLE_VARDEF);
+      t = PType.acceptX(ee);
       if (t == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");

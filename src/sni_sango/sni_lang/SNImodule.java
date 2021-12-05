@@ -424,7 +424,7 @@ public class SNImodule {
         PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams);
+      helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams, null);
   }
 
   static PTypeRefSkel createTupleType(RNativeImplHelper helper, PTypeSkel[] elemTypes) {
@@ -443,7 +443,7 @@ public class SNImodule {
         PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, elemTypes);
+      helper.getCore().getDefDictGetter(), null, ti, false, elemTypes, null);
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
@@ -510,7 +510,7 @@ public class SNImodule {
             (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
             paramPropss, this.acc, ddg);
           this.sig = PTypeRefSkel.create(
-            this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
+            this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams, null);
         }
       }
       return this.sig;

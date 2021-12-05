@@ -132,7 +132,8 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
             null,
             this.ext.tcon,
             false),
-          tr.params);
+          tr.params,
+          null);  // HERE: bound tvar
       } else {
         throw new RuntimeException("Unexpected type.");
       }
