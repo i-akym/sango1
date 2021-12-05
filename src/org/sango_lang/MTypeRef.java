@@ -36,6 +36,7 @@ class MTypeRef implements MType {
   String tcon;
   boolean ext;
   MType[] params;
+  MTypeVar bound;
 
   private MTypeRef() {}
 
@@ -49,11 +50,17 @@ class MTypeRef implements MType {
       sp = " ";
     }
     buf.append(sp);
-    buf.append(this.modName.toJavaString());
-    buf.append(".");
+    if (this.modName != null) {
+      buf.append(this.modName.toJavaString());
+      buf.append(".");
+    }
     buf.append(tcon);
     if (this.ext) {
       buf.append("+");
+    }
+    if (this.bound != null) {
+      buf.append("=");
+      buf.append(bound.toString());
     }
     buf.append(">");
     return buf.toString();
@@ -72,6 +79,11 @@ class MTypeRef implements MType {
       for (int i = 0; i < this.params.length; i++) {
         node.appendChild(this.params[i].externalize(doc));
       }
+    }
+    if (this.bound != null) {
+      Element nb = doc.createElement(Module.TAG_BOUND);
+      nb.appendChild(this.bound.externalize(doc));
+      node.appendChild(nb);
     }
     return node;
   }
@@ -112,19 +124,41 @@ class MTypeRef implements MType {
 
     Node n = node.getFirstChild();
     MType type = null;
+    MTypeVar v = null;
+    int state = 0;
     while (n != null) {
       if (Module.isIgnorable(n)) {
         ;
-      } else {
-        type = MType.Envelope.internalizeDesc(n);
-	if (type == null) {
-          throw new FormatException("Unknown element : " + n.getNodeName());
-	}
+      } else if (state == 0 && (v = internalizeBound(n)) != null) {
+	builder.setBound(v);
+        state = 1;
+      } else if (state == 0 && (type = MType.Envelope.internalizeDesc(n)) != null) {
 	builder.addParam(type);
+      } else {
+        throw new FormatException("Unknown element : " + n.getNodeName());
       }
       n = n.getNextSibling();
     }
     return builder.create();
+  }
+
+  static MTypeVar internalizeBound(Node node) throws FormatException {
+    if (!node.getNodeName().equals(Module.TAG_BOUND)) { return null; }
+
+    Node n = node.getFirstChild();
+    MTypeVar v = null;
+    int state = 0;
+    while (n != null) {
+      if (Module.isIgnorable(n)) {
+        ;
+      } else if (state == 0 && (v = MTypeVar.internalize(n)) != null) {
+        state = 1;
+      } else {
+        throw new FormatException("Unknown element : " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    return v;
   }
 
   public static class Builder {
@@ -148,6 +182,10 @@ class MTypeRef implements MType {
 
     public void setExt(boolean b) {
       this.typeRef.ext = b;
+    }
+
+    public void setBound(MTypeVar v) {
+      this.typeRef.bound = v;
     }
 
     public void addParam(MType t) {

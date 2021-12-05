@@ -299,7 +299,7 @@ class PScope {
     if (tconInfo == null) {
       throw new RuntimeException("Internal error.");
     }
-    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels);
+    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels, null);
   }
 
   List<PTVarSlot> getGivenTVarList() {

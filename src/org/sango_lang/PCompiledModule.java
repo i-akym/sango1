@@ -304,7 +304,7 @@ class PCompiledModule implements PDefDict {
         } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(PCompiledModule.this.name, this.sigTcon);
           PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
-          this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
+          this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams, null);
         }
       }
       return this.sig;
@@ -604,7 +604,18 @@ class PCompiledModule implements PDefDict {
       t = PNoRetSkel.create(null);
     } else {
       PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
-      t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
+      PTypeVarSkel bv;
+      if (tr.bound != null) {
+// /* DEBUG */ System.out.print("MTypeRef to PTypeRef: "); System.out.print(this);
+        if (tr.bound.slot != varList.size()) {
+          throw new RuntimeException("Slot number is not sequential.");
+        }
+        bv = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tr.bound.variance, tr.bound.requiresConcrete));
+        varList.add(bv);
+      } else {
+        bv = null;
+      }
+      t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params, bv);
       unresolvedTypeRefList.add((PTypeRefSkel)t);
     }
     return t;

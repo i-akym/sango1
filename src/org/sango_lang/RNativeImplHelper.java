@@ -498,7 +498,7 @@ public class RNativeImplHelper {
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           PTypeId.SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
         PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
-        t = PTypeRefSkel.create(this.getDefDictGetter(), null, ti, false, tis);
+        t = PTypeRefSkel.create(this.getDefDictGetter(), null, ti, false, tis, null);
       } catch (CompileException ex) {}
       return t;
     }

@@ -128,7 +128,7 @@ class PEVarDef extends PDefaultPtnElem {
     PTypeDesc type = null;
     if (typeSpec == TYPE_NEEDED || typeSpec == TYPE_MAYBE_SPECIFIED) {
       ParserB.Elem ee = elem.getFirstChild();
-      type = (ee != null)? PType.acceptX(ee, PType.ACCEPTABLE_VARDEF): null;
+      type = (ee != null)? PType.acceptX(ee): null;
     }
     if (typeSpec == TYPE_NEEDED && type == null) {
       emsg = new StringBuffer();

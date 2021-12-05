@@ -83,7 +83,7 @@ class PRetDef extends PDefaultTypedElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc type = PType.acceptX(e, PType.ACCEPTABLE_VARDEF);
+    PTypeDesc type = PType.acceptX(e);
     if (type == null) {
       emsg = new StringBuffer();
       emsg.append("Type missing at ");
