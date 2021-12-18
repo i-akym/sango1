@@ -36,7 +36,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
   String feature;
   String featureFor;
   int acc;
-  PTVarDef[] tparams;  // null means variable params
+  SigParam[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
 
   public String toString() {
@@ -142,13 +142,20 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       } else if (this.dat.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.dat.sig;
         this.dat.tcon = ti.name;
-        this.dat.tparams = new PTVarDef[0];
+        this.dat.tparams = new SigParam[0];
       } else if (this.dat.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.dat.sig;
         this.dat.tcon = tr.tcon;
-        this.dat.tparams = new PTVarDef[tr.params.length];
+        this.dat.tparams = new SigParam[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.dat.tparams[i] = (PTVarDef)tr.params[i];
+          if (tr.params[i] instanceof PTypeRef) {
+            PTypeRef ptr = (PTypeRef)tr.params[i];
+            this.dat.tparams[i] = new SigParam(ptr.bound, ptr);  // constraint ok?
+          } else if (tr.params[i] instanceof PTVarDef) {
+            this.dat.tparams[i] = new SigParam((PTVarDef)tr.params[i], null);
+          } else {
+            throw new RuntimeException("Unexpected type.");
+          }
         }
       } else {
         throw new RuntimeException("Unexpected type.");
@@ -186,7 +193,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc tsig;
-    if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL, PType.ALLOW_REQUIRE_CONCRETE)) == null) {
+    if ((tsig = PType.acceptSig1(reader, PExprId.ID_NO_QUAL)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -401,7 +408,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     if (this.tparams != null) {
       pvs = new PTVarSlot[this.tparams.length];
       for (int i = 0; i < this.tparams.length; i++) {
-        pvs[i] = this.tparams[i].varSlot;
+        pvs[i] = this.tparams[i].var.varSlot;
       }
     } else {
       pvs = null;
@@ -472,6 +479,29 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     if (this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i].checkConcreteness();
+      }
+    }
+  }
+
+  static class SigParam {
+    PTVarDef var;
+    PTypeRef constraint;  // maybe null
+
+    SigParam(PTVarDef var, PTypeRef constraint) {
+      this.var = var;
+      this.constraint = constraint;
+    }
+
+    SigParam resolveId() throws CompileException {
+      if (this.constraint != null) {
+        this.constraint = this.constraint.resolveId();
+      }
+      return this;
+    }
+
+    void excludePrivateAcc() throws CompileException {
+      if (this.constraint != null) {
+        this.constraint.excludePrivateAcc();
       }
     }
   }

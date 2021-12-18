@@ -553,7 +553,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (dat.tparams != null) {
       paramPropss = new PDefDict.TparamProps[dat.tparams.length];
       for (int i = 0; i < dat.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].variance, dat.tparams[i].requiresConcrete);
+        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].var.variance, dat.tparams[i].var.requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -607,7 +607,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (ext.tparams != null) {
       paramPropss = new PDefDict.TparamProps[ext.tparams.length];
       for (int i = 0; i < ext.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].variance, ext.tparams[i].requiresConcrete);
+        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].var.variance, ext.tparams[i].var.requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -1099,7 +1099,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < dat.tparams.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, dat.tparams[i].name, Module.INVARIANT, false));
+// HERE
+      paramTypeBuilder.addItem(PTVarDef.create(si, dat.tparams[i].var.name, Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dat.tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
@@ -1149,7 +1150,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     }
   }
 
-  private void generateMaybeAttrFun(String tcon, PTVarDef[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
+  private void generateMaybeAttrFun(String tcon, PDataStmt.SigParam[] tparams, int availability, int acc, String dcon, String attrName, PTypeDesc attrType, Parser.SrcInfo srcInfo) throws CompileException {
     // eval @availability <*T0 *T1 .. TCON> *X _maybe_attr_TCON_A | maybe_A @xxx -> <<A's type> maybe> {
     //   X case {
     //   ; A: *V *** DCON -> V value$
@@ -1168,7 +1169,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < tparams.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, tparams[i].name, Module.INVARIANT, false));
+      paramTypeBuilder.addItem(PTVarDef.create(si, tparams[i].var.name, Module.INVARIANT, false));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));

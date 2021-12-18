@@ -206,7 +206,7 @@ abstract class PType {
     return builder.create();
   }
 
-  static PTypeDesc acceptSig(ParserA.TokenReader reader, int qual, int concrete) throws CompileException, IOException {
+  static PTypeDesc acceptSig1(ParserA.TokenReader reader, int qual) throws CompileException, IOException {
     StringBuffer emsg;
     PTypeDesc sig = accept(reader, ParserA.SPACE_DO_NOT_CARE);
     if (sig instanceof PTVarDef) {
@@ -219,17 +219,20 @@ abstract class PType {
     if (sig instanceof PTypeRef) {
       PTypeRef tr = (PTypeRef)sig;
       for (int i = 0; i < tr.params.length; i++) {
-        if (!(tr.params[i] instanceof PTVarDef)) {
+        if ((tr.params[i] instanceof PTVarDef)) {
+          ;
+        } else if ((tr.params[i] instanceof PTypeRef)) {
+          PTypeRef ptr = (PTypeRef)tr.params[i];
+          if (ptr.bound == null) {
+            emsg = new StringBuffer();
+            emsg.append("Bound variable missing at ");
+            emsg.append(tr.tconSrcInfo);
+            emsg.append(".");
+            throw new CompileException(emsg.toString());
+          }
+        } else {
           emsg = new StringBuffer();
           emsg.append("Type parameter missing at ");
-          emsg.append(tr.params[i].getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        PTVarDef v = (PTVarDef)tr.params[i];
-        if (concrete == INHIBIT_REQUIRE_CONCRETE && v.requiresConcrete) {
-          emsg = new StringBuffer();
-          emsg.append("Requiring concrete type is not allowed at ");
           emsg.append(tr.params[i].getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
@@ -251,7 +254,72 @@ abstract class PType {
       }
     } else if (sig instanceof PTypeId) {
       PTypeId ti = (PTypeId)sig;
-      if (qual == PExprId.ID_NO_QUAL && (/* ti.omod != null || */ ti.mod != null)) {
+      if (qual == PExprId.ID_NO_QUAL && ti.mod != null) {
+        emsg = new StringBuffer();
+        emsg.append("Module id not allowed at ");
+        emsg.append(ti.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      if (ti.ext) {
+        emsg = new StringBuffer();
+        emsg.append("Extension not allowed at ");
+        emsg.append(ti.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    } else {
+      throw new RuntimeException("Unexpected type.");
+    }
+    return sig;
+  }
+
+  static PTypeDesc acceptSig2(ParserA.TokenReader reader) throws CompileException, IOException {
+    StringBuffer emsg;
+    PTypeDesc sig = accept(reader, ParserA.SPACE_DO_NOT_CARE);
+    if (sig instanceof PTVarDef) {
+      emsg = new StringBuffer();
+      emsg.append("Type constructor missing at ");
+      emsg.append(sig.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (sig instanceof PTypeRef) {
+      PTypeRef tr = (PTypeRef)sig;
+      for (int i = 0; i < tr.params.length; i++) {
+        if (!(tr.params[i] instanceof PTVarDef)) {
+          emsg = new StringBuffer();
+          emsg.append("Type parameter missing at ");
+          emsg.append(tr.params[i].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        PTVarDef v = (PTVarDef)tr.params[i];
+        if (v.requiresConcrete) {
+          emsg = new StringBuffer();
+          emsg.append("Requiring concrete type is not allowed at ");
+          emsg.append(tr.params[i].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+      }
+      if (tr.mod != null) {
+        emsg = new StringBuffer();
+        emsg.append("Module id not allowed at ");
+        emsg.append(tr.tconSrcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      if (tr.ext) {
+        emsg = new StringBuffer();
+        emsg.append("Extension not allowed at ");
+        emsg.append(tr.tconSrcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    } else if (sig instanceof PTypeId) {
+      PTypeId ti = (PTypeId)sig;
+      if (ti.mod != null) {
         emsg = new StringBuffer();
         emsg.append("Module id not allowed at ");
         emsg.append(ti.srcInfo);
