@@ -147,7 +147,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -251,7 +251,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Util.repr(this.inNode.type));
@@ -1065,27 +1065,32 @@ if (DEBUG > 1) {
       if (this.bindings != null) { return this.bindings; }
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }  // HERE: in case of <_>
-/* DEBUG */ if (!(t instanceof PTypeRefSkel)) { System.out.println("t " + t.toString()); }
-      PTypeRefSkel tr = (PTypeRefSkel)t;
+// /* DEBUG */ if (!(t instanceof PTypeRefSkel)) { System.out.println("t " + t.toString()); }
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
-      if (tr.tconInfo.key.equals(sig.tconInfo.key)
-          || PTypeGraph.this.theCompiler.isBaseOf(sig.tconInfo.key, tr.tconInfo.key)
-          // || PTypeRefSkel.isTconOfExtensionOf(tr.tconInfo, sig.tconInfo, PTypeGraph.this.theCompiler)
-          || tr.ext && PTypeGraph.this.theCompiler.isBaseOf(tr.tconInfo.key, sig.tconInfo.key)) {
-          // || tr.ext && PTypeRefSkel.isTconOfExtensionOf(sig.tconInfo, tr.tconInfo, PTypeGraph.this.theCompiler)) {
-        ;
-      } else {
+      if (this.type.accept(PTypeSkel.NARROWER, false, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
-        emsg.append(PTypeSkel.Util.repr(tr));
+        emsg.append(PTypeSkel.Util.repr(t));
         emsg.append("\n  pattern type sig: ");
         emsg.append(PTypeSkel.Util.repr(sig));
         throw new CompileException(emsg.toString());
       }
+      if (!(t instanceof PTypeRefSkel)) {
+        emsg = new StringBuffer();
+        emsg.append("Type mismatch at ");
+        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(".");
+        emsg.append("\n  value type: ");
+        emsg.append(PTypeSkel.Util.repr(t));
+        emsg.append("\n  pattern type sig: ");
+        emsg.append(PTypeSkel.Util.repr(sig));
+        throw new CompileException(emsg.toString());
+      }
+      PTypeRefSkel tr = (PTypeRefSkel)t;
       if (tr.params.length != sig.params.length) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
