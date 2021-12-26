@@ -517,6 +517,15 @@ if (DEBUG > 1) {
       /* DEBUG */ System.out.print(": ");
       /* DEBUG */ System.out.println(ct);
 }
+      if (!(ct instanceof PTypeRefSkel)) {
+        emsg = new StringBuffer();
+        emsg.append("Invalid closure type ");
+        emsg.append(PTypeSkel.Util.repr(ct));
+        emsg.append(" at ");
+        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       PTypeRefSkel ctr = (PTypeRefSkel)ct;
       if (ctr.tconInfo.key.modName.equals(Module.MOD_LANG) && ctr.tconInfo.key.tcon.equals("fun")) {
         ;
