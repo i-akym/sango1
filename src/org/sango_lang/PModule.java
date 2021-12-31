@@ -767,7 +767,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     evalStmtBuilder.setOfficial(Module.FUN_INITD);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
-    evalStmtBuilder.setRetDef(PRetDef.create(eval.retDef.type.deepCopy(si)));
+    evalStmtBuilder.setRetDef(PRetDef.create(eval.retDef.type.deepCopy(
+      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
     this.addEvalStmt(evalStmtBuilder.create());
   }
 
@@ -1099,12 +1100,12 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < dat.tparams.length; i++) {
-// HERE
-      paramTypeBuilder.addItem(PTVarDef.create(si, dat.tparams[i].var.name, Module.INVARIANT, false));
+      paramTypeBuilder.addItem(dat.tparams[i].extract(si));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, dat.tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
-    evalStmtBuilder.setRetDef(PRetDef.create(attr.type.deepCopy(si)));
+    evalStmtBuilder.setRetDef(PRetDef.create(attr.type.deepCopy(
+      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
     evalStmtBuilder.startImplExprSeq();
     PEval.Builder matchEvalBuilder = PEval.Builder.newInstance();
     matchEvalBuilder.setSrcInfo(si);
@@ -1175,7 +1176,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
-    retTypeBuilder.addItem(attrType.deepCopy(si));
+    retTypeBuilder.addItem(attrType.deepCopy(
+      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF));
     retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "maybe", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
     evalStmtBuilder.startImplExprSeq();

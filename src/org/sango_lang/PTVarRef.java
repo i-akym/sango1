@@ -84,8 +84,15 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo) {  // rollback to PTypeId
-    return PTypeId.create(srcInfo, /* null, */ null, this.name, false);
+  public PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+  // rollback to PTypeId
+    return PTypeId.create(srcInfo, null, this.name, false);
+    // PTVarRef v = new PTVarRef();
+    // v.srcInfo = srcInfo;
+    // v.name = this.name;
+    // v.scope = scope;
+    // v.varSlot = this.varSlot;
+    // return v;
   }
 
   public PTVarRef setupScope(PScope scope) throws CompileException {

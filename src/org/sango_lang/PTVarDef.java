@@ -62,13 +62,34 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTVarDef deepCopy(Parser.SrcInfo srcInfo) {
+  public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     PTVarDef v = new PTVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
-    v.variance = this.variance;
-    v.requiresConcrete = this.requiresConcrete;
-    v.scope = this.scope;
+    // v.varSlot = this.varSlot;  // not copied
+    switch (varianceOpt) {
+    case PTypeDesc.COPY_VARIANCE_INVARIANT:
+      v.variance = Module.INVARIANT;
+      break;
+    case PTypeDesc.COPY_VARIANCE_COVARIANT:
+      v.variance = Module.COVARIANT;
+      break;
+    case PTypeDesc.COPY_VARIANCE_CONTRAVARIANT:
+      v.variance = Module.CONTRAVARIANT;
+      break;
+    default:  // PTypeDesc.COPY_VARIANCE_KEEP
+      v.variance = this.variance;
+    }
+    switch (concreteOpt) {
+    case PTypeDesc.COPY_CONCRETE_OFF:
+      v.requiresConcrete = false;;
+      break;
+    case PTypeDesc.COPY_CONCRETE_ON:
+      v.requiresConcrete = true;;
+      break;
+    default:  // PTypeDesc.COPY_CONCRETE_KEEP
+      v.requiresConcrete = this.requiresConcrete;
+    }
     return v;
   }
 

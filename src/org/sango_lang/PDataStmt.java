@@ -504,5 +504,18 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
         this.constraint.excludePrivateAcc();
       }
     }
+
+    PTypeDesc extract(Parser.SrcInfo si) {
+    // usage: to make signature of attr fun
+      PTypeDesc t;
+      if (this.constraint != null) {
+        t = this.constraint.deepCopy(si, 
+          PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      } else {
+        t = this.var.deepCopy(si,
+          PTypeDesc.COPY_EXT_OFF, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      }
+      return t;
+    }
   }
 }

@@ -1077,7 +1077,8 @@ if (DEBUG > 1) {
 // /* DEBUG */ if (!(t instanceof PTypeRefSkel)) { System.out.println("t " + t.toString()); }
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
-      if (this.type.accept(PTypeSkel.NARROWER, false, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
+      PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
+      if (sig.accept(PTypeSkel.WIDER, true, t, b) == null) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.typedElem.getSrcInfo());
@@ -1111,10 +1112,10 @@ if (DEBUG > 1) {
         emsg.append(PTypeSkel.Util.repr(sig));
         throw new CompileException(emsg.toString());
       }
-      PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
-      for (int i = 0; i < sig.params.length; i++) {
-        b.bind(sig.params[i].getVarSlot(), tr.params[i]);
-      }
+      // PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
+      // for (int i = 0; i < sig.params.length; i++) {
+        // b.bind(sig.params[i].getVarSlot(), tr.params[i]);
+      // }
       this.bindings = b;
 if (DEBUG > 1) {
 /* DEBUG */ System.out.print(this.typedElem);
