@@ -399,7 +399,7 @@ abstract class PType {
       throw new RuntimeException("Bound#setupScope is called.");
     }
 
-    public PTypeId deepCopy(Parser.SrcInfo srcInfo) {
+    public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
       throw new RuntimeException("Bound#deepCopy is called.");
     }
 

@@ -161,13 +161,22 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo) {
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     PTypeId id = new PTypeId();
     id.srcInfo = srcInfo;
     id.catOpt = this.catOpt;
     id.mod = this.mod;
     id.name = this.name;
-    id.ext = this.ext;
+    switch (extOpt) {
+    case PTypeDesc.COPY_EXT_OFF:
+      id.ext = false;;
+      break;
+    case PTypeDesc.COPY_EXT_ON:
+      id.ext = true;;
+      break;
+    default:  // PTypeDesc.COPY_EXT_KEEP
+      id.ext = this.ext;
+    }
     return id;
   }
 

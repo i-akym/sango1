@@ -104,18 +104,26 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTypeRef deepCopy(Parser.SrcInfo srcInfo) {
+  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     PTypeRef t = new PTypeRef();
     t.srcInfo = srcInfo;
     t.mod = this.mod;
     t.modName = this.modName;
     t.tcon = this.tcon;
-    t.ext = this.ext;
+    switch (extOpt) {
+    case PTypeDesc.COPY_EXT_OFF:
+      t.ext = false;;
+      break;
+    case PTypeDesc.COPY_EXT_ON:
+      t.ext = true;;
+      break;
+    default:  // PTypeDesc.COPY_EXT_KEEP
+      t.ext = this.ext;
+    }
     t.params = new PTypeDesc[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
-      t.params[i] = this.params[i].deepCopy(srcInfo);
+      t.params[i] = this.params[i].deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
     }
-    t.scope = this.scope;
     return t;
   }
 
