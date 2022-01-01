@@ -1170,7 +1170,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < tparams.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, tparams[i].var.name, Module.INVARIANT, false));
+      paramTypeBuilder.addItem(tparams[i].extract(si));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, tcon, false));
     evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));

@@ -162,8 +162,9 @@ public class PTypeRefSkel implements PTypeSkel {
       PDataDef dd = this.tconInfo.props.defGetter.getDataDef();
       PTypeRefSkel tr = (PTypeRefSkel)dd.getTypeSig();
       for (int i = 0; i < this.params.length; i++) {
-        PTypeVarSkel tv = (PTypeVarSkel)tr.params[i];
-        vv[i] = tv.varSlot.variance;
+        vv[i] = tr.params[i].getVarSlot().variance;
+        // PTypeVarSkel tv = (PTypeVarSkel)tr.params[i];
+        // vv[i] = tv.varSlot.variance;
       }
     }
     return vv;
@@ -410,7 +411,9 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public PTVarSlot getVarSlot() { return null; }
+  public PTVarSlot getVarSlot() {
+    return (this.bound != null)? this.bound.varSlot: null;
+  }
 
   public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
