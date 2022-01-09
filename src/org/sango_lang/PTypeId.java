@@ -223,8 +223,8 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     }
     PTypeDesc ret = null;
     if (this.isSimple()) {
-      PTVarSlot varSlot;
-      if ((varSlot = scope.referSimpleTid(this.name)) != null) {
+      PTVarDef varDef;
+      if ((varDef = scope.referSimpleTid(this.name)) != null) {
         if (!this.maybeCat(PTypeId.CAT_VAR)) {
           emsg = new StringBuffer();
           emsg.append("Variable not allowed at ");
@@ -233,7 +233,7 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
           emsg.append(this.name);
           throw new CompileException(emsg.toString());
         }
-        ret = PTVarRef.create(this.srcInfo, this.name, varSlot).setupScope(scope);
+        ret = PTVarRef.create(this.srcInfo, varDef).setupScope(scope);
       } else {
         ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0], null).setupScope(scope);
       }

@@ -138,7 +138,7 @@ class PPtnDetail extends PExpr {
       throw new CompileException(emsg.toString()); 
     }
     PEVarRef var = (PEVarRef)this.eval;
-    if (scope.lookupEVar(var.name).varDef.scope != scope) {
+    if (scope.lookupEVar(var.name).scope != scope) {
       emsg = new StringBuffer();
       emsg.append("Variable \"");
       emsg.append(var.name);

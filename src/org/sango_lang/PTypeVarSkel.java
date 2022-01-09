@@ -28,14 +28,15 @@ import java.util.List;
 
 public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
+  String name;
   PTVarSlot varSlot;
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, PScope scope, PTVarSlot varSlot) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
-    // /* DEBUG */ if (scope == null) { throw new IllegalArgumentException("scope is null. " + srcInfo + " " + varSlot.toString()); }
+    var.name =  name + "." + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
     return var;
   }
@@ -43,6 +44,7 @@ public class PTypeVarSkel implements PTypeSkel {
   PTypeVarSkel copy() {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = this.srcInfo;
+    var.name = this.name;
     var.varSlot = this.varSlot;
     return var;
   }
@@ -64,8 +66,10 @@ public class PTypeVarSkel implements PTypeSkel {
     StringBuffer buf = new StringBuffer();
     buf.append("tvarskel[src=");
     buf.append(this.srcInfo);
-    buf.append(",slot=");
-    buf.append(this.varSlot);
+    buf.append(",name=");
+    buf.append(this.name);
+    // buf.append(",slot=");  // slot info is included in name
+    // buf.append(this.varSlot);
     buf.append("]");
     return buf.toString();
   }
@@ -97,8 +101,8 @@ public class PTypeVarSkel implements PTypeSkel {
       t = iBindings.lookupAppl(this.varSlot);
     } else if (iBindings.isBound(this.varSlot)) {
       t = iBindings.lookup(this.varSlot);
-    } else {  // HERE: what is this?
-      PTVarSlot s = PTVarSlot.create(this.varSlot.varDef);
+    } else {  // HERE: for what?
+      PTVarSlot s = PTVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
       PTypeVarSkel v = this.copy();
       v.varSlot = s;
       iBindings.bind(this.varSlot, v);
@@ -149,10 +153,8 @@ public class PTypeVarSkel implements PTypeSkel {
     if (!b) {
       StringBuffer emsg = new StringBuffer();
       emsg.append("Incoherent variance ");
-      if (this.varSlot.varDef != null) {  // should be true!
-        emsg.append("for *");
-        emsg.append(this.varSlot.varDef.name);
-      }
+      emsg.append("for *");
+      emsg.append(this.name);
       if (this.srcInfo != null) {  // should be true!
         emsg.append(" at ");
         emsg.append(this.srcInfo.toString());
