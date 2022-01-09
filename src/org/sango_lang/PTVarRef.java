@@ -24,18 +24,26 @@
 package org.sango_lang;
 
 class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
-  String name;
-  PTVarSlot varSlot;
+  // String name;
+  PTVarDef def;
+  // PTVarSlot varSlot;
 
   private PTVarRef() {}
 
-  static PTVarRef create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
+  static PTVarRef create(Parser.SrcInfo srcInfo, PTVarDef def) {
     PTVarRef v = new PTVarRef();
     v.srcInfo = srcInfo;
-    v.name = name;
-    v.varSlot = varSlot;
+    v.def = def;
     return v;
   }
+
+  // static PTVarRef create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
+    // PTVarRef v = new PTVarRef();
+    // v.srcInfo = srcInfo;
+    // v.name = name;
+    // v.varSlot = varSlot;
+    // return v;
+  // }
 
   static PTypeId acceptXTvar(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
@@ -75,24 +83,18 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
       buf.append(this.srcInfo);
     }
     buf.append(",name=");
-    buf.append(this.name);
-    if (this.varSlot != null) {
-      buf.append(",slot=");
-      buf.append(this.varSlot);
-    }
+    buf.append(this.def.name);
+    // if (this.varSlot != null) {
+      // buf.append(",slot=");
+      // buf.append(this.varSlot);
+    // }
     buf.append("]");
     return buf.toString();
   }
 
   public PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-  // rollback to PTypeId
-    return PTypeId.create(srcInfo, null, this.name, false);
-    // PTVarRef v = new PTVarRef();
-    // v.srcInfo = srcInfo;
-    // v.name = this.name;
-    // v.scope = scope;
-    // v.varSlot = this.varSlot;
-    // return v;
+    // rollback to PTypeId
+    return PTypeId.create(srcInfo, null, this.def.name, false);
   }
 
   public PTVarRef setupScope(PScope scope) throws CompileException {
@@ -116,8 +118,8 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
   public void checkRequiringConcreteOut() throws CompileException {}
 
   public void normalizeTypes() {
-    if (this.varSlot.varDef.nTypeSkel == null) {
-      this.varSlot.varDef.normalizeTypes();
+    if (this.def.nTypeSkel == null) {
+      this.def.normalizeTypes();
     }
   }
 
@@ -127,17 +129,17 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
-    return graph.createVarRefNode(this, name, this.varSlot.varDef.typeGraphNode);
+    return graph.createVarRefNode(this, def.name, this.def.typeGraphNode);
   }
 
   public PTypeGraph.Node getTypeGraphNode() {
-    return this.varSlot.varDef.typeGraphNode;
+    return this.def.typeGraphNode;
   }
 
   public PTypeSkel getSkel() {
     /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
-    return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
+    return PTypeVarSkel.create(this.srcInfo, this.def.name, this.def.varSlot);
   }
 
-  public PTypeSkel getFixedType() { return this.varSlot.varDef.getFixedType(); }
+  public PTypeSkel getFixedType() { return this.def.getFixedType(); }
 }

@@ -181,6 +181,6 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   }
 
   public PTypeVarSkel getSkel() {
-    return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
+    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot);
   }
 }

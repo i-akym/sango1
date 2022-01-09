@@ -24,29 +24,41 @@
 package org.sango_lang;
 
 public class PTVarSlot {
-  static int hashValue = 0;
+  static int idValue = 0;
 
-  int hash;
-  PTVarDef varDef;
+  int id;
+  // PTVarDef varDef;
+  // String name;
   int variance;
   boolean requiresConcrete;
 
   private PTVarSlot() {}
 
   static PTVarSlot create(PTVarDef varDef) {
-    PTVarSlot s;
-    if (varDef != null) {
-      s = createInternal(varDef.variance, varDef.requiresConcrete);
-    } else {
-      s = createInternal(Module.INVARIANT, false);  // hmmm...
-    }
-    s.varDef = varDef;
-    return s;
+    return createInternal(/* vardef.name, */ varDef.variance, varDef.requiresConcrete);
   }
 
-  public static PTVarSlot createInternal(int variance, boolean requiresConcrete) {
+  // static PTVarSlot create(/* String name, */ int variance, boolean requiresConcrete) {
+    // PTVarSlot s;
+    // if (varDef != null) {
+      // s = createInternal(varDef.variance, varDef.requiresConcrete);
+    // } else {
+      // s = createInternal(Module.INVARIANT, false);  // hmmm...
+    // }
+    // s.varDef = varDef;
+    // return s;
+  // }
+
+  public static PTVarSlot createInternal(/* String name, */ int variance, boolean requiresConcrete) {
     PTVarSlot s = new PTVarSlot();
-    s.hash = hashValue++;
+    s.id = idValue++;
+    // if (name != null) {
+      // s.name = name;
+    // } else {
+      // s.name = "$";
+      // s.name += Integer.toString(this.id);
+
+    // }
     s.variance = variance;
     s.requiresConcrete = requiresConcrete;
     return s;
@@ -64,13 +76,14 @@ public class PTVarSlot {
     default:
       break;
     }
-    if (this.varDef != null) {
-      buf.append(this.varDef.name);
-      buf.append(":VT");
-    } else {
-      buf.append("PSEUDO");
-    }
-    buf.append(this.hash);
+    // if (this.varDef != null) {
+      // buf.append(this.varDef.name);
+      // buf.append(":VT");
+    // } else {
+      // buf.append("PSEUDO");
+    // }
+    buf.append("$");
+    buf.append(this.id);
     if (this.requiresConcrete) {
       buf.append("!");
     }
@@ -89,12 +102,14 @@ public class PTVarSlot {
     default:
       break;
     }
-    if (this.varDef != null) {
-      buf.append(this.varDef.name);
-    } else {
-      buf.append("$");
-      buf.append(this.hash);
-    }
+    // if (this.varDef != null) {
+      // buf.append(this.varDef.name);
+    // } else {
+      // buf.append("$");
+      // buf.append(this.id);
+    // }
+    buf.append("$");
+    buf.append(this.id);
     if (this.requiresConcrete) {
       buf.append("!");
     }
