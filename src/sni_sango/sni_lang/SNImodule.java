@@ -424,7 +424,7 @@ public class SNImodule {
         PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams, null);
+      helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams);
   }
 
   static PTypeRefSkel createTupleType(RNativeImplHelper helper, PTypeSkel[] elemTypes) {
@@ -433,7 +433,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false));  // HERE
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false), null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
@@ -443,7 +443,7 @@ public class SNImodule {
         PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
     PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, elemTypes, null);
+      helper.getCore().getDefDictGetter(), null, ti, false, elemTypes);
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
@@ -480,18 +480,20 @@ public class SNImodule {
 
     public String getFormalTcon() { return this.sigTcon; }
 
-    public PTVarSlot[] getParamVarSlots() {
-      PTVarSlot[] pvs;
-      if (this.sigParams != null) {
-        pvs = new PTVarSlot[this.sigParams.length];
-        for (int i = 0; i < this.sigParams.length; i++) {
-          pvs[i] = this.sigParams[i].getVarSlot();
-        }
-      } else {
-        pvs = null;
-      }
-      return pvs;
-    }
+    public int getParamCount() { return this.sigParams.length; }
+
+    // public PTVarSlot[] getParamVarSlots() {
+      // PTVarSlot[] pvs;
+      // if (this.sigParams != null) {
+        // pvs = new PTVarSlot[this.sigParams.length];
+        // for (int i = 0; i < this.sigParams.length; i++) {
+          // pvs[i] = this.sigParams[i].getVarSlot();
+        // }
+      // } else {
+        // pvs = null;
+      // }
+      // return pvs;
+    // }
 
     public PTypeSkel getTypeSig() {
       if (this.sig == null) {
@@ -510,7 +512,7 @@ public class SNImodule {
             (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
             paramPropss, this.acc, ddg);
           this.sig = PTypeRefSkel.create(
-            this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams, null);
+            this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
         }
       }
       return this.sig;

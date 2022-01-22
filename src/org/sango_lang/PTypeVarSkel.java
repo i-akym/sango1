@@ -30,14 +30,16 @@ public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
   String name;
   PTVarSlot varSlot;
+  PTypeRefSkel constraint;  // maybe null
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot, PTypeRefSkel constraint) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
     var.name =  name + "." + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
+    var.constraint = constraint;
     return var;
   }
 
@@ -66,10 +68,10 @@ public class PTypeVarSkel implements PTypeSkel {
     StringBuffer buf = new StringBuffer();
     buf.append("tvarskel[src=");
     buf.append(this.srcInfo);
+    buf.append(",constraint=");
+    buf.append(this.constraint);
     buf.append(",name=");
     buf.append(this.name);
-    // buf.append(",slot=");  // slot info is included in name
-    // buf.append(this.varSlot);
     buf.append("]");
     return buf.toString();
   }
@@ -169,15 +171,25 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
-    PTypeSkel tt = this.resolveBindings(trialBindings);
-    if (tt == this) {
-      if (trialBindings.isGivenTVar(this.varSlot)) {
-        b = this.acceptGiven(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
-      } else {
-        b = this.acceptFree(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
-      }
+    if (this.bindConstraint(trialBindings)) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#accept 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = this.accept(width, bindsRef, type, trialBindings);  // retry
     } else {
-      b = tt.accept(width, bindsRef, type, trialBindings);
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#accept 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+      PTypeSkel tt = this.resolveBindings(trialBindings);
+      if (tt == this) {
+        if (trialBindings.isGivenTVar(this.varSlot)) {
+          b = this.acceptGiven(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
+        } else {
+          b = this.acceptFree(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
+        }
+      } else {
+        b = tt.accept(width, bindsRef, type, trialBindings);
+      }
     }
     return b;
   }
@@ -192,7 +204,12 @@ if (PTypeGraph.DEBUG > 1) {
     } else if (type instanceof PTypeRefSkel) {
       b = this.acceptGivenTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
-      b = this.acceptGivenVar(width, bindsRef, (PTypeVarSkel)type, trialBindings);
+      PTypeVarSkel v = (PTypeVarSkel)type;
+      if (v.bindConstraint(trialBindings)) {
+        b = this.acceptGiven(width, bindsRef, v, trialBindings);  // retry
+      } else {
+        b = this.acceptGivenVar(width, bindsRef, v, trialBindings);
+      }
     }
     return b;
   }
@@ -257,7 +274,12 @@ if (PTypeGraph.DEBUG > 1) {
     } else if (type instanceof PTypeRefSkel) {
       b = this.acceptFreeTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
-      b = this.acceptFreeVar(width, bindsRef, (PTypeVarSkel)type, trialBindings);
+      PTypeVarSkel v = (PTypeVarSkel)type;
+      if (v.bindConstraint(trialBindings)) {
+        b = this.acceptFree(width, bindsRef, v, trialBindings);  // retry
+      } else {
+        b = this.acceptFreeVar(width, bindsRef, v, trialBindings);
+      }
     }
     return b;
   }
@@ -342,6 +364,17 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   public PTVarSlot getVarSlot() { return this.varSlot; }
+
+  boolean bindConstraint(PTypeSkelBindings bindings) {
+    boolean bound;
+    if (this.constraint != null && !bindings.isBound(this.varSlot)) {
+      bindings.bind(this.varSlot, this.constraint);
+      bound = true;
+    } else {
+      bound = false;
+    }
+    return bound;
+  }
 
   public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
@@ -441,13 +474,22 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   public MType toMType(PModule mod, List<PTVarSlot> slotList) {
+// /* DEBUG */ System.out.print("{VV "); System.out.print(this); System.out.print(slotList);
     MTypeVar tv;
     int index = slotList.indexOf(this.varSlot);
+// /* DEBUG */ System.out.print(index);
     if (index < 0) {
       index = slotList.size();
       slotList.add(this.varSlot);
+// /* DEBUG */ System.out.print(" added ");
     }
-    return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete);
+    MTypeRef c = (this.constraint != null)? (MTypeRef)this.constraint.toMType(mod, slotList): null;
+// /* DEBUG */ System.out.print(" constraint "); System.out.print(c);
+    MType mv = MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
+// /* DEBUG */ System.out.print(" -> "); System.out.print(mv); System.out.println(" vv}");
+    return mv;
+    // return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete,
+      // (this.constraint != null)? (MTypeRef)this.constraint.toMType(mod, slotList): null);
   }
 
   public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
@@ -479,6 +521,16 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   public String repr() {
-    return this.varSlot.repr();
+    StringBuffer buf = new StringBuffer();
+    if (this.constraint!= null) {
+      buf.append("<");
+      buf.append(this.constraint.repr());
+      buf.append(" = ");
+    }
+    buf.append(this.varSlot.repr());
+    if (this.constraint!= null) {
+      buf.append(">");
+    }
+    return buf.toString();
   }
 }

@@ -29,16 +29,18 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   String name;
   int variance;
   boolean requiresConcrete;
-  PTVarSlot varSlot;
+  PTypeRef constraint;  // maybe null
+  PTVarSlot varSlot;  // setup later
 
   private PTVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete) {
+  static PTVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
     PTVarDef var = new PTVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
     var.variance = variance;
     var.requiresConcrete = requiresConcrete;
+    var.constraint = constraint;
     return var;
   }
 
@@ -47,12 +49,16 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append("newvar[");
     buf.append("src=");
     buf.append(this.srcInfo);
-    buf.append(",variance=");
-    buf.append(this.variance);
     buf.append(",name=");
     buf.append(this.name);
+    buf.append(",variance=");
+    buf.append(this.variance);
     if (this.requiresConcrete) {
       buf.append("!");
+    }
+    if (this.constraint != null) {
+      buf.append(",constraint=");
+      buf.append(this.constraint);
     }
     if (this.varSlot != null) {
       buf.append(",slot=");
@@ -93,7 +99,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     return v;
   }
 
-  static PTVarDef accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PTVarDef acceptSimple(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
@@ -115,7 +121,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       throw new CompileException(emsg.toString());
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, varId.value.token, variance, requiresConcrete);
+    return create(si, varId.value.token, variance, requiresConcrete, null);
   }
 
   static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
@@ -129,7 +135,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), id, Module.INVARIANT, false);  // HERE
+    return create(elem.getSrcInfo(), id, Module.INVARIANT, false, null);  // HERE
   }
 
   public PTVarDef setupScope(PScope scope) throws CompileException {
@@ -137,6 +143,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     if (scope == this.scope) { return this; }
     this.scope = scope;
     this.idResolved = false;
+    if (this.constraint != null) {
+      this.constraint = this.constraint.setupScope(scope);
+    }
     if (!scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -146,11 +155,15 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       throw new CompileException(emsg.toString());
     }
     this.varSlot = scope.defineTVar(this);
+// /* DEBUG */ System.out.println(this);
     return this;
   }
 
   public PTVarDef resolveId() throws CompileException {
     if (this.idResolved) { return this; }
+    if (this.constraint != null) {
+      this.constraint = this.constraint.resolveId();
+    }
     this.idResolved = true;
     return this;
   }
@@ -181,6 +194,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   }
 
   public PTypeVarSkel getSkel() {
-    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot);
+    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot,
+    (this.constraint != null)? (PTypeRefSkel)this.constraint.getSkel(): null);
   }
 }

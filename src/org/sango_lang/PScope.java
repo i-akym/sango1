@@ -264,7 +264,7 @@ class PScope {
   }
 
   PTVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
-    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false);
+    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false, null);
     try {
       v.setupScope(this);
       v = v.resolveId();
@@ -301,7 +301,7 @@ class PScope {
     if (tconInfo == null) {
       throw new RuntimeException("Internal error.");
     }
-    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels, null);
+    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels);
   }
 
   List<PTVarSlot> getGivenTVarList() {

@@ -27,9 +27,11 @@ public interface PDataDef {
 
   String getFormalTcon();
 
-  PTVarSlot[] getParamVarSlots();  // null if variable count params
+  int getParamCount();  // -1 if variable count  // needed?
 
-  PTypeSkel getTypeSig();
+  // PTypeVarSkel[] getParamVarSlots();  // null if variable count params
+
+  PTypeSkel getTypeSig();  // also returns PNoRetSkel
 
   int getAvailability();  // Module.AVAILABILITY_xxx
 

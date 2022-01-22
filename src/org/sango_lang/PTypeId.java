@@ -235,10 +235,10 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
         }
         ret = PTVarRef.create(this.srcInfo, varDef).setupScope(scope);
       } else {
-        ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0], null).setupScope(scope);
+        ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]).setupScope(scope);
       }
     } else {
-      ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0], null).setupScope(scope);
+      ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]).setupScope(scope);
     }
     return ret;
   }
