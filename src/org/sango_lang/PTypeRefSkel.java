@@ -32,11 +32,11 @@ public class PTypeRefSkel implements PTypeSkel {
   PDefDict.TconInfo tconInfo;
   boolean ext;
   PTypeSkel[] params;  // empty array if no params
-  PTypeVarSkel bound;  // maybe null
+  // PTypeVarSkel bound;  // maybe null
 
   private PTypeRefSkel() {}
 
-  public static PTypeRefSkel create(PDefDict.DefDictGetter defDictGetter, Parser.SrcInfo srcInfo, PDefDict.TconInfo tconInfo, boolean ext, PTypeSkel[] params, PTypeVarSkel bound) {
+  public static PTypeRefSkel create(PDefDict.DefDictGetter defDictGetter, Parser.SrcInfo srcInfo, PDefDict.TconInfo tconInfo, boolean ext, PTypeSkel[] params) {
 /* DEBUG */ if (defDictGetter == null) {
 /* DEBUG */   throw new IllegalArgumentException("nulll defDictGetter " + tconInfo.key.toRepr());
 /* DEBUG */ }
@@ -46,7 +46,7 @@ public class PTypeRefSkel implements PTypeSkel {
     t.tconInfo = tconInfo;
     t.ext = ext;
     t.params = params;
-    t.bound = bound;
+    // t.bound = bound;
     return t;
   }
 
@@ -57,7 +57,7 @@ public class PTypeRefSkel implements PTypeSkel {
     t.tconInfo = this.tconInfo;
     t.ext = this.ext;
     t.params = new PTypeSkel[this.params.length];
-    t.bound = null;  // cut off
+    // t.bound = null;  // cut off
     int vv[] = this.paramVariances();
     for (int i = 0; i < t.params.length; i++) {
       // PTVarDef d = var.varSlot.varDef;
@@ -67,7 +67,7 @@ public class PTypeRefSkel implements PTypeSkel {
         // v = PTypeVarSkel.create(this.srcInfo, this.name, s);
       // } else {
         PTVarSlot s = PTVarSlot.createInternal(vv[i], var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s);
+        v = PTypeVarSkel.create(this.srcInfo, null, s, null);  // constraint == null ok?
       // }
       t.params[i] = v;
     }
@@ -195,8 +195,7 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].instanciate(iBindings);
     }
-    return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps,
-      (this.bound != null)? (PTypeVarSkel)this.bound.instanciate(iBindings): null);
+    return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
   }
 
   public PTypeRefSkel resolveBindings(PTypeSkelBindings bindings) {
@@ -204,8 +203,7 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].resolveBindings(bindings);
     }
-    return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps,
-      (this.bound != null)? (PTypeVarSkel)this.bound.resolveBindings(bindings): null);
+    return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
   }
 
   public void checkVariance(int width) throws CompileException {
@@ -226,10 +224,12 @@ if (PTypeGraph.DEBUG > 1) {
     } else if (t instanceof PTypeRefSkel) {
       b = this.acceptTypeRef(width, bindsRef, (PTypeRefSkel)t, trialBindings);
     } else {
-      b = this.acceptVar(width, bindsRef, (PTypeVarSkel)t, trialBindings);
-    }
-    if (b != null && this.bound != null && !b.isBound(this.bound.varSlot)) {
-      b.bind(this.bound.varSlot, type);
+      PTypeVarSkel v = (PTypeVarSkel)type;
+      if (v.bindConstraint(trialBindings)) {
+        b = this.accept(width, bindsRef, v, trialBindings);  // retry
+      } else {
+        b = this.acceptVar(width, bindsRef, v, trialBindings);
+      }
     }
     return b;
   }
@@ -412,7 +412,8 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   public PTVarSlot getVarSlot() {
-    return (this.bound != null)? this.bound.varSlot: null;
+    return null;
+    // return (this.bound != null)? this.bound.varSlot: null;
   }
 
   public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
@@ -529,6 +530,7 @@ if (PTypeGraph.DEBUG > 1) {
   public PTypeSkel[] getParams() { return this.params; }
 
   public MType toMType(PModule mod, List<PTVarSlot> slotList) {
+// /* DEBUG */ System.out.print("{MM "); System.out.print(this); System.out.print(slotList); System.out.println(" mm}");
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     if (!this.tconInfo.key.modName.equals(mod.name)) {
       b.setModName(this.tconInfo.key.modName);
@@ -538,9 +540,9 @@ if (PTypeGraph.DEBUG > 1) {
     for (int i = 0; i < params.length; i++) {
       b.addParam(this.params[i].toMType(mod, slotList));
     }
-    if (this.bound != null) {
-      b.setBound((MTypeVar)this.bound.toMType(mod, slotList));
-    }
+    // if (this.bound != null) {
+      // b.setBound((MTypeVar)this.bound.toMType(mod, slotList));
+    // }
     return b.create();
   }
 
@@ -574,7 +576,7 @@ if (PTypeGraph.DEBUG > 1) {
     if ((ad = this.tconInfo.props.defGetter.getAliasDef()) != null) {
       tr = ad.unalias(ps);
     } else {
-      tr = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps, this.bound);
+      tr = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
     }
     return tr;
   }

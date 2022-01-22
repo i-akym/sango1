@@ -32,7 +32,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
   String baseMod;
   String baseTcon;
   String tcon;
-  PDataStmt.SigParam[] tparams;
+  PTVarDef[] tparams;
   PTypeDesc sig;
   int acc;
   PDataConstrDef[] constrs;
@@ -110,7 +110,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
         this.ext.baseMod = (ti.mod != null)? ti.mod: PModule.MOD_ID_LANG;
         this.ext.baseTcon = ti.name;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        this.ext.tparams = new PDataStmt.SigParam[0];
+        this.ext.tparams = new PTVarDef[0];
         this.ext.sig = PTypeId.create(
           ti.srcInfo,
           null,
@@ -121,26 +121,18 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
         this.ext.baseMod = (tr.mod != null)? tr.mod: PModule.MOD_ID_LANG;
         this.ext.baseTcon = tr.tcon;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        this.ext.tparams = new PDataStmt.SigParam[tr.params.length];
+        this.ext.tparams = new PTVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          if (tr.params[i] instanceof PTypeRef) {
-            PTypeRef ptr = (PTypeRef)tr.params[i];
-            this.ext.tparams[i] = new PDataStmt.SigParam(ptr.bound, ptr);  // constraint ok?
-          } else if (tr.params[i] instanceof PTVarDef) {
-            this.ext.tparams[i] = new PDataStmt.SigParam((PTVarDef)tr.params[i], null);
+          if (tr.params[i] instanceof PTVarDef) {
+            this.ext.tparams[i] = (PTVarDef)tr.params[i];
           } else {
             throw new RuntimeException("Unexpected type.");
           }
         }
         this.ext.sig = PTypeRef.create(
           tr.srcInfo,
-          PTypeId.create(
-            tr.srcInfo,
-            null,
-            this.ext.tcon,
-            false),
-          tr.params,
-          null);  // HERE: bound tvar
+          PTypeId.create(tr.srcInfo, null, this.ext.tcon, false),
+          tr.params);
       } else {
         throw new RuntimeException("Unexpected type.");
       }
@@ -324,10 +316,10 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     }
     if (this.baseTconInfo.props.paramProps != null) {
       for (int i = 0; i < this.tparams.length; i++) {
-        if (this.tparams[i].var.variance != this.baseTconInfo.props.paramProps[i].variance) {
+        if (this.tparams[i].variance != this.baseTconInfo.props.paramProps[i].variance) {
           emsg = new StringBuffer();
           emsg.append("Variance of *");
-          emsg.append(this.tparams[i].var.name);
+          emsg.append(this.tparams[i].name);
           emsg.append(" mismatch with that of base definition at ");
           emsg.append(this.srcInfo);
           emsg.append(".");
@@ -341,13 +333,15 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
-  public PTVarSlot[] getParamVarSlots() {
-    PTVarSlot[] pvs = new PTVarSlot[this.tparams.length];
-    for (int i = 0; i < this.tparams.length; i++) {
-      pvs[i] = this.tparams[i].var.varSlot;
-    }
-    return pvs;
-  }
+  public int getParamCount() { return this.tparams.length; }
+
+  // public PTVarSlot[] getParamVarSlots() {
+    // PTVarSlot[] pvs = new PTVarSlot[this.tparams.length];
+    // for (int i = 0; i < this.tparams.length; i++) {
+      // pvs[i] = this.tparams[i].varSlot;
+    // }
+    // return pvs;
+  // }
 
   public PTypeRefSkel getTypeSig() {
     return (PTypeRefSkel)this.sig.getSkel();

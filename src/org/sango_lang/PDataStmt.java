@@ -36,7 +36,7 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
   String feature;
   String featureFor;
   int acc;
-  SigParam[] tparams;  // null means variable params
+  PTVarDef[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
 
   public String toString() {
@@ -142,17 +142,14 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       } else if (this.dat.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.dat.sig;
         this.dat.tcon = ti.name;
-        this.dat.tparams = new SigParam[0];
+        this.dat.tparams = new PTVarDef[0];
       } else if (this.dat.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.dat.sig;
         this.dat.tcon = tr.tcon;
-        this.dat.tparams = new SigParam[tr.params.length];
+        this.dat.tparams = new PTVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          if (tr.params[i] instanceof PTypeRef) {
-            PTypeRef ptr = (PTypeRef)tr.params[i];
-            this.dat.tparams[i] = new SigParam(ptr.bound, ptr);  // constraint ok?
-          } else if (tr.params[i] instanceof PTVarDef) {
-            this.dat.tparams[i] = new SigParam((PTVarDef)tr.params[i], null);
+          if (tr.params[i] instanceof PTVarDef) {
+            this.dat.tparams[i] = (PTVarDef)tr.params[i];
           } else {
             throw new RuntimeException("Unexpected type.");
           }
@@ -403,18 +400,20 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
-  public PTVarSlot[] getParamVarSlots() {
-    PTVarSlot[] pvs;
-    if (this.tparams != null) {
-      pvs = new PTVarSlot[this.tparams.length];
-      for (int i = 0; i < this.tparams.length; i++) {
-        pvs[i] = this.tparams[i].var.varSlot;
-      }
-    } else {
-      pvs = null;
-    }
-    return pvs;
-  }
+  public int getParamCount() { return (this.tparams != null)? this.tparams.length: -1 ; }
+
+  // public PTVarSlot[] getParamVarSlots() {
+    // PTVarSlot[] pvs;
+    // if (this.tparams != null) {
+      // pvs = new PTVarSlot[this.tparams.length];
+      // for (int i = 0; i < this.tparams.length; i++) {
+        // pvs[i] = this.tparams[i].varSlot;
+      // }
+    // } else {
+      // pvs = null;
+    // }
+    // return pvs;
+  // }
 
   public PTypeSkel getTypeSig() {
     return (this.sig != null)? this.sig.getSkel(): null;
@@ -483,39 +482,39 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     }
   }
 
-  static class SigParam {
-    PTVarDef var;
-    PTypeRef constraint;  // maybe null
+  // static class SigParam {
+    // PTVarDef var;
+    // PTypeRef constraint;  // maybe null
 
-    SigParam(PTVarDef var, PTypeRef constraint) {
-      this.var = var;
-      this.constraint = constraint;
-    }
+    // SigParam(PTVarDef var, PTypeRef constraint) {
+      // this.var = var;
+      // this.constraint = constraint;
+    // }
 
-    SigParam resolveId() throws CompileException {
-      if (this.constraint != null) {
-        this.constraint = this.constraint.resolveId();
-      }
-      return this;
-    }
+    // SigParam resolveId() throws CompileException {
+      // if (this.constraint != null) {
+        // this.constraint = this.constraint.resolveId();
+      // }
+      // return this;
+    // }
 
-    void excludePrivateAcc() throws CompileException {
-      if (this.constraint != null) {
-        this.constraint.excludePrivateAcc();
-      }
-    }
+    // void excludePrivateAcc() throws CompileException {
+      // if (this.constraint != null) {
+        // this.constraint.excludePrivateAcc();
+      // }
+    // }
 
-    PTypeDesc extract(Parser.SrcInfo si) {
-    // usage: to make signature of attr fun
-      PTypeDesc t;
-      if (this.constraint != null) {
-        t = this.constraint.deepCopy(si, 
-          PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
-      } else {
-        t = this.var.deepCopy(si,
-          PTypeDesc.COPY_EXT_OFF, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
-      }
-      return t;
-    }
-  }
+    // PTypeDesc extract(Parser.SrcInfo si) {
+    // // usage: to make signature of attr fun
+      // PTypeDesc t;
+      // if (this.constraint != null) {
+        // t = this.constraint.deepCopy(si, 
+          // PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      // } else {
+        // t = this.var.deepCopy(si,
+          // PTypeDesc.COPY_EXT_OFF, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      // }
+      // return t;
+    // }
+  // }
 }

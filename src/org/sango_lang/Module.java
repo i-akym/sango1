@@ -81,7 +81,7 @@ public class Module {
   static final String TAG_ALIASES = "aliases";
   static final String TAG_ALIAS = "alias";
   static final String TAG_ATTR = "attr";
-  static final String TAG_BOUND = "bound";
+  static final String TAG_CONSTRAINT = "constraint";
   static final String TAG_CLOSURE_CONSTR = "closure_constr";
   static final String TAG_CLOSURE_CONSTRS = "closure_constrs";
   static final String TAG_CLOSURE_IMPL = "closure_impl";

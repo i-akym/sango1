@@ -38,7 +38,7 @@ abstract class PType {
     /* 0 */ ACCEPTABLE_NONE,  // no more
     /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
     /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
-    /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE + ACCEPTABLE_BOUND,  // -> 3; 4 if bound
+    /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE + ACCEPTABLE_BOUND,  // -> 3; 4 if constrained var
     /* 4 */ ACCEPTABLE_VARDEF  // -> 0
   };
 
@@ -48,7 +48,7 @@ abstract class PType {
   static class Builder {
     Parser.SrcInfo srcInfo;
     List<PTypeDesc> itemList;
-    PTVarDef bound;
+    PTVarDef constrainedVar;
 
     static Builder newInstance() {
       return new Builder();
@@ -66,8 +66,8 @@ abstract class PType {
       this.itemList.add(item);
     }
 
-    void setBound(PTVarDef varDef) {
-      this.bound = varDef;
+    void setConstrainedVar(PTVarDef var) {
+      this.constrainedVar = var;
     }
 
     PTypeDesc create() throws CompileException {
@@ -83,9 +83,9 @@ abstract class PType {
       PTypeDesc anchor = this.itemList.remove(this.itemList.size() - 1);
       if (anchor instanceof PTypeId) {
         PTypeId id = (PTypeId)anchor;
-        if (!id.maybeVar() || this.itemList.size() > 0 || this.bound != null) {
+        if (!id.maybeVar() || this.itemList.size() > 0) {
           // id.cutOffCatOpt(PTypeId.CAT_VAR);
-          t = PTypeRef.create(this.srcInfo, id, this.itemList.toArray(new PTypeDesc[this.itemList.size()]), this.bound);
+          t = PTypeRef.create(this.srcInfo, id, this.itemList.toArray(new PTypeDesc[this.itemList.size()]));
         } else {
           t = anchor;
         }
@@ -109,6 +109,17 @@ abstract class PType {
         t = anchor;
       } else {
         throw new IllegalArgumentException("Invalid item");
+      }
+      if (this.constrainedVar != null) {
+        if (!(t instanceof PTypeRef)) {
+          emsg = new StringBuffer();
+          emsg.append("Invalid constraint at ");
+          emsg.append(this.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        this.constrainedVar.constraint = (PTypeRef)t;
+        t = this.constrainedVar;
       }
       return t;
     }
@@ -155,7 +166,7 @@ abstract class PType {
           }
           break;
         case 4:
-          builder.setBound((PTVarDef)item);
+          builder.setConstrainedVar((PTVarDef)item);
           state = 0;
           break;
         default:
@@ -219,18 +230,7 @@ abstract class PType {
     if (sig instanceof PTypeRef) {
       PTypeRef tr = (PTypeRef)sig;
       for (int i = 0; i < tr.params.length; i++) {
-        if ((tr.params[i] instanceof PTVarDef)) {
-          ;
-        } else if ((tr.params[i] instanceof PTypeRef)) {
-          PTypeRef ptr = (PTypeRef)tr.params[i];
-          if (ptr.bound == null) {
-            emsg = new StringBuffer();
-            emsg.append("Bound variable missing at ");
-            emsg.append(tr.tconSrcInfo);
-            emsg.append(".");
-            throw new CompileException(emsg.toString());
-          }
-        } else {
+        if (!(tr.params[i] instanceof PTVarDef)) {
           emsg = new StringBuffer();
           emsg.append("Type parameter missing at ");
           emsg.append(tr.params[i].getSrcInfo());
@@ -349,7 +349,7 @@ abstract class PType {
         && (item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTVarDef.accept(reader)) != null) {
+        && (item = PTVarDef.acceptSimple(reader)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
         && (item = accept(reader, spc, acceptsVarDef)) != null) {

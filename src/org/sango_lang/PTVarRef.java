@@ -138,7 +138,9 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
 
   public PTypeSkel getSkel() {
     /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
-    return PTypeVarSkel.create(this.srcInfo, this.def.name, this.def.varSlot);
+    return this.def.getSkel();
+    // return PTypeVarSkel.create(this.srcInfo, this.def.name, this.def.varSlot,
+      // (this.def.constraint != null)? (PTypeRefSkel)this.def.constraint.getSkel(): null);
   }
 
   public PTypeSkel getFixedType() { return this.def.getFixedType(); }

@@ -27,38 +27,18 @@ public class PTVarSlot {
   static int idValue = 0;
 
   int id;
-  // PTVarDef varDef;
-  // String name;
   int variance;
   boolean requiresConcrete;
 
   private PTVarSlot() {}
 
   static PTVarSlot create(PTVarDef varDef) {
-    return createInternal(/* vardef.name, */ varDef.variance, varDef.requiresConcrete);
+    return createInternal(varDef.variance, varDef.requiresConcrete);
   }
 
-  // static PTVarSlot create(/* String name, */ int variance, boolean requiresConcrete) {
-    // PTVarSlot s;
-    // if (varDef != null) {
-      // s = createInternal(varDef.variance, varDef.requiresConcrete);
-    // } else {
-      // s = createInternal(Module.INVARIANT, false);  // hmmm...
-    // }
-    // s.varDef = varDef;
-    // return s;
-  // }
-
-  public static PTVarSlot createInternal(/* String name, */ int variance, boolean requiresConcrete) {
+  public static PTVarSlot createInternal(int variance, boolean requiresConcrete) {
     PTVarSlot s = new PTVarSlot();
     s.id = idValue++;
-    // if (name != null) {
-      // s.name = name;
-    // } else {
-      // s.name = "$";
-      // s.name += Integer.toString(this.id);
-
-    // }
     s.variance = variance;
     s.requiresConcrete = requiresConcrete;
     return s;
@@ -76,12 +56,6 @@ public class PTVarSlot {
     default:
       break;
     }
-    // if (this.varDef != null) {
-      // buf.append(this.varDef.name);
-      // buf.append(":VT");
-    // } else {
-      // buf.append("PSEUDO");
-    // }
     buf.append("$");
     buf.append(this.id);
     if (this.requiresConcrete) {
@@ -102,12 +76,6 @@ public class PTVarSlot {
     default:
       break;
     }
-    // if (this.varDef != null) {
-      // buf.append(this.varDef.name);
-    // } else {
-      // buf.append("$");
-      // buf.append(this.id);
-    // }
     buf.append("$");
     buf.append(this.id);
     if (this.requiresConcrete) {

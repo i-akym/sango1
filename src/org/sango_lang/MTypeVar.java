@@ -32,20 +32,26 @@ class MTypeVar implements MType {
   int slot;
   int variance;
   boolean requiresConcrete;
+  MTypeRef constraint;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, int variance, boolean requiresConcrete) {
+  static MTypeVar create(int slot, int variance, boolean requiresConcrete, MTypeRef constraint) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
     t.variance = variance;
     t.requiresConcrete = requiresConcrete;
+    t.constraint = constraint;
     return t;
   }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("<");
+    if (this.constraint != null) {
+      buf.append(this.constraint.toString());  // HERE: do not embrace by < >
+      buf.append(" = ");
+    }
     switch (this.variance) {
     case Module.COVARIANT:
       buf.append("+");
@@ -64,6 +70,7 @@ class MTypeVar implements MType {
   }
 
   public Element externalize(Document doc) {
+// /* DEBUG */ System.out.println(this);
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
     switch (this.variance) {
@@ -76,6 +83,11 @@ class MTypeVar implements MType {
     }
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
+    }
+    if (this.constraint != null) {
+      Element c = doc.createElement(Module.TAG_CONSTRAINT);
+      c.appendChild(this.constraint.externalize(doc));
+      node.appendChild(c);
     }
     return node;
   }
@@ -118,7 +130,40 @@ class MTypeVar implements MType {
         throw new FormatException("Invalid 'requires_concrete': " + sRequiresConcrete);
       }
     }
-    return create(slot, variance, requiresConcrete);
+
+    Node n = node.getFirstChild();
+    MTypeRef constraint = null;
+    int state = 0;
+    while (n != null) {
+      if (Module.isIgnorable(n)) {
+        ;
+      } else if (state == 0 && (constraint = internalizeConstraint(n)) != null) {
+        state = 1;
+      } else {
+        throw new FormatException("Unknown or extra element : " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    return create(slot, variance, requiresConcrete, constraint);
+  }
+
+  static MTypeRef internalizeConstraint(Node node) throws FormatException {
+    if (!node.getNodeName().equals(Module.TAG_CONSTRAINT)) { return null; }
+
+    Node n = node.getFirstChild();
+    MTypeRef constraint = null;
+    int state = 0;
+    while (n != null) {
+      if (Module.isIgnorable(n)) {
+        ;
+      } else if (state == 0 && (constraint = MTypeRef.internalize(n)) != null) {
+        state = 1;
+      } else {
+        throw new FormatException("Unknown or extra element : " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    return constraint;
   }
 
   public boolean isCompatible(Cstr defModName, MType type) {
