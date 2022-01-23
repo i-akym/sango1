@@ -67,7 +67,7 @@ class PTypeGraph {
             /* DEBUG */ System.out.print("Inferred ");
             /* DEBUG */ System.out.print(n.typedElem);
             /* DEBUG */ System.out.print(" -> ");
-            /* DEBUG */ System.out.println(PTypeSkel.Util.repr(n.type));
+            /* DEBUG */ System.out.println(PTypeSkel.Repr.topLevelRepr(n.type));
             }
             this.proceeded = true;
           }
@@ -150,9 +150,9 @@ class PTypeGraph {
         } else if (this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
-          emsg.append(PTypeSkel.Util.repr(this.inNode.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
-          emsg.append(PTypeSkel.Util.repr(this.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" at ");
           emsg.append(this.typedElem.getSrcInfo());
           emsg.append(".");
@@ -209,9 +209,9 @@ class PTypeGraph {
         } else if (this.type.accept(PTypeSkel.NARROWER, this.cat == PEVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
-          emsg.append(PTypeSkel.Util.repr(this.inNode.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
-          emsg.append(PTypeSkel.Util.repr(this.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" *");
           emsg.append(this.name);
           emsg.append(" at ");
@@ -254,9 +254,9 @@ class PTypeGraph {
         } else if (this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
-          emsg.append(PTypeSkel.Util.repr(this.inNode.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
-          emsg.append(PTypeSkel.Util.repr(this.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" *");
           emsg.append(this.name);
           emsg.append(" at ");
@@ -298,9 +298,9 @@ class PTypeGraph {
           emsg.append(this.typedElem.getSrcInfo());
           emsg.append(".");
           emsg.append("\n  defined: ");
-          emsg.append(PTypeSkel.Util.repr(this.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append("\n  actual: ");
-          emsg.append(PTypeSkel.Util.repr(this.inNode.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           throw new CompileException(emsg.toString());
         }
       }
@@ -457,7 +457,7 @@ class PTypeGraph {
         emsg.append(".");
         for (int i = 0; i < pts.length; i++) {
           emsg.append("\n  parameter: ");
-          emsg.append(PTypeSkel.Util.repr(pts[i]));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(pts[i]));
         }
         throw new CompileException(emsg.toString());
       }
@@ -520,7 +520,7 @@ if (DEBUG > 1) {
       if (!(ct instanceof PTypeRefSkel)) {
         emsg = new StringBuffer();
         emsg.append("Invalid closure type ");
-        emsg.append(PTypeSkel.Util.repr(ct));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(ct));
         emsg.append(" at ");
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
@@ -557,11 +557,11 @@ if (DEBUG > 1) {
           emsg.append("\n  parameter pos: ");
           emsg.append(i + 1);
           emsg.append("\n  parameter def: ");
-          emsg.append(PTypeSkel.Util.repr(ctr.params[i]));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i]));
           emsg.append("\n  parameter def in context: ");
-          emsg.append(PTypeSkel.Util.repr(ctr.params[i].resolveBindings(bb)));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i].resolveBindings(bb)));
           emsg.append("\n  actual argument: ");
-          emsg.append(PTypeSkel.Util.repr(t));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(t));
           throw new CompileException(emsg.toString());
         }
       }
@@ -662,9 +662,9 @@ if (DEBUG > 1) {
             emsg.append(this.typedElem.getSrcInfo());
             emsg.append(".");
             emsg.append("\n  type: ");
-            emsg.append(PTypeSkel.Util.repr(t));
+            emsg.append(PTypeSkel.Repr.topLevelRepr(t));
             emsg.append("\n  type: ");
-            emsg.append(PTypeSkel.Util.repr(tt.get(i)));
+            emsg.append(PTypeSkel.Repr.topLevelRepr(tt.get(i)));
             throw new CompileException(emsg.toString());
           }
           t = t1;
@@ -774,9 +774,9 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  element: ");
-        emsg.append(PTypeSkel.Util.repr(et));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(et));
         emsg.append("\n  tail: ");
-        emsg.append(PTypeSkel.Util.repr(((PTypeRefSkel)tt).params[0]));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(((PTypeRefSkel)tt).params[0]));
         throw new CompileException(emsg.toString());
       }
       return this.typedElem.getScope().getLangDefinedTypeSkel(this.typedElem.getSrcInfo(), "list", new PTypeSkel[] { t });
@@ -881,11 +881,11 @@ if (DEBUG > 1) {
           emsg.append(this.typedElem.getSrcInfo());
           emsg.append(".");
           emsg.append("\n  attribute def: ");
-          emsg.append(PTypeSkel.Util.repr(at));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at));
           emsg.append("\n  attribute def in context: ");
-          emsg.append(PTypeSkel.Util.repr(at.resolveBindings(bb)));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bb)));
           emsg.append("\n  actual attribute: ");
-          emsg.append(PTypeSkel.Util.repr(t));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(t));
 if (DEBUG > 1) {
           /* DEBUG */ emsg.append("\n  bindings: ");
           /* DEBUG */ emsg.append(bb);
@@ -924,7 +924,7 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
-        emsg.append(PTypeSkel.Util.repr(t));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(t));
         throw new CompileException(emsg.toString());
       }
       PTypeRefSkel tr = (PTypeRefSkel)t;
@@ -981,7 +981,7 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actually in: ");
-        emsg.append(PTypeSkel.Util.repr(t));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(t));
         throw new CompileException(emsg.toString());
       }
       return t;
@@ -1084,9 +1084,9 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
-        emsg.append(PTypeSkel.Util.repr(t));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(t));
         emsg.append("\n  pattern type sig: ");
-        emsg.append(PTypeSkel.Util.repr(sig));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
         throw new CompileException(emsg.toString());
       }
       if (!(t instanceof PTypeRefSkel)) {
@@ -1095,9 +1095,9 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
-        emsg.append(PTypeSkel.Util.repr(t));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(t));
         emsg.append("\n  pattern type sig: ");
-        emsg.append(PTypeSkel.Util.repr(sig));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
         throw new CompileException(emsg.toString());
       }
       PTypeRefSkel tr = (PTypeRefSkel)t;
@@ -1107,9 +1107,9 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
-        emsg.append(PTypeSkel.Util.repr(tr));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(tr));
         emsg.append("\n  pattern type sig: ");
-        emsg.append(PTypeSkel.Util.repr(sig));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
         throw new CompileException(emsg.toString());
       }
       this.bindings = b;
@@ -1174,7 +1174,7 @@ if (DEBUG > 1) {
         emsg.append(this.typedElem.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
-        emsg.append(PTypeSkel.Util.repr(this.inNode.type));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
         throw new CompileException(emsg.toString());
       }
     }

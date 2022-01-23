@@ -133,7 +133,9 @@ if (PTypeGraph.DEBUG > 1) {
     return node;
   }
 
-  public String repr() {
-    return Module.MOD_LANG.repr() + "." + Module.TCON_NORET;
+  public PTypeSkel.Repr repr() {
+    PTypeSkel.Repr r = PTypeSkel.Repr.create();
+    r.add(Module.MOD_LANG.repr() + "." + Module.TCON_NORET);
+    return r;
   }
 }

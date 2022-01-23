@@ -66,7 +66,7 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(PTypeSkelBindings bindings);
 
-  String repr();
+  Repr repr();
 
   public static class InstanciationBindings {
     PTypeSkelBindings applBindings;
@@ -111,10 +111,50 @@ public interface PTypeSkel {
     }
   }
 
-  public abstract static class Util {
-    public static String repr(PTypeSkel t) {
-      String r = t.repr();
-      return r.endsWith(">")? r: "<" + r + ">";
+  public static class Repr {
+    public static String topLevelRepr(PTypeSkel t) {
+      return "<" + t.repr().toString() + ">";
+    }
+
+    static Repr create() {
+      return new Repr();
+    }
+
+    List<String> items;
+
+    private Repr() {
+      this.items = new ArrayList<String>();
+    }
+
+    void add(String s) {
+      if (s.length() > 0) {
+        this.items.add(s);
+      }
+    }
+
+    void add(Repr r) {
+      if (r.items.isEmpty()) {
+        ;
+      } else if (r.items.size() == 1) {
+        this.items.add(r.toString());
+      } else {
+        this.items.add("<" + r.toString() + ">");
+      }
+    }
+
+    void append(Repr r) {
+      this.items.addAll(r.items);
+    }
+
+    public String toString() {  // without top-level < >
+      StringBuffer buf = new StringBuffer();
+      String sep = "";
+      for (int i = 0; i < this.items.size(); i++) {
+        buf.append(sep);
+        buf.append(this.items.get(i));
+        sep = " ";
+      }
+      return buf.toString();
     }
   }
 }

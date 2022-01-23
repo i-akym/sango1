@@ -581,25 +581,12 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public String repr() {
-    StringBuffer buf = new StringBuffer();
-    if (this.params.length > 0) {
-      buf.append("<");
-    }
-    String sep = "";
+  public PTypeSkel.Repr repr() {
+    PTypeSkel.Repr r = PTypeSkel.Repr.create();
     for (int i = 0; i < this.params.length; i++) {
-      buf.append(sep);
-      buf.append(this.params[i].repr());
-      sep = " ";
+      r.add(this.params[i].repr());
     }
-    buf.append(sep);
-    buf.append(this.tconInfo.key.toRepr());
-    if (this.ext) {
-      buf.append("+");
-    }
-    if (this.params.length > 0) {
-      buf.append(">");
-    }
-    return buf.toString();
+    r.add(this.tconInfo.key.toRepr() + ((this.ext)? "+": ""));
+    return r;
   }
 }
