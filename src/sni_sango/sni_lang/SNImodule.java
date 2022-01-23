@@ -180,11 +180,11 @@ public class SNImodule {
           emsg.append(Integer.toString(i));
           emsg.append(".");
           emsg.append("\n  attribute def: ");
-          emsg.append(PTypeSkel.Util.repr(at));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at));
           emsg.append("\n  attribute def in context: ");
-          emsg.append(PTypeSkel.Util.repr(at.resolveBindings(bb)));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bb)));
           emsg.append("\n  actual attribute: ");
-          emsg.append(PTypeSkel.Util.repr(tv.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(tv.type));
           helper.setException(sni_sango.SNIlang.createBadArgException(
             helper, new Cstr(emsg.toString()), null));
           return;
@@ -358,7 +358,7 @@ public class SNImodule {
     }
 
     public Cstr dumpInside() {
-      return new Cstr(PTypeSkel.Util.repr(this.type) + this.toString());
+      return new Cstr(PTypeSkel.Repr.topLevelRepr(this.type) + this.toString());
     }
 
     public RType.Sig getTsig() {

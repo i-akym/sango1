@@ -520,17 +520,13 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this.varSlot)) != null)? t: this;
   }
 
-  public String repr() {
-    StringBuffer buf = new StringBuffer();
+  public PTypeSkel.Repr repr() {
+    PTypeSkel.Repr r = PTypeSkel.Repr.create();
     if (this.constraint!= null) {
-      buf.append("<");
-      buf.append(this.constraint.repr());
-      buf.append(" = ");
+      r.append(this.constraint.repr());
+      r.add("=");
     }
-    buf.append(this.varSlot.repr());
-    if (this.constraint!= null) {
-      buf.append(">");
-    }
-    return buf.toString();
+    r.add(this.varSlot.repr());
+    return r;
   }
 }
