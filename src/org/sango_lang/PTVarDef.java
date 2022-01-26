@@ -96,6 +96,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     default:  // PTypeDesc.COPY_CONCRETE_KEEP
       v.requiresConcrete = this.requiresConcrete;
     }
+    if (this.constraint != null) {
+      v.constraint = this.constraint.deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
+    }
     return v;
   }
 
