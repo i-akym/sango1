@@ -111,14 +111,15 @@ abstract class PType {
         throw new IllegalArgumentException("Invalid item");
       }
       if (this.constrainedVar != null) {
-        if (!(t instanceof PTypeRef)) {
-          emsg = new StringBuffer();
-          emsg.append("Invalid constraint at ");
-          emsg.append(this.srcInfo);
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        this.constrainedVar.constraint = (PTypeRef)t;
+        // if (!(t instanceof PTypeRef)) {
+          // emsg = new StringBuffer();
+          // emsg.append("Invalid constraint at ");
+          // emsg.append(this.srcInfo);
+          // emsg.append(".");
+          // throw new CompileException(emsg.toString());
+        // }
+        // this.constrainedVar.constraint = (PTypeRef)t;
+        this.constrainedVar.constraint = t;
         t = this.constrainedVar;
       }
       return t;
