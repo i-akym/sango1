@@ -78,6 +78,10 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
 
+  public int getCat() {
+    return PTypeSkel.CAT_VAR;
+  }
+
   public boolean isLiteralNaked() { return false; }
 
   public int getVariance() { return this.varSlot.variance; }
@@ -189,9 +193,10 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptGiven "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
-    if (type instanceof PNoRetSkel) {
-      b = this.acceptGivenNoRet(width, bindsRef, (PNoRetSkel)type, trialBindings);
-    } else if (type instanceof PTypeRefSkel) {
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      b = this.acceptGivenBottom(width, bindsRef, type, trialBindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
       b = this.acceptGivenTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
       PTypeVarSkel v = (PTypeVarSkel)type;
@@ -204,9 +209,9 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  PTypeSkelBindings acceptGivenNoRet(int width, boolean bindsRef, PNoRetSkel nr, PTypeSkelBindings trialBindings) {
+  PTypeSkelBindings acceptGivenBottom(int width, boolean bindsRef, PTypeSkel bot, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#acceptGivenNoRet "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(nr); System.out.print(" "); System.out.println(trialBindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptGivenBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(bot); System.out.print(" "); System.out.println(trialBindings);
 }
     return trialBindings;
   }
@@ -280,9 +285,10 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptFree 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
-    if (type instanceof PNoRetSkel) {
-      b = this.acceptFreeNoRet(width, bindsRef, (PNoRetSkel)type, trialBindings);
-    } else if (type instanceof PTypeRefSkel) {
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      b = this.acceptFreeBottom(width, bindsRef, type, trialBindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
       b = this.acceptFreeTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
       PTypeVarSkel v = (PTypeVarSkel)type;
@@ -291,9 +297,9 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  PTypeSkelBindings acceptFreeNoRet(int width, boolean bindsRef, PNoRetSkel nr, PTypeSkelBindings trialBindings) {
+  PTypeSkelBindings acceptFreeBottom(int width, boolean bindsRef, PTypeSkel bot, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeNoRet "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(nr); System.out.print(" "); System.out.println(trialBindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(bot); System.out.print(" "); System.out.println(trialBindings);
 }
     return trialBindings;
   }
@@ -388,10 +394,11 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
     PTypeSkel t;
-    if (type instanceof PNoRetSkel) {
-      t = type.join2(this, givenTVarList);  // forward to PNoRetSkel
-    } else if (type instanceof PTypeRefSkel) {
-      t = type.join2(this, givenTVarList);  // forward to PTypeRefSkel
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      t = type.join(this, givenTVarList);  // forward to PTypeRefSkel
+    } else if (cat == PTypeSkel.CAT_SOME) {
+      t = type.join(this, givenTVarList);  // forward to PTypeRefSkel
     } else {
       t = this.join2(type, givenTVarList);
     }

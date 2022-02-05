@@ -32,6 +32,11 @@ public interface PTypeSkel {
 
   Parser.SrcInfo getSrcInfo();
 
+  int getCat();
+  static final int CAT_BOTTOM = 1;
+  static final int CAT_SOME = 2;
+  static final int CAT_VAR = 3;
+
   boolean isLiteralNaked();
 
   boolean isConcrete();

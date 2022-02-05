@@ -482,24 +482,11 @@ public class SNImodule {
 
     public int getParamCount() { return this.sigParams.length; }
 
-    // public PTVarSlot[] getParamVarSlots() {
-      // PTVarSlot[] pvs;
-      // if (this.sigParams != null) {
-        // pvs = new PTVarSlot[this.sigParams.length];
-        // for (int i = 0; i < this.sigParams.length; i++) {
-          // pvs[i] = this.sigParams[i].getVarSlot();
-        // }
-      // } else {
-        // pvs = null;
-      // }
-      // return pvs;
-    // }
-
     public PTypeSkel getTypeSig() {
       if (this.sig == null) {
-        if (this.sigTcon.equals(Module.TCON_NORET)) {
-          throw new RuntimeException("Attempted to make sig of NORET.");
-        } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
+        if (this.sigTcon.equals(Module.TCON_BOTTOM)) {  // needed?
+          throw new RuntimeException("Attempted to make sig of BOTTOM.");
+        } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {  // needed?
           throw new RuntimeException("Attempted to make sig of EXPOSED.");
         } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(this.mod, this.sigTcon);

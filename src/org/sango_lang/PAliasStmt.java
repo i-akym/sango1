@@ -257,7 +257,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     this.sig = this.sig.resolveId();
     this.body = this.body.resolveId();
     this.idResolved = true;
-    if (PTypeRef.willNotReturn(this.body) || PTypeRef.isExposed(this.body)) {
+    if (/* PTypeRef.willNotReturn(this.body) || */ PTypeRef.isExposed(this.body)) {
       emsg = new StringBuffer();
       emsg.append("Alias of non-concrete type at ");
       emsg.append(this.body.getSrcInfo());
