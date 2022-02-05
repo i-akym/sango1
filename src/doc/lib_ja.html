@@ -252,7 +252,9 @@ kbd {
 <p>プログラム文脈から離れているため，型が不明になっていることを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;_&gt; @opaque ;;</code></td></tr></table>
-<p>関数の結果型のみに用いられ，制御が戻らないことを表します。</p>
+<p>Sangoの全ての型の基底である型を表します（すべての型はこの型を拡張した型とみなします）。
+  この型のオブジェクトは存在しません。
+  この型の特別な意味として，関数の結果型に用いられた場合に，その関数から制御が戻らないことを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;void&gt; @public := void$ ;;</code></td></tr></table>
 <p>関数から返すべき値が無いことを表す便宜的な型です。</p>

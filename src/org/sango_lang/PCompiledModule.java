@@ -286,31 +286,15 @@ class PCompiledModule implements PDefDict {
 
     public int getParamCount() { return (this.sigParams != null)? this.sigParams.length: -1 ; }
 
-    // public PTVarSlot[] getParamVarSlots() {
-      // PTVarSlot[] pvs;
-      // if (this.sigParams != null) {
-        // pvs = new PTVarSlot[this.sigParams.length];
-        // for (int i = 0; i < this.sigParams.length; i++) {
-          // pvs[i] = this.sigParams[i].varSlot;
-        // }
-      // } else {
-        // pvs = null;
-      // }
-      // return pvs;
-    // }
-
     public PTypeSkel getTypeSig() {
       if (this.sig == null) {
-        if (this.sigTcon.equals(Module.TCON_NORET)) {
-          this.sig = PNoRetSkel.create(null);
-          // throw new RuntimeException("Attempted to make sig of NORET.");
-        // } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
-          // throw new RuntimeException("Attempted to make sig of EXPOSED.");
-        } else {
+        // if (this.sigTcon.equals(Module.TCON_BOTTOM)) {
+          // this.sig = PBottomSkel.create(null);
+        // } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(PCompiledModule.this.name, this.sigTcon);
           PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
           this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
-        }
+        // }
       }
       return this.sig;
     }
@@ -605,24 +589,13 @@ class PCompiledModule implements PDefDict {
     }
     PTypeSkel t;
     Cstr n = (tr.modName != null)? tr.modName: mod.name;
-    if (n.equals(Module.MOD_LANG) && tr.tcon.equals(Module.TCON_NORET)) {
-      t = PNoRetSkel.create(null);
-    } else {
+    // if (n.equals(Module.MOD_LANG) && tr.tcon.equals(Module.TCON_BOTTOM)) {
+      // t = PBottomSkel.create(null);
+    // } else {
       PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
-      // PTypeVarSkel bv;
-      // if (tr.bound != null) {
-// // /* DEBUG */ System.out.print("MTypeRef to PTypeRef: "); System.out.print(this);
-        // if (tr.bound.slot != varList.size()) {
-          // throw new RuntimeException("Slot number is not sequential.");
-        // }
-        // bv = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tr.bound.variance, tr.bound.requiresConcrete));
-        // varList.add(bv);
-      // } else {
-        // bv = null;
-      // }
       t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
       unresolvedTypeRefList.add((PTypeRefSkel)t);
-    }
+    // }
     return t;
   }
 

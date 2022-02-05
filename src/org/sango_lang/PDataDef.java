@@ -31,7 +31,7 @@ public interface PDataDef {
 
   // PTypeVarSkel[] getParamVarSlots();  // null if variable count params
 
-  PTypeSkel getTypeSig();  // also returns PNoRetSkel
+  PTypeSkel getTypeSig();
 
   int getAvailability();  // Module.AVAILABILITY_xxx
 

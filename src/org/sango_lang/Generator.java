@@ -154,9 +154,9 @@ class Generator {
     PTypeSkel sig = dd.getTypeSig();
     if (sig == null) { return; }  // fun, tuple?
     PTypeVarSkel[] pvs;
-    if (sig instanceof PNoRetSkel) {
-      pvs = new PTypeVarSkel[0];
-    } else if (sig instanceof PTypeRefSkel) {
+    // if (sig instanceof PBottomSkel) {
+      // pvs = new PTypeVarSkel[0];
+    /* } else */ if (sig instanceof PTypeRefSkel) {
       PTypeRefSkel str = (PTypeRefSkel)sig;
       if (str.params == null) { return; }  // fun, tuple?
       pvs = new PTypeVarSkel[str.params.length];

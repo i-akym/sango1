@@ -182,19 +182,6 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void checkRequiringConcreteIn() throws CompileException {}
-
-  public void checkRequiringConcreteOut() throws CompileException {
-    if (this.requiresConcrete) {
-      StringBuffer emsg = new StringBuffer();
-      emsg.append("Requiring concrete is not allowed at ");
-      emsg.append(this.srcInfo);
-      emsg.append(". - ");
-      emsg.append(this.name);
-      throw new CompileException(emsg.toString());
-    }
-  }
-
   public void normalizeTypes() {
     this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "type").getSkel();
   }

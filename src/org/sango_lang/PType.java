@@ -416,14 +416,6 @@ abstract class PType {
       throw new RuntimeException("Bound#excludePrivateAcc is called.");
     }
 
-    public void checkRequiringConcreteIn() throws CompileException {
-      throw new RuntimeException("Bound#checkRequiringConcreteIn is called.");
-    }
-
-    public void checkRequiringConcreteOut() throws CompileException {
-      throw new RuntimeException("Bound#checkRequiringConcreteOut is called.");
-    }
-
     public void normalizeTypes() {
       throw new RuntimeException("Bound#normalizeTypes is called.");
     }

@@ -269,14 +269,6 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     throw new RuntimeException("PTypeId#excludePrivateAcc should not called.");
   }
 
-  public void checkRequiringConcreteIn() throws CompileException {
-    throw new RuntimeException("PTypeId#checkRequiringConcreteIn should not called.");
-  }
-
-  public void checkRequiringConcreteOut() throws CompileException {
-    throw new RuntimeException("PTypeId#checkRequiringConcreteOut should not called.");
-  }
-
   public void normalizeTypes() {
     throw new RuntimeException("PTypeId#normalizeType is called.");
   }

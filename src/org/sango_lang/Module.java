@@ -53,7 +53,7 @@ public class Module {
   public static final Cstr MOD_ACTOR = new Cstr("sango.actor");
 
   // lang-special tcons
-  public static final String TCON_NORET = "_";
+  public static final String TCON_BOTTOM = "_";
   public static final String TCON_EXPOSED = "_?_";
   public static final String TCON_VOID = "void";
   public static final String TCON_BOOL = "bool";
