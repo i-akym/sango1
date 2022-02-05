@@ -148,13 +148,13 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     this.idResolved = false;
     if (this.constraint != null) {
       this.constraint = this.constraint.setupScope(scope);
-      if (!(this.constraint instanceof PTypeRef)) {
-        emsg = new StringBuffer();
-        emsg.append("Invalid constraint at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      // if (!(this.constraint instanceof PTypeRef)) {
+        // emsg = new StringBuffer();
+        // emsg.append("Invalid constraint at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
     }
     if (!scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
@@ -192,6 +192,6 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
 
   public PTypeVarSkel getSkel() {
     return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot,
-    (this.constraint != null)? (PTypeRefSkel)this.constraint.getSkel(): null);
+    (this.constraint != null)? this.constraint.getSkel(): null);
   }
 }

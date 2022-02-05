@@ -30,11 +30,11 @@ public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
   String name;
   PTVarSlot varSlot;
-  PTypeRefSkel constraint;  // maybe null
+  PTypeSkel constraint;  // maybe null
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot, PTypeRefSkel constraint) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot, PTypeSkel constraint) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
     var.name =  name + "." + Integer.toString(varSlot.id);
@@ -488,22 +488,14 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   public MType toMType(PModule mod, List<PTVarSlot> slotList) {
-// /* DEBUG */ System.out.print("{VV "); System.out.print(this); System.out.print(slotList);
     MTypeVar tv;
     int index = slotList.indexOf(this.varSlot);
-// /* DEBUG */ System.out.print(index);
     if (index < 0) {
       index = slotList.size();
       slotList.add(this.varSlot);
-// /* DEBUG */ System.out.print(" added ");
     }
-    MTypeRef c = (this.constraint != null)? (MTypeRef)this.constraint.toMType(mod, slotList): null;
-// /* DEBUG */ System.out.print(" constraint "); System.out.print(c);
-    MType mv = MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
-// /* DEBUG */ System.out.print(" -> "); System.out.print(mv); System.out.println(" vv}");
-    return mv;
-    // return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete,
-      // (this.constraint != null)? (MTypeRef)this.constraint.toMType(mod, slotList): null);
+    MType c = (this.constraint != null)? this.constraint.toMType(mod, slotList): null;
+    return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
   }
 
   public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {

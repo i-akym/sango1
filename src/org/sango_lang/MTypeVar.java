@@ -32,11 +32,11 @@ class MTypeVar implements MType {
   int slot;
   int variance;
   boolean requiresConcrete;
-  MTypeRef constraint;  // maybe null
+  MType constraint;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, int variance, boolean requiresConcrete, MTypeRef constraint) {
+  static MTypeVar create(int slot, int variance, boolean requiresConcrete, MType constraint) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
     t.variance = variance;
@@ -132,7 +132,7 @@ class MTypeVar implements MType {
     }
 
     Node n = node.getFirstChild();
-    MTypeRef constraint = null;
+    MType constraint = null;
     int state = 0;
     while (n != null) {
       if (Module.isIgnorable(n)) {
@@ -147,16 +147,16 @@ class MTypeVar implements MType {
     return create(slot, variance, requiresConcrete, constraint);
   }
 
-  static MTypeRef internalizeConstraint(Node node) throws FormatException {
+  static MType internalizeConstraint(Node node) throws FormatException {
     if (!node.getNodeName().equals(Module.TAG_CONSTRAINT)) { return null; }
 
     Node n = node.getFirstChild();
-    MTypeRef constraint = null;
+    MType constraint = null;
     int state = 0;
     while (n != null) {
       if (Module.isIgnorable(n)) {
         ;
-      } else if (state == 0 && (constraint = MTypeRef.internalize(n)) != null) {
+      } else if (state == 0 && (constraint = MType.Envelope.internalizeDesc(n)) != null) {
         state = 1;
       } else {
         throw new FormatException("Unknown or extra element : " + n.getNodeName());
