@@ -1,8 +1,11 @@
+module "test_lang" -> HERE ;;
+
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
 
 data <d001> := d001_1: <int> d001_2: <char> d001$ ;;
+extend <HERE.d001> -> d001ex := d001ex$ ;;
 
 eval <d001> *X _hash_d001 -> <int> {
   X debug.repr >> stdio.print, " => _hash_d001 is called" stdio.print_and_newline,

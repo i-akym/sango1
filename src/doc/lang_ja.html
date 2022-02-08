@@ -1126,7 +1126,7 @@ age: (Person age &gt;&gt; inc) :: Person person$ = *Person'</code></blockquote>
 <blockquote class="code-sample">コード例
 <code>extend &lt;m.book&gt; -&gt; extended_book @public := title: &lt;cstr&gt; hand_made_book$ ;;</code></blockquote>
 <p>この例では，<code>&lt;m1.extended_book&gt;</code>が定義されます。
-  なお，型構築子が変更されると，ベースとなった型と拡張した型の関係が分かりにくくなるため，型構築子の変更は，型構築子が衝突する場合など，最小限に行うべきです。</p>
+  なお，型構築子が変更されると，ベースとなった型と拡張した型の関係が分かりにくくなるため，型構築子の変更は慎重に行うべきです。</p>
 <p><code>m</code>の内部では，<code>&lt;book&gt;</code>を拡張した型（<code>&lt;m1.book&gt;</code>もその一つ）を<code>&lt;book+&gt;</code>と示します。
   <code>&lt;book&gt;</code>を定義すると，<code>&lt;book+&gt;</code>のオブジェクトが実際には<code>&lt;book&gt;</code>の範囲にあるかどうかを判定する関数，<code>&lt;book&gt;</code>の範囲に落とし込む関数が同時に生成されます。
   ベースとなる定義をしたモジュール<code>m</code>においては以下のとおりです。</p>
@@ -1158,7 +1158,7 @@ eval &lt;book+&gt; *X _narrow_book | narrow @public -&gt; &lt;book maybe&gt; {
   }
 } ;;</code></blockquote>
 
-<blockquote class="note">*1：他モジュールの型構築子を参照するのでモジュール識別子で修飾します。修飾が無い場合，通常は，(1)自モジュール，(2)<code>&quot;sango.lang&quot;</code>の順で参照が解決されますが，型の拡張は自モジュールの定義に対してはできないため，<code>extend</code>文では例外的に<code>&quot;sango.lang&quot;</code>が指定されているとみなされます。</blockquote>
+<blockquote class="note">*1：他モジュールの型構築子を参照するのでモジュール識別子で修飾します。修飾が無い場合，通常は，(1)自モジュール，(2)<code>&quot;sango.lang&quot;</code>の順で参照が解決されますが，型の拡張は自モジュールの定義に対してはできないため，<code>extend</code>文では例外的に<code>&quot;sango.lang&quot;</code>が指定されているとみなされます。自モジュールのデータ定義を拡張する場合は，自モジュールにモジュール識別子を定義してそれを用いるのと同時に，型構築子を改名します。</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="15">15. 例外に備える</h1>
@@ -1257,11 +1257,15 @@ Exception stdio.cstdout debug.dump_to</code></blockquote>
   モジュール名は，<code>module</code>文で宣言します。</p>
 <blockquote class="code-sample">コード例
 <code>module &quot;proj_x.foo.bar&quot; ;;</code></blockquote>
+<p>プログラム中で自モジュールを明に指定したい場合<span class="note-ref">*2</span>には，自モジュールの識別子を「<code>-&gt;</code>」に続けて定義します。</p>
+<blockquote class="code-sample">コード例
+<code>module &quot;proj_x.foo.bar&quot; -&gt; HERE ;; # HERE.xxx</code> のように書けるようになる。</blockquote>
 <p><code>module</code>文が指定されていないモジュールを無名モジュールと呼びます。
   無名モジュールは，モジュールファイル（<code>*.sgm</code>）のロード時に，パスからモジュール名が決定されます。<p>
 <p><code>_name_</code>関数（引数なし，public）を使うと，モジュール内から自分のモジュール名を取得できます。</p>
 
 <blockquote class="note">*1：モジュール名については，付録を参照してください。</blockquote>
+<blockquote class="note">*2：自モジュール内のデータ定義を拡張（<code>extend</code>）する場合が該当します。</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="16.2">16.2. 初期化</h2>
@@ -2296,6 +2300,11 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>型パラメタに変位(variance)を導入</li>
 <li>【Beta】<code>&quot;sango.entity.existence&quot;</code>を変更</li>
 <li>【Beta】<code>&quot;sango.lang&quot;</code>に<code>&lt;A dummy&gt;</code>型を追加</li>
+</ul>
+
+<p>■　NEXT VERSION</p>
+<ul>
+<li>自モジュールにモジュール識別子を定義する方法を公開。自モジュールのデータ定義の拡張を可能とした。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

@@ -127,6 +127,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     Cstr n = null;
     if (id == null) {
       ;
+    } else if (id.equals(this.myId)) {
+      n = this.name;
     } else if (id.equals(MOD_ID_HERE)) {
       n = this.name;
     } else if (id.equals(MOD_ID_LANG)) {
