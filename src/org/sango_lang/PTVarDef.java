@@ -30,6 +30,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   int variance;
   boolean requiresConcrete;
   PTypeDesc constraint;  // maybe null, guaranteed to be PTypeRef later
+  PTypeSkel nConstraint;
   PTVarSlot varSlot;  // setup later
 
   private PTVarDef() {}
@@ -183,7 +184,10 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   public void excludePrivateAcc() throws CompileException {}
 
   public void normalizeTypes() {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "type").getSkel();
+    if (this.constraint != null) {
+      this.nConstraint = this.constraint.normalize();
+    }
+    this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
   }
 
   public PTypeVarSkel normalize() {
@@ -191,7 +195,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   }
 
   public PTypeVarSkel getSkel() {
-    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot,
-    (this.constraint != null)? this.constraint.getSkel(): null);
+    if (this.nTypeSkel == null) {
+      this.normalizeTypes();
+    }
+    return (PTypeVarSkel)this.nTypeSkel;
   }
 }
