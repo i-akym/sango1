@@ -238,6 +238,14 @@ abstract class PType {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
+        PTVarDef v = (PTVarDef)tr.params[i];
+        if (v.constraint != null) {
+          emsg = new StringBuffer();
+          emsg.append("Constrained type parameter not allowed at ");
+          emsg.append(tr.params[i].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
       }
       if (qual == PExprId.ID_NO_QUAL && tr.mod != null) {
         emsg = new StringBuffer();
@@ -296,6 +304,13 @@ abstract class PType {
           throw new CompileException(emsg.toString());
         }
         PTVarDef v = (PTVarDef)tr.params[i];
+        if (v.constraint != null) {
+          emsg = new StringBuffer();
+          emsg.append("Constrained type parameter not allowed at ");
+          emsg.append(tr.params[i].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
         if (v.requiresConcrete) {
           emsg = new StringBuffer();
           emsg.append("Requiring concrete type is not allowed at ");
