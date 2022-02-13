@@ -717,6 +717,23 @@ book$ ;;</code></blockquote>
 <blockquote class="code-sample">コード例
 <code>&lt;int&gt; *I &lt;int&gt; *J</code>
 <code>&lt;*A list&gt; *List &lt;A&gt; *Elem</code></blockquote>
+<p>実引数は，その型が仮引数変数の型より狭い<span class="note-ref">*1</span>場合に適合します。</p>
+<blockquote class="note">*1：「より狭い」の詳細は「<a href="B">B. 型について</a>」を参照してください。。</blockquote>
+
+<p>■引数の実際の型を扱う【Alpha】</p>
+<p>ここで，<code>&lt;A foo&gt;</code>とそれを拡張した型<code>&lt;A foo_ext&gt;</code>が定義されているとして，次の関数<code>f1</code>を考えます。</p>
+<blockquote class="code-sample">コード例
+<code>eval &lt;*A foo_ext&gt; *X f1 -&gt; &lt;A foo_ext&gt; { ... } ;;</code></blockquote>
+<p><code>f1</code>は<code>&lt;A foo&gt;</code>を引数としても<code>&lt;A foo_ext&gt;</code>を引数としても呼び出せます。
+いずれの型の場合も，返す値は<code>&lt;A foo_ext&gt;</code>です。</p>
+<p>さて，<code>&lt;A foo&gt;</code>を引数として呼び出されるとき，返す値の型を<code>&lt;A foo&gt;</code>にしたい場合もあるでしょう。
+Sangoはこのような場合を表す書き方を提供しています。
+具体的には，次の<code>f2</code>ように書きます。</p>
+<blockquote class="code-sample">コード例
+<code>eval &lt;*A foo_ext = *T&gt; *X f2 -&gt; &lt;T&gt; { ... } ;;</code></blockquote>
+<p>ここで<code>T</code>は，<code>f2</code>呼び出し時の引数の型を表しています。
+この<code>T</code>は，束縛される範囲として「<code>＝</code>」の左側<code>&lt;A foo_ext&gt;</code>の制約を受けているとみなせます。
+このような型パラメタを「制約付き型パラメタ」と呼びます。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="9.2">9.2. 関数名</h2>
@@ -2305,6 +2322,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <p>■　NEXT VERSION</p>
 <ul>
 <li>自モジュールにモジュール識別子を定義する方法を公開。自モジュールのデータ定義の拡張を可能とした。</li>
+<li>【Alpha】制約付き型パラメタを導入</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
