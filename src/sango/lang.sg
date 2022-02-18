@@ -28,7 +28,9 @@ module "sango.lang" ;;
 # special types
 
 data <_?_> @opaque := @native ;;  # exposed (out of program context)
-data <_> @opaque := @native ;;  # no return
+
+data <_> @opaque := @native ;;  # bottom (= narrowest) type,
+                                # which also means 'will not return' when specified at function's return value
 
 # void type
 

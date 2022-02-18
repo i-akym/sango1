@@ -116,7 +116,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc tsig;
-    if ((tsig = PType.acceptSig(reader, PExprId.ID_NO_QUAL, PType.INHIBIT_REQUIRE_CONCRETE)) == null) {
+    if ((tsig = PType.acceptSig2(reader)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -257,7 +257,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     this.sig = this.sig.resolveId();
     this.body = this.body.resolveId();
     this.idResolved = true;
-    if (PTypeRef.willNotReturn(this.body) || PTypeRef.isExposed(this.body)) {
+    if (/* PTypeRef.willNotReturn(this.body) || */ PTypeRef.isExposed(this.body)) {
       emsg = new StringBuffer();
       emsg.append("Alias of non-concrete type at ");
       emsg.append(this.body.getSrcInfo());

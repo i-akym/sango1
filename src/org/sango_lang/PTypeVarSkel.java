@@ -23,27 +23,30 @@
  ***************************************************************************/
 package org.sango_lang;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
+  String name;
   PTVarSlot varSlot;
+  PTypeSkel constraint;  // maybe null
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, PScope scope, PTVarSlot varSlot) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot, PTypeSkel constraint) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
-    // /* DEBUG */ if (scope == null) { throw new IllegalArgumentException("scope is null. " + srcInfo + " " + varSlot.toString()); }
+    var.name =  name + "." + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
+    var.constraint = constraint;
     return var;
   }
 
   PTypeVarSkel copy() {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = this.srcInfo;
+    var.name = this.name;
     var.varSlot = this.varSlot;
     return var;
   }
@@ -65,13 +68,19 @@ public class PTypeVarSkel implements PTypeSkel {
     StringBuffer buf = new StringBuffer();
     buf.append("tvarskel[src=");
     buf.append(this.srcInfo);
-    buf.append(",slot=");
-    buf.append(this.varSlot);
+    buf.append(",constraint=");
+    buf.append(this.constraint);
+    buf.append(",name=");
+    buf.append(this.name);
     buf.append("]");
     return buf.toString();
   }
 
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
+
+  public int getCat() {
+    return PTypeSkel.CAT_VAR;
+  }
 
   public boolean isLiteralNaked() { return false; }
 
@@ -98,8 +107,8 @@ public class PTypeVarSkel implements PTypeSkel {
       t = iBindings.lookupAppl(this.varSlot);
     } else if (iBindings.isBound(this.varSlot)) {
       t = iBindings.lookup(this.varSlot);
-    } else {
-      PTVarSlot s = PTVarSlot.create(this.varSlot.varDef);
+    } else {  // HERE: for what?
+      PTVarSlot s = PTVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
       PTypeVarSkel v = this.copy();
       v.varSlot = s;
       iBindings.bind(this.varSlot, v);
@@ -150,10 +159,8 @@ public class PTypeVarSkel implements PTypeSkel {
     if (!b) {
       StringBuffer emsg = new StringBuffer();
       emsg.append("Incoherent variance ");
-      if (this.varSlot.varDef != null) {  // should be true!
-        emsg.append("for *");
-        emsg.append(this.varSlot.varDef.name);
-      }
+      emsg.append("for *");
+      emsg.append(this.name);
       if (this.srcInfo != null) {  // should be true!
         emsg.append(" at ");
         emsg.append(this.srcInfo.toString());
@@ -186,19 +193,25 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptGiven "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
-    if (type instanceof PNoRetSkel) {
-      b = this.acceptGivenNoRet(width, bindsRef, (PNoRetSkel)type, trialBindings);
-    } else if (type instanceof PTypeRefSkel) {
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      b = this.acceptGivenBottom(width, bindsRef, type, trialBindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
       b = this.acceptGivenTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
-      b = this.acceptGivenVar(width, bindsRef, (PTypeVarSkel)type, trialBindings);
+      PTypeVarSkel v = (PTypeVarSkel)type;
+      if (v.bindConstraint(trialBindings)) {
+        b = this.acceptGiven(width, bindsRef, v, trialBindings);  // retry
+      } else {
+        b = this.acceptGivenVar(width, bindsRef, v, trialBindings);
+      }
     }
     return b;
   }
 
-  PTypeSkelBindings acceptGivenNoRet(int width, boolean bindsRef, PNoRetSkel nr, PTypeSkelBindings trialBindings) {
+  PTypeSkelBindings acceptGivenBottom(int width, boolean bindsRef, PTypeSkel bot, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#acceptGivenNoRet "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(nr); System.out.print(" "); System.out.println(trialBindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptGivenBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(bot); System.out.print(" "); System.out.println(trialBindings);
 }
     return trialBindings;
   }
@@ -246,24 +259,47 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  PTypeSkelBindings acceptFree(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
+  PTypeSkelBindings acceptFree(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptFree "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
-    if (type instanceof PNoRetSkel) {
-      b = this.acceptFreeNoRet(width, bindsRef, (PNoRetSkel)type, trialBindings);
-    } else if (type instanceof PTypeRefSkel) {
+
+    if (this.constraint != null) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFree 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = this.constraint.accept(width, bindsRef, type, trialBindings);
+      if (b != null) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFree 1-1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+        trialBindings = b;
+      } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFree 1-2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+        return null;
+      }
+    }
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFree 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      b = this.acceptFreeBottom(width, bindsRef, type, trialBindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
       b = this.acceptFreeTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
-      b = this.acceptFreeVar(width, bindsRef, (PTypeVarSkel)type, trialBindings);
+      PTypeVarSkel v = (PTypeVarSkel)type;
+      b = this.acceptFreeVar(width, bindsRef, v, trialBindings);
     }
     return b;
   }
 
-  PTypeSkelBindings acceptFreeNoRet(int width, boolean bindsRef, PNoRetSkel nr, PTypeSkelBindings trialBindings) {
+  PTypeSkelBindings acceptFreeBottom(int width, boolean bindsRef, PTypeSkel bot, PTypeSkelBindings trialBindings) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeNoRet "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(nr); System.out.print(" "); System.out.println(trialBindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(bot); System.out.print(" "); System.out.println(trialBindings);
 }
     return trialBindings;
   }
@@ -342,15 +378,27 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTVarSlot getVarSlot() { return this.varSlot; }
 
+  boolean bindConstraint(PTypeSkelBindings bindings) {
+    boolean bound;
+    if (this.constraint != null && !bindings.isBound(this.varSlot)) {
+      bindings.bind(this.varSlot, this.constraint);
+      bound = true;
+    } else {
+      bound = false;
+    }
+    return bound;
+  }
+
   public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
     PTypeSkel t;
-    if (type instanceof PNoRetSkel) {
-      t = type.join2(this, givenTVarList);  // forward to PNoRetSkel
-    } else if (type instanceof PTypeRefSkel) {
-      t = type.join2(this, givenTVarList);  // forward to PTypeRefSkel
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      t = type.join(this, givenTVarList);  // forward to PTypeRefSkel
+    } else if (cat == PTypeSkel.CAT_SOME) {
+      t = type.join(this, givenTVarList);  // forward to PTypeRefSkel
     } else {
       t = this.join2(type, givenTVarList);
     }
@@ -446,7 +494,8 @@ if (PTypeGraph.DEBUG > 1) {
       index = slotList.size();
       slotList.add(this.varSlot);
     }
-    return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete);
+    MType c = (this.constraint != null)? this.constraint.toMType(mod, slotList): null;
+    return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
   }
 
   public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
@@ -477,7 +526,13 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this.varSlot)) != null)? t: this;
   }
 
-  public String repr() {
-    return this.varSlot.repr();
+  public PTypeSkel.Repr repr() {
+    PTypeSkel.Repr r = PTypeSkel.Repr.create();
+    if (this.constraint!= null) {
+      r.append(this.constraint.repr());
+      r.add("=");
+    }
+    r.add(this.varSlot.repr());
+    return r;
   }
 }

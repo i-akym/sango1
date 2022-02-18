@@ -75,7 +75,7 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
           name = aname.name;
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 1;
-        } else if ((type = PType.acceptRO(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        } else if ((type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
           si = type.getSrcInfo();
           type = type;
           spc = ParserA.SPACE_DO_NOT_CARE;
@@ -85,7 +85,7 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
         }
         break;
       case 1:  // name:
-        if ((type = PType.acceptRO(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        if ((type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 2;
         } else {
@@ -105,7 +105,7 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
           var = null;
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 1;
-        } else if ((type2 = PType.acceptRO(reader, ParserA.SPACE_NEEDED)) != null) {
+        } else if ((type2 = PType.accept(reader, ParserA.SPACE_NEEDED)) != null) {
           attrList.add(create(si, name, type, var));
           si = type.getSrcInfo();
           name = null;
@@ -149,7 +149,7 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc t = PType.acceptXRO(e);
+    PTypeDesc t = PType.acceptX(e);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Data type missing at ");

@@ -102,18 +102,26 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTypeRef deepCopy(Parser.SrcInfo srcInfo) {
+  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     PTypeRef t = new PTypeRef();
     t.srcInfo = srcInfo;
     t.mod = this.mod;
     t.modName = this.modName;
     t.tcon = this.tcon;
-    t.ext = this.ext;
+    switch (extOpt) {
+    case PTypeDesc.COPY_EXT_OFF:
+      t.ext = false;;
+      break;
+    case PTypeDesc.COPY_EXT_ON:
+      t.ext = true;;
+      break;
+    default:  // PTypeDesc.COPY_EXT_KEEP
+      t.ext = this.ext;
+    }
     t.params = new PTypeDesc[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
-      t.params[i] = this.params[i].deepCopy(srcInfo);
+      t.params[i] = this.params[i].deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
     }
-    t.scope = this.scope;
     return t;
   }
 
@@ -171,13 +179,6 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     }
     for (int i = 0; i < this.params.length; i++) {
       PTypeDesc p = (PTypeDesc)this.params[i].resolveId();
-      if (willNotReturn(p) && i < this.params.length - 1 && !isFun(this)) {
-        emsg = new StringBuffer();
-        emsg.append("<_> not allowed for parameter at ");
-        emsg.append(this.tconSrcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
       this.params[i] = p;
     }
     this.idResolved = true;
@@ -207,42 +208,15 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     }
   }
 
-  public void checkRequiringConcreteIn() throws CompileException {
-    if (isFun(this)) {
-      this.checkRequiringConcreteFun();
-    } else {
-      for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkRequiringConcreteIn();
-      }
-    }
-  }
-
-  public void checkRequiringConcreteOut() throws CompileException {
-    if (isFun(this)) {
-      this.checkRequiringConcreteFun();
-    } else {
-      for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkRequiringConcreteOut();
-      }
-    }
-  }
-
-  void checkRequiringConcreteFun() throws CompileException {
-    for (int i = 0; i < this.params.length - 1; i++) {
-      this.params[i].checkRequiringConcreteIn();
-    }
-    this.params[this.params.length - 1].checkRequiringConcreteOut();
-  }
-
   public void normalizeTypes() {
     throw new RuntimeException("PTypeRef#normalizeTypes should not be called.");
   }
 
   public PTypeSkel normalize() {
     PTypeSkel t;
-    if (willNotReturn(this)) {
-      t = PNoRetSkel.create(this.srcInfo);
-    } else {
+    // if (isBottom(this)) {
+      // t = PBottomSkel.create(this.srcInfo);
+    // } else {
       PAliasDef a;
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
       for (int i = 0; i < ps.length; i++) {
@@ -253,7 +227,7 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       } else {
         t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
       }
-    }
+    // }
     return t;
   }
 
@@ -261,9 +235,13 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     return isLangType(type, Module.TCON_EXPOSED);
   }
 
-  static boolean willNotReturn(PTypeDesc type) {
-    return isLangType(type, Module.TCON_NORET);
+  static boolean isBottom(PTypeDesc type) {
+    return isLangType(type, Module.TCON_BOTTOM);
   }
+
+  // static boolean willNotReturn(PTypeDesc type) {
+    // return isLangType(type, Module.TCON_BOTTOM);
+  // }
 
   static boolean isList(PTypeDesc type) {
     return isLangType(type, Module.TCON_LIST);
@@ -277,7 +255,7 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     boolean b;
     if (type instanceof PTypeRef) {
       PTypeRef tr = (PTypeRef)type;
-      if (tr.tconInfo == null) { throw new IllegalArgumentException("Tcon not resolved."); }
+      if (tr.tconInfo == null) { throw new IllegalArgumentException("Tcon not resolved. " + tr.toString()); }
       b = tr.tconInfo.key.modName.equals(Module.MOD_LANG) && tr.tconInfo.key.tcon.equals(tcon);
     } else {
       b = false;
@@ -287,15 +265,15 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
 
   public PTypeSkel getSkel() {
     PTypeSkel t;
-    if (willNotReturn(this)) {
-      t = PNoRetSkel.create(this.srcInfo);
-    } else {
+    // if (isBottom(this)) {
+      // t = PBottomSkel.create(this.srcInfo);
+    // } else {
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
       for (int i = 0; i < ps.length; i++) {
         ps[i] = this.params[i].getSkel();
       }
       t =  PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
-    }
+    // }
     return t;
   }
 }

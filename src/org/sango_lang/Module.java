@@ -53,7 +53,7 @@ public class Module {
   public static final Cstr MOD_ACTOR = new Cstr("sango.actor");
 
   // lang-special tcons
-  public static final String TCON_NORET = "_";
+  public static final String TCON_BOTTOM = "_";
   public static final String TCON_EXPOSED = "_?_";
   public static final String TCON_VOID = "void";
   public static final String TCON_BOOL = "bool";
@@ -81,6 +81,7 @@ public class Module {
   static final String TAG_ALIASES = "aliases";
   static final String TAG_ALIAS = "alias";
   static final String TAG_ATTR = "attr";
+  static final String TAG_CONSTRAINT = "constraint";
   static final String TAG_CLOSURE_CONSTR = "closure_constr";
   static final String TAG_CLOSURE_CONSTRS = "closure_constrs";
   static final String TAG_CLOSURE_IMPL = "closure_impl";

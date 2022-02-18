@@ -180,11 +180,11 @@ public class SNImodule {
           emsg.append(Integer.toString(i));
           emsg.append(".");
           emsg.append("\n  attribute def: ");
-          emsg.append(PTypeSkel.Util.repr(at));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at));
           emsg.append("\n  attribute def in context: ");
-          emsg.append(PTypeSkel.Util.repr(at.resolveBindings(bb)));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bb)));
           emsg.append("\n  actual attribute: ");
-          emsg.append(PTypeSkel.Util.repr(tv.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(tv.type));
           helper.setException(sni_sango.SNIlang.createBadArgException(
             helper, new Cstr(emsg.toString()), null));
           return;
@@ -358,7 +358,7 @@ public class SNImodule {
     }
 
     public Cstr dumpInside() {
-      return new Cstr(PTypeSkel.Util.repr(this.type) + this.toString());
+      return new Cstr(PTypeSkel.Repr.topLevelRepr(this.type) + this.toString());
     }
 
     public RType.Sig getTsig() {
@@ -433,7 +433,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false));  // HERE
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false), null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
@@ -480,24 +480,13 @@ public class SNImodule {
 
     public String getFormalTcon() { return this.sigTcon; }
 
-    public PTVarSlot[] getParamVarSlots() {
-      PTVarSlot[] pvs;
-      if (this.sigParams != null) {
-        pvs = new PTVarSlot[this.sigParams.length];
-        for (int i = 0; i < this.sigParams.length; i++) {
-          pvs[i] = this.sigParams[i].getVarSlot();
-        }
-      } else {
-        pvs = null;
-      }
-      return pvs;
-    }
+    public int getParamCount() { return this.sigParams.length; }
 
     public PTypeSkel getTypeSig() {
       if (this.sig == null) {
-        if (this.sigTcon.equals(Module.TCON_NORET)) {
-          throw new RuntimeException("Attempted to make sig of NORET.");
-        } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {
+        if (this.sigTcon.equals(Module.TCON_BOTTOM)) {  // needed?
+          throw new RuntimeException("Attempted to make sig of BOTTOM.");
+        } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {  // needed?
           throw new RuntimeException("Attempted to make sig of EXPOSED.");
         } else {
           PDefDict.TconKey tk = PDefDict.TconKey.create(this.mod, this.sigTcon);

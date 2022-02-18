@@ -29,15 +29,21 @@ interface PTypeDesc extends PProgElem {
 
   PTypeDesc resolveId() throws CompileException;  // inherited
 
-  PTypeDesc deepCopy(Parser.SrcInfo srcInfo);
+  PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt);
+  static final int COPY_EXT_KEEP = -1;
+  static final int COPY_EXT_OFF = 0;
+  static final int COPY_EXT_ON = 1;
+  static final int COPY_VARIANCE_KEEP = -1;
+  static final int COPY_VARIANCE_INVARIANT = 0;
+  static final int COPY_VARIANCE_COVARIANT = 1;
+  static final int COPY_VARIANCE_CONTRAVARIANT = 2;
+  static final int COPY_CONCRETE_KEEP = -1;
+  static final int COPY_CONCRETE_OFF = 0;
+  static final int COPY_CONCRETE_ON = 1;
 
   PDefDict.TconInfo getTconInfo();
 
   void excludePrivateAcc() throws CompileException;
-
-  // do not call!
-  void checkRequiringConcreteIn() throws CompileException;
-  void checkRequiringConcreteOut() throws CompileException;
 
   PTypeSkel getSkel();
 

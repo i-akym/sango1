@@ -286,16 +286,8 @@ class PClosure extends PDefaultEvalElem {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolveId();
-      // too strict check
-      // if (this.params[i].type != null) {  // hmmm
-        // this.params[i].type.checkRequiringConcreteIn();
-      // }
     }
     this.retDef = this.retDef.resolveId();
-    // too strict check
-    // if (this.retDef.type != null) {  // hmmmm
-      // this.retDef.type.checkRequiringConcreteOut();
-    // }
     for (int i = 0; i < this.implExprs.length; i++) {
       this.implExprs[i] = this.implExprs[i].resolveId();
     }

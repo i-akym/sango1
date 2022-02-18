@@ -36,6 +36,7 @@ class MTypeRef implements MType {
   String tcon;
   boolean ext;
   MType[] params;
+  // MTypeVar bound;
 
   private MTypeRef() {}
 
@@ -49,12 +50,18 @@ class MTypeRef implements MType {
       sp = " ";
     }
     buf.append(sp);
-    buf.append(this.modName.toJavaString());
-    buf.append(".");
+    if (this.modName != null) {
+      buf.append(this.modName.toJavaString());
+      buf.append(".");
+    }
     buf.append(tcon);
     if (this.ext) {
       buf.append("+");
     }
+    // if (this.bound != null) {
+      // buf.append("=");
+      // buf.append(bound.toString());
+    // }
     buf.append(">");
     return buf.toString();
   }
@@ -73,6 +80,11 @@ class MTypeRef implements MType {
         node.appendChild(this.params[i].externalize(doc));
       }
     }
+    // if (this.bound != null) {
+      // Element nb = doc.createElement(Module.TAG_BOUND);
+      // nb.appendChild(this.bound.externalize(doc));
+      // node.appendChild(nb);
+    // }
     return node;
   }
 
@@ -124,6 +136,7 @@ class MTypeRef implements MType {
       }
       n = n.getNextSibling();
     }
+
     return builder.create();
   }
 

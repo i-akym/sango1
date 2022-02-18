@@ -29,16 +29,19 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   String name;
   int variance;
   boolean requiresConcrete;
-  PTVarSlot varSlot;
+  PTypeDesc constraint;  // maybe null, guaranteed to be PTypeRef later
+  PTypeSkel nConstraint;
+  PTVarSlot varSlot;  // setup later
 
   private PTVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete) {
+  static PTVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
     PTVarDef var = new PTVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
     var.variance = variance;
     var.requiresConcrete = requiresConcrete;
+    var.constraint = constraint;
     return var;
   }
 
@@ -47,12 +50,16 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     buf.append("newvar[");
     buf.append("src=");
     buf.append(this.srcInfo);
-    buf.append(",variance=");
-    buf.append(this.variance);
     buf.append(",name=");
     buf.append(this.name);
+    buf.append(",variance=");
+    buf.append(this.variance);
     if (this.requiresConcrete) {
       buf.append("!");
+    }
+    if (this.constraint != null) {
+      buf.append(",constraint=");
+      buf.append(this.constraint);
     }
     if (this.varSlot != null) {
       buf.append(",slot=");
@@ -62,17 +69,41 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTVarDef deepCopy(Parser.SrcInfo srcInfo) {
+  public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     PTVarDef v = new PTVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
-    v.variance = this.variance;
-    v.requiresConcrete = this.requiresConcrete;
-    v.scope = this.scope;
+    // v.varSlot = this.varSlot;  // not copied
+    switch (varianceOpt) {
+    case PTypeDesc.COPY_VARIANCE_INVARIANT:
+      v.variance = Module.INVARIANT;
+      break;
+    case PTypeDesc.COPY_VARIANCE_COVARIANT:
+      v.variance = Module.COVARIANT;
+      break;
+    case PTypeDesc.COPY_VARIANCE_CONTRAVARIANT:
+      v.variance = Module.CONTRAVARIANT;
+      break;
+    default:  // PTypeDesc.COPY_VARIANCE_KEEP
+      v.variance = this.variance;
+    }
+    switch (concreteOpt) {
+    case PTypeDesc.COPY_CONCRETE_OFF:
+      v.requiresConcrete = false;;
+      break;
+    case PTypeDesc.COPY_CONCRETE_ON:
+      v.requiresConcrete = true;;
+      break;
+    default:  // PTypeDesc.COPY_CONCRETE_KEEP
+      v.requiresConcrete = this.requiresConcrete;
+    }
+    if (this.constraint != null) {
+      v.constraint = this.constraint.deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
+    }
     return v;
   }
 
-  static PTVarDef accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PTVarDef acceptSimple(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
@@ -94,7 +125,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       throw new CompileException(emsg.toString());
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, varId.value.token, variance, requiresConcrete);
+    return create(si, varId.value.token, variance, requiresConcrete, null);
   }
 
   static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
@@ -108,7 +139,7 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), id, Module.INVARIANT, false);  // HERE
+    return create(elem.getSrcInfo(), id, Module.INVARIANT, false, null);  // HERE
   }
 
   public PTVarDef setupScope(PScope scope) throws CompileException {
@@ -116,6 +147,16 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     if (scope == this.scope) { return this; }
     this.scope = scope;
     this.idResolved = false;
+    if (this.constraint != null) {
+      this.constraint = this.constraint.setupScope(scope);
+      // if (!(this.constraint instanceof PTypeRef)) {
+        // emsg = new StringBuffer();
+        // emsg.append("Invalid constraint at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+    }
     if (!scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -125,11 +166,15 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       throw new CompileException(emsg.toString());
     }
     this.varSlot = scope.defineTVar(this);
+// /* DEBUG */ System.out.println(this);
     return this;
   }
 
   public PTVarDef resolveId() throws CompileException {
     if (this.idResolved) { return this; }
+    if (this.constraint != null) {
+      this.constraint = this.constraint.resolveId();
+    }
     this.idResolved = true;
     return this;
   }
@@ -138,21 +183,11 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void checkRequiringConcreteIn() throws CompileException {}
-
-  public void checkRequiringConcreteOut() throws CompileException {
-    if (this.requiresConcrete) {
-      StringBuffer emsg = new StringBuffer();
-      emsg.append("Requiring concrete is not allowed at ");
-      emsg.append(this.srcInfo);
-      emsg.append(". - ");
-      emsg.append(this.name);
-      throw new CompileException(emsg.toString());
-    }
-  }
-
   public void normalizeTypes() {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "type").getSkel();
+    if (this.constraint != null) {
+      this.nConstraint = this.constraint.normalize();
+    }
+    this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
   }
 
   public PTypeVarSkel normalize() {
@@ -160,6 +195,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
   }
 
   public PTypeVarSkel getSkel() {
-    return PTypeVarSkel.create(this.srcInfo, this.scope, this.varSlot);
+    if (this.nTypeSkel == null) {
+      this.normalizeTypes();
+    }
+    return (PTypeVarSkel)this.nTypeSkel;
   }
 }

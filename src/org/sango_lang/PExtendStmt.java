@@ -123,15 +123,15 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
         this.ext.tparams = new PTVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.ext.tparams[i] = (PTVarDef)tr.params[i];
+          if (tr.params[i] instanceof PTVarDef) {
+            this.ext.tparams[i] = (PTVarDef)tr.params[i];
+          } else {
+            throw new RuntimeException("Unexpected type.");
+          }
         }
         this.ext.sig = PTypeRef.create(
           tr.srcInfo,
-          PTypeId.create(
-            tr.srcInfo,
-            null,
-            this.ext.tcon,
-            false),
+          PTypeId.create(tr.srcInfo, null, this.ext.tcon, false),
           tr.params);
       } else {
         throw new RuntimeException("Unexpected type.");
@@ -152,7 +152,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PTypeDesc base;
-    if ((base = PType.acceptSig(reader, PExprId.ID_MAYBE_QUAL, PType.ALLOW_REQUIRE_CONCRETE)) == null) {
+    if ((base = PType.acceptSig1(reader, PExprId.ID_MAYBE_QUAL)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -333,13 +333,7 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
-  public PTVarSlot[] getParamVarSlots() {
-    PTVarSlot[] pvs = new PTVarSlot[this.tparams.length];
-    for (int i = 0; i < this.tparams.length; i++) {
-      pvs[i] = this.tparams[i].varSlot;
-    }
-    return pvs;
-  }
+  public int getParamCount() { return this.tparams.length; }
 
   public PTypeRefSkel getTypeSig() {
     return (PTypeRefSkel)this.sig.getSkel();
@@ -399,4 +393,389 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
   }
 
   public PDefDict.TconKey getBaseTconKey() { return this.baseTconInfo.key; }
+
+  List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
+    List<PEvalStmt> funs = new ArrayList<PEvalStmt>();
+    PEvalStmt e;
+    List<PEvalStmt> es;
+    if ((e = this.generateCallHashFun(mod)) != null) { funs.add(e); }
+    if ((e = this.generateCallDebugReprFun(mod)) != null) { funs.add(e); }
+    if ((e = this.generateInFun(mod)) != null) { funs.add(e); }
+    if ((e = this.generateNarrowFun(mod)) != null) { funs.add(e); }
+    if ((es = this.generateAttrFuns(mod)) != null) { funs.addAll(es); }
+    return funs;
+  }
+
+  PEvalStmt generateCallHashFun(PModule mod) throws CompileException {
+    // eval <*T0 *T1 .. TCON> *X _call_hash_TCON @private -> <int> {
+    //   X _hash_TCON
+    // }
+    if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
+    Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setOfficial("_call_hash_" + this.tcon);
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = PModule.generateIds("T", this.tparams.length);
+    for (int i = 0; i < paramNames.length; i++) {
+      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
+    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "int", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_hash_" + this.tcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    return evalStmtBuilder.create();
+  }
+
+  PEvalStmt generateCallDebugReprFun(PModule mod) throws CompileException {
+    // eval <*T0 *T1 .. TCON> *X _call_debug_repr_TCON @private -> <cstr> {
+    //   X _debug_repr_TCON
+    // }
+    if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
+    if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
+    Parser.SrcInfo si = this.srcInfo.appendPostfix("_debug_repr");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setOfficial("_call_debug_repr_" + this.tcon);
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = PModule.generateIds("T", this.tparams.length);
+    for (int i = 0; i < paramNames.length; i++) {
+      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
+    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "cstr", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_debug_repr_" + this.tcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    return evalStmtBuilder.create();
+  }
+
+  PEvalStmt generateInFun(PModule mod) throws CompileException {
+    // eval @availability <*T0 *T1 .. TCON+> *X _in_TCON? | TCON? @public -> <bool> {
+    //   X case {
+    //   ; *** DCON0 -> true$
+    //   ; *** DCON1 -> true$
+    //   ;  :
+    //   ; ** -> X base._in_TCON?
+    //   }
+    // }
+    if (this.acc != Module.ACC_PUBLIC && this.acc != Module.ACC_PROTECTED) { return null; }
+    String[] names = PModule.generateInFunNames(this.tcon);  // official name and aliases
+    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Parser.SrcInfo si = srcInfo.appendPostfix("_in");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(this.availability);
+    evalStmtBuilder.setOfficial(names[0]);
+    evalStmtBuilder.addAlias(names[1]);
+    evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = PModule.generateIds("T", this.tparams.length);
+    for (int i = 0; i < paramNames.length; i++) {
+      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      paramTypeBuilder.addItem(p);
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, true));
+    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "bool", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
+    caseEvalBuilder.setSrcInfo(si);
+    caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance();
+    caseBlockBuilder.setSrcInfo(si);
+    for (int i = 0; i < this.constrs.length; i++) {
+      PDataDef.Constr constr = this.constrs[i];
+      PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance();
+      caseClauseBuilder.setSrcInfo(si);
+      PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
+      casePtnMatchBuilder.setSrcInfo(si);
+      PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
+      ptnBuilder.setSrcInfo(si);
+      ptnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
+      ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.getDcon())));
+      casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
+      caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
+      PEval.Builder trueTermEvalBuilder = PEval.Builder.newInstance();
+      trueTermEvalBuilder.setSrcInfo(si);
+      trueTermEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "true$")));
+      caseClauseBuilder.addActionExpr(PExpr.create(trueTermEvalBuilder.create()));
+      caseBlockBuilder.addClause(caseClauseBuilder.create());
+    }
+    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance();
+    otherwiseCaseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
+    otherwisePtnMatchBuilder.setSrcInfo(si);
+    PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
+    otherwisePtnBuilder.setSrcInfo(si);
+    otherwisePtnBuilder.addItem(PPtnItem.create(PWildCard.create(si)));
+    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, otherwisePtnBuilder.create()));
+    otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
+    String[] baseNames = PModule.generateInFunNames(this.baseTcon);
+    PEval.Builder forwardingEvalBuilder = PEval.Builder.newInstance();
+    forwardingEvalBuilder.setSrcInfo(si);
+    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, this.baseMod, baseNames[0])));
+    otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(forwardingEvalBuilder.create()));
+    caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
+    caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
+    evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
+    return evalStmtBuilder.create();
+  }
+
+  PEvalStmt generateNarrowFun(PModule mod) throws CompileException {
+    // eval @availability <*T0 *T1 .. TCON+> *X _narrow_TCON | narrow @public -> <<T0 T1 .. TCON> maybe> {
+    //   X case {
+    //   ; *V0 *V1 .. DCON0 -> (V0 V1 .. DCON0) value$
+    //   ; *V0 *V1 .. DCON1 -> (V0 V1 .. DCON1) value$
+    //   ;  :
+    //   ; ** -> X base._narrow_TCON
+    //   }
+    // }
+    if (this.acc != Module.ACC_PUBLIC && this.acc != Module.ACC_PROTECTED) { return null; }
+    String[] names = PModule.generateNarrowFunNames(this.tcon);
+    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(this.availability);
+    evalStmtBuilder.setOfficial(names[0]);
+    evalStmtBuilder.addAlias(names[1]);
+    evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    String[] paramNames = PModule.generateIds("T", this.tparams.length);
+    for (int i = 0; i < paramNames.length; i++) {
+      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      paramNames[i] = p.name;
+      paramTypeBuilder.addItem(p);
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, true));
+    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retMaybeTypeBuilder = PType.Builder.newInstance();
+    retMaybeTypeBuilder.setSrcInfo(si);
+    PType.Builder retDataTypeBuilder = PType.Builder.newInstance();
+    retDataTypeBuilder.setSrcInfo(si);
+    for (int i = 0; i < paramNames.length; i++) {
+      retDataTypeBuilder.addItem(PTypeId.createVar(si, paramNames[i]));
+    }
+    retDataTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
+    retMaybeTypeBuilder.addItem(retDataTypeBuilder.create());
+    retMaybeTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "maybe", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retMaybeTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
+    caseEvalBuilder.setSrcInfo(si);
+    caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance();
+    caseBlockBuilder.setSrcInfo(si);
+    for (int i = 0; i < this.constrs.length; i++) {
+      PDataDef.Constr constr = this.constrs[i];
+      PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance();
+      caseClauseBuilder.setSrcInfo(si);
+      PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
+      casePtnMatchBuilder.setSrcInfo(si);
+      PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
+      ptnBuilder.setSrcInfo(si);
+      String[] attrs = PModule.generateIds("V", constr.getAttrCount());
+      for (int j = 0; j < constr.getAttrCount(); j++) {
+        ptnBuilder.addItem(PPtnItem.create(PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, attrs[j])));
+      }
+      ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.getDcon())));
+      casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
+      caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
+      PEval.Builder narrowedResBuilder = PEval.Builder.newInstance();
+      narrowedResBuilder.setSrcInfo(si);
+      PEval.Builder narrowedValueBuilder = PEval.Builder.newInstance();
+      narrowedValueBuilder.setSrcInfo(si);
+      for (int j = 0; j < constr.getAttrCount(); j++) {
+        narrowedValueBuilder.addItem(PEvalItem.create(PExprId.create(si, null, attrs[j])));
+      }
+      narrowedValueBuilder.addItem(PEvalItem.create(PExprId.create(si, null, constr.getDcon())));
+      narrowedResBuilder.addItem(PEvalItem.create(narrowedValueBuilder.create()));
+      narrowedResBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "value$")));
+      caseClauseBuilder.addActionExpr(PExpr.create(narrowedResBuilder.create()));
+      caseBlockBuilder.addClause(caseClauseBuilder.create());
+    }
+    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance();
+    otherwiseCaseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
+    otherwisePtnMatchBuilder.setSrcInfo(si);
+    PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
+    otherwisePtnBuilder.setSrcInfo(si);
+    otherwisePtnBuilder.addItem(PPtnItem.create(PWildCard.create(si)));
+    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, otherwisePtnBuilder.create()));
+    otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
+    String[] baseNames = PModule.generateNarrowFunNames(this.baseTcon);
+    PEval.Builder forwardingEvalBuilder = PEval.Builder.newInstance();
+    forwardingEvalBuilder.setSrcInfo(si);
+    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, this.baseMod, baseNames[0])));
+    otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(forwardingEvalBuilder.create()));
+    caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
+    caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
+    evalStmtBuilder.addImplExpr(PExpr.create((caseEvalBuilder.create())));
+    return evalStmtBuilder.create();
+  }
+
+  List<PEvalStmt> generateAttrFuns(PModule mod) throws CompileException {
+    List<PEvalStmt> es = new ArrayList<PEvalStmt>();
+    PEvalStmt e;
+    if (this.constrs.length == 1) {
+      PDataConstrDef constr = this.constrs[0];
+      for (int i = 0; i < constr.attrs.length; i++) {
+        PDataAttrDef attr = constr.attrs[i];
+        if ((e = this.generateAttrFun1(mod, constr, attr)) != null) { es.add(e); }
+      }
+    } else {
+      for (int i = 0; i < this.constrs.length; i++) {
+        PDataConstrDef constr = this.constrs[i];
+        for (int j = 0; j < constr.attrs.length; j++) {
+          PDataAttrDef attr = constr.attrs[j];
+          if ((e = this.generateAttrFun2(mod, constr, attr)) != null) { es.add(e); }
+        }
+      }
+    }
+    return es;
+  }
+
+  PEvalStmt generateAttrFun1(PModule mod, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
+    // eval @availability <*T0 *T1 .. TCON> *X _attr_TCON_A | A @xxx -> <A's type> {
+    //   X = A: *V *** dcon$,
+    //   V
+    // }
+    if (attr.name == null) { return null; }
+    String[] names = PModule.generateAttrFunNames(this.tcon, attr.name);
+    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Parser.SrcInfo si = this.srcInfo.appendPostfix("_attr");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(this.availability);
+    evalStmtBuilder.setOfficial(names[0]);
+    evalStmtBuilder.addAlias(names[1]);
+    evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    for (int i = 0; i < this.tparams.length; i++) {
+      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      paramTypeBuilder.addItem(p);
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
+    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.setRetDef(PRetDef.create(attr.type.deepCopy(
+      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder matchEvalBuilder = PEval.Builder.newInstance();
+    matchEvalBuilder.setSrcInfo(si);
+    matchEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    PPtn.Builder matchPtnBuilder = PPtn.Builder.newInstance();
+    matchPtnBuilder.setSrcInfo(si);
+    matchPtnBuilder.addItem(PPtnItem.create(si, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
+    matchPtnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
+    matchPtnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.dcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, null, matchPtnBuilder.create())));
+    PEval.Builder retEvalBuilder = PEval.Builder.newInstance();
+    retEvalBuilder.setSrcInfo(si);
+    retEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "V")));
+    evalStmtBuilder.addImplExpr(PExpr.create(retEvalBuilder.create()));
+    return evalStmtBuilder.create();
+  }
+
+  PEvalStmt generateAttrFun2(PModule mod, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
+    // eval @availability <*T0 *T1 .. TCON> *X _maybe_attr_TCON_A | maybe_A @xxx -> <<A's type> maybe> {
+    //   X case {
+    //   ; A: *V *** DCON -> V value$
+    //   ; ** -> none$
+    //   }
+    // }
+    if (attr.name == null) { return null; }
+    String[] names = PModule.generateMaybeAttrFunNames(this.tcon, attr.name);
+    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
+    evalStmtBuilder.setSrcInfo(si);
+    evalStmtBuilder.setAvailability(this.availability);
+    evalStmtBuilder.setOfficial(names[0]);
+    evalStmtBuilder.addAlias(names[1]);
+    evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance();
+    paramTypeBuilder.setSrcInfo(si);
+    for (int i = 0; i < this.tparams.length; i++) {
+      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+      paramTypeBuilder.addItem(p);
+    }
+    paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
+    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(attr.type.deepCopy(
+      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF));
+    retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "maybe", false));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    evalStmtBuilder.startImplExprSeq();
+    PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
+    caseEvalBuilder.setSrcInfo(si);
+    caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
+    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance();
+    caseBlockBuilder.setSrcInfo(si);
+    PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance();
+    caseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
+    casePtnMatchBuilder.setSrcInfo(si);
+    PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
+    ptnBuilder.setSrcInfo(si);
+    ptnBuilder.addItem(PPtnItem.create(si, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
+    ptnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
+    ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.dcon)));
+    casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
+    caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
+    PEval.Builder valueEvalBuilder = PEval.Builder.newInstance();
+    valueEvalBuilder.setSrcInfo(si);
+    valueEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "V")));
+    valueEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "value$")));
+    caseClauseBuilder.addActionExpr(PExpr.create(valueEvalBuilder.create()));
+    caseBlockBuilder.addClause(caseClauseBuilder.create());
+    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance();
+    otherwiseCaseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
+    otherwisePtnMatchBuilder.setSrcInfo(si);
+    PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
+    otherwisePtnBuilder.setSrcInfo(si);
+    otherwisePtnBuilder.addItem(PPtnItem.create(PWildCard.create(si)));
+    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, otherwisePtnBuilder.create()));
+    otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
+    PEval.Builder noneEvalBuilder = PEval.Builder.newInstance();
+    noneEvalBuilder.setSrcInfo(si);
+    noneEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "none$")));
+    otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(noneEvalBuilder.create()));
+    caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
+    caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
+    evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
+    return evalStmtBuilder.create();
+  }
 }

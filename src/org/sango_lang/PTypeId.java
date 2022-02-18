@@ -28,6 +28,7 @@ import java.io.IOException;
 public class PTypeId extends PDefaultProgElem implements PTypeDesc {
   static final int CAT_VAR = 1;
   static final int CAT_TCON = 2;
+  static final int CAT_FEATURE = 3;
 
   public static final int SUBCAT_NOT_FOUND = 0;
   public static final int SUBCAT_DATA = 1;
@@ -65,9 +66,17 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     return id;
   }
 
+  static PTypeId createFeature(Parser.SrcInfo srcInfo, String name) {
+    PTypeId id = create(srcInfo, null, name, false);
+    id.setFeature();
+    return id;
+  }
+
   boolean isVar() { return this.isCat(CAT_VAR); }
 
   boolean isTcon() { return this.isCat(CAT_TCON); }
+
+  boolean isFeature() { return this.isCat(CAT_FEATURE); }
 
   boolean isCat(int cat) { return this.catOpt == cat; }
 
@@ -87,6 +96,10 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
 
   void setTcon() {
     this.setCat(CAT_TCON);
+  }
+
+  void setFeature() {
+    this.setCat(CAT_FEATURE);
   }
 
   void setCat(int cat) {
@@ -122,6 +135,9 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     if (this.maybeTcon()) {
       buf.append(",(TCON)");
     }
+    if (this.isFeature()) {
+      buf.append(",FX");
+    }
     buf.append(",id=");
     buf.append(this.toRepr());
     buf.append("]");
@@ -145,13 +161,22 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo) {
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     PTypeId id = new PTypeId();
     id.srcInfo = srcInfo;
     id.catOpt = this.catOpt;
     id.mod = this.mod;
     id.name = this.name;
-    id.ext = this.ext;
+    switch (extOpt) {
+    case PTypeDesc.COPY_EXT_OFF:
+      id.ext = false;;
+      break;
+    case PTypeDesc.COPY_EXT_ON:
+      id.ext = true;;
+      break;
+    default:  // PTypeDesc.COPY_EXT_KEEP
+      id.ext = this.ext;
+    }
     return id;
   }
 
@@ -198,8 +223,8 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     }
     PTypeDesc ret = null;
     if (this.isSimple()) {
-      PTVarSlot varSlot;
-      if ((varSlot = scope.referSimpleTid(this.name)) != null) {
+      PTVarDef varDef;
+      if ((varDef = scope.referSimpleTid(this.name)) != null) {
         if (!this.maybeCat(PTypeId.CAT_VAR)) {
           emsg = new StringBuffer();
           emsg.append("Variable not allowed at ");
@@ -208,15 +233,7 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
           emsg.append(this.name);
           throw new CompileException(emsg.toString());
         }
-        // if ((varSlot.varDef.cat & PVarDef.CAT_TYPE_PARAM) == 0) {
-          // emsg = new StringBuffer();
-          // emsg.append("Cannot refer either fun param or local var as type para at ");
-          // emsg.append(this.srcInfo);
-          // emsg.append(". - ");
-          // emsg.append(this.name);
-          // throw new CompileException(emsg.toString());
-        // }
-        ret = PTVarRef.create(this.srcInfo, this.name, varSlot).setupScope(scope);
+        ret = PTVarRef.create(this.srcInfo, varDef).setupScope(scope);
       } else {
         ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]).setupScope(scope);
       }
@@ -250,14 +267,6 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
 
   public void excludePrivateAcc() throws CompileException {
     throw new RuntimeException("PTypeId#excludePrivateAcc should not called.");
-  }
-
-  public void checkRequiringConcreteIn() throws CompileException {
-    throw new RuntimeException("PTypeId#checkRequiringConcreteIn should not called.");
-  }
-
-  public void checkRequiringConcreteOut() throws CompileException {
-    throw new RuntimeException("PTypeId#checkRequiringConcreteOut should not called.");
   }
 
   public void normalizeTypes() {

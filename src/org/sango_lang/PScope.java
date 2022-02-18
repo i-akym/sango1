@@ -36,10 +36,10 @@ class PScope {
   PClosure closure;  // set if funLevel > 0
   boolean enablesDefineTVar;
   boolean enablesDefineEVar;
-  Map<String, PTVarSlot> tvarDict;
-  Map<String, PEVarSlot> evarDict;
-  Map<String, PTVarSlot> outerTVarDict;
-  Map<String, PEVarSlot> outerEVarDict;
+  Map<String, PTVarDef> tvarDict;
+  Map<String, PEVarDef> evarDict;
+  Map<String, PTVarDef> outerTVarDict;
+  Map<String, PEVarDef> outerEVarDict;
   List<PTVarSlot> envTVarList;
   List<PEVarSlot> envEVarList;
   List<PTVarSlot> givenTVarList;
@@ -49,10 +49,10 @@ class PScope {
     this.funLevel = -2;
     this.enablesDefineTVar = true;
     this.enablesDefineEVar = true;
-    this.tvarDict = new HashMap<String, PTVarSlot>();
-    this.evarDict = new HashMap<String, PEVarSlot>();
-    this.outerTVarDict = new HashMap<String, PTVarSlot>();
-    this.outerEVarDict = new HashMap<String, PEVarSlot>();
+    this.tvarDict = new HashMap<String, PTVarDef>();
+    this.evarDict = new HashMap<String, PEVarDef>();
+    this.outerTVarDict = new HashMap<String, PTVarDef>();
+    this.outerEVarDict = new HashMap<String, PEVarDef>();
   }
 
   static PScope create(PModule theMod) {
@@ -102,22 +102,22 @@ class PScope {
     return s;
   }
 
-  PTVarSlot lookupTVar(String var) {
+  PTVarDef lookupTVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PTVarSlot v = this.tvarDict.get(var);
+    PTVarDef v = this.tvarDict.get(var);
     if (v == null) {
       v = this.outerTVarDict.get(var);
     }
     return (v != null || this.parent == null)? v: this.parent.lookupTVar(var);
   }
 
-  PEVarSlot lookupEVar(String var) {
+  PEVarDef lookupEVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PEVarSlot v = this.evarDict.get(var);
+    PEVarDef v = this.evarDict.get(var);
     if (v == null) {
       v = this.outerEVarDict.get(var);
     }
@@ -159,7 +159,8 @@ class PScope {
       throw new IllegalStateException("Not active.");
     }
     PTVarSlot slot = PTVarSlot.create(varDef);
-    this.tvarDict.put(varDef.name, slot);
+    varDef.varSlot = slot;
+    this.tvarDict.put(varDef.name, varDef);
     return slot;
   }
 
@@ -168,15 +169,16 @@ class PScope {
       throw new IllegalStateException("Not active.");
     }
     PEVarSlot slot = PEVarSlot.create(varDef);
-    this.evarDict.put(varDef.name, slot);
+    varDef.varSlot = slot;
+    this.evarDict.put(varDef.name, varDef);
     return slot;
   }
 
-  PTVarSlot referSimpleTid(String id) {
+  PTVarDef referSimpleTid(String id) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PTVarSlot v = this.tvarDict.get(id);
+    PTVarDef v = this.tvarDict.get(id);
     if (v == null) {
       v = this.outerTVarDict.get(id);
       if (v == null && this.parent != null) {
@@ -184,7 +186,7 @@ class PScope {
         if (v != null) {
           this.outerTVarDict.put(id, v);
           if (this.parent.funLevel != this.funLevel) {  // in top scope of closure
-            this.envTVarList.add(v);
+            this.envTVarList.add(v.varSlot);
           }
         }
       }
@@ -192,11 +194,11 @@ class PScope {
     return v;
   }
 
-  PEVarSlot referSimpleEid(String id) {
+  PEVarDef referSimpleEid(String id) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PEVarSlot v = this.evarDict.get(id);
+    PEVarDef v = this.evarDict.get(id);
     if (v == null) {
       v = this.outerEVarDict.get(id);
       if (v == null && this.parent != null) {
@@ -204,21 +206,13 @@ class PScope {
         if (v != null) {
           this.outerEVarDict.put(id, v);
           if (this.parent.funLevel != this.funLevel) {  // in top scope of closure
-            this.envEVarList.add(v);
+            this.envEVarList.add(v.varSlot);
           }
         }
       }
     }
     return v;
   }
-
-  // boolean isDefinedOuter(String id) {
-    // return (this.funLevel >= 0)? this.outerDict.containsKey(id): false;
-  // }
-
-  // boolean isDefinedOuter(PVarSlot varSlot) {
-    // return (this.funLevel >= 0)? this.outerDict.containsValue(varSlot): false;
-  // }
 
   List<PTVarSlot> getEnvTVarList() { return this.envTVarList; }
 
@@ -236,10 +230,6 @@ class PScope {
 
   PDefDict.EidProps resolveEid(PExprId id) throws CompileException {
     return this.theMod.resolveEid(id);
-  }
-
-  PDefDict.TconInfo resolveTconDirect(PDefDict.TconKey key) throws CompileException {
-    return this.theMod.resolveTconDirect(key);
   }
 
   PDefDict.TconInfo resolveTcon(String mod, String name) throws CompileException {
@@ -274,7 +264,7 @@ class PScope {
   }
 
   PTVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
-    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false);
+    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false, null);
     try {
       v.setupScope(this);
       v = v.resolveId();
@@ -295,7 +285,7 @@ class PScope {
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
-    PTypeId c = PTypeId.create(srcInfo, /* PModule.MOD_ID_LANG, */ PModule.MOD_ID_LANG, "char", false);
+    PTypeId c = PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "char", false);
     PTypeDesc ct;
     try {
       ct = c.setupScope(this);
@@ -307,7 +297,7 @@ class PScope {
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {
-    PDefDict.TconInfo tconInfo = this.theMod.resolveTcon(/* PModule.MOD_ID_LANG, */ PModule.MOD_ID_LANG, tcon);
+    PDefDict.TconInfo tconInfo = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
     if (tconInfo == null) {
       throw new RuntimeException("Internal error.");
     }

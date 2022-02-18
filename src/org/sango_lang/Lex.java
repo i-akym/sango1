@@ -377,6 +377,7 @@ public class Lex {
       case '.': this.setStart(); this.consumed(); this.setSymToken(LToken.DOT); this.transit(0); return true;
       case '!': this.setStart(); this.consumed(); this.setSymToken(LToken.EXCLA); this.transit(0); return true;
       case '~': this.setStart(); this.consumed(); this.setSymToken(LToken.TILD); this.transit(0); return true;
+      case '/': this.setStart(); this.consumed(); this.setSymToken(LToken.SLASH); this.transit(0); return true;
       default:
         errmsg = new StringBuffer();
         errmsg.append("Invalid expression at ");
