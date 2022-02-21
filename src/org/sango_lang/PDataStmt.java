@@ -607,9 +607,10 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       casePtnMatchBuilder.setSrcInfo(si);
       PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
       ptnBuilder.setSrcInfo(si);
-      ptnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
-      ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.getDcon())));
-      casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
+      ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+      ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si)));
+      ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.getDcon())));
+      casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
       caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
       PEval.Builder trueTermEvalBuilder = PEval.Builder.newInstance();
       trueTermEvalBuilder.setSrcInfo(si);
@@ -623,8 +624,9 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     otherwisePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
     otherwisePtnBuilder.setSrcInfo(si);
-    otherwisePtnBuilder.addItem(PPtnItem.create(PWildCard.create(si)));
-    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, otherwisePtnBuilder.create()));
+    otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    otherwisePtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCard.create(si)));
+    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, otherwisePtnBuilder.create()));
     otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
     PEval.Builder falseTermEvalBuilder = PEval.Builder.newInstance();
     falseTermEvalBuilder.setSrcInfo(si);
@@ -693,12 +695,13 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
       casePtnMatchBuilder.setSrcInfo(si);
       PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
       ptnBuilder.setSrcInfo(si);
+      ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
       String[] attrs = PModule.generateIds("V", constr.getAttrCount());
       for (int j = 0; j < constr.getAttrCount(); j++) {
-        ptnBuilder.addItem(PPtnItem.create(PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, attrs[j])));
+        ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, attrs[j])));
       }
-      ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.getDcon())));
-      casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
+      ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.getDcon())));
+      casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
       caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
       PEval.Builder narrowedResBuilder = PEval.Builder.newInstance();
       narrowedResBuilder.setSrcInfo(si);
@@ -719,8 +722,9 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     otherwisePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
     otherwisePtnBuilder.setSrcInfo(si);
-    otherwisePtnBuilder.addItem(PPtnItem.create(PWildCard.create(si)));
-    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, otherwisePtnBuilder.create()));
+    otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    otherwisePtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCard.create(si)));
+    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, otherwisePtnBuilder.create()));
     otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
     PEval.Builder noneTermEvalBuilder = PEval.Builder.newInstance();
     noneTermEvalBuilder.setSrcInfo(si);
@@ -787,10 +791,11 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     matchEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
     PPtn.Builder matchPtnBuilder = PPtn.Builder.newInstance();
     matchPtnBuilder.setSrcInfo(si);
-    matchPtnBuilder.addItem(PPtnItem.create(si, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
-    matchPtnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
-    matchPtnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.dcon)));
-    evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, null, matchPtnBuilder.create())));
+    matchPtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
+    matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si)));
+    matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.dcon)));
+    evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, matchPtnBuilder.create())));
     PEval.Builder retEvalBuilder = PEval.Builder.newInstance();
     retEvalBuilder.setSrcInfo(si);
     retEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "V")));
@@ -842,10 +847,11 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     casePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
     ptnBuilder.setSrcInfo(si);
-    ptnBuilder.addItem(PPtnItem.create(si, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
-    ptnBuilder.addItem(PPtnItem.create(PWildCards.create(si)));
-    ptnBuilder.addItem(PPtnItem.create(PExprId.create(si, null, constr.dcon)));
-    casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, ptnBuilder.create()));
+    ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
+    ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si)));
+    ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.dcon)));
+    casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
     caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
     PEval.Builder valueEvalBuilder = PEval.Builder.newInstance();
     valueEvalBuilder.setSrcInfo(si);
@@ -859,8 +865,9 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     otherwisePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
     otherwisePtnBuilder.setSrcInfo(si);
-    otherwisePtnBuilder.addItem(PPtnItem.create(PWildCard.create(si)));
-    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, null, otherwisePtnBuilder.create()));
+    otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    otherwisePtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCard.create(si)));
+    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, otherwisePtnBuilder.create()));
     otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
     PEval.Builder noneEvalBuilder = PEval.Builder.newInstance();
     noneEvalBuilder.setSrcInfo(si);

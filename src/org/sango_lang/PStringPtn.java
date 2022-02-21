@@ -45,6 +45,7 @@ class PStringPtn extends PDefaultPtnElem {
   }
 
   static class Builder {
+    int context;  // PPtnMatch.CONTEXT_*
     PStringPtn string;
     List<PPtnMatch> elemList;
 
@@ -59,6 +60,10 @@ class PStringPtn extends PDefaultPtnElem {
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.string.srcInfo = si;
+    }
+
+    void setContext(int context) {
+      this.context = context;
     }
 
     void setFromCstr() {
@@ -81,17 +86,17 @@ class PStringPtn extends PDefaultPtnElem {
     }
   }
 
-  static PStringPtn accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PStringPtn accept(ParserA.TokenReader reader, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.CSTR, spc)) != null) {
-      return fromCstr(t);
+      return fromCstr(t, context);
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
-    builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, 0));
+    builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, 0, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -107,14 +112,14 @@ class PStringPtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PStringPtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PStringPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PPtnMatch pm = PPtnMatch.acceptX(e);
+      PPtnMatch pm = PPtnMatch.acceptX(e, context);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -127,14 +132,15 @@ class PStringPtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PStringPtn fromCstr(ParserA.Token cstrToken) {
+  static PStringPtn fromCstr(ParserA.Token cstrToken, int context) {
     Builder builder = new Builder();
     builder.setSrcInfo(cstrToken.getSrcInfo());
+    builder.setContext(context);
     builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
     for (int i = 0; i < cstr.getLength(); i++) {
-      builder.addElem(PPtnMatch.create(PChar.create(si, cstr.getCharAt(i))));
+      builder.addElem(PPtnMatch.create(cstrToken.getSrcInfo(), context, null, PChar.create(si, cstr.getCharAt(i))));
     }
     return builder.create();
   }

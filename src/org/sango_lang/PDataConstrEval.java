@@ -334,9 +334,11 @@ class PDataConstrEval extends PDefaultEvalElem {
         evalBuilder.addItem(PEvalItem.create(this.posdAttrs[i]));
         PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
         ptnBuilder.setSrcInfo(this.srcInfo);
-        ptnBuilder.addItem(PPtnItem.create(posdVarDefs[i]));
+        ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
+        ptnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, posdVarDefs[i]));
         this.bdPosd[i] =
-          PExpr.create(this.srcInfo, evalBuilder.create(), PPtnMatch.create(ptnBuilder.create())).
+          PExpr.create(this.srcInfo, evalBuilder.create(),
+              PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create())).
             setupScope(this.scope).resolveId();
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdPosd[i]);
@@ -348,10 +350,11 @@ class PDataConstrEval extends PDefaultEvalElem {
         evalBuilder.addItem(PEvalItem.create(this.namedAttrs[i].elem));
         PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
         ptnBuilder.setSrcInfo(this.srcInfo);
-        ptnBuilder.addItem(PPtnItem.create(namedVarDefs[i]));
-        this.bdNamed[i] =
-          PExpr.create(this.srcInfo, evalBuilder.create(), PPtnMatch.create(ptnBuilder.create())).
-            setupScope(this.scope).resolveId();
+        ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
+        ptnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, namedVarDefs[i]));
+        this.bdNamed[i] = PExpr.create(this.srcInfo, evalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create())).
+          setupScope(this.scope).resolveId();
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdNamed[i]);
       }
@@ -361,13 +364,15 @@ class PDataConstrEval extends PDefaultEvalElem {
         usingEvalBuilder.addItem(PEvalItem.create(this.using));
         PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance();
         usingPtnBuilder.setSrcInfo(this.srcInfo);
+        usingPtnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
         for (int i = 0; i < attrSrcs.length; i++) {
-          usingPtnBuilder.addItem(PPtnItem.create(
+          usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, 
             (usingVarDefs[i] != null)? usingVarDefs[i]: PWildCard.create(this.srcInfo)
           ));
         }
-        usingPtnBuilder.addItem(PPtnItem.create(this.dcon));
-        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(), PPtnMatch.create(usingPtnBuilder.create())).
+        usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
+        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create())).
           setupScope(this.scope).resolveId();
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdUsing);
@@ -409,11 +414,12 @@ class PDataConstrEval extends PDefaultEvalElem {
         usingEvalBuilder.addItem(PEvalItem.create(this.using));
         PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance();
         usingPtnBuilder.setSrcInfo(this.srcInfo);
+        usingPtnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
         for (int i = 0; i < attrSrcs.length; i++) {
-          usingPtnBuilder.addItem(PPtnItem.create(PWildCard.create(this.srcInfo)));
+          usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, PWildCard.create(this.srcInfo)));
         }
-        usingPtnBuilder.addItem(PPtnItem.create(this.dcon));
-        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(), PPtnMatch.create(usingPtnBuilder.create())).
+        usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
+        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(), PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create())).
           setupScope(this.scope).resolveId();
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error: " + ex.toString());

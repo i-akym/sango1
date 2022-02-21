@@ -1055,17 +1055,23 @@ if (DEBUG > 1) {
     }
   }
 
-  DataConstrPtnNode createDataConstrPtnNode(PTypedElem typedElem, PExprId dcon) {
-    DataConstrPtnNode n = new DataConstrPtnNode(typedElem, dcon);
+  DataConstrPtnNode createDataConstrPtnNode(PTypedElem typedElem, int context, PExprId dcon) {
+    DataConstrPtnNode n = new DataConstrPtnNode(typedElem, context, dcon);
     return n;
   }
 
   class DataConstrPtnNode extends RefNode {
+    int context;  // PPtnMatch.CONTEXT_*
     PExprId dcon;
     PTypeSkelBindings bindings;
 
-    DataConstrPtnNode(PTypedElem typedElem, PExprId dcon) {
+    DataConstrPtnNode(PTypedElem typedElem, int context, PExprId dcon) {
       super(typedElem);
+      if (context == PPtnMatch.CONTEXT_FIXED || context == PPtnMatch.CONTEXT_TRIAL) {
+      } else {
+        throw new IllegalArgumentException("Unexpected context. " + Integer.toString(this.context) + " " + this.typedElem.toString());
+      } 
+      this.context = context;
       this.dcon = dcon;
     }
 
@@ -1078,7 +1084,9 @@ if (DEBUG > 1) {
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
       PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
-      if (sig.accept(PTypeSkel.WIDER, true, t, b) == null) {
+      int width = PTypeSkel.WIDER;  // may strengthen check; warning?
+      // int width = (this.context == PPtnMatch.CONTEXT_FIXED)? PTypeSkel.EQUAL: PTypeSkel.WIDER;
+      if (sig.accept(width, true, t, b) == null) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.typedElem.getSrcInfo());

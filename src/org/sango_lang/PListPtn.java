@@ -30,6 +30,7 @@ import java.util.ArrayList;
 abstract class PListPtn extends PDefaultPtnElem {
 
   static class Builder {
+    int context;  // PPtnMatch.CONTEXT_*
     Parser.SrcInfo srcInfo;
     List<PPtnMatch> elemSeq;
     PPtnMatch tail;
@@ -44,6 +45,9 @@ abstract class PListPtn extends PDefaultPtnElem {
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.srcInfo = si;
+    }
+
+    void setContext(int context) {
     }
 
     void addElem(PPtnMatch elem) {
@@ -62,17 +66,19 @@ abstract class PListPtn extends PDefaultPtnElem {
       if (this.elemSeq.isEmpty()) {
         return PEmptyListPtn.create(this.srcInfo);
       }
-      PPtnMatch t = (this.tail != null)? this.tail: PPtnMatch.create(PEmptyListPtn.create(this.srcInfo));
+      PPtnMatch t = (this.tail != null)?
+        this.tail:
+        PPtnMatch.create(this.srcInfo, this.context, null, PEmptyListPtn.create(this.srcInfo));
       PListPtn L = null;
       for (int i = this.elemSeq.size() - 1; i >= 0; i--) {
         L = PListConstrPtn.create(this.srcInfo, this.elemSeq.get(i), t);
-        t = PPtnMatch.create(L);
+        t = PPtnMatch.create(this.srcInfo, this.context, null, L);
       }
       return L;
     }
   }
 
-  static PListPtn accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PListPtn accept(ParserA.TokenReader reader, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, spc)) == null) {
@@ -80,12 +86,13 @@ abstract class PListPtn extends PDefaultPtnElem {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
+    builder.setContext(context);
     List<PPtnMatch> elemSeq;
-    if ((elemSeq = PPtnMatch.acceptPosdSeq(reader, 0)) != null) {
+    if ((elemSeq = PPtnMatch.acceptPosdSeq(reader, 0, context)) != null) {
       builder.addElemSeq(elemSeq);
       if (!elemSeq.isEmpty() && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
         PPtnMatch tail;
-        if ((tail = PPtnMatch.accept(reader)) == null) {
+        if ((tail = PPtnMatch.accept(reader, context)) == null) {
           emsg = new StringBuffer();
           emsg.append("List tail not found at ");
           emsg.append(reader.getCurrentSrcInfo());
@@ -136,7 +143,7 @@ abstract class PListPtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PListPtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PListPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("list")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -147,7 +154,7 @@ abstract class PListPtn extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch h = PPtnMatch.acceptX(e);
+    PPtnMatch h = PPtnMatch.acceptX(e, context);
     if (h == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -162,7 +169,7 @@ abstract class PListPtn extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch t = PPtnMatch.acceptX(e);
+    PPtnMatch t = PPtnMatch.acceptX(e, context);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

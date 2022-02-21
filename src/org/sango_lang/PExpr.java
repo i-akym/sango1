@@ -63,7 +63,7 @@ class PExpr extends PDefaultEvalElem {
     if ((eval = PEval.accept(reader)) == null) { return null; }
     PPtnMatch ptnMatch = null;
     if (ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE) != null) {
-      if ((ptnMatch = PPtnMatch.accept(reader)) == null) {
+      if ((ptnMatch = PPtnMatch.accept(reader, PPtnMatch.CONTEXT_FIXED)) == null) {
         emsg = new StringBuffer();
         emsg.append("Pattern matching missing at ");
         emsg.append(reader.getCurrentSrcInfo());
@@ -155,7 +155,7 @@ class PExpr extends PDefaultEvalElem {
 
     PPtnMatch pm = null;
     if (e != null) {
-      pm = PPtnMatch.acceptX(e);
+      pm = PPtnMatch.acceptX(e, PPtnMatch.CONTEXT_FIXED);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
