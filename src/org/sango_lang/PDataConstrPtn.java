@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 class PDataConstrPtn extends PDefaultPtnElem {
+  int context;  // PPtnMatch.CONTEXT_*
   PExprId dcon;
   PPtnElem posdAttrs[];
   PPtnItem namedAttrs[];
@@ -59,12 +60,13 @@ class PDataConstrPtn extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PDataConstrPtn create(Parser.SrcInfo srcInfo, PExprId dcon,
+  static PDataConstrPtn create(Parser.SrcInfo srcInfo, int context, PExprId dcon,
       PPtnElem[] posdAttrs, PPtnItem[] namedAttrs,
       boolean wildCards) throws CompileException {
     StringBuffer emsg;
     PDataConstrPtn p = new PDataConstrPtn();
     p.srcInfo = srcInfo;
+    p.context = context;
     p.dcon = dcon;
     p.posdAttrs = posdAttrs;
     p.namedAttrs = namedAttrs;
@@ -87,7 +89,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
     return p;
   }
 
-  static PDataConstrPtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PDataConstrPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("constr")) { return null; }
     String dcon = elem.getAttrValueAsId("dcon");
@@ -120,7 +122,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        PPtnMatch pm = PPtnMatch.acceptX(eee);
+        PPtnMatch pm = PPtnMatch.acceptX(eee, context);
         if (pm == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -129,7 +131,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
         }
         String name = ee.getAttrValueAsId("name");
         if (name != null) {
-          nas.add(PPtnItem.create(ee.getSrcInfo(), name, pm));
+          nas.add(PPtnItem.create(ee.getSrcInfo(), context, name, pm));
         } else if (!nas.isEmpty()) {
           emsg = new StringBuffer();
           emsg.append("Attribute name missing at ");
@@ -151,7 +153,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
 
     Parser.SrcInfo si = elem.getSrcInfo();
     return create(
-      si,
+      si, context,
       PExprId.create(si, mid, dcon),
       pas.toArray(new PPtnElem[pas.size()]),
       nas.toArray(new PPtnItem[nas.size()]),
@@ -275,7 +277,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.dcon);
+    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);
       PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.dcon, i);

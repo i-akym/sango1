@@ -24,6 +24,7 @@
 package org.sango_lang;
 
 class PUndetPtn extends PDefaultPtnElem {
+  int context;
   PExprId anchor;
 
   private PUndetPtn() {}
@@ -38,16 +39,17 @@ class PUndetPtn extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PUndetPtn create(Parser.SrcInfo srcInfo, PExprId anchor) {
+  static PUndetPtn create(Parser.SrcInfo srcInfo, int context, PExprId anchor) {
     PUndetPtn p = new PUndetPtn();
     p.srcInfo = srcInfo;
+    p.context = context;
     p.anchor = anchor;
     return p;
   }
 
-  static PUndetPtn create(PExprId anchor) {
-    return create(anchor.srcInfo, anchor);
-  }
+  // static PUndetPtn create(PExprId anchor) {
+    // return create(anchor.srcInfo, anchor);
+  // }
 
   public PPtnElem setupScope(PScope scope) throws CompileException {
     if (scope == this.scope) { return this; }
@@ -61,7 +63,7 @@ class PUndetPtn extends PDefaultPtnElem {
       PExprId dcon = (PExprId)a;
       dcon.setCat(PExprId.CAT_DCON_PTN);
       p = PDataConstrPtn.create(
-        this.srcInfo, dcon, new PPtnElem[0], new PPtnItem[0], false).setupScope(this.scope);
+        this.srcInfo, this.context, dcon, new PPtnElem[0], new PPtnItem[0], false).setupScope(this.scope);
     }
     return p;
   }

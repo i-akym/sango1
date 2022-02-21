@@ -28,6 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PPtnMatch extends PDefaultPtnElem {
+  static final int CONTEXT_FIXED = 1;
+  static final int CONTEXT_TRIAL = 2;
+
+  int context;
   PImpose impose;  // maybe null
   PPtnElem ptn;
 
@@ -47,19 +51,20 @@ class PPtnMatch extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PPtnMatch create(Parser.SrcInfo srcInfo, PImpose impose, PPtnElem ptn) {
+  static PPtnMatch create(Parser.SrcInfo srcInfo, int context, PImpose impose, PPtnElem ptn) {
     PPtnMatch pm = new PPtnMatch();
     pm.srcInfo = srcInfo;
+    pm.context = context;
     pm.impose = impose;
     pm.ptn = ptn;
     return pm;
   }
 
-  static PPtnMatch create(PPtnElem ptn) {
-    return create(ptn.getSrcInfo(), null, ptn);
-  }
+  // static PPtnMatch create(PPtnElem ptn) {
+    // return create(ptn.getSrcInfo(), null, ptn);
+  // }
 
-  static PPtnMatch accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PPtnMatch accept(ParserA.TokenReader reader, int context) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PTypeDesc type;
@@ -72,7 +77,7 @@ class PPtnMatch extends PDefaultPtnElem {
         cast = type;
       }
     }
-    PPtnElem ptn = PPtn.accept(reader, cast);
+    PPtnElem ptn = PPtn.accept(reader, context, cast);
     if (type != null && ptn == null) {
       emsg = new StringBuffer();
       emsg.append("Pattern missing or invalid at ");
@@ -81,11 +86,11 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     return (ptn != null)?
-      create(si, (imposingType != null)? PImpose.create(si, imposingType): null, ptn):
+      create(si, context, (imposingType != null)? PImpose.create(si, imposingType): null, ptn):
       null;
   }
 
-  static PPtnMatch acceptX(ParserB.Elem elem) throws CompileException {
+  static PPtnMatch acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("ptn-match")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -138,7 +143,7 @@ class PPtnMatch extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnElem p = PPtn.acceptX(ee);
+    PPtnElem p = PPtn.acceptX(ee, context);
     if (p == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -146,17 +151,17 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     return create(
-      elem.getSrcInfo(),
+      elem.getSrcInfo(), context,
       (t != null)? PImpose.create(impsi, t): null,
       p);
   }
 
-  static PPtnMatch acceptEnclosed(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PPtnMatch acceptEnclosed(ParserA.TokenReader reader, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token lpar;
     if ((lpar = ParserA.acceptToken(reader, LToken.LPAR, spc)) == null) { return null; }
     PPtnMatch ptnMatch;
-    if ((ptnMatch = accept(reader)) == null) {
+    if ((ptnMatch = accept(reader, context)) == null) {
       emsg = new StringBuffer();
       emsg.append("Pattern missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -171,10 +176,11 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     ptnMatch.srcInfo = lpar.getSrcInfo();  // set source info to lpar's
+    ptnMatch.context = context;
     return ptnMatch;
   }
 
-  static List<PPtnMatch> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
+  static List<PPtnMatch> acceptPosdSeq(ParserA.TokenReader reader, int min, int context) throws CompileException, IOException {
     StringBuffer emsg;
     List<PPtnMatch> ptnMatchList = new ArrayList<PPtnMatch>();
     PPtnMatch ptnMatch = null;
@@ -184,7 +190,7 @@ class PPtnMatch extends PDefaultPtnElem {
       srcInfo = reader.getCurrentSrcInfo();
       switch (state) {
       case 0:
-        if ((ptnMatch = accept(reader)) != null) {
+        if ((ptnMatch = accept(reader, context)) != null) {
           ptnMatchList.add(ptnMatch);
           state = 1;
         } else {
@@ -199,7 +205,7 @@ class PPtnMatch extends PDefaultPtnElem {
         }
         break;
       default:  // case 2
-        if ((ptnMatch = accept(reader)) != null) {
+        if ((ptnMatch = accept(reader, context)) != null) {
           ptnMatchList.add(ptnMatch);
           state = 1;
         } else {

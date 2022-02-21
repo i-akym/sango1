@@ -63,6 +63,7 @@ abstract class PPtn {
   };
 
   static class Builder {
+    int context;
     Parser.SrcInfo srcInfo;
     Parser.SrcInfo lastSrcInfo;
     int state;
@@ -85,6 +86,10 @@ abstract class PPtn {
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.srcInfo = si;
+    }
+
+    void setContext(int context) {
+      this.context = context;
     }
 
     void setLeadingCast(PTypeDesc cast) {
@@ -295,7 +300,7 @@ abstract class PPtn {
       }
       PExprId id = (PExprId)item.elem;
       id.cutOffCat(PExprId.CAT_DCON_EVAL);
-      return PUndetPtn.create(this.srcInfo, id);
+      return PUndetPtn.create(this.srcInfo, this.context, id);
     }
 
     private PPtnElem createDataConstrPtn() throws CompileException {
@@ -342,11 +347,11 @@ abstract class PPtn {
       }
       PExprId dcon = (PExprId)anchor.elem;
       dcon.setCat(PExprId.CAT_DCON_PTN);
-      return PDataConstrPtn.create(this.srcInfo, dcon, posdAttrs, namedAttrs, wildCards);
+      return PDataConstrPtn.create(this.srcInfo, this.context, dcon, posdAttrs, namedAttrs, wildCards);
     }
   }
 
-  static PPtnElem accept(ParserA.TokenReader reader, PTypeDesc leadingCast) throws CompileException, IOException {
+  static PPtnElem accept(ParserA.TokenReader reader, int context, PTypeDesc leadingCast) throws CompileException, IOException {
     StringBuffer emsg;
     Builder builder = Builder.newInstance();
     if (leadingCast != null) {
@@ -355,16 +360,17 @@ abstract class PPtn {
     } else {
       builder.setSrcInfo(reader.getCurrentSrcInfo());
     }
+    builder.setContext(context);
     PPtnItem item;
     int acceptables;
     while ((acceptables = builder.getAcceptables()) > 0
-        && (item = PPtnItem.accept(reader, builder.getFollowingSpace(), acceptables)) != null) {
+        && (item = PPtnItem.accept(reader, builder.getFollowingSpace(), acceptables, context)) != null) {
       builder.addItem(item);
     }
     return builder.create();
   }
 
-  static PPtnElem acceptX(ParserB.Elem elem ) throws CompileException {
+  static PPtnElem acceptX(ParserB.Elem elem , int context) throws CompileException {
     PPtnElem ptn = null;
     if ((ptn = PByte.acceptX(elem)) != null) {
       ;
@@ -372,13 +378,13 @@ abstract class PPtn {
       ;
     } else if ((ptn = PChar.acceptX(elem)) != null) {
       ;
-    } else if ((ptn = PTuplePtn.acceptX(elem)) != null) {
+    } else if ((ptn = PTuplePtn.acceptX(elem, context)) != null) {
       ;
     } else if ((ptn = PEmptyListPtn.acceptX(elem)) != null) {
       ;
-    } else if ((ptn = PListPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PListPtn.acceptX(elem, context)) != null) {
       ;
-    } else if ((ptn = PStringPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PStringPtn.acceptX(elem, context)) != null) {
       ;
     } else if ((ptn = PEVarDef.acceptX(elem, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       ;
@@ -386,7 +392,7 @@ abstract class PPtn {
       ;
     } else if ((ptn = PEVarRef.acceptX(elem)) != null) {
       ;
-    } else if ((ptn = PDataConstrPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PDataConstrPtn.acceptX(elem, context)) != null) {
       ;
     }
     return ptn;

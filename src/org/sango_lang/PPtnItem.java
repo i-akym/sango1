@@ -26,6 +26,7 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PPtnItem extends PDefaultProgElem {
+  int context;  // PPtnMatch.CONTEXT_*
   String name;
   PProgElem elem;
 
@@ -45,19 +46,20 @@ class PPtnItem extends PDefaultProgElem {
     return buf.toString();
   }
 
-  static PPtnItem create(Parser.SrcInfo srcInfo, String name, PProgElem elem) {
+  static PPtnItem create(Parser.SrcInfo srcInfo, int context, String name, PProgElem elem) {
     PPtnItem i = new PPtnItem();
     i.srcInfo = srcInfo;
+    i.context = context;
     i.name = name;
     i.elem = elem;
     return i;
   }
 
-  static PPtnItem create(PProgElem elem) {
-    return create(elem.getSrcInfo(), null, elem);
-  }
+  // static PPtnItem create(PProgElem elem) {
+    // return create(elem.getSrcInfo(), null, elem);
+  // }
 
-  static PPtnItem accept(ParserA.TokenReader reader, int spc, int acceptables) throws CompileException, IOException {
+  static PPtnItem accept(ParserA.TokenReader reader, int spc, int acceptables, int context) throws CompileException, IOException {
     if (acceptables == PPtn.ACCEPT_NOTHING) { return null; }
     StringBuffer emsg;
     Parser.SrcInfo srcInfo = reader.getCurrentSrcInfo();
@@ -83,11 +85,11 @@ class PPtnItem extends PDefaultProgElem {
       ;
     } else if ((acceptables & PPtn.ACCEPT_CHAR) > 0 && (elem = PChar.accept(reader, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_LIST) > 0 && (elem = PListPtn.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_LIST) > 0 && (elem = PListPtn.accept(reader, space, context)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_TUPLE) > 0 && (elem = PTuplePtn.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_TUPLE) > 0 && (elem = PTuplePtn.accept(reader, space, context)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_STRING) > 0 && (elem = PStringPtn.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_STRING) > 0 && (elem = PStringPtn.accept(reader, space, context)) != null) {
       ;
     } else if ((acceptables & PPtn.ACCEPT_ID) > 0 && (elem = PExprId.accept(reader, PExprId.ID_MAYBE_QUAL, space)) != null) {
       ;
@@ -99,7 +101,7 @@ class PPtnItem extends PDefaultProgElem {
       ;
     } else if ((acceptables & PPtn.ACCEPT_WILD_CARDS) > 0 && (elem = PWildCards.accept(reader, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_PTN_MATCH) > 0 &&  (elem = PPtnMatch.acceptEnclosed(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_PTN_MATCH) > 0 &&  (elem = PPtnMatch.acceptEnclosed(reader, space, context)) != null) {
       ;
     }
     String an = null;
@@ -132,12 +134,12 @@ class PPtnItem extends PDefaultProgElem {
       }
       an = name.value.token;
     }
-    return (elem != null)? create(srcInfo, an, elem): null;
+    return (elem != null)? create(srcInfo, context, an, elem): null;
   }
 
   void fixAsAttr() {
     if (this.elem instanceof PExprId) {
-      this.elem = PUndetPtn.create(this.srcInfo, (PExprId)this.elem);
+      this.elem = PUndetPtn.create(this.srcInfo, this.context, (PExprId)this.elem);
     }
   }
 

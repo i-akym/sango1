@@ -84,7 +84,7 @@ class PTuplePtn extends PDefaultPtnElem {
     }
   }
 
-  static PTuplePtn accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PTuplePtn accept(ParserA.TokenReader reader, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LPAR_VBAR, spc)) == null) {
@@ -92,7 +92,7 @@ class PTuplePtn extends PDefaultPtnElem {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
-    builder.addElemList(PPtnMatch.acceptPosdSeq(reader, 2));
+    builder.addElemList(PPtnMatch.acceptPosdSeq(reader, 2, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -108,14 +108,14 @@ class PTuplePtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PTuplePtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PTuplePtn acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("tuple")) { return null; }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PPtnMatch pm = PPtnMatch.acceptX(e);
+      PPtnMatch pm = PPtnMatch.acceptX(e, context);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");

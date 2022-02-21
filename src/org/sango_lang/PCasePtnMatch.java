@@ -90,7 +90,7 @@ class PCasePtnMatch extends PDefaultProgElem {
     StringBuffer emsg;
     PPtnMatch ptnMatch;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    if ((ptnMatch = PPtnMatch.accept(reader)) == null) { return null; }
+    if ((ptnMatch = PPtnMatch.accept(reader, PPtnMatch.CONTEXT_TRIAL)) == null) { return null; }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(si);
     builder.setPtnMatch(ptnMatch);
@@ -140,7 +140,7 @@ class PCasePtnMatch extends PDefaultProgElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch pm = PPtnMatch.acceptX(e);
+    PPtnMatch pm = PPtnMatch.acceptX(e, PPtnMatch.CONTEXT_TRIAL);
     if (pm == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

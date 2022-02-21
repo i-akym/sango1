@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PPtnDetail extends PExpr {
+  // included in case ptn match
+
   // this.eval will become to be varref
 
   private PPtnDetail(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
@@ -90,7 +92,7 @@ class PPtnDetail extends PExpr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch pm = PPtnMatch.acceptX(e);
+    PPtnMatch pm = PPtnMatch.acceptX(e, PPtnMatch.CONTEXT_TRIAL);
     if (pm == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
