@@ -257,13 +257,14 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     this.sig = this.sig.resolveId();
     this.body = this.body.resolveId();
     this.idResolved = true;
-    if (/* PTypeRef.willNotReturn(this.body) || */ PTypeRef.isExposed(this.body)) {
-      emsg = new StringBuffer();
-      emsg.append("Alias of non-concrete type at ");
-      emsg.append(this.body.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
+    // is following check needed? if so, should check by PTypeSkel
+    // if (/* PTypeRef.willNotReturn(this.body) || */ PTypeRef.isExposed(this.body)) {
+      // emsg = new StringBuffer();
+      // emsg.append("Alias of non-concrete type at ");
+      // emsg.append(this.body.getSrcInfo());
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
     return this;
   }
 

@@ -214,66 +214,25 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
 
   public PTypeSkel normalize() {
     PTypeSkel t;
-    // if (isBottom(this)) {
-      // t = PBottomSkel.create(this.srcInfo);
-    // } else {
-      PAliasDef a;
-      PTypeSkel[] ps = new PTypeSkel[this.params.length];
-      for (int i = 0; i < ps.length; i++) {
-        ps[i] = this.params[i].normalize();
-      }
-      if ((a = this.tconInfo.props.defGetter.getAliasDef()) != null) {
-        t = a.unalias(ps);
-      } else {
-        t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
-      }
-    // }
-    return t;
-  }
-
-  static boolean isExposed(PTypeDesc type) {
-    return isLangType(type, Module.TCON_EXPOSED);
-  }
-
-  static boolean isBottom(PTypeDesc type) {
-    return isLangType(type, Module.TCON_BOTTOM);
-  }
-
-  // static boolean willNotReturn(PTypeDesc type) {
-    // return isLangType(type, Module.TCON_BOTTOM);
-  // }
-
-  static boolean isList(PTypeDesc type) {
-    return isLangType(type, Module.TCON_LIST);
-  }
-
-  static boolean isFun(PTypeDesc type) {
-    return isLangType(type, Module.TCON_FUN);
-  }
-
-  static boolean isLangType(PTypeDesc type, String tcon) {
-    boolean b;
-    if (type instanceof PTypeRef) {
-      PTypeRef tr = (PTypeRef)type;
-      if (tr.tconInfo == null) { throw new IllegalArgumentException("Tcon not resolved. " + tr.toString()); }
-      b = tr.tconInfo.key.modName.equals(Module.MOD_LANG) && tr.tconInfo.key.tcon.equals(tcon);
-    } else {
-      b = false;
+    PAliasDef a;
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].normalize();
     }
-    return b;
+    if ((a = this.tconInfo.props.defGetter.getAliasDef()) != null) {
+      t = a.unalias(ps);
+    } else {
+      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+    }
+    return t;
   }
 
   public PTypeSkel getSkel() {
     PTypeSkel t;
-    // if (isBottom(this)) {
-      // t = PBottomSkel.create(this.srcInfo);
-    // } else {
-      PTypeSkel[] ps = new PTypeSkel[this.params.length];
-      for (int i = 0; i < ps.length; i++) {
-        ps[i] = this.params[i].getSkel();
-      }
-      t =  PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
-    // }
-    return t;
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].getSkel();
+    }
+    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
   }
 }

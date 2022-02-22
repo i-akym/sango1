@@ -62,8 +62,6 @@ class PExprId extends PDefaultEvalAndPtnElem {
 
   boolean isDcon() { return this.isCat(CAT_DCON); }
 
-  // boolean isFun() { return this.isCat(CAT_FUN); }
-
   boolean isCat(int cat) { return this.catOpt == cat; }
 
   boolean maybeVar() { return this.maybeCat(CAT_VAR); }
