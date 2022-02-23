@@ -666,7 +666,7 @@ eval <exception> *E catchable @public -> <exception> {
 eval <*A> *X expose @public -> <_?_> @native ;;
 
 eval <*A> *X itself | id @public -> <A> { X } ;;
-eval <*A> *X to_fun @public -> <A fun> { \\ { X } } ;;
+eval <*A> *X to_fun @public -> <A fun> { \\ <A> { X } } ;;
 
 eval <*A> *X hash @public -> <int> @native ;;
 

@@ -342,7 +342,7 @@ eval <char_reader_d> *RD <act.msg+> *Msg char_reader_dispatch -> <<char_reader_d
 eval <char_reader_d> *RD char_reader_start_reading -> <char_reader_d> {
   (| RD cr_reading, RD cr_in_status |) case {
   ; (| none$, instream_open$ |) ->
-    \\ { (RD cr_in) 8192 read_string } act.spawn = *Async,
+    \\ <bstr instream_read_res> { (RD cr_in) 8192 read_string } act.spawn = *Async,
     Async act.start,
     cr_reading: (Async value$) :: RD char_reader_d$
   ; ** -> RD
@@ -583,7 +583,7 @@ eval <char_writer_d> *WD char_writer_do_oclose -> <<void result> char_writer_d t
 
 eval <char_writer_d> *WD <act.post_h> *Ret char_writer_status -> <<char_writer_d> maybe> {
   WD cw_out = *BO,
-  \\ { BO status } try = *Res,
+  \\ <outstream_status> { BO status } try = *Res,
   Ret (Res ostatus_res$) act.send,
   WD value$
 } ;;
@@ -707,7 +707,7 @@ eval <line_reader_d> *RD <act.msg+> *Msg line_reader_dispatch -> <<line_reader_d
 eval <line_reader_d> *RD line_reader_start_reading -> <line_reader_d> {
   (| RD lr_reading, RD lr_in_status |) case {
   ; (| none$, instream_open$ |) ->
-    \\ { (RD lr_in) 8192 read_string } act.spawn = *Async,
+    \\ <cstr instream_read_res> { (RD lr_in) 8192 read_string } act.spawn = *Async,
     Async act.start,
     lr_reading: (Async value$) :: RD line_reader_d$
   ; ** -> RD

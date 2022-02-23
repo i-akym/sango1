@@ -26,9 +26,6 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PRetDef extends PDefaultTypedElem {
-  static final int TYPE_MAYBE_SPECIFIED = 1;
-  static final int TYPE_NEEDED = 2;
-
   private PRetDef() {}
 
   static PRetDef create(PTypeDesc type) {
@@ -58,16 +55,12 @@ class PRetDef extends PDefaultTypedElem {
     return buf.toString();
   }
 
-  static PRetDef accept(ParserA.TokenReader reader, int typeSpec) throws CompileException, IOException {
+  static PRetDef accept(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PTypeDesc type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
-    if (typeSpec == TYPE_NEEDED && type == null) {
-      emsg = new StringBuffer();
-      emsg.append("Type missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
+    if (type == null) {
+      type = PType.voidType(si);
     }
     return create(si, type);
   }

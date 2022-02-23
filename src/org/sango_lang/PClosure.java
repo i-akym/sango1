@@ -199,7 +199,7 @@ class PClosure extends PDefaultEvalElem {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
-    builder.setRetDef(PRetDef.accept(reader, PRetDef.TYPE_MAYBE_SPECIFIED));
+    builder.setRetDef(PRetDef.accept(reader));
     List<PExpr> implExprList;
     if ((implExprList = acceptImplExprSeq(reader)) == null) {
       emsg = new StringBuffer();
@@ -231,7 +231,7 @@ class PClosure extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setRetDef(PRetDef.accept(reader, PRetDef.TYPE_MAYBE_SPECIFIED));
+    builder.setRetDef(PRetDef.accept(reader));
     List<PExpr> implExprList;
     if ((implExprList = acceptImplExprSeq(reader)) == null) {
       emsg = new StringBuffer();
