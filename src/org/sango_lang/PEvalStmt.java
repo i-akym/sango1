@@ -174,7 +174,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PRetDef retDef = PRetDef.accept(reader, PRetDef.TYPE_NEEDED);
+    PRetDef retDef = PRetDef.accept(reader);
     builder.setRetDef(retDef);
     List<PExpr> impl = acceptImpl(reader);
     if (impl != null) {

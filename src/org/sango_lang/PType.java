@@ -394,6 +394,17 @@ abstract class PType {
     return item;
   }
 
+  static PTypeDesc voidType(Parser.SrcInfo srcInfo) {
+    Builder builder = Builder.newInstance();
+    builder.setSrcInfo(srcInfo);
+    builder.addItem(PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "void", false));
+    PTypeDesc v = null;
+    try {
+      v = builder.create();
+    } catch (CompileException ex) {}  // not reached
+    return v;
+  }
+
   static class Bound extends PDefaultProgElem implements PTypeDesc {
     private Bound() {}
 

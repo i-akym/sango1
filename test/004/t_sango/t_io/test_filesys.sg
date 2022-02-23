@@ -57,7 +57,7 @@ eval <cstr> *CD test104 -> <bool> { (CD fs.parse_path) "test_filesys.sg" fs.chil
 eval <cstr> *CD test105 -> <bool> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.directory? = false$ } ;;
 eval <cstr> *CD test106 -> <bool> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.file? = true$ } ;;
 eval <cstr> *CD test107 -> <bi.bigint> { (CD fs.parse_path) "test_filesys.sg" fs.child_path >> fs.path_repr >> fs.last_updated } ;;
-eval <cstr> *CD test111 -> <bool> { (CD fs.dir_entries) \ <cstr> *F -> { F ".bat" str.end_with? } list.filter >> list.length >> gt0? = true$ } ;;
+eval <cstr> *CD test111 -> <bool> { (CD fs.dir_entries) \ <cstr> *F -> <bool> { F ".bat" str.end_with? } list.filter >> list.length >> gt0? = true$ } ;;
 eval <cstr> *DD test121 -> <bool> { DD "dd121" file001 = *D, \\ <void> { D fs.delete } try, D fs.create_dir, D fs.exist? = true$ } ;;
 eval <cstr> *DD test122 -> <bool> { DD "dd122" file001 = *D, D "ddd122" file001 = *D', \\ <void> { D' fs.delete } try, \\ <void> { D fs.delete } try, D' fs.create_dirs, D' fs.exist? = true$ } ;;
 eval test131 -> <void> { "." fs.split_ext = (| ".", "" |), void$ } ;;

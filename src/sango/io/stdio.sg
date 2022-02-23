@@ -300,7 +300,7 @@ eval <reader_data> *RD <act.msg+> *Msg reader_dispatch -> <reader_data maybe> {
 
 eval <reader_data> *RD <act.post_h> *Ret reader_read_line -> <reader_data maybe> {
   RD r_config >> rc_impl = *Impl,
-  \\ { &(Impl io.read_line_f) } try = *Res,
+  \\ <cstr.line io.instream_read_res> { &(Impl io.read_line_f) } try = *Res,
   Ret (Res read_line_res$) act.send,
   RD value$
 } ;;
@@ -325,7 +325,7 @@ eval <reader_data> *RD reader_do_close -> <void result> {
 
 eval <reader_data> *RD <act.post_h> *Ret reader_status -> <reader_data maybe> {
   RD r_config >> rc_impl = *Impl,
-  \\ { &(Impl io.status_f) } try = *Res,
+  \\ <io.instream_status> { &(Impl io.status_f) } try = *Res,
   Ret (Res istatus_res$) act.send,
   RD value$
 } ;;
@@ -484,7 +484,7 @@ eval <writer_data> *WD writer_do_oclose -> <<void result> writer_data tuple> {
 
 eval <writer_data> *WD <act.post_h> *Ret writer_status -> <writer_data maybe> {
   WD w_config >> wc_impl = *Impl,
-  \\ { &(Impl io.status_f) } try = *Res,
+  \\ <io.outstream_status> { &(Impl io.status_f) } try = *Res,
   Ret (Res ostatus_res$) act.send,
   WD value$
 } ;;
