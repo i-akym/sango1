@@ -280,7 +280,8 @@ class PTypeGraph {
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.inNode);  // called only when this.type == null
+      throw new RuntimeException("PTypeGraph.RetNode#infer must not be called.");
+      // return this.getTypeOf(this.inNode);  // called only when this.type == null
     }
 
     void check() throws CompileException {

@@ -92,35 +92,23 @@ class PRetDef extends PDefaultTypedElem {
     if (scope == this.scope) { return this; }
     this.scope = scope;
     this.idResolved = false;
-    if (this.type != null) {
-      this.type = (PTypeDesc)this.type.setupScope(scope);
-    }
+    this.type = (PTypeDesc)this.type.setupScope(scope);
     return this;
   }
 
   public PRetDef resolveId() throws CompileException {
     if (this.idResolved) { return this; }
-    if (this.type != null) {
-      this.type = (PTypeDesc)this.type.resolveId();
-    }
+    this.type = (PTypeDesc)this.type.resolveId();
     this.idResolved = true;
     return this;
   }
 
   public void excludePrivateAcc() throws CompileException {
-    if (this.type != null) {
-      this.type.excludePrivateAcc();
-    }
+    this.type.excludePrivateAcc();
   }
 
   public void normalizeTypes() {
-    if (this.type != null) {
-// /* DEBUG */ System.out.print("normalizing retdef at " + this.srcInfo);
-// /* DEBUG */ System.out.print(" ");
-// /* DEBUG */ System.out.println(this.type);
-      this.nTypeSkel = this.type.normalize();
-// /* DEBUG */ System.out.println(" -> " + this.nTypeSkel);
-    }
+    this.nTypeSkel = this.type.normalize();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
