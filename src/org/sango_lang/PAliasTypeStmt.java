@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class PAliasStmt extends PDefaultProgElem implements PAliasDef {
+class PAliasTypeStmt extends PDefaultProgElem implements PAliasDef {
   PTypeDesc sig;
   String tcon;
   int availability;
@@ -52,14 +52,14 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   }
 
   static class Builder {
-    PAliasStmt alias;
+    PAliasTypeStmt alias;
 
     static Builder newInstance() {
       return new Builder();
     }
 
     Builder() {
-      this.alias = new PAliasStmt();
+      this.alias = new PAliasTypeStmt();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
@@ -82,7 +82,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       this.alias.body = body;
     }
 
-    PAliasStmt create() throws CompileException {
+    PAliasTypeStmt create() throws CompileException {
       if (this.alias.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.alias.sig;
         this.alias.tcon = ti.name;
@@ -101,7 +101,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     }
   }
 
-  static PAliasStmt accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PAliasTypeStmt accept(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token next = reader.getNextToken();
     ParserA.Token t;
@@ -151,7 +151,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     return builder.create();
   }
 
-  static PAliasStmt acceptX(ParserB.Elem elem) throws CompileException {
+  static PAliasTypeStmt acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("alias-type-def")) { return null; }
     Builder builder = Builder.newInstance();
@@ -230,7 +230,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     return PType.acceptRO(reader, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  public PAliasStmt setupScope(PScope scope) throws CompileException {
+  public PAliasTypeStmt setupScope(PScope scope) throws CompileException {
     StringBuffer emsg;
     PScope s = scope.start();
     if (s == this.scope) { return this; }
@@ -248,7 +248,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     return this;
   }
 
-  public PAliasStmt resolveId() throws CompileException {
+  public PAliasTypeStmt resolveId() throws CompileException {
     StringBuffer emsg;
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.tparams.length; i++) {
@@ -305,7 +305,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   }
 
   public void normalizeTypes() {
-    throw new RuntimeException("PAliasStmt#normalizeTypes() should not be called. - " + this.toString());
+    throw new RuntimeException("PAliasTypeStmt#normalizeTypes() should not be called. - " + this.toString());
   }
 
   public String getTcon() { return this.tcon; }

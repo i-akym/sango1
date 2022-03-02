@@ -76,8 +76,8 @@ class Generator {
 
   void prepare() {
     PModule m = this.parser.mod;
-    for (int i = 0; i < m.aliasStmtList.size(); i++) {
-      PAliasStmt a = m.aliasStmtList.get(i);
+    for (int i = 0; i < m.aliasTypeStmtList.size(); i++) {
+      PAliasTypeStmt a = m.aliasTypeStmtList.get(i);
       if (a.acc != Module.ACC_PRIVATE) {
         a.getBody();  // finish all bodies' setup
       }
@@ -209,8 +209,8 @@ class Generator {
   }
 
   void generateAliasTypeDefs() {
-    for (int i = 0; i < this.parser.mod.aliasStmtList.size(); i++) {
-      this.generateAliasTypeDefGeneric(this.parser.mod.aliasStmtList.get(i));
+    for (int i = 0; i < this.parser.mod.aliasTypeStmtList.size(); i++) {
+      this.generateAliasTypeDefGeneric(this.parser.mod.aliasTypeStmtList.get(i));
     }
   }
 
