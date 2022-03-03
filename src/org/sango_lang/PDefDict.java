@@ -324,7 +324,7 @@ public interface PDefDict {
 
     PDataDef getDataDef();
 
-    PAliasDef getAliasDef();
+    PAliasTypeDef getAliasTypeDef();
 
   }
 

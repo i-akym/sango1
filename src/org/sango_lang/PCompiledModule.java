@@ -86,7 +86,7 @@ class PCompiledModule implements PDefDict {
       }
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
       for (int j = 0; j < ads.length; j++) {
-        AliasDef ad = cm.convertAliasDef(mod, ads[j], unresolvedTypeRefList);
+        AliasTypeDef ad = cm.convertAliasTypeDef(mod, ads[j], unresolvedTypeRefList);
         PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], ads[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
@@ -135,7 +135,7 @@ class PCompiledModule implements PDefDict {
       }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
-        paramPropss, matd.acc, createDataDefGetter(cm.convertAliasDef(mod, matd, unresolvedTypeRefList))));
+        paramPropss, matd.acc, createDataDefGetter(cm.convertAliasTypeDef(mod, matd, unresolvedTypeRefList))));
     }
     cm.funOfficialDict = new HashMap<String, FunDef>();
     cm.funListDict = new HashMap<String, List<FunDef>>();
@@ -320,30 +320,30 @@ class PCompiledModule implements PDefDict {
     }
   }
 
-  AliasDef convertAliasDef(Module mod, MAliasTypeDef aliasDef, List<PTypeRefSkel> unresolvedTypeRefList) {
-    AliasDef ad = new AliasDef();
-    PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasDef.tcon);
+  AliasTypeDef convertAliasTypeDef(Module mod, MAliasTypeDef aliasTypeDef, List<PTypeRefSkel> unresolvedTypeRefList) {
+    AliasTypeDef ad = new AliasTypeDef();
+    PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasTypeDef.tcon);
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
-    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasDef.paramCount];
+    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
       paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
     }
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-      PTypeId.SUBCAT_ALIAS, paramPropss, aliasDef.acc, g);
+      PTypeId.SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.tconInfo = PDefDict.TconInfo.create(tk, tp);
-    ad.availability = aliasDef.availability;
-    ad.acc = aliasDef.acc;
-    ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
+    ad.availability = aliasTypeDef.availability;
+    ad.acc = aliasTypeDef.acc;
+    ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
       ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false), null);
       varList.add(ad.tparams[i]);
     }
-    ad.body = (PTypeRefSkel)this.convertType(aliasDef.body, mod, varList, unresolvedTypeRefList);
+    ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList);
     return ad;
   }
 
-  static class AliasDef implements PAliasDef {
+  static class AliasTypeDef implements PAliasTypeDef {
     PDefDict.TconInfo tconInfo;
     int availability;
     int acc;
@@ -547,22 +547,22 @@ class PCompiledModule implements PDefDict {
     return new DataDefGetter(def, null);
   }
 
-  static DataDefGetter createDataDefGetter(PAliasDef def) {
+  static DataDefGetter createDataDefGetter(PAliasTypeDef def) {
     return new DataDefGetter(null, def);
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    PAliasDef aliasDef;
+    PAliasTypeDef aliasTypeDef;
 
-    DataDefGetter(PDataDef dataDef, PAliasDef aliasDef) {
+    DataDefGetter(PDataDef dataDef, PAliasTypeDef aliasTypeDef) {
       this.dataDef = dataDef;
-      this.aliasDef = aliasDef;
+      this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasDef getAliasDef() { return this.aliasDef; }
+    public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
   // PTypeSkel convertType(MType type, Module mod, List<PTypeRefSkel> unresolvedTypeRefList) {
