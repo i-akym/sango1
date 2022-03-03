@@ -594,8 +594,8 @@ if (PTypeGraph.DEBUG > 1) {
       ps[i] = this.params[i].unalias(bindings);
     }
     PTypeSkel tr;
-    PAliasDef ad;
-    if ((ad = this.tconInfo.props.defGetter.getAliasDef()) != null) {
+    PAliasTypeDef ad;
+    if ((ad = this.tconInfo.props.defGetter.getAliasTypeDef()) != null) {
       tr = ad.unalias(ps);
     } else {
       tr = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);

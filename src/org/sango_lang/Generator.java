@@ -115,9 +115,9 @@ class Generator {
         this.stop = true;
       }
     }
-    PAliasDef[] ads = this.parser.mod.foreignIdResolver.getReferredAliasDefsIn(modName);
+    PAliasTypeDef[] ads = this.parser.mod.foreignIdResolver.getReferredAliasTypeDefsIn(modName);
     for (int i = 0; i < ads.length; i++) {
-      PAliasDef ad = ads[i];
+      PAliasTypeDef ad = ads[i];
       try {
         this.theCompiler.handleTypeAvailability(
           this.modName, modName, ad.getTcon(), ad.getAvailability());
@@ -214,7 +214,7 @@ class Generator {
     }
   }
 
-  void generateAliasTypeDefGeneric(PAliasDef alias) {
+  void generateAliasTypeDefGeneric(PAliasTypeDef alias) {
     PTVarSlot[] pvs = alias.getParamVarSlots();
     MAliasTypeDef atd = MAliasTypeDef.create(
       alias.getTcon(), alias.getAvailability(), alias.getAcc(), pvs.length);

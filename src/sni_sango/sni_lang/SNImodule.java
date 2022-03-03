@@ -30,7 +30,7 @@ import java.util.Map;
 import org.sango_lang.Module;
 import org.sango_lang.CompileException;
 import org.sango_lang.Cstr;
-import org.sango_lang.PAliasDef;
+import org.sango_lang.PAliasTypeDef;
 import org.sango_lang.PDataDef;
 import org.sango_lang.PDefDict;
 import org.sango_lang.PTypeId;
@@ -448,16 +448,16 @@ public class SNImodule {
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    // PAliasDef aliasDef;
+    // PAliasTypeDef aliasTypeDef;
 
-    DataDefGetter(PDataDef dataDef /* , PAliasDef aliasDef */) {
+    DataDefGetter(PDataDef dataDef /* , PAliasTypeDef aliasTypeDef */) {
       this.dataDef = dataDef;
-      // this.aliasDef = aliasDef;
+      // this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasDef getAliasDef() { return null; /* this.aliasDef; */ }
+    public PAliasTypeDef getAliasTypeDef() { return null; /* this.aliasTypeDef; */ }
   }
 
   static class DataDef implements PDataDef {

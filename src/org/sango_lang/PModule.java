@@ -670,7 +670,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
         PTypeId.SUBCAT_ALIAS,
         paramPropss,
         alias.acc,
-        DataDefGetter.createForAliasDef(alias)));
+        DataDefGetter.createForAliasTypeDef(alias)));
     // /* DEBUG */ System.out.print("alias stmt added: ");
     // /* DEBUG */ System.out.println(alias);
   }
@@ -1054,24 +1054,24 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    PAliasDef aliasDef;
+    PAliasTypeDef aliasTypeDef;
 
     static DataDefGetter createForDataDef(PDataDef dataDef) {
       return new DataDefGetter(dataDef, null);
     }
 
-    static DataDefGetter createForAliasDef(PAliasDef aliasDef) {
-      return new DataDefGetter(null, aliasDef);
+    static DataDefGetter createForAliasTypeDef(PAliasTypeDef aliasTypeDef) {
+      return new DataDefGetter(null, aliasTypeDef);
     }
 
-    private DataDefGetter(PDataDef dataDef, PAliasDef aliasDef) {
+    private DataDefGetter(PDataDef dataDef, PAliasTypeDef aliasTypeDef) {
       this.dataDef = dataDef;
-      this.aliasDef = aliasDef;
+      this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasDef getAliasDef() { return this.aliasDef; }
+    public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
   PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
@@ -1173,12 +1173,12 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   class ForeignIdResolver {
     Map<Cstr, Map<String, ForeignDataDef>> dataDefDictDict;
-    Map<Cstr, Map<String, PAliasDef>> aliasDefDictDict;
+    Map<Cstr, Map<String, PAliasTypeDef>> aliasDefDictDict;
     Map<Cstr, Map<String, PFunDef>> funDefDictDict;
 
     ForeignIdResolver() {
       this.dataDefDictDict = new HashMap<Cstr, Map<String, ForeignDataDef>>();
-      this.aliasDefDictDict = new HashMap<Cstr, Map<String, PAliasDef>>();
+      this.aliasDefDictDict = new HashMap<Cstr, Map<String, PAliasTypeDef>>();
       this.funDefDictDict = new HashMap<Cstr, Map<String, PFunDef>>();
     }
 
@@ -1216,9 +1216,9 @@ class PModule extends PDefaultProgElem implements PDefDict {
       switch (tp.subcat) {
       case PTypeId.SUBCAT_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");
-        PAliasDef ad = tp.defGetter.getAliasDef();
+        PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
         if (this.aliasDefDictDict.containsKey(modName)) {
-          Map<String, PAliasDef> m = this.aliasDefDictDict.get(modName);
+          Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
           if (m.containsKey(ad.getTcon())) {
       // /* DEBUG */ System.out.println(" >> ALIAS >> already registered " + ad.getTcon());
           } else {
@@ -1227,7 +1227,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
           }
         } else {
       // /* DEBUG */ System.out.println(" >> ALIAS >> new module " + ad.getTcon());
-          Map<String, PAliasDef> m = new HashMap<String, PAliasDef>();
+          Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
           m.put(ad.getTcon(), ad);
           this.aliasDefDictDict.put(modName, m);
         }
@@ -1362,18 +1362,18 @@ class PModule extends PDefaultProgElem implements PDefDict {
       return dds;
     }
 
-    PAliasDef[] getReferredAliasDefsIn(Cstr modName) {
-      PAliasDef[] ads;
+    PAliasTypeDef[] getReferredAliasTypeDefsIn(Cstr modName) {
+      PAliasTypeDef[] ads;
       if (this.aliasDefDictDict.containsKey(modName)) {
-        Map<String, PAliasDef> m = this.aliasDefDictDict.get(modName);
+        Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
         Set<String> s = m.keySet();
-        ads = new PAliasDef[s.size()];
+        ads = new PAliasTypeDef[s.size()];
         Iterator<String> iter = s.iterator();
         for (int i = 0; iter.hasNext(); i++) {
           ads[i] = m.get(iter.next());
         }
       } else {
-        ads = new PAliasDef[0];
+        ads = new PAliasTypeDef[0];
       }
       return ads;
     }

@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class PAliasTypeStmt extends PDefaultProgElem implements PAliasDef {
+class PAliasTypeStmt extends PDefaultProgElem implements PAliasTypeDef {
   PTypeDesc sig;
   String tcon;
   int availability;
@@ -268,7 +268,7 @@ class PAliasTypeStmt extends PDefaultProgElem implements PAliasDef {
     return this;
   }
 
-  PAliasDef getAliasDef() { return this; }
+  PAliasTypeDef getAliasTypeDef() { return this; }
 
   void checkCyclicAlias() throws CompileException {
 // /* DEBUG */ System.out.println("unalias " + this.tcon);
@@ -282,7 +282,7 @@ class PAliasTypeStmt extends PDefaultProgElem implements PAliasDef {
 // /* DEBUG */ System.out.println(this);
     if (a.ti.props.subcat != PTypeId.SUBCAT_ALIAS) { return; }
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    a.ti.props.defGetter.getAliasDef().collectUnaliasTconInfo(tis);
+    a.ti.props.defGetter.getAliasTypeDef().collectUnaliasTconInfo(tis);
 // /* DEBUG */ System.out.println("unalias to " + tis.toString());
     for (int i = 0; i < tis.size(); i++) {
       AliasGraphNode c = a.addChild(tis.get(i));

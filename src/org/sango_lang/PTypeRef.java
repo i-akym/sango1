@@ -214,12 +214,12 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
 
   public PTypeSkel normalize() {
     PTypeSkel t;
-    PAliasDef a;
+    PAliasTypeDef a;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].normalize();
     }
-    if ((a = this.tconInfo.props.defGetter.getAliasDef()) != null) {
+    if ((a = this.tconInfo.props.defGetter.getAliasTypeDef()) != null) {
       t = a.unalias(ps);
     } else {
       t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
