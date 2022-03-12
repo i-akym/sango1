@@ -224,6 +224,20 @@ class PScope {
     return this.theMod.name;
   }
 
+  void referredModId(Parser.SrcInfo si, String id) throws CompileException {
+    if (id != null) {
+      if (this.theMod.resolveModId(id) == null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Unknown module id \"");
+        emsg.append(id);
+        emsg.append("\" at ");
+        emsg.append(si);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+  }
+
   Cstr resolveModId(String id) {
     return this.theMod.resolveModId(id);
   }
@@ -252,7 +266,7 @@ class PScope {
       t = PTypeRef.getLangDefinedType(srcInfo, tcon, paramTypeDescs);
       t.scope = this;  // needed for resolveId only
       // t = t.setupScope(this);
-      t = t.resolveId();
+      t = t.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());
     }
@@ -267,7 +281,7 @@ class PScope {
     PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false, null);
     try {
       v.setupScope(this);
-      v = v.resolveId();
+      v = v.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());
     }
@@ -288,8 +302,8 @@ class PScope {
     PTypeId c = PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "char", false);
     PTypeDesc ct;
     try {
-      ct = c.setupScope(this);
-      ct = ct.resolveId();
+      c.setupScope(this);
+      ct = c.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());
     }

@@ -167,19 +167,20 @@ class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
 
   public String getName() { return this.name; }
 
-  public PDataAttrDef setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.type = (PTypeDesc)this.type.setupScope(scope);
-    // HERE:  var
-    return this;
+    this.type.setupScope(scope);
   }
 
-  public PDataAttrDef resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    this.type.collectModRefs();
+  }
+
+  public PDataAttrDef resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.type = (PTypeDesc)this.type.resolveId();
-    // HERE:  var
+    this.type = (PTypeDesc)this.type.resolve();
     this.idResolved = true;
     return this;
   }

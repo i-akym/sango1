@@ -185,22 +185,26 @@ class PDataConstrDef extends PDefaultProgElem implements PDataDef.Constr {
     return this.dataType.getSkel().instanciate(ib);
   }
 
-  public PDataConstrDef setupScope(PScope scope) throws CompileException {
-    if (scope == this.outerScope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.outerScope) { return; }
     this.outerScope = scope;
     this.scope = scope.enterInner();
-    // this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.attrs.length; i++) {
-      this.attrs[i] = this.attrs[i].setupScope(this.scope);
+      this.attrs[i].setupScope(this.scope);
     }
-    return this;
   }
 
-  public PDataConstrDef resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.attrs.length; i++) {
+      this.attrs[i].collectModRefs();
+    }
+  }
+
+  public PDataConstrDef resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.attrs.length; i++) {
-      this.attrs[i] = this.attrs[i].resolveId();
+      this.attrs[i] = this.attrs[i].resolve();
     }
     this.idResolved = true;
     return this;

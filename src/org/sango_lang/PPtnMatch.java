@@ -228,23 +228,29 @@ class PPtnMatch extends PDefaultPtnElem {
     return ptnMatchList;
   }
 
-  public PPtnMatch setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     if (this.impose != null) {
-      this.impose = this.impose.setupScope(scope);
+      this.impose.setupScope(scope);
     }
-    this.ptn = (PPtnElem)this.ptn.setupScope(scope);
-    return this;
+    this.ptn.setupScope(scope);
   }
 
-  public PPtnMatch resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    if (this.impose != null) {
+      this.impose.collectModRefs();
+    }
+    this.ptn.collectModRefs();
+  }
+
+  public PPtnMatch resolve() throws CompileException {
     if (this.idResolved) { return this; }
     if (this.impose != null) {
-      this.impose = this.impose.resolveId();
+      this.impose = this.impose.resolve();
     }
-    this.ptn = this.ptn.resolveId();
+    this.ptn = this.ptn.resolve();
     this.idResolved = true;
     return this;
   }

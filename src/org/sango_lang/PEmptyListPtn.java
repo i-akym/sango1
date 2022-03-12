@@ -46,13 +46,14 @@ class PEmptyListPtn extends PListPtn {
     return create(elem.getSrcInfo());
   }
 
-  public PEmptyListPtn setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PEmptyListPtn resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PEmptyListPtn resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

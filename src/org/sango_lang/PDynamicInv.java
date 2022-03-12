@@ -47,11 +47,15 @@ class PDynamicInv extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  public PDynamicInv setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     throw new RuntimeException("PDynamicInv#setupScope() called. - " + this.toString());
   }
 
-  public PDynamicInv resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    throw new RuntimeException("PDynamicInv#collectModRefs() called. - " + this.toString());
+  }
+
+  public PDynamicInv resolve() throws CompileException {
     throw new RuntimeException("PDynamicInv#resolveId() called. - " + this.toString());
   }
   public void normalizeTypes() {

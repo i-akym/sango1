@@ -25,7 +25,9 @@ package org.sango_lang;
 
 interface PEvalAndPtnElem extends PEvalElem, PPtnElem {
 
-  PEvalAndPtnElem setupScope(PScope scope) throws CompileException;  // inherited
+  void setupScope(PScope scope);  // inherited
 
-  PEvalAndPtnElem resolveId() throws CompileException;  // inherited
+  void collectModRefs() throws CompileException;  // inherited
+
+  PEvalAndPtnElem resolve() throws CompileException;  // inherited
 }

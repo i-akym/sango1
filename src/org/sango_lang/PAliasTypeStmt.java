@@ -230,14 +230,29 @@ class PAliasTypeStmt extends PDefaultProgElem implements PAliasTypeDef {
     return PType.acceptRO(reader, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  public PAliasTypeStmt setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
     PScope s = scope.start();
-    if (s == this.scope) { return this; }
+    if (s == this.scope) { return; }
     this.scope = s;
     this.idResolved = false;
-    this.sig = this.sig.setupScope(s);
-    this.body = this.body.setupScope(this.scope);
+    this.sig.setupScope(s);
+    this.body.setupScope(this.scope);
+  }
+
+  public void collectModRefs() throws CompileException {
+    // sig has no mod refs
+    this.body.collectModRefs();
+  }
+
+  public PAliasTypeStmt resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
+    this.sig = this.sig.resolve();
+    for (int i = 0; i < this.tparams.length; i++) {
+      this.tparams[i] = this.tparams[i].resolve();
+    }
+    this.body = this.body.resolve();
     if (!(this.body instanceof PTypeRef)) {
       emsg = new StringBuffer();
       emsg.append("Alias of non-concrete type at ");
@@ -245,26 +260,7 @@ class PAliasTypeStmt extends PDefaultProgElem implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return this;
-  }
-
-  public PAliasTypeStmt resolveId() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
-    for (int i = 0; i < this.tparams.length; i++) {
-      this.tparams[i] = this.tparams[i].resolveId();
-    }
-    this.sig = this.sig.resolveId();
-    this.body = this.body.resolveId();
     this.idResolved = true;
-    // is following check needed? if so, should check by PTypeSkel
-    // if (/* PTypeRef.willNotReturn(this.body) || */ PTypeRef.isExposed(this.body)) {
-      // emsg = new StringBuffer();
-      // emsg.append("Alias of non-concrete type at ");
-      // emsg.append(this.body.getSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
     return this;
   }
 

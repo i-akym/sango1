@@ -55,43 +55,52 @@ class PUndetEval extends PDefaultEvalElem {
     return e;
   }
 
-  public PEvalElem setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(scope);
+      this.params[i].setupScope(scope);
     }
+    this.anchor.setupScope(scope);
+  }
+
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
+    this.anchor.collectModRefs();
+  }
+
+  public PEvalElem resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i] = this.params[i].resolve();
+    }
+    PEvalElem a = this.anchor.resolve();
     PEvalElem e;
-    PEvalElem a = this.anchor.setupScope(scope);
     if (a instanceof PEVarRef) {
       e = a;
     } else {
       this.anchor = (PExprId)a;
       e = this;
     }
-    return e;
-  }
 
-  public PEvalElem resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
-    }
-    this.anchor = this.anchor.resolveId();
-    this.idResolved = true;
-    PEvalElem e;
-    if (this.anchor.maybeDcon()) {
-      this.anchor.setCat(PExprId.CAT_DCON_EVAL);
-      e = PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem[0], null).setupScope(this.scope).resolveId();
-    } else {
-      e = PStaticInvEval.create(this.srcInfo, this.anchor, this.params).setupScope(this.scope).resolveId();
+    if (e == this) {
+      this.idResolved = true;
+      if (this.anchor.maybeDcon()) {
+        this.anchor.setCat(PExprId.CAT_DCON_EVAL);
+        e = PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem[0], null);
+        e.setupScope(this.scope);
+        e = e.resolve();
+      } else {
+        e = PStaticInvEval.create(this.srcInfo, this.anchor, this.params);
+        e.setupScope(this.scope);
+        e = e.resolve();
+      }
     }
     return e;
-    // return (this.anchor.maybeDcon())?  // TODO: Improve!
-      // PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem[0], null).setupScope(this.scope).resolveId():
-      // PStaticInvEval.create(this.srcInfo, this.anchor, this.params).setupScope(this.scope).resolveId();
   }
 
   public void normalizeTypes() {

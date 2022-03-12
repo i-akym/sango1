@@ -172,22 +172,28 @@ class PCasePtnMatch extends PDefaultProgElem {
     return builder.create();
   }
 
-  public PCasePtnMatch setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.ptnMatch = this.ptnMatch.setupScope(scope);
+    this.ptnMatch.setupScope(scope);
     for (int i = 0; i < this.details.length; i++) {
-      this.details[i] = this.details[i].setupScope(scope);
+      this.details[i].setupScope(scope);
     }
-    return this;
   }
 
-  public PCasePtnMatch resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.ptnMatch = (PPtnMatch)this.ptnMatch.resolveId();
+  public void collectModRefs() throws CompileException {
+    this.ptnMatch.collectModRefs();
     for (int i = 0; i < this.details.length; i++) {
-      this.details[i] = (PPtnDetail)this.details[i].resolveId();
+      this.details[i].collectModRefs();
+    }
+  }
+
+  public PCasePtnMatch resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    this.ptnMatch = (PPtnMatch)this.ptnMatch.resolve();
+    for (int i = 0; i < this.details.length; i++) {
+      this.details[i] = (PPtnDetail)this.details[i].resolve();
     }
     this.idResolved = true;
     return this;

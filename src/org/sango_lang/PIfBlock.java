@@ -129,19 +129,24 @@ class PIfBlock extends PDefaultEvalElem {
     return builder.create();
   }
 
-  public PIfBlock setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].setupScope(scope);
+      this.clauses[i].setupScope(scope);
     }
-    return this;
   }
 
-  public PIfBlock resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.clauses.length; i++) {
+      this.clauses[i].collectModRefs();
+    }
+  }
+
+  public PIfBlock resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].resolveId();
+      this.clauses[i] = this.clauses[i].resolve();
     }
     this.idResolved = true;
     return this;

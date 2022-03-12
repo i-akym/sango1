@@ -197,22 +197,28 @@ class PExpr extends PDefaultEvalElem {
     }
   }
 
-  public PExpr setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.eval = (PEvalElem)this.eval.setupScope(scope);
+    this.eval.setupScope(scope);
     if (this.ptnMatch != null) {
-      this.ptnMatch = this.ptnMatch.setupScope(scope);
+      this.ptnMatch.setupScope(scope);
     }
-    return this;
   }
 
-  public PExpr resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.eval = (PEvalElem)this.eval.resolveId();
+  public void collectModRefs() throws CompileException {
+    this.eval.collectModRefs();
     if (this.ptnMatch != null) {
-      this.ptnMatch = this.ptnMatch.resolveId();
+      this.ptnMatch.collectModRefs();
+    }
+  }
+
+  public PExpr resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    this.eval = (PEvalElem)this.eval.resolve();
+    if (this.ptnMatch != null) {
+      this.ptnMatch = this.ptnMatch.resolve();
     }
     this.idResolved = true;
     return this;

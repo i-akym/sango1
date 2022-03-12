@@ -139,20 +139,25 @@ class PString extends PDefaultEvalElem {
     return builder.create();
   }
 
-  public PString setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].setupScope(scope);
+      this.elems[i].setupScope(scope);
     }
-    return this;
   }
 
-  public PString resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.elems.length; i++) {
+      this.elems[i].collectModRefs();
+    }
+  }
+
+  public PString resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].resolveId();
+      this.elems[i] = this.elems[i].resolve();
     }
     this.idResolved = true;
     return this;

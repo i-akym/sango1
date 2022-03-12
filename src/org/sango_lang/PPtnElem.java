@@ -25,7 +25,9 @@ package org.sango_lang;
 
 interface PPtnElem extends PTypedElem {
 
-  PPtnElem setupScope(PScope scope) throws CompileException;  // inherited
+  void setupScope(PScope scope);  // inherited
 
-  PPtnElem resolveId() throws CompileException;  // inherited
+  void collectModRefs() throws CompileException;  // inherited
+
+  PPtnElem resolve() throws CompileException;  // inherited
 }

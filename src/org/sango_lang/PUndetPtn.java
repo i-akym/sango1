@@ -47,29 +47,29 @@ class PUndetPtn extends PDefaultPtnElem {
     return p;
   }
 
-  // static PUndetPtn create(PExprId anchor) {
-    // return create(anchor.srcInfo, anchor);
-  // }
-
-  public PPtnElem setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    PPtnElem a = this.anchor.setupScope(scope);
-    PPtnElem p;
-    if (a instanceof PEVarRef) {
-      p = a;
-    } else {
-      PExprId dcon = (PExprId)a;
-      dcon.setCat(PExprId.CAT_DCON_PTN);
-      p = PDataConstrPtn.create(
-        this.srcInfo, this.context, dcon, new PPtnElem[0], new PPtnItem[0], false).setupScope(this.scope);
-    }
-    return p;
+    this.anchor.setupScope(scope);
   }
 
-  public PUndetPtn resolveId() throws CompileException {
-    throw new RuntimeException("PUndetPtn#resolveId() called. - " + this.toString());
+  public void collectModRefs() throws CompileException {
+    this.anchor.collectModRefs();
+  }
+
+  public PPtnElem resolve() throws CompileException {
+    PPtnElem p = this.anchor.resolve();
+    if (p instanceof PEVarRef) {
+      ;
+    } else {
+      PExprId dcon = (PExprId)this.anchor;
+      dcon.setCat(PExprId.CAT_DCON_PTN);
+      p = PDataConstrPtn.create(this.srcInfo, this.context, dcon, new PPtnElem[0], new PPtnItem[0], false);
+      p.setupScope(this.scope);
+      p = p.resolve();
+    }
+    return p;
   }
 
   public void normalizeTypes() {

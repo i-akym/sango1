@@ -160,29 +160,38 @@ class PDataConstrPtn extends PDefaultPtnElem {
       wildCards);
   }
 
-  public PDataConstrPtn setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i] = this.posdAttrs[i].setupScope(scope);
+      this.posdAttrs[i].setupScope(scope);
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].setupScope(scope);
+      this.namedAttrs[i].setupScope(scope);
     }
-    this.dcon = (PExprId)this.dcon.setupScope(scope);
-    return this;
+    this.dcon.setupScope(scope);
   }
 
-  public PDataConstrPtn resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i] = this.posdAttrs[i].resolveId();
+      this.posdAttrs[i].collectModRefs();
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].resolveId();
+      this.namedAttrs[i].collectModRefs();
     }
-    this.dcon = this.dcon.resolveId();
+    this.dcon.collectModRefs();
+  }
+
+  public PDataConstrPtn resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    for (int i = 0; i < this.posdAttrs.length; i++) {
+      this.posdAttrs[i] = this.posdAttrs[i].resolve();
+    }
+    for (int i = 0; i < this.namedAttrs.length; i++) {
+      this.namedAttrs[i] = this.namedAttrs[i].resolve();
+    }
+    this.dcon = (PExprId)this.dcon.resolve();
     this.idResolved = true;
     this.sortAttrs();
     return this;

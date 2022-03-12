@@ -539,7 +539,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
-    dat.setupScope(PScope.create(this));
+    dat.setupScope(PScope.create(this)); dat.collectModRefs();
     if (this.tconDict.containsKey(dat.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -589,7 +589,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addExtendStmt(PExtendStmt ext) throws CompileException {
     StringBuffer emsg;
-    ext.setupScope(PScope.create(this));
+    ext.setupScope(PScope.create(this)); ext.collectModRefs();
     if (this.tconDict.containsKey(ext.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -642,7 +642,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addAliasStmt(PAliasTypeStmt alias) throws CompileException {
     StringBuffer emsg;
-    alias.setupScope(PScope.create(this));
+    alias.setupScope(PScope.create(this)); alias.collectModRefs();
     if (this.tconDict.containsKey(alias.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -677,7 +677,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
-    eval.setupScope(PScope.create(this));
+    eval.setupScope(PScope.create(this)); eval.collectModRefs();
     String official = eval.official;
     String[] aliases = eval.aliases;
     if (this.funOfficialDict.containsKey(official)) {
@@ -828,21 +828,25 @@ class PModule extends PDefaultProgElem implements PDefDict {
     return ids;
   }
 
-  public PModule setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     throw new RuntimeException("PModule#setupScope() called. - " + this.toString());
   }
 
-  public PProgElem resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    throw new RuntimeException("PModule#collectModRefs() called. - " + this.toString());
+  }
+
+  public PProgElem resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.set(i, this.dataStmtList.get(i).resolveId());
+      this.dataStmtList.set(i, this.dataStmtList.get(i).resolve());
       // /* DEBUG */ System.out.print("id category resolved - ");
       // /* DEBUG */ System.out.print(this.dataStmtList.get(i).tcon);
       // /* DEBUG */ System.out.print(" ");
       // /* DEBUG */ System.out.println(this.dataStmtList.get(i));
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.set(i, this.extendStmtList.get(i).resolveId());
+      this.extendStmtList.set(i, this.extendStmtList.get(i).resolve());
       // /* DEBUG */ System.out.print("id category resolved - ");
       // /* DEBUG */ System.out.print(this.extendStmtList.get(i).baseOmod);
       // /* DEBUG */ System.out.print("/");
@@ -853,14 +857,14 @@ class PModule extends PDefaultProgElem implements PDefDict {
       // /* DEBUG */ System.out.println(this.extendStmtList.get(i));
     }
     for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
-      this.aliasTypeStmtList.set(i, this.aliasTypeStmtList.get(i).resolveId());
+      this.aliasTypeStmtList.set(i, this.aliasTypeStmtList.get(i).resolve());
       // /* DEBUG */ System.out.print("id category resolved - ");
       // /* DEBUG */ System.out.print(this.aliasTypeStmtList.get(i).tcon);
       // /* DEBUG */ System.out.print(" ");
       // /* DEBUG */ System.out.println(this.aliasTypeStmtList.get(i));
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.set(i, this.evalStmtList.get(i).resolveId());
+      this.evalStmtList.set(i, this.evalStmtList.get(i).resolve());
       // /* DEBUG */ System.out.print("id category resolved - ");
       // /* DEBUG */ System.out.print(this.evalStmtList.get(i).official);
       // /* DEBUG */ System.out.print(" ");

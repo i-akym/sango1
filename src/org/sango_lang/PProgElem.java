@@ -29,11 +29,13 @@ interface PProgElem {
 
   Parser.SrcInfo getSrcInfo();
 
-  PProgElem setupScope(PScope scope) throws CompileException;
+  void setupScope(PScope scope);
 
   PScope getScope();
 
-  PProgElem resolveId() throws CompileException;
+  void collectModRefs() throws CompileException;
+
+  PProgElem resolve() throws CompileException;
 
   void normalizeTypes() throws CompileException;
 

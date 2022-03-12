@@ -132,16 +132,29 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       paramTypeDescs);
   }
 
-  public PTypeRef setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = (PTypeDesc)this.params[i].setupScope(scope);
+      this.params[i].setupScope(scope);
     }
+  }
+
+  public void collectModRefs() throws CompileException {
+    this.scope.referredModId(this.srcInfo, this.mod);
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
+  }
+
+  public PTypeRef resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
+    /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
     if (this.mod != null) {
-      this.modName = scope.resolveModId(this.mod);
+      this.modName = this.scope.resolveModId(this.mod);
       if (this.modName == null) {
         emsg = new StringBuffer();
         emsg.append("Module id \"");
@@ -152,13 +165,6 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
         throw new CompileException(emsg.toString());
       }
     }
-    return this;
-  }
-
-  public PTypeRef resolveId() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
-    /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
     if ((this.tconInfo = this.scope.resolveTcon(this.mod, this.tcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -178,7 +184,7 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       throw new CompileException(emsg.toString()) ;
     }
     for (int i = 0; i < this.params.length; i++) {
-      PTypeDesc p = (PTypeDesc)this.params[i].resolveId();
+      PTypeDesc p = (PTypeDesc)this.params[i].resolve();
       this.params[i] = p;
     }
     this.idResolved = true;

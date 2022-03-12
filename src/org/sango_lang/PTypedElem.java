@@ -25,9 +25,11 @@ package org.sango_lang;
 
 interface PTypedElem extends PProgElem {
 
-  PTypedElem setupScope(PScope scope) throws CompileException;  // interited
+  void setupScope(PScope scope);  // interited
 
-  PTypedElem resolveId() throws CompileException;  // interited
+  void collectModRefs() throws CompileException;  // inherited
+
+  PTypedElem resolve() throws CompileException;  // interited
 
   void normalizeTypes() throws CompileException;
 

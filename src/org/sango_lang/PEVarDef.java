@@ -140,15 +140,25 @@ class PEVarDef extends PDefaultPtnElem {
     return create(elem.getSrcInfo(), cat, type, id);
   }
 
-  public PEVarDef setupScope(PScope scope) throws CompileException {
-    StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     if (this.type != null) {
-      this.type = (PTypeDesc)this.type.setupScope(scope);
+      this.type.setupScope(scope);
     }
-    if (!scope.canDefineEVar(this)) {
+  }
+
+  public void collectModRefs() throws CompileException {
+    if (this.type != null) {
+      this.type.collectModRefs();
+    }
+  }
+
+  public PEVarDef resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
+    if (!this.scope.canDefineEVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
@@ -156,14 +166,9 @@ class PEVarDef extends PDefaultPtnElem {
       emsg.append(this.name);
       throw new CompileException(emsg.toString());
     }
-    this.varSlot = scope.defineEVar(this);
-    return this;
-  }
-
-  public PEVarDef resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+    this.varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
-      this.type = (PTypeDesc)this.type.resolveId();
+      this.type = (PTypeDesc)this.type.resolve();
     }
     this.idResolved = true;
     return this;

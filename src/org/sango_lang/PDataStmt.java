@@ -361,37 +361,40 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
     List<PDataConstrDef> constrList;
   }
 
-  public PDataStmt setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
     PScope s = scope.start();
-    if (s == this.scope) { return this; }
+    if (s == this.scope) { return; }
     this.scope = s;
     this.idResolved = false;
     if (this.sig != null) {  // tuple, fun
-      this.sig = this.sig.setupScope(s);
+      this.sig.setupScope(s);
     }
     if (this.constrs != null) {  // skip if native impl
       for (int i = 0; i < this.constrs.length; i++) {
-        this.constrs[i] = this.constrs[i].setupScope(this.scope);
-        this.constrs[i].setDataType(this.sig);
+        this.constrs[i].setupScope(this.scope);
       }
     }
-    return this;
   }
 
-  public PDataStmt resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    // sig has no mod refs
+    if (this.constrs != null) {  // skip if native impl
+      for (int i = 0; i < this.constrs.length; i++) {
+        this.constrs[i].collectModRefs();
+      }
+    }
+  }
+
+  public PDataStmt resolve() throws CompileException {
     if (this.idResolved) { return this; }
     if (this.sig != null) {
-      this.sig = this.sig.resolveId();
+      this.sig = this.sig.resolve();
     }
-    // if (this.tparams != null) {
-      // for (int i = 0; i < this.tparams.length; i++) {
-        // this.tparams[i] = this.tparams[i].resolveId();
-      // }
-    // }
     if (this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {
-        this.constrs[i] = this.constrs[i].resolveId();
+        this.constrs[i] = this.constrs[i].resolve();
+        this.constrs[i].setDataType(this.sig);
       }
     }
     this.idResolved = true;
@@ -401,19 +404,6 @@ class PDataStmt extends PDefaultProgElem implements PDataDef {
   public String getFormalTcon() { return this.tcon; }
 
   public int getParamCount() { return (this.tparams != null)? this.tparams.length: -1 ; }
-
-  // public PTVarSlot[] getParamVarSlots() {
-    // PTVarSlot[] pvs;
-    // if (this.tparams != null) {
-      // pvs = new PTVarSlot[this.tparams.length];
-      // for (int i = 0; i < this.tparams.length; i++) {
-        // pvs[i] = this.tparams[i].varSlot;
-      // }
-    // } else {
-      // pvs = null;
-    // }
-    // return pvs;
-  // }
 
   public PTypeSkel getTypeSig() {
     return (this.sig != null)? this.sig.getSkel(): null;

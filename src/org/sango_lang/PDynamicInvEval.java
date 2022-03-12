@@ -107,23 +107,29 @@ class PDynamicInvEval extends PDefaultEvalElem {
     return create(elem.getSrcInfo(), closure, ps.toArray(new PEvalElem[ps.size()]));
   }
 
-  public PDynamicInvEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(scope);
+      this.params[i].setupScope(scope);
     }
-    this.funObj = this.funObj.setupScope(scope);
-    return this;
+    this.funObj.setupScope(scope);
   }
 
-  public PDynamicInvEval resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
+    this.funObj.collectModRefs();
+  }
+
+  public PDynamicInvEval resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.funObj = this.funObj.resolveId();
+    this.funObj = this.funObj.resolve();
     this.idResolved = true;
     return this;
   }
