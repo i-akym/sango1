@@ -97,14 +97,15 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
     return PTypeId.create(srcInfo, null, this.def.name, false);
   }
 
-  public PTVarRef setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PTVarRef resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PTVarRef resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

@@ -117,20 +117,25 @@ class PFunRef extends PDefaultEvalElem {
     return f;
   }
 
-  public PFunRef setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     if (this.official != null) {
-      this.official = (PExprId)this.official.setupScope(scope);
+      this.official.setupScope(scope);
     }
-    return this;
   }
 
-  public PFunRef resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    if (this.official != null) {
+      this.official.collectModRefs();
+    }
+  }
+
+  public PFunRef resolve() throws CompileException {
     if (this.idResolved) { return this; }
     if (this.official != null) {
-      this.official = this.official.resolveId();
+      this.official = (PExprId)this.official.resolve();
     }
     this.idResolved = true;
     return this;
@@ -148,7 +153,7 @@ class PFunRef extends PDefaultEvalElem {
           this.scope.evalStmt.official);
       try {
         callee.setupScope(this.scope);
-        callee.resolveId();
+        callee = (PExprId)callee.resolve();
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error.");
       }

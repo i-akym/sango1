@@ -46,13 +46,14 @@ class PEmptyList extends PList {
     return create(elem.getSrcInfo());
   }
 
-  public PEmptyList setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PEmptyList resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PEmptyList resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

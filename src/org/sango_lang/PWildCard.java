@@ -52,13 +52,14 @@ class PWildCard extends PDefaultPtnElem {
     return create(elem.getSrcInfo());
   }
 
-  public PWildCard setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PWildCard resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PWildCard resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

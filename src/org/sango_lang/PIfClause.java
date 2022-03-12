@@ -191,27 +191,35 @@ class PIfClause extends PDefaultTypedElem {
     return builder.create();
   }
 
-  public PIfClause setupScope(PScope scope) throws CompileException {
-    if (scope == this.outerScope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.outerScope) { return; }
     this.outerScope = scope;
     this.scope = scope.enterInner();
     this.idResolved = false;
     for (int i = 0; i < this.guardExprs.length; i++) {
-      this.guardExprs[i] = this.guardExprs[i].setupScope(this.scope);
+      this.guardExprs[i].setupScope(this.scope);
     }
     for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].setupScope(this.scope);
+      this.actionExprs[i].setupScope(this.scope);
     }
-    return this;
   }
 
-  public PIfClause resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.guardExprs.length; i++) {
-      this.guardExprs[i] = this.guardExprs[i].resolveId();
+      this.guardExprs[i].collectModRefs();
     }
     for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].resolveId();
+      this.actionExprs[i].collectModRefs();
+    }
+  }
+
+  public PIfClause resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    for (int i = 0; i < this.guardExprs.length; i++) {
+      this.guardExprs[i] = this.guardExprs[i].resolve();
+    }
+    for (int i = 0; i < this.actionExprs.length; i++) {
+      this.actionExprs[i] = this.actionExprs[i].resolve();
     }
     this.idResolved = true;
     return this;

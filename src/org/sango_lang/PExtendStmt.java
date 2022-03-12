@@ -263,14 +263,29 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
     return builder.create();
   }
 
-  public PExtendStmt setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
     PScope s = scope.start();
-    if (s == this.scope) { return this; }
+    if (s == this.scope) { return; }
     this.scope = s;
     this.idResolved = false;
     // /* DEBUG */ System.out.print("extend sig setupscope "); System.out.println(this.sig);
-    if (this.baseMod != null && scope.resolveModId(this.baseMod) == null) {  // refer base mod id in order to register foreign mod
+    this.sig.setupScope(s);
+    for (int i = 0; i < this.constrs.length; i++) {
+      this.constrs[i].setupScope(this.scope);
+    }
+  }
+
+  public void collectModRefs() throws CompileException {
+    this.sig.collectModRefs();
+    for (int i = 0; i < this.constrs.length; i++) {
+      this.constrs[i].collectModRefs();
+    }
+  }
+  public PExtendStmt resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
+    if (this.baseMod != null && this.scope.resolveModId(this.baseMod) == null) {  // refer base mod id in order to register foreign mod
       emsg = new StringBuffer();
       emsg.append("Module id \"");
       emsg.append(this.baseMod);
@@ -279,24 +294,14 @@ class PExtendStmt extends PDefaultProgElem implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    this.sig = this.sig.setupScope(s);
-    for (int i = 0; i < this.constrs.length; i++) {
-      this.constrs[i] = this.constrs[i].setupScope(this.scope);
-      this.constrs[i].setDataType(this.sig);
-    }
-    return this;
-  }
-
-  public PExtendStmt resolveId() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
     // /* DEBUG */ System.out.print("extend sig resolveid "); System.out.println(this.sig);
-    this.sig = this.sig.resolveId();
+    this.sig = this.sig.resolve();
     for (int i = 0; i < this.tparams.length; i++) {
-      this.tparams[i] = this.tparams[i].resolveId();
+      this.tparams[i] = this.tparams[i].resolve();
     }
     for (int i = 0; i < this.constrs.length; i++) {
-      this.constrs[i] = this.constrs[i].resolveId();
+      this.constrs[i] = this.constrs[i].resolve();
+      this.constrs[i].setDataType(this.sig);
     }
     // /* DEBUG */ System.out.println("resolve " + this.baseMod + "." + this.baseTcon);
     if ((this.baseTconInfo = this.scope.resolveTcon(this.baseMod, this.baseTcon)) == null) {

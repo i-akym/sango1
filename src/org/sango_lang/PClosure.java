@@ -266,30 +266,39 @@ class PClosure extends PDefaultEvalElem {
     return exprList;
   }
 
-  public PClosure setupScope(PScope scope) throws CompileException {
-    if (scope == this.outerScope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.outerScope) { return; }
     this.outerScope = scope;
     this.scope = scope.enterClosure(this);
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(this.scope);
+      this.params[i].setupScope(this.scope);
     }
     this.bodyScope = this.scope.enterInner();
     for (int i = 0; i < this.implExprs.length; i++) {
-      this.implExprs[i] = this.implExprs[i].setupScope(this.bodyScope);
+      this.implExprs[i].setupScope(this.bodyScope);
     }
-    this.retDef = this.retDef.setupScope(this.scope);
-    return this;
+    retDef.setupScope(this.scope);
   }
 
-  public PClosure resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
+    for (int i = 0; i < this.implExprs.length; i++) {
+      this.implExprs[i].collectModRefs();
+    }
+    retDef.collectModRefs();
+  }
+
+  public PClosure resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.retDef = this.retDef.resolveId();
+    this.retDef = this.retDef.resolve();
     for (int i = 0; i < this.implExprs.length; i++) {
-      this.implExprs[i] = this.implExprs[i].resolveId();
+      this.implExprs[i] = this.implExprs[i].resolve();
     }
     this.idResolved = true;
     return this;

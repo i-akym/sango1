@@ -106,23 +106,29 @@ class PStaticInvEval extends PDefaultEvalElem {
       PDynamicInvEval.create(si, PFunRef.createSelf(si), params);
   }
 
-  public PStaticInvEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(scope);
+      this.params[i].setupScope(scope);
     }
-    this.funId = (PExprId)this.funId.setupScope(scope);
-    return this;
+    this.funId.setupScope(scope);
   }
 
-  public PStaticInvEval resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
+    this.funId.collectModRefs();
+  }
+
+  public PStaticInvEval resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.funId = this.funId.resolveId();
+    this.funId = (PExprId)this.funId.resolve();
     return this;
   }
 

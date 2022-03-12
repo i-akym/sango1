@@ -112,19 +112,23 @@ class PCaseEval extends PDefaultEvalElem {
     return create(elem.getSrcInfo(), obj, builder.create());
   }
 
-  public PCaseEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.obj = this.obj.setupScope(scope);
-    this.caseBlock = this.caseBlock.setupScope(scope);
-    return this;
+    this.obj.setupScope(scope);
+    this.caseBlock.setupScope(scope);
   }
 
-  public PCaseEval resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    this.obj.collectModRefs();
+    this.caseBlock.collectModRefs();
+  }
+
+  public PCaseEval resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.obj = this.obj.resolveId();
-    this.caseBlock = this.caseBlock.resolveId();
+    this.obj = this.obj.resolve();
+    this.caseBlock = this.caseBlock.resolve();
     this.idResolved = true;
     return this;
   }

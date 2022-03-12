@@ -170,11 +170,20 @@ class PExprId extends PDefaultEvalAndPtnElem {
     return create(si, mod, name);
   }
 
-  public PEvalAndPtnElem setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
+  }
+
+  public void collectModRefs() throws CompileException {
+    this.scope.referredModId(this.srcInfo, this.mod);
+  }
+
+  public PEvalAndPtnElem resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
     PEvalAndPtnElem ret = this;
     if (this.isSimple()) {
       PEVarDef v;
@@ -188,7 +197,9 @@ class PExprId extends PDefaultEvalAndPtnElem {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        ret = PEVarRef.create(this.srcInfo, this.name, v.varSlot).setupScope(scope);
+        ret = PEVarRef.create(this.srcInfo, this.name, v.varSlot);
+        ret.setupScope(scope);
+        ret = ret.resolve();
       } else if (this.maybeDcon() || this.maybeFun()) {
         this.cutOffVar();
       } else {
@@ -209,37 +220,34 @@ class PExprId extends PDefaultEvalAndPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return ret;
-  }
 
-  public PExprId resolveId() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
-    if (this.maybeVar()) {
-      throw new IllegalStateException("Possibility of being variable stays.");
+    if (ret == this) {
+      if (this.maybeVar()) {
+        throw new IllegalStateException("Possibility of being variable stays.");
+      }
+      this.props = this.scope.resolveEid(this);
+      if (this.props == null) {
+        emsg = new StringBuffer();
+        emsg.append("Id \"");
+        emsg.append(this.toRepr());
+        emsg.append("\" not found at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      if ((this.props.cat & this.catOpt) == 0) {
+        emsg = new StringBuffer();
+        emsg.append("Misusing \"");
+        emsg.append(this.toRepr());
+        emsg.append("\" at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      this.catOpt &= this.props.cat;
+      this.idResolved = true;
     }
-    this.props = this.scope.resolveEid(this);
-    if (this.props == null) {
-      emsg = new StringBuffer();
-      emsg.append("Id \"");
-      emsg.append(this.toRepr());
-      emsg.append("\" not found at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    if ((this.props.cat & this.catOpt) == 0) {
-      emsg = new StringBuffer();
-      emsg.append("Misusing \"");
-      emsg.append(this.toRepr());
-      emsg.append("\" at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    this.catOpt &= this.props.cat;
-    this.idResolved = true;
-    return this;
+    return ret;
   }
 
   public void normalizeTypes() {

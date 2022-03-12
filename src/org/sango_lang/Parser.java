@@ -41,7 +41,7 @@ abstract class Parser {
   abstract void parse1() throws CompileException, IOException;
 
   void parse2() throws CompileException {
-    this.mod.resolveId();
+    this.mod.resolve();
     this.mod.checkAccInDefs();
   }
 

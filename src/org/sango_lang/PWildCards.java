@@ -47,13 +47,14 @@ class PWildCards extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  public PWildCards setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PWildCards resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PWildCards resolve() throws CompileException {
     throw new RuntimeException("PWildCards#resolveId() called. - " + this.toString());
   }
 

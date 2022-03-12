@@ -207,12 +207,21 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
     return create(si, mod, name, ext);
   }
 
-  public PTypeDesc setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    if (this.mod != null && scope.resolveModId(this.mod) == null) {
+  }
+
+  public void collectModRefs() throws CompileException {
+    this.scope.referredModId(this.srcInfo, this.mod);
+  }
+
+  public PTypeDesc resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
+    if (this.mod != null && this.scope.resolveModId(this.mod) == null) {
       emsg = new StringBuffer();
       emsg.append("Module id \"");
       emsg.append(this.mod);
@@ -233,32 +242,35 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
           emsg.append(this.name);
           throw new CompileException(emsg.toString());
         }
-        ret = PTVarRef.create(this.srcInfo, varDef).setupScope(scope);
+        ret = PTVarRef.create(this.srcInfo, varDef);
+        ret.setupScope(this.scope);
+        ret = ret.resolve();
       } else {
-        ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]).setupScope(scope);
+        ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]);
+        ret.setupScope(this.scope);
+        ret = ret.resolve();
       }
     } else {
-      ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]).setupScope(scope);
+      ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]);
+      ret.setupScope(this.scope);
+      ret = ret.resolve();
+    }
+
+    if (ret == this) {
+      // already determined to be tcon
+      this.tconInfo = this.scope.resolveTcon(this.mod, this.name);
+      if (this.tconInfo == null) {
+        emsg = new StringBuffer();
+        emsg.append("Id \"");
+        emsg.append(this.toRepr());
+        emsg.append("\" not found at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      this.idResolved = true;
     }
     return ret;
-  }
-
-  public PTypeId resolveId() throws CompileException {
-    StringBuffer emsg;
-    // already determined to be tcon
-    if (this.idResolved) { return this; }
-    this.tconInfo = this.scope.resolveTcon(this.mod, this.name);
-    if (this.tconInfo == null) {
-      emsg = new StringBuffer();
-      emsg.append("Id \"");
-      emsg.append(this.toRepr());
-      emsg.append("\" not found at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    this.idResolved = true;
-    return this;
   }
 
   public PDefDict.TconInfo getTconInfo() {
@@ -278,6 +290,6 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
   }
 
   public PTypeSkel getSkel() {
-    throw new RuntimeException("PTypeId#getSkel is called.");
+    throw new RuntimeException("PTypeId#getSkel is called. " + this.toString());
   }
 }

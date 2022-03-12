@@ -176,35 +176,47 @@ class PDataConstrEval extends PDefaultEvalElem {
       using);
   }
 
-  public PDataConstrEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i] = this.posdAttrs[i].setupScope(scope);
+      this.posdAttrs[i].setupScope(scope);
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].setupScope(scope);
+      this.namedAttrs[i].setupScope(scope);
     }
     if (this.using != null) {
-      this.using = this.using.setupScope(scope);
+      this.using.setupScope(scope);
     }
-    this.dcon = (PExprId)this.dcon.setupScope(scope);
-    return this;
+    this.dcon.setupScope(scope);
   }
 
-  public PDataConstrEval resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i] = this.posdAttrs[i].resolveId();
+      this.posdAttrs[i].collectModRefs();
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].resolveId();
+      this.namedAttrs[i].collectModRefs();
     }
     if (this.using != null) {
-      this.using = this.using.resolveId();
+      this.using.collectModRefs();
     }
-    this.dcon = this.dcon.resolveId();
+    this.dcon.collectModRefs();
+  }
+
+  public PDataConstrEval resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    for (int i = 0; i < this.posdAttrs.length; i++) {
+      this.posdAttrs[i] = this.posdAttrs[i].resolve();
+    }
+    for (int i = 0; i < this.namedAttrs.length; i++) {
+      this.namedAttrs[i] = this.namedAttrs[i].resolve();
+    }
+    if (this.using != null) {
+      this.using = this.using.resolve();
+    }
+    this.dcon = (PExprId)this.dcon.resolve();
     this.idResolved = true;
     this.breakDown();
     return this;
@@ -336,10 +348,10 @@ class PDataConstrEval extends PDefaultEvalElem {
         ptnBuilder.setSrcInfo(this.srcInfo);
         ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
         ptnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, posdVarDefs[i]));
-        this.bdPosd[i] =
-          PExpr.create(this.srcInfo, evalBuilder.create(),
-              PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create())).
-            setupScope(this.scope).resolveId();
+        this.bdPosd[i] = PExpr.create(this.srcInfo, evalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create()));
+        this.bdPosd[i].setupScope(this.scope);
+        this.bdPosd[i] = this.bdPosd[i].resolve();
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdPosd[i]);
       }
@@ -353,8 +365,9 @@ class PDataConstrEval extends PDefaultEvalElem {
         ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
         ptnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, namedVarDefs[i]));
         this.bdNamed[i] = PExpr.create(this.srcInfo, evalBuilder.create(),
-            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create())).
-          setupScope(this.scope).resolveId();
+            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create()));
+        this.bdNamed[i].setupScope(this.scope);
+        this.bdNamed[i] = this.bdNamed[i].resolve();
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdNamed[i]);
       }
@@ -372,8 +385,9 @@ class PDataConstrEval extends PDefaultEvalElem {
         }
         usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
         this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(),
-            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create())).
-          setupScope(this.scope).resolveId();
+            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create()));
+        this.bdUsing.setupScope(this.scope);
+        this.bdUsing = this.bdUsing.resolve();
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdUsing);
         // /* DEBUG */ System.out.print("  >>> ");
@@ -392,7 +406,8 @@ class PDataConstrEval extends PDefaultEvalElem {
           e = namedVarRefs[as];
           break;
         }
-        this.bdAttrs[i] = e.setupScope(this.scope).resolveId();
+        e.setupScope(this.scope);
+        this.bdAttrs[i] = e.resolve();
         // /* DEBUG */ System.out.print(i);
         // /* DEBUG */ System.out.print(":");
         // /* DEBUG */ System.out.print(this.bdAttrs[i]);
@@ -419,8 +434,10 @@ class PDataConstrEval extends PDefaultEvalElem {
           usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, PWildCard.create(this.srcInfo)));
         }
         usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
-        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(), PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create())).
-          setupScope(this.scope).resolveId();
+        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create()));
+        this.bdUsing.setupScope(this.scope);
+        this.bdUsing = this.bdUsing.resolve();
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error: " + ex.toString());
       }

@@ -141,11 +141,11 @@ class PImportStmt extends PDefaultProgElem {
     return builder.create();
   }
 
-  public PImportStmt setupScope(PScope scope) throws CompileException {
-    throw new RuntimeException("PImportStmt#setupScope() called. - " + this.toString());
-  }
+  public void setupScope(PScope scope) {}
 
-  public PImportStmt resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PImportStmt resolve() throws CompileException {
     throw new RuntimeException("PImportStmt#resolveId() called. - " + this.toString());
   }
 

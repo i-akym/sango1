@@ -51,19 +51,23 @@ class PListConstrPtn extends PListPtn {
     return c;
   }
 
-  public PListConstrPtn setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.elem = this.elem.setupScope(scope);
-    this.tail = this.tail.setupScope(scope);
-    return this;
+    this.elem.setupScope(scope);
+    this.tail.setupScope(scope);
   }
 
-  public PListConstrPtn resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    this.elem.collectModRefs();
+    this.tail.collectModRefs();
+  }
+
+  public PListConstrPtn resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.elem = this.elem.resolveId();
-    this.tail = this.tail.resolveId();
+    this.elem = this.elem.resolve();
+    this.tail = this.tail.resolve();
     this.idResolved = true;
     return this;
   }

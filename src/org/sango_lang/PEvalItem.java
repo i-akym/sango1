@@ -152,17 +152,20 @@ class PEvalItem extends PDefaultProgElem {
     }
   }
 
-  public PEvalItem setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.elem = this.elem.setupScope(scope);
-    return this;
+    this.elem.setupScope(scope);
   }
 
-  public PEvalItem resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    this.elem.collectModRefs();
+  }
+
+  public PEvalItem resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.elem = this.elem.resolveId();
+    this.elem = this.elem.resolve();
     this.idResolved = true;
     return this;
   }

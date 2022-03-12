@@ -75,13 +75,14 @@ class PReal extends PDefaultEvalElem {
     return create(elem.getSrcInfo(), d);
   }
 
-  public PReal setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PReal resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PReal resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

@@ -101,13 +101,14 @@ class PByte extends PDefaultEvalAndPtnElem {
     return create(elem.getSrcInfo(), i);
   }
 
-  public PByte setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PByte resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PByte resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

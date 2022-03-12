@@ -25,8 +25,10 @@ package org.sango_lang;
 
 interface PEvalElem extends PTypedElem {
 
-  PEvalElem setupScope(PScope scope) throws CompileException;  // interited
+  void setupScope(PScope scope);  // interited
 
-  PEvalElem resolveId() throws CompileException;  // interited
+  void collectModRefs() throws CompileException;  // inherited
+
+  PEvalElem resolve() throws CompileException;  // interited
 
 }

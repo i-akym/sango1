@@ -74,14 +74,15 @@ class PEVarRef extends PDefaultEvalAndPtnElem {
     return PTypeId.create(srcInfo, /* null, */ null, this.name, false);
   }
 
-  public PEVarRef setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    return this;
   }
 
-  public PEVarRef resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PEVarRef resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

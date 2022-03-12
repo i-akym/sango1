@@ -87,18 +87,21 @@ class PRetDef extends PDefaultTypedElem {
     return create(elem.getSrcInfo(), type);
   }
 
-  public PRetDef setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    this.type = (PTypeDesc)this.type.setupScope(scope);
-    return this;
+    this.type.setupScope(scope);
   }
 
-  public PRetDef resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {
+    this.type.collectModRefs();
+  }
+
+  public PRetDef resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.type = (PTypeDesc)this.type.resolveId();
+    this.type = (PTypeDesc)this.type.resolve();
     this.idResolved = true;
     return this;
   }

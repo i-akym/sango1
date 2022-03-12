@@ -422,15 +422,19 @@ abstract class PType {
       return buf.toString();
     }
 
-    public PTypeDesc setupScope(PScope scope) throws CompileException {
-      throw new RuntimeException("Bound#setupScope is called.");
-    }
-
     public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
       throw new RuntimeException("Bound#deepCopy is called.");
     }
 
-    public PTypeId resolveId() throws CompileException {
+    public void setupScope(PScope scope) {
+      throw new RuntimeException("Bound#setupScope is called.");
+    }
+
+    public void collectModRefs() throws CompileException {
+      throw new RuntimeException("Bound#collectModRefs is called.");
+    }
+
+    public PTypeId resolve() throws CompileException {
       throw new RuntimeException("Bound#resolveId is called.");
     }
 

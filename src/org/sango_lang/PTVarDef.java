@@ -142,22 +142,26 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
     return create(elem.getSrcInfo(), id, Module.INVARIANT, false, null);  // HERE
   }
 
-  public PTVarDef setupScope(PScope scope) throws CompileException {
+  public void setupScope(PScope scope) {
     StringBuffer emsg;
-    if (scope == this.scope) { return this; }
+    if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
     if (this.constraint != null) {
-      this.constraint = this.constraint.setupScope(scope);
-      // if (!(this.constraint instanceof PTypeRef)) {
-        // emsg = new StringBuffer();
-        // emsg.append("Invalid constraint at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
+      this.constraint.setupScope(scope);
     }
-    if (!scope.canDefineTVar(this)) {
+  }
+
+  public void collectModRefs() throws CompileException {
+    if (this.constraint != null) {
+      this.constraint.collectModRefs();
+    }
+  }
+
+  public PTVarDef resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.idResolved) { return this; }
+    if (!this.scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
@@ -165,15 +169,9 @@ class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
       emsg.append(this.name);
       throw new CompileException(emsg.toString());
     }
-    this.varSlot = scope.defineTVar(this);
-// /* DEBUG */ System.out.println(this);
-    return this;
-  }
-
-  public PTVarDef resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+    this.varSlot = this.scope.defineTVar(this);
     if (this.constraint != null) {
-      this.constraint = this.constraint.resolveId();
+      this.constraint = this.constraint.resolve();
     }
     this.idResolved = true;
     return this;

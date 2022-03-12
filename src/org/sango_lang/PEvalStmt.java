@@ -365,32 +365,43 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     return exprList;
   }
 
-  public PEvalStmt setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
+  public void setupScope(PScope scope) {
+    if (scope == this.scope) { return; }
     this.scope = scope.defineFun(this);
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(this.scope);
+      this.params[i].setupScope(this.scope);
     }
     if (this.implExprs != null) {
       this.bodyScope = scope.enterInner();
       for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i] = this.implExprs[i].setupScope(this.bodyScope);
+        this.implExprs[i].setupScope(this.bodyScope);
       }
     }
-    this.retDef = this.retDef.setupScope(this.scope);
-    return this;
+    this.retDef.setupScope(this.scope);
   }
 
-  public PEvalStmt resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i].collectModRefs();
     }
-    this.retDef = this.retDef.resolveId();
     if (this.implExprs != null) {
       for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i] = this.implExprs[i].resolveId();
+        this.implExprs[i].collectModRefs();
+      }
+    }
+    this.retDef.collectModRefs();
+  }
+
+  public PEvalStmt resolve() throws CompileException {
+    if (this.idResolved) { return this; }
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i] = this.params[i].resolve();
+    }
+    this.retDef = this.retDef.resolve();
+    if (this.implExprs != null) {
+      for (int i = 0; i < this.implExprs.length; i++) {
+        this.implExprs[i] = this.implExprs[i].resolve();
       }
     }
     this.idResolved = true;
