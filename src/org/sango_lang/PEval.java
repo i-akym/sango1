@@ -47,7 +47,7 @@ interface PEval extends PExprObj {
   static final int ACCEPT_DYNAMIC_INV = 1 << 12;
   static final int ACCEPT_SELF_INV = 1 << 13;
   static final int ACCEPT_DATA_CONSTR_USING = 1 << 14;
-  static final int ACCEPT_ENCLOSED = 1 << 15;
+  static final int ACCEPT_ENCLOSED = 1 << 15;  // includes PEval
   static final int ACCEPT_PIPE = 1 << 16;
   static final int ACCEPT_VAR_REF = 1 << 17;  // occurs when resolved
   static final int ACCEPT_PRIMITIVE = ACCEPT_BYTE + ACCEPT_INT + ACCEPT_REAL + ACCEPT_CHAR;
@@ -115,55 +115,60 @@ interface PEval extends PExprObj {
     }
 
     void addItem(PEvalItem item) throws CompileException {
-      switch (item.cat) {
-      case ACCEPT_BYTE:
-      case ACCEPT_INT:
-      case ACCEPT_REAL:
-      case ACCEPT_CHAR:
-      case ACCEPT_LIST:
-      case ACCEPT_TUPLE:
-      case ACCEPT_STRING:
-        this.addDataObj((PEvalItem.ObjItem)item);
-        break;
-      case ACCEPT_ID:
-        this.addId((PEvalItem.ObjItem)item);
-        break;
-      case ACCEPT_FUN_REF:
-      case ACCEPT_CLOSURE:
-        this.addFunObj((PEvalItem.ObjItem)item);
-        break;
-      case ACCEPT_IF_EVAL:
-        this.addIfEval((PEvalItem.ObjItem)item);
-        break;
-      case ACCEPT_CASE_BLOCK:
-        this.addCaseBlock((PEvalItem.ObjItem)item);
-        break;
-      case ACCEPT_DYNAMIC_INV:
-        this.dynamicInv();
-        break;
-      case ACCEPT_SELF_INV:
-        this.selfInv();
-        break;
-      case ACCEPT_DATA_CONSTR_USING:
-        this.dataConstrUsing();
-        break;
-      case ACCEPT_ENCLOSED:
-        this.addEnclosed((PEvalItem.ObjItem)item);
-        break;
-      case ACCEPT_PIPE:
-        this.pipe();
-        break;
-      case ACCEPT_VAR_REF:
-        this.addVarRef((PEvalItem.ObjItem)item);
-        break;
-      default:
-        throw new IllegalArgumentException("Invalid item. " + item.toString());
+      if (item.isObjItem()) {
+        PExprObj o = item.getObj();
+        if (o instanceof PByte) {
+          this.addDataObj(ACCEPT_BYTE, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PInt) {
+          this.addDataObj(ACCEPT_INT, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PReal) {
+          this.addDataObj(ACCEPT_REAL, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PChar) {
+          this.addDataObj(ACCEPT_CHAR, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PList) {
+          this.addDataObj(ACCEPT_LIST, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PTuple) {
+          this.addDataObj(ACCEPT_TUPLE, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PString) {
+          this.addDataObj(ACCEPT_STRING, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PExprId) {
+          this.addId(ACCEPT_ID, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PFunRef) {
+          this.addFunObj(ACCEPT_FUN_REF, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PClosure) {
+          this.addFunObj(ACCEPT_CLOSURE, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PIfEval) {
+          this.addIfEval(ACCEPT_IF_EVAL, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PCaseBlock) {
+          this.addCaseBlock(ACCEPT_CASE_BLOCK, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PExpr) {
+          this.addEnclosed(ACCEPT_ENCLOSED, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PExprVarRef) {
+          this.addVarRef(ACCEPT_VAR_REF, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PEval) {  // should be at last
+          this.addEnclosed(ACCEPT_ENCLOSED, PEvalItem.create(PExpr.create(o.getSrcInfo(), (PEval)o, null)));
+        } else {
+          throw new IllegalArgumentException("Invalid item. " + item.toString());
+        }
+      } else {
+        PProgElem s = item.getSym();
+        if (s instanceof PDynamicInv) {
+          this.dynamicInv();
+        } else if (s instanceof PSelfInv) {
+          this.selfInv();
+        } else if (s instanceof PDataConstrUsing) {
+          this.dataConstrUsing();
+        } else if (s instanceof PPipe) {
+          this.pipe();
+        } else {
+          throw new IllegalArgumentException("Invalid item. " + item.toString());
+        }
       }
       this.lastSrcInfo = item.srcInfo;
     }
 
-    private void addDataObj(PEvalItem.ObjItem item) {
-      if ((acceptablesTab[this.state] & item.cat) == 0) {
+    private void addDataObj(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -175,8 +180,8 @@ interface PEval extends PExprObj {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addId(PEvalItem.ObjItem item) {
-      if ((acceptablesTab[this.state] & ACCEPT_ID) == 0) {
+    private void addId(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       ((PExprId)item.obj).cutOffCat(PExprId.CAT_DCON_PTN);
@@ -205,12 +210,12 @@ interface PEval extends PExprObj {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addFunObj(PEvalItem.ObjItem item) throws CompileException {
+    private void addFunObj(int accept, PEvalItem.ObjItem item) throws CompileException {
       StringBuffer emsg;
-      if ((acceptablesTab[this.state] & item.cat) == 0) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      if (this.state != 5 && item.cat == ACCEPT_CLOSURE) {
+      if (this.state != 5 && item.obj instanceof PClosure) {
         PClosure closure = (PClosure)item.obj;
         for (int i = 0; i < closure.params.length; i++) {
           PExprVarDef param = closure.params[i];
@@ -232,9 +237,9 @@ interface PEval extends PExprObj {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addIfEval(PEvalItem.ObjItem item) {
+    private void addIfEval(int accept, PEvalItem.ObjItem item) {
       StringBuffer emsg;
-      if ((acceptablesTab[this.state] & ACCEPT_IF_EVAL) == 0) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -248,8 +253,8 @@ interface PEval extends PExprObj {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addCaseBlock(PEvalItem.ObjItem item) throws CompileException {
-      if ((acceptablesTab[this.state] & ACCEPT_CASE_BLOCK) == 0) {
+    private void addCaseBlock(int accept, PEvalItem.ObjItem item) throws CompileException {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -301,8 +306,8 @@ interface PEval extends PExprObj {
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
 
-    private void addEnclosed(PEvalItem.ObjItem item) {
-      if ((acceptablesTab[this.state] & ACCEPT_ENCLOSED) == 0) {
+    private void addEnclosed(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -332,8 +337,8 @@ interface PEval extends PExprObj {
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
 
-    private void addVarRef(PEvalItem.ObjItem item) {
-      if ((acceptablesTab[this.state] & ACCEPT_VAR_REF) == 0) {
+    private void addVarRef(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -534,7 +539,7 @@ interface PEval extends PExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PExprObj v = (obj.cat == PEval.ACCEPT_ID)? 
+      PExprObj v = (obj.obj instanceof PExprId)? 
         PUndetEval.create(this.srcInfo, (PExprId)obj.obj, new PEvalItem.ObjItem[0]):
         (PExprObj)obj.obj;
       return PCaseEval.create(this.srcInfo, v, (PCaseBlock)this.itemList.get(1).obj);

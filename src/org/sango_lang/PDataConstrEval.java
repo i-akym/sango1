@@ -133,7 +133,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
         }
         String name = ee.getAttrValueAsId("name");
         if (name != null) {
-          nas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), PEval.ACCEPT_ENCLOSED, name, ex));
+          nas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), name, ex));
         } else if (!nas.isEmpty()) {
           emsg = new StringBuffer();
           emsg.append("Attribute name missing at ");
@@ -141,7 +141,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         } else {
-          pas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), PEval.ACCEPT_ENCLOSED, null, ex));
+          pas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), null, ex));
         }
         ee = ee.getNextSibling();
       }
@@ -173,7 +173,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       PExprId.create(si, mid, dcon),
       pas.toArray(new PEvalItem.ObjItem[pas.size()]),
       nas.toArray(new PEvalItem.ObjItem[nas.size()]),
-      PEvalItem.ObjItem.create(using.getSrcInfo(), PEval.ACCEPT_ENCLOSED, null, using));
+      PEvalItem.ObjItem.create(using.getSrcInfo(), null, using));
   }
 
   public void setupScope(PScope scope) {
