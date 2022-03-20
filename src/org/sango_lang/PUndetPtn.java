@@ -23,7 +23,7 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PUndetPtn extends PDefaultPtnElem {
+class PUndetPtn extends PDefaultExprObj {
   int context;
   PExprId anchor;
 
@@ -58,14 +58,14 @@ class PUndetPtn extends PDefaultPtnElem {
     this.anchor.collectModRefs();
   }
 
-  public PPtnElem resolve() throws CompileException {
-    PPtnElem p = this.anchor.resolve();
+  public PExprObj resolve() throws CompileException {
+    PExprObj p = this.anchor.resolve();
     if (p instanceof PEVarRef) {
       ;
     } else {
       PExprId dcon = (PExprId)this.anchor;
       dcon.setCat(PExprId.CAT_DCON_PTN);
-      p = PDataConstrPtn.create(this.srcInfo, this.context, dcon, new PPtnElem[0], new PPtnItem[0], false);
+      p = PDataConstrPtn.create(this.srcInfo, this.context, dcon, new PExprObj[0], new PPtnItem[0], false);
       p.setupScope(this.scope);
       p = p.resolve();
     }

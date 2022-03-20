@@ -23,7 +23,7 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PEVarRef extends PDefaultEvalAndPtnElem {
+class PEVarRef extends PDefaultExprObj implements PEval {
   String name;
   PEVarSlot varSlot;
 
@@ -77,13 +77,11 @@ class PEVarRef extends PDefaultEvalAndPtnElem {
   public void setupScope(PScope scope) {
     if (scope == this.scope) { return; }
     this.scope = scope;
-    this.idResolved = false;
   }
 
   public void collectModRefs() throws CompileException {}
 
   public PEVarRef resolve() throws CompileException {
-    this.idResolved = true;
     return this;
   }
 

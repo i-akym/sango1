@@ -27,34 +27,34 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class PList extends PDefaultEvalElem {
+abstract class PList extends PDefaultExprObj {
 
   static class Builder {
     Parser.SrcInfo srcInfo;
-    List<PEvalElem> elemSeq;
-    PEvalElem tail;
+    List<PExprObj> elemSeq;
+    PExprObj tail;
 
     static Builder newInstance() {
       return new Builder();
     }
 
     Builder() {
-      this.elemSeq = new ArrayList<PEvalElem>();
+      this.elemSeq = new ArrayList<PExprObj>();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.srcInfo = si;
     }
 
-    void addElem(PEvalElem elem) {
+    void addElem(PExprObj elem) {
       this.elemSeq.add(elem);
     }
 
-    void addElemSeq(List<PEvalElem> elemSeq) {
+    void addElemSeq(List<PExprObj> elemSeq) {
       this.elemSeq.addAll(elemSeq);
     }
 
-    void setTail(PEvalElem tail) {
+    void setTail(PExprObj tail) {
       this.tail = tail;
     }
 
@@ -62,7 +62,7 @@ abstract class PList extends PDefaultEvalElem {
       if (this.elemSeq.isEmpty()) {
         return PEmptyList.create(this.srcInfo);
       }
-      PEvalElem t = (this.tail != null)? this.tail: PEmptyList.create(this.srcInfo);
+      PExprObj t = (this.tail != null)? this.tail: PEmptyList.create(this.srcInfo);
       PList L = null;
       for (int i = this.elemSeq.size() - 1; i >= 0; i--) {
         L = PListConstr.create(this.srcInfo, this.elemSeq.get(i), t);
@@ -80,11 +80,11 @@ abstract class PList extends PDefaultEvalElem {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
-    List<PEvalElem> elemSeq;
+    List<PExprObj> elemSeq;
     if ((elemSeq = PExpr.acceptPosdSeq(reader, 0)) != null) {
       builder.addElemSeq(elemSeq);
       if (!elemSeq.isEmpty() && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
-        PEvalElem tail;
+        PExprObj tail;
         if ((tail = PExpr.accept(reader)) == null) {
           emsg = new StringBuffer();
           emsg.append("Syntax error at ");
@@ -126,7 +126,7 @@ abstract class PList extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem h = PExpr.acceptX(e);
+    PExprObj h = PExpr.acceptX(e);
     if (h == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -141,7 +141,7 @@ abstract class PList extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem t = PExpr.acceptX(e);
+    PExprObj t = PExpr.acceptX(e);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

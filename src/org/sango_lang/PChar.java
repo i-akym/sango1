@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PChar extends PDefaultEvalAndPtnElem {
+class PChar extends PDefaultExprObj {
    int value;
 
   private PChar() {}

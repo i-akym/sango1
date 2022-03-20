@@ -23,8 +23,8 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PCaseEval extends PDefaultEvalElem {
-  PEvalElem obj;
+class PCaseEval extends PDefaultExprObj implements PEval {
+  PExprObj obj;
   PCaseBlock caseBlock;
 
   private PCaseEval() {}
@@ -41,7 +41,7 @@ class PCaseEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PCaseEval create(Parser.SrcInfo srcInfo, PEvalElem obj, PCaseBlock caseBlock) {
+  static PCaseEval create(Parser.SrcInfo srcInfo, PExprObj obj, PCaseBlock caseBlock) {
     PCaseEval e = new PCaseEval();
     e.srcInfo = srcInfo;
     e.obj = obj;
@@ -76,7 +76,7 @@ class PCaseEval extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem obj = PEval.acceptX(ee);
+    PExprObj obj = PEval.acceptX(ee);
     if (obj == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

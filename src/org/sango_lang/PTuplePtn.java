@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PTuplePtn extends PDefaultPtnElem {
+class PTuplePtn extends PDefaultExprObj {
   PPtnMatch[] elems;
 
   public String toString() {

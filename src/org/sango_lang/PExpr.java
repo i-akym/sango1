@@ -27,11 +27,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PExpr extends PDefaultEvalElem {
-  PEvalElem eval;
+class PExpr extends PDefaultExprObj implements PEval {
+  PEval eval;
   PPtnMatch ptnMatch;
 
-  PExpr(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
+  PExpr(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
     this.srcInfo = srcInfo;
     this.eval = eval;
     this.ptnMatch = ptnMatch;
@@ -49,17 +49,17 @@ class PExpr extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PExpr create(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
+  static PExpr create(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
     return new PExpr(srcInfo, eval, ptnMatch);
   }
 
-  static PExpr create(PEvalElem eval) {
+  static PExpr create(PEval eval) {
     return create(eval.getSrcInfo(), eval, null);
   }
 
   static PExpr accept(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
-    PEvalElem eval;
+    PEval eval;
     if ((eval = PEval.accept(reader)) == null) { return null; }
     PPtnMatch ptnMatch = null;
     if (ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE) != null) {
@@ -74,10 +74,10 @@ class PExpr extends PDefaultEvalElem {
     return create(eval.getSrcInfo(), eval, ptnMatch);
   }
 
-  static List<PEvalElem> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
+  static List<PExprObj> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
     StringBuffer emsg;
-    List<PEvalElem> evalList = new ArrayList<PEvalElem>();
-    PEvalElem expr = null;
+    List<PExprObj> evalList = new ArrayList<PExprObj>();
+    PExprObj expr = null;
     int state = 0;
     while (state >= 0)  {
       switch (state) {
@@ -144,7 +144,7 @@ class PExpr extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem eval = PEval.acceptX(ee);
+    PEval eval = PEval.acceptX(ee);
     if (eval == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -216,7 +216,7 @@ class PExpr extends PDefaultEvalElem {
 
   public PExpr resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.eval = (PEvalElem)this.eval.resolve();
+    this.eval = this.eval.resolve();
     if (this.ptnMatch != null) {
       this.ptnMatch = this.ptnMatch.resolve();
     }

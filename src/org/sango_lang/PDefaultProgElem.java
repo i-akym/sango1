@@ -25,8 +25,6 @@ package org.sango_lang;
 
 abstract class PDefaultProgElem implements PProgElem {
   Parser.SrcInfo srcInfo;
-  PScope scope;
-  boolean idResolved;
 
   public void setSrcInfo(Parser.SrcInfo srcInfo) {
     this.srcInfo = srcInfo;
@@ -35,7 +33,5 @@ abstract class PDefaultProgElem implements PProgElem {
   public Parser.SrcInfo getSrcInfo() {
     return this.srcInfo;
   }
-
-  public PScope getScope() { return this.scope; }
 }
 

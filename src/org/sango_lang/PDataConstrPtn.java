@@ -27,14 +27,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class PDataConstrPtn extends PDefaultPtnElem {
+class PDataConstrPtn extends PDefaultExprObj {
   int context;  // PPtnMatch.CONTEXT_*
   PExprId dcon;
-  PPtnElem posdAttrs[];
+  PExprObj posdAttrs[];
   PPtnItem namedAttrs[];
   Map<String, PPtnItem> namedAttrDict;
   boolean wildCards;
-  PPtnElem[] sortedAttrs;
+  PExprObj[] sortedAttrs;
 
   private PDataConstrPtn() {}
 
@@ -61,7 +61,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
   }
 
   static PDataConstrPtn create(Parser.SrcInfo srcInfo, int context, PExprId dcon,
-      PPtnElem[] posdAttrs, PPtnItem[] namedAttrs,
+      PExprObj[] posdAttrs, PPtnItem[] namedAttrs,
       boolean wildCards) throws CompileException {
     StringBuffer emsg;
     PDataConstrPtn p = new PDataConstrPtn();
@@ -102,7 +102,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
     }
     String mid = elem.getAttrValueAsId("mid");
 
-    ArrayList<PPtnElem> pas = new ArrayList<PPtnElem>();
+    ArrayList<PExprObj> pas = new ArrayList<PExprObj>();
     ArrayList<PPtnItem> nas = new ArrayList<PPtnItem>();
     ParserB.Elem e = elem.getFirstChild();
     if (e != null && e.getName().equals("attrs")) {
@@ -155,7 +155,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
     return create(
       si, context,
       PExprId.create(si, mid, dcon),
-      pas.toArray(new PPtnElem[pas.size()]),
+      pas.toArray(new PExprObj[pas.size()]),
       nas.toArray(new PPtnItem[nas.size()]),
       wildCards);
   }
@@ -205,10 +205,10 @@ class PDataConstrPtn extends PDefaultPtnElem {
 
   private void sortAttrs() throws CompileException {
     int[] attrDsts = this.analyzeAttrDst();
-    this.sortedAttrs = new PPtnElem[attrDsts.length];
+    this.sortedAttrs = new PExprObj[attrDsts.length];
     for (int i = 0; i < attrDsts.length; i++) {
       int ad = attrDsts[i];
-      PPtnElem p;
+      PExprObj p;
       switch (ad) {
       case ATTR_TO_POSD:
         p = this.posdAttrs[i];
@@ -217,7 +217,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
         p = PWildCard.create(this.srcInfo);
         break;
       default:  //  to named attribute
-        p = (PPtnElem)this.namedAttrs[ad].elem;
+        p = (PExprObj)this.namedAttrs[ad].elem;
         break;
       }
       this.sortedAttrs[i] = p;

@@ -405,7 +405,7 @@ abstract class PType {
     return v;
   }
 
-  static class Bound extends PDefaultProgElem implements PTypeDesc {
+  static class Bound extends PDefaultProgObj implements PTypeDesc {
     private Bound() {}
 
     static Bound accept(ParserA.TokenReader reader) throws CompileException, IOException {

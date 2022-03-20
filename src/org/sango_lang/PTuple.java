@@ -27,8 +27,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PTuple extends PDefaultEvalElem {
-  PEvalElem[] elems;
+class PTuple extends PDefaultExprObj {
+  PExprObj[] elems;
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -45,7 +45,7 @@ class PTuple extends PDefaultEvalElem {
 
   static class Builder {
     PTuple tuple;
-    List<PEvalElem> elemList;
+    List<PExprObj> elemList;
 
     static Builder newInstance() {
       return new Builder();
@@ -53,18 +53,18 @@ class PTuple extends PDefaultEvalElem {
 
     Builder() {
       this.tuple = new PTuple();
-      this.elemList = new ArrayList<PEvalElem>();
+      this.elemList = new ArrayList<PExprObj>();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
       this.tuple.srcInfo = si;
     }
 
-    void addElem(PEvalElem elem) {
+    void addElem(PExprObj elem) {
       this.elemList.add(elem);
     }
 
-    void addElemList(List<PEvalElem> elemList) {
+    void addElemList(List<PExprObj> elemList) {
       for (int i = 0; i < elemList.size(); i++) {
         this.addElem(elemList.get(i));
       }
@@ -79,7 +79,7 @@ class PTuple extends PDefaultEvalElem {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.tuple.elems = this.elemList.toArray(new PEvalElem[this.elemList.size()]); 
+      this.tuple.elems = this.elemList.toArray(new PExprObj[this.elemList.size()]); 
       return this.tuple;
     }
   }
@@ -115,7 +115,7 @@ class PTuple extends PDefaultEvalElem {
     builder.setSrcInfo(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PEvalElem expr = PExpr.acceptX(e);
+      PExprObj expr = PExpr.acceptX(e);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");

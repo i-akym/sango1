@@ -23,7 +23,7 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
+class PTVarRef extends PDefaultTypedObj implements PTypeDesc {
   // String name;
   PTVarDef def;
   // PTVarSlot varSlot;
@@ -36,14 +36,6 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
     v.def = def;
     return v;
   }
-
-  // static PTVarRef create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
-    // PTVarRef v = new PTVarRef();
-    // v.srcInfo = srcInfo;
-    // v.name = name;
-    // v.varSlot = varSlot;
-    // return v;
-  // }
 
   static PTypeId acceptXTvar(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
@@ -124,14 +116,14 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
     return (PTypeVarSkel)this.getSkel();
   }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-/* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
-    return graph.createVarRefNode(this, def.name, this.def.typeGraphNode);
-  }
+  // public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+// /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
+    // return graph.createVarRefNode(this, def.name, this.def.typeGraphNode);
+  // }
 
-  public PTypeGraph.Node getTypeGraphNode() {
-    return this.def.typeGraphNode;
-  }
+  // public PTypeGraph.Node getTypeGraphNode() {
+    // return this.def.typeGraphNode;
+  // }
 
   public PTypeSkel getSkel() {
     /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }

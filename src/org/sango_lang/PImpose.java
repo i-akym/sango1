@@ -23,7 +23,7 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PImpose extends PDefaultTypedElem {
+class PImpose extends PDefaultExprObj {
 
   private PImpose() {}
 

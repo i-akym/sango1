@@ -58,14 +58,14 @@ class PTypeGraph {
         if (n.type == null) {
           if (DEBUG > 1) {
           /* DEBUG */ System.out.print("Undetermined ");
-          /* DEBUG */ System.out.println(n.typedElem);
+          /* DEBUG */ System.out.println(n.exprObj);
           }
           PTypeSkel t = n.infer();
           if (t != null) {
             n.type = t;
             if (DEBUG > 0) {
             /* DEBUG */ System.out.print("Inferred ");
-            /* DEBUG */ System.out.print(n.typedElem);
+            /* DEBUG */ System.out.print(n.exprObj);
             /* DEBUG */ System.out.print(" -> ");
             /* DEBUG */ System.out.println(PTypeSkel.Repr.topLevelRepr(n.type));
             }
@@ -78,9 +78,9 @@ class PTypeGraph {
       if (this.nodeList.get(i).type == null) {
         emsg = new StringBuffer();
         emsg.append("Cannot determine type at ");
-        emsg.append(this.nodeList.get(i).typedElem.getSrcInfo());
+        emsg.append(this.nodeList.get(i).exprObj.getSrcInfo());
         emsg.append(". - ");
-        emsg.append(this.nodeList.get(i).typedElem);
+        emsg.append(this.nodeList.get(i).exprObj);
         throw new CompileException(emsg.toString());
       }
     }
@@ -90,13 +90,13 @@ class PTypeGraph {
   }
 
   abstract class Node {
-    PTypedElem typedElem;
+    PExprObj exprObj;
     PTypeSkel type;
     Node inNode;
     boolean dependsOnSelfRet;
     
-    Node(PTypedElem typedElem) {
-      this.typedElem = typedElem;
+    Node(PExprObj exprObj) {
+      this.exprObj = exprObj;
       PTypeGraph.this.nodeList.add(this);
     }
 
@@ -114,7 +114,7 @@ class PTypeGraph {
 
     PTypeSkel getFixedType() { return this.type; }
 
-    List<PTVarSlot> getGivenTvarList() { return this.typedElem.getScope().getGivenTVarList(); }
+    List<PTVarSlot> getGivenTvarList() { return this.exprObj.getScope().getGivenTVarList(); }
 
     abstract PTypeSkel infer() throws CompileException;
 
@@ -122,17 +122,17 @@ class PTypeGraph {
 
   }
 
-  DetNode createDetNode(PTypedElem typedElem) {
-      DetNode n = new DetNode(typedElem);
-      // typedElem.setFixedType(typedElem.getNormalizedType());
+  DetNode createDetNode(PExprObj exprObj) {
+      DetNode n = new DetNode(exprObj);
+      // exprObj.setFixedType(exprObj.getNormalizedType());
       return n;
   }
 
   class DetNode extends Node {
 
-    DetNode(PTypedElem typedElem) {
-      super(typedElem);
-      this.type = typedElem.getNormalizedType();
+    DetNode(PExprObj exprObj) {
+      super(exprObj);
+      this.type = exprObj.getNormalizedType();
     }
 
     PTypeSkel infer() throws CompileException {
@@ -154,7 +154,7 @@ class PTypeGraph {
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" at ");
-          emsg.append(this.typedElem.getSrcInfo());
+          emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
@@ -162,15 +162,15 @@ class PTypeGraph {
     }
   }
 
-  RefNode createRefNode(PTypedElem typedElem) {
-    RefNode n = new RefNode(typedElem);
+  RefNode createRefNode(PExprObj exprObj) {
+    RefNode n = new RefNode(exprObj);
     return n;
   }
 
   class RefNode extends Node {
 
-    RefNode(PTypedElem typedElem) {
-      super(typedElem);
+    RefNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -178,19 +178,19 @@ class PTypeGraph {
     }
   }
 
-  VarNode createVarNode(PTypedElem typedElem, String name, int cat) {
-    return new VarNode(typedElem, name, cat);
+  VarNode createVarNode(PExprObj exprObj, String name, int cat) {
+    return new VarNode(exprObj, name, cat);
   }
 
   class VarNode extends Node {
     String name;
     int cat;  // PEVarDef.CAT_xx
 
-    VarNode(PTypedElem typedElem, String name, int cat) {
-      super(typedElem);
+    VarNode(PExprObj exprObj, String name, int cat) {
+      super(exprObj);
       this.name = name;
       this.cat = cat;
-      this.type = typedElem.getNormalizedType(); 
+      this.type = exprObj.getNormalizedType(); 
     }
 
     PTypeSkel infer() throws CompileException {
@@ -199,7 +199,7 @@ class PTypeGraph {
 
     void check() throws CompileException {
       StringBuffer emsg;
-      if (this.typedElem.getNormalizedType() != null && this.inNode != null) {
+      if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
 // HERE: needed?
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
@@ -215,7 +215,7 @@ class PTypeGraph {
           emsg.append(" *");
           emsg.append(this.name);
           emsg.append(" at ");
-          emsg.append(this.typedElem.getSrcInfo());
+          emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
@@ -223,20 +223,20 @@ class PTypeGraph {
     }
   }
 
-  VarRefNode createVarRefNode(PTypedElem typedElem, String name, Node defNode) {
-    return new VarRefNode(typedElem, name, defNode);
+  VarRefNode createVarRefNode(PExprObj exprObj, String name, Node defNode) {
+    return new VarRefNode(exprObj, name, defNode);
   }
 
   class VarRefNode extends Node {
     String name;
     Node defNode;
 
-    VarRefNode(PTypedElem typedElem, String name, Node defNode) {
-      super(typedElem);
+    VarRefNode(PExprObj exprObj, String name, Node defNode) {
+      super(exprObj);
       this.name = name;
       /* DEBUG */ if (defNode == null) { throw new IllegalArgumentException("Def node is null."); }
       this.defNode = defNode;
-      // this.type = typedElem.getNormalizedType(); 
+      // this.type = exprObj.getNormalizedType(); 
     }
 
     PTypeSkel infer() throws CompileException {
@@ -245,7 +245,7 @@ class PTypeGraph {
 
     void check() throws CompileException {
       StringBuffer emsg;
-      if (this.typedElem.getNormalizedType() != null && this.inNode != null) {
+      if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
         }
@@ -260,7 +260,7 @@ class PTypeGraph {
           emsg.append(" *");
           emsg.append(this.name);
           emsg.append(" at ");
-          emsg.append(this.typedElem.getSrcInfo());
+          emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
@@ -268,15 +268,15 @@ class PTypeGraph {
     }
   }
 
-  RetNode createRetNode(PTypedElem typedElem) {
-    return new RetNode(typedElem);
+  RetNode createRetNode(PExprObj exprObj) {
+    return new RetNode(exprObj);
   }
 
   class RetNode extends Node {
 
-    RetNode(PTypedElem typedElem) {
-      super(typedElem);
-      this.type = typedElem.getNormalizedType();
+    RetNode(PExprObj exprObj) {
+      super(exprObj);
+      this.type = exprObj.getNormalizedType();
     }
 
     PTypeSkel infer() throws CompileException {
@@ -286,7 +286,7 @@ class PTypeGraph {
 
     void check() throws CompileException {
       StringBuffer emsg;
-      if (this.typedElem.getNormalizedType() != null && this.inNode != null) {
+      if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking return type...");
         }
@@ -296,7 +296,7 @@ class PTypeGraph {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
-          emsg.append(this.typedElem.getSrcInfo());
+          emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           emsg.append("\n  defined: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
@@ -308,16 +308,16 @@ class PTypeGraph {
     }
   }
 
-  FunRefNode createFunRefNode(PTypedElem typedElem, PExprId official) {
-    FunRefNode n = new FunRefNode(typedElem, official);
+  FunRefNode createFunRefNode(PExprObj exprObj, PExprId official) {
+    FunRefNode n = new FunRefNode(exprObj, official);
     return n;
   }
 
   class FunRefNode extends Node {
     PExprId official;
 
-    FunRefNode(PTypedElem typedElem, PExprId official) {
-      super(typedElem);
+    FunRefNode(PExprObj exprObj, PExprId official) {
+      super(exprObj);
       this.official = official;
     }
 
@@ -329,7 +329,7 @@ class PTypeGraph {
         emsg.append("Function ");
         emsg.append(this.official);
         emsg.append(" not found at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
@@ -353,19 +353,19 @@ class PTypeGraph {
       /* DEBUG */ System.out.print("bindings: ");
       /* DEBUG */ System.out.println(b);
       }
-      return this.typedElem.getScope().getLangDefinedTypeSkel(this.typedElem.getSrcInfo(), "fun", ts);
+      return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "fun", ts);
     }
   }
 
-  SelfRefNode createSelfRefNode(PTypedElem typedElem, ClosureNode closureNode) {
-    SelfRefNode n = new SelfRefNode(typedElem, closureNode);
+  SelfRefNode createSelfRefNode(PExprObj exprObj, ClosureNode closureNode) {
+    SelfRefNode n = new SelfRefNode(exprObj, closureNode);
     return n;
   }
 
   class SelfRefNode extends Node {
 
-    SelfRefNode(PTypedElem typedElem, ClosureNode closureNode) {
-      super(typedElem);
+    SelfRefNode(PExprObj exprObj, ClosureNode closureNode) {
+      super(exprObj);
       this.inNode = closureNode;
       this.dependsOnSelfRet = true;
     }
@@ -375,8 +375,8 @@ class PTypeGraph {
     }
   }
 
-  ClosureNode createClosureNode(PTypedElem typedElem, int paramCount) {
-    ClosureNode n = new ClosureNode(typedElem, paramCount);
+  ClosureNode createClosureNode(PExprObj exprObj, int paramCount) {
+    ClosureNode n = new ClosureNode(exprObj, paramCount);
     return n;
   }
 
@@ -384,8 +384,8 @@ class PTypeGraph {
     Node[] paramNodes;
     Node retNode;
 
-    ClosureNode(PTypedElem typedElem, int paramCount) {
-      super(typedElem);
+    ClosureNode(PExprObj exprObj, int paramCount) {
+      super(exprObj);
       this.paramNodes = new Node[paramCount];
       for (int i = 0; i < paramCount; i++) {
         this.paramNodes[i] = null;
@@ -412,12 +412,12 @@ class PTypeGraph {
       t = this.getTypeOf(this.retNode);
       if (t == null) { return null; }
       ts[ts.length - 1] = t;
-      return this.typedElem.getScope().getLangDefinedTypeSkel(this.typedElem.getSrcInfo(), "fun", ts);
+      return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "fun", ts);
     }
   }
 
-  StaticInvNode createStaticInvNode(PTypedElem typedElem, PExprId funId, int paramCount) {
-    StaticInvNode n = new StaticInvNode(typedElem, funId, paramCount);
+  StaticInvNode createStaticInvNode(PExprObj exprObj, PExprId funId, int paramCount) {
+    StaticInvNode n = new StaticInvNode(exprObj, funId, paramCount);
     return n;
   }
 
@@ -427,8 +427,8 @@ class PTypeGraph {
     PFunDef funDef;
     PTypeSkelBindings bindings;
 
-    StaticInvNode(PTypedElem typedElem, PExprId funId, int paramCount) {
-      super(typedElem);
+    StaticInvNode(PExprObj exprObj, PExprId funId, int paramCount) {
+      super(exprObj);
       this.funId = funId;
       this.paramNodes = new Node[paramCount];
       for (int i = 0; i < paramCount; i++) {
@@ -454,7 +454,7 @@ class PTypeGraph {
         emsg.append("Function ");
         emsg.append(this.funId.toRepr());
         emsg.append(" not found at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         for (int i = 0; i < pts.length; i++) {
           emsg.append("\n  parameter: ");
@@ -481,8 +481,8 @@ class PTypeGraph {
     }
   }
 
-  DynamicInvNode createDynamicInvNode(PTypedElem typedElem, int paramCount) {
-    DynamicInvNode n = new DynamicInvNode(typedElem, paramCount);
+  DynamicInvNode createDynamicInvNode(PExprObj exprObj, int paramCount) {
+    DynamicInvNode n = new DynamicInvNode(exprObj, paramCount);
     return n;
   }
 
@@ -491,8 +491,8 @@ class PTypeGraph {
     Node closureNode;
     PTypeSkelBindings bindings;
 
-    DynamicInvNode(PTypedElem typedElem, int paramCount) {
-      super(typedElem);
+    DynamicInvNode(PExprObj exprObj, int paramCount) {
+      super(exprObj);
       this.paramNodes = new Node[paramCount];
       for (int i = 0; i < paramCount; i++) {
         this.paramNodes[i] = null;
@@ -514,7 +514,7 @@ class PTypeGraph {
       if (ct == null) { return null; }
 if (DEBUG > 1) {
       /* DEBUG */ System.out.print("closure type of ");
-      /* DEBUG */ System.out.print(this.typedElem.getSrcInfo());
+      /* DEBUG */ System.out.print(this.exprObj.getSrcInfo());
       /* DEBUG */ System.out.print(": ");
       /* DEBUG */ System.out.println(ct);
 }
@@ -523,7 +523,7 @@ if (DEBUG > 1) {
         emsg.append("Invalid closure type ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(ct));
         emsg.append(" at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
@@ -533,19 +533,19 @@ if (DEBUG > 1) {
       } else {
         emsg = new StringBuffer();
         emsg.append("Invalid closure object at ");
-        emsg.append(this.closureNode.typedElem.getSrcInfo());
+        emsg.append(this.closureNode.exprObj.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
       if (this.paramNodes.length != ctr.params.length - 1) {
         emsg = new StringBuffer();
         emsg.append("Invalid argument count at ");
-        emsg.append(this.closureNode.typedElem.getSrcInfo());
+        emsg.append(this.closureNode.exprObj.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
       for (int i = 0; i < this.paramNodes.length; i++) {
-/* DEBUG */ if (this.paramNodes[i] == null) { System.out.println(this.typedElem); }
+/* DEBUG */ if (this.paramNodes[i] == null) { System.out.println(this.exprObj); }
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
         PTypeSkelBindings bb = this.bindings;  // before looks for debug
@@ -553,7 +553,7 @@ if (DEBUG > 1) {
         if (this.bindings == null) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
-          emsg.append(this.typedElem.getSrcInfo());
+          emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           emsg.append("\n  parameter pos: ");
           emsg.append(i + 1);
@@ -575,16 +575,16 @@ if (DEBUG > 1) {
     }
   }
 
-  SeqNode createSeqNode(PTypedElem typedElem) {
-    SeqNode n = new SeqNode(typedElem);
+  SeqNode createSeqNode(PExprObj exprObj) {
+    SeqNode n = new SeqNode(exprObj);
     return n;
   }
 
   class SeqNode extends Node {
     Node leadingTypeNode;  // inNode is used for following node
 
-    SeqNode(PTypedElem typedElem) {
-      super(typedElem);
+    SeqNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     void setLeadingTypeNode(Node node) {
@@ -618,16 +618,16 @@ if (DEBUG > 1) {
     }
   }
 
-  JoinNode createJoinNode(PTypedElem typedElem, int branchCount) {
-    JoinNode n = new JoinNode(typedElem, branchCount);
+  JoinNode createJoinNode(PExprObj exprObj, int branchCount) {
+    JoinNode n = new JoinNode(exprObj, branchCount);
     return n;
   }
 
   class JoinNode extends Node {
     Node[] branchNodes;
 
-    JoinNode(PTypedElem typedElem, int branchCount) {
-      super(typedElem);
+    JoinNode(PExprObj exprObj, int branchCount) {
+      super(exprObj);
       this.branchNodes = new Node[branchCount];
       for (int i = 0; i < branchCount; i++) {
         this.branchNodes[i] = null;
@@ -660,7 +660,7 @@ if (DEBUG > 1) {
           if (t1 == null) {
             emsg = new StringBuffer();
             emsg.append("Results of clauses cannot join at - ");
-            emsg.append(this.typedElem.getSrcInfo());
+            emsg.append(this.exprObj.getSrcInfo());
             emsg.append(".");
             emsg.append("\n  type: ");
             emsg.append(PTypeSkel.Repr.topLevelRepr(t));
@@ -675,7 +675,7 @@ if (DEBUG > 1) {
       } else {
         emsg = new StringBuffer();
         emsg.append("Cannot determine type at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
@@ -683,16 +683,16 @@ if (DEBUG > 1) {
     }
   }
 
-  TupleNode createTupleNode(PTypedElem typedElem, int elemCount) {
-    TupleNode n = new TupleNode(typedElem, elemCount);
+  TupleNode createTupleNode(PExprObj exprObj, int elemCount) {
+    TupleNode n = new TupleNode(exprObj, elemCount);
     return n;
   }
 
   class TupleNode extends Node {
     Node[] elemNodes;
 
-    TupleNode(PTypedElem typedElem, int elemCount) {
-      super(typedElem);
+    TupleNode(PExprObj exprObj, int elemCount) {
+      super(exprObj);
       this.elemNodes = new Node[elemCount];
       for (int i = 0; i < elemCount; i++) {
         this.elemNodes[i] = null;
@@ -712,26 +712,26 @@ if (DEBUG > 1) {
         if (PTypeRefSkel.willNotReturn(t)) { return t; }
         ts[i] = t;
       }
-      return this.typedElem.getScope().getLangDefinedTypeSkel(this.typedElem.getSrcInfo(), "tuple", ts);
+      return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "tuple", ts);
     }
   }
 
-  EmptyListNode createEmptyListNode(PTypedElem typedElem) {
-    return new EmptyListNode(typedElem);
+  EmptyListNode createEmptyListNode(PExprObj exprObj) {
+    return new EmptyListNode(exprObj);
   }
 
   class EmptyListNode extends Node {
-    EmptyListNode(PTypedElem typedElem) {
-      super(typedElem);
+    EmptyListNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.typedElem.getScope().getEmptyListType(this.typedElem.getSrcInfo());
+      return this.exprObj.getScope().getEmptyListType(this.exprObj.getSrcInfo());
     }
   }
 
-  ListNode createListNode(PTypedElem typedElem) {
-    ListNode n = new ListNode(typedElem);
+  ListNode createListNode(PExprObj exprObj) {
+    ListNode n = new ListNode(exprObj);
     return n;
   }
 
@@ -739,8 +739,8 @@ if (DEBUG > 1) {
     Node elemNode;
     Node tailNode;
 
-    ListNode(PTypedElem typedElem) {
-      super(typedElem);
+    ListNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     void setElemNode(Node node) {
@@ -762,7 +762,7 @@ if (DEBUG > 1) {
       if (!PTypeRefSkel.isList(tt)) {
         emsg = new StringBuffer();
         emsg.append("Type of list tail is invalid at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(". - ");
         emsg.append(tt);  // HERE: convert to readable expression
         throw new CompileException(emsg.toString());
@@ -772,7 +772,7 @@ if (DEBUG > 1) {
 // /* DEBUG */ System.out.print("joining "); System.out.print(et); System.out.print(" "); System.out.println(((PTypeRefSkel)tt).params[0]);
         emsg = new StringBuffer();
         emsg.append("Element type is incompatible at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  element: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(et));
@@ -780,20 +780,20 @@ if (DEBUG > 1) {
         emsg.append(PTypeSkel.Repr.topLevelRepr(((PTypeRefSkel)tt).params[0]));
         throw new CompileException(emsg.toString());
       }
-      return this.typedElem.getScope().getLangDefinedTypeSkel(this.typedElem.getSrcInfo(), "list", new PTypeSkel[] { t });
+      return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "list", new PTypeSkel[] { t });
     }
   }
 
-  StringNode createStringNode(PTypedElem typedElem, int elemCount) {
-    StringNode n = new StringNode(typedElem, elemCount);
+  StringNode createStringNode(PExprObj exprObj, int elemCount) {
+    StringNode n = new StringNode(exprObj, elemCount);
     return n;
   }
 
   class StringNode extends Node {
     Node[] elemNodes;
 
-    StringNode(PTypedElem typedElem, int elemCount) {
-      super(typedElem);
+    StringNode(PExprObj exprObj, int elemCount) {
+      super(exprObj);
       this.elemNodes = new Node[elemCount];
       for (int i = 0; i < elemCount; i++) {
         this.elemNodes[i] = null;
@@ -807,7 +807,7 @@ if (DEBUG > 1) {
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
       if (this.elemNodes.length == 0) {
-        return this.typedElem.getScope().getEmptyStringType(this.typedElem.getSrcInfo());
+        return this.exprObj.getScope().getEmptyStringType(this.exprObj.getSrcInfo());
       }
       PTypeSkel t = null;
       for (int i = 0; i < this.elemNodes.length; i++) {
@@ -821,18 +821,18 @@ if (DEBUG > 1) {
           if (t == null) {
             emsg = new StringBuffer();
             emsg.append("Element types incompatible at - ");
-            emsg.append(this.typedElem.getSrcInfo());
+            emsg.append(this.exprObj.getSrcInfo());
             emsg.append(".");
             throw new CompileException(emsg.toString());
           }
         }
       }
-      return this.typedElem.getScope().getLangDefinedTypeSkel(this.typedElem.getSrcInfo(), "string", new PTypeSkel[] { t });
+      return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "string", new PTypeSkel[] { t });
     }
   }
 
-  DataConstrNode createDataConstrNode(PTypedElem typedElem, PExprId dcon, int attrCount) {
-    DataConstrNode n = new DataConstrNode(typedElem, dcon, attrCount);
+  DataConstrNode createDataConstrNode(PExprObj exprObj, PExprId dcon, int attrCount) {
+    DataConstrNode n = new DataConstrNode(exprObj, dcon, attrCount);
     return n;
   }
 
@@ -840,8 +840,8 @@ if (DEBUG > 1) {
     PExprId dcon;
     Node[] attrNodes;
 
-    DataConstrNode(PTypedElem typedElem, PExprId dcon, int attrCount) {
-      super(typedElem);
+    DataConstrNode(PExprObj exprObj, PExprId dcon, int attrCount) {
+      super(exprObj);
       this.dcon = dcon;
       this.attrNodes = new Node[attrCount];
       for (int i = 0; i < attrCount; i++) {
@@ -879,7 +879,7 @@ if (DEBUG > 1) {
         if ((b = at.accept(PTypeSkel.NARROWER, true, t, b)) == null) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
-          emsg.append(this.typedElem.getSrcInfo());
+          emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           emsg.append("\n  attribute def: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(at));
@@ -902,15 +902,15 @@ if (DEBUG > 1) {
     }
   }
 
-  TuplePtnNode createTuplePtnNode(PTypedElem typedElem, int elemCount) {
-    return new TuplePtnNode(typedElem, elemCount);
+  TuplePtnNode createTuplePtnNode(PExprObj exprObj, int elemCount) {
+    return new TuplePtnNode(exprObj, elemCount);
   }
 
   class TuplePtnNode extends Node {
     int elemCount;
 
-    TuplePtnNode(PTypedElem typedElem, int elemCount) {
-      super(typedElem);
+    TuplePtnNode(PExprObj exprObj, int elemCount) {
+      super(exprObj);
       this.elemCount = elemCount;
     }
 
@@ -922,7 +922,7 @@ if (DEBUG > 1) {
       if (!PTypeRefSkel.isLangType(t, "tuple")) {
         emsg = new StringBuffer();
         emsg.append("Value is not tuple at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(t));
@@ -932,7 +932,7 @@ if (DEBUG > 1) {
       if (tr.params.length != this.elemCount) {
         emsg = new StringBuffer();
         emsg.append("Tuple's length mismatch at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
@@ -940,15 +940,15 @@ if (DEBUG > 1) {
     }
   }
 
-  TuplePtnElemNode createTuplePtnElemNode(PTypedElem typedElem, int index) {
-    return new TuplePtnElemNode(typedElem, index);
+  TuplePtnElemNode createTuplePtnElemNode(PExprObj exprObj, int index) {
+    return new TuplePtnElemNode(exprObj, index);
   }
 
   class TuplePtnElemNode extends Node {
     int index;
 
-    TuplePtnElemNode(PTypedElem typedElem, int index) {
-      super(typedElem);
+    TuplePtnElemNode(PExprObj exprObj, int index) {
+      super(exprObj);
       this.index = index;
     }
 
@@ -961,14 +961,14 @@ if (DEBUG > 1) {
     }
   }
 
-  ListPtnNode createListPtnNode(PTypedElem typedElem) {
-    return new ListPtnNode(typedElem);
+  ListPtnNode createListPtnNode(PExprObj exprObj) {
+    return new ListPtnNode(exprObj);
   }
 
   class ListPtnNode extends Node {
 
-    ListPtnNode(PTypedElem typedElem) {
-      super(typedElem);
+    ListPtnNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -979,7 +979,7 @@ if (DEBUG > 1) {
       if (!PTypeRefSkel.isLangType(t, "list")) {
         emsg = new StringBuffer();
         emsg.append("Not in list at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actually in: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(t));
@@ -989,15 +989,15 @@ if (DEBUG > 1) {
     }
   }
 
-  ListPtnElemNode createListPtnElemNode(PTypedElem typedElem) {
-    ListPtnElemNode n = new ListPtnElemNode(typedElem);
+  ListPtnElemNode createListPtnElemNode(PExprObj exprObj) {
+    ListPtnElemNode n = new ListPtnElemNode(exprObj);
     return n;
   }
 
   class ListPtnElemNode extends Node {
 
-    ListPtnElemNode(PTypedElem typedElem) {
-      super(typedElem);
+    ListPtnElemNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -1009,14 +1009,14 @@ if (DEBUG > 1) {
     }
   }
 
-  StringPtnNode createStringPtnNode(PTypedElem typedElem) {
-    return new StringPtnNode(typedElem);
+  StringPtnNode createStringPtnNode(PExprObj exprObj) {
+    return new StringPtnNode(exprObj);
   }
 
   class StringPtnNode extends Node {
 
-    StringPtnNode(PTypedElem typedElem) {
-      super(typedElem);
+    StringPtnNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -1027,7 +1027,7 @@ if (DEBUG > 1) {
       if (!PTypeRefSkel.isLangType(t, "string")) {
         emsg = new StringBuffer();
         emsg.append("Value is not string at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
         emsg.append(t);
@@ -1037,14 +1037,14 @@ if (DEBUG > 1) {
     }
   }
 
-  StringPtnElemNode createStringPtnElemNode(PTypedElem typedElem) {
-    return new StringPtnElemNode(typedElem);
+  StringPtnElemNode createStringPtnElemNode(PExprObj exprObj) {
+    return new StringPtnElemNode(exprObj);
   }
 
   class StringPtnElemNode extends Node {
 
-    StringPtnElemNode(PTypedElem typedElem) {
-      super(typedElem);
+    StringPtnElemNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -1056,8 +1056,8 @@ if (DEBUG > 1) {
     }
   }
 
-  DataConstrPtnNode createDataConstrPtnNode(PTypedElem typedElem, int context, PExprId dcon) {
-    DataConstrPtnNode n = new DataConstrPtnNode(typedElem, context, dcon);
+  DataConstrPtnNode createDataConstrPtnNode(PExprObj exprObj, int context, PExprId dcon) {
+    DataConstrPtnNode n = new DataConstrPtnNode(exprObj, context, dcon);
     return n;
   }
 
@@ -1066,11 +1066,11 @@ if (DEBUG > 1) {
     PExprId dcon;
     PTypeSkelBindings bindings;
 
-    DataConstrPtnNode(PTypedElem typedElem, int context, PExprId dcon) {
-      super(typedElem);
+    DataConstrPtnNode(PExprObj exprObj, int context, PExprId dcon) {
+      super(exprObj);
       if (context == PPtnMatch.CONTEXT_FIXED || context == PPtnMatch.CONTEXT_TRIAL) {
       } else {
-        throw new IllegalArgumentException("Unexpected context. " + Integer.toString(this.context) + " " + this.typedElem.toString());
+        throw new IllegalArgumentException("Unexpected context. " + Integer.toString(this.context) + " " + this.exprObj.toString());
       } 
       this.context = context;
       this.dcon = dcon;
@@ -1090,7 +1090,7 @@ if (DEBUG > 1) {
       if (sig.accept(width, true, t, b) == null) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(t));
@@ -1101,7 +1101,7 @@ if (DEBUG > 1) {
       if (!(t instanceof PTypeRefSkel)) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(t));
@@ -1113,7 +1113,7 @@ if (DEBUG > 1) {
       if (tr.params.length != sig.params.length) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  value type: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(tr));
@@ -1123,7 +1123,7 @@ if (DEBUG > 1) {
       }
       this.bindings = b;
 if (DEBUG > 1) {
-/* DEBUG */ System.out.print(this.typedElem);
+/* DEBUG */ System.out.print(this.exprObj);
 /* DEBUG */ System.out.print(" >>bindings>> ");
 /* DEBUG */ System.out.println(b);
 }
@@ -1131,8 +1131,8 @@ if (DEBUG > 1) {
     }
   }
 
-  DataConstrPtnAttrNode createDataConstrPtnAttrNode(PTypedElem typedElem, PExprId dcon, int index) {
-    DataConstrPtnAttrNode n = new DataConstrPtnAttrNode(typedElem, dcon, index);
+  DataConstrPtnAttrNode createDataConstrPtnAttrNode(PExprObj exprObj, PExprId dcon, int index) {
+    DataConstrPtnAttrNode n = new DataConstrPtnAttrNode(exprObj, dcon, index);
     return n;
   }
 
@@ -1140,8 +1140,8 @@ if (DEBUG > 1) {
     PExprId dcon;
     int index;
 
-    DataConstrPtnAttrNode(PTypedElem typedElem, PExprId dcon, int index) {
-      super(typedElem);
+    DataConstrPtnAttrNode(PExprObj exprObj, PExprId dcon, int index) {
+      super(exprObj);
       this.dcon = dcon;
       this.index = index;
     }
@@ -1150,7 +1150,7 @@ if (DEBUG > 1) {
       PTypeSkelBindings b;
       if ((b = ((DataConstrPtnNode)this.inNode).getBindings()) == null) { return null; }
 // /* DEBUG */ System.out.print("Inferring DataConstrPtnAttr ");
-// /* DEBUG */ System.out.print(this.typedElem);
+// /* DEBUG */ System.out.print(this.exprObj);
 // /* DEBUG */ System.out.print(b);
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
@@ -1160,14 +1160,14 @@ if (DEBUG > 1) {
     }
   }
 
-  CondNode createCondNode(PTypedElem typedElem) {
-    return new CondNode(typedElem);
+  CondNode createCondNode(PExprObj exprObj) {
+    return new CondNode(exprObj);
   }
 
   class CondNode extends Node {
 
-    CondNode(PTypedElem typedElem) {
-      super(typedElem);
+    CondNode(PExprObj exprObj) {
+      super(exprObj);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -1180,7 +1180,7 @@ if (DEBUG > 1) {
 // /* DEBUG */ System.out.println("checking binding...");
         emsg = new StringBuffer();
         emsg.append("Not <bool> at ");
-        emsg.append(this.typedElem.getSrcInfo());
+        emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));

@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PCaseClause extends PDefaultTypedElem {
+class PCaseClause extends PDefaultExprObj {
   PCasePtnMatch[] ptnMatches;
   PExpr[] guardExprs;  // maybe null
   PExpr[] actionExprs;  // void$ included if no expressions

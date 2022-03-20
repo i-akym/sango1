@@ -25,10 +25,10 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PPtnItem extends PDefaultProgElem {
+class PPtnItem extends PDefaultExprObj {
   int context;  // PPtnMatch.CONTEXT_*
   String name;
-  PProgElem elem;
+  PProgObj elem;
 
   private PPtnItem() {}
 
@@ -46,7 +46,7 @@ class PPtnItem extends PDefaultProgElem {
     return buf.toString();
   }
 
-  static PPtnItem create(Parser.SrcInfo srcInfo, int context, String name, PProgElem elem) {
+  static PPtnItem create(Parser.SrcInfo srcInfo, int context, String name, PProgObj elem) {
     PPtnItem i = new PPtnItem();
     i.srcInfo = srcInfo;
     i.context = context;
@@ -54,10 +54,6 @@ class PPtnItem extends PDefaultProgElem {
     i.elem = elem;
     return i;
   }
-
-  // static PPtnItem create(PProgElem elem) {
-    // return create(elem.getSrcInfo(), null, elem);
-  // }
 
   static PPtnItem accept(ParserA.TokenReader reader, int spc, int acceptables, int context) throws CompileException, IOException {
     if (acceptables == PPtn.ACCEPT_NOTHING) { return null; }
@@ -76,7 +72,7 @@ class PPtnItem extends PDefaultProgElem {
       next = null;
       space = ParserA.SPACE_DO_NOT_CARE;
     }
-    PProgElem elem = null;
+    PExprObj elem = null;
     if ((acceptables & PPtn.ACCEPT_BYTE) > 0 && (elem = PByte.accept(reader, space)) != null) {
       ;
     } else if ((acceptables & PPtn.ACCEPT_INT) > 0 && (elem = PInt.accept(reader, space)) != null) {

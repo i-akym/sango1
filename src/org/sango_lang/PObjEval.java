@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,28 +23,50 @@
  ***************************************************************************/
 package org.sango_lang;
 
-abstract class PDefaultTypedElem extends PDefaultProgElem implements PTypedElem {
-  PTypeDesc type;
-  PTypeSkel nTypeSkel;
-  PTypeGraph.Node typeGraphNode;
+class PObjEval extends PDefaultExprObj implements PEval {
+  PExprObj obj;
 
-  public PTypeDesc getType() { return this.type; }
+  private PObjEval() {}
 
-  public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("obj[src=");
+    buf.append(this.srcInfo);
+    buf.append(",obj=");
+    buf.append(this.obj);
+    buf.append("]");
+    return buf.toString();
+  }
 
-  public PTypeSkel getFixedType() { return this.typeGraphNode.getFixedType(); }
+  static PObjEval create(Parser.SrcInfo srcInfo, PExprObj obj) {
+    PObjEval e = new PObjEval();
+    e.srcInfo = srcInfo;
+    e.obj = obj;
+    return e;
+  }
+
+  public void setupScope(PScope scope) {
+    this.obj.setupScope(scope);
+  }
+
+  public void collectModRefs() throws CompileException {
+    this.obj.collectModRefs();
+  }
+
+  public PObjEval resolve() throws CompileException {
+    this.obj = this.obj.resolve();
+    return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this.obj.normalizeTypes();
+  }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    throw new RuntimeException("PTypedElem#setupTypeGraph called. - " + this.toString());
+    return this.obj.setupTypeGraph(graph);
   }
-
-  public void setTypeGraphNode(PTypeGraph.Node node) {
-    this.typeGraphNode = node;
-  }
-
-  public PTypeGraph.Node getTypeGraphNode() { return this.typeGraphNode; }
 
   public GFlow.Node setupFlow(GFlow flow) {
-    throw new RuntimeException("PTypedElem#setupFlow called. - " + this.toString());
+    return this.obj.setupFlow(flow);
   }
 }

@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PInt extends PDefaultEvalAndPtnElem {
+class PInt extends PDefaultExprObj {
    int value;
 
   private PInt() {}

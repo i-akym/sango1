@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PTVarDef extends PDefaultPtnElem implements PTypeDesc {
+class PTVarDef extends PDefaultTypedObj implements PTypeDesc {
   String name;
   int variance;
   boolean requiresConcrete;

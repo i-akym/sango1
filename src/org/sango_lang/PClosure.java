@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PClosure extends PDefaultEvalElem {
+class PClosure extends PDefaultExprObj {
   PEVarDef[] params;
   PRetDef retDef;
   PExpr[] implExprs;

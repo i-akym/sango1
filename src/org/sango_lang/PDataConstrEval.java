@@ -28,16 +28,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class PDataConstrEval extends PDefaultEvalElem {
+class PDataConstrEval extends PDefaultExprObj implements PEval {
   PExprId dcon;
-  PEvalElem posdAttrs[];
-  PEvalItem namedAttrs[];
+  PEvalItem.ObjItem posdAttrs[];
+  PEvalItem.ObjItem namedAttrs[];
   Map<String, PEvalItem> namedAttrDict;
-  PEvalElem using;
+  PEvalItem.ObjItem using;
   PExpr[] bdPosd;
   PExpr[] bdNamed;
   PExpr bdUsing;
-  PEvalElem[] bdAttrs;
+  PExprObj[] bdAttrs;
 
   private PDataConstrEval() {}
 
@@ -64,8 +64,8 @@ class PDataConstrEval extends PDefaultEvalElem {
   }
 
   static PDataConstrEval create(Parser.SrcInfo srcInfo, PExprId dcon,
-      PEvalElem[] posdAttrs, PEvalItem[] namedAttrs,
-      PEvalElem using) throws CompileException {
+      PEvalItem.ObjItem[] posdAttrs, PEvalItem.ObjItem[] namedAttrs,
+      PEvalItem.ObjItem using) throws CompileException {
     StringBuffer emsg;
     PDataConstrEval e = new PDataConstrEval();
     e.srcInfo = srcInfo;
@@ -75,7 +75,7 @@ class PDataConstrEval extends PDefaultEvalElem {
     e.using = using;
     e.namedAttrDict = new HashMap<String, PEvalItem>();
     for (int i = 0; i < namedAttrs.length; i++) {
-      PEvalItem a = namedAttrs[i];
+      PEvalItem.ObjItem a = namedAttrs[i];
       if (a.name == null) {
         throw new IllegalArgumentException("No name.");
       }
@@ -104,7 +104,7 @@ class PDataConstrEval extends PDefaultEvalElem {
     }
     String mid = elem.getAttrValueAsId("mid");
 
-    ArrayList<PEvalElem> pas = new ArrayList<PEvalElem>();
+    ArrayList<PEvalItem> pas = new ArrayList<PEvalItem>();
     ArrayList<PEvalItem> nas = new ArrayList<PEvalItem>();
     ParserB.Elem e = elem.getFirstChild();
     if (e != null && e.getName().equals("attrs")) {
@@ -124,7 +124,7 @@ class PDataConstrEval extends PDefaultEvalElem {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        PEvalElem ex = PExpr.acceptX(eee);
+        PExpr ex = PExpr.acceptX(eee);
         if (ex == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -133,7 +133,7 @@ class PDataConstrEval extends PDefaultEvalElem {
         }
         String name = ee.getAttrValueAsId("name");
         if (name != null) {
-          nas.add(PEvalItem.create(ee.getSrcInfo(), name, ex));
+          nas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), PEval.ACCEPT_ENCLOSED, name, ex));
         } else if (!nas.isEmpty()) {
           emsg = new StringBuffer();
           emsg.append("Attribute name missing at ");
@@ -141,13 +141,13 @@ class PDataConstrEval extends PDefaultEvalElem {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         } else {
-          pas.add(ex);
+          pas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), PEval.ACCEPT_ENCLOSED, null, ex));
         }
         ee = ee.getNextSibling();
       }
       e = e.getNextSibling();
     }
-    PEvalElem using = null;
+    PEval using = null;
     if (e != null && e.getName().equals("other-attrs")) {
       ParserB.Elem ee = e.getFirstChild();
       if (ee == null) {
@@ -171,9 +171,9 @@ class PDataConstrEval extends PDefaultEvalElem {
     return create(
       si,
       PExprId.create(si, mid, dcon),
-      pas.toArray(new PEvalElem[pas.size()]),
-      nas.toArray(new PEvalItem[nas.size()]),
-      using);
+      pas.toArray(new PEvalItem.ObjItem[pas.size()]),
+      nas.toArray(new PEvalItem.ObjItem[nas.size()]),
+      PEvalItem.ObjItem.create(using.getSrcInfo(), PEval.ACCEPT_ENCLOSED, null, using));
   }
 
   public void setupScope(PScope scope) {
@@ -230,7 +230,7 @@ class PDataConstrEval extends PDefaultEvalElem {
 
   private void breakDown() throws CompileException {
     int[] attrSrcs = this.analyzeAttrSrc();
-    this.bdAttrs = new PEvalElem[attrSrcs.length];
+    this.bdAttrs = new PExprObj[attrSrcs.length];
     boolean u = false;
     boolean n = false;
     int ni = -1;
@@ -343,7 +343,7 @@ class PDataConstrEval extends PDefaultEvalElem {
       for (int i = 0; i < this.posdAttrs.length; i++) {
         PEval.Builder evalBuilder = PEval.Builder.newInstance();
         evalBuilder.setSrcInfo(this.srcInfo);
-        evalBuilder.addItem(PEvalItem.create(this.posdAttrs[i]));
+        evalBuilder.addItem(this.posdAttrs[i].shallowCopyNoName());
         PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
         ptnBuilder.setSrcInfo(this.srcInfo);
         ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
@@ -359,7 +359,7 @@ class PDataConstrEval extends PDefaultEvalElem {
       for (int i = 0; i < this.namedAttrs.length; i++) {
         PEval.Builder evalBuilder = PEval.Builder.newInstance();
         evalBuilder.setSrcInfo(this.srcInfo);
-        evalBuilder.addItem(PEvalItem.create(this.namedAttrs[i].elem));
+        evalBuilder.addItem(this.namedAttrs[i].shallowCopyNoName());
         PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
         ptnBuilder.setSrcInfo(this.srcInfo);
         ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
@@ -374,7 +374,7 @@ class PDataConstrEval extends PDefaultEvalElem {
       if (this.using != null) {
         PEval.Builder usingEvalBuilder = PEval.Builder.newInstance();
         usingEvalBuilder.setSrcInfo(this.srcInfo);
-        usingEvalBuilder.addItem(PEvalItem.create(this.using));
+        usingEvalBuilder.addItem(this.using);
         PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance();
         usingPtnBuilder.setSrcInfo(this.srcInfo);
         usingPtnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
@@ -394,7 +394,7 @@ class PDataConstrEval extends PDefaultEvalElem {
       }
       for (int i = 0; i < attrSrcs.length; i++) {
         int as = attrSrcs[i];
-        PEvalElem e;
+        PExprObj e;
         switch (as) {
         case ATTR_FROM_POSD:
           e = posdVarRefs[i];
@@ -415,6 +415,7 @@ class PDataConstrEval extends PDefaultEvalElem {
       }
       // /* DEBUG */ System.out.println();
     } catch (CompileException ex) {
+/* DEBUG */ ex.printStackTrace(System.out);
       throw new RuntimeException("Internal error: " + ex.toString());
     }
   }
@@ -426,7 +427,7 @@ class PDataConstrEval extends PDefaultEvalElem {
       try {
         PEval.Builder usingEvalBuilder = PEval.Builder.newInstance();
         usingEvalBuilder.setSrcInfo(this.srcInfo);
-        usingEvalBuilder.addItem(PEvalItem.create(this.using));
+        usingEvalBuilder.addItem(this.using);
         PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance();
         usingPtnBuilder.setSrcInfo(this.srcInfo);
         usingPtnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
@@ -443,10 +444,10 @@ class PDataConstrEval extends PDefaultEvalElem {
       }
     }
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.bdAttrs[i] = this.posdAttrs[i];
+      this.bdAttrs[i] = this.posdAttrs[i].shallowCopyNoName();
     }
     for (int i = this.posdAttrs.length, j = 0 ; j < this.namedAttrs.length; i++, j++) {
-      this.bdAttrs[i] = (PEvalElem)this.namedAttrs[j].elem;
+      this.bdAttrs[i] = (PExprObj)this.namedAttrs[j].obj;
     }
   }
 

@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PExtendStmt extends PDefaultProgElem implements PDataDef {
+class PExtendStmt extends PDefaultProgObj implements PDataDef {
   int availability;
   String baseMod;
   String baseTcon;

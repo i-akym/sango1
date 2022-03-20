@@ -27,13 +27,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PPtnMatch extends PDefaultPtnElem {
+class PPtnMatch extends PDefaultExprObj {
   static final int CONTEXT_FIXED = 1;
   static final int CONTEXT_TRIAL = 2;
 
   int context;
   PImpose impose;  // maybe null
-  PPtnElem ptn;
+  PExprObj ptn;
 
   private PPtnMatch() {}
 
@@ -51,7 +51,7 @@ class PPtnMatch extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PPtnMatch create(Parser.SrcInfo srcInfo, int context, PImpose impose, PPtnElem ptn) {
+  static PPtnMatch create(Parser.SrcInfo srcInfo, int context, PImpose impose, PExprObj ptn) {
     PPtnMatch pm = new PPtnMatch();
     pm.srcInfo = srcInfo;
     pm.context = context;
@@ -59,10 +59,6 @@ class PPtnMatch extends PDefaultPtnElem {
     pm.ptn = ptn;
     return pm;
   }
-
-  // static PPtnMatch create(PPtnElem ptn) {
-    // return create(ptn.getSrcInfo(), null, ptn);
-  // }
 
   static PPtnMatch accept(ParserA.TokenReader reader, int context) throws CompileException, IOException {
     StringBuffer emsg;
@@ -77,7 +73,7 @@ class PPtnMatch extends PDefaultPtnElem {
         cast = type;
       }
     }
-    PPtnElem ptn = PPtn.accept(reader, context, cast);
+    PExprObj ptn = PPtn.accept(reader, context, cast);
     if (type != null && ptn == null) {
       emsg = new StringBuffer();
       emsg.append("Pattern missing or invalid at ");
@@ -143,7 +139,7 @@ class PPtnMatch extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnElem p = PPtn.acceptX(ee, context);
+    PExprObj p = PPtn.acceptX(ee, context);
     if (p == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

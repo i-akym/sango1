@@ -32,7 +32,7 @@ class PPtnDetail extends PExpr {
 
   // this.eval will become to be varref
 
-  private PPtnDetail(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
+  private PPtnDetail(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
     super(srcInfo, eval, ptnMatch);
   }
 
@@ -48,7 +48,7 @@ class PPtnDetail extends PExpr {
     return buf.toString();
   }
 
-  static PPtnDetail create(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
+  static PPtnDetail create(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
     return new PPtnDetail(srcInfo, eval, ptnMatch);
   }
 
@@ -77,7 +77,7 @@ class PPtnDetail extends PExpr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem ev = PEval.acceptX(e);
+    PEval ev = PEval.acceptX(e);
     if (ev == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

@@ -27,9 +27,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PString extends PDefaultEvalElem {
+class PString extends PDefaultExprObj {
   boolean isFromCstr;
-  PEvalElem[] elems;
+  PExprObj[] elems;
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -46,7 +46,7 @@ class PString extends PDefaultEvalElem {
 
   static class Builder {
     PString string;
-    List<PEvalElem> elemList;
+    List<PExprObj> elemList;
 
     static Builder newInstance() {
       return new Builder();
@@ -54,7 +54,7 @@ class PString extends PDefaultEvalElem {
 
     Builder() {
       this.string = new PString();
-      this.elemList = new ArrayList<PEvalElem>();
+      this.elemList = new ArrayList<PExprObj>();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
@@ -65,18 +65,18 @@ class PString extends PDefaultEvalElem {
       this.string.isFromCstr = true;
     }
 
-    void addElem(PEvalElem elem) {
+    void addElem(PExprObj elem) {
       this.elemList.add(elem);
     }
 
-    void addElemSeq(List<PEvalElem> elemSeq) {
+    void addElemSeq(List<PExprObj> elemSeq) {
       for (int i = 0; i < elemSeq.size(); i++) {
         this.addElem(elemSeq.get(i));
       }
     }
 
     PString create() {
-      this.string.elems = this.elemList.toArray(new PEvalElem[this.elemList.size()]);
+      this.string.elems = this.elemList.toArray(new PExprObj[this.elemList.size()]);
       return this.string;
     }
   }
@@ -114,7 +114,7 @@ class PString extends PDefaultEvalElem {
     builder.setSrcInfo(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PEvalElem expr = PExpr.acceptX(e);
+      PExprObj expr = PExpr.acceptX(e);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");

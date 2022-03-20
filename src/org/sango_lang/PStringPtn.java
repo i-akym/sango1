@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PStringPtn extends PDefaultPtnElem {
+class PStringPtn extends PDefaultExprObj {
   boolean isFromCstr;
   PPtnMatch[] elems;
 

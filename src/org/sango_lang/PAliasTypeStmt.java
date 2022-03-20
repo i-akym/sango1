@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class PAliasTypeStmt extends PDefaultProgElem implements PAliasTypeDef {
+class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PTypeDesc sig;
   String tcon;
   int availability;

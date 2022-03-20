@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,4 +23,20 @@
  ***************************************************************************/
 package org.sango_lang;
 
-abstract class PDefaultEvalAndPtnElem extends PDefaultTypedElem implements PEvalAndPtnElem {}
+interface PTypedObj extends PProgObj {
+
+  PTypeDesc getType();
+
+  void normalizeTypes() throws CompileException;
+
+  PTypeSkel getNormalizedType();
+
+  PTypeGraph.Node setupTypeGraph(PTypeGraph graph);
+
+  PTypeGraph.Node getTypeGraphNode();
+
+  void setTypeGraphNode(PTypeGraph.Node node);
+
+  PTypeSkel getFixedType();
+
+}

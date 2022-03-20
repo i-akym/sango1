@@ -26,8 +26,8 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PListConstr extends PList {
-  PEvalElem elem;
-  PEvalElem tail;
+  PExprObj elem;
+  PExprObj tail;
 
   private PListConstr() {}
 
@@ -43,7 +43,7 @@ class PListConstr extends PList {
     return buf.toString();
   }
 
-  static PListConstr create(Parser.SrcInfo srcInfo, PEvalElem elem, PEvalElem tail) {
+  static PListConstr create(Parser.SrcInfo srcInfo, PExprObj elem, PExprObj tail) {
     PListConstr c = new PListConstr();
     c.srcInfo = srcInfo;
     c.elem = elem;

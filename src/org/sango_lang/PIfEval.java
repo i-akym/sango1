@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -27,10 +27,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PIfBlock extends PDefaultEvalElem {
+class PIfEval extends PDefaultExprObj implements PEval {
   PIfClause[] clauses;
 
-  private PIfBlock() {}
+  private PIfEval() {}
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -46,7 +46,7 @@ class PIfBlock extends PDefaultEvalElem {
   }
 
   static class Builder {
-    PIfBlock ifBlock;
+    PIfEval ifEval;
     List<PIfClause> clauseList;
 
     static Builder newInstance() {
@@ -54,25 +54,25 @@ class PIfBlock extends PDefaultEvalElem {
     }
 
     Builder() {
-      this.ifBlock = new PIfBlock();
+      this.ifEval = new PIfEval();
       this.clauseList = new ArrayList<PIfClause>();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
-      this.ifBlock.srcInfo = si;
+      this.ifEval.srcInfo = si;
     }
 
     void addClause(PIfClause clause) {
       this.clauseList.add(clause);
     }
 
-    PIfBlock create() {
-      this.ifBlock.clauses = this.clauseList.toArray(new PIfClause[this.clauseList.size()]);
-      return this.ifBlock;
+    PIfEval create() {
+      this.ifEval.clauses = this.clauseList.toArray(new PIfClause[this.clauseList.size()]);
+      return this.ifEval;
     }
   }
 
-  static PIfBlock accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PIfEval accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token next = reader.getNextToken();
@@ -109,7 +109,7 @@ class PIfBlock extends PDefaultEvalElem {
     return builder.create();
   }
 
-  static PIfBlock acceptX(ParserB.Elem elem) throws CompileException {
+  static PIfEval acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if")) { return null; }
     Builder builder = Builder.newInstance();
@@ -143,7 +143,7 @@ class PIfBlock extends PDefaultEvalElem {
     }
   }
 
-  public PIfBlock resolve() throws CompileException {
+  public PIfEval resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.clauses.length; i++) {
       this.clauses[i] = this.clauses[i].resolve();
