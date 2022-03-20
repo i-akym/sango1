@@ -80,8 +80,8 @@ class PUndetEval extends PDefaultExprObj implements PEval {
     }
     PExprObj a = this.anchor.resolve();
     PEval e;
-    if (a instanceof PEVarRef) {
-      e = (PEVarRef)a;
+    if (a instanceof PExprVarRef) {
+      e = (PExprVarRef)a;
     } else {
       this.anchor = (PExprId)a;
       e = this;

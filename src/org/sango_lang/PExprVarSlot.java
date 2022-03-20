@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,22 +23,22 @@
  ***************************************************************************/
 package org.sango_lang;
 
-public class PEVarSlot {
+public class PExprVarSlot {
   static int hashValue = 0;
 
   int hash;
-  PEVarDef varDef;
+  PExprVarDef varDef;
 
-  private PEVarSlot() {}
+  private PExprVarSlot() {}
 
-  static PEVarSlot create(PEVarDef varDef) {
-    PEVarSlot s = createInternal();
+  static PExprVarSlot create(PExprVarDef varDef) {
+    PExprVarSlot s = createInternal();
     s.varDef = varDef;
     return s;
   }
 
-  public static PEVarSlot createInternal() {
-    PEVarSlot s = new PEVarSlot();
+  public static PExprVarSlot createInternal() {
+    PExprVarSlot s = new PExprVarSlot();
     s.hash = hashValue++;
     return s;
   }

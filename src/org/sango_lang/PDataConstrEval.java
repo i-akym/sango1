@@ -313,26 +313,26 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     // /* DEBUG */ System.out.print("break down 1 - ");
     // /* DEBUG */ System.out.println(this);
     try {
-      PEVarDef[] posdVarDefs = new PEVarDef[this.posdAttrs.length];
+      PExprVarDef[] posdVarDefs = new PExprVarDef[this.posdAttrs.length];
       PExprId[] posdVarRefs = new PExprId[this.posdAttrs.length];
       for (int i = 0; i < this.posdAttrs.length; i++) {
         String varName = this.scope.generateId();
-        posdVarDefs[i] = PEVarDef.create(this.srcInfo, PEVarDef.CAT_LOCAL_VAR, null, varName);
+        posdVarDefs[i] = PExprVarDef.create(this.srcInfo, PExprVarDef.CAT_LOCAL_VAR, null, varName);
         posdVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
       }
-      PEVarDef[] namedVarDefs = new PEVarDef[this.namedAttrs.length];
+      PExprVarDef[] namedVarDefs = new PExprVarDef[this.namedAttrs.length];
       PExprId[] namedVarRefs = new PExprId[this.namedAttrs.length];
       for (int i = 0; i < this.namedAttrs.length; i++) {
         String varName = this.scope.generateId();
-        namedVarDefs[i] = PEVarDef.create(this.srcInfo, PEVarDef.CAT_LOCAL_VAR, null, varName);
+        namedVarDefs[i] = PExprVarDef.create(this.srcInfo, PExprVarDef.CAT_LOCAL_VAR, null, varName);
         namedVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
       }
-      PEVarDef[] usingVarDefs = new PEVarDef[attrSrcs.length];
+      PExprVarDef[] usingVarDefs = new PExprVarDef[attrSrcs.length];
       PExprId[] usingVarRefs = new PExprId[attrSrcs.length];
       for (int i = 0; i < attrSrcs.length; i++) {
         if (attrSrcs[i] == ATTR_FROM_USING) {
           String varName = this.scope.generateId();
-          usingVarDefs[i] = PEVarDef.create(this.srcInfo, PEVarDef.CAT_LOCAL_VAR, null, varName);
+          usingVarDefs[i] = PExprVarDef.create(this.srcInfo, PExprVarDef.CAT_LOCAL_VAR, null, varName);
           usingVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
         } else {
           usingVarDefs[i] = null;

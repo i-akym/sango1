@@ -213,7 +213,7 @@ interface PEval extends PExprObj {
       if (this.state != 5 && item.cat == ACCEPT_CLOSURE) {
         PClosure closure = (PClosure)item.obj;
         for (int i = 0; i < closure.params.length; i++) {
-          PEVarDef param = closure.params[i];
+          PExprVarDef param = closure.params[i];
           if (param.type == null) {
             emsg = new StringBuffer();
             emsg.append("Parameter type missing at ");
@@ -382,8 +382,8 @@ interface PEval extends PExprObj {
         PExprObj elem = this.itemList.get(0).obj;
         // if (elem instanceof PExprId) {
           // e = this.createDispatch2();
-        // } else if (elem instanceof PEVarRef) {
-          // e = (PEVarRef)elem;
+        // } else if (elem instanceof PExprVarRef) {
+          // e = (PExprVarRef)elem;
         // } else if (elem instanceof PExpr) {
           // e = (PExpr)elem;
         // } else if (elem instanceof PUndetEval) {
@@ -648,7 +648,7 @@ interface PEval extends PExprObj {
       eval = PObjEval.create(o.getSrcInfo(), o);
     } else if ((o = PFunRef.acceptX(elem)) != null) {
       eval = PObjEval.create(o.getSrcInfo(), o);
-    } else if ((o = PEVarRef.acceptX(elem)) != null) {
+    } else if ((o = PExprVarRef.acceptX(elem)) != null) {
       eval = PUndetEval.create(o.getSrcInfo(), (PExprId)o, new PEvalItem.ObjItem[0]);
     } else if ((eval = PStaticInvEval.acceptX(elem)) != null) {
       ;

@@ -37,11 +37,11 @@ class PScope {
   boolean enablesDefineTVar;
   boolean enablesDefineEVar;
   Map<String, PTVarDef> tvarDict;
-  Map<String, PEVarDef> evarDict;
+  Map<String, PExprVarDef> evarDict;
   Map<String, PTVarDef> outerTVarDict;
-  Map<String, PEVarDef> outerEVarDict;
+  Map<String, PExprVarDef> outerEVarDict;
   List<PTVarSlot> envTVarList;
-  List<PEVarSlot> envEVarList;
+  List<PExprVarSlot> envEVarList;
   List<PTVarSlot> givenTVarList;
 
   private PScope(PModule theMod) {
@@ -50,9 +50,9 @@ class PScope {
     this.enablesDefineTVar = true;
     this.enablesDefineEVar = true;
     this.tvarDict = new HashMap<String, PTVarDef>();
-    this.evarDict = new HashMap<String, PEVarDef>();
+    this.evarDict = new HashMap<String, PExprVarDef>();
     this.outerTVarDict = new HashMap<String, PTVarDef>();
-    this.outerEVarDict = new HashMap<String, PEVarDef>();
+    this.outerEVarDict = new HashMap<String, PExprVarDef>();
   }
 
   static PScope create(PModule theMod) {
@@ -84,7 +84,7 @@ class PScope {
     s.parent = this;
     s.funLevel = this.funLevel + 1;
     s.envTVarList = new ArrayList<PTVarSlot>();
-    s.envEVarList = new ArrayList<PEVarSlot>();
+    s.envEVarList = new ArrayList<PExprVarSlot>();
     s.closure = closure;
     return s;
   }
@@ -113,11 +113,11 @@ class PScope {
     return (v != null || this.parent == null)? v: this.parent.lookupTVar(var);
   }
 
-  PEVarDef lookupEVar(String var) {
+  PExprVarDef lookupEVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PEVarDef v = this.evarDict.get(var);
+    PExprVarDef v = this.evarDict.get(var);
     if (v == null) {
       v = this.outerEVarDict.get(var);
     }
@@ -143,7 +143,7 @@ class PScope {
       && !this.outerEVarDict.containsKey(varDef.name);
   }
 
-  boolean canDefineEVar(PEVarDef varDef) {
+  boolean canDefineEVar(PExprVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
@@ -164,11 +164,11 @@ class PScope {
     return slot;
   }
 
-  PEVarSlot defineEVar(PEVarDef varDef) {
+  PExprVarSlot defineEVar(PExprVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PEVarSlot slot = PEVarSlot.create(varDef);
+    PExprVarSlot slot = PExprVarSlot.create(varDef);
     varDef.varSlot = slot;
     this.evarDict.put(varDef.name, varDef);
     return slot;
@@ -194,11 +194,11 @@ class PScope {
     return v;
   }
 
-  PEVarDef referSimpleEid(String id) {
+  PExprVarDef referSimpleEid(String id) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PEVarDef v = this.evarDict.get(id);
+    PExprVarDef v = this.evarDict.get(id);
     if (v == null) {
       v = this.outerEVarDict.get(id);
       if (v == null && this.parent != null) {
@@ -216,7 +216,7 @@ class PScope {
 
   List<PTVarSlot> getEnvTVarList() { return this.envTVarList; }
 
-  List<PEVarSlot> getEnvEVarList() { return this.envEVarList; }
+  List<PExprVarSlot> getEnvEVarList() { return this.envEVarList; }
 
   Compiler getCompiler() { return this.theMod.theCompiler; }
 

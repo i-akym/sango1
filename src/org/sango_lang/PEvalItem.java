@@ -102,7 +102,7 @@ abstract class PEvalItem extends PDefaultExprObj {
       if (this.idResolved) { return this; }
       this.obj = this.obj.resolve();
       if (this.cat == PEval.ACCEPT_ID) {
-        if (this.obj instanceof PEVarRef) {
+        if (this.obj instanceof PExprVarRef) {
           this.cat = PEval.ACCEPT_VAR_REF;
         } else if (this.obj instanceof PEval) {
           this.cat = PEval.ACCEPT_ENCLOSED;

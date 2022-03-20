@@ -60,7 +60,7 @@ class PUndetPtn extends PDefaultExprObj {
 
   public PExprObj resolve() throws CompileException {
     PExprObj p = this.anchor.resolve();
-    if (p instanceof PEVarRef) {
+    if (p instanceof PExprVarRef) {
       ;
     } else {
       PExprId dcon = (PExprId)this.anchor;

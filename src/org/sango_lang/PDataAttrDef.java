@@ -29,11 +29,11 @@ import java.util.List;
 
 class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   String name;
-  PEVarDef var;
+  PExprVarDef var;
 
   private PDataAttrDef() {}
 
-  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PTypeDesc type, PEVarDef var) {
+  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PTypeDesc type, PExprVarDef var) {
     PDataAttrDef attr = new PDataAttrDef();
     attr.srcInfo = srcInfo;
     attr.name = name;
@@ -62,7 +62,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     Parser.SrcInfo si = null;
     String name = null;
     PTypeDesc type = null;
-    PEVarDef var = null;
+    PExprVarDef var = null;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     int state = 0;
     DataAttrName aname;

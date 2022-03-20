@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,14 +23,14 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PEVarRef extends PDefaultExprObj implements PEval {
+class PExprVarRef extends PDefaultExprObj implements PEval {
   String name;
-  PEVarSlot varSlot;
+  PExprVarSlot varSlot;
 
-  private PEVarRef() {}
+  private PExprVarRef() {}
 
-  static PEVarRef create(Parser.SrcInfo srcInfo, String name, PEVarSlot varSlot) {
-    PEVarRef v = new PEVarRef();
+  static PExprVarRef create(Parser.SrcInfo srcInfo, String name, PExprVarSlot varSlot) {
+    PExprVarRef v = new PExprVarRef();
     v.srcInfo = srcInfo;
     v.name = name;
     v.varSlot = varSlot;
@@ -81,7 +81,7 @@ class PEVarRef extends PDefaultExprObj implements PEval {
 
   public void collectModRefs() throws CompileException {}
 
-  public PEVarRef resolve() throws CompileException {
+  public PExprVarRef resolve() throws CompileException {
     return this;
   }
 
