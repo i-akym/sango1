@@ -184,7 +184,7 @@ class PTypeGraph {
 
   class VarNode extends Node {
     String name;
-    int cat;  // PEVarDef.CAT_xx
+    int cat;  // PExprVarDef.CAT_xx
 
     VarNode(PExprObj exprObj, String name, int cat) {
       super(exprObj);
@@ -206,7 +206,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.accept(PTypeSkel.NARROWER, this.cat == PEVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (this.type.accept(PTypeSkel.NARROWER, this.cat == PExprVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));

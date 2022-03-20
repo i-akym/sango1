@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PEVarDef extends PDefaultExprObj {
+class PExprVarDef extends PDefaultExprObj {
   static final int CAT_FUN_PARAM = 1;
   static final int CAT_LOCAL_VAR = 2;
 
@@ -35,12 +35,12 @@ class PEVarDef extends PDefaultExprObj {
 
   String name;
   int cat;
-  PEVarSlot varSlot;
+  PExprVarSlot varSlot;
 
-  private PEVarDef() {}
+  private PExprVarDef() {}
 
-  static PEVarDef create(Parser.SrcInfo srcInfo, int cat, PTypeDesc type, String name) {
-    PEVarDef var = new PEVarDef();
+  static PExprVarDef create(Parser.SrcInfo srcInfo, int cat, PTypeDesc type, String name) {
+    PExprVarDef var = new PExprVarDef();
     var.srcInfo = srcInfo;
     var.cat = cat;
     var.type = type;
@@ -69,16 +69,7 @@ class PEVarDef extends PDefaultExprObj {
     return buf.toString();
   }
 
-  // public PEVarDef deepCopy(Parser.SrcInfo srcInfo) {
-    // PEVarDef v = new PEVarDef();
-    // v.srcInfo = srcInfo;
-    // // v.cat = this.cat;
-    // v.name = this.name;
-    // v.scope = this.scope;
-    // return v;
-  // }
-
-  static PEVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
+  static PExprVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PTypeDesc type = null;
@@ -114,7 +105,7 @@ class PEVarDef extends PDefaultExprObj {
     return create(si, cat, type, varId.value.token);
   }
 
-  static PEVarDef acceptX(ParserB.Elem elem, int cat, int typeSpec) throws CompileException {
+  static PExprVarDef acceptX(ParserB.Elem elem, int cat, int typeSpec) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -155,7 +146,7 @@ class PEVarDef extends PDefaultExprObj {
     }
   }
 
-  public PEVarDef resolve() throws CompileException {
+  public PExprVarDef resolve() throws CompileException {
     StringBuffer emsg;
     if (this.idResolved) { return this; }
     if (!this.scope.canDefineEVar(this)) {

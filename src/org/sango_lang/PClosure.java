@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PClosure extends PDefaultExprObj {
-  PEVarDef[] params;
+  PExprVarDef[] params;
   PRetDef retDef;
   PExpr[] implExprs;
   PScope outerScope;
@@ -58,7 +58,7 @@ class PClosure extends PDefaultExprObj {
 
   static class Builder {
     PClosure closure;
-    List<PEVarDef> paramList;
+    List<PExprVarDef> paramList;
     List<PExpr> implExprList;
 
     static Builder newInstance() {
@@ -67,7 +67,7 @@ class PClosure extends PDefaultExprObj {
 
     Builder() {
       this.closure = new PClosure();
-      this.paramList = new ArrayList<PEVarDef>();
+      this.paramList = new ArrayList<PExprVarDef>();
       this.implExprList = new ArrayList<PExpr>();
     }
 
@@ -75,11 +75,11 @@ class PClosure extends PDefaultExprObj {
       this.closure.srcInfo = si;
     }
 
-    void addParam(PEVarDef param) {
+    void addParam(PExprVarDef param) {
       this.paramList.add(param);
     }
 
-    void addParamList(List<PEVarDef> paramList) {
+    void addParamList(List<PExprVarDef> paramList) {
       for (int i = 0; i < paramList.size(); i++) {
         this.addParam(paramList.get(i));
       }
@@ -100,7 +100,7 @@ class PClosure extends PDefaultExprObj {
     }
 
     PClosure create() {
-      this.closure.params = this.paramList.toArray(new PEVarDef[this.paramList.size()]);
+      this.closure.params = this.paramList.toArray(new PExprVarDef[this.paramList.size()]);
       this.closure.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
       return this.closure;
     }
@@ -127,7 +127,7 @@ class PClosure extends PDefaultExprObj {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEVarDef var = PEVarDef.acceptX(ee, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED);
+        PExprVarDef var = PExprVarDef.acceptX(ee, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -220,8 +220,8 @@ class PClosure extends PDefaultExprObj {
     }
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
-    PEVarDef param;
-    while ((param = PEVarDef.accept(reader, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED)) != null) {
+    PExprVarDef param;
+    while ((param = PExprVarDef.accept(reader, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED)) != null) {
       builder.addParam(param);
     }
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -355,7 +355,7 @@ class PClosure extends PDefaultExprObj {
 
   public GFlow.Node setupFlow(GFlow flow) {
     String name = this.scope.getFunOfficial() + ":" + this.scope.generateId();
-    PEVarSlot[] paramVarSlots = new PEVarSlot[this.params.length];
+    PExprVarSlot[] paramVarSlots = new PExprVarSlot[this.params.length];
     PTypeSkel[] paramTypes = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       paramVarSlots[i] = this.params[i].varSlot;

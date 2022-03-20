@@ -273,7 +273,7 @@ class Generator {
   }
 
   void generateFunImpl(PEvalStmt eval) {
-    PEVarSlot[] paramVarSlots = new PEVarSlot[eval.params.length];
+    PExprVarSlot[] paramVarSlots = new PExprVarSlot[eval.params.length];
     for (int i = 0; i < eval.params.length; i++) {
       paramVarSlots[i] = eval.params[i].varSlot;
     }

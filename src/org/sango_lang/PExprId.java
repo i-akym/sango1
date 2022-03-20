@@ -186,7 +186,7 @@ class PExprId extends PDefaultExprObj {
     if (this.idResolved) { return this; }
     PExprObj ret = this;
     if (this.isSimple()) {
-      PEVarDef v;
+      PExprVarDef v;
       if ((v = scope.referSimpleEid(this.name)) != null) {
         if (!this.maybeVar()) {
           emsg = new StringBuffer();
@@ -197,7 +197,7 @@ class PExprId extends PDefaultExprObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        ret = PEVarRef.create(this.srcInfo, this.name, v.varSlot);
+        ret = PExprVarRef.create(this.srcInfo, this.name, v.varSlot);
         ret.setupScope(scope);
         ret = ret.resolve();
       } else if (this.maybeDcon() || this.maybeFun()) {

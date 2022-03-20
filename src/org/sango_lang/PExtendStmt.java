@@ -428,7 +428,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
-    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "int", false));
@@ -459,7 +459,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
-    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "cstr", false));
@@ -500,7 +500,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, true));
-    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "bool", false));
@@ -581,7 +581,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, true));
-    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retMaybeTypeBuilder = PType.Builder.newInstance();
     retMaybeTypeBuilder.setSrcInfo(si);
     PType.Builder retDataTypeBuilder = PType.Builder.newInstance();
@@ -610,7 +610,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
       String[] attrs = PModule.generateIds("V", constr.getAttrCount());
       for (int j = 0; j < constr.getAttrCount(); j++) {
-        ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, attrs[j])));
+        ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprVarDef.create(si, PExprVarDef.CAT_LOCAL_VAR, null, attrs[j])));
       }
       ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.getDcon())));
       casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
@@ -694,7 +694,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
-    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     evalStmtBuilder.setRetDef(PRetDef.create(attr.type.deepCopy(
       si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
     evalStmtBuilder.startImplExprSeq();
@@ -704,7 +704,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PPtn.Builder matchPtnBuilder = PPtn.Builder.newInstance();
     matchPtnBuilder.setSrcInfo(si);
     matchPtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
-    matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
+    matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PExprVarDef.create(si, PExprVarDef.CAT_LOCAL_VAR, null, "V")));
     matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si)));
     matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.dcon)));
     evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, matchPtnBuilder.create())));
@@ -740,7 +740,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
-    evalStmtBuilder.addParam(PEVarDef.create(si, PEVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(attr.type.deepCopy(
@@ -760,7 +760,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
     ptnBuilder.setSrcInfo(si);
     ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
-    ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PEVarDef.create(si, PEVarDef.CAT_LOCAL_VAR, null, "V")));
+    ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PExprVarDef.create(si, PExprVarDef.CAT_LOCAL_VAR, null, "V")));
     ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si)));
     ptnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.dcon)));
     casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
