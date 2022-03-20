@@ -34,7 +34,7 @@ import java.util.Set;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-class PModule extends PDefaultProgElem implements PDefDict {
+class PModule extends PDefaultProgObj implements PDefDict {
   static final String IMPL_WORD_NATIVE = "@native";
 
   static final String MOD_ID_LANG = "@LANG";
@@ -836,7 +836,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     throw new RuntimeException("PModule#collectModRefs() called. - " + this.toString());
   }
 
-  public PProgElem resolve() throws CompileException {
+  public PModule resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.set(i, this.dataStmtList.get(i).resolve());

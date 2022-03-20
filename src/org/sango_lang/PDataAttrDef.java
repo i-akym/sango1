@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PDataAttrDef extends PDefaultTypedElem implements PDataDef.Attr {
+class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   String name;
   PEVarDef var;
 

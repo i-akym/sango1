@@ -23,9 +23,9 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PUndetEval extends PDefaultEvalElem {
+class PUndetEval extends PDefaultExprObj implements PEval {
   PExprId anchor;
-  PEvalElem params[];
+  PEvalItem.ObjItem params[];
 
   private PUndetEval() {}
 
@@ -44,7 +44,7 @@ class PUndetEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PUndetEval create(Parser.SrcInfo srcInfo, PExprId anchor, PEvalElem[] params) {
+  static PUndetEval create(Parser.SrcInfo srcInfo, PExprId anchor, PEvalItem.ObjItem[] params) {
     PUndetEval e = new PUndetEval();
     e.srcInfo = srcInfo;
     e.anchor = anchor;
@@ -73,15 +73,15 @@ class PUndetEval extends PDefaultEvalElem {
     this.anchor.collectModRefs();
   }
 
-  public PEvalElem resolve() throws CompileException {
+  public PEval resolve() throws CompileException {
     if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
-    PEvalElem a = this.anchor.resolve();
-    PEvalElem e;
+    PExprObj a = this.anchor.resolve();
+    PEval e;
     if (a instanceof PEVarRef) {
-      e = a;
+      e = (PEVarRef)a;
     } else {
       this.anchor = (PExprId)a;
       e = this;
@@ -91,7 +91,7 @@ class PUndetEval extends PDefaultEvalElem {
       this.idResolved = true;
       if (this.anchor.maybeDcon()) {
         this.anchor.setCat(PExprId.CAT_DCON_EVAL);
-        e = PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem[0], null);
+        e = PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem.ObjItem[0], null);
         e.setupScope(this.scope);
         e = e.resolve();
       } else {

@@ -23,11 +23,9 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PTypeDesc extends PProgElem {
+interface PTypeDesc extends PProgObj {
 
-  void setupScope(PScope scope);  // inherited
-
-  PTypeDesc resolve() throws CompileException;  // inherited
+  PTypeDesc resolve() throws CompileException;
 
   PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt);
   static final int COPY_EXT_KEEP = -1;

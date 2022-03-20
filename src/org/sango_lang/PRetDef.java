@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PRetDef extends PDefaultTypedElem {
+class PRetDef extends PDefaultExprObj {
   private PRetDef() {}
 
   static PRetDef create(PTypeDesc type) {

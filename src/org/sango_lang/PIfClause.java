@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PIfClause extends PDefaultTypedElem {
+class PIfClause extends PDefaultExprObj {
   PExpr[] guardExprs;
   PExpr[] actionExprs;
   PScope outerScope;

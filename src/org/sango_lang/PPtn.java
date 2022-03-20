@@ -215,7 +215,7 @@ abstract class PPtn {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    PPtnElem create() throws CompileException {
+    PExprObj create() throws CompileException {
       StringBuffer emsg;
       switch (this.state) {
       case 0:
@@ -231,10 +231,10 @@ abstract class PPtn {
       return this.createDispatch();
     }
 
-    PPtnElem createDispatch() throws CompileException {
+    PExprObj createDispatch() throws CompileException {
       StringBuffer emsg;
       PProgElem anchorElem = this.itemList.get(this.itemList.size() - 1).elem;
-      PPtnElem p;
+      PExprObj p;
       if (this.itemList.size() == 1) {
         if (anchorElem instanceof PExprId) {
           p = this.createUndetPtn();
@@ -247,7 +247,7 @@ abstract class PPtn {
             || anchorElem instanceof PStringPtn
             || anchorElem instanceof PEVarDef
             || anchorElem instanceof PWildCard
-            || anchorElem instanceof PPtnElem) {
+            || anchorElem instanceof PExprObj) {
           p = this.createTermPtn();
         } else {
           emsg = new StringBuffer();
@@ -268,7 +268,7 @@ abstract class PPtn {
       return p;
     }
 
-    private PPtnElem createTermPtn() throws CompileException {
+    private PExprObj createTermPtn() throws CompileException {
       StringBuffer emsg;
       PPtnItem item = this.itemList.get(0);
       if (item.name != null) {
@@ -278,17 +278,17 @@ abstract class PPtn {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!(item.elem instanceof PPtnElem)) {
+      if (!(item.elem instanceof PExprObj)) {
         emsg = new StringBuffer();
         emsg.append("Not allowed for pattern at ");
         emsg.append(item.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      return (PPtnElem)item.elem;
+      return (PExprObj)item.elem;
     }
 
-    private PPtnElem createUndetPtn() throws CompileException {
+    private PExprObj createUndetPtn() throws CompileException {
       StringBuffer emsg;
       PPtnItem item = this.itemList.get(0);
       if (item.name != null) {
@@ -303,7 +303,7 @@ abstract class PPtn {
       return PUndetPtn.create(this.srcInfo, this.context, id);
     }
 
-    private PPtnElem createDataConstrPtn() throws CompileException {
+    private PExprObj createDataConstrPtn() throws CompileException {
       StringBuffer emsg;
       PPtnItem anchor = this.itemList.remove(this.itemList.size() - 1);
       if (anchor.name != null) {
@@ -337,10 +337,10 @@ abstract class PPtn {
           ;
         }
       }
-      PPtnElem posdAttrs[] = new PPtnElem[this.itemList.size() - namedAttrCount];
+      PExprObj posdAttrs[] = new PExprObj[this.itemList.size() - namedAttrCount];
       PPtnItem namedAttrs[] = new PPtnItem[namedAttrCount];
       for (int i = 0; i < posdAttrs.length; i++) {
-        posdAttrs[i] = (PPtnElem)this.itemList.get(i).elem;
+        posdAttrs[i] = (PExprObj)this.itemList.get(i).elem;
       }
       for (int i = posdAttrs.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
@@ -351,7 +351,7 @@ abstract class PPtn {
     }
   }
 
-  static PPtnElem accept(ParserA.TokenReader reader, int context, PTypeDesc leadingCast) throws CompileException, IOException {
+  static PExprObj accept(ParserA.TokenReader reader, int context, PTypeDesc leadingCast) throws CompileException, IOException {
     StringBuffer emsg;
     Builder builder = Builder.newInstance();
     if (leadingCast != null) {
@@ -370,8 +370,8 @@ abstract class PPtn {
     return builder.create();
   }
 
-  static PPtnElem acceptX(ParserB.Elem elem , int context) throws CompileException {
-    PPtnElem ptn = null;
+  static PExprObj acceptX(ParserB.Elem elem , int context) throws CompileException {
+    PExprObj ptn = null;
     if ((ptn = PByte.acceptX(elem)) != null) {
       ;
     } else if ((ptn = PInt.acceptX(elem)) != null) {

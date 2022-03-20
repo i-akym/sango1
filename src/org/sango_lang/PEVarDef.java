@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PEVarDef extends PDefaultPtnElem {
+class PEVarDef extends PDefaultExprObj {
   static final int CAT_FUN_PARAM = 1;
   static final int CAT_LOCAL_VAR = 2;
 

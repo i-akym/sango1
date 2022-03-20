@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PCasePtnMatch extends PDefaultProgElem {
+class PCasePtnMatch extends PDefaultExprObj {
   PPtnMatch ptnMatch;
   PPtnDetail[] details;
 
@@ -206,7 +206,7 @@ class PCasePtnMatch extends PDefaultProgElem {
     }
   }
 
-  PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.ptnMatch.setupTypeGraph(graph);
     for (int i = 0; i < this.details.length; i++) {
       this.details[i].setupTypeGraph(graph);

@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,4 +23,25 @@
  ***************************************************************************/
 package org.sango_lang;
 
-abstract class PDefaultPtnElem extends PDefaultTypedElem implements PPtnElem {}
+abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
+  PTypeDesc type;
+  PTypeSkel nTypeSkel;
+  PTypeGraph.Node typeGraphNode;
+
+  public PTypeDesc getType() { return this.type; }
+
+  public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
+
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    throw new RuntimeException("PTypedObj#setupTypeGraph called. - " + this.toString());
+  }
+
+  public PTypeGraph.Node getTypeGraphNode() { return this.typeGraphNode; }
+
+  public void setTypeGraphNode(PTypeGraph.Node node) {
+    this.typeGraphNode = node;
+  }
+
+  public PTypeSkel getFixedType() { return this.typeGraphNode.getFixedType(); }
+
+}

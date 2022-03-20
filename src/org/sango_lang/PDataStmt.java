@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-class PDataStmt extends PDefaultProgElem implements PDataDef {
+class PDataStmt extends PDefaultProgObj implements PDataDef {
   int availability;
   PTypeDesc sig;  // null means variable params
   String tcon;

@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PByte extends PDefaultEvalAndPtnElem {
+class PByte extends PDefaultExprObj {
    int value;
 
   private PByte() {}

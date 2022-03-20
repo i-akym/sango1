@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PExprId extends PDefaultEvalAndPtnElem {
+class PExprId extends PDefaultExprObj {
   static final int ID_NO_QUAL = 0;
   static final int ID_MAYBE_QUAL = 1;
 
@@ -181,10 +181,10 @@ class PExprId extends PDefaultEvalAndPtnElem {
     this.scope.referredModId(this.srcInfo, this.mod);
   }
 
-  public PEvalAndPtnElem resolve() throws CompileException {
+  public PExprObj resolve() throws CompileException {
     StringBuffer emsg;
     if (this.idResolved) { return this; }
-    PEvalAndPtnElem ret = this;
+    PExprObj ret = this;
     if (this.isSimple()) {
       PEVarDef v;
       if ((v = scope.referSimpleEid(this.name)) != null) {

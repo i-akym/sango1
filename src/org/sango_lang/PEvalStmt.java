@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PEvalStmt extends PDefaultProgElem implements PFunDef {
+class PEvalStmt extends PDefaultProgObj implements PFunDef {
   int availability;  // Module.AVAILABILITY_xxx
   PEVarDef[] params;
   String official;

@@ -26,7 +26,7 @@ package org.sango_lang;
 import java.io.IOException;
 import java.util.List;
 
-class PFunRef extends PDefaultEvalElem {
+class PFunRef extends PDefaultExprObj {
   PExprId official;  // null means self
 
   private PFunRef() {}

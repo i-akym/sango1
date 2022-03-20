@@ -26,9 +26,9 @@ package org.sango_lang;
 import java.util.ArrayList;
 import java.util.List;
 
-class PDynamicInvEval extends PDefaultEvalElem {
-  PEvalElem funObj;
-  PEvalElem params[];
+class PDynamicInvEval extends PDefaultExprObj implements PEval {
+  PExprObj funObj;
+  PExprObj params[];
 
   private PDynamicInvEval() {}
 
@@ -47,7 +47,7 @@ class PDynamicInvEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PDynamicInvEval create(Parser.SrcInfo srcInfo, PEvalElem funObj, PEvalElem[] params) {
+  static PDynamicInvEval create(Parser.SrcInfo srcInfo, PExprObj funObj, PExprObj[] params) {
     PDynamicInvEval e = new PDynamicInvEval();
     e.srcInfo = srcInfo;
     e.funObj = funObj;
@@ -66,11 +66,11 @@ class PDynamicInvEval extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    ArrayList<PEvalElem> ps = new ArrayList<PEvalElem>();
+    ArrayList<PExprObj> ps = new ArrayList<PExprObj>();
     if (e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEvalElem expr = PExpr.acceptX(ee);
+        PExprObj expr = PExpr.acceptX(ee);
         if (expr == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -97,14 +97,14 @@ class PDynamicInvEval extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem closure = PEval.acceptX(ee);
+    PExprObj closure = PEval.acceptX(ee);
     if (closure == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
       emsg.append(ee.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), closure, ps.toArray(new PEvalElem[ps.size()]));
+    return create(elem.getSrcInfo(), closure, ps.toArray(new PExprObj[ps.size()]));
   }
 
   public void setupScope(PScope scope) {

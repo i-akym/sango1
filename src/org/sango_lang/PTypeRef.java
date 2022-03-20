@@ -23,7 +23,7 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTypeRef extends PDefaultProgElem implements PTypeDesc {
+class PTypeRef extends PDefaultProgObj implements PTypeDesc {
   Parser.SrcInfo tconSrcInfo;
   String mod;
   Cstr modName;

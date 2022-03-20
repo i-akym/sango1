@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-public class PTypeId extends PDefaultProgElem implements PTypeDesc {
+public class PTypeId extends PDefaultProgObj implements PTypeDesc {
   static final int CAT_VAR = 1;
   static final int CAT_TCON = 2;
   static final int CAT_FEATURE = 3;
@@ -286,7 +286,7 @@ public class PTypeId extends PDefaultProgElem implements PTypeDesc {
   }
 
   public PTypeSkel normalize() {
-    throw new IllegalStateException("PTypeId#normalize is called.");
+    throw new IllegalStateException("PTypeId#normalize is called. " + this.toString());
   }
 
   public PTypeSkel getSkel() {

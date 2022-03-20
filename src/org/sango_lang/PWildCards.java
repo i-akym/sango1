@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PWildCards extends PDefaultProgElem {
+class PWildCards extends PDefaultExprObj {
   private PWildCards() {}
 
   public String toString() {
@@ -48,8 +48,7 @@ class PWildCards extends PDefaultProgElem {
   }
 
   public void setupScope(PScope scope) {
-    this.scope = scope;
-    this.idResolved = false;
+    // this.scope = scope;
   }
 
   public void collectModRefs() throws CompileException {}

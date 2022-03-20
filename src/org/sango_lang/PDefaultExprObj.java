@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,11 +23,10 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PPtnElem extends PTypedElem {
+abstract class PDefaultExprObj extends PDefaultTypedObj implements PExprObj {
 
-  void setupScope(PScope scope);  // inherited
+  public GFlow.Node setupFlow(GFlow flow) {
+    throw new RuntimeException("PTypedElem#setupFlow called. - " + this.toString());
+  }
 
-  void collectModRefs() throws CompileException;  // inherited
-
-  PPtnElem resolve() throws CompileException;  // inherited
 }

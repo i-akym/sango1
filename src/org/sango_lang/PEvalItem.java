@@ -25,36 +25,167 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PEvalItem extends PDefaultProgElem {
-  String name;
-  PProgElem elem;
+abstract class PEvalItem extends PDefaultExprObj {
+  int cat;  // actual value of PEval.ACCEPT_*
 
-  private PEvalItem() {}
+  private PEvalItem(Parser.SrcInfo srcInfo, int cat) {
+    this.srcInfo = srcInfo;
+    this.cat = cat;
+  }
 
-  public String toString() {
-    StringBuffer buf = new StringBuffer();
-    buf.append("evalitem[src=");
-    buf.append(this.srcInfo);
-    if (this.name != null) {
-      buf.append(",name=");
-      buf.append(this.name);
+  abstract boolean isObjItem();
+  abstract PExprObj getObj();
+  abstract String getName();
+  abstract PProgElem getSym();
+
+  static ObjItem create(PExprId id) {
+    return ObjItem.create(id.getSrcInfo(), PEval.ACCEPT_ID, null, id);
+  }
+
+  static ObjItem create(PCaseBlock caseBlock) {
+    return ObjItem.create(caseBlock.getSrcInfo(), PEval.ACCEPT_CASE_BLOCK, null, caseBlock);
+  }
+
+  static ObjItem create(PEval eval) {
+    return create(PExpr.create(eval));
+  }
+
+  static ObjItem create(PExpr expr) {
+    return ObjItem.create(expr.getSrcInfo(), PEval.ACCEPT_ENCLOSED, null, expr);
+  }
+
+  static class ObjItem extends PEvalItem {
+    String name;
+    PExprObj obj;
+
+    static ObjItem create(Parser.SrcInfo srcInfo, int cat, String name, PExprObj obj) {
+      ObjItem oi = new ObjItem(srcInfo, cat);
+      oi.name = name;
+      oi.obj = obj;
+      return oi;
     }
-    buf.append(",elem=");
-    buf.append(this.elem);
-    buf.append("]");
-    return buf.toString();
+
+    private ObjItem(Parser.SrcInfo srcInfo, int cat) {
+      super(srcInfo, cat);
+    }
+
+    boolean isObjItem() { return true; }
+
+    PExprObj getObj() { return this.obj; }
+
+    String getName() { return this.name; }
+
+    PProgElem getSym() { return null; }
+
+    ObjItem shallowCopyNoName() {
+      return create(this.srcInfo, this.cat, null, this.obj);
+    }
+
+    void fixAsParam() {
+      if (this.obj instanceof PExprId) {
+        this.obj = PUndetEval.create(this.srcInfo, (PExprId)this.obj, new PEvalItem.ObjItem[0]);
+      }
+    }
+
+    public void setupScope(PScope scope) {
+      if (scope == this.scope) { return; }
+      this.scope = scope;
+      this.idResolved = false;
+      this.obj.setupScope(scope);
+    }
+
+    public void collectModRefs() throws CompileException {
+      this.obj.collectModRefs();
+    }
+
+    public ObjItem resolve() throws CompileException {
+      if (this.idResolved) { return this; }
+      this.obj = this.obj.resolve();
+      if (this.cat == PEval.ACCEPT_ID) {
+        if (this.obj instanceof PEVarRef) {
+          this.cat = PEval.ACCEPT_VAR_REF;
+        } else if (this.obj instanceof PEval) {
+          this.cat = PEval.ACCEPT_ENCLOSED;
+        } else {
+          throw new RuntimeException("Unexpected object. " + this.obj.toString());
+        }
+      }
+      this.idResolved = true;
+      return this;
+    }
+
+    public void normalizeTypes() throws CompileException {
+      this.obj.normalizeTypes();
+    }
+
+    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+      return this.obj.setupTypeGraph(graph);
+    }
+
+    public GFlow.Node setupFlow(GFlow flow) {
+      return this.obj.setupFlow(flow);
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("evalitem[src=");
+      buf.append(this.srcInfo);
+      buf.append(",cat=");
+      buf.append(this.cat);
+      if (this.name != null) {
+        buf.append(",name=");
+        buf.append(this.name);
+      }
+      buf.append(",obj=");
+      buf.append(this.obj);
+      buf.append("]");
+      return buf.toString();
+    }
   }
 
-  static PEvalItem create(Parser.SrcInfo srcInfo, String name, PProgElem elem) {
-    PEvalItem i = new PEvalItem();
-    i.srcInfo = srcInfo;
-    i.name = name;
-    i.elem = elem;
-    return i;
-  }
+  static class SymItem extends PEvalItem {
+    PProgElem sym;
 
-  static PEvalItem create(PProgElem elem) {
-    return create(elem.getSrcInfo(), null, elem);
+    static SymItem create(Parser.SrcInfo srcInfo, int cat, PProgElem sym) {
+      SymItem si = new SymItem(srcInfo, cat);
+      si.sym = sym;
+      return si;
+    }
+
+    private SymItem(Parser.SrcInfo srcInfo, int cat) {
+      super(srcInfo, cat);
+    }
+
+    boolean isObjItem() { return false; }
+
+    PExprObj getObj() { return null; }
+
+    String getName() { return null; }
+
+    PProgElem getSym() { return this.sym; }
+
+
+    public void setupScope(PScope scope) {}
+
+    public void collectModRefs() {}
+
+    public SymItem resolve() throws CompileException {
+      return this;
+    }
+
+    public void normalizeTypes() throws CompileException {}
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("evalitem[src=");
+      buf.append(this.srcInfo);
+      buf.append(",cat=");
+      buf.append(this.cat);
+      buf.append(",sym=");
+      buf.append(this.sym);
+      buf.append("]");
+      return buf.toString();
+    }
   }
 
   static PEvalItem accept(ParserA.TokenReader reader, int spc, int acceptables) throws CompileException, IOException {
@@ -74,45 +205,47 @@ class PEvalItem extends PDefaultProgElem {
       next = null;
       space = ParserA.SPACE_DO_NOT_CARE;
     }
-    PProgElem elem = null;
-    if ((acceptables & PEval.ACCEPT_BYTE) > 0 && (elem = PByte.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_INT) > 0 && (elem = PInt.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_REAL) > 0 && (elem = PReal.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_CHAR) > 0 && (elem = PChar.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_LIST) > 0 && (elem = PList.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_TUPLE) > 0 && (elem = PTuple.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_STRING) > 0 && (elem = PString.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_FUN_REF) > 0 && (elem = PFunRef.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_CLOSURE) > 0 && (elem = PClosure.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_IF_BLOCK) > 0 && (elem = PIfBlock.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_CASE_BLOCK) > 0 && (elem = PCaseBlock.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (elem = PExprId.accept(reader, PExprId.ID_MAYBE_QUAL, space)) != null) {  // must be after 'if' 'case'
-      ;
-    } else if ((acceptables & PEval.ACCEPT_DYNAMIC_INV) > 0 && (elem = PDynamicInv.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_SELF_INV) > 0 && (elem = PSelfInv.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_DATA_CONSTR_USING) > 0 && (elem = PDataConstrUsing.accept(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_EVAL) > 0 &&  (elem = PEval.acceptEnclosed(reader, space)) != null) {
-      ;
-    } else if ((acceptables & PEval.ACCEPT_PIPE) > 0 &&  (elem = PPipe.accept(reader, space)) != null) {
-      ;
+    int cat = 0;
+    PProgElem sym = null;
+    PExprObj obj = null;
+    if ((acceptables & PEval.ACCEPT_BYTE) > 0 && (obj = PByte.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_BYTE;
+    } else if ((acceptables & PEval.ACCEPT_INT) > 0 && (obj = PInt.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_INT;
+    } else if ((acceptables & PEval.ACCEPT_REAL) > 0 && (obj = PReal.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_REAL;
+    } else if ((acceptables & PEval.ACCEPT_CHAR) > 0 && (obj = PChar.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_CHAR;
+    } else if ((acceptables & PEval.ACCEPT_LIST) > 0 && (obj = PList.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_LIST;
+    } else if ((acceptables & PEval.ACCEPT_TUPLE) > 0 && (obj = PTuple.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_TUPLE;
+    } else if ((acceptables & PEval.ACCEPT_STRING) > 0 && (obj = PString.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_STRING;
+    } else if ((acceptables & PEval.ACCEPT_FUN_REF) > 0 && (obj = PFunRef.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_FUN_REF;
+    } else if ((acceptables & PEval.ACCEPT_CLOSURE) > 0 && (obj = PClosure.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_CLOSURE;
+    } else if ((acceptables & PEval.ACCEPT_IF_EVAL) > 0 && (obj = PIfEval.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_IF_EVAL;
+    } else if ((acceptables & PEval.ACCEPT_CASE_BLOCK) > 0 && (obj = PCaseBlock.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_CASE_BLOCK;
+    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PExprId.accept(reader, PExprId.ID_MAYBE_QUAL, space)) != null) {  // must be after 'if' 'case'
+      cat = PEval.ACCEPT_ID;
+    } else if ((acceptables & PEval.ACCEPT_DYNAMIC_INV) > 0 && (sym = PDynamicInv.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_DYNAMIC_INV;
+    } else if ((acceptables & PEval.ACCEPT_SELF_INV) > 0 && (sym = PSelfInv.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_SELF_INV;
+    } else if ((acceptables & PEval.ACCEPT_DATA_CONSTR_USING) > 0 && (sym = PDataConstrUsing.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_DATA_CONSTR_USING;
+    } else if ((acceptables & PEval.ACCEPT_ENCLOSED) > 0 &&  (obj = PEval.acceptEnclosed(reader, space)) != null) {
+      cat = PEval.ACCEPT_ENCLOSED;
+    } else if ((acceptables & PEval.ACCEPT_PIPE) > 0 &&  (sym = PPipe.accept(reader, space)) != null) {
+      cat = PEval.ACCEPT_PIPE;
     }
     String an = null;
     if (name != null) {
-      if (elem == null) {
+      if (obj == null) {
         emsg = new StringBuffer();
         emsg.append("Data attribute missing for \"");
         emsg.append(name.value.token);
@@ -121,56 +254,35 @@ class PEvalItem extends PDefaultProgElem {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (elem instanceof PByte
-          || elem instanceof PInt
-          || elem instanceof PReal
-          || elem instanceof PChar
-          || elem instanceof PList
-          || elem instanceof PTuple
-          || elem instanceof PString
-          || elem instanceof PExprId
-          || elem instanceof PFunRef
-          || elem instanceof PClosure
-          || elem instanceof PIfBlock
-          || elem instanceof PEvalElem) {
-        ;
-      } else {
+      // if (elem instanceof PByte
+          // || elem instanceof PInt
+          // || elem instanceof PReal
+          // || elem instanceof PChar
+          // || elem instanceof PList
+          // || elem instanceof PTuple
+          // || elem instanceof PString
+          // || elem instanceof PExprId
+          // || elem instanceof PFunRef
+          // || elem instanceof PClosure
+          // || elem instanceof PIfBlock
+          // || elem instanceof PExprObj) {
+      if (sym != null) {
         emsg = new StringBuffer();
         emsg.append("Invalid data attribute at ");
-        emsg.append(elem.getSrcInfo());
+        emsg.append(sym.getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
       an = name.value.token;
     }
-    return (elem != null)? create(srcInfo, an, elem): null;
-  }
-
-  void fixAsParam() {
-    if (this.elem instanceof PExprId) {
-      this.elem = PUndetEval.create(this.srcInfo, (PExprId)this.elem, new PEvalElem[0]);
+    PEvalItem i;
+    if (obj != null) {
+      i = ObjItem.create(srcInfo, cat, an, obj);
+    } else if (sym != null) {
+      i = SymItem.create(srcInfo, cat, sym);
+    } else {
+      i = null;
     }
-  }
-
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elem.setupScope(scope);
-  }
-
-  public void collectModRefs() throws CompileException {
-    this.elem.collectModRefs();
-  }
-
-  public PEvalItem resolve() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.elem = this.elem.resolve();
-    this.idResolved = true;
-    return this;
-  }
-
-  public void normalizeTypes() throws CompileException {
-    this.elem.normalizeTypes();
+    return i;
   }
 }

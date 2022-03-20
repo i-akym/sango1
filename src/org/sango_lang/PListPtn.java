@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
-abstract class PListPtn extends PDefaultPtnElem {
+abstract class PListPtn extends PDefaultExprObj {
 
   static class Builder {
     int context;  // PPtnMatch.CONTEXT_*

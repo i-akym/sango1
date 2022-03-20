@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,12 +23,10 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PEvalElem extends PTypedElem {
+abstract class PDefaultProgObj extends PDefaultProgElem implements PProgObj {
+  PScope scope;
+  boolean idResolved;
 
-  void setupScope(PScope scope);  // interited
-
-  void collectModRefs() throws CompileException;  // inherited
-
-  PEvalElem resolve() throws CompileException;  // interited
-
+  public PScope getScope() { return this.scope; }
 }
+

@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PReal extends PDefaultEvalElem {
+class PReal extends PDefaultExprObj {
    double value;
 
   private PReal() {}
