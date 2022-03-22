@@ -32,7 +32,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   String baseMod;
   String baseTcon;
   String tcon;
-  PTVarDef[] tparams;
+  PTypeVarDef[] tparams;
   PType sig;
   int acc;
   PDataConstrDef[] constrs;
@@ -110,7 +110,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
         this.ext.baseMod = (u.id.mod != null)? u.id.mod: PModule.MOD_ID_LANG;
         this.ext.baseTcon = u.id.name;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        this.ext.tparams = new PTVarDef[0];
+        this.ext.tparams = new PTypeVarDef[0];
         PType.Builder sigBuilder = PType.Builder.newInstance();
         sigBuilder.setSrcInfo(u.id.srcInfo);
         sigBuilder.addItem(PTypeId.create(
@@ -124,10 +124,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
         this.ext.baseMod = (tr.mod != null)? tr.mod: PModule.MOD_ID_LANG;
         this.ext.baseTcon = tr.tcon;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        this.ext.tparams = new PTVarDef[tr.params.length];
+        this.ext.tparams = new PTypeVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          if (tr.params[i] instanceof PTVarDef) {
-            this.ext.tparams[i] = (PTVarDef)tr.params[i];
+          if (tr.params[i] instanceof PTypeVarDef) {
+            this.ext.tparams[i] = (PTypeVarDef)tr.params[i];
           } else {
             throw new RuntimeException("Unexpected type.");
           }
@@ -232,7 +232,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PTVarDef var = PTVarDef.acceptX(ee);
+        PTypeVarDef var = PTypeVarDef.acceptX(ee);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -428,7 +428,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
+      paramTypeBuilder.addItem(PTypeVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
@@ -459,7 +459,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
+      paramTypeBuilder.addItem(PTypeVarDef.create(si, paramNames[i], Module.INVARIANT, false, null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
@@ -498,7 +498,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].deepCopy(
         si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
@@ -578,7 +578,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].deepCopy(
         si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramNames[i] = p.name;
       paramTypeBuilder.addItem(p);
@@ -692,7 +692,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < this.tparams.length; i++) {
-      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].deepCopy(
         si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
@@ -741,7 +741,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < this.tparams.length; i++) {
-      PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].deepCopy(
         si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }

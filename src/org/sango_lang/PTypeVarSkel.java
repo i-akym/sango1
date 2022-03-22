@@ -29,12 +29,12 @@ import java.util.List;
 public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
   String name;
-  PTVarSlot varSlot;
+  PTypeVarSlot varSlot;
   PTypeSkel constraint;  // maybe null
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot, PTypeSkel constraint) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTypeVarSlot varSlot, PTypeSkel constraint) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
     var.name =  name + "." + Integer.toString(varSlot.id);
@@ -108,7 +108,7 @@ public class PTypeVarSkel implements PTypeSkel {
     } else if (iBindings.isBound(this.varSlot)) {
       t = iBindings.lookup(this.varSlot);
     } else {  // HERE: for what?
-      PTVarSlot s = PTVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
+      PTypeVarSlot s = PTypeVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
       PTypeVarSkel v = this.copy();
       v.varSlot = s;
       iBindings.bind(this.varSlot, v);
@@ -366,7 +366,7 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings) {
+  public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;
     if (this.varSlot == varSlot) {
       b = true;
@@ -376,7 +376,7 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public PTVarSlot getVarSlot() { return this.varSlot; }
+  public PTypeVarSlot getVarSlot() { return this.varSlot; }
 
   boolean bindConstraint(PTypeSkelBindings bindings) {
     boolean bound;
@@ -389,7 +389,7 @@ if (PTypeGraph.DEBUG > 1) {
     return bound;
   }
 
-  public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
+  public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
@@ -405,7 +405,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public PTypeSkel join2(PTypeSkel type, List<PTVarSlot> givenTVarList) {
+  public PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2 "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
@@ -432,14 +432,14 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  PTypeSkel join2GivenGiven(PTypeVarSkel tv, List<PTVarSlot> givenTVarList) {
+  PTypeSkel join2GivenGiven(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenGiven "); System.out.print(this); System.out.print(" "); System.out.print(tv);
 }
     return null;
   }
 
-  PTypeSkel join2GivenFree(PTypeVarSkel tv, List<PTVarSlot> givenTVarList) {
+  PTypeSkel join2GivenFree(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenFree "); System.out.print(this); System.out.print(" "); System.out.print(tv);
 }
@@ -463,7 +463,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  PTypeSkel join2FreeFree(PTypeVarSkel tv, List<PTVarSlot> givenTVarList) {
+  PTypeSkel join2FreeFree(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2FreeFree "); System.out.print(this); System.out.print(" "); System.out.print(tv);
 }
@@ -487,7 +487,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public MType toMType(PModule mod, List<PTVarSlot> slotList) {
+  public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
     MTypeVar tv;
     int index = slotList.indexOf(this.varSlot);
     if (index < 0) {
@@ -498,10 +498,10 @@ if (PTypeGraph.DEBUG > 1) {
     return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
   }
 
-  public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
-    List<PTVarSlot> newlyExtracted = null;
+  public List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted) {
+    List<PTypeVarSlot> newlyExtracted = null;
     if (!alreadyExtracted.contains(this.varSlot)) {
-      newlyExtracted = new ArrayList<PTVarSlot>();
+      newlyExtracted = new ArrayList<PTypeVarSlot>();
       newlyExtracted.add(this.varSlot);
     }
     return newlyExtracted;
@@ -514,7 +514,7 @@ if (PTypeGraph.DEBUG > 1) {
   PTypeVarSkel constrainAs(PTypeVarSkel tv, PTypeSkelBindings bindings) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = this.srcInfo;
-    var.varSlot = PTVarSlot.createInternal(tv.varSlot.variance, tv.varSlot.requiresConcrete);
+    var.varSlot = PTypeVarSlot.createInternal(tv.varSlot.variance, tv.varSlot.requiresConcrete);
     bindings.bind(this.varSlot, var);
     return var;
   }

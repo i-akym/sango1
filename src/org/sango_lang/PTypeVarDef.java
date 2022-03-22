@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,18 +25,18 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PTVarDef extends PDefaultTypedObj implements PType {
+class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
   int variance;
   boolean requiresConcrete;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
   PTypeSkel nConstraint;
-  PTVarSlot varSlot;  // setup later
+  PTypeVarSlot varSlot;  // setup later
 
-  private PTVarDef() {}
+  private PTypeVarDef() {}
 
-  static PTVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
-    PTVarDef var = new PTVarDef();
+  static PTypeVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
+    PTypeVarDef var = new PTypeVarDef();
     var.srcInfo = srcInfo;
     var.name = name;
     var.variance = variance;
@@ -69,8 +69,8 @@ class PTVarDef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTVarDef v = new PTVarDef();
+  public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+    PTypeVarDef v = new PTypeVarDef();
     v.srcInfo = srcInfo;
     v.name = this.name;
     // v.varSlot = this.varSlot;  // not copied
@@ -110,7 +110,7 @@ class PTVarDef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTVarDef acceptSimple(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PTypeVarDef acceptSimple(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
@@ -135,7 +135,7 @@ class PTVarDef extends PDefaultTypedObj implements PType {
     return create(si, varId.value.token, variance, requiresConcrete, null);
   }
 
-  static PTVarDef acceptX(ParserB.Elem elem) throws CompileException {
+  static PTypeVarDef acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -165,7 +165,7 @@ class PTVarDef extends PDefaultTypedObj implements PType {
     }
   }
 
-  public PTVarDef resolve() throws CompileException {
+  public PTypeVarDef resolve() throws CompileException {
     StringBuffer emsg;
     if (this.idResolved) { return this; }
     if (!this.scope.canDefineTVar(this)) {

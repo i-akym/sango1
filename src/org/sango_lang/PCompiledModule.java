@@ -246,7 +246,7 @@ class PCompiledModule implements PDefDict {
       for (int i = 0; i < dataDef.params.length; i++) {
         PTypeVarSkel v = (PTypeVarSkel)convertType(dataDef.params[i], mod, varList, unresolvedTypeRefList);
         // PTypeVarSkel v = PTypeVarSkel.create(null, null,
-          // PTVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
+          // PTypeVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
           // XXX);
         dd.sigParams[i] = v;
         varList.add(v);
@@ -336,7 +336,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false), null);
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(Module.INVARIANT, false), null);
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList);
@@ -352,8 +352,8 @@ class PCompiledModule implements PDefDict {
 
     public String getTcon() { return this.tconInfo.key.tcon; }
 
-    public PTVarSlot[] getParamVarSlots() {
-      PTVarSlot[] vs = new PTVarSlot[this.tparams.length];
+    public PTypeVarSlot[] getParamVarSlots() {
+      PTypeVarSlot[] vs = new PTypeVarSlot[this.tparams.length];
       for (int i = 0; i < this.tparams.length; i++) {
         vs[i] = this.tparams[i].varSlot;
       }
@@ -466,7 +466,7 @@ class PCompiledModule implements PDefDict {
     public PTypeSkel getRetType() { return this.retType; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {
     List<FunDef> funList = this.funListDict.get(name);
     if (funList == null) { return null; }
     PDefDict.FunSelRes sel = null;
@@ -513,7 +513,7 @@ class PCompiledModule implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
@@ -604,7 +604,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
+      v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
       varList.add(v);
       if (tv.constraint != null) {
         v.constraint = (PTypeRefSkel)convertType(tv.constraint, mod, varList, unresolvedTypeRefList);

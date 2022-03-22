@@ -29,7 +29,7 @@ public interface PAliasTypeDef {
 
   String getTcon();
 
-  PTVarSlot[] getParamVarSlots();
+  PTypeVarSlot[] getParamVarSlots();
   
   int getAvailability();
 

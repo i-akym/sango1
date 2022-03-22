@@ -114,7 +114,7 @@ class PTypeGraph {
 
     PTypeSkel getFixedType() { return this.type; }
 
-    List<PTVarSlot> getGivenTvarList() { return this.exprObj.getScope().getGivenTVarList(); }
+    List<PTypeVarSlot> getGivenTvarList() { return this.exprObj.getScope().getGivenTVarList(); }
 
     abstract PTypeSkel infer() throws CompileException;
 

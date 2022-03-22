@@ -1011,7 +1011,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
@@ -1080,7 +1080,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
     public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
     List<Integer> indices = this.funDict.get(name);
     PDefDict.FunSelRes sel = null;
     if (indices == null) { return null; }
@@ -1458,7 +1458,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
 
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
-    // public PTVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
+    // public PTypeVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 

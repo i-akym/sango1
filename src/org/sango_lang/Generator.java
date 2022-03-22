@@ -173,7 +173,7 @@ class Generator {
     } else {
       this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc());
     }
-    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       this.modBuilder.putDataDefParam((MTypeVar)pvs[i].toMType(this.parser.mod, varSlotList));
       // this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].varSlot.variance, pvs[i].varSlot.requiresConcrete,
@@ -187,7 +187,7 @@ class Generator {
 
   }
 
-  void generateConstrDef(PDataDef.Constr constrDef, List<PTVarSlot> varSlotList) {
+  void generateConstrDef(PDataDef.Constr constrDef, List<PTypeVarSlot> varSlotList) {
     this.modBuilder.startConstrDef(constrDef.getDcon());
     for (int i = 0; i < constrDef.getAttrCount(); i++) {
       this.generateAttrDef(constrDef.getAttrAt(i), varSlotList);
@@ -195,7 +195,7 @@ class Generator {
     this.modBuilder.endConstrDef();
   }
 
-  void generateAttrDef(PDataDef.Attr attrDef, List<PTVarSlot> varSlotList) {
+  void generateAttrDef(PDataDef.Attr attrDef, List<PTypeVarSlot> varSlotList) {
     this.modBuilder.startAttrDef(attrDef.getName());
     this.modBuilder.setAttrType(attrDef.getNormalizedType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.endAttrDef();
@@ -215,10 +215,10 @@ class Generator {
   }
 
   void generateAliasTypeDefGeneric(PAliasTypeDef alias) {
-    PTVarSlot[] pvs = alias.getParamVarSlots();
+    PTypeVarSlot[] pvs = alias.getParamVarSlots();
     MAliasTypeDef atd = MAliasTypeDef.create(
       alias.getTcon(), alias.getAvailability(), alias.getAcc(), pvs.length);
-    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
     }
@@ -245,7 +245,7 @@ class Generator {
     for (int i = 0; i < eval.aliases.length; i++) {
       b.addAlias(eval.aliases[i]);
     }
-    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < eval.params.length; i++) {
       b.addParamType(eval.params[i].nTypeSkel.toMType(this.parser.mod, varSlotList));
     }
@@ -257,7 +257,7 @@ class Generator {
     MFunDef.Builder b = MFunDef.Builder.newInstance();
     b.setName(fd.getOfficialName());
     b.setAcc(Module.ACC_PUBLIC);
-    List<PTVarSlot> varSlotList = new ArrayList<PTVarSlot>();
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = fd.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
       b.addParamType(pts[i].toMType(this.parser.mod, varSlotList));
