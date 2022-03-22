@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,13 +23,13 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTVarRef extends PDefaultTypedObj implements PType {
-  PTVarDef def;
+class PTypeVarRef extends PDefaultTypedObj implements PType {
+  PTypeVarDef def;
 
-  private PTVarRef() {}
+  private PTypeVarRef() {}
 
-  static PTVarRef create(Parser.SrcInfo srcInfo, PTVarDef def) {
-    PTVarRef v = new PTVarRef();
+  static PTypeVarRef create(Parser.SrcInfo srcInfo, PTypeVarDef def) {
+    PTypeVarRef v = new PTypeVarRef();
     v.srcInfo = srcInfo;
     v.def = def;
     return v;
@@ -91,7 +91,7 @@ class PTVarRef extends PDefaultTypedObj implements PType {
 
   public void collectModRefs() throws CompileException {}
 
-  public PTVarRef resolve() throws CompileException {
+  public PTypeVarRef resolve() throws CompileException {
     this.idResolved = true;
     return this;
   }

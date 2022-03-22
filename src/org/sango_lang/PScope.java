@@ -36,22 +36,22 @@ class PScope {
   PClosure closure;  // set if funLevel > 0
   boolean enablesDefineTVar;
   boolean enablesDefineEVar;
-  Map<String, PTVarDef> tvarDict;
+  Map<String, PTypeVarDef> tvarDict;
   Map<String, PExprVarDef> evarDict;
-  Map<String, PTVarDef> outerTVarDict;
+  Map<String, PTypeVarDef> outerTVarDict;
   Map<String, PExprVarDef> outerEVarDict;
-  List<PTVarSlot> envTVarList;
+  List<PTypeVarSlot> envTVarList;
   List<PExprVarSlot> envEVarList;
-  List<PTVarSlot> givenTVarList;
+  List<PTypeVarSlot> givenTVarList;
 
   private PScope(PModule theMod) {
     this.theMod = theMod;
     this.funLevel = -2;
     this.enablesDefineTVar = true;
     this.enablesDefineEVar = true;
-    this.tvarDict = new HashMap<String, PTVarDef>();
+    this.tvarDict = new HashMap<String, PTypeVarDef>();
     this.evarDict = new HashMap<String, PExprVarDef>();
-    this.outerTVarDict = new HashMap<String, PTVarDef>();
+    this.outerTVarDict = new HashMap<String, PTypeVarDef>();
     this.outerEVarDict = new HashMap<String, PExprVarDef>();
   }
 
@@ -83,7 +83,7 @@ class PScope {
     PScope s = new PScope(this.theMod);
     s.parent = this;
     s.funLevel = this.funLevel + 1;
-    s.envTVarList = new ArrayList<PTVarSlot>();
+    s.envTVarList = new ArrayList<PTypeVarSlot>();
     s.envEVarList = new ArrayList<PExprVarSlot>();
     s.closure = closure;
     return s;
@@ -102,11 +102,11 @@ class PScope {
     return s;
   }
 
-  PTVarDef lookupTVar(String var) {
+  PTypeVarDef lookupTVar(String var) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PTVarDef v = this.tvarDict.get(var);
+    PTypeVarDef v = this.tvarDict.get(var);
     if (v == null) {
       v = this.outerTVarDict.get(var);
     }
@@ -132,7 +132,7 @@ class PScope {
     this.enablesDefineEVar = b;
   }
 
-  boolean canDefineTVar(PTVarDef varDef) {
+  boolean canDefineTVar(PTypeVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
@@ -154,11 +154,11 @@ class PScope {
       && !this.outerEVarDict.containsKey(varDef.name);
   }
 
-  PTVarSlot defineTVar(PTVarDef varDef) {
+  PTypeVarSlot defineTVar(PTypeVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PTVarSlot slot = PTVarSlot.create(varDef);
+    PTypeVarSlot slot = PTypeVarSlot.create(varDef);
     varDef.varSlot = slot;
     this.tvarDict.put(varDef.name, varDef);
     return slot;
@@ -174,11 +174,11 @@ class PScope {
     return slot;
   }
 
-  PTVarDef referSimpleTid(String id) {
+  PTypeVarDef referSimpleTid(String id) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
-    PTVarDef v = this.tvarDict.get(id);
+    PTypeVarDef v = this.tvarDict.get(id);
     if (v == null) {
       v = this.outerTVarDict.get(id);
       if (v == null && this.parent != null) {
@@ -214,7 +214,7 @@ class PScope {
     return v;
   }
 
-  List<PTVarSlot> getEnvTVarList() { return this.envTVarList; }
+  List<PTypeVarSlot> getEnvTVarList() { return this.envTVarList; }
 
   List<PExprVarSlot> getEnvEVarList() { return this.envEVarList; }
 
@@ -277,8 +277,8 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
-  PTVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
-    PTVarDef v = PTVarDef.create(srcInfo, this.generateId(), variance, false, null);
+  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
+    PTypeVarDef v = PTypeVarDef.create(srcInfo, this.generateId(), variance, false, null);
     try {
       v.setupScope(this);
       v = v.resolve();
@@ -289,12 +289,12 @@ class PScope {
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    PTVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
+    PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
     return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).getSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    PTVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
+    PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
     return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).getSkel();
   }
 
@@ -321,7 +321,7 @@ class PScope {
     return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels);
   }
 
-  List<PTVarSlot> getGivenTVarList() {
+  List<PTypeVarSlot> getGivenTVarList() {
     if (this.givenTVarList == null) {
       if (this.parent == null) {
         this.setupGivenTVarListForFun();
@@ -335,10 +335,10 @@ class PScope {
   }
 
   private void setupGivenTVarListForFun() {
-    this.givenTVarList = new ArrayList<PTVarSlot>();
+    this.givenTVarList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.evalStmt.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
-      List<PTVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
+      List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
       if (justExtracted != null) {
         this.givenTVarList.addAll(justExtracted);
       }
@@ -346,11 +346,11 @@ class PScope {
   }
 
   private void setupGivenTVarListForClosure() {
-    this.givenTVarList = new ArrayList<PTVarSlot>(this.parent.getGivenTVarList());
+    this.givenTVarList = new ArrayList<PTypeVarSlot>(this.parent.getGivenTVarList());
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
     for (int i = 0; i < pts.length; i++) {
       if (pts[i] != null) {
-        List<PTVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
+        List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
         if (justExtracted != null) {
           this.givenTVarList.addAll(justExtracted);
         }

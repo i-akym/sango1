@@ -23,21 +23,21 @@
  ***************************************************************************/
 package org.sango_lang;
 
-public class PTVarSlot {
+public class PTypeVarSlot {
   static int idValue = 0;
 
   int id;
   int variance;
   boolean requiresConcrete;
 
-  private PTVarSlot() {}
+  private PTypeVarSlot() {}
 
-  static PTVarSlot create(PTVarDef varDef) {
+  static PTypeVarSlot create(PTypeVarDef varDef) {
     return createInternal(varDef.variance, varDef.requiresConcrete);
   }
 
-  public static PTVarSlot createInternal(int variance, boolean requiresConcrete) {
-    PTVarSlot s = new PTVarSlot();
+  public static PTypeVarSlot createInternal(int variance, boolean requiresConcrete) {
+    PTypeVarSlot s = new PTypeVarSlot();
     s.id = idValue++;
     s.variance = variance;
     s.requiresConcrete = requiresConcrete;

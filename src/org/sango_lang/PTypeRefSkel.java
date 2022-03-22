@@ -58,7 +58,7 @@ public class PTypeRefSkel implements PTypeSkel {
     int vv[] = this.paramVariances();
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
-        PTVarSlot s = PTVarSlot.createInternal(vv[i], var.varSlot.requiresConcrete);
+        PTypeVarSlot s = PTypeVarSlot.createInternal(vv[i], var.varSlot.requiresConcrete);
         v = PTypeVarSkel.create(this.srcInfo, null, s, null);  // constraint == null ok?
       t.params[i] = v;
     }
@@ -419,7 +419,7 @@ if (PTypeGraph.DEBUG > 1) {
       Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
   }
 
-  public boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings) {
+  public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;
     for (int i = 0; !b && i < this.params.length; i++) {
       b = this.params[i].includesVar(varSlot, bindings);
@@ -427,11 +427,11 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  public PTVarSlot getVarSlot() {
+  public PTypeVarSlot getVarSlot() {
     return null;
   }
 
-  public PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
+  public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join 0 "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
@@ -452,7 +452,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public PTypeSkel join2(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException {
+  public PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2 0 "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
@@ -466,7 +466,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  PTypeSkel join2TypeRef(PTypeRefSkel tr, List<PTVarSlot> givenTVarList) throws CompileException {
+  PTypeSkel join2TypeRef(PTypeRefSkel tr, List<PTypeVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 0 "); System.out.print(this); System.out.print(" "); System.out.print(tr);
 }
@@ -507,7 +507,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  PTypeSkel join2Var(PTypeVarSkel tv, List<PTVarSlot> givenTVarList) throws CompileException {
+  PTypeSkel join2Var(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2Var 0 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
 }
@@ -554,7 +554,7 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTypeSkel[] getParams() { return this.params; }
 
-  public MType toMType(PModule mod, List<PTVarSlot> slotList) {
+  public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
 // /* DEBUG */ System.out.print("{MM "); System.out.print(this); System.out.print(slotList); System.out.println(" mm}");
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     if (!this.tconInfo.key.modName.equals(mod.name)) {
@@ -568,10 +568,10 @@ if (PTypeGraph.DEBUG > 1) {
     return b.create();
   }
 
-  public List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted) {
-    List<PTVarSlot> newlyExtracted = new ArrayList<PTVarSlot>();
+  public List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted) {
+    List<PTypeVarSlot> newlyExtracted = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < this.params.length; i++) {
-      List<PTVarSlot> justExtracted = this.params[i].extractVars(alreadyExtracted);
+      List<PTypeVarSlot> justExtracted = this.params[i].extractVars(alreadyExtracted);
       if (justExtracted != null) {
         newlyExtracted.addAll(justExtracted);
       }

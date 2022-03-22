@@ -72,7 +72,7 @@ interface PType extends PProgObj {
 
     Parser.SrcInfo srcInfo;
     List<PProgObj> itemList;
-    PTVarDef constrainedVar;
+    PTypeVarDef constrainedVar;
 
     static Builder newInstance() {
       return new Builder();
@@ -90,7 +90,7 @@ interface PType extends PProgObj {
       this.itemList.add(item);
     }
 
-    void setConstrainedVar(PTVarDef var) {
+    void setConstrainedVar(PTypeVarDef var) {
       this.constrainedVar = var;
     }
 
@@ -116,7 +116,7 @@ interface PType extends PProgObj {
         } else {
           t = Undet.create(id);
         }
-      } else if (anchor instanceof PTVarDef) {
+      } else if (anchor instanceof PTypeVarDef) {
         if (this.itemList.size() > 0) {
           emsg = new StringBuffer();
           emsg.append("No type constructor at ");
@@ -124,7 +124,7 @@ interface PType extends PProgObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        t = (PTVarDef)anchor;
+        t = (PTypeVarDef)anchor;
       } else if (anchor instanceof PTypeRef) {
         if (this.itemList.size() > 0) {
           emsg = new StringBuffer();
@@ -186,7 +186,7 @@ interface PType extends PProgObj {
           }
           break;
         case 4:
-          builder.setConstrainedVar((PTVarDef)item);
+          builder.setConstrainedVar((PTypeVarDef)item);
           state = 0;
           break;
         default:
@@ -253,14 +253,14 @@ interface PType extends PProgObj {
     }
     PTypeRef sig = (PTypeRef)t;
     for (int i = 0; i < sig.params.length; i++) {
-      if (!(sig.params[i] instanceof PTVarDef)) {
+      if (!(sig.params[i] instanceof PTypeVarDef)) {
         emsg = new StringBuffer();
         emsg.append("Type parameter missing at ");
         emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PTVarDef v = (PTVarDef)sig.params[i];
+      PTypeVarDef v = (PTypeVarDef)sig.params[i];
       if (v.constraint != null) {
         emsg = new StringBuffer();
         emsg.append("Constrained type parameter not allowed at ");
@@ -302,14 +302,14 @@ interface PType extends PProgObj {
     }
     PTypeRef sig = (PTypeRef)t;
     for (int i = 0; i < sig.params.length; i++) {
-      if (!(sig.params[i] instanceof PTVarDef)) {
+      if (!(sig.params[i] instanceof PTypeVarDef)) {
         emsg = new StringBuffer();
         emsg.append("Type parameter missing at ");
         emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PTVarDef v = (PTVarDef)sig.params[i];
+      PTypeVarDef v = (PTypeVarDef)sig.params[i];
       if (v.constraint != null) {
         emsg = new StringBuffer();
         emsg.append("Constrained type parameter not allowed at ");
@@ -341,7 +341,7 @@ interface PType extends PProgObj {
         && (item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTVarDef.acceptSimple(reader)) != null) {
+        && (item = PTypeVarDef.acceptSimple(reader)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
         && (item = accept(reader, spc, acceptsVarDef)) != null) {
@@ -359,10 +359,10 @@ interface PType extends PProgObj {
     PProgObj item;
     if ((item = PTypeRef.acceptX(elem, acceptables)) != null) {
       ;
-    } else if ((item = PTVarRef.acceptXTvar(elem)) != null) {
+    } else if ((item = PTypeVarRef.acceptXTvar(elem)) != null) {
       ;
     } else if (((acceptables & ACCEPTABLE_VARDEF) > 0)
-        && (item = PTVarDef.acceptX(elem)) != null) {
+        && (item = PTypeVarDef.acceptX(elem)) != null) {
       ;
     } else {
       item = null;
@@ -383,10 +383,10 @@ interface PType extends PProgObj {
 
   static PType progObjToType(PProgObj o) {
     PType t;
-    if (o instanceof PTVarDef) {
-      t = (PTVarDef)o;
-    } else if (o instanceof PTVarRef) {
-      t = (PTVarRef)o;
+    if (o instanceof PTypeVarDef) {
+      t = (PTypeVarDef)o;
+    } else if (o instanceof PTypeVarRef) {
+      t = (PTypeVarRef)o;
     } else if (o instanceof PTypeId) {
       t = Undet.create((PTypeId)o);
     } else if (o instanceof PTypeRef) {
@@ -428,9 +428,9 @@ interface PType extends PProgObj {
       /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
       PType t;
       if (this.id.mod == null) {
-        PTVarDef v;
+        PTypeVarDef v;
         if ((v = this.scope.lookupTVar(this.id.name)) != null) {
-          t = PTVarRef.create(this.id.srcInfo, v);
+          t = PTypeVarRef.create(this.id.srcInfo, v);
           t.setupScope(this.scope);
           t = t.resolve();
         } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
@@ -530,7 +530,7 @@ interface PType extends PProgObj {
       return buf.toString();
     }
 
-    public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
       throw new RuntimeException("Bound#deepCopy is called.");
     }
 

@@ -55,17 +55,17 @@ public interface PTypeSkel {
   static final int NARROWER = 1;
   static final int WIDER = - NARROWER;
 
-  boolean includesVar(PTVarSlot varSlot, PTypeSkelBindings bindings);
+  boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings);
 
-  PTVarSlot getVarSlot();
+  PTypeVarSlot getVarSlot();
 
-  PTypeSkel join(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException;
+  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
     // foward to following method by combination of target and param
-  PTypeSkel join2(PTypeSkel type, List<PTVarSlot> givenTVarList) throws CompileException;
+  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
 
-  MType toMType(PModule mod, List<PTVarSlot> slotList);
+  MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
-  List<PTVarSlot> extractVars(List<PTVarSlot> alreadyExtracted);  // return value possibly null
+  List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted);  // return value possibly null
 
   void collectTconInfo(List<PDefDict.TconInfo> list);
 
@@ -75,27 +75,27 @@ public interface PTypeSkel {
 
   public static class InstanciationBindings {
     PTypeSkelBindings applBindings;
-    Map<PTVarSlot, PTypeVarSkel> bindingDict;
-    List<PTVarSlot> varSlotList;
+    Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
+    List<PTypeVarSlot> varSlotList;
 
     public static InstanciationBindings create(PTypeSkelBindings applBindings) {
       InstanciationBindings ib = new InstanciationBindings();
       ib.applBindings = applBindings;
-      ib.bindingDict = new HashMap<PTVarSlot, PTypeVarSkel>();
-      ib.varSlotList = new ArrayList<PTVarSlot>();
+      ib.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
+      ib.varSlotList = new ArrayList<PTypeVarSlot>();
       return ib;
     }
 
     private InstanciationBindings() {}
 
-    boolean isGivenTVar(PTVarSlot var) { return this.applBindings.givenTVarList.contains(var); }
+    boolean isGivenTVar(PTypeVarSlot var) { return this.applBindings.givenTVarList.contains(var); }
 
-    boolean isBound(PTVarSlot var) {
+    boolean isBound(PTypeVarSlot var) {
       return this.bindingDict.containsKey(var);
     }
 
-    void bind(PTVarSlot var, PTypeVarSkel vs) {
-      PTVarSlot s = vs.getVarSlot();
+    void bind(PTypeVarSlot var, PTypeVarSkel vs) {
+      PTypeVarSlot s = vs.getVarSlot();
       if (this.varSlotList.contains(s)) {
         throw new IllegalArgumentException("Already added. " + s);
       }
@@ -103,15 +103,15 @@ public interface PTypeSkel {
       this.varSlotList.add(s);
     }
 
-    PTypeVarSkel lookup(PTVarSlot var) {
+    PTypeVarSkel lookup(PTypeVarSlot var) {
       return this.bindingDict.get(var);
     }
 
-    boolean isBoundAppl(PTVarSlot var) {
+    boolean isBoundAppl(PTypeVarSlot var) {
       return this.applBindings.isBound(var);
     }
 
-    PTypeSkel lookupAppl(PTVarSlot var) {
+    PTypeSkel lookupAppl(PTypeVarSlot var) {
       return this.applBindings.lookup(var);
     }
   }

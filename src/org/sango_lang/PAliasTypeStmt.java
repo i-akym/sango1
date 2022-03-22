@@ -33,7 +33,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   String tcon;
   int availability;
   int acc;
-  PTVarDef[] tparams;
+  PTypeVarDef[] tparams;
   PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
 
@@ -86,13 +86,13 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       if (this.alias.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.alias.sig;
         this.alias.tcon = ti.name;
-        this.alias.tparams = new PTVarDef[0];
+        this.alias.tparams = new PTypeVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.alias.sig;
         this.alias.tcon = tr.tcon;
-        this.alias.tparams = new PTVarDef[tr.params.length];
+        this.alias.tparams = new PTypeVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.alias.tparams[i] = (PTVarDef)tr.params[i];
+          this.alias.tparams[i] = (PTypeVarDef)tr.params[i];
         }
       } else {
         throw new RuntimeException("Unexpected type. " + this.alias.sig.toString());
@@ -177,7 +177,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PTVarDef var = PTVarDef.acceptX(ee);
+        PTypeVarDef var = PTypeVarDef.acceptX(ee);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -306,8 +306,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public String getTcon() { return this.tcon; }
 
-  public PTVarSlot[] getParamVarSlots() {
-    PTVarSlot[] vs = new PTVarSlot[this.tparams.length] ;
+  public PTypeVarSlot[] getParamVarSlots() {
+    PTypeVarSlot[] vs = new PTypeVarSlot[this.tparams.length] ;
     for (int i = 0; i < this.tparams.length; i++) {
       vs[i] = this.tparams[i].varSlot;
     }
