@@ -39,7 +39,7 @@ class PExprVarDef extends PDefaultExprObj {
 
   private PExprVarDef() {}
 
-  static PExprVarDef create(Parser.SrcInfo srcInfo, int cat, PTypeDesc type, String name) {
+  static PExprVarDef create(Parser.SrcInfo srcInfo, int cat, PType type, String name) {
     PExprVarDef var = new PExprVarDef();
     var.srcInfo = srcInfo;
     var.cat = cat;
@@ -72,7 +72,7 @@ class PExprVarDef extends PDefaultExprObj {
   static PExprVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    PTypeDesc type = null;
+    PType type = null;
     if (typeSpec == TYPE_MAYBE_SPECIFIED || typeSpec == TYPE_NEEDED) {
       type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
     }
@@ -116,7 +116,7 @@ class PExprVarDef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc type = null;
+    PType type = null;
     if (typeSpec == TYPE_NEEDED || typeSpec == TYPE_MAYBE_SPECIFIED) {
       ParserB.Elem ee = elem.getFirstChild();
       type = (ee != null)? PType.acceptX(ee): null;
@@ -159,7 +159,7 @@ class PExprVarDef extends PDefaultExprObj {
     }
     this.varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
-      this.type = (PTypeDesc)this.type.resolve();
+      this.type = (PType)this.type.resolve();
     }
     this.idResolved = true;
     return this;

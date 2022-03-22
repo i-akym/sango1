@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-public class PTypeId extends PDefaultProgObj implements PTypeDesc {
+public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   static final int CAT_VAR = 1;
   static final int CAT_TCON = 2;
   static final int CAT_FEATURE = 3;
@@ -168,13 +168,13 @@ public class PTypeId extends PDefaultProgObj implements PTypeDesc {
     id.mod = this.mod;
     id.name = this.name;
     switch (extOpt) {
-    case PTypeDesc.COPY_EXT_OFF:
+    case PType.COPY_EXT_OFF:
       id.ext = false;;
       break;
-    case PTypeDesc.COPY_EXT_ON:
+    case PType.COPY_EXT_ON:
       id.ext = true;;
       break;
-    default:  // PTypeDesc.COPY_EXT_KEEP
+    default:  // PType.COPY_EXT_KEEP
       id.ext = this.ext;
     }
     return id;
@@ -218,59 +218,60 @@ public class PTypeId extends PDefaultProgObj implements PTypeDesc {
     this.scope.referredModId(this.srcInfo, this.mod);
   }
 
-  public PTypeDesc resolve() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
-    if (this.mod != null && this.scope.resolveModId(this.mod) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Module id \"");
-      emsg.append(this.mod);
-      emsg.append("\" not defined at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    PTypeDesc ret = null;
-    if (this.isSimple()) {
-      PTVarDef varDef;
-      if ((varDef = scope.referSimpleTid(this.name)) != null) {
-        if (!this.maybeCat(PTypeId.CAT_VAR)) {
-          emsg = new StringBuffer();
-          emsg.append("Variable not allowed at ");
-          emsg.append(this.srcInfo);
-          emsg.append(". - ");
-          emsg.append(this.name);
-          throw new CompileException(emsg.toString());
-        }
-        ret = PTVarRef.create(this.srcInfo, varDef);
-        ret.setupScope(this.scope);
-        ret = ret.resolve();
-      } else {
-        ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]);
-        ret.setupScope(this.scope);
-        ret = ret.resolve();
-      }
-    } else {
-      ret = PTypeRef.create(this.srcInfo, this, new PTypeDesc[0]);
-      ret.setupScope(this.scope);
-      ret = ret.resolve();
-    }
-
-    if (ret == this) {
-      // already determined to be tcon
-      this.tconInfo = this.scope.resolveTcon(this.mod, this.name);
-      if (this.tconInfo == null) {
-        emsg = new StringBuffer();
-        emsg.append("Id \"");
-        emsg.append(this.toRepr());
-        emsg.append("\" not found at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      this.idResolved = true;
-    }
-    return ret;
+  public PType resolve() throws CompileException {
+    throw new RuntimeException("PTypeId#resolve is called.");
+    // StringBuffer emsg;
+    // if (this.idResolved) { return this; }
+    // if (this.mod != null && this.scope.resolveModId(this.mod) == null) {
+      // emsg = new StringBuffer();
+      // emsg.append("Module id \"");
+      // emsg.append(this.mod);
+      // emsg.append("\" not defined at ");
+      // emsg.append(this.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    // PType ret = null;
+    // if (this.isSimple()) {
+      // PTVarDef varDef;
+      // if ((varDef = scope.referSimpleTid(this.name)) != null) {
+        // if (!this.maybeCat(PTypeId.CAT_VAR)) {
+          // emsg = new StringBuffer();
+          // emsg.append("Variable not allowed at ");
+          // emsg.append(this.srcInfo);
+          // emsg.append(". - ");
+          // emsg.append(this.name);
+          // throw new CompileException(emsg.toString());
+        // }
+        // ret = PTVarRef.create(this.srcInfo, varDef);
+        // ret.setupScope(this.scope);
+        // ret = ret.resolve();
+      // } else {
+        // ret = PTypeRef.create(this.srcInfo, this, new PType[0]);
+        // ret.setupScope(this.scope);
+        // ret = ret.resolve();
+      // }
+    // } else {
+      // ret = PTypeRef.create(this.srcInfo, this, new PType[0]);
+      // ret.setupScope(this.scope);
+      // ret = ret.resolve();
+    // }
+// 
+    // if (ret == this) {
+      // // already determined to be tcon
+      // this.tconInfo = this.scope.resolveTcon(this.mod, this.name);
+      // if (this.tconInfo == null) {
+        // emsg = new StringBuffer();
+        // emsg.append("Id \"");
+        // emsg.append(this.toRepr());
+        // emsg.append("\" not found at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+      // this.idResolved = true;
+    // }
+    // return ret;
   }
 
   public PDefDict.TconInfo getTconInfo() {

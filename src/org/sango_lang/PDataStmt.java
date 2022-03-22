@@ -31,7 +31,7 @@ import java.util.Set;
 
 class PDataStmt extends PDefaultProgObj implements PDataDef {
   int availability;
-  PTypeDesc sig;  // null means variable params
+  PType sig;  // null means variable params
   String tcon;
   String feature;
   String featureFor;
@@ -90,7 +90,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.dat.availability = availability;
     }
 
-    void setSig(PTypeDesc sig) {
+    void setSig(PType sig) {
       this.dat.sig = sig;
     }
 
@@ -139,9 +139,9 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       StringBuffer emsg;
       if (this.dat.sig == null) {
         throw new RuntimeException("No signature.");
-      } else if (this.dat.sig instanceof PTypeId) {
-        PTypeId ti = (PTypeId)this.dat.sig;
-        this.dat.tcon = ti.name;
+      } else if (this.dat.sig instanceof PType.Undet) {
+        PType.Undet u = (PType.Undet)this.dat.sig;
+        this.dat.tcon = u.id.name;
         this.dat.tparams = new PTVarDef[0];
       } else if (this.dat.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.dat.sig;
@@ -189,7 +189,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
-    PTypeDesc tsig;
+    PType tsig;
     if ((tsig = PType.acceptSig1(reader, PExprId.ID_NO_QUAL)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
@@ -574,7 +574,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
       PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
-        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+        si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, true));
@@ -654,7 +654,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
       PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
-        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+        si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramNames[i] = p.name;
       paramTypeBuilder.addItem(p);
     }
@@ -768,13 +768,16 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < this.tparams.length; i++) {
       PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
-        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+        si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
-    evalStmtBuilder.setRetDef(PRetDef.create(attr.type.deepCopy(
-      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
+    PType.Builder retTypeBuilder = PType.Builder.newInstance();
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(attr.type.deepCopy(
+      si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
     evalStmtBuilder.startImplExprSeq();
     PEval.Builder matchEvalBuilder = PEval.Builder.newInstance();
     matchEvalBuilder.setSrcInfo(si);
@@ -814,7 +817,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < this.tparams.length; i++) {
       PTVarDef p = (PTVarDef)this.tparams[i].deepCopy(
-        si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_KEEP);
+        si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, null, this.tcon, false));
@@ -822,7 +825,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(attr.type.deepCopy(
-      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF));
+      si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "maybe", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
     evalStmtBuilder.startImplExprSeq();

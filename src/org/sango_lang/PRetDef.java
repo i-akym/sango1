@@ -28,14 +28,14 @@ import java.io.IOException;
 class PRetDef extends PDefaultExprObj {
   private PRetDef() {}
 
-  static PRetDef create(PTypeDesc type) {
+  static PRetDef create(PType type) {
     if (type == null) {
       throw new IllegalArgumentException("Type is null.");
     }
     return create(type.getSrcInfo(), type);
   }
 
-  static PRetDef create(Parser.SrcInfo srcInfo, PTypeDesc type) {
+  static PRetDef create(Parser.SrcInfo srcInfo, PType type) {
     PRetDef ret = new PRetDef();
     ret.srcInfo = srcInfo;
     ret.type = type;
@@ -58,7 +58,7 @@ class PRetDef extends PDefaultExprObj {
   static PRetDef accept(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    PTypeDesc type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
+    PType type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
     if (type == null) {
       type = PType.voidType(si);
     }
@@ -76,7 +76,7 @@ class PRetDef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc type = PType.acceptX(e);
+    PType type = PType.acceptX(e);
     if (type == null) {
       emsg = new StringBuffer();
       emsg.append("Type missing at ");
@@ -101,7 +101,7 @@ class PRetDef extends PDefaultExprObj {
 
   public PRetDef resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.type = (PTypeDesc)this.type.resolve();
+    this.type = (PType)this.type.resolve();
     this.idResolved = true;
     return this;
   }

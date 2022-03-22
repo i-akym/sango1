@@ -33,7 +33,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
 
   private PDataAttrDef() {}
 
-  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PTypeDesc type, PExprVarDef var) {
+  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PType type, PExprVarDef var) {
     PDataAttrDef attr = new PDataAttrDef();
     attr.srcInfo = srcInfo;
     attr.name = name;
@@ -61,12 +61,12 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     List<PDataAttrDef> attrList = new ArrayList<PDataAttrDef>();
     Parser.SrcInfo si = null;
     String name = null;
-    PTypeDesc type = null;
+    PType type = null;
     PExprVarDef var = null;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     int state = 0;
     DataAttrName aname;
-    PTypeDesc type2;
+    PType type2;
     while (state >= 0) {
       switch (state) {
       case 0:  // (empty)
@@ -149,7 +149,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc t = PType.acceptX(e);
+    PType t = PType.acceptX(e);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Data type missing at ");
@@ -180,7 +180,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
 
   public PDataAttrDef resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.type = (PTypeDesc)this.type.resolve();
+    this.type = (PType)this.type.resolve();
     this.idResolved = true;
     return this;
   }

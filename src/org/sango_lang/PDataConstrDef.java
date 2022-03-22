@@ -31,7 +31,7 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
   PScope outerScope;
-  PTypeDesc dataType;
+  PType dataType;
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -176,7 +176,7 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     return i;
   }
 
-  void setDataType(PTypeDesc type) {
+  void setDataType(PType type) {
     this.dataType = type;
   }
 

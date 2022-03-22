@@ -24,11 +24,11 @@
 package org.sango_lang;
 
 abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
-  PTypeDesc type;
+  PType type;
   PTypeSkel nTypeSkel;
   PTypeGraph.Node typeGraphNode;
 
-  public PTypeDesc getType() { return this.type; }
+  public PType getType() { return this.type; }
 
   public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
 

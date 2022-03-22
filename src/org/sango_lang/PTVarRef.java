@@ -23,10 +23,8 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTVarRef extends PDefaultTypedObj implements PTypeDesc {
-  // String name;
+class PTVarRef extends PDefaultTypedObj implements PType {
   PTVarDef def;
-  // PTVarSlot varSlot;
 
   private PTVarRef() {}
 
@@ -76,15 +74,11 @@ class PTVarRef extends PDefaultTypedObj implements PTypeDesc {
     }
     buf.append(",name=");
     buf.append(this.def.name);
-    // if (this.varSlot != null) {
-      // buf.append(",slot=");
-      // buf.append(this.varSlot);
-    // }
     buf.append("]");
     return buf.toString();
   }
 
-  public PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+  public PProgObj deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
     // rollback to PTypeId
     return PTypeId.create(srcInfo, null, this.def.name, false);
   }
@@ -116,20 +110,9 @@ class PTVarRef extends PDefaultTypedObj implements PTypeDesc {
     return (PTypeVarSkel)this.getSkel();
   }
 
-  // public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-// /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
-    // return graph.createVarRefNode(this, def.name, this.def.typeGraphNode);
-  // }
-
-  // public PTypeGraph.Node getTypeGraphNode() {
-    // return this.def.typeGraphNode;
-  // }
-
   public PTypeSkel getSkel() {
     /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
     return this.def.getSkel();
-    // return PTypeVarSkel.create(this.srcInfo, this.def.name, this.def.varSlot,
-      // (this.def.constraint != null)? (PTypeRefSkel)this.def.constraint.getSkel(): null);
   }
 
   public PTypeSkel getFixedType() { return this.def.getFixedType(); }
