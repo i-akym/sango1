@@ -25,11 +25,11 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PTVarDef extends PDefaultTypedObj implements PTypeDesc {
+class PTVarDef extends PDefaultTypedObj implements PType {
   String name;
   int variance;
   boolean requiresConcrete;
-  PTypeDesc constraint;  // maybe null, guaranteed to be PTypeRef later
+  PType constraint;  // maybe null, guaranteed to be PTypeRef later
   PTypeSkel nConstraint;
   PTVarSlot varSlot;  // setup later
 
@@ -75,30 +75,37 @@ class PTVarDef extends PDefaultTypedObj implements PTypeDesc {
     v.name = this.name;
     // v.varSlot = this.varSlot;  // not copied
     switch (varianceOpt) {
-    case PTypeDesc.COPY_VARIANCE_INVARIANT:
+    case PType.COPY_VARIANCE_INVARIANT:
       v.variance = Module.INVARIANT;
       break;
-    case PTypeDesc.COPY_VARIANCE_COVARIANT:
+    case PType.COPY_VARIANCE_COVARIANT:
       v.variance = Module.COVARIANT;
       break;
-    case PTypeDesc.COPY_VARIANCE_CONTRAVARIANT:
+    case PType.COPY_VARIANCE_CONTRAVARIANT:
       v.variance = Module.CONTRAVARIANT;
       break;
-    default:  // PTypeDesc.COPY_VARIANCE_KEEP
+    default:  // PType.COPY_VARIANCE_KEEP
       v.variance = this.variance;
     }
     switch (concreteOpt) {
-    case PTypeDesc.COPY_CONCRETE_OFF:
+    case PType.COPY_CONCRETE_OFF:
       v.requiresConcrete = false;;
       break;
-    case PTypeDesc.COPY_CONCRETE_ON:
+    case PType.COPY_CONCRETE_ON:
       v.requiresConcrete = true;;
       break;
-    default:  // PTypeDesc.COPY_CONCRETE_KEEP
+    default:  // PType.COPY_CONCRETE_KEEP
       v.requiresConcrete = this.requiresConcrete;
     }
     if (this.constraint != null) {
-      v.constraint = this.constraint.deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
+      try {
+        PType.Builder b = PType.Builder.newInstance();
+        b.setSrcInfo(srcInfo);
+        b.addItem(this.constraint.deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt));
+        v.constraint = b.create();
+      } catch (Exception ex) {
+        throw new RuntimeException("Internal error. " + ex.toString());
+      }
     }
     return v;
   }

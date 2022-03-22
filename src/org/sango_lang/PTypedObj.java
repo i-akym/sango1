@@ -25,7 +25,7 @@ package org.sango_lang;
 
 interface PTypedObj extends PProgObj {
 
-  PTypeDesc getType();
+  PType getType();
 
   void normalizeTypes() throws CompileException;
 

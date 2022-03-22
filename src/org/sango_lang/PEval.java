@@ -385,14 +385,6 @@ interface PEval extends PExprObj {
         e = this.createSelfInvEval();
       } else if (this.itemList.size() == 1) {
         PExprObj elem = this.itemList.get(0).obj;
-        // if (elem instanceof PExprId) {
-          // e = this.createDispatch2();
-        // } else if (elem instanceof PExprVarRef) {
-          // e = (PExprVarRef)elem;
-        // } else if (elem instanceof PExpr) {
-          // e = (PExpr)elem;
-        // } else if (elem instanceof PUndetEval) {
-          // e = (PUndetEval)elem;
         if (elem instanceof PEval) {
           e = (PEval)elem;
         } else if (elem instanceof PExprId) {
@@ -406,7 +398,6 @@ interface PEval extends PExprObj {
           || elem instanceof PString
           || elem instanceof PFunRef
           || elem instanceof PClosure
-          // || elem instanceof PIfEval
           ) {
           e = this.createTermEval();
         } else {

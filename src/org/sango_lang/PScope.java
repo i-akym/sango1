@@ -260,7 +260,7 @@ class PScope {
     this.theMod.addReferredTcon(ti);
   }
 
-  PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PTypeDesc[] paramTypeDescs) {
+  PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PType[] paramTypeDescs) {
     PTypeRef t = null;
     try {
       t = PTypeRef.getLangDefinedType(srcInfo, tcon, paramTypeDescs);
@@ -274,7 +274,7 @@ class PScope {
   }
 
   PTypeRef getLangPrimitiveType(Parser.SrcInfo srcInfo, String tcon) {
-    return this.getLangDefinedType(srcInfo, tcon, new PTypeDesc[0]);
+    return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
   PTVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
@@ -290,24 +290,27 @@ class PScope {
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
     PTVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
-    return this.getLangDefinedType(srcInfo, "list", new PTypeDesc[] { nv }).getSkel();
+    return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).getSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
     PTVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
-    return this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { nv }).getSkel();
+    return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).getSkel();
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
-    PTypeId c = PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "char", false);
-    PTypeDesc ct;
+    PType.Builder b = PType.Builder.newInstance();
+    b.setSrcInfo(srcInfo);
+    PType ct;
     try {
-      c.setupScope(this);
-      ct = c.resolve();
+      b.addItem(PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "char", false));
+      ct = b.create();
+      ct.setupScope(this);
+      ct = ct.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());
     }
-    return this.getLangDefinedType(srcInfo, "string", new PTypeDesc[] { ct });
+    return this.getLangDefinedType(srcInfo, "string", new PType[] { ct });
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {

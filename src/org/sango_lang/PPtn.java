@@ -67,7 +67,7 @@ abstract class PPtn {
     Parser.SrcInfo srcInfo;
     Parser.SrcInfo lastSrcInfo;
     int state;
-    PTypeDesc leadingCast;
+    PType leadingCast;
     List<PPtnItem> itemList;
     int followingSpace;
 
@@ -92,7 +92,7 @@ abstract class PPtn {
       this.context = context;
     }
 
-    void setLeadingCast(PTypeDesc cast) {
+    void setLeadingCast(PType cast) {
       StringBuffer emsg;
       if (this.state != 0) {
         throw new IllegalStateException("Cannot set leading cast.");
@@ -351,7 +351,7 @@ abstract class PPtn {
     }
   }
 
-  static PExprObj accept(ParserA.TokenReader reader, int context, PTypeDesc leadingCast) throws CompileException, IOException {
+  static PExprObj accept(ParserA.TokenReader reader, int context, PType leadingCast) throws CompileException, IOException {
     StringBuffer emsg;
     Builder builder = Builder.newInstance();
     if (leadingCast != null) {

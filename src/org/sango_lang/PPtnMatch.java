@@ -63,9 +63,9 @@ class PPtnMatch extends PDefaultExprObj {
   static PPtnMatch accept(ParserA.TokenReader reader, int context) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    PTypeDesc type;
-    PTypeDesc imposingType = null;
-    PTypeDesc cast = null;
+    PType type;
+    PType imposingType = null;
+    PType cast = null;
     if ((type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
       if (ParserA.acceptToken(reader, LToken.EQ_EQ, ParserA.SPACE_DO_NOT_CARE) != null) {
         imposingType = type;
@@ -98,7 +98,7 @@ class PPtnMatch extends PDefaultExprObj {
       throw new CompileException(emsg.toString());
     }
     Parser.SrcInfo impsi = null;
-    PTypeDesc t = null;
+    PType t = null;
     if (e.getName().equals("impose")) {
       impsi = e.getSrcInfo();
       ParserB.Elem ee = e.getFirstChild();

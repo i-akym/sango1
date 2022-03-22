@@ -23,25 +23,25 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTypeRef extends PDefaultProgObj implements PTypeDesc {
+class PTypeRef extends PDefaultProgObj implements PType {
   Parser.SrcInfo tconSrcInfo;
   String mod;
   Cstr modName;
   String tcon;
   boolean ext;
-  PTypeDesc[] params;  // empty array if no params
+  PType[] params;  // empty array if no params
   PDefDict.TconInfo tconInfo;
 
   private PTypeRef() {}
 
-  static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PTypeDesc[] param) {
+  static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PType[] param) {
     PTypeRef t = new PTypeRef();
     t.srcInfo = srcInfo;
     t.tconSrcInfo = id.srcInfo;
     t.mod = id.mod;
     t.tcon = id.name;
     t.ext = id.ext;
-    t.params = (param != null)? param: new PTypeDesc[0];
+    t.params = (param != null)? param: new PType[0];
     return t;
   }
 
@@ -65,7 +65,7 @@ class PTypeRef extends PDefaultProgObj implements PTypeDesc {
     tconItem.setTcon();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PTypeDesc t = PType.acceptXItem(e, acceptables);
+      PProgObj t = PType.acceptXItem(e, acceptables);
       if (t == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -109,23 +109,30 @@ class PTypeRef extends PDefaultProgObj implements PTypeDesc {
     t.modName = this.modName;
     t.tcon = this.tcon;
     switch (extOpt) {
-    case PTypeDesc.COPY_EXT_OFF:
+    case PType.COPY_EXT_OFF:
       t.ext = false;;
       break;
-    case PTypeDesc.COPY_EXT_ON:
+    case PType.COPY_EXT_ON:
       t.ext = true;;
       break;
-    default:  // PTypeDesc.COPY_EXT_KEEP
+    default:  // PType.COPY_EXT_KEEP
       t.ext = this.ext;
     }
-    t.params = new PTypeDesc[this.params.length];
+    t.params = new PType[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
-      t.params[i] = this.params[i].deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
+      try {
+        PType.Builder b = PType.Builder.newInstance();
+        b.setSrcInfo(srcInfo);
+        b.addItem(this.params[i].deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt));
+        t.params[i] = b.create();
+      } catch (Exception ex) {
+        throw new RuntimeException("Internal error. " + ex.toString());
+      }
     }
     return t;
   }
 
-  static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PTypeDesc[] paramTypeDescs) {
+  static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PType[] paramTypeDescs) {
     return  create(
       srcInfo,
       PTypeId.create(srcInfo, PModule.MOD_ID_LANG, tcon, false),
@@ -184,7 +191,7 @@ class PTypeRef extends PDefaultProgObj implements PTypeDesc {
       throw new CompileException(emsg.toString()) ;
     }
     for (int i = 0; i < this.params.length; i++) {
-      PTypeDesc p = (PTypeDesc)this.params[i].resolve();
+      PType p = (PType)this.params[i].resolve();
       this.params[i] = p;
     }
     this.idResolved = true;

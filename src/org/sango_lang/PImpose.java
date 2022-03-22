@@ -27,7 +27,7 @@ class PImpose extends PDefaultExprObj {
 
   private PImpose() {}
 
-  static PImpose create(Parser.SrcInfo srcInfo, PTypeDesc type) {
+  static PImpose create(Parser.SrcInfo srcInfo, PType type) {
     PImpose i = new PImpose();
     i.srcInfo = srcInfo;
     i.type = type;
@@ -59,7 +59,7 @@ class PImpose extends PDefaultExprObj {
 
   public PImpose resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    this.type = (PTypeDesc)this.type.resolve();
+    this.type = (PType)this.type.resolve();
     this.idResolved = true;
     return this;
   }

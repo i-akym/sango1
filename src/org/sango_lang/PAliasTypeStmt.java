@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
-  PTypeDesc sig;
+  PType sig;
   String tcon;
   int availability;
   int acc;
   PTVarDef[] tparams;
-  PTypeDesc body;  // is PTypeRef after circular def check
+  PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
 
   public String toString() {
@@ -66,7 +66,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       this.alias.srcInfo = si;
     }
 
-    void setSig(PTypeDesc sig) {
+    void setSig(PType sig) {
       this.alias.sig = sig;
     }
 
@@ -78,7 +78,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       this.alias.acc = acc;
     }
 
-    void setBody(PTypeDesc body) {
+    void setBody(PType body) {
       this.alias.body = body;
     }
 
@@ -95,7 +95,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
           this.alias.tparams[i] = (PTVarDef)tr.params[i];
         }
       } else {
-        throw new RuntimeException("Unexpected type.");
+        throw new RuntimeException("Unexpected type. " + this.alias.sig.toString());
       }
       return this.alias;
     }
@@ -115,7 +115,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     Builder builder = Builder.newInstance();
     builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
-    PTypeDesc tsig;
+    PType tsig;
     if ((tsig = PType.acceptSig2(reader)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
@@ -132,7 +132,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc body;
+    PType body;
     if ((body = acceptAliasBodyDef(reader)) == null) {
       emsg = new StringBuffer();
       emsg.append("Alias definition missing at ");
@@ -214,7 +214,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc body = PType.acceptXRO(d);
+    PType body = PType.acceptXRO(d);
     if (body == null) {
       emsg = new StringBuffer();
       emsg.append("Alias definition missing at ");
@@ -226,7 +226,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     return builder.create();
   }
 
-  private static PTypeDesc acceptAliasBodyDef(ParserA.TokenReader reader) throws CompileException, IOException {
+  private static PType acceptAliasBodyDef(ParserA.TokenReader reader) throws CompileException, IOException {
     return PType.acceptRO(reader, ParserA.SPACE_DO_NOT_CARE);
   }
 

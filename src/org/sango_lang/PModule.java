@@ -769,8 +769,10 @@ class PModule extends PDefaultProgObj implements PDefDict {
     evalStmtBuilder.setOfficial(Module.FUN_INITD);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
-    evalStmtBuilder.setRetDef(PRetDef.create(eval.retDef.type.deepCopy(
-      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
+    retTypeBuilder.setSrcInfo(si);
+    retTypeBuilder.addItem(eval.retDef.type.deepCopy(
+      si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
+    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
     this.addEvalStmt(evalStmtBuilder.create());
   }
 
