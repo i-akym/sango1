@@ -657,27 +657,4 @@ interface PEval extends PExprObj {
     }
     return eval;
   }
-
-  static PExpr acceptEnclosed(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    StringBuffer emsg;
-    ParserA.Token lpar;
-    if ((lpar = ParserA.acceptToken(reader, LToken.LPAR, spc)) == null) { return null; }
-    PExpr expr;
-    if ((expr = PExpr.accept(reader)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Expression missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    if ((ParserA.acceptToken(reader, LToken.RPAR, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("\")\" missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    expr.setSrcInfo(lpar.getSrcInfo());  // set source info to lpar's
-    return expr;
-  }
 }

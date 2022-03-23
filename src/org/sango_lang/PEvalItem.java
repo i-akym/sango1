@@ -222,7 +222,7 @@ abstract class PEvalItem extends PDefaultExprObj {
       ;
     } else if ((acceptables & PEval.ACCEPT_DATA_CONSTR_USING) > 0 && (sym = PDataConstrUsing.accept(reader, space)) != null) {
       ;
-    } else if ((acceptables & PEval.ACCEPT_ENCLOSED) > 0 &&  (obj = PEval.acceptEnclosed(reader, space)) != null) {
+    } else if ((acceptables & PEval.ACCEPT_ENCLOSED) > 0 &&  (obj = PExpr.acceptEnclosed(reader, space)) != null) {
       ;
     } else if ((acceptables & PEval.ACCEPT_PIPE) > 0 &&  (sym = PPipe.accept(reader, space)) != null) {
       ;
