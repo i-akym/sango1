@@ -33,6 +33,10 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   PScope outerScope;
   PType dataType;
 
+  PDataConstrDef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("constr[src=");
@@ -53,19 +57,19 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     List<PDataAttrDef> attrList;
     List<String> attrNameList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.constr = new PDataConstrDef();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.constr = new PDataConstrDef(srcInfo);
       this.attrList = new ArrayList<PDataAttrDef>();
       this.attrNameList = new ArrayList<String>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.constr.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.constr.srcInfo = si;
+    // }
 
     void setDcon(String dcon) {
       this.constr.dcon = dcon;
@@ -114,8 +118,8 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     Builder builder = null;
     ParserA.Token dcon;
     if ((dcon = ParserA.acceptNormalWord(reader, ParserA.SPACE_NEEDED)) != null) {
-      builder = Builder.newInstance();
-      builder.setSrcInfo(si);
+      builder = Builder.newInstance(si);
+      // builder.setSrcInfo(si);
       builder.setDcon(dcon.value.token);
       builder.addAttrList(attrList);
     } else if (attrList.isEmpty()) {
@@ -133,8 +137,8 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   static PDataConstrDef acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("constr")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    // builder.setSrcInfo(elem.getSrcInfo());
     String dcon = elem.getAttrValueAsId("dcon");
     if (dcon == null) {
       emsg = new StringBuffer();

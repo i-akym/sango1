@@ -32,7 +32,9 @@ class PIfClause extends PDefaultExprObj {
   PExpr[] actionExprs;
   PScope outerScope;
 
-  private PIfClause() {}
+  private PIfClause(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -57,12 +59,12 @@ class PIfClause extends PDefaultExprObj {
     List<PExpr> guardExprList;
     List<PExpr> actionExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.clause = new PIfClause();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.clause = new PIfClause(srcInfo);
       this.guardExprList = new ArrayList<PExpr>();
       this.actionExprList = new ArrayList<PExpr>();
     }
@@ -108,8 +110,8 @@ class PIfClause extends PDefaultExprObj {
 
   static PIfClause accept(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance();
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
+    Builder builder = Builder.newInstance(si);
     List<PExpr> guardExprList = PExpr.acceptSeq(reader, false);
     if (guardExprList == null || guardExprList.size() == 0) {
       return null;
@@ -130,8 +132,7 @@ class PIfClause extends PDefaultExprObj {
   static PIfClause acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if-clause")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();

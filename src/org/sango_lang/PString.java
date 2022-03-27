@@ -31,6 +31,10 @@ class PString extends PDefaultExprObj {
   boolean isFromCstr;
   PExprObj[] elems;
 
+  PString(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("string[src=");
@@ -48,18 +52,18 @@ class PString extends PDefaultExprObj {
     PString string;
     List<PExprObj> elemList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.string = new PString();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.string = new PString(srcInfo);
       this.elemList = new ArrayList<PExprObj>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.string.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.string.srcInfo = si;
+    // }
 
     void setFromCstr() {
       this.string.isFromCstr = true;
@@ -89,8 +93,7 @@ class PString extends PDefaultExprObj {
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     builder.addElemSeq(PExpr.acceptPosdSeq(reader, 0));
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -110,8 +113,7 @@ class PString extends PDefaultExprObj {
   static PString acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
       PExprObj expr = PExpr.acceptX(e);
@@ -128,8 +130,7 @@ class PString extends PDefaultExprObj {
   }
 
   static PString fromCstr(ParserA.Token cstrToken) {
-    Builder builder = new Builder();
-    builder.setSrcInfo(cstrToken.getSrcInfo());
+    Builder builder = new Builder(cstrToken.getSrcInfo());
     builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();

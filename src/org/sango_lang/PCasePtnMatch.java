@@ -31,7 +31,9 @@ class PCasePtnMatch extends PDefaultExprObj {
   PPtnMatch ptnMatch;
   PPtnDetail[] details;
 
-  private PCasePtnMatch() {}
+  private PCasePtnMatch(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -52,12 +54,12 @@ class PCasePtnMatch extends PDefaultExprObj {
     PCasePtnMatch casePtnMatch;
     List<PPtnDetail> detailList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.casePtnMatch = new PCasePtnMatch();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.casePtnMatch = new PCasePtnMatch(srcInfo);
       this.detailList = new ArrayList<PPtnDetail>();
     }
 
@@ -91,8 +93,7 @@ class PCasePtnMatch extends PDefaultExprObj {
     PPtnMatch ptnMatch;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     if ((ptnMatch = PPtnMatch.accept(reader, PPtnMatch.CONTEXT_TRIAL)) == null) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
+    Builder builder = Builder.newInstance(si);
     builder.setPtnMatch(ptnMatch);
     if (ParserA.acceptToken(reader, LToken.EQ_GT, ParserA.SPACE_DO_NOT_CARE) != null) {
       builder.addDetailList(PPtnDetail.acceptSeq(reader));
@@ -130,8 +131,7 @@ class PCasePtnMatch extends PDefaultExprObj {
   static PCasePtnMatch acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case-ptn-match")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();

@@ -25,8 +25,12 @@ package org.sango_lang;
 
 abstract class PDefaultExprObj extends PDefaultTypedObj implements PExprObj {
 
+  PDefaultExprObj(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public GFlow.Node setupFlow(GFlow flow) {
-    throw new RuntimeException("PTypedElem#setupFlow called. - " + this.toString());
+    throw new RuntimeException("PExprObj#setupFlow called. - " + this.toString());
   }
 
 }

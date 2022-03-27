@@ -30,7 +30,9 @@ class PDynamicInvEval extends PDefaultExprObj implements PEval {
   PExprObj funObj;
   PExprObj params[];
 
-  private PDynamicInvEval() {}
+  private PDynamicInvEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -48,8 +50,7 @@ class PDynamicInvEval extends PDefaultExprObj implements PEval {
   }
 
   static PDynamicInvEval create(Parser.SrcInfo srcInfo, PExprObj funObj, PExprObj[] params) {
-    PDynamicInvEval e = new PDynamicInvEval();
-    e.srcInfo = srcInfo;
+    PDynamicInvEval e = new PDynamicInvEval(srcInfo);
     e.funObj = funObj;
     e.params = params;
     return e;

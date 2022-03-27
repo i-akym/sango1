@@ -29,7 +29,9 @@ import java.util.List;
 class PFunRef extends PDefaultExprObj {
   PExprId official;  // null means self
 
-  private PFunRef() {}
+  private PFunRef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -46,8 +48,7 @@ class PFunRef extends PDefaultExprObj {
   }
 
   static PFunRef create(Parser.SrcInfo srcInfo, PExprId official) {
-    PFunRef fr = new PFunRef();
-    fr.srcInfo = srcInfo;
+    PFunRef fr = new PFunRef(srcInfo);
     fr.official = official;
     return fr;
   }

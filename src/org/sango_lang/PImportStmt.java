@@ -25,11 +25,13 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PImportStmt extends PDefaultProgElem {
+class PImportStmt extends PDefaultProgObj {
   String id;
   Cstr modName;
 
-  private PImportStmt() {}
+  private PImportStmt(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -46,17 +48,17 @@ class PImportStmt extends PDefaultProgElem {
   static class Builder {
     PImportStmt imp;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.imp = new PImportStmt();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.imp = new PImportStmt(srcInfo);
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.imp.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.imp.srcInfo = si;
+    // }
 
     void setModName(Cstr modName) {
       this.imp.modName = modName;
@@ -79,8 +81,8 @@ class PImportStmt extends PDefaultProgElem {
     if ((t = ParserA.acceptSpecifiedWord(reader, "import", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
+    // builder.setSrcInfo(t.getSrcInfo());
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Imported module name missing at ");
@@ -118,8 +120,8 @@ class PImportStmt extends PDefaultProgElem {
   static PImportStmt acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("import-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    // builder.setSrcInfo(elem.getSrcInfo());
     Cstr mod = elem.getAttrValueAsCstrData("mod");
     if (mod == null) {
       emsg = new StringBuffer();

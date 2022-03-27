@@ -33,11 +33,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   PTypeSkel nConstraint;
   PTypeVarSlot varSlot;  // setup later
 
-  private PTypeVarDef() {}
+  private PTypeVarDef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PTypeVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
-    PTypeVarDef var = new PTypeVarDef();
-    var.srcInfo = srcInfo;
+    PTypeVarDef var = new PTypeVarDef(srcInfo);
     var.name = name;
     var.variance = variance;
     var.requiresConcrete = requiresConcrete;
@@ -70,8 +71,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   }
 
   public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeVarDef v = new PTypeVarDef();
-    v.srcInfo = srcInfo;
+    PTypeVarDef v = new PTypeVarDef(srcInfo);
     v.name = this.name;
     // v.varSlot = this.varSlot;  // not copied
     switch (varianceOpt) {

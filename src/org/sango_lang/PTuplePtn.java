@@ -30,6 +30,10 @@ import java.util.List;
 class PTuplePtn extends PDefaultExprObj {
   PPtnMatch[] elems;
 
+  PTuplePtn(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("tupleptn[src=");
@@ -47,18 +51,18 @@ class PTuplePtn extends PDefaultExprObj {
     PTuplePtn tuple;
     List<PPtnMatch> elemList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.tuple = new PTuplePtn();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.tuple = new PTuplePtn(srcInfo);
       this.elemList = new ArrayList<PPtnMatch>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.tuple.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.tuple.srcInfo = si;
+    // }
 
     void addElem(PPtnMatch elem) {
       this.elemList.add(elem);
@@ -90,8 +94,7 @@ class PTuplePtn extends PDefaultExprObj {
     if ((t = ParserA.acceptToken(reader, LToken.LPAR_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     builder.addElemList(PPtnMatch.acceptPosdSeq(reader, 2, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -111,8 +114,7 @@ class PTuplePtn extends PDefaultExprObj {
   static PTuplePtn acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("tuple")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
       PPtnMatch pm = PPtnMatch.acceptX(e, context);

@@ -33,7 +33,9 @@ class PCaseClause extends PDefaultExprObj {
   PExpr[] actionExprs;  // void$ included if no expressions
   PScope outerScope;
 
-  private PCaseClause() {}
+  private PCaseClause(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -68,12 +70,12 @@ class PCaseClause extends PDefaultExprObj {
     List<PExpr> guardExprList;
     List<PExpr> actionExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.clause = new PCaseClause();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.clause = new PCaseClause(srcInfo);
       this.ptnMatchList = new ArrayList<PCasePtnMatch>();
       this.guardExprList = new ArrayList<PExpr>();
       this.actionExprList = new ArrayList<PExpr>();
@@ -136,8 +138,7 @@ class PCaseClause extends PDefaultExprObj {
     if (ptnMatchList.isEmpty()) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
+    Builder builder = Builder.newInstance(si);
     builder.addPtnMatchList(ptnMatchList);
     if (ParserA.acceptToken(reader, LToken.VBAR_VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
       List<PExpr> guardExprList = PExpr.acceptSeq(reader, false);
@@ -164,8 +165,7 @@ class PCaseClause extends PDefaultExprObj {
   static PCaseClause acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case-clause")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();

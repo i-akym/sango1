@@ -25,10 +25,8 @@ package org.sango_lang;
 
 interface PProgElem {
 
-  void setSrcInfo(Parser.SrcInfo srcInfo);
+  // void setSrcInfo(Parser.SrcInfo srcInfo);
 
   Parser.SrcInfo getSrcInfo();
-
-  // PProgObj progObj();  // returns self if PProgObj
 
 }

@@ -28,7 +28,9 @@ import java.io.IOException;
 class PByte extends PDefaultExprObj {
    int value;
 
-  private PByte() {}
+  private PByte(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -39,8 +41,7 @@ class PByte extends PDefaultExprObj {
   }
 
   static PByte create(Parser.SrcInfo srcInfo, int value) {
-    PByte b = new PByte();
-    b.srcInfo = srcInfo;
+    PByte b = new PByte(srcInfo);
     b.value = value;
     return b;
   }

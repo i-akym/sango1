@@ -89,7 +89,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
   ForeignIdResolver foreignIdResolver;
   int idSuffix;
 
-  private PModule() {
+  private PModule(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -160,13 +161,13 @@ class PModule extends PDefaultProgObj implements PDefDict {
     List<PAliasTypeStmt> aliasTypeStmtList;
     List<PEvalStmt> evalStmtList;
 
-    static Builder newInstance(Cstr requiredName) {
-      return new Builder(requiredName);
+    static Builder newInstance(Parser.SrcInfo srcInfo, Cstr requiredName) {
+      return new Builder(srcInfo, requiredName);
     }
 
-    Builder(Cstr requiredName) {
+    Builder(Parser.SrcInfo srcInfo, Cstr requiredName) {
       this.requiredName = requiredName;
-      this.mod = new PModule();
+      this.mod = new PModule(srcInfo);
       this.importStmtList = new ArrayList<PImportStmt>();
       this.dataStmtList = new ArrayList<PDataStmt>();
       this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -174,9 +175,9 @@ class PModule extends PDefaultProgObj implements PDefDict {
       this.evalStmtList = new ArrayList<PEvalStmt>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.mod.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.mod.srcInfo = si;
+    // }
 
     void setAvailability(int availability) {
       this.mod.availability = availability;
@@ -227,7 +228,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
         this.mod.name = this.requiredName;
       }
       if (!this.mod.name.equals(Module.MOD_LANG)) {
-        PImportStmt.Builder ib = PImportStmt.Builder.newInstance();
+        PImportStmt.Builder ib = PImportStmt.Builder.newInstance(new Parser.SrcInfo(Module.MOD_LANG,"auto"));
         ib.setModName(Module.MOD_LANG);
         ib.setId(MOD_ID_LANG);
         this.mod.addImportStmt(ib.create());
@@ -252,10 +253,12 @@ class PModule extends PDefaultProgObj implements PDefDict {
   }
   static PModule accept(ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance(modName);
-    acceptModuleStmt(reader, builder);
+    Builder builder = acceptModuleStmt(reader, modName);
+    if (builder == null) {
+      builder = Builder.newInstance(reader.getCurrentSrcInfo(), modName);
+    }
     if (modName.equals(Module.MOD_LANG)) {
-      Parser.SrcInfo si = new Parser.SrcInfo(Module.MOD_LANG, ":builtin");
+      Parser.SrcInfo si = new Parser.SrcInfo(Module.MOD_LANG, "builtin");
       builder.addDataStmt(PDataStmt.createForVariableParams(si, Module.TCON_TUPLE, Module.ACC_OPAQUE));
       builder.addDataStmt(PDataStmt.createForVariableParams(si, Module.TCON_FUN, Module.ACC_OPAQUE));
     }
@@ -276,7 +279,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
       throw new CompileException("No module definition.");
     }
 
-    Builder builder = Builder.newInstance(modName);
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), modName);
     Cstr name = elem.getAttrValueAsCstrData("name");
     if (name != null) {
       builder.setDefinedName(name);
@@ -323,13 +326,14 @@ class PModule extends PDefaultProgObj implements PDefDict {
     }
   }
 
-  private static void acceptModuleStmt(ParserA.TokenReader reader, Builder builder) throws CompileException, IOException {
+  private static Builder acceptModuleStmt(ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptSpecifiedWord(reader, "module", ParserA.SPACE_DO_NOT_CARE)) == null) {
-      return;
+      return null;
     }
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), modName);
+    // builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
@@ -357,6 +361,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    return builder;
   }
 
   private static void acceptDefStmts(ParserA.TokenReader reader, Builder builder) throws CompileException, IOException {
@@ -749,8 +754,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
   private void generateNameFun() throws CompileException {
     // eval _name_ @public -> <cstr> @native
     Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":name");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setOfficial(Module.FUN_NAME);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
     PType.Builder retTypeBuilder = PType.Builder.newInstance();
@@ -764,8 +769,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
     PEvalStmt eval;
     if ((eval = this.getInitFunDef()) == null) { return; }
     Parser.SrcInfo si = eval.srcInfo.appendPostfix("_initd");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setOfficial(Module.FUN_INITD);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder retTypeBuilder = PType.Builder.newInstance();

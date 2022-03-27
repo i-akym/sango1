@@ -37,7 +37,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   PRetDef retDef;
   PExpr[] implExprs;  // null means native impl
 
-  private PEvalStmt() {}
+  private PEvalStmt(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -74,20 +76,20 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     List<String> aliasList;
     List<PExpr> implExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.eval = new PEvalStmt();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.eval = new PEvalStmt(srcInfo);
       this.paramList = new ArrayList<PExprVarDef>();
       this.aliasList = new ArrayList<String>();
       // implExprList will be initialized later
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.eval.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.eval.srcInfo = si;
+    // }
 
     void setAvailability(int availability) {
       this.eval.availability = availability;
@@ -152,8 +154,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     if ((t = ParserA.acceptSpecifiedWord(reader, "eval", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
+    // builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader));
     PExprId official = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED);
@@ -196,8 +198,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   static PEvalStmt acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("eval-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    // builder.setSrcInfo(elem.getSrcInfo());
 
     String official = elem.getAttrValueAsId("official");
     if (official == null) {

@@ -27,11 +27,12 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
   String name;
   PExprVarSlot varSlot;
 
-  private PExprVarRef() {}
+  private PExprVarRef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PExprVarRef create(Parser.SrcInfo srcInfo, String name, PExprVarSlot varSlot) {
-    PExprVarRef v = new PExprVarRef();
-    v.srcInfo = srcInfo;
+    PExprVarRef v = new PExprVarRef(srcInfo);
     v.name = name;
     v.varSlot = varSlot;
     return v;

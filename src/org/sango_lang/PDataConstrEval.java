@@ -39,7 +39,9 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   PExpr bdUsing;
   PExprObj[] bdAttrs;
 
-  private PDataConstrEval() {}
+  private PDataConstrEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -67,8 +69,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       PEvalItem.ObjItem[] posdAttrs, PEvalItem.ObjItem[] namedAttrs,
       PEvalItem.ObjItem using) throws CompileException {
     StringBuffer emsg;
-    PDataConstrEval e = new PDataConstrEval();
-    e.srcInfo = srcInfo;
+    PDataConstrEval e = new PDataConstrEval(srcInfo);
     e.dcon = dcon;
     e.posdAttrs = posdAttrs;
     e.namedAttrs = namedAttrs;

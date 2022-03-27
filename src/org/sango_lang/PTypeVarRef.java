@@ -26,11 +26,12 @@ package org.sango_lang;
 class PTypeVarRef extends PDefaultTypedObj implements PType {
   PTypeVarDef def;
 
-  private PTypeVarRef() {}
+  private PTypeVarRef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PTypeVarRef create(Parser.SrcInfo srcInfo, PTypeVarDef def) {
-    PTypeVarRef v = new PTypeVarRef();
-    v.srcInfo = srcInfo;
+    PTypeVarRef v = new PTypeVarRef(srcInfo);
     v.def = def;
     return v;
   }

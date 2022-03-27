@@ -26,7 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PDynamicInv extends PDefaultProgElem {
-  private PDynamicInv() {}
+  private PDynamicInv(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -37,9 +39,7 @@ class PDynamicInv extends PDefaultProgElem {
   }
 
   static PDynamicInv create(Parser.SrcInfo srcInfo) {
-    PDynamicInv i = new PDynamicInv();
-    i.srcInfo = srcInfo;
-    return i;
+    return new PDynamicInv(srcInfo);
   }
 
   static PDynamicInv accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
@@ -47,9 +47,9 @@ class PDynamicInv extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  public void setupScope(PScope scope) {
-    throw new RuntimeException("PDynamicInv#setupScope() called. - " + this.toString());
-  }
+  // public void setupScope(PScope scope) {
+    // throw new RuntimeException("PDynamicInv#setupScope() called. - " + this.toString());
+  // }
 
   public void collectModRefs() throws CompileException {
     throw new RuntimeException("PDynamicInv#collectModRefs() called. - " + this.toString());

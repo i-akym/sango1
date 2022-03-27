@@ -29,7 +29,9 @@ class PListConstr extends PList {
   PExprObj elem;
   PExprObj tail;
 
-  private PListConstr() {}
+  private PListConstr(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -44,8 +46,7 @@ class PListConstr extends PList {
   }
 
   static PListConstr create(Parser.SrcInfo srcInfo, PExprObj elem, PExprObj tail) {
-    PListConstr c = new PListConstr();
-    c.srcInfo = srcInfo;
+    PListConstr c = new PListConstr(srcInfo);
     c.elem = elem;
     c.tail = tail;
     return c;

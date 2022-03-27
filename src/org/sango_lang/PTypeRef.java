@@ -32,11 +32,12 @@ class PTypeRef extends PDefaultProgObj implements PType {
   PType[] params;  // empty array if no params
   PDefDict.TconInfo tconInfo;
 
-  private PTypeRef() {}
+  private PTypeRef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PType[] param) {
-    PTypeRef t = new PTypeRef();
-    t.srcInfo = srcInfo;
+    PTypeRef t = new PTypeRef(srcInfo);
     t.tconSrcInfo = id.srcInfo;
     t.mod = id.mod;
     t.tcon = id.name;
@@ -103,8 +104,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
   }
 
   public PTypeRef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeRef t = new PTypeRef();
-    t.srcInfo = srcInfo;
+    PTypeRef t = new PTypeRef(srcInfo);
     t.mod = this.mod;
     t.modName = this.modName;
     t.tcon = this.tcon;

@@ -35,7 +35,9 @@ class PPtnMatch extends PDefaultExprObj {
   PImpose impose;  // maybe null
   PExprObj ptn;
 
-  private PPtnMatch() {}
+  private PPtnMatch(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -52,8 +54,7 @@ class PPtnMatch extends PDefaultExprObj {
   }
 
   static PPtnMatch create(Parser.SrcInfo srcInfo, int context, PImpose impose, PExprObj ptn) {
-    PPtnMatch pm = new PPtnMatch();
-    pm.srcInfo = srcInfo;
+    PPtnMatch pm = new PPtnMatch(srcInfo);
     pm.context = context;
     pm.impose = impose;
     pm.ptn = ptn;

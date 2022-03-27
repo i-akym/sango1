@@ -28,7 +28,9 @@ import java.io.IOException;
 class PReal extends PDefaultExprObj {
    double value;
 
-  private PReal() {}
+  private PReal(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -39,8 +41,7 @@ class PReal extends PDefaultExprObj {
   }
 
   static PReal create(Parser.SrcInfo srcInfo, double value) {
-    PReal r = new PReal();
-    r.srcInfo = srcInfo;
+    PReal r = new PReal(srcInfo);
     r.value = value;
     return r;
   }

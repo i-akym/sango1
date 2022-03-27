@@ -28,7 +28,7 @@ import java.io.IOException;
 abstract class PEvalItem extends PDefaultExprObj {
 
   private PEvalItem(Parser.SrcInfo srcInfo) {
-    this.srcInfo = srcInfo;
+    super(srcInfo);
   }
 
   abstract boolean isObjItem();

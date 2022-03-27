@@ -30,7 +30,9 @@ class PPtnItem extends PDefaultExprObj {
   String name;
   PProgObj elem;
 
-  private PPtnItem() {}
+  private PPtnItem(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -47,8 +49,7 @@ class PPtnItem extends PDefaultExprObj {
   }
 
   static PPtnItem create(Parser.SrcInfo srcInfo, int context, String name, PProgObj elem) {
-    PPtnItem i = new PPtnItem();
-    i.srcInfo = srcInfo;
+    PPtnItem i = new PPtnItem(srcInfo);
     i.context = context;
     i.name = name;
     i.elem = elem;

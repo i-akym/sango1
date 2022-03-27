@@ -25,11 +25,12 @@ package org.sango_lang;
 
 class PImpose extends PDefaultExprObj {
 
-  private PImpose() {}
+  private PImpose(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PImpose create(Parser.SrcInfo srcInfo, PType type) {
-    PImpose i = new PImpose();
-    i.srcInfo = srcInfo;
+    PImpose i = new PImpose(srcInfo);
     i.type = type;
     return i;
   }

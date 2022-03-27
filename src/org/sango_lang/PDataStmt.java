@@ -39,6 +39,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   PTypeVarDef[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
 
+  PDataStmt(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("data[src=");
@@ -72,19 +76,19 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     List<PDataConstrDef> constrList;
     Set<String> nameSet;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.dat = new PDataStmt();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.dat = new PDataStmt(srcInfo);
       this.constrList = new ArrayList<PDataConstrDef>();
       this.nameSet = new HashSet<String>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.dat.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.dat.srcInfo = si;
+    // }
 
     void setAvailability(int availability) {
       this.dat.availability = availability;
@@ -173,8 +177,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   static PDataStmt createForVariableParams(Parser.SrcInfo srcInfo, String tcon, int acc) {  // 'tuple', 'fun'
-    PDataStmt dat = new PDataStmt();
-    dat.srcInfo = srcInfo;
+    PDataStmt dat = new PDataStmt(srcInfo);
     dat.tcon = tcon;
     dat.acc = acc;
     return dat;
@@ -186,8 +189,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if ((t = ParserA.acceptSpecifiedWord(reader, "data", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
     if ((tsig = PType.acceptSig1(reader, PExprId.ID_NO_QUAL)) == null) {
@@ -251,8 +253,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   static PDataStmt acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("data-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {
@@ -492,8 +493,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs == null) { return null; }
     if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setOfficial("_call_hash_" + this.tcon);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
@@ -524,8 +525,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs == null) { return null; }
     if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_debug_repr");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setOfficial("_call_debug_repr_" + this.tcon);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance();
@@ -563,8 +564,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     String[] names = PModule.generateInFunNames(this.tcon);  // official name and aliases
     if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_in");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
@@ -587,14 +588,14 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
     caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
-    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance();
-    caseBlockBuilder.setSrcInfo(si);
+    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance(si);
+    // caseBlockBuilder.setSrcInfo(si);
     for (int i = 0; i < this.constrs.length; i++) {
       PDataDef.Constr constr = this.getConstrAt(i);
-      PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance();
-      caseClauseBuilder.setSrcInfo(si);
-      PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
-      casePtnMatchBuilder.setSrcInfo(si);
+      PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance(si);
+      // caseClauseBuilder.setSrcInfo(si);
+      PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si);
+      // casePtnMatchBuilder.setSrcInfo(si);
       PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
       ptnBuilder.setSrcInfo(si);
       ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
@@ -608,10 +609,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       caseClauseBuilder.addActionExpr(PExpr.create(trueTermEvalBuilder.create()));
       caseBlockBuilder.addClause(caseClauseBuilder.create());
     }
-    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance();
-    otherwiseCaseClauseBuilder.setSrcInfo(si);
-    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
-    otherwisePtnMatchBuilder.setSrcInfo(si);
+    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si);
+    // otherwiseCaseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si);
+    // otherwisePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
     otherwisePtnBuilder.setSrcInfo(si);
     otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
@@ -643,8 +644,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     String[] names = PModule.generateNarrowFunNames(this.tcon);
     if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
@@ -675,14 +676,14 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
     caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
-    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance();
-    caseBlockBuilder.setSrcInfo(si);
+    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance(si);
+    // caseBlockBuilder.setSrcInfo(si);
     for (int i = 0; i < this.constrs.length; i++) {
       PDataDef.Constr constr = this.constrs[i];
-      PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance();
-      caseClauseBuilder.setSrcInfo(si);
-      PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
-      casePtnMatchBuilder.setSrcInfo(si);
+      PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance(si);
+      // caseClauseBuilder.setSrcInfo(si);
+      PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si);
+      // casePtnMatchBuilder.setSrcInfo(si);
       PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
       ptnBuilder.setSrcInfo(si);
       ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
@@ -706,10 +707,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       caseClauseBuilder.addActionExpr(PExpr.create(narrowedResBuilder.create()));
       caseBlockBuilder.addClause(caseClauseBuilder.create());
     }
-    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance();
-    otherwiseCaseClauseBuilder.setSrcInfo(si);
-    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
-    otherwisePtnMatchBuilder.setSrcInfo(si);
+    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si);
+    // otherwiseCaseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si);
+    // otherwisePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
     otherwisePtnBuilder.setSrcInfo(si);
     otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
@@ -758,8 +759,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     String[] names = PModule.generateAttrFunNames(this.tcon, attr.name);
     if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_attr");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
@@ -807,8 +808,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     String[] names = PModule.generateMaybeAttrFunNames(this.tcon, attr.name);
     if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
+    // evalStmtBuilder.setSrcInfo(si);
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
@@ -832,12 +833,12 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
     caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
-    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance();
-    caseBlockBuilder.setSrcInfo(si);
-    PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance();
-    caseClauseBuilder.setSrcInfo(si);
-    PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
-    casePtnMatchBuilder.setSrcInfo(si);
+    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance(si);
+    // caseBlockBuilder.setSrcInfo(si);
+    PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance(si);
+    // caseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si);
+    // casePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
     ptnBuilder.setSrcInfo(si);
     ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
@@ -852,10 +853,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     valueEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "value$")));
     caseClauseBuilder.addActionExpr(PExpr.create(valueEvalBuilder.create()));
     caseBlockBuilder.addClause(caseClauseBuilder.create());
-    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance();
-    otherwiseCaseClauseBuilder.setSrcInfo(si);
-    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance();
-    otherwisePtnMatchBuilder.setSrcInfo(si);
+    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si);
+    // otherwiseCaseClauseBuilder.setSrcInfo(si);
+    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si);
+    // otherwisePtnMatchBuilder.setSrcInfo(si);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance();
     otherwisePtnBuilder.setSrcInfo(si);
     otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);

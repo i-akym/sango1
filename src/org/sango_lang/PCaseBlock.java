@@ -30,7 +30,9 @@ import java.util.List;
 class PCaseBlock extends PDefaultExprObj {
   PCaseClause[] clauses;
 
-  private PCaseBlock() {}
+  private PCaseBlock(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -49,18 +51,18 @@ class PCaseBlock extends PDefaultExprObj {
     PCaseBlock caseBlock;
     List<PCaseClause> clauseList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.caseBlock = new PCaseBlock();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.caseBlock = new PCaseBlock(srcInfo);
       this.clauseList = new ArrayList<PCaseClause>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.caseBlock.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.caseBlock.srcInfo = si;
+    // }
 
     void addClause(PCaseClause clause) {
       this.clauseList.add(clause);
@@ -79,8 +81,7 @@ class PCaseBlock extends PDefaultExprObj {
     if (!next.tagEquals(LToken.LBRACE) || ParserA.acceptSpecifiedWord(reader, "case", spc) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
+    Builder builder = Builder.newInstance(si);
     ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE);
     PCaseClause clause = null;
     int state = 0;

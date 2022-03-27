@@ -34,7 +34,9 @@ class PClosure extends PDefaultExprObj {
   PScope outerScope;
   PScope bodyScope;
 
-  private PClosure() {}
+  private PClosure(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -61,19 +63,19 @@ class PClosure extends PDefaultExprObj {
     List<PExprVarDef> paramList;
     List<PExpr> implExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.closure = new PClosure();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.closure = new PClosure(srcInfo);
       this.paramList = new ArrayList<PExprVarDef>();
       this.implExprList = new ArrayList<PExpr>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.closure.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.closure.srcInfo = si;
+    // }
 
     void addParam(PExprVarDef param) {
       this.paramList.add(param);
@@ -120,8 +122,8 @@ class PClosure extends PDefaultExprObj {
   static PClosure acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("closure-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    // builder.setSrcInfo(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
 
     if (e != null && e.getName().equals("params")) {
@@ -197,8 +199,8 @@ class PClosure extends PDefaultExprObj {
     if ((t = ParserA.acceptToken(reader, LToken.BKSLASH_BKSLASH, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
+    // builder.setSrcInfo(t.getSrcInfo());
     builder.setRetDef(PRetDef.accept(reader));
     List<PExpr> implExprList;
     if ((implExprList = acceptImplExprSeq(reader)) == null) {
@@ -218,8 +220,8 @@ class PClosure extends PDefaultExprObj {
     if ((t = ParserA.acceptToken(reader, LToken.BKSLASH, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
+    // builder.setSrcInfo(t.getSrcInfo());
     PExprVarDef param;
     while ((param = PExprVarDef.accept(reader, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED)) != null) {
       builder.addParam(param);
