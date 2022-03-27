@@ -30,7 +30,9 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   PExprId funId;  // HERE: official name needed
   PExprObj params[];
 
-  private PStaticInvEval() {}
+  private PStaticInvEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -48,8 +50,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   }
 
   static PStaticInvEval create(Parser.SrcInfo srcInfo, PExprId funId, PExprObj[] params) {
-    PStaticInvEval e = new PStaticInvEval();
-    e.srcInfo = srcInfo;
+    PStaticInvEval e = new PStaticInvEval(srcInfo);
     e.funId = funId;
     e.params = params;
     return e;

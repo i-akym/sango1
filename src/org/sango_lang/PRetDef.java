@@ -26,7 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PRetDef extends PDefaultExprObj {
-  private PRetDef() {}
+  private PRetDef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PRetDef create(PType type) {
     if (type == null) {
@@ -36,8 +38,7 @@ class PRetDef extends PDefaultExprObj {
   }
 
   static PRetDef create(Parser.SrcInfo srcInfo, PType type) {
-    PRetDef ret = new PRetDef();
-    ret.srcInfo = srcInfo;
+    PRetDef ret = new PRetDef(srcInfo);
     ret.type = type;
     return ret;
   }

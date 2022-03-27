@@ -27,7 +27,9 @@ class PUndetEval extends PDefaultExprObj implements PEval {
   PExprId anchor;
   PEvalItem.ObjItem params[];
 
-  private PUndetEval() {}
+  private PUndetEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -45,8 +47,7 @@ class PUndetEval extends PDefaultExprObj implements PEval {
   }
 
   static PUndetEval create(Parser.SrcInfo srcInfo, PExprId anchor, PEvalItem.ObjItem[] params) {
-    PUndetEval e = new PUndetEval();
-    e.srcInfo = srcInfo;
+    PUndetEval e = new PUndetEval(srcInfo);
     e.anchor = anchor;
     e.params = params;
     if (params.length > 0) {

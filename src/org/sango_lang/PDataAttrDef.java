@@ -31,11 +31,12 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   String name;
   PExprVarDef var;
 
-  private PDataAttrDef() {}
+  private PDataAttrDef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PType type, PExprVarDef var) {
-    PDataAttrDef attr = new PDataAttrDef();
-    attr.srcInfo = srcInfo;
+    PDataAttrDef attr = new PDataAttrDef(srcInfo);
     attr.name = name;
     attr.type = type;
     attr.var = var;

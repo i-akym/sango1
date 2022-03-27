@@ -27,6 +27,10 @@ abstract class PDefaultProgObj extends PDefaultProgElem implements PProgObj {
   PScope scope;
   boolean idResolved;
 
+  PDefaultProgObj(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public PScope getScope() { return this.scope; }
 }
 

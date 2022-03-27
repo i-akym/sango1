@@ -31,6 +31,10 @@ class PStringPtn extends PDefaultExprObj {
   boolean isFromCstr;
   PPtnMatch[] elems;
 
+  PStringPtn(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("string_ptn[src=");
@@ -49,18 +53,18 @@ class PStringPtn extends PDefaultExprObj {
     PStringPtn string;
     List<PPtnMatch> elemList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.string = new PStringPtn();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.string = new PStringPtn(srcInfo);
       this.elemList = new ArrayList<PPtnMatch>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.string.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.string.srcInfo = si;
+    // }
 
     void setContext(int context) {
       this.context = context;
@@ -94,8 +98,7 @@ class PStringPtn extends PDefaultExprObj {
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, 0, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -115,8 +118,7 @@ class PStringPtn extends PDefaultExprObj {
   static PStringPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
       PPtnMatch pm = PPtnMatch.acceptX(e, context);
@@ -133,8 +135,7 @@ class PStringPtn extends PDefaultExprObj {
   }
 
   static PStringPtn fromCstr(ParserA.Token cstrToken, int context) {
-    Builder builder = new Builder();
-    builder.setSrcInfo(cstrToken.getSrcInfo());
+    Builder builder = new Builder(cstrToken.getSrcInfo());
     builder.setContext(context);
     builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;

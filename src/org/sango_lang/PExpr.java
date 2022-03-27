@@ -32,6 +32,7 @@ class PExpr extends PDefaultExprObj implements PEval {
   PPtnMatch ptnMatch;
 
   PExpr(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
+    super(srcInfo);
     this.srcInfo = srcInfo;
     this.eval = eval;
     this.ptnMatch = ptnMatch;

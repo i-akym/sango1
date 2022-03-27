@@ -26,9 +26,13 @@ package org.sango_lang;
 abstract class PDefaultProgElem implements PProgElem {
   Parser.SrcInfo srcInfo;
 
-  public void setSrcInfo(Parser.SrcInfo srcInfo) {
+  PDefaultProgElem(Parser.SrcInfo srcInfo) {
     this.srcInfo = srcInfo;
   }
+
+  // public void setSrcInfo(Parser.SrcInfo srcInfo) {
+    // this.srcInfo = srcInfo;
+  // }
 
   public Parser.SrcInfo getSrcInfo() {
     return this.srcInfo;

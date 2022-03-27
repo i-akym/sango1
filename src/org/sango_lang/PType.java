@@ -402,11 +402,12 @@ interface PType extends PProgObj {
   static class Undet extends PDefaultProgObj implements PType {
     PTypeId id;
 
-    private Undet() {}
+    private Undet(Parser.SrcInfo srcInfo) {
+      super(srcInfo);
+    }
 
     static Undet create(PTypeId id) {
-      Undet u = new Undet();
-      u.srcInfo = id.srcInfo;
+      Undet u = new Undet(id.srcInfo);
       u.id = id;
       return u;
     }
@@ -514,14 +515,16 @@ interface PType extends PProgObj {
 
   // pseudo object
   static class Bound extends PDefaultProgObj {
-    private Bound() {}
+    private Bound(Parser.SrcInfo srcInfo) {
+      super(srcInfo);
+    }
 
     static Bound accept(ParserA.TokenReader reader) throws CompileException, IOException {
       ParserA.Token t;
       if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
         return null;
       }
-      return new Bound();
+      return new Bound(t.getSrcInfo());
     }
 
     public String toString() {

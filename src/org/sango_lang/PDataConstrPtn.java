@@ -36,7 +36,9 @@ class PDataConstrPtn extends PDefaultExprObj {
   boolean wildCards;
   PExprObj[] sortedAttrs;
 
-  private PDataConstrPtn() {}
+  private PDataConstrPtn(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -64,8 +66,7 @@ class PDataConstrPtn extends PDefaultExprObj {
       PExprObj[] posdAttrs, PPtnItem[] namedAttrs,
       boolean wildCards) throws CompileException {
     StringBuffer emsg;
-    PDataConstrPtn p = new PDataConstrPtn();
-    p.srcInfo = srcInfo;
+    PDataConstrPtn p = new PDataConstrPtn(srcInfo);
     p.context = context;
     p.dcon = dcon;
     p.posdAttrs = posdAttrs;

@@ -27,7 +27,9 @@ class PUndetPtn extends PDefaultExprObj {
   int context;
   PExprId anchor;
 
-  private PUndetPtn() {}
+  private PUndetPtn(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -40,8 +42,7 @@ class PUndetPtn extends PDefaultExprObj {
   }
 
   static PUndetPtn create(Parser.SrcInfo srcInfo, int context, PExprId anchor) {
-    PUndetPtn p = new PUndetPtn();
-    p.srcInfo = srcInfo;
+    PUndetPtn p = new PUndetPtn(srcInfo);
     p.context = context;
     p.anchor = anchor;
     return p;

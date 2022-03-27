@@ -37,11 +37,12 @@ class PExprVarDef extends PDefaultExprObj {
   int cat;
   PExprVarSlot varSlot;
 
-  private PExprVarDef() {}
+  private PExprVarDef(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PExprVarDef create(Parser.SrcInfo srcInfo, int cat, PType type, String name) {
-    PExprVarDef var = new PExprVarDef();
-    var.srcInfo = srcInfo;
+    PExprVarDef var = new PExprVarDef(srcInfo);
     var.cat = cat;
     var.type = type;
     var.name = name;

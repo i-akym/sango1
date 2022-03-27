@@ -28,7 +28,9 @@ import java.io.IOException;
 class PInt extends PDefaultExprObj {
    int value;
 
-  private PInt() {}
+  private PInt(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -39,8 +41,7 @@ class PInt extends PDefaultExprObj {
   }
 
   static PInt create(Parser.SrcInfo srcInfo, int value) {
-    PInt i = new PInt();
-    i.srcInfo = srcInfo;
+    PInt i = new PInt(srcInfo);
     i.value = value;
     return i;
   }

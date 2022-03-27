@@ -27,7 +27,9 @@ class PCaseEval extends PDefaultExprObj implements PEval {
   PExprObj obj;
   PCaseBlock caseBlock;
 
-  private PCaseEval() {}
+  private PCaseEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -42,8 +44,7 @@ class PCaseEval extends PDefaultExprObj implements PEval {
   }
 
   static PCaseEval create(Parser.SrcInfo srcInfo, PExprObj obj, PCaseBlock caseBlock) {
-    PCaseEval e = new PCaseEval();
-    e.srcInfo = srcInfo;
+    PCaseEval e = new PCaseEval(srcInfo);
     e.obj = obj;
     e.caseBlock = caseBlock;
     return e;
@@ -52,8 +53,7 @@ class PCaseEval extends PDefaultExprObj implements PEval {
   static PCaseEval acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case")) { return null; }
-    PCaseBlock.Builder builder = PCaseBlock.Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    PCaseBlock.Builder builder = PCaseBlock.Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();

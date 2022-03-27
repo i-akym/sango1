@@ -29,23 +29,28 @@ import java.util.ArrayList;
 
 abstract class PListPtn extends PDefaultExprObj {
 
+  PListPtn(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   static class Builder {
     int context;  // PPtnMatch.CONTEXT_*
     Parser.SrcInfo srcInfo;
     List<PPtnMatch> elemSeq;
     PPtnMatch tail;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
+    Builder(Parser.SrcInfo srcInfo) {
+      this.srcInfo = srcInfo;
       this.elemSeq = new ArrayList<PPtnMatch>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
 
     void setContext(int context) {
     }
@@ -84,8 +89,7 @@ abstract class PListPtn extends PDefaultExprObj {
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     builder.setContext(context);
     List<PPtnMatch> elemSeq;
     if ((elemSeq = PPtnMatch.acceptPosdSeq(reader, 0, context)) != null) {

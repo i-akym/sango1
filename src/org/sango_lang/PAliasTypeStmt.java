@@ -37,6 +37,10 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
 
+  PAliasTypeStmt(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("alias[src=");
@@ -54,17 +58,17 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   static class Builder {
     PAliasTypeStmt alias;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.alias = new PAliasTypeStmt();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.alias = new PAliasTypeStmt(srcInfo);
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.alias.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.alias.srcInfo = si;
+    // }
 
     void setSig(PType sig) {
       this.alias.sig = sig;
@@ -112,8 +116,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       return null;
     }
     ParserA.acceptSpecifiedWord(reader, "type", ParserA.SPACE_NEEDED);
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
+    // builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
     if ((tsig = PType.acceptSig2(reader)) == null) {
@@ -154,8 +158,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   static PAliasTypeStmt acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("alias-type-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    // builder.setSrcInfo(elem.getSrcInfo());
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {

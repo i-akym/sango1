@@ -28,7 +28,9 @@ import java.io.IOException;
 class PChar extends PDefaultExprObj {
    int value;
 
-  private PChar() {}
+  private PChar(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -39,8 +41,7 @@ class PChar extends PDefaultExprObj {
   }
 
   static PChar create(Parser.SrcInfo srcInfo, int value) {
-    PChar c = new PChar();
-    c.srcInfo = srcInfo;
+    PChar c = new PChar(srcInfo);
     c.value = value;
     return c;
   }

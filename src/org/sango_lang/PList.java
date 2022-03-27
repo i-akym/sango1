@@ -29,22 +29,27 @@ import java.util.List;
 
 abstract class PList extends PDefaultExprObj {
 
+  PList(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   static class Builder {
     Parser.SrcInfo srcInfo;
     List<PExprObj> elemSeq;
     PExprObj tail;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
+    Builder(Parser.SrcInfo srcInfo) {
+      this.srcInfo = srcInfo;
       this.elemSeq = new ArrayList<PExprObj>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
 
     void addElem(PExprObj elem) {
       this.elemSeq.add(elem);
@@ -78,8 +83,7 @@ abstract class PList extends PDefaultExprObj {
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     List<PExprObj> elemSeq;
     if ((elemSeq = PExpr.acceptPosdSeq(reader, 0)) != null) {
       builder.addElemSeq(elemSeq);

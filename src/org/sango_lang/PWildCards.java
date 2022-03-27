@@ -26,7 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PWildCards extends PDefaultExprObj {
-  private PWildCards() {}
+  private PWildCards(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -37,9 +39,7 @@ class PWildCards extends PDefaultExprObj {
   }
 
   static PWildCards create(Parser.SrcInfo srcInfo) {
-    PWildCards i = new PWildCards();
-    i.srcInfo = srcInfo;
-    return i;
+    return new PWildCards(srcInfo);
   }
 
   static PWildCards accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {

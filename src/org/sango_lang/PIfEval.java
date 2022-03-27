@@ -30,7 +30,9 @@ import java.util.List;
 class PIfEval extends PDefaultExprObj implements PEval {
   PIfClause[] clauses;
 
-  private PIfEval() {}
+  private PIfEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -49,18 +51,18 @@ class PIfEval extends PDefaultExprObj implements PEval {
     PIfEval ifEval;
     List<PIfClause> clauseList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.ifEval = new PIfEval();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.ifEval = new PIfEval(srcInfo);
       this.clauseList = new ArrayList<PIfClause>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.ifEval.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.ifEval.srcInfo = si;
+    // }
 
     void addClause(PIfClause clause) {
       this.clauseList.add(clause);
@@ -79,8 +81,7 @@ class PIfEval extends PDefaultExprObj implements PEval {
     if (!next.tagEquals(LToken.LBRACE) || ParserA.acceptSpecifiedWord(reader, "if", spc) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
+    Builder builder = Builder.newInstance(si);
     ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE);
     PIfClause clause = null;
     int state = 0;
@@ -112,8 +113,7 @@ class PIfEval extends PDefaultExprObj implements PEval {
   static PIfEval acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
       PIfClause c = PIfClause.acceptX(e);

@@ -43,11 +43,12 @@ class PExprId extends PDefaultExprObj {
   String name;
   PDefDict.EidProps props;
 
-  private PExprId() {}
+  private PExprId(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PExprId create(Parser.SrcInfo srcInfo, String mod, String name) {
-    PExprId id = new PExprId();
-    id.srcInfo = srcInfo;
+    PExprId id = new PExprId(srcInfo);
     id.mod = mod;
     id.name = name;
     if (id.mod == null) {

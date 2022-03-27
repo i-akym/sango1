@@ -26,7 +26,9 @@ package org.sango_lang;
 class PObjEval extends PDefaultExprObj implements PEval {
   PExprObj obj;
 
-  private PObjEval() {}
+  private PObjEval(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -39,8 +41,7 @@ class PObjEval extends PDefaultExprObj implements PEval {
   }
 
   static PObjEval create(Parser.SrcInfo srcInfo, PExprObj obj) {
-    PObjEval e = new PObjEval();
-    e.srcInfo = srcInfo;
+    PObjEval e = new PObjEval(srcInfo);
     e.obj = obj;
     return e;
   }

@@ -25,7 +25,9 @@ package org.sango_lang;
 
 class PEmptyList extends PList {
 
-  private PEmptyList() {}
+  private PEmptyList(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -36,9 +38,7 @@ class PEmptyList extends PList {
   }
 
   static PEmptyList create(Parser.SrcInfo srcInfo) {
-    PEmptyList L = new PEmptyList();
-    L.srcInfo = srcInfo;
-    return L;
+    return new PEmptyList(srcInfo);
   }
 
   static PEmptyList acceptX(ParserB.Elem elem) throws CompileException {

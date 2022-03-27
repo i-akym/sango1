@@ -29,7 +29,9 @@ class PListConstrPtn extends PListPtn {
   PPtnMatch elem;
   PPtnMatch tail;
 
-  private PListConstrPtn() {}
+  private PListConstrPtn(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -44,8 +46,7 @@ class PListConstrPtn extends PListPtn {
   }
 
   static PListConstrPtn create(Parser.SrcInfo srcInfo, PPtnMatch elem, PPtnMatch tail) {
-    PListConstrPtn c = new PListConstrPtn();
-    c.srcInfo = srcInfo;
+    PListConstrPtn c = new PListConstrPtn(srcInfo);
     c.elem = elem;
     c.tail = tail;
     return c;

@@ -41,11 +41,12 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   boolean ext;
   PDefDict.TconInfo tconInfo;
 
-  private PTypeId() {}
+  private PTypeId(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   static PTypeId create(Parser.SrcInfo srcInfo, String mod, String name, boolean ext) {
-    PTypeId id = new PTypeId();
-    id.srcInfo = srcInfo;
+    PTypeId id = new PTypeId(srcInfo);
     id.mod = mod;
     if (mod == null) {
       id.catOpt = CAT_VAR + CAT_TCON;
@@ -162,8 +163,7 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   }
 
   public PTypeId deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeId id = new PTypeId();
-    id.srcInfo = srcInfo;
+    PTypeId id = new PTypeId(srcInfo);
     id.catOpt = this.catOpt;
     id.mod = this.mod;
     id.name = this.name;

@@ -30,6 +30,10 @@ import java.util.List;
 class PTuple extends PDefaultExprObj {
   PExprObj[] elems;
 
+  PTuple(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("tuple[src=");
@@ -47,18 +51,18 @@ class PTuple extends PDefaultExprObj {
     PTuple tuple;
     List<PExprObj> elemList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo) {
+      return new Builder(srcInfo);
     }
 
-    Builder() {
-      this.tuple = new PTuple();
+    Builder(Parser.SrcInfo srcInfo) {
+      this.tuple = new PTuple(srcInfo);
       this.elemList = new ArrayList<PExprObj>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.tuple.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.tuple.srcInfo = si;
+    // }
 
     void addElem(PExprObj elem) {
       this.elemList.add(elem);
@@ -90,8 +94,7 @@ class PTuple extends PDefaultExprObj {
     if ((t = ParserA.acceptToken(reader, LToken.LPAR_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo());
     builder.addElemList(PExpr.acceptPosdSeq(reader, 2));
     if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -111,8 +114,7 @@ class PTuple extends PDefaultExprObj {
   static PTuple acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("tuple")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
       PExprObj expr = PExpr.acceptX(e);

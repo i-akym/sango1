@@ -28,6 +28,10 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
   PTypeSkel nTypeSkel;
   PTypeGraph.Node typeGraphNode;
 
+  PDefaultTypedObj(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
+
   public PType getType() { return this.type; }
 
   public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
