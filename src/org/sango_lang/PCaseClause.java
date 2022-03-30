@@ -252,14 +252,8 @@ class PCaseClause extends PDefaultExprObj {
     this.outerScope = scope;
     this.scope = scope.enterInner();
     this.idResolved = false;
-    if (this.ptnMatches.length == 1) {
-      this.ptnMatches[0].setupScope(this.scope);
-    } else {
-      this.scope.enableDefineEVar(false);
-      for (int i = 0; i < this.ptnMatches.length; i++) {
-        ptnMatches[i].setupScope(this.scope);
-      }
-      this.scope.enableDefineEVar(true);
+    for (int i = 0; i < this.ptnMatches.length; i++) {
+      ptnMatches[i].setupScope(this.scope);
     }
     if (this.guardExprs != null) {
       for (int i = 0; i < this.guardExprs.length; i++) {
@@ -287,8 +281,14 @@ class PCaseClause extends PDefaultExprObj {
 
   public PCaseClause resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    for (int i = 0; i < this.ptnMatches.length; i++) {
-      this.ptnMatches[i] = this.ptnMatches[i].resolve();
+    if (this.ptnMatches.length == 1) {
+      this.ptnMatches[0] = this.ptnMatches[0].resolve();
+    } else {
+      this.scope.enableDefineEVar(false);
+      for (int i = 0; i < this.ptnMatches.length; i++) {
+        this.ptnMatches[i] = this.ptnMatches[i].resolve();
+      }
+      this.scope.enableDefineEVar(true);
     }
     if (this.guardExprs != null) {
       for (int i = 0; i < this.guardExprs.length; i++) {
