@@ -29,7 +29,7 @@ import java.util.List;
 
 class PIfClause extends PDefaultExprObj {
   PExpr[] guardExprs;
-  PExpr[] actionExprs;
+  PExprList.Seq action;
   PScope outerScope;
 
   private PIfClause(Parser.SrcInfo srcInfo) {
@@ -45,11 +45,8 @@ class PIfClause extends PDefaultExprObj {
       buf.append(this.guardExprs[i]);
       buf.append(",");
     }
-    buf.append("],exprs=[");
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      buf.append(this.actionExprs[i]);
-      buf.append(",");
-    }
+    buf.append("],action=[");
+    buf.append(this.action);
     buf.append("]]");
     return buf.toString();
   }
@@ -57,7 +54,7 @@ class PIfClause extends PDefaultExprObj {
   static class Builder {
     PIfClause clause;
     List<PExpr> guardExprList;
-    List<PExpr> actionExprList;
+    // List<PExpr> actionExprList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo) {
       return new Builder(srcInfo);
@@ -66,7 +63,7 @@ class PIfClause extends PDefaultExprObj {
     Builder(Parser.SrcInfo srcInfo) {
       this.clause = new PIfClause(srcInfo);
       this.guardExprList = new ArrayList<PExpr>();
-      this.actionExprList = new ArrayList<PExpr>();
+      // this.actionExprList = new ArrayList<PExpr>();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
@@ -83,15 +80,16 @@ class PIfClause extends PDefaultExprObj {
       }
     }
 
-    void addActionExpr(PExpr expr) {
-      this.actionExprList.add(expr);
+    void setAction(PExprList.Seq seq) {
+      this.clause.action = seq;
+      // this.actionExprList.add(expr);
     }
 
-    void addActionExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addActionExpr(exprList.get(i));
-      }
-    }
+    // void addActionExprList(List<PExpr> exprList) {
+      // for (int i = 0; i < exprList.size(); i++) {
+        // this.addActionExpr(exprList.get(i));
+      // }
+    // }
 
     PIfClause create() throws CompileException {
       StringBuffer emsg;
@@ -103,7 +101,7 @@ class PIfClause extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
       this.clause.guardExprs = this.guardExprList.toArray(new PExpr[this.guardExprList.size()]);
-      this.clause.actionExprs = this.actionExprList.toArray(new PExpr[this.actionExprList.size()]);
+      // this.clause.action = this.actionExprList.toArray(new PExpr[this.actionExprList.size()]);
       return this.clause;
     }
   }
@@ -125,7 +123,8 @@ class PIfClause extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.addActionExprList(PExpr.acceptSeq(reader, true));
+    builder.setAction(PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), true));
+    // builder.addActionExprList(PExpr.acceptSeq(reader, true));
     return builder.create();
   }
 
@@ -174,8 +173,11 @@ class PIfClause extends PDefaultExprObj {
       throw new CompileException(emsg.toString());
     }
     ee = e.getFirstChild();
+    Parser.SrcInfo si = ee.getSrcInfo();
+    List<PExpr> aes = new ArrayList<PExpr>();
     if (ee == null) {
-      builder.addActionExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      // builder.addActionExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
     } else {
       while (ee != null) {
         PExpr expr = PExpr.acceptX(ee);
@@ -185,10 +187,12 @@ class PIfClause extends PDefaultExprObj {
           emsg.append(ee.getSrcInfo().toString());
           throw new CompileException(emsg.toString());
         }
-        builder.addActionExpr(expr);
+        aes.add(expr);
+        // builder.addActionExpr(expr);
         ee = ee.getNextSibling();
       }
     }
+    builder.setAction(PExprList.Seq.create(si, aes));
     return builder.create();
   }
 
@@ -200,18 +204,14 @@ class PIfClause extends PDefaultExprObj {
     for (int i = 0; i < this.guardExprs.length; i++) {
       this.guardExprs[i].setupScope(this.scope);
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i].setupScope(this.scope);
-    }
+    this.action.setupScope(this.scope);
   }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.guardExprs.length; i++) {
       this.guardExprs[i].collectModRefs();
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i].collectModRefs();
-    }
+    this.action.collectModRefs();
   }
 
   public PIfClause resolve() throws CompileException {
@@ -219,9 +219,7 @@ class PIfClause extends PDefaultExprObj {
     for (int i = 0; i < this.guardExprs.length; i++) {
       this.guardExprs[i] = this.guardExprs[i].resolve();
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].resolve();
-    }
+    this.action = this.action.resolve();
     this.idResolved = true;
     return this;
   }
@@ -230,13 +228,10 @@ class PIfClause extends PDefaultExprObj {
     for (int i = 0; i < this.guardExprs.length; i++) {
       this.guardExprs[i].normalizeTypes();
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i].normalizeTypes();
-    }
+    this.action.normalizeTypes();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createRefNode(this);
     PExpr e = null;
     PTypeGraph.Node n = null;
     for (int i = 0; i < this.guardExprs.length; i++) {
@@ -253,19 +248,8 @@ class PIfClause extends PDefaultExprObj {
     if (e != null) {
       graph.createCondNode(e).setInNode(n);
     }
-    n = null;
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      e = this.actionExprs[i];
-      if (n == null) {
-        n = e.setupTypeGraph(graph);
-      } else {
-        PTypeGraph.SeqNode s = graph.createSeqNode(e);
-        s.setLeadingTypeNode(n);
-        s.setInNode(e.setupTypeGraph(graph));
-        n = s;
-      }
-    }
-    this.typeGraphNode.setInNode(n);
+    this.typeGraphNode = graph.createRefNode(this);
+    this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }
 
@@ -278,13 +262,7 @@ class PIfClause extends PDefaultExprObj {
     }
     cn.addChild(this.guardExprs[this.guardExprs.length - 1].setupFlow(flow));
     node.addChild(flow.createTrialNodeInBranch(this.srcInfo, cn, node));
-    GFlow.SeqNode an = flow.createNodeForAction(this.actionExprs[0].getSrcInfo());
-    for (int i = 0; i < this.actionExprs.length - 1; i++) {
-      an.addChild(this.actionExprs[i].setupFlow(flow));
-      an.addChild(flow.createSinkNode(this.actionExprs[i].getSrcInfo()));
-    }
-    an.addChild(this.actionExprs[this.actionExprs.length - 1].setupFlow(flow));
-    node.addChild(an);
+    node.addChild(this.action.setupFlow(flow));
     return node;
   }
 }
