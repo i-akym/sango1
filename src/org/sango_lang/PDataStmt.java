@@ -606,7 +606,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       PEval.Builder trueTermEvalBuilder = PEval.Builder.newInstance();
       trueTermEvalBuilder.setSrcInfo(si);
       trueTermEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "true$")));
-      caseClauseBuilder.addActionExpr(PExpr.create(trueTermEvalBuilder.create()));
+      List<PExpr> aes = new ArrayList<PExpr>();
+      aes.add(PExpr.create(trueTermEvalBuilder.create()));
+      caseClauseBuilder.setAction(PExprList.Seq.create(si, aes));
+      // caseClauseBuilder.addActionExpr(PExpr.create(trueTermEvalBuilder.create()));
       caseBlockBuilder.addClause(caseClauseBuilder.create());
     }
     PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si);
@@ -622,7 +625,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder falseTermEvalBuilder = PEval.Builder.newInstance();
     falseTermEvalBuilder.setSrcInfo(si);
     falseTermEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "false$")));
-    otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(falseTermEvalBuilder.create()));
+    List<PExpr> aes = new ArrayList<PExpr>();
+    aes.add(PExpr.create(falseTermEvalBuilder.create()));
+    otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, aes));
+    // otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(falseTermEvalBuilder.create()));
     caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
     caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
     evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
@@ -704,7 +710,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       narrowedValueBuilder.addItem(PEvalItem.create(PExprId.create(si, null, constr.getDcon())));
       narrowedResBuilder.addItem(PEvalItem.create(narrowedValueBuilder.create()));
       narrowedResBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "value$")));
-      caseClauseBuilder.addActionExpr(PExpr.create(narrowedResBuilder.create()));
+      List<PExpr> aes = new ArrayList<PExpr>();
+      aes.add(PExpr.create(narrowedResBuilder.create()));
+      caseClauseBuilder.setAction(PExprList.Seq.create(si, aes));
+      // caseClauseBuilder.addActionExpr(PExpr.create(narrowedResBuilder.create()));
       caseBlockBuilder.addClause(caseClauseBuilder.create());
     }
     PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si);
@@ -720,7 +729,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder noneTermEvalBuilder = PEval.Builder.newInstance();
     noneTermEvalBuilder.setSrcInfo(si);
     noneTermEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "none$")));
-    otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(noneTermEvalBuilder.create()));
+    List<PExpr> aes = new ArrayList<PExpr>();
+    aes.add(PExpr.create(noneTermEvalBuilder.create()));
+    otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, aes));
+    // otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(noneTermEvalBuilder.create()));
     caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
     caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
     evalStmtBuilder.addImplExpr(PExpr.create((caseEvalBuilder.create())));
@@ -851,7 +863,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     valueEvalBuilder.setSrcInfo(si);
     valueEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "V")));
     valueEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "value$")));
-    caseClauseBuilder.addActionExpr(PExpr.create(valueEvalBuilder.create()));
+    List<PExpr> aes = new ArrayList<PExpr>();
+    aes.add(PExpr.create(valueEvalBuilder.create()));
+    caseClauseBuilder.setAction(PExprList.Seq.create(si, aes));
+    // caseClauseBuilder.addActionExpr(PExpr.create(valueEvalBuilder.create()));
     caseBlockBuilder.addClause(caseClauseBuilder.create());
     PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si);
     // otherwiseCaseClauseBuilder.setSrcInfo(si);
@@ -866,7 +881,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder noneEvalBuilder = PEval.Builder.newInstance();
     noneEvalBuilder.setSrcInfo(si);
     noneEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "none$")));
-    otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(noneEvalBuilder.create()));
+    List<PExpr> aes2 = new ArrayList<PExpr>();
+    aes2.add(PExpr.create(noneEvalBuilder.create()));
+    otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, aes2));
+    // otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(noneEvalBuilder.create()));
     caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
     caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
     evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));

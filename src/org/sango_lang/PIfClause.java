@@ -54,7 +54,6 @@ class PIfClause extends PDefaultExprObj {
   static class Builder {
     PIfClause clause;
     List<PExpr> guardExprList;
-    // List<PExpr> actionExprList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo) {
       return new Builder(srcInfo);
@@ -172,8 +171,8 @@ class PIfClause extends PDefaultExprObj {
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
+    Parser.SrcInfo si = e.getSrcInfo();
     ee = e.getFirstChild();
-    Parser.SrcInfo si = ee.getSrcInfo();
     List<PExpr> aes = new ArrayList<PExpr>();
     if (ee == null) {
       aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo()));
