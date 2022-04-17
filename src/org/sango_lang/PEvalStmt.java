@@ -35,7 +35,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   int acc;  // Module.ACC_xxx
   PScope bodyScope;
   PRetDef retDef;
-  PExpr[] implExprs;  // null means native impl
+  PExprList.Seq implExprs;  // null means native impl
 
   private PEvalStmt(Parser.SrcInfo srcInfo) {
     super(srcInfo);
@@ -58,10 +58,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     buf.append(this.retDef);
     if (this.implExprs != null) {
       buf.append(",exprs=[");
-      for (int i = 0; i < this.implExprs.length; i++) {
-        buf.append(this.implExprs[i]);
-      buf.append(",");
-      }
+      buf.append(this.implExprs);
       buf.append("]");
     } else {
       buf.append(",NATIVE_IMPL");
@@ -74,7 +71,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     PEvalStmt eval;
     List<PExprVarDef> paramList;
     List<String> aliasList;
-    List<PExpr> implExprList;
+    // List<PExpr> implExprList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo) {
       return new Builder(srcInfo);
@@ -124,26 +121,25 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     void setRetDef(PRetDef retDef) {
       this.eval.retDef = retDef;
     }
-    void startImplExprSeq() {
-      this.implExprList = new ArrayList<PExpr>();
-    }
 
-    void addImplExpr(PExpr expr) {
-      this.implExprList.add(expr);
-    }
+    // void startImplExprSeq() {
+      // this.implExprList = new ArrayList<PExpr>();
+    // }
 
-    void addImplExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addImplExpr(exprList.get(i));
-      }
+    // void addImplExpr(PExpr expr) {
+      // this.implExprList.add(expr);
+    // }
+
+    void setImplExprs(PExprList.Seq seq) {
+      this.eval.implExprs = seq;
     }
 
     PEvalStmt create() throws CompileException {
       this.eval.params = this.paramList.toArray(new PExprVarDef[this.paramList.size()]);
       this.eval.aliases = this.aliasList.toArray(new String[this.aliasList.size()]);
-      if (this.implExprList != null) {
-        this.eval.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
-      }
+      // if (this.implExprList != null) {
+        // this.eval.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
+      // }
       return this.eval;
     }
   }
@@ -155,7 +151,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       return null;
     }
     Builder builder = Builder.newInstance(t.getSrcInfo());
-    // builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader));
     PExprId official = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED);
@@ -178,10 +173,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     PRetDef retDef = PRetDef.accept(reader);
     builder.setRetDef(retDef);
-    List<PExpr> impl = acceptImpl(reader);
+    PExprList.Seq impl = acceptImpl(reader);
     if (impl != null) {
-      builder.startImplExprSeq();
-      builder.addImplExprList(impl);
+      builder.setImplExprs(impl);
     } else {
       ;  // native impl
     }
@@ -199,7 +193,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     StringBuffer emsg;
     if (!elem.getName().equals("eval-def")) { return null; }
     Builder builder = Builder.newInstance(elem.getSrcInfo());
-    // builder.setSrcInfo(elem.getSrcInfo());
 
     String official = elem.getAttrValueAsId("official");
     if (official == null) {
@@ -276,10 +269,13 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     e = e.getNextSibling();
 
     if (e != null && e.getName().equals("impl")) {
-      builder.startImplExprSeq();
+      // builder.startImplExprSeq();
+      Parser.SrcInfo si = e.getSrcInfo();
+      List<PExpr> ies = new ArrayList<PExpr>();
       ParserB.Elem ee = e.getFirstChild();
       if (ee == null) {
-        builder.addImplExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+        ies.add(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+        // builder.addImplExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
       } else {
         while (ee != null) {
           PExpr expr = PExpr.acceptX(ee);
@@ -289,10 +285,12 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
             emsg.append(ee.getSrcInfo().toString());
             throw new CompileException(emsg.toString());
           }
-          builder.addImplExpr(expr);
+          ies.add(expr);
+          // builder.addImplExpr(expr);
           ee = ee.getNextSibling();
         }
       }
+      builder.setImplExprs(PExprList.Seq.create(si, ies));
       e = e.getNextSibling();
     }
     return builder.create();
@@ -324,9 +322,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return aliasList;
   }
 
-  static List<PExpr> acceptImpl(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PExprList.Seq acceptImpl(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
-    List<PExpr> impl = null;
+    PExprList.Seq impl = null;
     if (acceptImplNative(reader) != null) {
       ;
     } else if ((impl= acceptImplExprSeq(reader)) != null) {
@@ -345,13 +343,14 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return ParserA.acceptSpecifiedWord(reader, PModule.IMPL_WORD_NATIVE, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  private static List<PExpr> acceptImplExprSeq(ParserA.TokenReader reader) throws CompileException, IOException {
+  private static PExprList.Seq acceptImplExprSeq(ParserA.TokenReader reader) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    List<PExpr> exprList = PExpr.acceptSeq(reader, true);
+    Parser.SrcInfo si = t.getSrcInfo();
+    PExprList.Seq seq = PExprList.acceptSeq(reader, t.getSrcInfo(), true);
     if (ParserA.acceptToken(reader, LToken.RBRACE, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -364,7 +363,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       }
       throw new CompileException(emsg.toString());
     }
-    return exprList;
+    return seq;
   }
 
   public void setupScope(PScope scope) {
@@ -376,9 +375,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     if (this.implExprs != null) {
       this.bodyScope = scope.enterInner();
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i].setupScope(this.bodyScope);
-      }
+      this.implExprs.setupScope(this.bodyScope);
     }
     this.retDef.setupScope(this.scope);
   }
@@ -388,9 +385,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       this.params[i].collectModRefs();
     }
     if (this.implExprs != null) {
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i].collectModRefs();
-      }
+      this.implExprs.collectModRefs();
     }
     this.retDef.collectModRefs();
   }
@@ -402,9 +397,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     this.retDef = this.retDef.resolve();
     if (this.implExprs != null) {
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i] = this.implExprs[i].resolve();
-      }
+      this.implExprs = this.implExprs.resolve();
     }
     this.idResolved = true;
     return this;
@@ -430,9 +423,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     this.retDef.nTypeSkel.collectTconInfo(tis);
     this.scope.addReferredTcons(tis);
     if (this.implExprs != null) {
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i].normalizeTypes();
-      }
+      this.implExprs.normalizeTypes();
     }
   }
 
@@ -441,19 +432,20 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       this.params[i].setupTypeGraph(graph);
     }
     if (this.implExprs != null) {
-      PTypeGraph.Node n = null;
-      for (int i = 0; i < this.implExprs.length; i++) {
-        if (n == null) {
-          n = this.implExprs[i].setupTypeGraph(graph);
-        } else {
-          PTypeGraph.SeqNode s = graph.createSeqNode(this.implExprs[i]);
-          s.setLeadingTypeNode(n);
-          s.setInNode(this.implExprs[i].setupTypeGraph(graph));
-          n = s;
-        }
-      }
+      // PTypeGraph.Node n = null;
+      // for (int i = 0; i < this.implExprs.length; i++) {
+        // if (n == null) {
+          // n = this.implExprs[i].setupTypeGraph(graph);
+        // } else {
+          // PTypeGraph.SeqNode s = graph.createSeqNode(this.implExprs[i]);
+          // s.setLeadingTypeNode(n);
+          // s.setInNode(this.implExprs[i].setupTypeGraph(graph));
+          // n = s;
+        // }
+      // }
       PTypeGraph.RetNode rn = (PTypeGraph.RetNode)this.retDef.setupTypeGraph(graph);
-      rn.setInNode(n);
+      rn.setInNode(this.implExprs.setupTypeGraph(graph));
+      // rn.setInNode(n);
     }
   }
 

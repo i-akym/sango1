@@ -280,11 +280,11 @@ class Generator {
     if (eval.implExprs != null) {
       GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getParamTypes());
       GFlow.RootNode root = flow.getTopRoot();
-      for (int i = 0; i < eval.implExprs.length -1; i++) {
-        root.addChild(eval.implExprs[i].setupFlow(flow));
-        root.addChild(flow.createSinkNode(eval.implExprs[i].srcInfo));
+      for (int i = 0; i < eval.implExprs.exprs.length -1; i++) {
+        root.addChild(eval.implExprs.exprs[i].setupFlow(flow));
+        root.addChild(flow.createSinkNode(eval.implExprs.exprs[i].srcInfo));
       }
-      PExpr last = eval.implExprs[eval.implExprs.length - 1];
+      PExpr last = eval.implExprs.exprs[eval.implExprs.exprs.length - 1];
       root.addChild(last.setupFlow(flow));
       flow.prepareAll();
       List<GFlow.RootNode> rootList = flow.getRootList();

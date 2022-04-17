@@ -440,11 +440,14 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "int", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
-    evalStmtBuilder.startImplExprSeq();
+    // evalStmtBuilder.startImplExprSeq();
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_hash_" + this.tcon)));
-    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    List<PExpr> ies = new ArrayList<PExpr>();
+    ies.add(PExpr.create(callEvalBuilder.create()));
+    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, ies));
+    // evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
     return evalStmtBuilder.create();
   }
 
@@ -452,7 +455,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // eval <*T0 *T1 .. TCON> *X _call_debug_repr_TCON @private -> <cstr> {
     //   X _debug_repr_TCON
     // }
-    if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
     if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_debug_repr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si);
@@ -471,11 +473,14 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "cstr", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
-    evalStmtBuilder.startImplExprSeq();
+    // evalStmtBuilder.startImplExprSeq();
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance();
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "_debug_repr_" + this.tcon)));
-    evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
+    List<PExpr> ies = new ArrayList<PExpr>();
+    ies.add(PExpr.create(callEvalBuilder.create()));
+    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, ies));
+    // evalStmtBuilder.addImplExpr(PExpr.create(callEvalBuilder.create()));
     return evalStmtBuilder.create();
   }
 
@@ -512,7 +517,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     retTypeBuilder.setSrcInfo(si);
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "bool", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
-    evalStmtBuilder.startImplExprSeq();
+    // evalStmtBuilder.startImplExprSeq();
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
     caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
@@ -561,7 +566,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(forwardingEvalBuilder.create()));
     caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
     caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
-    evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
+    List<PExpr> ies = new ArrayList<PExpr>();
+    ies.add(PExpr.create(caseEvalBuilder.create()));
+    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, ies));
+    // evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
     return evalStmtBuilder.create();
   }
 
@@ -606,7 +614,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     retMaybeTypeBuilder.addItem(retDataTypeBuilder.create());
     retMaybeTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "maybe", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retMaybeTypeBuilder.create()));
-    evalStmtBuilder.startImplExprSeq();
+    // evalStmtBuilder.startImplExprSeq();
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
     caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
@@ -665,7 +673,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(forwardingEvalBuilder.create()));
     caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
     caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
-    evalStmtBuilder.addImplExpr(PExpr.create((caseEvalBuilder.create())));
+    List<PExpr> ies = new ArrayList<PExpr>();
+    ies.add(PExpr.create(caseEvalBuilder.create()));
+    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, ies));
+    // evalStmtBuilder.addImplExpr(PExpr.create((caseEvalBuilder.create())));
     return evalStmtBuilder.create();
   }
 
@@ -719,7 +730,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     retTypeBuilder.addItem(attr.type.deepCopy(
       si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
-    evalStmtBuilder.startImplExprSeq();
+    // evalStmtBuilder.startImplExprSeq();
     PEval.Builder matchEvalBuilder = PEval.Builder.newInstance();
     matchEvalBuilder.setSrcInfo(si);
     matchEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
@@ -729,11 +740,15 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, attr.name, PExprVarDef.create(si, PExprVarDef.CAT_LOCAL_VAR, null, "V")));
     matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si)));
     matchPtnBuilder.addItem(PPtnItem.create(si, PPtnMatch.CONTEXT_TRIAL, null, PExprId.create(si, null, constr.dcon)));
-    evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, matchPtnBuilder.create())));
+    List<PExpr> ies = new ArrayList<PExpr>();
+    ies.add(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, matchPtnBuilder.create())));
+    // evalStmtBuilder.addImplExpr(PExpr.create(si, matchEvalBuilder.create(), PPtnMatch.create(si, PPtnMatch.CONTEXT_TRIAL, null, matchPtnBuilder.create())));
     PEval.Builder retEvalBuilder = PEval.Builder.newInstance();
     retEvalBuilder.setSrcInfo(si);
     retEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "V")));
-    evalStmtBuilder.addImplExpr(PExpr.create(retEvalBuilder.create()));
+    ies.add(PExpr.create(retEvalBuilder.create()));
+    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, ies));
+    // evalStmtBuilder.addImplExpr(PExpr.create(retEvalBuilder.create()));
     return evalStmtBuilder.create();
   }
 
@@ -769,7 +784,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       si, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
     retTypeBuilder.addItem(PTypeId.create(si, PModule.MOD_ID_LANG, "maybe", false));
     evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
-    evalStmtBuilder.startImplExprSeq();
+    // evalStmtBuilder.startImplExprSeq();
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance();
     caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, null, "X")));
@@ -815,7 +830,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // otherwiseCaseClauseBuilder.addActionExpr(PExpr.create(noneEvalBuilder.create()));
     caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
     caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
-    evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
+    List<PExpr> ies = new ArrayList<PExpr>();
+    ies.add(PExpr.create(caseEvalBuilder.create()));
+    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, ies));
+    // evalStmtBuilder.addImplExpr(PExpr.create(caseEvalBuilder.create()));
     return evalStmtBuilder.create();
   }
 }
