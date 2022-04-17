@@ -35,7 +35,7 @@ abstract class PList extends PDefaultExprObj {
 
   static class Builder {
     Parser.SrcInfo srcInfo;
-    List<PExprObj> elemSeq;
+    List<PExpr> elemSeq;
     PExprObj tail;
 
     static Builder newInstance(Parser.SrcInfo srcInfo) {
@@ -44,18 +44,18 @@ abstract class PList extends PDefaultExprObj {
 
     Builder(Parser.SrcInfo srcInfo) {
       this.srcInfo = srcInfo;
-      this.elemSeq = new ArrayList<PExprObj>();
+      this.elemSeq = new ArrayList<PExpr>();
     }
 
     // void setSrcInfo(Parser.SrcInfo si) {
       // this.srcInfo = si;
     // }
 
-    void addElem(PExprObj elem) {
+    void addElem(PExpr elem) {
       this.elemSeq.add(elem);
     }
 
-    void addElemSeq(List<PExprObj> elemSeq) {
+    void addElemSeq(List<PExpr> elemSeq) {
       this.elemSeq.addAll(elemSeq);
     }
 
@@ -84,11 +84,11 @@ abstract class PList extends PDefaultExprObj {
       return null;
     }
     Builder builder = Builder.newInstance(t.getSrcInfo());
-    List<PExprObj> elemSeq;
+    List<PExpr> elemSeq;
     if ((elemSeq = PExpr.acceptPosdSeq(reader, 0)) != null) {
       builder.addElemSeq(elemSeq);
       if (!elemSeq.isEmpty() && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
-        PExprObj tail;
+        PExpr tail;
         if ((tail = PExpr.accept(reader)) == null) {
           emsg = new StringBuffer();
           emsg.append("Syntax error at ");
@@ -130,7 +130,7 @@ abstract class PList extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExprObj h = PExpr.acceptX(e);
+    PExpr h = PExpr.acceptX(e);
     if (h == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -145,7 +145,7 @@ abstract class PList extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExprObj t = PExpr.acceptX(e);
+    PExpr t = PExpr.acceptX(e);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");

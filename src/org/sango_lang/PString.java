@@ -29,7 +29,7 @@ import java.util.List;
 
 class PString extends PDefaultExprObj {
   boolean isFromCstr;
-  PExprObj[] elems;
+  PExpr[] elems;
 
   PString(Parser.SrcInfo srcInfo) {
     super(srcInfo);
@@ -50,7 +50,7 @@ class PString extends PDefaultExprObj {
 
   static class Builder {
     PString string;
-    List<PExprObj> elemList;
+    List<PExpr> elemList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo) {
       return new Builder(srcInfo);
@@ -58,7 +58,7 @@ class PString extends PDefaultExprObj {
 
     Builder(Parser.SrcInfo srcInfo) {
       this.string = new PString(srcInfo);
-      this.elemList = new ArrayList<PExprObj>();
+      this.elemList = new ArrayList<PExpr>();
     }
 
     // void setSrcInfo(Parser.SrcInfo si) {
@@ -69,18 +69,18 @@ class PString extends PDefaultExprObj {
       this.string.isFromCstr = true;
     }
 
-    void addElem(PExprObj elem) {
+    void addElem(PExpr elem) {
       this.elemList.add(elem);
     }
 
-    void addElemSeq(List<PExprObj> elemSeq) {
+    void addElemSeq(List<PExpr> elemSeq) {
       for (int i = 0; i < elemSeq.size(); i++) {
         this.addElem(elemSeq.get(i));
       }
     }
 
     PString create() {
-      this.string.elems = this.elemList.toArray(new PExprObj[this.elemList.size()]);
+      this.string.elems = this.elemList.toArray(new PExpr[this.elemList.size()]);
       return this.string;
     }
   }
@@ -116,7 +116,7 @@ class PString extends PDefaultExprObj {
     Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PExprObj expr = PExpr.acceptX(e);
+      PExpr expr = PExpr.acceptX(e);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -129,13 +129,16 @@ class PString extends PDefaultExprObj {
     return builder.create();
   }
 
-  static PString fromCstr(ParserA.Token cstrToken) {
+  static PString fromCstr(ParserA.Token cstrToken) throws CompileException {
     Builder builder = new Builder(cstrToken.getSrcInfo());
     builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
     for (int i = 0; i < cstr.getLength(); i++) {
-      builder.addElem(PChar.create(si, cstr.getCharAt(i)));
+      PEval.Builder eb = PEval.Builder.newInstance();
+      eb.setSrcInfo(si);
+      eb.addItem(PEvalItem.ObjItem.create(si, null, PChar.create(si, cstr.getCharAt(i))));
+      builder.addElem(PExpr.create(eb.create()));
     }
     return builder.create();
   }
@@ -193,7 +196,8 @@ class PString extends PDefaultExprObj {
     if (this.isFromCstr) {
       Cstr cstrValue = new Cstr();
       for (int i = 0; i < this.elems.length; i++) {
-        cstrValue.append(((PChar)this.elems[i]).value);
+        PObjEval oe = (PObjEval)this.elems[i].eval;
+        cstrValue.append(((PChar)oe.obj).value);
       }
       node = flow.createNodeForCstr(this.srcInfo, cstrValue);
     } else {
