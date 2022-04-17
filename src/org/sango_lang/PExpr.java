@@ -98,10 +98,10 @@ class PExpr extends PDefaultExprObj implements PEval {
     return expr;
   }
 
-  static List<PExprObj> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
+  static List<PExpr> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
     StringBuffer emsg;
-    List<PExprObj> evalList = new ArrayList<PExprObj>();
-    PExprObj expr = null;
+    List<PExpr> evalList = new ArrayList<PExpr>();
+    PExpr expr = null;
     int state = 0;
     while (state >= 0)  {
       switch (state) {
