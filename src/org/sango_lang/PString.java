@@ -29,7 +29,7 @@ import java.util.List;
 
 class PString extends PDefaultExprObj {
   boolean isFromCstr;
-  PExpr[] elems;
+  PExprList.Elems elems;
 
   PString(Parser.SrcInfo srcInfo) {
     super(srcInfo);
@@ -40,50 +40,54 @@ class PString extends PDefaultExprObj {
     buf.append("string[src=");
     buf.append(this.srcInfo);
     buf.append(",elems=[");
-    for (int i = 0; i < this.elems.length; i++) {
-      buf.append(this.elems[i]);
-      buf.append(",");
-    }
+    buf.append(this.elems);
     buf.append("]]");
     return buf.toString();
   }
 
-  static class Builder {
-    PString string;
-    List<PExpr> elemList;
+  static PString create(Parser.SrcInfo srcInfo, boolean isFromCstr, PExprList.Elems elems) {
+    PString s = new PString(srcInfo);
+    s.isFromCstr = isFromCstr;
+    s.elems = elems;
+    return s;
+  }
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
-    }
+  // static class Builder {
+    // PString string;
+    // List<PExpr> elemList;
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.string = new PString(srcInfo);
-      this.elemList = new ArrayList<PExpr>();
-    }
+    // static Builder newInstance(Parser.SrcInfo srcInfo) {
+      // return new Builder(srcInfo);
+    // }
+
+    // Builder(Parser.SrcInfo srcInfo) {
+      // this.string = new PString(srcInfo);
+      // this.elemList = new ArrayList<PExpr>();
+    // }
 
     // void setSrcInfo(Parser.SrcInfo si) {
       // this.string.srcInfo = si;
     // }
 
-    void setFromCstr() {
-      this.string.isFromCstr = true;
-    }
+    // void setFromCstr() {
+      // this.string.isFromCstr = true;
+    // }
 
-    void addElem(PExpr elem) {
-      this.elemList.add(elem);
-    }
+    // void addElem(PExpr elem) {
+      // this.elemList.add(elem);
+    // }
 
-    void addElemSeq(List<PExpr> elemSeq) {
-      for (int i = 0; i < elemSeq.size(); i++) {
-        this.addElem(elemSeq.get(i));
-      }
-    }
+    // void addElemSeq(List<PExpr> elemSeq) {
+      // for (int i = 0; i < elemSeq.size(); i++) {
+        // this.addElem(elemSeq.get(i));
+      // }
+    // }
 
-    PString create() {
-      this.string.elems = this.elemList.toArray(new PExpr[this.elemList.size()]);
-      return this.string;
-    }
-  }
+    // PString create() {
+      // this.string.elems = this.elemList.toArray(new PExpr[this.elemList.size()]);
+      // return this.string;
+    // }
+  // }
 
   static PString accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
     StringBuffer emsg;
@@ -93,8 +97,10 @@ class PString extends PDefaultExprObj {
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
-    builder.addElemSeq(PExpr.acceptPosdSeq(reader, 0));
+    // Builder builder = Builder.newInstance(t.getSrcInfo());
+    // builder.addElemSeq(PExpr.acceptPosdSeq(reader, 0));
+    Parser.SrcInfo si = t.getSrcInfo();
+    PExprList.Elems elems = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), 0);
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -107,14 +113,17 @@ class PString extends PDefaultExprObj {
       }
       throw new CompileException(emsg.toString());
     }
-    return builder.create();
+    return create(si, false, elems);
+    // return builder.create();
   }
 
   static PString acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    // Builder builder = Builder.newInstance(elem.getSrcInfo());
+    Parser.SrcInfo si = elem.getSrcInfo();
     ParserB.Elem e = elem.getFirstChild();
+    List<PExpr> es = new ArrayList<PExpr>();
     while (e != null) {
       PExpr expr = PExpr.acceptX(e);
       if (expr == null) {
@@ -123,58 +132,53 @@ class PString extends PDefaultExprObj {
         emsg.append(e.getSrcInfo().toString());
         throw new CompileException(emsg.toString());
         }
-      builder.addElem(expr);
+      es.add(expr);
+      // builder.addElem(expr);
       e = e.getNextSibling();
     }
-    return builder.create();
+    return create(si, false, PExprList.Elems.create(si, es));
+    // return builder.create();
   }
 
   static PString fromCstr(ParserA.Token cstrToken) throws CompileException {
-    Builder builder = new Builder(cstrToken.getSrcInfo());
-    builder.setFromCstr();
+    // Builder builder = new Builder(cstrToken.getSrcInfo());
+    // builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
+    List<PExpr> es = new ArrayList<PExpr>();
     for (int i = 0; i < cstr.getLength(); i++) {
       PEval.Builder eb = PEval.Builder.newInstance();
       eb.setSrcInfo(si);
       eb.addItem(PEvalItem.ObjItem.create(si, null, PChar.create(si, cstr.getCharAt(i))));
-      builder.addElem(PExpr.create(eb.create()));
+      es.add(PExpr.create(eb.create()));
+      // builder.addElem(PExpr.create(eb.create()));
     }
-    return builder.create();
+    return create(si, true, PExprList.Elems.create(si, es));
+    // return builder.create();
   }
 
   public void setupScope(PScope scope) {
     if (scope == this.scope) { return; }
     this.scope = scope;
     this.idResolved = false;
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].setupScope(scope);
-    }
+    this.elems.setupScope(scope);
   }
 
   public void collectModRefs() throws CompileException {
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].collectModRefs();
-    }
+    this.elems.collectModRefs();
   }
 
   public PString resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].resolve();
-    }
+    this.elems = this.elems.resolve();
     this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].normalizeTypes();
-    }
+    this.elems.normalizeTypes();
     if (this.isFromCstr) {
       this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getSkel();
-    // } else if (this.elems.length == 0)  {
-      // this.nTypeSkel = this.scope.getEmptyStringType(this.srcInfo).getSkel();
     }
   }
 
@@ -182,9 +186,9 @@ class PString extends PDefaultExprObj {
     if (this.nTypeSkel != null) {
       this.typeGraphNode = graph.createDetNode(this);
     } else {  // one or more elements
-      PTypeGraph.StringNode node = graph.createStringNode(this, this.elems.length);
-      for (int i = 0; i < this.elems.length; i++) {
-        node.setElemNode(i, this.elems[i].setupTypeGraph(graph));
+      PTypeGraph.StringNode node = graph.createStringNode(this, this.elems.exprs.length);
+      for (int i = 0; i < this.elems.exprs.length; i++) {
+        node.setElemNode(i, this.elems.exprs[i].setupTypeGraph(graph));
       }
       this.typeGraphNode = node;
     }
@@ -195,15 +199,15 @@ class PString extends PDefaultExprObj {
     GFlow.Node node;
     if (this.isFromCstr) {
       Cstr cstrValue = new Cstr();
-      for (int i = 0; i < this.elems.length; i++) {
-        PObjEval oe = (PObjEval)this.elems[i].eval;
+      for (int i = 0; i < this.elems.exprs.length; i++) {
+        PObjEval oe = (PObjEval)this.elems.exprs[i].eval;
         cstrValue.append(((PChar)oe.obj).value);
       }
       node = flow.createNodeForCstr(this.srcInfo, cstrValue);
     } else {
       GFlow.StringNode n = flow.createNodeForString(this.srcInfo);
-      for (int i = 0; i < this.elems.length; i++) {
-        n.addChild(this.elems[i].setupFlow(flow));
+      for (int i = 0; i < this.elems.exprs.length; i++) {
+        n.addChild(this.elems.exprs[i].setupFlow(flow));
       }
       node = n;
     }
