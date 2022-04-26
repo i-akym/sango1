@@ -47,16 +47,15 @@ abstract class PList extends PDefaultExprObj {
       this.elemSeq = new ArrayList<PExpr>();
     }
 
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.srcInfo = si;
-    // }
-
     void addElem(PExpr elem) {
       this.elemSeq.add(elem);
     }
 
-    void addElemSeq(List<PExpr> elemSeq) {
-      this.elemSeq.addAll(elemSeq);
+    void addElemSeq(PExprList.Elems elemSeq) {
+      for (int i = 0; i < elemSeq.exprs.length; i++) {
+        this.elemSeq.add(elemSeq.exprs[i]);
+      }
+      // this.elemSeq.addAll(elemSeq);
     }
 
     void setTail(PExprObj tail) {
@@ -84,10 +83,10 @@ abstract class PList extends PDefaultExprObj {
       return null;
     }
     Builder builder = Builder.newInstance(t.getSrcInfo());
-    List<PExpr> elemSeq;
-    if ((elemSeq = PExpr.acceptPosdSeq(reader, 0)) != null) {
+    PExprList.Elems elemSeq;
+    if ((elemSeq = PExprList.acceptElems(reader, t.getSrcInfo(), 0)) != null) {
       builder.addElemSeq(elemSeq);
-      if (!elemSeq.isEmpty() && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
+      if (elemSeq.exprs.length > 0 && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
         PExpr tail;
         if ((tail = PExpr.accept(reader)) == null) {
           emsg = new StringBuffer();
