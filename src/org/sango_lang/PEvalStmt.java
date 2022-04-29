@@ -274,7 +274,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       List<PExpr> ies = new ArrayList<PExpr>();
       ParserB.Elem ee = e.getFirstChild();
       if (ee == null) {
-        ies.add(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+        ies.add(PExpr.createDummyVoidExpr(si));
         // builder.addImplExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
       } else {
         while (ee != null) {
