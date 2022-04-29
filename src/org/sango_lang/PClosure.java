@@ -326,17 +326,6 @@ class PClosure extends PDefaultExprObj {
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }
-    // PTypeGraph.Node n = null;
-    // for (int i = 0; i < this.implExprs.exprs.length; i++) {  // guaranteed not to be empty
-      // if (n == null) {
-        // n = this.implExprs.exprs[i].setupTypeGraph(graph);
-      // } else {
-        // PTypeGraph.SeqNode s = graph.createSeqNode(this.implExprs.exprs[i]);
-        // s.setLeadingTypeNode(n);
-        // s.setInNode(this.implExprs.exprs[i].setupTypeGraph(graph));
-        // n = s;
-      // }
-    // }
     PTypeGraph.Node rn = this.retDef.setupTypeGraph(graph);
     rn.setInNode(this.implExprs.setupTypeGraph(graph));
     ((PTypeGraph.ClosureNode)this.typeGraphNode).setRetNode(rn);

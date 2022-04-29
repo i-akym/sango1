@@ -52,43 +52,6 @@ class PString extends PDefaultExprObj {
     return s;
   }
 
-  // static class Builder {
-    // PString string;
-    // List<PExpr> elemList;
-
-    // static Builder newInstance(Parser.SrcInfo srcInfo) {
-      // return new Builder(srcInfo);
-    // }
-
-    // Builder(Parser.SrcInfo srcInfo) {
-      // this.string = new PString(srcInfo);
-      // this.elemList = new ArrayList<PExpr>();
-    // }
-
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.string.srcInfo = si;
-    // }
-
-    // void setFromCstr() {
-      // this.string.isFromCstr = true;
-    // }
-
-    // void addElem(PExpr elem) {
-      // this.elemList.add(elem);
-    // }
-
-    // void addElemSeq(List<PExpr> elemSeq) {
-      // for (int i = 0; i < elemSeq.size(); i++) {
-        // this.addElem(elemSeq.get(i));
-      // }
-    // }
-
-    // PString create() {
-      // this.string.elems = this.elemList.toArray(new PExpr[this.elemList.size()]);
-      // return this.string;
-    // }
-  // }
-
   static PString accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
@@ -97,8 +60,6 @@ class PString extends PDefaultExprObj {
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
-    // Builder builder = Builder.newInstance(t.getSrcInfo());
-    // builder.addElemSeq(PExpr.acceptPosdSeq(reader, 0));
     Parser.SrcInfo si = t.getSrcInfo();
     PExprList.Elems elems = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), 0);
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -114,13 +75,11 @@ class PString extends PDefaultExprObj {
       throw new CompileException(emsg.toString());
     }
     return create(si, false, elems);
-    // return builder.create();
   }
 
   static PString acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
-    // Builder builder = Builder.newInstance(elem.getSrcInfo());
     Parser.SrcInfo si = elem.getSrcInfo();
     ParserB.Elem e = elem.getFirstChild();
     List<PExpr> es = new ArrayList<PExpr>();
@@ -133,16 +92,12 @@ class PString extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
         }
       es.add(expr);
-      // builder.addElem(expr);
       e = e.getNextSibling();
     }
     return create(si, false, PExprList.Elems.create(si, es));
-    // return builder.create();
   }
 
   static PString fromCstr(ParserA.Token cstrToken) throws CompileException {
-    // Builder builder = new Builder(cstrToken.getSrcInfo());
-    // builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
     List<PExpr> es = new ArrayList<PExpr>();
@@ -151,10 +106,8 @@ class PString extends PDefaultExprObj {
       eb.setSrcInfo(si);
       eb.addItem(PEvalItem.ObjItem.create(si, null, PChar.create(si, cstr.getCharAt(i))));
       es.add(PExpr.create(eb.create()));
-      // builder.addElem(PExpr.create(eb.create()));
     }
     return create(si, true, PExprList.Elems.create(si, es));
-    // return builder.create();
   }
 
   public void setupScope(PScope scope) {

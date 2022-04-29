@@ -98,51 +98,6 @@ class PExpr extends PDefaultExprObj implements PEval {
     return expr;
   }
 
-  static List<PExpr> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
-    StringBuffer emsg;
-    List<PExpr> evalList = new ArrayList<PExpr>();
-    PExpr expr = null;
-    int state = 0;
-    while (state >= 0)  {
-      switch (state) {
-      case 0:
-        if ((expr = accept(reader)) != null) {
-          evalList.add(expr);
-          state = 1;
-        } else {
-          state = -1;
-        }
-        break;
-      case 1:
-        if (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE) != null) {
-          state = 2;
-        } else {
-          state = -1;
-        }
-        break;
-      default:  // case 2
-        if ((expr = accept(reader)) != null) {
-          evalList.add(expr);
-          state = 1;
-        } else {
-          emsg = new StringBuffer();
-          emsg.append("Expression missing at ");
-          emsg.append(reader.getCurrentSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        break;
-      }
-    }
-    if (evalList.size() < min) {
-      emsg = new StringBuffer();
-      emsg.append("Insufficient expressions at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    return evalList;
-  }
   static PExpr acceptX(ParserB.Elem elem) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("expr")) { return null; }
@@ -188,26 +143,6 @@ class PExpr extends PDefaultExprObj implements PEval {
       }
     }
     return create(elem.getSrcInfo(), eval, pm);
-  }
-
-  static List<PExpr> acceptSeq(ParserA.TokenReader reader, boolean voidAssumedWhenEmpty) throws CompileException, IOException {
-    List<PExpr> exprList = new ArrayList<PExpr>();
-    PExpr expr = null;
-    int state = 0;
-    while (state >= 0)  {
-      if (state == 0 && (expr = PExpr.accept(reader)) != null) {
-        exprList.add(expr);
-        state = 1;
-      } else if (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE) != null) {
-        state = 0;
-      } else {
-        state = -1;
-      }
-    }
-    if (exprList.size() == 0 && voidAssumedWhenEmpty) {
-      exprList.add(createDummyVoidExpr(reader.getCurrentSrcInfo()));
-    }
-    return exprList;
   }
 
   static PExpr createDummyVoidExpr(Parser.SrcInfo si) {

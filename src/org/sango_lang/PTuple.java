@@ -50,43 +50,6 @@ class PTuple extends PDefaultExprObj {
     return t;
   }
 
-  // static class Builder {
-    // PTuple tuple;
-    // List<PExpr> elemList;
-
-    // static Builder newInstance(Parser.SrcInfo srcInfo) {
-      // return new Builder(srcInfo);
-    // }
-
-    // Builder(Parser.SrcInfo srcInfo) {
-      // this.tuple = new PTuple(srcInfo);
-      // this.elemList = new ArrayList<PExpr>();
-    // }
-
-    // void setElems(PExprList.Elems elems) {
-      // this.tuple.elems = elems;
-    // }
-
-    // void addElemList(List<PExpr> elemList) {
-      // for (int i = 0; i < elemList.size(); i++) {
-        // this.addElem(elemList.get(i));
-      // }
-    // }
-
-    // PTuple create() throws CompileException {
-      // StringBuffer emsg;
-      // if (this.elemList.size() < 2) {
-        // emsg = new StringBuffer();
-        // emsg.append("Insufficient expressions at ");
-        // emsg.append(this.tuple.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // // this.tuple.elems = this.elemList.toArray(new PExpr[this.elemList.size()]); 
-      // return this.tuple;
-    // }
-  // }
-
   static PTuple accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
@@ -101,8 +64,6 @@ class PTuple extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    // Builder builder = Builder.newInstance(t.getSrcInfo());
-    // builder.addElemList(PExpr.acceptPosdSeq(reader, 2));
     if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Missing end of tuple at ");
@@ -111,7 +72,6 @@ class PTuple extends PDefaultExprObj {
       throw new CompileException(emsg.toString());
     }
     return create(t.getSrcInfo(), es);
-    // return builder.create();
   }
 
   static PTuple acceptX(ParserB.Elem elem) throws CompileException {
@@ -119,7 +79,6 @@ class PTuple extends PDefaultExprObj {
     if (!elem.getName().equals("tuple")) { return null; }
     Parser.SrcInfo si = elem.getSrcInfo();
     List<PExpr> es = new ArrayList<PExpr>();
-    // Builder builder = Builder.newInstance(elem.getSrcInfo());
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
       PExpr expr = PExpr.acceptX(e);
@@ -130,11 +89,9 @@ class PTuple extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
         }
       es.add(expr);
-      // builder.addElem(expr);
       e = e.getNextSibling();
     }
     return create(si, PExprList.Elems.create(si, es));
-    // return builder.create();
   }
 
   public void setupScope(PScope scope) {

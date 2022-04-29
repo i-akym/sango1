@@ -432,20 +432,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       this.params[i].setupTypeGraph(graph);
     }
     if (this.implExprs != null) {
-      // PTypeGraph.Node n = null;
-      // for (int i = 0; i < this.implExprs.length; i++) {
-        // if (n == null) {
-          // n = this.implExprs[i].setupTypeGraph(graph);
-        // } else {
-          // PTypeGraph.SeqNode s = graph.createSeqNode(this.implExprs[i]);
-          // s.setLeadingTypeNode(n);
-          // s.setInNode(this.implExprs[i].setupTypeGraph(graph));
-          // n = s;
-        // }
-      // }
       PTypeGraph.RetNode rn = (PTypeGraph.RetNode)this.retDef.setupTypeGraph(graph);
       rn.setInNode(this.implExprs.setupTypeGraph(graph));
-      // rn.setInNode(n);
     }
   }
 
