@@ -244,10 +244,12 @@ class PCaseClause extends PDefaultExprObj {
     StringBuffer emsg;
     if (scope == this.outerScope) { return; }
     this.outerScope = scope;
-    this.scope = scope.enterInner();
+    this.scope = scope.enterInnerWithParallelScopes();
+    // this.scope = scope.enterInner();
     this.idResolved = false;
     for (int i = 0; i < this.ptnMatches.length; i++) {
-      ptnMatches[i].setupScope(this.scope);
+      ptnMatches[i].setupScope(this.scope.enterInnterParallel());
+      // ptnMatches[i].setupScope(this.scope);
     }
     if (this.guard != null) {
       this.guard.setupScope(this.scope);
@@ -267,15 +269,15 @@ class PCaseClause extends PDefaultExprObj {
 
   public PCaseClause resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    if (this.ptnMatches.length == 1) {
-      this.ptnMatches[0] = this.ptnMatches[0].resolve();
-    } else {
-      this.scope.enableDefineEVar(false);
-      for (int i = 0; i < this.ptnMatches.length; i++) {
-        this.ptnMatches[i] = this.ptnMatches[i].resolve();
-      }
-      this.scope.enableDefineEVar(true);
+    // if (this.ptnMatches.length == 1) {
+      // this.ptnMatches[0] = this.ptnMatches[0].resolve();
+    // } else {
+      // this.scope.enableDefineEVar(false);
+    for (int i = 0; i < this.ptnMatches.length; i++) {
+      this.ptnMatches[i] = this.ptnMatches[i].resolve();
     }
+      // this.scope.enableDefineEVar(true);
+    // }
     if (this.guard != null) {
       this.guard = this.guard.resolve();
     }
