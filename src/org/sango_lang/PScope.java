@@ -36,8 +36,6 @@ class PScope {
   PClosure closure;  // set if funLevel > 0
   List<PScope> parallelScopes;
   boolean inParallel;
-  // boolean enablesDefineTVar;
-  // boolean enablesDefineEVar;
   Map<String, PTypeVarDef> tvarDict;
   Map<String, PExprVarDef> evarDict;
   Map<String, PTypeVarDef> outerTVarDict;
@@ -49,8 +47,6 @@ class PScope {
   private PScope(PModule theMod) {
     this.theMod = theMod;
     this.funLevel = -2;
-    // this.enablesDefineTVar = true;
-    // this.enablesDefineEVar = true;
     this.tvarDict = new HashMap<String, PTypeVarDef>();
     this.evarDict = new HashMap<String, PExprVarDef>();
     this.outerTVarDict = new HashMap<String, PTypeVarDef>();
@@ -147,20 +143,11 @@ class PScope {
     return (v != null || this.parent == null)? v: this.parent.lookupEVar(var);
   }
 
-  // void enableDefineTVar(boolean b) {
-    // this.enablesDefineTVar = b;
-  // }
-
-  // void enableDefineEVar(boolean b) {
-    // this.enablesDefineEVar = b;
-  // }
-
   boolean canDefineTVar(PTypeVarDef varDef) {
     if (this.funLevel < -1) {
       throw new IllegalStateException("Not active.");
     }
     return !this.isActuallyInParallel()  // inhibit when actually parallel
-      // && this.enablesDefineTVar
       && !this.tvarDict.containsKey(varDef.name)
       && !this.evarDict.containsKey(varDef.name)
       && !this.outerTVarDict.containsKey(varDef.name)
@@ -172,7 +159,6 @@ class PScope {
       throw new IllegalStateException("Not active.");
     }
     return !this.isActuallyInParallel()  // inhibit when actually parallel
-      // && this.enablesDefineEVar
       && !this.tvarDict.containsKey(varDef.name)
       && !this.evarDict.containsKey(varDef.name)
       && !this.outerTVarDict.containsKey(varDef.name)

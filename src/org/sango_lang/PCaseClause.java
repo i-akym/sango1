@@ -61,7 +61,6 @@ class PCaseClause extends PDefaultExprObj {
   static class Builder {
     PCaseClause clause;
     List<PCasePtnMatch> ptnMatchList;
-    // List<PExpr> guardExprList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo) {
       return new Builder(srcInfo);
@@ -70,7 +69,6 @@ class PCaseClause extends PDefaultExprObj {
     Builder(Parser.SrcInfo srcInfo) {
       this.clause = new PCaseClause(srcInfo);
       this.ptnMatchList = new ArrayList<PCasePtnMatch>();
-      // this.guardExprList = new ArrayList<PExpr>();
     }
 
     void setSrcInfo(Parser.SrcInfo si) {
@@ -91,12 +89,6 @@ class PCaseClause extends PDefaultExprObj {
       this.clause.guard = seq;
     }
 
-    // void addGuardExprList(List<PExpr> exprList) {
-      // for (int i = 0; i < exprList.size(); i++) {
-        // this.addGuardExpr(exprList.get(i));
-      // }
-    // }
-
     void setAction(PExprList.Seq seq) {
       this.clause.action = seq;
     }
@@ -111,7 +103,6 @@ class PCaseClause extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
       this.clause.ptnMatches = this.ptnMatchList.toArray(new PCasePtnMatch[this.ptnMatchList.size()]);
-      // this.clause.guardExprs = this.guardExprList.isEmpty()? null: this.guardExprList.toArray(new PExpr[this.guardExprList.size()]);
       return this.clause;
     }
   }
@@ -144,7 +135,6 @@ class PCaseClause extends PDefaultExprObj {
       throw new CompileException(emsg.toString());
     }
     builder.setAction(PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), true));
-    // builder.addActionExprList(PExpr.acceptSeq(reader, true));
     return builder.create();
   }
 
@@ -221,7 +211,6 @@ class PCaseClause extends PDefaultExprObj {
     List<PExpr> aes = new ArrayList<PExpr>();
     if (ee == null) {
       aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo()));
-      // builder.addActionExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
     } else {
       while (ee != null) {
         PExpr ex = PExpr.acceptX(ee);
@@ -232,7 +221,6 @@ class PCaseClause extends PDefaultExprObj {
           throw new CompileException(emsg.toString());
         }
         aes.add(ex);
-        // builder.addActionExpr(ex);
         ee = ee.getNextSibling();
       }
     }
@@ -245,11 +233,9 @@ class PCaseClause extends PDefaultExprObj {
     if (scope == this.outerScope) { return; }
     this.outerScope = scope;
     this.scope = scope.enterInnerWithParallelScopes();
-    // this.scope = scope.enterInner();
     this.idResolved = false;
     for (int i = 0; i < this.ptnMatches.length; i++) {
       ptnMatches[i].setupScope(this.scope.enterInnterParallel());
-      // ptnMatches[i].setupScope(this.scope);
     }
     if (this.guard != null) {
       this.guard.setupScope(this.scope);
@@ -269,15 +255,9 @@ class PCaseClause extends PDefaultExprObj {
 
   public PCaseClause resolve() throws CompileException {
     if (this.idResolved) { return this; }
-    // if (this.ptnMatches.length == 1) {
-      // this.ptnMatches[0] = this.ptnMatches[0].resolve();
-    // } else {
-      // this.scope.enableDefineEVar(false);
     for (int i = 0; i < this.ptnMatches.length; i++) {
       this.ptnMatches[i] = this.ptnMatches[i].resolve();
     }
-      // this.scope.enableDefineEVar(true);
-    // }
     if (this.guard != null) {
       this.guard = this.guard.resolve();
     }
@@ -303,22 +283,6 @@ class PCaseClause extends PDefaultExprObj {
     if (this.guard != null) {
       graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));
     }
-    // PTypeGraph.Node n = null;
-    // PExpr e = null;
-    // if (this.guard != null) {
-      // for (int i = 0; i < this.guardExprs.length; i++) {
-        // e = this.guardExprs[i];
-        // if (n == null) {
-          // n = e.setupTypeGraph(graph);
-        // } else {
-          // PTypeGraph.SeqNode s = graph.createSeqNode(e);
-          // s.setLeadingTypeNode(n);
-          // s.setInNode(e.setupTypeGraph(graph));
-          // n = s;
-        // }
-      // }
-      // graph.createCondNode(e).setInNode(n);
-    // }
     this.typeGraphNode = graph.createRefNode(this);
     this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
@@ -346,11 +310,6 @@ class PCaseClause extends PDefaultExprObj {
       GFlow.CondNode cn = flow.createNodeForCond(this.guard.getSrcInfo());
       cn.addChild(this.guard.setupFlow(flow));
       gn.addChild(cn);
-      // GFlow.CondNode cn = flow.createNodeForCond(this.guardExprs[0].getSrcInfo());
-      // for (int i = 0; i < this.guardExprs.length; i++) {
-        // cn.addChild(this.guardExprs[i].setupFlow(flow));
-      // }
-      // gn.addChild(cn);
     }
     node.addChild(flow.createTrialNodeInBranch(this.srcInfo, gn, node));
     node.addChild(this.action.setupFlow(flow));
