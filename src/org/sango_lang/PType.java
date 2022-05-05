@@ -426,7 +426,7 @@ interface PType extends PProgObj {
 
     public PType resolve() throws CompileException {
       StringBuffer emsg;
-      /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
+      /* DEBUG */ if (this.scope == null || this.scope.funLevel < -1) { System.out.print("Scope is null or inactive. "); System.out.println(this); }
       PType t;
       if (this.id.mod == null) {
         PTypeVarDef v;

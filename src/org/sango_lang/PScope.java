@@ -61,17 +61,21 @@ class PScope {
     if (this.funLevel != -2) {
       throw new IllegalStateException("Cannot start.");
     }
-    this.funLevel = -1;
-    return this;
+    PScope s = new PScope(this.theMod);
+    s.parent = this;
+    s.funLevel = -1;
+    return s;
   }
 
   PScope defineFun(PEvalStmt evalStmt) {
     if (this.funLevel != -2) {
       throw new IllegalStateException("Cannot define function.");
     }
-    this.funLevel = 0;
-    this.evalStmt = evalStmt;
-    return this;
+    PScope s = new PScope(this.theMod);
+    s.parent = this;
+    s.funLevel = 0;
+    s.evalStmt = evalStmt;
+    return s;
   }
 
   PScope enterClosure(PClosure closure) {
@@ -123,7 +127,8 @@ class PScope {
 
   PTypeVarDef lookupTVar(String var) {
     if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+      return null;
+      // throw new IllegalStateException("Not active. " + this.funLevel);
     }
     PTypeVarDef v = this.tvarDict.get(var);
     if (v == null) {
@@ -134,7 +139,8 @@ class PScope {
 
   PExprVarDef lookupEVar(String var) {
     if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+      return null;
+      // throw new IllegalStateException("Not active. " + this.funLevel);
     }
     PExprVarDef v = this.evarDict.get(var);
     if (v == null) {
@@ -145,7 +151,7 @@ class PScope {
 
   boolean canDefineTVar(PTypeVarDef varDef) {
     if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+      throw new IllegalStateException("Not active. " + this.funLevel);
     }
     return !this.isActuallyInParallel()  // inhibit when actually parallel
       && !this.tvarDict.containsKey(varDef.name)
@@ -156,7 +162,7 @@ class PScope {
 
   boolean canDefineEVar(PExprVarDef varDef) {
     if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+      throw new IllegalStateException("Not active. " + this.funLevel);
     }
     return !this.isActuallyInParallel()  // inhibit when actually parallel
       && !this.tvarDict.containsKey(varDef.name)
@@ -197,7 +203,8 @@ class PScope {
 
   PTypeVarDef referSimpleTid(String id) {
     if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+      return null;
+      // throw new IllegalStateException("Not active.");
     }
     PTypeVarDef v;
     if (this.inParallel) {
@@ -222,7 +229,8 @@ class PScope {
 
   PExprVarDef referSimpleEid(String id) {
     if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+      return null;
+      // throw new IllegalStateException("Not active.");
     }
     PExprVarDef v;
     if (this.inParallel) {
@@ -362,7 +370,7 @@ class PScope {
 
   List<PTypeVarSlot> getGivenTVarList() {
     if (this.givenTVarList == null) {
-      if (this.parent == null) {
+      if (this.parent == null || this.parent.funLevel < 0) {
         this.setupGivenTVarListForFun();
       } else if (this.parent.funLevel != this.funLevel) {
         this.setupGivenTVarListForClosure();
@@ -398,7 +406,9 @@ class PScope {
   }
 
   String getFunOfficial() {
-    if (this.funLevel < 0) { throw new IllegalStateException("Not in fun."); }
+    if (this.funLevel < 0) {
+      throw new IllegalStateException("Not in fun.");
+    }
     return (this.funLevel == 0)? this.evalStmt.official: this.parent.getFunOfficial();
   }
 

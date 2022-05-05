@@ -168,16 +168,13 @@ class PModule extends PDefaultProgObj implements PDefDict {
     Builder(Parser.SrcInfo srcInfo, Cstr requiredName) {
       this.requiredName = requiredName;
       this.mod = new PModule(srcInfo);
+      this.mod.scope = PScope.create(this.mod);
       this.importStmtList = new ArrayList<PImportStmt>();
       this.dataStmtList = new ArrayList<PDataStmt>();
       this.extendStmtList = new ArrayList<PExtendStmt>();
       this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
       this.evalStmtList = new ArrayList<PEvalStmt>();
     }
-
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.mod.srcInfo = si;
-    // }
 
     void setAvailability(int availability) {
       this.mod.availability = availability;
@@ -333,7 +330,6 @@ class PModule extends PDefaultProgObj implements PDefDict {
       return null;
     }
     Builder builder = Builder.newInstance(t.getSrcInfo(), modName);
-    // builder.setSrcInfo(t.getSrcInfo());
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
@@ -544,7 +540,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
 
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
-    dat.setupScope(PScope.create(this)); dat.collectModRefs();
+    dat.setupScope(this.scope); dat.collectModRefs();
+    // dat.setupScope(PScope.create(this)); dat.collectModRefs();
     if (this.tconDict.containsKey(dat.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -594,7 +591,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
 
   void addExtendStmt(PExtendStmt ext) throws CompileException {
     StringBuffer emsg;
-    ext.setupScope(PScope.create(this)); ext.collectModRefs();
+    ext.setupScope(this.scope); ext.collectModRefs();
+    // ext.setupScope(PScope.create(this)); ext.collectModRefs();
     if (this.tconDict.containsKey(ext.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -647,7 +645,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
 
   void addAliasStmt(PAliasTypeStmt alias) throws CompileException {
     StringBuffer emsg;
-    alias.setupScope(PScope.create(this)); alias.collectModRefs();
+    alias.setupScope(this.scope); alias.collectModRefs();
+    // alias.setupScope(PScope.create(this)); alias.collectModRefs();
     if (this.tconDict.containsKey(alias.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -682,7 +681,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
 
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
-    eval.setupScope(PScope.create(this)); eval.collectModRefs();
+    eval.setupScope(this.scope); eval.collectModRefs();
+    // eval.setupScope(PScope.create(this)); eval.collectModRefs();
     String official = eval.official;
     String[] aliases = eval.aliases;
     if (this.funOfficialDict.containsKey(official)) {

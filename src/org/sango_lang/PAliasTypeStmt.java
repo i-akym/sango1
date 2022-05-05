@@ -236,11 +236,11 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public void setupScope(PScope scope) {
     StringBuffer emsg;
-    PScope s = scope.start();
-    if (s == this.scope) { return; }
-    this.scope = s;
+    if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // if (s == this.scope) { return; }
+    this.scope = scope.start();
     this.idResolved = false;
-    this.sig.setupScope(s);
+    this.sig.setupScope(this.scope);
     this.body.setupScope(this.scope);
   }
 
