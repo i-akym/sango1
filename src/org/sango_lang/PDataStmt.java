@@ -364,12 +364,12 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   public void setupScope(PScope scope) {
     StringBuffer emsg;
-    PScope s = scope.start();
-    if (s == this.scope) { return; }
-    this.scope = s;
+    if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // if (s == this.scope) { return; }
+    this.scope = scope.start();
     this.idResolved = false;
     if (this.sig != null) {  // tuple, fun
-      this.sig.setupScope(s);
+      this.sig.setupScope(this.scope);
     }
     if (this.constrs != null) {  // skip if native impl
       for (int i = 0; i < this.constrs.length; i++) {

@@ -367,14 +367,15 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   }
 
   public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
+    if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // if (scope == this.scope) { return; }
     this.scope = scope.defineFun(this);
     this.idResolved = false;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].setupScope(this.scope);
     }
     if (this.implExprs != null) {
-      this.bodyScope = scope.enterInner();
+      this.bodyScope = this.scope.enterInner();
       this.implExprs.setupScope(this.bodyScope);
     }
     this.retDef.setupScope(this.scope);

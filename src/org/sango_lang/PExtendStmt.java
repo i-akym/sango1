@@ -272,12 +272,12 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public void setupScope(PScope scope) {
     StringBuffer emsg;
-    PScope s = scope.start();
-    if (s == this.scope) { return; }
-    this.scope = s;
+    if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // if (s == this.scope) { return; }
+    this.scope = scope.start();
     this.idResolved = false;
     // /* DEBUG */ System.out.print("extend sig setupscope "); System.out.println(this.sig);
-    this.sig.setupScope(s);
+    this.sig.setupScope(this.scope);
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].setupScope(this.scope);
     }

@@ -30,7 +30,7 @@ import java.util.List;
 class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
-  PScope outerScope;
+  // PScope outerScope;
   PType dataType;
 
   PDataConstrDef(Parser.SrcInfo srcInfo) {
@@ -190,8 +190,9 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   }
 
   public void setupScope(PScope scope) {
-    if (scope == this.outerScope) { return; }
-    this.outerScope = scope;
+    if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // if (scope == this.outerScope) { return; }
+    // this.outerScope = scope;
     this.scope = scope.enterInner();
     this.idResolved = false;
     for (int i = 0; i < this.attrs.length; i++) {
