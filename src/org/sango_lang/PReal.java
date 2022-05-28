@@ -28,8 +28,8 @@ import java.io.IOException;
 class PReal extends PDefaultExprObj {
    double value;
 
-  private PReal(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PReal(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -40,18 +40,18 @@ class PReal extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PReal create(Parser.SrcInfo srcInfo, double value) {
-    PReal r = new PReal(srcInfo);
+  static PReal create(Parser.SrcInfo srcInfo, PScope outerScope, double value) {
+    PReal r = new PReal(srcInfo, outerScope);
     r.value = value;
     return r;
   }
 
-  static PReal accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PReal accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.REAL, spc);
-    return (token != null)? create(token.getSrcInfo(), token.value.realValue): null;
+    return (token != null)? create(token.getSrcInfo(), outerScope, token.value.realValue): null;
   }
 
-  static PReal acceptX(ParserB.Elem elem) throws CompileException {
+  static PReal acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("real")) { return null; }
     String val = elem.getAttrValue("value");
@@ -73,18 +73,18 @@ class PReal extends PDefaultExprObj {
       emsg.append(val);
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), d);
+    return create(elem.getSrcInfo(), outerScope, d);
   }
 
-  public void setupScope(PScope scope) {
-    this.scope = scope;
-    this.idResolved = false;
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
   public void collectModRefs() throws CompileException {}
 
   public PReal resolve() throws CompileException {
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

@@ -26,8 +26,8 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PWildCard extends PDefaultExprObj {
-  private PWildCard(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PWildCard(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -38,23 +38,23 @@ class PWildCard extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PWildCard create(Parser.SrcInfo srcInfo) {
-    return new PWildCard(srcInfo);
+  static PWildCard create(Parser.SrcInfo srcInfo, PScope outerScope) {
+    return new PWildCard(srcInfo, outerScope);
   }
 
-  static PWildCard accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PWildCard accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.AST_AST, spc);
-    return (token != null)? create(token.getSrcInfo()): null;
+    return (token != null)? create(token.getSrcInfo(), outerScope): null;
   }
 
-  static PWildCard acceptX(ParserB.Elem elem) throws CompileException {
+  static PWildCard acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     if (!elem.getName().equals("wild-card")) { return null; }
-    return create(elem.getSrcInfo());
+    return create(elem.getSrcInfo(), outerScope);
   }
 
-  public void setupScope(PScope scope) {
-    this.scope = scope;
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+  // }
 
   public void collectModRefs() throws CompileException {}
 

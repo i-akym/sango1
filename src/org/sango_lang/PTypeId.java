@@ -41,12 +41,12 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   boolean ext;
   PDefDict.TconInfo tconInfo;
 
-  private PTypeId(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PTypeId(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
   }
 
-  static PTypeId create(Parser.SrcInfo srcInfo, String mod, String name, boolean ext) {
-    PTypeId id = new PTypeId(srcInfo);
+  static PTypeId create(Parser.SrcInfo srcInfo, PScope scope, String mod, String name, boolean ext) {
+    PTypeId id = new PTypeId(srcInfo, scope);
     id.mod = mod;
     if (mod == null) {
       id.catOpt = CAT_VAR + CAT_TCON;
@@ -61,14 +61,14 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     return id;
   }
 
-  static PTypeId createVar(Parser.SrcInfo srcInfo, String name) {
-    PTypeId id = create(srcInfo, null, name, false);
+  static PTypeId createVar(Parser.SrcInfo srcInfo, PScope scope, String name) {
+    PTypeId id = create(srcInfo, scope, null, name, false);
     id.setVar();
     return id;
   }
 
-  static PTypeId createFeature(Parser.SrcInfo srcInfo, String name) {
-    PTypeId id = create(srcInfo, null, name, false);
+  static PTypeId createFeature(Parser.SrcInfo srcInfo, PScope scope, String name) {
+    PTypeId id = create(srcInfo, scope, null, name, false);
     id.setFeature();
     return id;
   }
@@ -162,8 +162,8 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeId id = new PTypeId(srcInfo);
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+    PTypeId id = new PTypeId(srcInfo, scope);
     id.catOpt = this.catOpt;
     id.mod = this.mod;
     id.name = this.name;
@@ -180,7 +180,7 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     return id;
   }
 
-  static PTypeId accept(ParserA.TokenReader reader, int qual, int spc) throws CompileException, IOException {
+  static PTypeId accept(ParserA.TokenReader reader, PScope scope, int qual, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token word;
     if ((word = ParserA.acceptNormalWord(reader, spc)) == null) {
@@ -204,15 +204,15 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
       name = word2.value.token;
     }
     boolean ext = ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, mod, name, ext);
+    return create(si, scope, mod, name, ext);
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-  }
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
   public void collectModRefs() throws CompileException {
     this.scope.referredModId(this.srcInfo, this.mod);
@@ -220,58 +220,6 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
 
   public PType resolve() throws CompileException {
     throw new RuntimeException("PTypeId#resolve is called.");
-    // StringBuffer emsg;
-    // if (this.idResolved) { return this; }
-    // if (this.mod != null && this.scope.resolveModId(this.mod) == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Module id \"");
-      // emsg.append(this.mod);
-      // emsg.append("\" not defined at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // PType ret = null;
-    // if (this.isSimple()) {
-      // PTVarDef varDef;
-      // if ((varDef = scope.referSimpleTid(this.name)) != null) {
-        // if (!this.maybeCat(PTypeId.CAT_VAR)) {
-          // emsg = new StringBuffer();
-          // emsg.append("Variable not allowed at ");
-          // emsg.append(this.srcInfo);
-          // emsg.append(". - ");
-          // emsg.append(this.name);
-          // throw new CompileException(emsg.toString());
-        // }
-        // ret = PTVarRef.create(this.srcInfo, varDef);
-        // ret.setupScope(this.scope);
-        // ret = ret.resolve();
-      // } else {
-        // ret = PTypeRef.create(this.srcInfo, this, new PType[0]);
-        // ret.setupScope(this.scope);
-        // ret = ret.resolve();
-      // }
-    // } else {
-      // ret = PTypeRef.create(this.srcInfo, this, new PType[0]);
-      // ret.setupScope(this.scope);
-      // ret = ret.resolve();
-    // }
-// 
-    // if (ret == this) {
-      // // already determined to be tcon
-      // this.tconInfo = this.scope.resolveTcon(this.mod, this.name);
-      // if (this.tconInfo == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("Id \"");
-        // emsg.append(this.toRepr());
-        // emsg.append("\" not found at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // this.idResolved = true;
-    // }
-    // return ret;
   }
 
   public PDefDict.TconInfo getTconInfo() {

@@ -37,12 +37,12 @@ class PExprVarDef extends PDefaultExprObj {
   int cat;
   PExprVarSlot varSlot;
 
-  private PExprVarDef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PExprVarDef(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
-  static PExprVarDef create(Parser.SrcInfo srcInfo, int cat, PType type, String name) {
-    PExprVarDef var = new PExprVarDef(srcInfo);
+  static PExprVarDef create(Parser.SrcInfo srcInfo, PScope outerScope, int cat, PType type, String name) {
+    PExprVarDef var = new PExprVarDef(srcInfo, outerScope);
     var.cat = cat;
     var.type = type;
     var.name = name;
@@ -70,12 +70,12 @@ class PExprVarDef extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PExprVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
+  static PExprVarDef accept(ParserA.TokenReader reader, PScope outerScope, int cat, int typeSpec) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PType type = null;
     if (typeSpec == TYPE_MAYBE_SPECIFIED || typeSpec == TYPE_NEEDED) {
-      type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
+      type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE);
     }
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (type == null && varSym == null) {
@@ -103,10 +103,10 @@ class PExprVarDef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(si, cat, type, varId.value.token);
+    return create(si, outerScope, cat, type, varId.value.token);
   }
 
-  static PExprVarDef acceptX(ParserB.Elem elem, int cat, int typeSpec) throws CompileException {
+  static PExprVarDef acceptX(ParserB.Elem elem, PScope outerScope, int cat, int typeSpec) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -120,7 +120,7 @@ class PExprVarDef extends PDefaultExprObj {
     PType type = null;
     if (typeSpec == TYPE_NEEDED || typeSpec == TYPE_MAYBE_SPECIFIED) {
       ParserB.Elem ee = elem.getFirstChild();
-      type = (ee != null)? PType.acceptX(ee): null;
+      type = (ee != null)? PType.acceptX(ee, outerScope): null;
     }
     if (typeSpec == TYPE_NEEDED && type == null) {
       emsg = new StringBuffer();
@@ -129,17 +129,17 @@ class PExprVarDef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), cat, type, id);
+    return create(elem.getSrcInfo(), outerScope, cat, type, id);
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    if (this.type != null) {
-      this.type.setupScope(scope);
-    }
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // if (this.type != null) {
+      // this.type.setupScope(scope);
+    // }
+  // }
 
   public void collectModRefs() throws CompileException {
     if (this.type != null) {
@@ -149,20 +149,22 @@ class PExprVarDef extends PDefaultExprObj {
 
   public PExprVarDef resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.idResolved) { return this; }
+    if (this.varSlot != null) { return this; }
+    // if (this.idResolved) { return this; }
     if (!this.scope.canDefineEVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
       emsg.append(". - ");
       emsg.append(this.name);
+      /* DEBUG */ // throw new RuntimeException(emsg.toString());
       throw new CompileException(emsg.toString());
     }
     this.varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
       this.type = (PType)this.type.resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

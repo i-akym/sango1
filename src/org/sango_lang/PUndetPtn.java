@@ -27,8 +27,8 @@ class PUndetPtn extends PDefaultExprObj {
   int context;
   PExprId anchor;
 
-  private PUndetPtn(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PUndetPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -41,19 +41,19 @@ class PUndetPtn extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PUndetPtn create(Parser.SrcInfo srcInfo, int context, PExprId anchor) {
-    PUndetPtn p = new PUndetPtn(srcInfo);
+  static PUndetPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId anchor) {
+    PUndetPtn p = new PUndetPtn(srcInfo, outerScope);
     p.context = context;
     p.anchor = anchor;
     return p;
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.anchor.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.anchor.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.anchor.collectModRefs();
@@ -66,9 +66,10 @@ class PUndetPtn extends PDefaultExprObj {
     } else {
       PExprId dcon = (PExprId)this.anchor;
       dcon.setCat(PExprId.CAT_DCON_PTN);
-      p = PDataConstrPtn.create(this.srcInfo, this.context, dcon, new PExprObj[0], new PPtnItem[0], false);
-      p.setupScope(this.scope);
-      p = p.resolve();
+      p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
+      // p = PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, new PExprObj[0], new PPtnItem[0], false);
+      // p.setupScope(this.scope);
+      // p = p.resolve();
     }
     return p;
   }

@@ -25,8 +25,8 @@ package org.sango_lang;
 
 abstract class PDefaultExprObj extends PDefaultTypedObj implements PExprObj {
 
-  PDefaultExprObj(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PDefaultExprObj(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
   }
 
   public GFlow.Node setupFlow(GFlow flow) {

@@ -30,9 +30,8 @@ import java.util.List;
 abstract class PExprList extends PDefaultExprObj {
   PExpr[] exprs;
 
-  PExprList(Parser.SrcInfo srcInfo, List<PExpr> list) {
-    super(srcInfo);
-    this.srcInfo = srcInfo;
+  PExprList(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
+    super(srcInfo, outerScope);
     this.exprs = list.toArray(new PExpr[list.size()]);
   }
 
@@ -48,12 +47,12 @@ abstract class PExprList extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static Seq acceptSeq(ParserA.TokenReader reader, Parser.SrcInfo srcInfo, boolean voidAssumedWhenEmpty) throws CompileException, IOException {
+  static Seq acceptSeq(ParserA.TokenReader reader, Parser.SrcInfo srcInfo, PScope outerScope, boolean voidAssumedWhenEmpty) throws CompileException, IOException {
     List<PExpr> exprList = new ArrayList<PExpr>();
     PExpr expr = null;
     int state = 0;
     while (state >= 0)  {
-      if (state == 0 && (expr = PExpr.accept(reader)) != null) {
+      if (state == 0 && (expr = PExpr.accept(reader, outerScope)) != null) {
         exprList.add(expr);
         state = 1;
       } else if (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE) != null) {
@@ -63,12 +62,12 @@ abstract class PExprList extends PDefaultExprObj {
       }
     }
     if (exprList.size() == 0 && voidAssumedWhenEmpty) {
-      exprList.add(PExpr.createDummyVoidExpr(reader.getCurrentSrcInfo()));
+      exprList.add(PExpr.createDummyVoidExpr(reader.getCurrentSrcInfo(), outerScope));
     }
-    return Seq.create(srcInfo, exprList);
+    return Seq.create(srcInfo, outerScope, exprList);
   }
 
-  static Elems acceptElems(ParserA.TokenReader reader, Parser.SrcInfo srcInfo, int min) throws CompileException, IOException {
+  static Elems acceptElems(ParserA.TokenReader reader, Parser.SrcInfo srcInfo, PScope outerScope, int min) throws CompileException, IOException {
     StringBuffer emsg;
     List<PExpr> exprList = new ArrayList<PExpr>();
     PExpr expr = null;
@@ -76,7 +75,7 @@ abstract class PExprList extends PDefaultExprObj {
     while (state >= 0)  {
       switch (state) {
       case 0:
-        if ((expr = PExpr.accept(reader)) != null) {
+        if ((expr = PExpr.accept(reader, outerScope)) != null) {
           exprList.add(expr);
           state = 1;
         } else {
@@ -91,7 +90,7 @@ abstract class PExprList extends PDefaultExprObj {
         }
         break;
       default:  // case 2
-        if ((expr = PExpr.accept(reader)) != null) {
+        if ((expr = PExpr.accept(reader, outerScope)) != null) {
           exprList.add(expr);
           state = 1;
         } else {
@@ -111,17 +110,17 @@ abstract class PExprList extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return Elems.create(srcInfo, exprList);
+    return Elems.create(srcInfo, outerScope, exprList);
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    for (int i = 0; i < this.exprs.length; i++) {
-      this.exprs[i].setupScope(scope);
-    }
-    this.idResolved = false;
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // for (int i = 0; i < this.exprs.length; i++) {
+      // this.exprs[i].setupScope(scope);
+    // }
+    // this.idResolved = false;
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.exprs.length; i++) {
@@ -130,11 +129,11 @@ abstract class PExprList extends PDefaultExprObj {
   }
 
   public PExprList resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.exprs.length; i++) {
       this.exprs[i] = this.exprs[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
@@ -145,12 +144,12 @@ abstract class PExprList extends PDefaultExprObj {
   }
 
   static class Seq extends PExprList /* implements PEval */ {
-    static Seq create(Parser.SrcInfo srcInfo, List<PExpr> list) {
-      return new Seq(srcInfo, list);
+    static Seq create(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
+      return new Seq(srcInfo, outerScope, list);
     }
 
-    Seq(Parser.SrcInfo srcInfo, List<PExpr> list) {
-      super(srcInfo, list);
+    Seq(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
+      super(srcInfo, outerScope, list);
     }
 
     public Seq resolve() throws CompileException { return (Seq)super.resolve(); }
@@ -184,12 +183,12 @@ abstract class PExprList extends PDefaultExprObj {
   }
 
   static class Elems extends PExprList {
-    static Elems create(Parser.SrcInfo srcInfo, List<PExpr> list) {
-      return new Elems(srcInfo, list);
+    static Elems create(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
+      return new Elems(srcInfo, outerScope, list);
     }
 
-    Elems(Parser.SrcInfo srcInfo, List<PExpr> list) {
-      super(srcInfo, list);
+    Elems(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
+      super(srcInfo, outerScope, list);
     }
 
     public Elems resolve() throws CompileException { return (Elems)super.resolve(); }

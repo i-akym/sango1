@@ -36,8 +36,8 @@ class PDataConstrPtn extends PDefaultExprObj {
   boolean wildCards;
   PExprObj[] sortedAttrs;
 
-  private PDataConstrPtn(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PDataConstrPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -62,11 +62,11 @@ class PDataConstrPtn extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PDataConstrPtn create(Parser.SrcInfo srcInfo, int context, PExprId dcon,
+  static PDataConstrPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId dcon,
       PExprObj[] posdAttrs, PPtnItem[] namedAttrs,
       boolean wildCards) throws CompileException {
     StringBuffer emsg;
-    PDataConstrPtn p = new PDataConstrPtn(srcInfo);
+    PDataConstrPtn p = new PDataConstrPtn(srcInfo, outerScope);
     p.context = context;
     p.dcon = dcon;
     p.posdAttrs = posdAttrs;
@@ -90,7 +90,19 @@ class PDataConstrPtn extends PDefaultExprObj {
     return p;
   }
 
-  static PDataConstrPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
+  static PDataConstrPtn convertFromResolvedUndet(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId dcon) throws CompileException {
+    StringBuffer emsg;
+    PDataConstrPtn p = new PDataConstrPtn(srcInfo, outerScope);
+    p.context = context;
+    p.dcon = dcon;
+    p.posdAttrs = new PExprObj[0];
+    p.namedAttrs = new PPtnItem[0];
+    p.sortedAttrs = new PExprObj[0];
+    p.namedAttrDict = new HashMap<String, PPtnItem>();
+    return p;
+  }
+
+  static PDataConstrPtn acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("constr")) { return null; }
     String dcon = elem.getAttrValueAsId("dcon");
@@ -123,7 +135,7 @@ class PDataConstrPtn extends PDefaultExprObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        PPtnMatch pm = PPtnMatch.acceptX(eee, context);
+        PPtnMatch pm = PPtnMatch.acceptX(eee, outerScope, context);
         if (pm == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -132,7 +144,7 @@ class PDataConstrPtn extends PDefaultExprObj {
         }
         String name = ee.getAttrValueAsId("name");
         if (name != null) {
-          nas.add(PPtnItem.create(ee.getSrcInfo(), context, name, pm));
+          nas.add(PPtnItem.create(ee.getSrcInfo(), outerScope, context, name, pm));
         } else if (!nas.isEmpty()) {
           emsg = new StringBuffer();
           emsg.append("Attribute name missing at ");
@@ -154,25 +166,25 @@ class PDataConstrPtn extends PDefaultExprObj {
 
     Parser.SrcInfo si = elem.getSrcInfo();
     return create(
-      si, context,
-      PExprId.create(si, mid, dcon),
+      si, outerScope, context,
+      PExprId.create(si, outerScope, mid, dcon),
       pas.toArray(new PExprObj[pas.size()]),
       nas.toArray(new PPtnItem[nas.size()]),
       wildCards);
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i].setupScope(scope);
-    }
-    for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i].setupScope(scope);
-    }
-    this.dcon.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.posdAttrs.length; i++) {
+      // this.posdAttrs[i].setupScope(scope);
+    // }
+    // for (int i = 0; i < this.namedAttrs.length; i++) {
+      // this.namedAttrs[i].setupScope(scope);
+    // }
+    // this.dcon.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
@@ -185,7 +197,7 @@ class PDataConstrPtn extends PDefaultExprObj {
   }
 
   public PDataConstrPtn resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
@@ -193,7 +205,7 @@ class PDataConstrPtn extends PDefaultExprObj {
       this.namedAttrs[i] = this.namedAttrs[i].resolve();
     }
     this.dcon = (PExprId)this.dcon.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     this.sortAttrs();
     return this;
   }
@@ -215,7 +227,7 @@ class PDataConstrPtn extends PDefaultExprObj {
         p = this.posdAttrs[i];
         break;
       case ATTR_TO_NONE:
-        p = PWildCard.create(this.srcInfo);
+        p = PWildCard.create(this.srcInfo, this.scope);
         break;
       default:  //  to named attribute
         p = (PExprObj)this.namedAttrs[ad].elem;
@@ -281,6 +293,7 @@ class PDataConstrPtn extends PDefaultExprObj {
   }
 
   public void normalizeTypes() throws CompileException {
+/* DEBUG */ if (this.sortedAttrs == null) { System.out.println(this); }
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       this.sortedAttrs[i].normalizeTypes();
     }

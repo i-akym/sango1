@@ -29,8 +29,8 @@ class PListConstr extends PList {
   PExprObj elem;
   PExprObj tail;
 
-  private PListConstr(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PListConstr(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -45,20 +45,20 @@ class PListConstr extends PList {
     return buf.toString();
   }
 
-  static PListConstr create(Parser.SrcInfo srcInfo, PExprObj elem, PExprObj tail) {
-    PListConstr c = new PListConstr(srcInfo);
+  static PListConstr create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj elem, PExprObj tail) {
+    PListConstr c = new PListConstr(srcInfo, outerScope);
     c.elem = elem;
     c.tail = tail;
     return c;
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elem.setupScope(scope);
-    this.tail.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elem.setupScope(scope);
+    // this.tail.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.elem.collectModRefs();
@@ -66,10 +66,10 @@ class PListConstr extends PList {
   }
 
   public PListConstr resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.elem = this.elem.resolve();
     this.tail = this.tail.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

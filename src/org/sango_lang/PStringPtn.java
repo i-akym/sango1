@@ -31,8 +31,8 @@ class PStringPtn extends PDefaultExprObj {
   boolean isFromCstr;
   PPtnMatch[] elems;
 
-  PStringPtn(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PStringPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -53,18 +53,14 @@ class PStringPtn extends PDefaultExprObj {
     PStringPtn string;
     List<PPtnMatch> elemList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.string = new PStringPtn(srcInfo);
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.string = new PStringPtn(srcInfo, outerScope);
       this.elemList = new ArrayList<PPtnMatch>();
     }
-
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.string.srcInfo = si;
-    // }
 
     void setContext(int context) {
       this.context = context;
@@ -90,16 +86,16 @@ class PStringPtn extends PDefaultExprObj {
     }
   }
 
-  static PStringPtn accept(ParserA.TokenReader reader, int spc, int context) throws CompileException, IOException {
+  static PStringPtn accept(ParserA.TokenReader reader, PScope outerScope, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.CSTR, spc)) != null) {
-      return fromCstr(t, context);
+      return fromCstr(t, outerScope, context);
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
-    builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, 0, context));
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, outerScope, 0, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -115,13 +111,13 @@ class PStringPtn extends PDefaultExprObj {
     return builder.create();
   }
 
-  static PStringPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
+  static PStringPtn acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PPtnMatch pm = PPtnMatch.acceptX(e, context);
+      PPtnMatch pm = PPtnMatch.acceptX(e, outerScope, context);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -134,25 +130,16 @@ class PStringPtn extends PDefaultExprObj {
     return builder.create();
   }
 
-  static PStringPtn fromCstr(ParserA.Token cstrToken, int context) {
-    Builder builder = new Builder(cstrToken.getSrcInfo());
+  static PStringPtn fromCstr(ParserA.Token cstrToken, PScope outerScope, int context) {
+    Builder builder = new Builder(cstrToken.getSrcInfo(), outerScope);
     builder.setContext(context);
     builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
     for (int i = 0; i < cstr.getLength(); i++) {
-      builder.addElem(PPtnMatch.create(cstrToken.getSrcInfo(), context, null, PChar.create(si, cstr.getCharAt(i))));
+      builder.addElem(PPtnMatch.create(cstrToken.getSrcInfo(), outerScope, context, null, PChar.create(si, outerScope, cstr.getCharAt(i))));
     }
     return builder.create();
-  }
-
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].setupScope(scope);
-    }
   }
 
   public void collectModRefs() throws CompileException {
@@ -162,11 +149,11 @@ class PStringPtn extends PDefaultExprObj {
   }
 
   public PStringPtn resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.elems.length; i++) {
       this.elems[i] = this.elems[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
@@ -176,8 +163,6 @@ class PStringPtn extends PDefaultExprObj {
     }
     if (this.isFromCstr) {
       this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getSkel();
-    // } else if (this.elems.length == 0)  {
-      // this.nTypeSkel = this.scope.getEmptyStringType(this.srcInfo).getSkel();
     }
   }
 

@@ -27,8 +27,8 @@ class PCaseEval extends PDefaultExprObj implements PEval {
   PExprObj obj;
   PCaseBlock caseBlock;
 
-  private PCaseEval(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PCaseEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -43,17 +43,17 @@ class PCaseEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PCaseEval create(Parser.SrcInfo srcInfo, PExprObj obj, PCaseBlock caseBlock) {
-    PCaseEval e = new PCaseEval(srcInfo);
+  static PCaseEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj obj, PCaseBlock caseBlock) {
+    PCaseEval e = new PCaseEval(srcInfo, outerScope);
     e.obj = obj;
     e.caseBlock = caseBlock;
     return e;
   }
 
-  static PCaseEval acceptX(ParserB.Elem elem) throws CompileException {
+  static PCaseEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case")) { return null; }
-    PCaseBlock.Builder builder = PCaseBlock.Builder.newInstance(elem.getSrcInfo());
+    PCaseBlock.Builder builder = PCaseBlock.Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -76,7 +76,7 @@ class PCaseEval extends PDefaultExprObj implements PEval {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExprObj obj = PEval.acceptX(ee);
+    PExprObj obj = PEval.acceptX(ee, outerScope);
     if (obj == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -99,7 +99,7 @@ class PCaseEval extends PDefaultExprObj implements PEval {
     }
     ee = e.getFirstChild();
     while (ee != null) {
-      PCaseClause c = PCaseClause.acceptX(ee);
+      PCaseClause c = PCaseClause.acceptX(ee, outerScope);
       if (c == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -109,16 +109,16 @@ class PCaseEval extends PDefaultExprObj implements PEval {
       builder.addClause(c);
       ee = ee.getNextSibling();
     }
-    return create(elem.getSrcInfo(), obj, builder.create());
+    return create(elem.getSrcInfo(), outerScope, obj, builder.create());
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.obj.setupScope(scope);
-    this.caseBlock.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.obj.setupScope(scope);
+    // this.caseBlock.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.obj.collectModRefs();
@@ -126,10 +126,10 @@ class PCaseEval extends PDefaultExprObj implements PEval {
   }
 
   public PCaseEval resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.obj = this.obj.resolve();
     this.caseBlock = this.caseBlock.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

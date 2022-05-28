@@ -39,8 +39,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   PExpr bdUsing;
   PExprObj[] bdAttrs;
 
-  private PDataConstrEval(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PDataConstrEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -65,11 +65,11 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PDataConstrEval create(Parser.SrcInfo srcInfo, PExprId dcon,
-      PEvalItem.ObjItem[] posdAttrs, PEvalItem.ObjItem[] namedAttrs,
+  static PDataConstrEval create(Parser.SrcInfo srcInfo, PScope outerScope,
+      PExprId dcon, PEvalItem.ObjItem[] posdAttrs, PEvalItem.ObjItem[] namedAttrs,
       PEvalItem.ObjItem using) throws CompileException {
     StringBuffer emsg;
-    PDataConstrEval e = new PDataConstrEval(srcInfo);
+    PDataConstrEval e = new PDataConstrEval(srcInfo, outerScope);
     e.dcon = dcon;
     e.posdAttrs = posdAttrs;
     e.namedAttrs = namedAttrs;
@@ -92,7 +92,18 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     return e;
   }
 
-  static PDataConstrEval acceptX(ParserB.Elem elem) throws CompileException {
+  static PDataConstrEval convertFromResolvedUndet(Parser.SrcInfo srcInfo, PScope outerScope,
+      PExprId dcon, PEvalItem.ObjItem[] attrs) throws CompileException {
+    StringBuffer emsg;
+    PDataConstrEval e = new PDataConstrEval(srcInfo, outerScope);
+    e.dcon = dcon;
+    e.posdAttrs = attrs;
+    e.namedAttrs = new PEvalItem.ObjItem[0];
+    e.bdAttrs = attrs;
+    return e;
+  }
+
+  static PDataConstrEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("constr")) { return null; }
     String dcon = elem.getAttrValueAsId("dcon");
@@ -125,7 +136,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        PExpr ex = PExpr.acceptX(eee);
+        PExpr ex = PExpr.acceptX(eee, outerScope);
         if (ex == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -134,7 +145,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
         }
         String name = ee.getAttrValueAsId("name");
         if (name != null) {
-          nas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), name, ex));
+          nas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), outerScope, name, ex));
         } else if (!nas.isEmpty()) {
           emsg = new StringBuffer();
           emsg.append("Attribute name missing at ");
@@ -142,7 +153,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         } else {
-          pas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), null, ex));
+          pas.add(PEvalItem.ObjItem.create(ee.getSrcInfo(), outerScope, null, ex));
         }
         ee = ee.getNextSibling();
       }
@@ -158,7 +169,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      using = PEval.acceptX(ee);
+      using = PEval.acceptX(ee, outerScope);
       if (using == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -170,28 +181,28 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
 
     Parser.SrcInfo si = elem.getSrcInfo();
     return create(
-      si,
-      PExprId.create(si, mid, dcon),
+      si, outerScope,
+      PExprId.create(si, outerScope, mid, dcon),
       pas.toArray(new PEvalItem.ObjItem[pas.size()]),
       nas.toArray(new PEvalItem.ObjItem[nas.size()]),
-      PEvalItem.ObjItem.create(using.getSrcInfo(), null, using));
+      PEvalItem.ObjItem.create(using.getSrcInfo(), outerScope, null, using));
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i].setupScope(scope);
-    }
-    for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i].setupScope(scope);
-    }
-    if (this.using != null) {
-      this.using.setupScope(scope);
-    }
-    this.dcon.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.posdAttrs.length; i++) {
+      // this.posdAttrs[i].setupScope(scope);
+    // }
+    // for (int i = 0; i < this.namedAttrs.length; i++) {
+      // this.namedAttrs[i].setupScope(scope);
+    // }
+    // if (this.using != null) {
+      // this.using.setupScope(scope);
+    // }
+    // this.dcon.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
@@ -207,7 +218,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   }
 
   public PDataConstrEval resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
@@ -218,7 +229,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       this.using = this.using.resolve();
     }
     this.dcon = (PExprId)this.dcon.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     this.breakDown();
     return this;
   }
@@ -318,23 +329,23 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       PExprId[] posdVarRefs = new PExprId[this.posdAttrs.length];
       for (int i = 0; i < this.posdAttrs.length; i++) {
         String varName = this.scope.generateId();
-        posdVarDefs[i] = PExprVarDef.create(this.srcInfo, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-        posdVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
+        posdVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
+        posdVarRefs[i] = PExprId.create(this.srcInfo, this.scope, null, varName);
       }
       PExprVarDef[] namedVarDefs = new PExprVarDef[this.namedAttrs.length];
       PExprId[] namedVarRefs = new PExprId[this.namedAttrs.length];
       for (int i = 0; i < this.namedAttrs.length; i++) {
         String varName = this.scope.generateId();
-        namedVarDefs[i] = PExprVarDef.create(this.srcInfo, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-        namedVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
+        namedVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
+        namedVarRefs[i] = PExprId.create(this.srcInfo, this.scope, null, varName);
       }
       PExprVarDef[] usingVarDefs = new PExprVarDef[attrSrcs.length];
       PExprId[] usingVarRefs = new PExprId[attrSrcs.length];
       for (int i = 0; i < attrSrcs.length; i++) {
         if (attrSrcs[i] == ATTR_FROM_USING) {
           String varName = this.scope.generateId();
-          usingVarDefs[i] = PExprVarDef.create(this.srcInfo, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-          usingVarRefs[i] = PExprId.create(this.srcInfo, null, varName);
+          usingVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
+          usingVarRefs[i] = PExprId.create(this.srcInfo, this.scope, null, varName);
         } else {
           usingVarDefs[i] = null;
           usingVarRefs[i] = null;
@@ -342,53 +353,44 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       }
       this.bdPosd = new PExpr[this.posdAttrs.length];
       for (int i = 0; i < this.posdAttrs.length; i++) {
-        PEval.Builder evalBuilder = PEval.Builder.newInstance();
-        evalBuilder.setSrcInfo(this.srcInfo);
+        PEval.Builder evalBuilder = PEval.Builder.newInstance(this.srcInfo, this.scope);
         evalBuilder.addItem(this.posdAttrs[i].shallowCopyNoName());
-        PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
-        ptnBuilder.setSrcInfo(this.srcInfo);
+        PPtn.Builder ptnBuilder = PPtn.Builder.newInstance(this.srcInfo, this.scope);
         ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
-        ptnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, posdVarDefs[i]));
-        this.bdPosd[i] = PExpr.create(this.srcInfo, evalBuilder.create(),
-            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create()));
-        this.bdPosd[i].setupScope(this.scope);
-        this.bdPosd[i] = this.bdPosd[i].resolve();
+        ptnBuilder.addItem(PPtnItem.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, posdVarDefs[i]));
+        this.bdPosd[i] = PExpr.create(this.srcInfo, this.scope, evalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create()));
+        this.bdPosd[i] = this.bdPosd[i].resolve();  // *
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdPosd[i]);
       }
       this.bdNamed = new PExpr[this.namedAttrs.length];
       for (int i = 0; i < this.namedAttrs.length; i++) {
-        PEval.Builder evalBuilder = PEval.Builder.newInstance();
-        evalBuilder.setSrcInfo(this.srcInfo);
+        PEval.Builder evalBuilder = PEval.Builder.newInstance(this.srcInfo, this.scope);
         evalBuilder.addItem(this.namedAttrs[i].shallowCopyNoName());
-        PPtn.Builder ptnBuilder = PPtn.Builder.newInstance();
-        ptnBuilder.setSrcInfo(this.srcInfo);
+        PPtn.Builder ptnBuilder = PPtn.Builder.newInstance(this.srcInfo, this.scope);
         ptnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
-        ptnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, namedVarDefs[i]));
-        this.bdNamed[i] = PExpr.create(this.srcInfo, evalBuilder.create(),
-            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create()));
-        this.bdNamed[i].setupScope(this.scope);
-        this.bdNamed[i] = this.bdNamed[i].resolve();
+        ptnBuilder.addItem(PPtnItem.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, namedVarDefs[i]));
+        this.bdNamed[i] = PExpr.create(this.srcInfo, this.scope, evalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, ptnBuilder.create()));
+        this.bdNamed[i] = this.bdNamed[i].resolve();  // *
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdNamed[i]);
       }
       if (this.using != null) {
-        PEval.Builder usingEvalBuilder = PEval.Builder.newInstance();
-        usingEvalBuilder.setSrcInfo(this.srcInfo);
+        PEval.Builder usingEvalBuilder = PEval.Builder.newInstance(this.srcInfo, this.scope);
         usingEvalBuilder.addItem(this.using);
-        PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance();
-        usingPtnBuilder.setSrcInfo(this.srcInfo);
+        PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance(this.srcInfo, this.scope);
         usingPtnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
         for (int i = 0; i < attrSrcs.length; i++) {
-          usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, 
-            (usingVarDefs[i] != null)? usingVarDefs[i]: PWildCard.create(this.srcInfo)
+          usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, 
+            (usingVarDefs[i] != null)? usingVarDefs[i]: PWildCard.create(this.srcInfo, this.scope)
           ));
         }
-        usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
-        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(),
-            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create()));
-        this.bdUsing.setupScope(this.scope);
-        this.bdUsing = this.bdUsing.resolve();
+        usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
+        this.bdUsing = PExpr.create(this.srcInfo, this.scope, usingEvalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create()));
+        this.bdUsing = this.bdUsing.resolve();  // *
         // /* DEBUG */ System.out.print("  >> ");
         // /* DEBUG */ System.out.println(this.bdUsing);
         // /* DEBUG */ System.out.print("  >>> ");
@@ -407,8 +409,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
           e = namedVarRefs[as];
           break;
         }
-        e.setupScope(this.scope);
-        this.bdAttrs[i] = e.resolve();
+        this.bdAttrs[i] = e;
+        this.bdAttrs[i] = e.resolve();  // *
         // /* DEBUG */ System.out.print(i);
         // /* DEBUG */ System.out.print(":");
         // /* DEBUG */ System.out.print(this.bdAttrs[i]);
@@ -426,20 +428,17 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     // /* DEBUG */ System.out.println(this);
     if (this.using != null) {
       try {
-        PEval.Builder usingEvalBuilder = PEval.Builder.newInstance();
-        usingEvalBuilder.setSrcInfo(this.srcInfo);
+        PEval.Builder usingEvalBuilder = PEval.Builder.newInstance(this.srcInfo, this.scope);
         usingEvalBuilder.addItem(this.using);
-        PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance();
-        usingPtnBuilder.setSrcInfo(this.srcInfo);
+        PPtn.Builder usingPtnBuilder = PPtn.Builder.newInstance(this.srcInfo, this.scope);
         usingPtnBuilder.setContext(PPtnMatch.CONTEXT_FIXED);
         for (int i = 0; i < attrSrcs.length; i++) {
-          usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, PWildCard.create(this.srcInfo)));
+          usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, PWildCard.create(this.srcInfo, this.scope)));
         }
-        usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
-        this.bdUsing = PExpr.create(this.srcInfo, usingEvalBuilder.create(),
-            PPtnMatch.create(this.srcInfo, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create()));
-        this.bdUsing.setupScope(this.scope);
-        this.bdUsing = this.bdUsing.resolve();
+        usingPtnBuilder.addItem(PPtnItem.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, this.dcon));
+        this.bdUsing = PExpr.create(this.srcInfo, this.scope, usingEvalBuilder.create(),
+            PPtnMatch.create(this.srcInfo, this.scope, PPtnMatch.CONTEXT_FIXED, null, usingPtnBuilder.create()));
+        this.bdUsing = this.bdUsing.resolve();  // *
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error: " + ex.toString());
       }

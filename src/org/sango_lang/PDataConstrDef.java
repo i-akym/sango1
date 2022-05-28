@@ -30,11 +30,10 @@ import java.util.List;
 class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
-  // PScope outerScope;
   PType dataType;
 
-  PDataConstrDef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
+    super(srcInfo, defScope.enterInner());
   }
 
   public String toString() {
@@ -57,19 +56,17 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     List<PDataAttrDef> attrList;
     List<String> attrNameList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope defScope) {
+      return new Builder(srcInfo, defScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.constr = new PDataConstrDef(srcInfo);
+    Builder(Parser.SrcInfo srcInfo, PScope defScope) {
+      this.constr = new PDataConstrDef(srcInfo, defScope);
       this.attrList = new ArrayList<PDataAttrDef>();
       this.attrNameList = new ArrayList<String>();
     }
 
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.constr.srcInfo = si;
-    // }
+    PScope getScope() { return this.constr.scope; }
 
     void setDcon(String dcon) {
       this.constr.dcon = dcon;
@@ -111,19 +108,19 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     }
   }
 
-  static PDataConstrDef accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PDataConstrDef accept(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
     StringBuffer emsg;
-    Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    List<PDataAttrDef> attrList = PDataAttrDef.acceptList(reader);
-    Builder builder = null;
+    Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), defScope);
+    PScope scope = builder.getScope();
+    List<PDataAttrDef> attrList = PDataAttrDef.acceptList(reader, scope);
+    if (attrList == null) { return null; }
     ParserA.Token dcon;
     if ((dcon = ParserA.acceptNormalWord(reader, ParserA.SPACE_NEEDED)) != null) {
-      builder = Builder.newInstance(si);
-      // builder.setSrcInfo(si);
       builder.setDcon(dcon.value.token);
       builder.addAttrList(attrList);
     } else if (attrList.isEmpty()) {
-      ;  // neither attributes nor dcon
+      return null;
+      // ;  // neither attributes nor dcon
     } else {
       emsg = new StringBuffer();
       emsg.append("Data constructor missing at ");
@@ -131,14 +128,15 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return (builder != null)? builder.create(): null;
+    return builder.create();
+    // return (builder != null)? builder.create(): null;
   }
 
-  static PDataConstrDef acceptX(ParserB.Elem elem) throws CompileException {
+  static PDataConstrDef acceptX(ParserB.Elem elem, PScope defScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("constr")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
-    // builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), defScope);
+    PScope scope = builder.getScope();
     String dcon = elem.getAttrValueAsId("dcon");
     if (dcon == null) {
       emsg = new StringBuffer();
@@ -151,7 +149,7 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
 
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PDataAttrDef attr = PDataAttrDef.acceptX(e);
+      PDataAttrDef attr = PDataAttrDef.acceptX(e, scope);
       if (attr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -189,16 +187,16 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     return this.dataType.getSkel().instanciate(ib);
   }
 
-  public void setupScope(PScope scope) {
-    if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // if (scope == this.outerScope) { return; }
-    // this.outerScope = scope;
-    this.scope = scope.enterInner();
-    this.idResolved = false;
-    for (int i = 0; i < this.attrs.length; i++) {
-      this.attrs[i].setupScope(this.scope);
-    }
-  }
+  // public void setupScope(PScope scope) {
+    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // // if (scope == this.outerScope) { return; }
+    // // this.outerScope = scope;
+    // this.scope = scope.enterInner();
+    // this.idResolved = false;
+    // for (int i = 0; i < this.attrs.length; i++) {
+      // this.attrs[i].setupScope(this.scope);
+    // }
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
@@ -207,11 +205,11 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   }
 
   public PDataConstrDef resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.attrs.length; i++) {
       this.attrs[i] = this.attrs[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

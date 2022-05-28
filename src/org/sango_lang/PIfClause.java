@@ -30,10 +30,10 @@ import java.util.List;
 class PIfClause extends PDefaultExprObj {
   PExprList.Seq guard;
   PExprList.Seq action;
-  PScope outerScope;
+  // PScope outerScope;
 
-  private PIfClause(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PIfClause(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
   }
 
   public String toString() {
@@ -52,22 +52,15 @@ class PIfClause extends PDefaultExprObj {
     PIfClause clause;
     // List<PExpr> guardExprList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.clause = new PIfClause(srcInfo);
-      // this.guardExprList = new ArrayList<PExpr>();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.clause = new PIfClause(srcInfo, outerScope);
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.clause.srcInfo = si;
-    }
-
-    // void addGuardExpr(PExpr expr) {
-      // this.guardExprList.add(expr);
-    // }
+    PScope getScope() { return this.clause.scope; }
 
     void setGuard(PExprList.Seq seq) {
       this.clause.guard = seq;
@@ -86,20 +79,19 @@ class PIfClause extends PDefaultExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      // this.clause.guardExprs = this.guardExprList.toArray(new PExpr[this.guardExprList.size()]);
       return this.clause;
     }
   }
 
-  static PIfClause accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PIfClause accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    Builder builder = Builder.newInstance(si);
-    PExprList.Seq guardSeq = PExprList.acceptSeq(reader, si, false);
+    Builder builder = Builder.newInstance(si, outerScope);
+    PScope scope = builder.getScope();
+    PExprList.Seq guardSeq = PExprList.acceptSeq(reader, si, scope, false);
     if (guardSeq == null || guardSeq.exprs.length == 0) {
       return null;
     }
-    builder.setSrcInfo(si);
     builder.setGuard(guardSeq);
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -108,15 +100,15 @@ class PIfClause extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setAction(PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), true));
-    // builder.addActionExprList(PExpr.acceptSeq(reader, true));
+    builder.setAction(PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), scope, true));
     return builder.create();
   }
 
-  static PIfClause acceptX(ParserB.Elem elem) throws CompileException {
+  static PIfClause acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if-clause")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -135,7 +127,7 @@ class PIfClause extends PDefaultExprObj {
     List<PExpr> ges = new ArrayList<PExpr>();
     ParserB.Elem ee = e.getFirstChild();
     while (ee != null) {
-      PExpr expr = PExpr.acceptX(ee);
+      PExpr expr = PExpr.acceptX(ee, scope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -143,10 +135,9 @@ class PIfClause extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
       ges.add(expr);
-      // builder.addGuardExpr(expr);
       ee = ee.getNextSibling();
     }
-    builder.setGuard(PExprList.Seq.create(si, ges));
+    builder.setGuard(PExprList.Seq.create(si, scope, ges));
     e = e.getNextSibling();
     if (e == null) {
       emsg = new StringBuffer();
@@ -165,11 +156,10 @@ class PIfClause extends PDefaultExprObj {
     ee = e.getFirstChild();
     List<PExpr> aes = new ArrayList<PExpr>();
     if (ee == null) {
-      aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo()));
-      // builder.addActionExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo(), scope));
     } else {
       while (ee != null) {
-        PExpr expr = PExpr.acceptX(ee);
+        PExpr expr = PExpr.acceptX(ee, scope);
         if (expr == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -177,22 +167,21 @@ class PIfClause extends PDefaultExprObj {
           throw new CompileException(emsg.toString());
         }
         aes.add(expr);
-        // builder.addActionExpr(expr);
         ee = ee.getNextSibling();
       }
     }
-    builder.setAction(PExprList.Seq.create(si, aes));
+    builder.setAction(PExprList.Seq.create(si, scope, aes));
     return builder.create();
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.outerScope) { return; }
-    this.outerScope = scope;
-    this.scope = scope.enterInner();
-    this.idResolved = false;
-    this.guard.setupScope(this.scope);
-    this.action.setupScope(this.scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.outerScope) { return; }
+    // this.outerScope = scope;
+    // this.scope = scope.enterInner();
+    // this.idResolved = false;
+    // this.guard.setupScope(this.scope);
+    // this.action.setupScope(this.scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.guard.collectModRefs();
@@ -200,10 +189,10 @@ class PIfClause extends PDefaultExprObj {
   }
 
   public PIfClause resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.guard = this.guard.resolve();
     this.action = this.action.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

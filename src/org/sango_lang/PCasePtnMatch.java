@@ -31,8 +31,8 @@ class PCasePtnMatch extends PDefaultExprObj {
   PPtnMatch ptnMatch;
   PPtnDetail[] details;
 
-  private PCasePtnMatch(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PCasePtnMatch(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -54,18 +54,18 @@ class PCasePtnMatch extends PDefaultExprObj {
     PCasePtnMatch casePtnMatch;
     List<PPtnDetail> detailList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.casePtnMatch = new PCasePtnMatch(srcInfo);
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.casePtnMatch = new PCasePtnMatch(srcInfo, outerScope);
       this.detailList = new ArrayList<PPtnDetail>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.casePtnMatch.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.casePtnMatch.srcInfo = si;
+    // }
 
     void setPtnMatch(PPtnMatch ptnMatch) {
       this.casePtnMatch.ptnMatch = ptnMatch;
@@ -88,27 +88,27 @@ class PCasePtnMatch extends PDefaultExprObj {
     }
   }
 
-  static PCasePtnMatch accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PCasePtnMatch accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     PPtnMatch ptnMatch;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    if ((ptnMatch = PPtnMatch.accept(reader, PPtnMatch.CONTEXT_TRIAL)) == null) { return null; }
-    Builder builder = Builder.newInstance(si);
+    if ((ptnMatch = PPtnMatch.accept(reader, outerScope, PPtnMatch.CONTEXT_TRIAL)) == null) { return null; }
+    Builder builder = Builder.newInstance(si, outerScope);
     builder.setPtnMatch(ptnMatch);
     if (ParserA.acceptToken(reader, LToken.EQ_GT, ParserA.SPACE_DO_NOT_CARE) != null) {
-      builder.addDetailList(PPtnDetail.acceptSeq(reader));
+      builder.addDetailList(PPtnDetail.acceptSeq(reader, outerScope));
     }
     return builder.create();
   }
 
-  static List<PCasePtnMatch> acceptSeq(ParserA.TokenReader reader) throws CompileException, IOException {
+  static List<PCasePtnMatch> acceptSeq(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     List<PCasePtnMatch> casePtnMatchList = new ArrayList<PCasePtnMatch>();
     PCasePtnMatch casePtnMatch;
     int state = 0;
     while (state >= 0) {
       switch (state) {
       case 0:
-        if ((casePtnMatch = accept(reader)) != null) {
+        if ((casePtnMatch = accept(reader, outerScope)) != null) {
           casePtnMatchList.add(casePtnMatch);
           state = 1;
         } else if (ParserA.acceptToken(reader, LToken.VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
@@ -128,10 +128,10 @@ class PCasePtnMatch extends PDefaultExprObj {
     return casePtnMatchList;
   }
 
-  static PCasePtnMatch acceptX(ParserB.Elem elem) throws CompileException {
+  static PCasePtnMatch acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case-ptn-match")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -140,7 +140,7 @@ class PCasePtnMatch extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch pm = PPtnMatch.acceptX(e, PPtnMatch.CONTEXT_TRIAL);
+    PPtnMatch pm = PPtnMatch.acceptX(e, outerScope, PPtnMatch.CONTEXT_TRIAL);
     if (pm == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -158,7 +158,7 @@ class PCasePtnMatch extends PDefaultExprObj {
       }
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PPtnDetail pd = PPtnDetail.acceptX(ee);
+        PPtnDetail pd = PPtnDetail.acceptX(ee, outerScope);
         if (pd == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -172,15 +172,15 @@ class PCasePtnMatch extends PDefaultExprObj {
     return builder.create();
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.ptnMatch.setupScope(scope);
-    for (int i = 0; i < this.details.length; i++) {
-      this.details[i].setupScope(scope);
-    }
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.ptnMatch.setupScope(scope);
+    // for (int i = 0; i < this.details.length; i++) {
+      // this.details[i].setupScope(scope);
+    // }
+  // }
 
   public void collectModRefs() throws CompileException {
     this.ptnMatch.collectModRefs();
@@ -190,12 +190,12 @@ class PCasePtnMatch extends PDefaultExprObj {
   }
 
   public PCasePtnMatch resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.ptnMatch = (PPtnMatch)this.ptnMatch.resolve();
     for (int i = 0; i < this.details.length; i++) {
       this.details[i] = (PPtnDetail)this.details[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

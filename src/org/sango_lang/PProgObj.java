@@ -25,7 +25,7 @@ package org.sango_lang;
 
 interface PProgObj extends PProgElem {
 
-  void setupScope(PScope scope);
+  // void setupScope(PScope scope);
 
   PScope getScope();
 

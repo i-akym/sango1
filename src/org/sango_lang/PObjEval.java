@@ -26,8 +26,8 @@ package org.sango_lang;
 class PObjEval extends PDefaultExprObj implements PEval {
   PExprObj obj;
 
-  private PObjEval(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PObjEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -40,15 +40,15 @@ class PObjEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PObjEval create(Parser.SrcInfo srcInfo, PExprObj obj) {
-    PObjEval e = new PObjEval(srcInfo);
+  static PObjEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj obj) {
+    PObjEval e = new PObjEval(srcInfo, outerScope);
     e.obj = obj;
     return e;
   }
 
-  public void setupScope(PScope scope) {
-    this.obj.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // this.obj.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.obj.collectModRefs();

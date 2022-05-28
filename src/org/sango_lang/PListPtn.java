@@ -29,28 +29,26 @@ import java.util.ArrayList;
 
 abstract class PListPtn extends PDefaultExprObj {
 
-  PListPtn(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PListPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   static class Builder {
     int context;  // PPtnMatch.CONTEXT_*
     Parser.SrcInfo srcInfo;
+    PScope scope;
     List<PPtnMatch> elemSeq;
     PPtnMatch tail;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.srcInfo = srcInfo;
+      this.scope = scope;
       this.elemSeq = new ArrayList<PPtnMatch>();
     }
-
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.srcInfo = si;
-    // }
 
     void setContext(int context) {
     }
@@ -69,34 +67,34 @@ abstract class PListPtn extends PDefaultExprObj {
 
     PListPtn create() {
       if (this.elemSeq.isEmpty()) {
-        return PEmptyListPtn.create(this.srcInfo);
+        return PEmptyListPtn.create(this.srcInfo, this.scope);
       }
       PPtnMatch t = (this.tail != null)?
         this.tail:
-        PPtnMatch.create(this.srcInfo, this.context, null, PEmptyListPtn.create(this.srcInfo));
+        PPtnMatch.create(this.srcInfo, this.scope, this.context, null, PEmptyListPtn.create(this.srcInfo, this.scope));
       PListPtn L = null;
       for (int i = this.elemSeq.size() - 1; i >= 0; i--) {
-        L = PListConstrPtn.create(this.srcInfo, this.elemSeq.get(i), t);
-        t = PPtnMatch.create(this.srcInfo, this.context, null, L);
+        L = PListConstrPtn.create(this.srcInfo, this.scope, this.elemSeq.get(i), t);
+        t = PPtnMatch.create(this.srcInfo, this.scope, this.context, null, L);
       }
       return L;
     }
   }
 
-  static PListPtn accept(ParserA.TokenReader reader, int spc, int context) throws CompileException, IOException {
+  static PListPtn accept(ParserA.TokenReader reader, PScope outerScope, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
     builder.setContext(context);
     List<PPtnMatch> elemSeq;
-    if ((elemSeq = PPtnMatch.acceptPosdSeq(reader, 0, context)) != null) {
+    if ((elemSeq = PPtnMatch.acceptPosdSeq(reader, outerScope, 0, context)) != null) {
       builder.addElemSeq(elemSeq);
       if (!elemSeq.isEmpty() && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
         PPtnMatch tail;
-        if ((tail = PPtnMatch.accept(reader, context)) == null) {
+        if ((tail = PPtnMatch.accept(reader, outerScope, context)) == null) {
           emsg = new StringBuffer();
           emsg.append("List tail not found at ");
           emsg.append(reader.getCurrentSrcInfo());
@@ -108,27 +106,6 @@ abstract class PListPtn extends PDefaultExprObj {
           }
           throw new CompileException(emsg.toString());
         }
-        // if (tail.ptn.items.length > 1) {
-          // emsg = new StringBuffer();
-          // emsg.append("List tail too complex at ");
-          // emsg.append(tail.ptn.srcInfo);
-          // emsg.append(".");
-          // throw new CompileException(emsg.toString());
-        // }
-        // PPtnItem pi = tail.ptn.items[0];
-        // switch (pi.tag) {
-        // case PPtnItem.TAG_LIST:
-        // case PPtnItem.TAG_PTN_MATCH:
-        // case PPtnItem.TAG_NEW_VAR:
-        // case PPtnItem.TAG_WILD_CARD:
-            // break;
-        // default:
-          // emsg = new StringBuffer();
-          // emsg.append("List tail invalid at ");
-          // emsg.append(pi.srcInfo);
-          // emsg.append(".");
-          // throw new CompileException(emsg.toString());
-        // }
         builder.setTail(tail);
       }
     }
@@ -147,7 +124,7 @@ abstract class PListPtn extends PDefaultExprObj {
     return builder.create();
   }
 
-  static PListPtn acceptX(ParserB.Elem elem, int context) throws CompileException {
+  static PListPtn acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("list")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -158,7 +135,7 @@ abstract class PListPtn extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch h = PPtnMatch.acceptX(e, context);
+    PPtnMatch h = PPtnMatch.acceptX(e, outerScope, context);
     if (h == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -173,13 +150,13 @@ abstract class PListPtn extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch t = PPtnMatch.acceptX(e, context);
+    PPtnMatch t = PPtnMatch.acceptX(e, outerScope, context);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
-    return PListConstrPtn.create(elem.getSrcInfo(), h, t);
+    return PListConstrPtn.create(elem.getSrcInfo(), outerScope, h, t);
   }
 }

@@ -27,8 +27,8 @@ class PUndetEval extends PDefaultExprObj implements PEval {
   PExprId anchor;
   PEvalItem.ObjItem params[];
 
-  private PUndetEval(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PUndetEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -46,8 +46,8 @@ class PUndetEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PUndetEval create(Parser.SrcInfo srcInfo, PExprId anchor, PEvalItem.ObjItem[] params) {
-    PUndetEval e = new PUndetEval(srcInfo);
+  static PUndetEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId anchor, PEvalItem.ObjItem[] params) {
+    PUndetEval e = new PUndetEval(srcInfo, outerScope);
     e.anchor = anchor;
     e.params = params;
     if (params.length > 0) {
@@ -56,16 +56,16 @@ class PUndetEval extends PDefaultExprObj implements PEval {
     return e;
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].setupScope(scope);
-    }
-    this.anchor.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+    // this.anchor.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
@@ -75,32 +75,41 @@ class PUndetEval extends PDefaultExprObj implements PEval {
   }
 
   public PEval resolve() throws CompileException {
-    if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
     PExprObj a = this.anchor.resolve();
     PEval e;
     if (a instanceof PExprVarRef) {
+      if (this.params.length > 0) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Neither function name nor data constructor found at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       e = (PExprVarRef)a;
     } else {
-      this.anchor = (PExprId)a;
-      e = this;
-    }
-
-    if (e == this) {
-      this.idResolved = true;
-      if (this.anchor.maybeDcon()) {
-        this.anchor.setCat(PExprId.CAT_DCON_EVAL);
-        e = PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem.ObjItem[0], null);
-        e.setupScope(this.scope);
-        e = e.resolve();
+      PExprId anc = (PExprId)a;
+      if (anc.maybeDcon()) {
+        e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, anc, this.params);
+        // e = PDataConstrEval.create(this.srcInfo, this.scope, anc, this.params, new PEvalItem.ObjItem[0], null);
       } else {
-        e = PStaticInvEval.create(this.srcInfo, this.anchor, this.params);
-        e.setupScope(this.scope);
-        e = e.resolve();
+        e = PStaticInvEval.create(this.srcInfo, this.scope, anc, this.params);
       }
+      // this.anchor = (PExprId)a;
+      // e = this;
     }
+    // if (e == this) {
+      // if (this.anchor.maybeDcon()) {
+        // this.anchor.setCat(PExprId.CAT_DCON_EVAL);
+        // e = PDataConstrEval.create(this.srcInfo, this.scope, this.anchor, this.params, new PEvalItem.ObjItem[0], null);
+        // // e = e.resolve();
+      // } else {
+        // e = PStaticInvEval.create(this.srcInfo, this.scope, this.anchor, this.params);
+        // // e = e.resolve();
+      // }
+    // }
     return e;
   }
 

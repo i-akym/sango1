@@ -33,12 +33,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   PTypeSkel nConstraint;
   PTypeVarSlot varSlot;  // setup later
 
-  private PTypeVarDef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PTypeVarDef(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
   }
 
-  static PTypeVarDef create(Parser.SrcInfo srcInfo, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
-    PTypeVarDef var = new PTypeVarDef(srcInfo);
+  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
+    PTypeVarDef var = new PTypeVarDef(srcInfo, scope);
     var.name = name;
     var.variance = variance;
     var.requiresConcrete = requiresConcrete;
@@ -70,8 +70,8 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeVarDef v = new PTypeVarDef(srcInfo);
+  public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+    PTypeVarDef v = new PTypeVarDef(srcInfo, scope);
     v.name = this.name;
     // v.varSlot = this.varSlot;  // not copied
     switch (varianceOpt) {
@@ -99,9 +99,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     }
     if (this.constraint != null) {
       try {
-        PType.Builder b = PType.Builder.newInstance();
-        b.setSrcInfo(srcInfo);
-        b.addItem(this.constraint.deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt));
+        PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
+        // b.setSrcInfo(srcInfo);
+        b.addItem(this.constraint.deepCopy(srcInfo, scope, extOpt, varianceOpt, concreteOpt));
         v.constraint = b.create();
       } catch (Exception ex) {
         throw new RuntimeException("Internal error. " + ex.toString());
@@ -110,7 +110,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTypeVarDef acceptSimple(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PTypeVarDef acceptSimple(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
@@ -132,10 +132,10 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, varId.value.token, variance, requiresConcrete, null);
+    return create(si, scope, varId.value.token, variance, requiresConcrete, null);
   }
 
-  static PTypeVarDef acceptX(ParserB.Elem elem) throws CompileException {
+  static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -146,18 +146,18 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), id, Module.INVARIANT, false, null);  // HERE
+    return create(elem.getSrcInfo(), scope, id, Module.INVARIANT, false, null);  // HERE
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    if (this.constraint != null) {
-      this.constraint.setupScope(scope);
-    }
-  }
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // if (this.constraint != null) {
+      // this.constraint.setupScope(scope);
+    // }
+  // }
 
   public void collectModRefs() throws CompileException {
     if (this.constraint != null) {
@@ -167,7 +167,8 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 
   public PTypeVarDef resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.idResolved) { return this; }
+    if (this.varSlot != null) { return this; }
+    // if (this.idResolved) { return this; }
     if (!this.scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -180,7 +181,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     if (this.constraint != null) {
       this.constraint = this.constraint.resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

@@ -31,12 +31,12 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   String name;
   PExprVarDef var;
 
-  private PDataAttrDef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PDataAttrDef(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
-  static PDataAttrDef create(Parser.SrcInfo srcInfo, String name, PType type, PExprVarDef var) {
-    PDataAttrDef attr = new PDataAttrDef(srcInfo);
+  static PDataAttrDef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PType type, PExprVarDef var) {
+    PDataAttrDef attr = new PDataAttrDef(srcInfo, outerScope);
     attr.name = name;
     attr.type = type;
     attr.var = var;
@@ -57,7 +57,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     return buf.toString();
   }
 
-  static List<PDataAttrDef> acceptList(ParserA.TokenReader reader) throws CompileException, IOException {
+  static List<PDataAttrDef> acceptList(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     List<PDataAttrDef> attrList = new ArrayList<PDataAttrDef>();
     Parser.SrcInfo si = null;
@@ -76,7 +76,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
           name = aname.name;
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 1;
-        } else if ((type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        } else if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE)) != null) {
           si = type.getSrcInfo();
           type = type;
           spc = ParserA.SPACE_DO_NOT_CARE;
@@ -86,7 +86,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
         }
         break;
       case 1:  // name:
-        if ((type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE)) != null) {
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 2;
         } else {
@@ -99,15 +99,15 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
         break;
       case 2:  // [name:] <type>
 	if ((aname = acceptDataAttrName(reader, ParserA.SPACE_NEEDED)) != null) {
-          attrList.add(create(si, name, type, var));
+          attrList.add(create(si, outerScope, name, type, var));
           si = aname.srcInfo;
           name = aname.name;
           type = null;
           var = null;
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 1;
-        } else if ((type2 = PType.accept(reader, ParserA.SPACE_NEEDED)) != null) {
-          attrList.add(create(si, name, type, var));
+        } else if ((type2 = PType.accept(reader, outerScope, ParserA.SPACE_NEEDED)) != null) {
+          attrList.add(create(si, outerScope, name, type, var));
           si = type.getSrcInfo();
           name = null;
           type = type2;
@@ -115,7 +115,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 2;
         } else  {
-          attrList.add(create(si, name, type, var));
+          attrList.add(create(si, outerScope, name, type, var));
           state = -1;
         }
         break;
@@ -139,7 +139,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     }
   }
 
-  static PDataAttrDef acceptX(ParserB.Elem elem) throws CompileException {
+  static PDataAttrDef acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("attr")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -150,7 +150,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType t = PType.acceptX(e);
+    PType t = PType.acceptX(e, outerScope);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Data type missing at ");
@@ -158,7 +158,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), elem.getAttrValueAsId("name"), t, null);
+    return create(elem.getSrcInfo(), outerScope, elem.getAttrValueAsId("name"), t, null);
   }
 
   private static class DataAttrName {
@@ -168,21 +168,21 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
 
   public String getName() { return this.name; }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.type.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.type.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PDataAttrDef resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
