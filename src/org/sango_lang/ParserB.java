@@ -69,8 +69,8 @@ class ParserB extends Parser {
       System.err.println(ex);
       System.exit(1);
     }
-    this.mod = PModule.acceptX(this.rootElem, this.modName);
-    this.mod.theCompiler = this.theCompiler;
+    this.mod = PModule.acceptX(this.theCompiler, this.rootElem, this.modName);
+    // this.mod.theCompiler = this.theCompiler;
   }
 
   Elem rootElem(Document doc) {

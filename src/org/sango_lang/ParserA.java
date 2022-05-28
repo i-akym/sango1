@@ -44,8 +44,8 @@ class ParserA extends Parser {
   }
 
   void parse1() throws CompileException, IOException {
-    this.mod = PModule.accept(this.tokenReader, this.modName);
-    this.mod.theCompiler = this.theCompiler;
+    this.mod = PModule.accept(this.theCompiler, this.tokenReader, this.modName);
+    // this.mod.theCompiler = this.theCompiler;
   }
 
   static Token acceptToken(TokenReader reader, int tag, int spc) throws CompileException, IOException {
