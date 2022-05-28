@@ -30,8 +30,8 @@ class PPtnItem extends PDefaultExprObj {
   String name;
   PProgObj elem;
 
-  private PPtnItem(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PPtnItem(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -48,15 +48,15 @@ class PPtnItem extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PPtnItem create(Parser.SrcInfo srcInfo, int context, String name, PProgObj elem) {
-    PPtnItem i = new PPtnItem(srcInfo);
+  static PPtnItem create(Parser.SrcInfo srcInfo, PScope outerScope, int context, String name, PProgObj elem) {
+    PPtnItem i = new PPtnItem(srcInfo, outerScope);
     i.context = context;
     i.name = name;
     i.elem = elem;
     return i;
   }
 
-  static PPtnItem accept(ParserA.TokenReader reader, int spc, int acceptables, int context) throws CompileException, IOException {
+  static PPtnItem accept(ParserA.TokenReader reader, PScope outerScope, int spc, int acceptables, int context) throws CompileException, IOException {
     if (acceptables == PPtn.ACCEPT_NOTHING) { return null; }
     StringBuffer emsg;
     Parser.SrcInfo srcInfo = reader.getCurrentSrcInfo();
@@ -74,31 +74,31 @@ class PPtnItem extends PDefaultExprObj {
       space = ParserA.SPACE_DO_NOT_CARE;
     }
     PExprObj elem = null;
-    if ((acceptables & PPtn.ACCEPT_BYTE) > 0 && (elem = PByte.accept(reader, space)) != null) {
+    if ((acceptables & PPtn.ACCEPT_BYTE) > 0 && (elem = PByte.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_INT) > 0 && (elem = PInt.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_INT) > 0 && (elem = PInt.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_REAL) > 0 && (elem = PReal.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_REAL) > 0 && (elem = PReal.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_CHAR) > 0 && (elem = PChar.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_CHAR) > 0 && (elem = PChar.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_LIST) > 0 && (elem = PListPtn.accept(reader, space, context)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_LIST) > 0 && (elem = PListPtn.accept(reader, outerScope, space, context)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_TUPLE) > 0 && (elem = PTuplePtn.accept(reader, space, context)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_TUPLE) > 0 && (elem = PTuplePtn.accept(reader, outerScope, space, context)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_STRING) > 0 && (elem = PStringPtn.accept(reader, space, context)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_STRING) > 0 && (elem = PStringPtn.accept(reader, outerScope, space, context)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_ID) > 0 && (elem = PExprId.accept(reader, PExprId.ID_MAYBE_QUAL, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_ID) > 0 && (elem = PExprId.accept(reader, outerScope, PExprId.ID_MAYBE_QUAL, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_VARDEF_NOT_CASTED) > 0 && (elem = PExprVarDef.accept(reader, PExprVarDef.CAT_LOCAL_VAR, PExprVarDef.TYPE_NOT_ALLOWED)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_VARDEF_NOT_CASTED) > 0 && (elem = PExprVarDef.accept(reader, outerScope, PExprVarDef.CAT_LOCAL_VAR, PExprVarDef.TYPE_NOT_ALLOWED)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_VARDEF_CASTED) > 0 && (elem = PExprVarDef.accept(reader, PExprVarDef.CAT_LOCAL_VAR, PExprVarDef.TYPE_NEEDED)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_VARDEF_CASTED) > 0 && (elem = PExprVarDef.accept(reader, outerScope, PExprVarDef.CAT_LOCAL_VAR, PExprVarDef.TYPE_NEEDED)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_WILD_CARD) > 0 && (elem = PWildCard.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_WILD_CARD) > 0 && (elem = PWildCard.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_WILD_CARDS) > 0 && (elem = PWildCards.accept(reader, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_WILD_CARDS) > 0 && (elem = PWildCards.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_PTN_MATCH) > 0 &&  (elem = PPtnMatch.acceptEnclosed(reader, space, context)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_PTN_MATCH) > 0 &&  (elem = PPtnMatch.acceptEnclosed(reader, outerScope, space, context)) != null) {
       ;
     }
     String an = null;
@@ -131,30 +131,30 @@ class PPtnItem extends PDefaultExprObj {
       }
       an = name.value.token;
     }
-    return (elem != null)? create(srcInfo, context, an, elem): null;
+    return (elem != null)? create(srcInfo, outerScope, context, an, elem): null;
   }
 
   void fixAsAttr() {
     if (this.elem instanceof PExprId) {
-      this.elem = PUndetPtn.create(this.srcInfo, this.context, (PExprId)this.elem);
+      this.elem = PUndetPtn.create(this.srcInfo, this.scope, this.context, (PExprId)this.elem);
     }
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elem.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elem.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.elem.collectModRefs();
   }
 
   public PPtnItem resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.elem = this.elem.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

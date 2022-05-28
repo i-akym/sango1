@@ -30,8 +30,8 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   PExprId funId;  // HERE: official name needed
   PExprObj params[];
 
-  private PStaticInvEval(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PStaticInvEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -49,14 +49,14 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PStaticInvEval create(Parser.SrcInfo srcInfo, PExprId funId, PExprObj[] params) {
-    PStaticInvEval e = new PStaticInvEval(srcInfo);
+  static PStaticInvEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId funId, PExprObj[] params) {
+    PStaticInvEval e = new PStaticInvEval(srcInfo, outerScope);
     e.funId = funId;
     e.params = params;
     return e;
   }
 
-  static PEval acceptX(ParserB.Elem elem) throws CompileException {
+  static PEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("invoke")) { return null; }
     String id = elem.getAttrValueAsExtendedId("id");
@@ -78,7 +78,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
         throw new CompileException(emsg.toString());
       }
     } else if (Parser.isNormalId(id)) {
-      eid = PExprId.create(elem.getSrcInfo(), mid, id);;
+      eid = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);;
     } else {
       emsg = new StringBuffer();
       emsg.append("Invalid id at ");
@@ -90,7 +90,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     ArrayList<PExprObj> ps = new ArrayList<PExprObj>();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PExprObj expr = PExpr.acceptX(e);
+      PExprObj expr = PExpr.acceptX(e, outerScope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -103,19 +103,19 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     Parser.SrcInfo si = elem.getSrcInfo();
     PExprObj[] params = ps.toArray(new PExprObj[ps.size()]);
     return (eid != null)?
-      create(si, eid, params):
-      PDynamicInvEval.create(si, PFunRef.createSelf(si), params);
+      create(si, outerScope, eid, params):
+      PDynamicInvEval.create(si, outerScope, PFunRef.createSelf(si, outerScope), params);
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].setupScope(scope);
-    }
-    this.funId.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+    // this.funId.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
@@ -125,7 +125,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PStaticInvEval resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }

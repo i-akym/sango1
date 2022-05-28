@@ -32,12 +32,12 @@ class PTypeRef extends PDefaultProgObj implements PType {
   PType[] params;  // empty array if no params
   PDefDict.TconInfo tconInfo;
 
-  private PTypeRef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PTypeRef(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
   }
 
-  static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PType[] param) {
-    PTypeRef t = new PTypeRef(srcInfo);
+  static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeId id, PType[] param) {
+    PTypeRef t = new PTypeRef(srcInfo, scope);
     t.tconSrcInfo = id.srcInfo;
     t.mod = id.mod;
     t.tcon = id.name;
@@ -46,11 +46,11 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return t;
   }
 
-  static PTypeRef acceptX(ParserB.Elem elem, int acceptables) throws CompileException {
+  static PTypeRef acceptX(ParserB.Elem elem, PScope scope, int acceptables) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("type")) { return null; }
-    PType.Builder builder = PType.Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    PType.Builder builder = PType.Builder.newInstance(elem.getSrcInfo(), scope);
+    // builder.setSrcInfo(elem.getSrcInfo());
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {
@@ -62,11 +62,11 @@ class PTypeRef extends PDefaultProgObj implements PType {
     }
     String mid = elem.getAttrValueAsId("mid");
     boolean ext = elem.getAttrValueAsYesNoSwitch("ext", false);
-    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), mid, tcon, ext);
+    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), scope, mid, tcon, ext);
     tconItem.setTcon();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PProgObj t = PType.acceptXItem(e, acceptables);
+      PProgObj t = PType.acceptXItem(e, scope, acceptables);
       if (t == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -103,8 +103,8 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return buf.toString();
   }
 
-  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeRef t = new PTypeRef(srcInfo);
+  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+    PTypeRef t = new PTypeRef(srcInfo, scope);
     t.mod = this.mod;
     t.modName = this.modName;
     t.tcon = this.tcon;
@@ -121,9 +121,9 @@ class PTypeRef extends PDefaultProgObj implements PType {
     t.params = new PType[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       try {
-        PType.Builder b = PType.Builder.newInstance();
-        b.setSrcInfo(srcInfo);
-        b.addItem(this.params[i].deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt));
+        PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
+        // b.setSrcInfo(srcInfo);
+        b.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, varianceOpt, concreteOpt));
         t.params[i] = b.create();
       } catch (Exception ex) {
         throw new RuntimeException("Internal error. " + ex.toString());
@@ -132,22 +132,21 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return t;
   }
 
-  static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PType[] paramTypeDescs) {
-    return  create(
-      srcInfo,
-      PTypeId.create(srcInfo, PModule.MOD_ID_LANG, tcon, false),
+  static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, PScope scope, String tcon, PType[] paramTypeDescs) {
+    return  create(srcInfo, scope,
+      PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, tcon, false),
       paramTypeDescs);
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].setupScope(scope);
-    }
-  }
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+  // }
 
   public void collectModRefs() throws CompileException {
     this.scope.referredModId(this.srcInfo, this.mod);
@@ -158,7 +157,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   public PTypeRef resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
     if (this.mod != null) {
       this.modName = this.scope.resolveModId(this.mod);
@@ -194,7 +193,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       PType p = (PType)this.params[i].resolve();
       this.params[i] = p;
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

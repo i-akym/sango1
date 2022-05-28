@@ -65,17 +65,20 @@ abstract class PPtn {
   static class Builder {
     int context;
     Parser.SrcInfo srcInfo;
+    PScope scope;
     Parser.SrcInfo lastSrcInfo;
     int state;
     PType leadingCast;
     List<PPtnItem> itemList;
     int followingSpace;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.srcInfo = srcInfo;
+      this.scope = outerScope;
       this.itemList = new ArrayList<PPtnItem>();
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
@@ -84,9 +87,9 @@ abstract class PPtn {
 
     int getFollowingSpace() { return this.followingSpace; }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
 
     void setContext(int context) {
       this.context = context;
@@ -300,7 +303,7 @@ abstract class PPtn {
       }
       PExprId id = (PExprId)item.elem;
       id.cutOffCat(PExprId.CAT_DCON_EVAL);
-      return PUndetPtn.create(this.srcInfo, this.context, id);
+      return PUndetPtn.create(this.srcInfo, this.scope, this.context, id);
     }
 
     private PExprObj createDataConstrPtn() throws CompileException {
@@ -347,52 +350,52 @@ abstract class PPtn {
       }
       PExprId dcon = (PExprId)anchor.elem;
       dcon.setCat(PExprId.CAT_DCON_PTN);
-      return PDataConstrPtn.create(this.srcInfo, this.context, dcon, posdAttrs, namedAttrs, wildCards);
+      return PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, posdAttrs, namedAttrs, wildCards);
     }
   }
 
-  static PExprObj accept(ParserA.TokenReader reader, int context, PType leadingCast) throws CompileException, IOException {
+  static PExprObj accept(ParserA.TokenReader reader, PScope outerScope, int context, PType leadingCast) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance();
+    Builder builder;
     if (leadingCast != null) {
-      builder.setSrcInfo(leadingCast.getSrcInfo());
+      builder = Builder.newInstance(leadingCast.getSrcInfo(), outerScope);
       builder.setLeadingCast(leadingCast);
     } else {
-      builder.setSrcInfo(reader.getCurrentSrcInfo());
+      builder = Builder.newInstance(reader.getCurrentSrcInfo(), outerScope);
     }
     builder.setContext(context);
     PPtnItem item;
     int acceptables;
     while ((acceptables = builder.getAcceptables()) > 0
-        && (item = PPtnItem.accept(reader, builder.getFollowingSpace(), acceptables, context)) != null) {
+        && (item = PPtnItem.accept(reader, outerScope, builder.getFollowingSpace(), acceptables, context)) != null) {
       builder.addItem(item);
     }
     return builder.create();
   }
 
-  static PExprObj acceptX(ParserB.Elem elem , int context) throws CompileException {
+  static PExprObj acceptX(ParserB.Elem elem , PScope outerScope, int context) throws CompileException {
     PExprObj ptn = null;
-    if ((ptn = PByte.acceptX(elem)) != null) {
+    if ((ptn = PByte.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PInt.acceptX(elem)) != null) {
+    } else if ((ptn = PInt.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PChar.acceptX(elem)) != null) {
+    } else if ((ptn = PChar.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PTuplePtn.acceptX(elem, context)) != null) {
+    } else if ((ptn = PTuplePtn.acceptX(elem, outerScope, context)) != null) {
       ;
-    } else if ((ptn = PEmptyListPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PEmptyListPtn.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PListPtn.acceptX(elem, context)) != null) {
+    } else if ((ptn = PListPtn.acceptX(elem, outerScope, context)) != null) {
       ;
-    } else if ((ptn = PStringPtn.acceptX(elem, context)) != null) {
+    } else if ((ptn = PStringPtn.acceptX(elem, outerScope, context)) != null) {
       ;
-    } else if ((ptn = PExprVarDef.acceptX(elem, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    } else if ((ptn = PExprVarDef.acceptX(elem, outerScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       ;
-    } else if ((ptn = PWildCard.acceptX(elem)) != null) {
+    } else if ((ptn = PWildCard.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PExprVarRef.acceptX(elem)) != null) {
+    } else if ((ptn = PExprVarRef.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PDataConstrPtn.acceptX(elem, context)) != null) {
+    } else if ((ptn = PDataConstrPtn.acceptX(elem, outerScope, context)) != null) {
       ;
     }
     return ptn;

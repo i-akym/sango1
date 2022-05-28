@@ -32,8 +32,8 @@ class PPtnDetail extends PExpr {
 
   // this.eval will become to be varref
 
-  private PPtnDetail(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
-    super(srcInfo, eval, ptnMatch);
+  private PPtnDetail(Parser.SrcInfo srcInfo, PScope outerScope, PEval eval, PPtnMatch ptnMatch) {
+    super(srcInfo, outerScope, eval, ptnMatch);
   }
 
   public String toString() {
@@ -48,13 +48,13 @@ class PPtnDetail extends PExpr {
     return buf.toString();
   }
 
-  static PPtnDetail create(Parser.SrcInfo srcInfo, PEval eval, PPtnMatch ptnMatch) {
-    return new PPtnDetail(srcInfo, eval, ptnMatch);
+  static PPtnDetail create(Parser.SrcInfo srcInfo, PScope outerScope, PEval eval, PPtnMatch ptnMatch) {
+    return new PPtnDetail(srcInfo, outerScope, eval, ptnMatch);
   }
 
-  static PPtnDetail accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PPtnDetail accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
-    PExpr e = PExpr.accept(reader);
+    PExpr e = PExpr.accept(reader, outerScope);
     if (e == null) { return null; }
     if (e.ptnMatch == null) {
       emsg = new StringBuffer();
@@ -63,10 +63,10 @@ class PPtnDetail extends PExpr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(e.eval.getSrcInfo(), e.eval, e.ptnMatch);
+    return create(e.eval.getSrcInfo(), outerScope, e.eval, e.ptnMatch);
   }
 
-  static PPtnDetail acceptX(ParserB.Elem elem) throws CompileException {
+  static PPtnDetail acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("ptn-detail")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -77,7 +77,7 @@ class PPtnDetail extends PExpr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEval ev = PEval.acceptX(e);
+    PEval ev = PEval.acceptX(e, outerScope);
     if (ev == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -92,24 +92,24 @@ class PPtnDetail extends PExpr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnMatch pm = PPtnMatch.acceptX(e, PPtnMatch.CONTEXT_TRIAL);
+    PPtnMatch pm = PPtnMatch.acceptX(e, outerScope, PPtnMatch.CONTEXT_TRIAL);
     if (pm == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), ev, pm);
+    return create(elem.getSrcInfo(), outerScope, ev, pm);
   }
 
-  static List<PPtnDetail> acceptSeq(ParserA.TokenReader reader) throws CompileException, IOException {
+  static List<PPtnDetail> acceptSeq(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     List<PPtnDetail> detailList = new ArrayList<PPtnDetail>();
     PPtnDetail pd;
     int state = 0;
     while (state >= 0) {
       switch (state) {
       case 0:
-        if ((pd = accept(reader)) != null) {
+        if ((pd = accept(reader, outerScope)) != null) {
           detailList.add(pd);
           state = 1;
         } else if (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE) != null) {

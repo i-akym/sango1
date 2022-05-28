@@ -29,8 +29,8 @@ class PListConstrPtn extends PListPtn {
   PPtnMatch elem;
   PPtnMatch tail;
 
-  private PListConstrPtn(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PListConstrPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -45,20 +45,20 @@ class PListConstrPtn extends PListPtn {
     return buf.toString();
   }
 
-  static PListConstrPtn create(Parser.SrcInfo srcInfo, PPtnMatch elem, PPtnMatch tail) {
-    PListConstrPtn c = new PListConstrPtn(srcInfo);
+  static PListConstrPtn create(Parser.SrcInfo srcInfo, PScope outerScope, PPtnMatch elem, PPtnMatch tail) {
+    PListConstrPtn c = new PListConstrPtn(srcInfo, outerScope);
     c.elem = elem;
     c.tail = tail;
     return c;
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elem.setupScope(scope);
-    this.tail.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elem.setupScope(scope);
+    // this.tail.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.elem.collectModRefs();
@@ -66,10 +66,10 @@ class PListConstrPtn extends PListPtn {
   }
 
   public PListConstrPtn resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.elem = this.elem.resolve();
     this.tail = this.tail.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

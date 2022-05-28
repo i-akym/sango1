@@ -310,7 +310,7 @@ class PScope {
   PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PType[] paramTypeDescs) {
     PTypeRef t = null;
     try {
-      t = PTypeRef.getLangDefinedType(srcInfo, tcon, paramTypeDescs);
+      t = PTypeRef.getLangDefinedType(srcInfo, this, tcon, paramTypeDescs);
       t.scope = this;  // needed for resolveId only
       // t = t.setupScope(this);
       t = t.resolve();
@@ -325,13 +325,13 @@ class PScope {
   }
 
   PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
-    PTypeVarDef v = PTypeVarDef.create(srcInfo, this.generateId(), variance, false, null);
-    try {
-      v.setupScope(this);
-      v = v.resolve();
-    } catch (CompileException ex) {
-      throw new RuntimeException("Internal error - " + ex.toString());
-    }
+    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null);
+    // try {
+      // // v.setupScope(this);
+      // v = v.resolve();
+    // } catch (CompileException ex) {
+      // throw new RuntimeException("Internal error - " + ex.toString());
+    // }
     return v;
   }
 
@@ -346,13 +346,13 @@ class PScope {
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
-    PType.Builder b = PType.Builder.newInstance();
-    b.setSrcInfo(srcInfo);
+    PType.Builder b = PType.Builder.newInstance(srcInfo, this);
+    // b.setSrcInfo(srcInfo);
     PType ct;
     try {
-      b.addItem(PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "char", false));
+      b.addItem(PTypeId.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
       ct = b.create();
-      ct.setupScope(this);
+      // ct.setupScope(this);
       ct = ct.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());

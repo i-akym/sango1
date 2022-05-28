@@ -26,22 +26,22 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PRetDef extends PDefaultExprObj {
-  private PRetDef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PRetDef(Parser.SrcInfo srcInfo, PScope defScope) {
+    super(srcInfo, defScope.enterInner());
   }
 
-  static PRetDef create(PType type) {
-    if (type == null) {
-      throw new IllegalArgumentException("Type is null.");
-    }
-    return create(type.getSrcInfo(), type);
-  }
+  // static PRetDef create(PType type) {
+    // if (type == null) {
+      // throw new IllegalArgumentException("Type is null.");
+    // }
+    // return create(type.getSrcInfo(), type. type.getScope());
+  // }
 
-  static PRetDef create(Parser.SrcInfo srcInfo, PType type) {
-    PRetDef ret = new PRetDef(srcInfo);
-    ret.type = type;
-    return ret;
-  }
+  // static PRetDef create(Parser.SrcInfo srcInfo, PType type, PScope defScope) {
+    // PRetDef ret = new PRetDef(srcInfo, defScope);
+    // ret.type = type;
+    // return ret;
+  // }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -56,19 +56,24 @@ class PRetDef extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PRetDef accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PRetDef accept(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    PType type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
+    Builder builder = Builder.newInstance(si, defScope);
+    PScope scope = builder.getScope();
+    PType type = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (type == null) {
-      type = PType.voidType(si);
+      type = PType.voidType(si, scope);
     }
-    return create(si, type);
+    builder.setType(type);
+    return builder.create();
   }
 
-  static PRetDef acceptX(ParserB.Elem elem) throws CompileException {
+  static PRetDef acceptX(ParserB.Elem elem, PScope defScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("ret")) { return null; }
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), defScope);
+    PScope scope = builder.getScope();
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -77,7 +82,7 @@ class PRetDef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType type = PType.acceptX(e);
+    PType type = PType.acceptX(e, scope);
     if (type == null) {
       emsg = new StringBuffer();
       emsg.append("Type missing at ");
@@ -85,25 +90,48 @@ class PRetDef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), type);
+    builder.setType(type);
+    return builder.create();
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.type.setupScope(scope);
+  static class Builder {
+    PRetDef ret;
+
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope defScope) {
+      return new Builder(srcInfo, defScope);
+    }
+
+    Builder(Parser.SrcInfo srcInfo, PScope defScope) {
+      this.ret = new PRetDef(srcInfo, defScope);
+    }
+
+    PScope getScope() { return this.ret.scope; }
+
+    void setType(PType type) {
+      this.ret.type = type;
+    }
+
+    PRetDef create() throws CompileException {
+      return this.ret;
+    }
   }
+
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.type.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PRetDef resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

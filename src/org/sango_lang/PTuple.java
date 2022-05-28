@@ -30,8 +30,8 @@ import java.util.List;
 class PTuple extends PDefaultExprObj {
   PExprList.Elems elems;
 
-  PTuple(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PTuple(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -44,19 +44,19 @@ class PTuple extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PTuple create(Parser.SrcInfo srcInfo, PExprList.Elems elems) {
-    PTuple t =  new PTuple(srcInfo);
+  static PTuple create(Parser.SrcInfo srcInfo, PScope outerScope, PExprList.Elems elems) {
+    PTuple t =  new PTuple(srcInfo, outerScope);
     t.elems = elems;
     return t;
   }
 
-  static PTuple accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PTuple accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LPAR_VBAR, spc)) == null) {
       return null;
     }
-    PExprList.Elems es = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), 2);
+    PExprList.Elems es = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), outerScope, 2);
     if (es == null) {
       emsg = new StringBuffer();
       emsg.append("Invalid tuple specification at ");
@@ -71,17 +71,17 @@ class PTuple extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(t.getSrcInfo(), es);
+    return create(t.getSrcInfo(), outerScope, es);
   }
 
-  static PTuple acceptX(ParserB.Elem elem) throws CompileException {
+  static PTuple acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("tuple")) { return null; }
     Parser.SrcInfo si = elem.getSrcInfo();
     List<PExpr> es = new ArrayList<PExpr>();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PExpr expr = PExpr.acceptX(e);
+      PExpr expr = PExpr.acceptX(e, outerScope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -91,24 +91,24 @@ class PTuple extends PDefaultExprObj {
       es.add(expr);
       e = e.getNextSibling();
     }
-    return create(si, PExprList.Elems.create(si, es));
+    return create(si, outerScope, PExprList.Elems.create(si, outerScope, es));
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elems.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elems.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.elems.collectModRefs();
   }
 
   public PTuple resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.elems = this.elems.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

@@ -30,8 +30,8 @@ import java.util.List;
 class PIfEval extends PDefaultExprObj implements PEval {
   PIfClause[] clauses;
 
-  private PIfEval(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PIfEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -51,18 +51,14 @@ class PIfEval extends PDefaultExprObj implements PEval {
     PIfEval ifEval;
     List<PIfClause> clauseList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.ifEval = new PIfEval(srcInfo);
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.ifEval = new PIfEval(srcInfo, outerScope);
       this.clauseList = new ArrayList<PIfClause>();
     }
-
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.ifEval.srcInfo = si;
-    // }
 
     void addClause(PIfClause clause) {
       this.clauseList.add(clause);
@@ -74,19 +70,19 @@ class PIfEval extends PDefaultExprObj implements PEval {
     }
   }
 
-  static PIfEval accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PIfEval accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token next = reader.getNextToken();
     if (!next.tagEquals(LToken.LBRACE) || ParserA.acceptSpecifiedWord(reader, "if", spc) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(si);
+    Builder builder = Builder.newInstance(si, outerScope);
     ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE);
     PIfClause clause = null;
     int state = 0;
     while (state >= 0) {
-      if (state == 0 && (clause = PIfClause.accept(reader)) != null) {
+      if (state == 0 && (clause = PIfClause.accept(reader, outerScope)) != null) {
         builder.addClause(clause);
         state = 1;
       } else if (ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
@@ -110,13 +106,13 @@ class PIfEval extends PDefaultExprObj implements PEval {
     return builder.create();
   }
 
-  static PIfEval acceptX(ParserB.Elem elem) throws CompileException {
+  static PIfEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PIfClause c = PIfClause.acceptX(e);
+      PIfClause c = PIfClause.acceptX(e, outerScope);
       if (c == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -129,13 +125,13 @@ class PIfEval extends PDefaultExprObj implements PEval {
     return builder.create();
   }
 
-  public void setupScope(PScope scope) {
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i].setupScope(scope);
-    }
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.clauses.length; i++) {
+      // this.clauses[i].setupScope(scope);
+    // }
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.clauses.length; i++) {
@@ -144,11 +140,11 @@ class PIfEval extends PDefaultExprObj implements PEval {
   }
 
   public PIfEval resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.clauses.length; i++) {
       this.clauses[i] = this.clauses[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

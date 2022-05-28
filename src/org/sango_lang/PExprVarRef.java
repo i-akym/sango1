@@ -27,18 +27,18 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
   String name;
   PExprVarSlot varSlot;
 
-  private PExprVarRef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PExprVarRef(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
-  static PExprVarRef create(Parser.SrcInfo srcInfo, String name, PExprVarSlot varSlot) {
-    PExprVarRef v = new PExprVarRef(srcInfo);
+  static PExprVarRef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PExprVarSlot varSlot) {
+    PExprVarRef v = new PExprVarRef(srcInfo, outerScope);
     v.name = name;
     v.varSlot = varSlot;
     return v;
   }
 
-  static PExprId acceptX(ParserB.Elem elem) throws CompileException {
+  static PExprId acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("var")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -49,7 +49,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExprId v = PExprId.create(elem.getSrcInfo(), null, id);
+    PExprId v = PExprId.create(elem.getSrcInfo(), outerScope, null, id);
     v.setVar();
     return v;
   }
@@ -71,14 +71,14 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo) {  // rollback to PTypeId
-    return PTypeId.create(srcInfo, /* null, */ null, this.name, false);
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope outerScope) {  // rollback to PTypeId
+    return PTypeId.create(srcInfo, outerScope, null, this.name, false);
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+  // }
 
   public void collectModRefs() throws CompileException {}
 

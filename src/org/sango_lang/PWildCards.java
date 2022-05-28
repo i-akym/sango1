@@ -26,8 +26,8 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PWildCards extends PDefaultExprObj {
-  private PWildCards(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PWildCards(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -38,18 +38,18 @@ class PWildCards extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PWildCards create(Parser.SrcInfo srcInfo) {
-    return new PWildCards(srcInfo);
+  static PWildCards create(Parser.SrcInfo srcInfo, PScope outerScope) {
+    return new PWildCards(srcInfo, outerScope);
   }
 
-  static PWildCards accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PWildCards accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.AST_AST_AST, spc);
-    return (token != null)? create(token.getSrcInfo()): null;
+    return (token != null)? create(token.getSrcInfo(), outerScope): null;
   }
 
-  public void setupScope(PScope scope) {
+  // public void setupScope(PScope scope) {
     // this.scope = scope;
-  }
+  // }
 
   public void collectModRefs() throws CompileException {}
 

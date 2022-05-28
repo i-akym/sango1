@@ -30,7 +30,7 @@ import java.util.List;
 interface PType extends PProgObj {
   PType resolve() throws CompileException;
 
-  PProgObj deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt);
+  PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt);
   static final int COPY_EXT_KEEP = -1;
   static final int COPY_EXT_OFF = 0;
   static final int COPY_EXT_ON = 1;
@@ -71,20 +71,23 @@ interface PType extends PProgObj {
     };
 
     Parser.SrcInfo srcInfo;
+    PScope scope;
     List<PProgObj> itemList;
     PTypeVarDef constrainedVar;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new Builder(srcInfo, scope);
     }
 
-    Builder() {
+    Builder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.srcInfo = srcInfo;
+      this.scope = scope;
       this.itemList = new ArrayList<PProgObj>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
 
     void addItem(PProgObj item) {
       this.itemList.add(item);
@@ -112,7 +115,7 @@ interface PType extends PProgObj {
           for (int i = 0; i < this.itemList.size(); i++) {
             ps[i] = progObjToType(this.itemList.get(i));
           }
-          t = PTypeRef.create(this.srcInfo, id, ps);
+          t = PTypeRef.create(this.srcInfo, this.scope, id, ps);
         } else {
           t = Undet.create(id);
         }
@@ -145,27 +148,27 @@ interface PType extends PProgObj {
     }
   }
 
-  static PType accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    return accept(reader, spc, true);
+  static PType accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
+    return accept(reader, scope, spc, true);
   }
 
-  static PType acceptRO(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    return accept(reader, spc, false);
+  static PType acceptRO(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
+    return accept(reader, scope, spc, false);
   }
 
-  static PType accept(ParserA.TokenReader reader, int spc, boolean acceptsVarDef) throws CompileException, IOException {
+  static PType accept(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LT, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), scope);
+    // builder.setSrcInfo(t.getSrcInfo());
     PProgObj item;
     int state = acceptsVarDef? 1: 2;
     int sp = ParserA.SPACE_DO_NOT_CARE;
     while (state > 0) {
-      if ((item = acceptItem(reader, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
+      if ((item = acceptItem(reader, scope, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
         switch (state) {
         case 1:
           builder.addItem(item);
@@ -211,15 +214,15 @@ interface PType extends PProgObj {
     return builder.create();
   }
 
-  static PType acceptX(ParserB.Elem elem) throws CompileException {
-    return acceptX(elem, ACCEPTABLE_VARDEF);
+  static PType acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
+    return acceptX(elem, scope, ACCEPTABLE_VARDEF);
   }
 
-  static PType acceptXRO(ParserB.Elem elem) throws CompileException {
-    return acceptX(elem, ACCEPTABLE_NONE);
+  static PType acceptXRO(ParserB.Elem elem, PScope scope) throws CompileException {
+    return acceptX(elem, scope, ACCEPTABLE_NONE);
   }
 
-  static PType acceptX(ParserB.Elem elem, int acceptables) throws CompileException {
+  static PType acceptX(ParserB.Elem elem, PScope scope, int acceptables) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("type-spec")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -231,18 +234,18 @@ interface PType extends PProgObj {
       throw new CompileException(emsg.toString());
     }
 
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(e.getSrcInfo());
-    builder.addItem(acceptXItem(e, acceptables));
+    Builder builder = Builder.newInstance(e.getSrcInfo(), scope);
+    // builder.setSrcInfo(e.getSrcInfo());
+    builder.addItem(acceptXItem(e, scope, acceptables));
     return builder.create();
   }
 
-  static PTypeRef acceptSig1(ParserA.TokenReader reader, int qual) throws CompileException, IOException {
+  static PTypeRef acceptSig1(ParserA.TokenReader reader, PScope scope, int qual) throws CompileException, IOException {
     StringBuffer emsg;
-    PType t = accept(reader, ParserA.SPACE_DO_NOT_CARE);
+    PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (t instanceof Undet) {
       Undet u = (Undet)t;
-      t = PTypeRef.create(u.srcInfo, u.id, new PType[0]);
+      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
     }
     if (!(t instanceof PTypeRef)) {
       emsg = new StringBuffer();
@@ -286,12 +289,12 @@ interface PType extends PProgObj {
     return sig;
   }
 
-  static PTypeRef acceptSig2(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PTypeRef acceptSig2(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
-    PType t = accept(reader, ParserA.SPACE_DO_NOT_CARE);
+    PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (t instanceof Undet) {
       Undet u = (Undet)t;
-      t = PTypeRef.create(u.srcInfo, u.id, new PType[0]);
+      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
     }
     if (!(t instanceof PTypeRef)) {
       emsg = new StringBuffer();
@@ -335,19 +338,19 @@ interface PType extends PProgObj {
     return sig;
   }
 
-  static PProgObj acceptItem(ParserA.TokenReader reader, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
+  static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
     PProgObj item;
     if ((acceptables & ACCEPTABLE_ID) > 0
-        && (item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
+        && (item = PTypeId.accept(reader, scope, PExprId.ID_MAYBE_QUAL, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTypeVarDef.acceptSimple(reader)) != null) {
+        && (item = PTypeVarDef.acceptSimple(reader, scope)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
-        && (item = accept(reader, spc, acceptsVarDef)) != null) {
+        && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_BOUND) > 0
-        && (item = Bound.accept(reader)) != null) {
+        && (item = Bound.accept(reader, scope)) != null) {
       ;
     } else {
       item = null;
@@ -355,14 +358,14 @@ interface PType extends PProgObj {
     return item;
   }
 
-  static PProgObj acceptXItem(ParserB.Elem elem, int acceptables) throws CompileException {
+  static PProgObj acceptXItem(ParserB.Elem elem, PScope scope, int acceptables) throws CompileException {
     PProgObj item;
-    if ((item = PTypeRef.acceptX(elem, acceptables)) != null) {
+    if ((item = PTypeRef.acceptX(elem, scope, acceptables)) != null) {
       ;
-    } else if ((item = PTypeVarRef.acceptXTvar(elem)) != null) {
+    } else if ((item = PTypeVarRef.acceptXTvar(elem, scope)) != null) {
       ;
     } else if (((acceptables & ACCEPTABLE_VARDEF) > 0)
-        && (item = PTypeVarDef.acceptX(elem)) != null) {
+        && (item = PTypeVarDef.acceptX(elem, scope)) != null) {
       ;
     } else {
       item = null;
@@ -370,10 +373,10 @@ interface PType extends PProgObj {
     return item;
   }
 
-  static PType voidType(Parser.SrcInfo srcInfo) {
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(srcInfo);
-    builder.addItem(PTypeId.create(srcInfo, PModule.MOD_ID_LANG, "void", false));
+  static PType voidType(Parser.SrcInfo srcInfo, PScope scope) {
+    Builder builder = Builder.newInstance(srcInfo, scope);
+    // builder.setSrcInfo(srcInfo);
+    builder.addItem(PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
     PType v = null;
     try {
       v = builder.create();
@@ -402,23 +405,23 @@ interface PType extends PProgObj {
   static class Undet extends PDefaultProgObj implements PType {
     PTypeId id;
 
-    private Undet(Parser.SrcInfo srcInfo) {
-      super(srcInfo);
+    private Undet(Parser.SrcInfo srcInfo, PScope scope) {
+      super(srcInfo, scope);
     }
 
     static Undet create(PTypeId id) {
-      Undet u = new Undet(id.srcInfo);
+      Undet u = new Undet(id.srcInfo, id.scope);
       u.id = id;
       return u;
     }
 
-    public void setupScope(PScope scope) {
-      StringBuffer emsg;
-      if (scope == this.scope) { return; }
-      this.scope = scope;
-      this.idResolved = false;
-      this.id.setupScope(scope);
-    }
+    // public void setupScope(PScope scope) {
+      // StringBuffer emsg;
+      // if (scope == this.scope) { return; }
+      // this.scope = scope;
+      // this.idResolved = false;
+      // this.id.setupScope(scope);
+    // }
 
     public void collectModRefs() throws CompileException {
       this.id.collectModRefs();
@@ -431,12 +434,12 @@ interface PType extends PProgObj {
       if (this.id.mod == null) {
         PTypeVarDef v;
         if ((v = this.scope.lookupTVar(this.id.name)) != null) {
-          t = PTypeVarRef.create(this.id.srcInfo, v);
-          t.setupScope(this.scope);
+          t = PTypeVarRef.create(this.id.srcInfo, this.id.scope, v);
+          // t.setupScope(this.scope);
           t = t.resolve();
         } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
-          t = PTypeRef.create(this.id.srcInfo, this.id, new PType[0]);
-          t.setupScope(this.scope);
+          t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
+          // t.setupScope(this.scope);
           t = t.resolve();
         } else {
           emsg = new StringBuffer();
@@ -448,8 +451,8 @@ interface PType extends PProgObj {
           throw new CompileException(emsg.toString());
         }
       } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
-        t = PTypeRef.create(this.id.srcInfo, this.id, new PType[0]);
-        t.setupScope(this.scope);
+        t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
+        // t.setupScope(this.scope);
         t = t.resolve();
       } else {
         emsg = new StringBuffer();
@@ -460,7 +463,7 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.idResolved = true;
+      // this.idResolved = true;
       return t;
     }
 
@@ -484,7 +487,7 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#getSkel is called.");
     }
 
-    public PProgObj deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+    public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
       boolean ext;
       if (extOpt == COPY_EXT_KEEP) {
         ext = this.id.ext;
@@ -495,7 +498,7 @@ interface PType extends PProgObj {
       } else {
         throw new IllegalArgumentException("Unknown extOpt.");
       }
-      return PTypeId.create(this.srcInfo, this.id.mod, this.id.name, ext);  // rollback to PTypeId
+      return PTypeId.create(this.srcInfo, scope, this.id.mod, this.id.name, ext);  // rollback to PTypeId
     }
 
     public String toString() {
@@ -515,16 +518,16 @@ interface PType extends PProgObj {
 
   // pseudo object
   static class Bound extends PDefaultProgObj {
-    private Bound(Parser.SrcInfo srcInfo) {
-      super(srcInfo);
+    private Bound(Parser.SrcInfo srcInfo, PScope scope) {
+      super(srcInfo, scope);
     }
 
-    static Bound accept(ParserA.TokenReader reader) throws CompileException, IOException {
+    static Bound accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
       ParserA.Token t;
       if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
         return null;
       }
-      return new Bound(t.getSrcInfo());
+      return new Bound(t.getSrcInfo(), scope);
     }
 
     public String toString() {
@@ -533,13 +536,13 @@ interface PType extends PProgObj {
       return buf.toString();
     }
 
-    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
       throw new RuntimeException("Bound#deepCopy is called.");
     }
 
-    public void setupScope(PScope scope) {
-      throw new RuntimeException("Bound#setupScope is called.");
-    }
+    // public void setupScope(PScope scope) {
+      // throw new RuntimeException("Bound#setupScope is called.");
+    // }
 
     public void collectModRefs() throws CompileException {
       throw new RuntimeException("Bound#collectModRefs is called.");

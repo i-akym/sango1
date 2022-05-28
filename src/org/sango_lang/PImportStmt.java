@@ -29,8 +29,8 @@ class PImportStmt extends PDefaultProgObj {
   String id;
   Cstr modName;
 
-  private PImportStmt(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PImportStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.start());
   }
 
   public String toString() {
@@ -48,17 +48,15 @@ class PImportStmt extends PDefaultProgObj {
   static class Builder {
     PImportStmt imp;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.imp = new PImportStmt(srcInfo);
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.imp = new PImportStmt(srcInfo, outerScope);
     }
 
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.imp.srcInfo = si;
-    // }
+    PScope getScope() { return this.imp.scope; }
 
     void setModName(Cstr modName) {
       this.imp.modName = modName;
@@ -75,14 +73,14 @@ class PImportStmt extends PDefaultProgObj {
     }
   }
 
-  static PImportStmt accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PImportStmt accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptSpecifiedWord(reader, "import", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
-    // builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Imported module name missing at ");
@@ -99,7 +97,7 @@ class PImportStmt extends PDefaultProgObj {
       throw new CompileException(emsg.toString());
     }
     PExprId id;
-    if ((id = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PExprId.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("No identifier for imported module at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -117,11 +115,10 @@ class PImportStmt extends PDefaultProgObj {
     return builder.create();
   }
 
-  static PImportStmt acceptX(ParserB.Elem elem) throws CompileException {
+  static PImportStmt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("import-def")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
-    // builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     Cstr mod = elem.getAttrValueAsCstrData("mod");
     if (mod == null) {
       emsg = new StringBuffer();
@@ -143,7 +140,7 @@ class PImportStmt extends PDefaultProgObj {
     return builder.create();
   }
 
-  public void setupScope(PScope scope) {}
+  // public void setupScope(PScope scope) {}
 
   public void collectModRefs() throws CompileException {}
 

@@ -47,18 +47,15 @@ class PDynamicInv extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  // public void setupScope(PScope scope) {
-    // throw new RuntimeException("PDynamicInv#setupScope() called. - " + this.toString());
+  // public void collectModRefs() throws CompileException {
+    // throw new RuntimeException("PDynamicInv#collectModRefs() called. - " + this.toString());
   // }
 
-  public void collectModRefs() throws CompileException {
-    throw new RuntimeException("PDynamicInv#collectModRefs() called. - " + this.toString());
-  }
+  // public PDynamicInv resolve() throws CompileException {
+    // throw new RuntimeException("PDynamicInv#resolveId() called. - " + this.toString());
+  // }
 
-  public PDynamicInv resolve() throws CompileException {
-    throw new RuntimeException("PDynamicInv#resolveId() called. - " + this.toString());
-  }
-  public void normalizeTypes() {
-    throw new IllegalStateException("PDynamicInv#normalizeTypes should not called. ");
-  }
+  // public void normalizeTypes() {
+    // throw new IllegalStateException("PDynamicInv#normalizeTypes should not called. ");
+  // }
 }

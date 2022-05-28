@@ -31,8 +31,8 @@ class PString extends PDefaultExprObj {
   boolean isFromCstr;
   PExprList.Elems elems;
 
-  PString(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PString(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -45,23 +45,23 @@ class PString extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PString create(Parser.SrcInfo srcInfo, boolean isFromCstr, PExprList.Elems elems) {
-    PString s = new PString(srcInfo);
+  static PString create(Parser.SrcInfo srcInfo, PScope outerScope, boolean isFromCstr, PExprList.Elems elems) {
+    PString s = new PString(srcInfo, outerScope);
     s.isFromCstr = isFromCstr;
     s.elems = elems;
     return s;
   }
 
-  static PString accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PString accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.CSTR, spc)) != null) {
-      return fromCstr(t);
+      return fromCstr(t, outerScope);
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
     Parser.SrcInfo si = t.getSrcInfo();
-    PExprList.Elems elems = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), 0);
+    PExprList.Elems elems = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), outerScope, 0);
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -74,17 +74,17 @@ class PString extends PDefaultExprObj {
       }
       throw new CompileException(emsg.toString());
     }
-    return create(si, false, elems);
+    return create(si, outerScope, false, elems);
   }
 
-  static PString acceptX(ParserB.Elem elem) throws CompileException {
+  static PString acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
     Parser.SrcInfo si = elem.getSrcInfo();
     ParserB.Elem e = elem.getFirstChild();
     List<PExpr> es = new ArrayList<PExpr>();
     while (e != null) {
-      PExpr expr = PExpr.acceptX(e);
+      PExpr expr = PExpr.acceptX(e, outerScope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -94,37 +94,37 @@ class PString extends PDefaultExprObj {
       es.add(expr);
       e = e.getNextSibling();
     }
-    return create(si, false, PExprList.Elems.create(si, es));
+    return create(si, outerScope, false, PExprList.Elems.create(si, outerScope, es));
   }
 
-  static PString fromCstr(ParserA.Token cstrToken) throws CompileException {
+  static PString fromCstr(ParserA.Token cstrToken, PScope outerScope) throws CompileException {
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
     List<PExpr> es = new ArrayList<PExpr>();
     for (int i = 0; i < cstr.getLength(); i++) {
-      PEval.Builder eb = PEval.Builder.newInstance();
-      eb.setSrcInfo(si);
-      eb.addItem(PEvalItem.ObjItem.create(si, null, PChar.create(si, cstr.getCharAt(i))));
+      PEval.Builder eb = PEval.Builder.newInstance(si, outerScope);
+      // eb.setSrcInfo(si);
+      eb.addItem(PEvalItem.ObjItem.create(si, outerScope, null, PChar.create(si, outerScope, cstr.getCharAt(i))));
       es.add(PExpr.create(eb.create()));
     }
-    return create(si, true, PExprList.Elems.create(si, es));
+    return create(si, outerScope, true, PExprList.Elems.create(si, outerScope, es));
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elems.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elems.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.elems.collectModRefs();
   }
 
   public PString resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.elems = this.elems.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

@@ -25,12 +25,12 @@ package org.sango_lang;
 
 class PImpose extends PDefaultExprObj {
 
-  private PImpose(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PImpose(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
-  static PImpose create(Parser.SrcInfo srcInfo, PType type) {
-    PImpose i = new PImpose(srcInfo);
+  static PImpose create(Parser.SrcInfo srcInfo, PScope outerScope, PType type) {
+    PImpose i = new PImpose(srcInfo, outerScope);
     i.type = type;
     return i;
   }
@@ -46,22 +46,22 @@ class PImpose extends PDefaultExprObj {
     return buf.toString();
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.type.setupScope(scope);
-  }
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.type.setupScope(scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PImpose resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

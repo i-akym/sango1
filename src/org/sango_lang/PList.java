@@ -29,21 +29,23 @@ import java.util.List;
 
 abstract class PList extends PDefaultExprObj {
 
-  PList(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  PList(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   static class Builder {
     Parser.SrcInfo srcInfo;
+    PScope scope;
     List<PExpr> elemSeq;
     PExprObj tail;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.srcInfo = srcInfo;
+      this.scope = outerScope;
       this.elemSeq = new ArrayList<PExpr>();
     }
 
@@ -55,7 +57,6 @@ abstract class PList extends PDefaultExprObj {
       for (int i = 0; i < elemSeq.exprs.length; i++) {
         this.elemSeq.add(elemSeq.exprs[i]);
       }
-      // this.elemSeq.addAll(elemSeq);
     }
 
     void setTail(PExprObj tail) {
@@ -64,31 +65,31 @@ abstract class PList extends PDefaultExprObj {
 
     PList create() {
       if (this.elemSeq.isEmpty()) {
-        return PEmptyList.create(this.srcInfo);
+        return PEmptyList.create(this.srcInfo, this.scope);
       }
-      PExprObj t = (this.tail != null)? this.tail: PEmptyList.create(this.srcInfo);
+      PExprObj t = (this.tail != null)? this.tail: PEmptyList.create(this.srcInfo, this.scope);
       PList L = null;
       for (int i = this.elemSeq.size() - 1; i >= 0; i--) {
-        L = PListConstr.create(this.srcInfo, this.elemSeq.get(i), t);
+        L = PListConstr.create(this.srcInfo, this.scope, this.elemSeq.get(i), t);
         t = L;
       }
       return L;
     }
   }
 
-  static PList accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PList accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
     PExprList.Elems elemSeq;
-    if ((elemSeq = PExprList.acceptElems(reader, t.getSrcInfo(), 0)) != null) {
+    if ((elemSeq = PExprList.acceptElems(reader, t.getSrcInfo(), outerScope, 0)) != null) {
       builder.addElemSeq(elemSeq);
       if (elemSeq.exprs.length > 0 && ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
         PExpr tail;
-        if ((tail = PExpr.accept(reader)) == null) {
+        if ((tail = PExpr.accept(reader, outerScope)) == null) {
           emsg = new StringBuffer();
           emsg.append("Syntax error at ");
           emsg.append(reader.getCurrentSrcInfo());
@@ -118,7 +119,7 @@ abstract class PList extends PDefaultExprObj {
     return builder.create();
   }
 
-  static PList acceptX(ParserB.Elem elem) throws CompileException {
+  static PList acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("list")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -129,7 +130,7 @@ abstract class PList extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExpr h = PExpr.acceptX(e);
+    PExpr h = PExpr.acceptX(e, outerScope);
     if (h == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -144,13 +145,13 @@ abstract class PList extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExpr t = PExpr.acceptX(e);
+    PExpr t = PExpr.acceptX(e, outerScope);
     if (t == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
-    return PListConstr.create(elem.getSrcInfo(), h, t);
+    return PListConstr.create(elem.getSrcInfo(), outerScope, h, t);
   }
 }

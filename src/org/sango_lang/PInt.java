@@ -28,8 +28,8 @@ import java.io.IOException;
 class PInt extends PDefaultExprObj {
    int value;
 
-  private PInt(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PInt(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
   public String toString() {
@@ -40,18 +40,18 @@ class PInt extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PInt create(Parser.SrcInfo srcInfo, int value) {
-    PInt i = new PInt(srcInfo);
+  static PInt create(Parser.SrcInfo srcInfo, PScope outerScope, int value) {
+    PInt i = new PInt(srcInfo, outerScope);
     i.value = value;
     return i;
   }
 
-  static PInt accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PInt accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.INT, spc);
-    return (token != null)? create(token.getSrcInfo(), token.value.intValue): null;
+    return (token != null)? create(token.getSrcInfo(), outerScope, token.value.intValue): null;
   }
 
-  static PInt acceptX(ParserB.Elem elem) throws CompileException {
+  static PInt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("int")) { return null; }
     String val = elem.getAttrValue("value");
@@ -91,18 +91,18 @@ class PInt extends PDefaultExprObj {
       emsg.append(val);
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), i);
+    return create(elem.getSrcInfo(), outerScope, i);
   }
 
-  public void setupScope(PScope scope) {
-    this.scope = scope;
-    this.idResolved = false;
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
   public void collectModRefs() throws CompileException {}
 
   public PInt resolve() throws CompileException {
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

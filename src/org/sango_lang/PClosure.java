@@ -34,8 +34,9 @@ class PClosure extends PDefaultExprObj {
   PScope outerScope;
   PScope bodyScope;
 
-  private PClosure(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PClosure(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, null);
+    this.scope = outerScope.enterClosure(this);  // hmmm, not elegant
   }
 
   public String toString() {
@@ -57,22 +58,24 @@ class PClosure extends PDefaultExprObj {
 
   static class Builder {
     PClosure closure;
+    PScope bodyScope;
     List<PExprVarDef> paramList;
     List<PExpr> implExprList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo) {
-      return new Builder(srcInfo);
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder(Parser.SrcInfo srcInfo) {
-      this.closure = new PClosure(srcInfo);
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.closure = new PClosure(srcInfo, outerScope);
+      this.bodyScope = this.closure.scope.enterInner();
       this.paramList = new ArrayList<PExprVarDef>();
       this.implExprList = new ArrayList<PExpr>();
     }
 
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.closure.srcInfo = si;
-    // }
+    PScope getDefScope() { return this.closure.scope; }
+
+    PScope getBodyScope() { return this.bodyScope; }
 
     void addParam(PExprVarDef param) {
       this.paramList.add(param);
@@ -88,48 +91,39 @@ class PClosure extends PDefaultExprObj {
       this.closure.retDef = retDef;
     }
 
-    // void addImplExpr(PExpr expr) {
-      // this.implExprList.add(expr);
-    // }
-
-    // void addImplExprList(List<PExpr> exprList) {
-      // for (int i = 0; i < exprList.size(); i++) {
-        // this.addImplExpr(exprList.get(i));
-      // }
-    // }
-
     void setImplExprs(PExprList.Seq seq) {
       this.closure.implExprs = seq;
     }
 
     PClosure create() {
       this.closure.params = this.paramList.toArray(new PExprVarDef[this.paramList.size()]);
-      // this.closure.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
       return this.closure;
     }
   }
 
-  static PClosure accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PClosure accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     PClosure closure = null;
-    if ((closure = acceptNoArg(reader, spc)) != null) {
+    if ((closure = acceptNoArg(reader, outerScope, spc)) != null) {
       ;
-    } else if ((closure = acceptWithArgs(reader, spc)) != null) {
+    } else if ((closure = acceptWithArgs(reader, outerScope, spc)) != null) {
       ;
     }
     return closure;
   }
 
-  static PClosure acceptX(ParserB.Elem elem) throws CompileException {
+  static PClosure acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("closure-def")) { return null; }
-    Builder builder = Builder.newInstance(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
     ParserB.Elem e = elem.getFirstChild();
 
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PExprVarDef var = PExprVarDef.acceptX(ee, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED);
+        PExprVarDef var = PExprVarDef.acceptX(ee, defScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -149,7 +143,7 @@ class PClosure extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PRetDef ret = PRetDef.acceptX(e);
+    PRetDef ret = PRetDef.acceptX(e, defScope);
     if (ret == null) {
       emsg = new StringBuffer();
       emsg.append("Return type missing at ");
@@ -177,11 +171,10 @@ class PClosure extends PDefaultExprObj {
     List<PExpr> ies = new ArrayList<PExpr>();
     ParserB.Elem ee = e.getFirstChild();
     if (ee == null) {
-      ies.add(PExpr.createDummyVoidExpr(si));
-      // builder.addImplExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      ies.add(PExpr.createDummyVoidExpr(si, bodyScope));
     } else {
       while (ee != null) {
-        PExpr expr = PExpr.acceptX(ee);
+        PExpr expr = PExpr.acceptX(ee, bodyScope);
         if (expr == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -189,26 +182,26 @@ class PClosure extends PDefaultExprObj {
           throw new CompileException(emsg.toString());
         }
         ies.add(expr);
-        // builder.addImplExpr(expr);
         ee = ee.getNextSibling();
       }
     }
-    builder.setImplExprs(PExprList.Seq.create(si, ies));
+    builder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
     e = e.getNextSibling();
     return builder.create();
   }
 
-  private static PClosure acceptNoArg(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  private static PClosure acceptNoArg(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.BKSLASH_BKSLASH, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
-    // builder.setSrcInfo(t.getSrcInfo());
-    builder.setRetDef(PRetDef.accept(reader));
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
+    builder.setRetDef(PRetDef.accept(reader, defScope));
     PExprList.Seq implExprList;
-    if ((implExprList = acceptImplExprSeq(reader)) == null) {
+    if ((implExprList = acceptImplExprSeq(reader, bodyScope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function body missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -219,16 +212,17 @@ class PClosure extends PDefaultExprObj {
     return builder.create();
   }
 
-  private static PClosure acceptWithArgs(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  private static PClosure acceptWithArgs(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.BKSLASH, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo());
-    // builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
     PExprVarDef param;
-    while ((param = PExprVarDef.accept(reader, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED)) != null) {
+    while ((param = PExprVarDef.accept(reader, defScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED)) != null) {
       builder.addParam(param);
     }
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -238,9 +232,9 @@ class PClosure extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setRetDef(PRetDef.accept(reader));
+    builder.setRetDef(PRetDef.accept(reader, defScope));
     PExprList.Seq implExprList;
-    if ((implExprList = acceptImplExprSeq(reader)) == null) {
+    if ((implExprList = acceptImplExprSeq(reader, bodyScope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function body missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -251,13 +245,13 @@ class PClosure extends PDefaultExprObj {
     return builder.create();
   }
 
-  private static PExprList.Seq acceptImplExprSeq(ParserA.TokenReader reader) throws CompileException, IOException {
+  private static PExprList.Seq acceptImplExprSeq(ParserA.TokenReader reader, PScope bodyScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    PExprList.Seq exprList = PExprList.acceptSeq(reader, t.getSrcInfo(), true);
+    PExprList.Seq exprList = PExprList.acceptSeq(reader, t.getSrcInfo(), bodyScope, true);
     if (ParserA.acceptToken(reader, LToken.RBRACE, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -273,18 +267,18 @@ class PClosure extends PDefaultExprObj {
     return exprList;
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.outerScope) { return; }
-    this.outerScope = scope;
-    this.scope = scope.enterClosure(this);
-    this.idResolved = false;
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].setupScope(this.scope);
-    }
-    this.bodyScope = this.scope.enterInner();
-    this.implExprs.setupScope(this.bodyScope);
-    retDef.setupScope(this.scope);
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.outerScope) { return; }
+    // this.outerScope = scope;
+    // this.scope = scope.enterClosure(this);
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(this.scope);
+    // }
+    // this.bodyScope = this.scope.enterInner();
+    // this.implExprs.setupScope(this.bodyScope);
+    // retDef.setupScope(this.scope);
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
@@ -295,13 +289,13 @@ class PClosure extends PDefaultExprObj {
   }
 
   public PClosure resolve() throws CompileException {
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
     this.retDef = this.retDef.resolve();
     this.implExprs = this.implExprs.resolve();
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

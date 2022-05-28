@@ -43,12 +43,12 @@ class PExprId extends PDefaultExprObj {
   String name;
   PDefDict.EidProps props;
 
-  private PExprId(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PExprId(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
   }
 
-  static PExprId create(Parser.SrcInfo srcInfo, String mod, String name) {
-    PExprId id = new PExprId(srcInfo);
+  static PExprId create(Parser.SrcInfo srcInfo, PScope outerScope, String mod, String name) {
+    PExprId id = new PExprId(srcInfo, outerScope);
     id.mod = mod;
     id.name = name;
     if (id.mod == null) {
@@ -145,7 +145,7 @@ class PExprId extends PDefaultExprObj {
     return (mod != null)? mod + "." + name: name;
   }
 
-  static PExprId accept(ParserA.TokenReader reader, int qual, int spc) throws CompileException, IOException {
+  static PExprId accept(ParserA.TokenReader reader, PScope outerScope, int qual, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token word;
     if ((word = ParserA.acceptNormalWord(reader, spc)) == null) {
@@ -168,15 +168,15 @@ class PExprId extends PDefaultExprObj {
       mod = word.value.token;
       name = word2.value.token;
     }
-    return create(si, mod, name);
+    return create(si, outerScope, mod, name);
   }
 
-  public void setupScope(PScope scope) {
-    StringBuffer emsg;
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-  }
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
   public void collectModRefs() throws CompileException {
     this.scope.referredModId(this.srcInfo, this.mod);
@@ -184,11 +184,11 @@ class PExprId extends PDefaultExprObj {
 
   public PExprObj resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.idResolved) { return this; }
+    // if (this.idResolved) { return this; }
     PExprObj ret = this;
     if (this.isSimple()) {
       PExprVarDef v;
-      if ((v = scope.referSimpleEid(this.name)) != null) {
+      if ((v = this.scope.referSimpleEid(this.name)) != null) {
         if (!this.maybeVar()) {
           emsg = new StringBuffer();
           emsg.append("Variable name \"");
@@ -198,8 +198,8 @@ class PExprId extends PDefaultExprObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        ret = PExprVarRef.create(this.srcInfo, this.name, v.varSlot);
-        ret.setupScope(scope);
+        ret = PExprVarRef.create(this.srcInfo, this.scope, this.name, v.varSlot);
+        // ret.setupScope(scope);
         ret = ret.resolve();
       } else if (this.maybeDcon() || this.maybeFun()) {
         this.cutOffVar();
@@ -212,7 +212,7 @@ class PExprId extends PDefaultExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-    } else if (scope.resolveModId(this.mod) == null) {
+    } else if (this.scope.resolveModId(this.mod) == null) {
       emsg = new StringBuffer();
       emsg.append("Module id \"");
       emsg.append(this.mod);
@@ -246,7 +246,7 @@ class PExprId extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
       this.catOpt &= this.props.cat;
-      this.idResolved = true;
+      // this.idResolved = true;
     }
     return ret;
   }

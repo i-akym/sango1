@@ -26,17 +26,17 @@ package org.sango_lang;
 class PTypeVarRef extends PDefaultTypedObj implements PType {
   PTypeVarDef def;
 
-  private PTypeVarRef(Parser.SrcInfo srcInfo) {
-    super(srcInfo);
+  private PTypeVarRef(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
   }
 
-  static PTypeVarRef create(Parser.SrcInfo srcInfo, PTypeVarDef def) {
-    PTypeVarRef v = new PTypeVarRef(srcInfo);
+  static PTypeVarRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeVarDef def) {
+    PTypeVarRef v = new PTypeVarRef(srcInfo, scope);
     v.def = def;
     return v;
   }
 
-  static PTypeId acceptXTvar(ParserB.Elem elem) throws CompileException {
+  static PTypeId acceptXTvar(ParserB.Elem elem, PScope scope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("var")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -47,24 +47,24 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return PTypeId.createVar(elem.getSrcInfo(), id);
+    return PTypeId.createVar(elem.getSrcInfo(), scope, id);
   }
 
-  static PExprId acceptXEvar(ParserB.Elem elem) throws CompileException {
-    StringBuffer emsg;
-    if (!elem.getName().equals("var")) { return null; }
-    String id = elem.getAttrValueAsId("id");
-    if (id == null) {
-      emsg = new StringBuffer();
-      emsg.append("Variable name missing at ");
-      emsg.append(elem.getSrcInfo().toString());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    PExprId v = PExprId.create(elem.getSrcInfo(), null, id);
-    v.setVar();
-    return v;
-  }
+  // static PExprId acceptXEvar(ParserB.Elem elem) throws CompileException {
+    // StringBuffer emsg;
+    // if (!elem.getName().equals("var")) { return null; }
+    // String id = elem.getAttrValueAsId("id");
+    // if (id == null) {
+      // emsg = new StringBuffer();
+      // emsg.append("Variable name missing at ");
+      // emsg.append(elem.getSrcInfo().toString());
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    // PExprId v = PExprId.create(elem.getSrcInfo(), null, id);
+    // v.setVar();
+    // return v;
+  // }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -79,21 +79,21 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PProgObj deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+  public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
     // rollback to PTypeId
-    return PTypeId.create(srcInfo, null, this.def.name, false);
+    return PTypeId.create(srcInfo, scope, null, this.def.name, false);
   }
 
-  public void setupScope(PScope scope) {
-    if (scope == this.scope) { return; }
-    this.scope = scope;
-    this.idResolved = false;
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
   public void collectModRefs() throws CompileException {}
 
   public PTypeVarRef resolve() throws CompileException {
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
