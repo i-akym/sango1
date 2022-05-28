@@ -134,11 +134,9 @@ class PFunRef extends PDefaultExprObj {
   }
 
   public PFunRef resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     if (this.official != null) {
       this.official = (PExprId)this.official.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -147,13 +145,12 @@ class PFunRef extends PDefaultExprObj {
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
       this.typeGraphNode = graph.createFunRefNode(this, this.official);
-    } else if (this.scope.funLevel == 0) {
+    } else if (this.scope.pos == 1) {
       PExprId callee = PExprId.create(
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
       try {
-        // callee.setupScope(this.scope);
         callee = (PExprId)callee.resolve();
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error.");

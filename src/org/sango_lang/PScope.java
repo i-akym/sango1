@@ -31,9 +31,12 @@ import java.util.Map;
 class PScope {
   PModule theMod;
   PScope parent;
-  int funLevel;  // -2:inactive  -1:in data def  0,1,..:in fun def
-  PEvalStmt evalStmt;  // set if funLevel == 0
-  PClosure closure;  // set if funLevel > 0
+  int pos;
+    // 0: module top
+    // -1: in data/extend/alias-type def
+    // 1..: fun/closure def depth
+  PEvalStmt evalStmt;  // set if pos == 1
+  PClosure closure;  // set if pos > 1
   List<PScope> parallelScopes;
   boolean inParallel;
   Map<String, PTypeVarDef> tvarDict;
@@ -46,7 +49,7 @@ class PScope {
 
   private PScope(PModule theMod) {
     this.theMod = theMod;
-    this.funLevel = -2;
+    this.pos = 0;
     this.tvarDict = new HashMap<String, PTypeVarDef>();
     this.evarDict = new HashMap<String, PExprVarDef>();
     this.outerTVarDict = new HashMap<String, PTypeVarDef>();
@@ -58,33 +61,33 @@ class PScope {
   }
 
   PScope start() {
-    if (this.funLevel != -2) {
+    if (this.pos != 0) {
       throw new IllegalStateException("Cannot start.");
     }
     PScope s = new PScope(this.theMod);
     s.parent = this;
-    s.funLevel = -1;
+    s.pos = -1;
     return s;
   }
 
   PScope defineFun(PEvalStmt evalStmt) {
-    if (this.funLevel != -2) {
+    if (this.pos != 0) {
       throw new IllegalStateException("Cannot define function.");
     }
     PScope s = new PScope(this.theMod);
     s.parent = this;
-    s.funLevel = 0;
+    s.pos = 1;
     s.evalStmt = evalStmt;
     return s;
   }
 
   PScope enterClosure(PClosure closure) {
-    if (this.funLevel < 0) {
-      throw new IllegalStateException("Cannot enter function.");
+    if (this.pos < 1) {
+      throw new IllegalStateException("Cannot enter closure.");
     }
     PScope s = new PScope(this.theMod);
     s.parent = this;
-    s.funLevel = this.funLevel + 1;
+    s.pos = this.pos + 1;
     s.envTVarList = new ArrayList<PTypeVarSlot>();
     s.envEVarList = new ArrayList<PExprVarSlot>();
     s.closure = closure;
@@ -92,13 +95,12 @@ class PScope {
   }
 
   PScope enterInner() {
-    if (this.funLevel < -1) {
-    // if (this.funLevel < 0) {
+    if (this.pos == 0) {
       throw new IllegalStateException("Cannot enter inner scope.");
     }
     PScope s = new PScope(this.theMod);
     s.parent = this;
-    s.funLevel = this.funLevel;
+    s.pos = this.pos;
     s.evalStmt = this.evalStmt;
     s.closure = this.closure;
     return s;
@@ -126,9 +128,9 @@ class PScope {
   }
 
   PTypeVarDef lookupTVar(String var) {
-    if (this.funLevel < -1) {
+    if (this.pos == 0) {
       return null;
-      // throw new IllegalStateException("Not active. " + this.funLevel);
+      // throw new IllegalStateException("Not active. " + this.pos);
     }
     PTypeVarDef v = this.tvarDict.get(var);
     if (v == null) {
@@ -138,9 +140,9 @@ class PScope {
   }
 
   PExprVarDef lookupEVar(String var) {
-    if (this.funLevel < -1) {
+    if (this.pos < 1) {
       return null;
-      // throw new IllegalStateException("Not active. " + this.funLevel);
+      // throw new IllegalStateException("Not active. " + this.pos);
     }
     PExprVarDef v = this.evarDict.get(var);
     if (v == null) {
@@ -150,8 +152,8 @@ class PScope {
   }
 
   boolean canDefineTVar(PTypeVarDef varDef) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active. " + this.funLevel);
+    if (this.pos == 0) {
+      throw new IllegalStateException("Not active. " + this.pos);
     }
     return !this.isActuallyInParallel()  // inhibit when actually parallel
       && !this.tvarDict.containsKey(varDef.name)
@@ -161,8 +163,8 @@ class PScope {
   }
 
   boolean canDefineEVar(PExprVarDef varDef) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active. " + this.funLevel);
+    if (this.pos < 1) {
+      throw new IllegalStateException("Out of function. " + this.pos);
     }
     return !this.isActuallyInParallel()  // inhibit when actually parallel
       && !this.tvarDict.containsKey(varDef.name)
@@ -172,7 +174,7 @@ class PScope {
   }
 
   PTypeVarSlot defineTVar(PTypeVarDef varDef) {
-    if (this.funLevel < -1) {
+    if (this.pos == 0) {
       throw new IllegalStateException("Not active.");
     }
     PTypeVarSlot slot;
@@ -187,8 +189,8 @@ class PScope {
   }
 
   PExprVarSlot defineEVar(PExprVarDef varDef) {
-    if (this.funLevel < -1) {
-      throw new IllegalStateException("Not active.");
+    if (this.pos < 1) {
+      throw new IllegalStateException("Out of function.");
     }
     PExprVarSlot slot;
     if (this.inParallel) {
@@ -202,7 +204,7 @@ class PScope {
   }
 
   PTypeVarDef referSimpleTid(String id) {
-    if (this.funLevel < -1) {
+    if (this.pos == 0) {
       return null;
       // throw new IllegalStateException("Not active.");
     }
@@ -217,7 +219,7 @@ class PScope {
           v = this.parent.referSimpleTid(id);
           if (v != null) {
             this.outerTVarDict.put(id, v);
-            if (this.parent.funLevel != this.funLevel) {  // in top scope of closure
+            if (this.parent.pos != this.pos) {  // in top scope of closure
               this.envTVarList.add(v.varSlot);
             }
           }
@@ -228,7 +230,7 @@ class PScope {
   }
 
   PExprVarDef referSimpleEid(String id) {
-    if (this.funLevel < -1) {
+    if (this.pos < 1) {
       return null;
       // throw new IllegalStateException("Not active.");
     }
@@ -243,7 +245,7 @@ class PScope {
           v = this.parent.referSimpleEid(id);
           if (v != null) {
             this.outerEVarDict.put(id, v);
-            if (this.parent.funLevel != this.funLevel) {  // in top scope of closure
+            if (this.parent.pos != this.pos) {  // in top scope of closure
               this.envEVarList.add(v.varSlot);
             }
           }
@@ -312,7 +314,6 @@ class PScope {
     try {
       t = PTypeRef.getLangDefinedType(srcInfo, this, tcon, paramTypeDescs);
       t.scope = this;  // needed for resolveId only
-      // t = t.setupScope(this);
       t = t.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());
@@ -326,12 +327,6 @@ class PScope {
 
   PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
     PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null);
-    // try {
-      // // v.setupScope(this);
-      // v = v.resolve();
-    // } catch (CompileException ex) {
-      // throw new RuntimeException("Internal error - " + ex.toString());
-    // }
     return v;
   }
 
@@ -347,12 +342,10 @@ class PScope {
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
     PType.Builder b = PType.Builder.newInstance(srcInfo, this);
-    // b.setSrcInfo(srcInfo);
     PType ct;
     try {
       b.addItem(PTypeId.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
       ct = b.create();
-      // ct.setupScope(this);
       ct = ct.resolve();
     } catch (CompileException ex) {
       throw new RuntimeException("Internal error - " + ex.toString());
@@ -370,9 +363,9 @@ class PScope {
 
   List<PTypeVarSlot> getGivenTVarList() {
     if (this.givenTVarList == null) {
-      if (this.parent == null || this.parent.funLevel < 0) {
+      if (this.parent == null || this.parent.pos < 1) {  // function top pos
         this.setupGivenTVarListForFun();
-      } else if (this.parent.funLevel != this.funLevel) {
+      } else if (this.parent.pos != this.pos) {
         this.setupGivenTVarListForClosure();
       } else {
         this.givenTVarList = this.parent.getGivenTVarList();
@@ -406,10 +399,10 @@ class PScope {
   }
 
   String getFunOfficial() {
-    if (this.funLevel < 0) {
-      throw new IllegalStateException("Not in fun.");
+    if (this.pos < 1) {
+      throw new IllegalStateException("Out of function.");
     }
-    return (this.funLevel == 0)? this.evalStmt.official: this.parent.getFunOfficial();
+    return (this.pos == 1)? this.evalStmt.official: this.parent.getFunOfficial();
   }
 
   String generateId() {
