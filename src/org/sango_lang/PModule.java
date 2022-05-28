@@ -256,10 +256,8 @@ class PModule implements PDefDict {
   }
   static PModule accept(Compiler theCompiler, ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = acceptModuleStmt(theCompiler, reader, modName);
-    if (builder == null) {
-      builder = Builder.newInstance(theCompiler, reader.getCurrentSrcInfo(), modName);
-    }
+    Builder builder = Builder.newInstance(theCompiler, reader.getCurrentSrcInfo(), modName);
+    acceptModuleStmt(reader, builder);
     if (modName.equals(Module.MOD_LANG)) {
       Parser.SrcInfo si = new Parser.SrcInfo(Module.MOD_LANG, "builtin");
       builder.addDataStmt(
@@ -331,14 +329,14 @@ class PModule implements PDefDict {
     }
   }
 
-  private static Builder acceptModuleStmt(Compiler theCompiler, ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
+  private static void acceptModuleStmt(ParserA.TokenReader reader, Builder builder) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptSpecifiedWord(reader, "module", ParserA.SPACE_DO_NOT_CARE)) == null) {
-      return null;
+      return;
     }
-    Builder builder = Builder.newInstance(theCompiler, t.getSrcInfo(), modName);
-    PScope scope = builder.getScope().start();
+    PScope scope = builder.getScope();
+    // PScope scope = builder.getScope().start();
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
@@ -366,7 +364,6 @@ class PModule implements PDefDict {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return builder;
   }
 
   private static void acceptDefStmts(ParserA.TokenReader reader, Builder builder) throws CompileException, IOException {
