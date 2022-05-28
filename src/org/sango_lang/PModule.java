@@ -34,7 +34,7 @@ import java.util.Set;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-class PModule extends PDefaultProgObj implements PDefDict {
+class PModule implements PDefDict {
   static final String IMPL_WORD_NATIVE = "@native";
 
   static final String MOD_ID_LANG = "@LANG";
@@ -69,6 +69,8 @@ class PModule extends PDefaultProgObj implements PDefDict {
   static final String AVAILABILITY_WORDX_DEPRECATED = "deprecated";
 
   Compiler theCompiler;
+  Parser.SrcInfo srcInfo;
+  PScope scope;
   Parser.SrcInfo modDefSrcInfo;
   int availability;
   Cstr definedName;  // maybe null
@@ -89,8 +91,9 @@ class PModule extends PDefaultProgObj implements PDefDict {
   ForeignIdResolver foreignIdResolver;
   int idSuffix;
 
-  private PModule(Parser.SrcInfo srcInfo) {
-    super(srcInfo, null);
+  private PModule(Compiler theCompiler, Parser.SrcInfo srcInfo) {
+    this.theCompiler = theCompiler;
+    this.srcInfo = srcInfo;
     this.scope = PScope.create(this);  // hmmm, not elegant
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
@@ -162,13 +165,13 @@ class PModule extends PDefaultProgObj implements PDefDict {
     List<PAliasTypeStmt> aliasTypeStmtList;
     List<PEvalStmt> evalStmtList;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo, Cstr requiredName) {
-      return new Builder(srcInfo, requiredName);
+    static Builder newInstance(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
+      return new Builder(theCompiler, srcInfo, requiredName);
     }
 
-    Builder(Parser.SrcInfo srcInfo, Cstr requiredName) {
+    Builder(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
       this.requiredName = requiredName;
-      this.mod = new PModule(srcInfo);
+      this.mod = new PModule(theCompiler, srcInfo);
       this.importStmtList = new ArrayList<PImportStmt>();
       this.dataStmtList = new ArrayList<PDataStmt>();
       this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -251,11 +254,11 @@ class PModule extends PDefaultProgObj implements PDefDict {
       return this.mod;
     }
   }
-  static PModule accept(ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
+  static PModule accept(Compiler theCompiler, ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = acceptModuleStmt(reader, modName);
+    Builder builder = acceptModuleStmt(theCompiler, reader, modName);
     if (builder == null) {
-      builder = Builder.newInstance(reader.getCurrentSrcInfo(), modName);
+      builder = Builder.newInstance(theCompiler, reader.getCurrentSrcInfo(), modName);
     }
     if (modName.equals(Module.MOD_LANG)) {
       Parser.SrcInfo si = new Parser.SrcInfo(Module.MOD_LANG, "builtin");
@@ -272,7 +275,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
     return mod;
   }
 
-  static PModule acceptX(ParserB.Elem elem, Cstr modName) throws CompileException {
+  static PModule acceptX(Compiler theCompiler, ParserB.Elem elem, Cstr modName) throws CompileException {
     StringBuffer emsg;
     if (elem == null) {
       throw new CompileException("No module definition.");
@@ -281,7 +284,7 @@ class PModule extends PDefaultProgObj implements PDefDict {
       throw new CompileException("No module definition.");
     }
 
-    Builder builder = Builder.newInstance(elem.getSrcInfo(), modName);
+    Builder builder = Builder.newInstance(theCompiler, elem.getSrcInfo(), modName);
     Cstr name = elem.getAttrValueAsCstrData("name");
     if (name != null) {
       builder.setDefinedName(name);
@@ -328,13 +331,13 @@ class PModule extends PDefaultProgObj implements PDefDict {
     }
   }
 
-  private static Builder acceptModuleStmt(ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
+  private static Builder acceptModuleStmt(Compiler theCompiler, ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptSpecifiedWord(reader, "module", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo(), modName);
+    Builder builder = Builder.newInstance(theCompiler, t.getSrcInfo(), modName);
     PScope scope = builder.getScope().start();
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
@@ -845,16 +848,11 @@ class PModule extends PDefaultProgObj implements PDefDict {
     return ids;
   }
 
-  // public void setupScope(PScope scope) {
-    // throw new RuntimeException("PModule#setupScope() called. - " + this.toString());
-  // }
-
-  public void collectModRefs() throws CompileException {
+  void collectModRefs() throws CompileException {
     throw new RuntimeException("PModule#collectModRefs() called. - " + this.toString());
   }
 
-  public PModule resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
+  PModule resolve() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.set(i, this.dataStmtList.get(i).resolve());
     }
@@ -867,7 +865,6 @@ class PModule extends PDefaultProgObj implements PDefDict {
     for (int i = 0; i < this.evalStmtList.size(); i++) {
       this.evalStmtList.set(i, this.evalStmtList.get(i).resolve());
     }
-    // this.idResolved = true;
     return this;
   }
 
