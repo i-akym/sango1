@@ -39,7 +39,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   PDefDict.TconInfo baseTconInfo;
 
   PExtendStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.start());
+    super(srcInfo, outerScope.enterInner());
+    this.scope.startDef();
   }
 
   public String toString() {

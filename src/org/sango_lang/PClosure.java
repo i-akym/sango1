@@ -35,8 +35,8 @@ class PClosure extends PDefaultExprObj {
   PScope bodyScope;
 
   private PClosure(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, null);
-    this.scope = outerScope.enterClosure(this);  // hmmm, not elegant
+    super(srcInfo, outerScope.enterInner());
+    this.scope.defineClosure(this);
   }
 
   public String toString() {

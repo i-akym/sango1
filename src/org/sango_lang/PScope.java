@@ -60,44 +60,10 @@ class PScope {
     return new PScope(theMod);
   }
 
-  PScope start() {
-    if (this.pos != 0) {
-      throw new IllegalStateException("Cannot start.");
-    }
-    PScope s = new PScope(this.theMod);
-    s.parent = this;
-    s.pos = -1;
-    return s;
-  }
-
-  PScope defineFun(PEvalStmt evalStmt) {
-    if (this.pos != 0) {
-      throw new IllegalStateException("Cannot define function.");
-    }
-    PScope s = new PScope(this.theMod);
-    s.parent = this;
-    s.pos = 1;
-    s.evalStmt = evalStmt;
-    return s;
-  }
-
-  PScope enterClosure(PClosure closure) {
-    if (this.pos < 1) {
-      throw new IllegalStateException("Cannot enter closure.");
-    }
-    PScope s = new PScope(this.theMod);
-    s.parent = this;
-    s.pos = this.pos + 1;
-    s.envTVarList = new ArrayList<PTypeVarSlot>();
-    s.envEVarList = new ArrayList<PExprVarSlot>();
-    s.closure = closure;
-    return s;
-  }
-
   PScope enterInner() {
-    if (this.pos == 0) {
-      throw new IllegalStateException("Cannot enter inner scope.");
-    }
+    // if (this.pos == 0) {
+      // throw new IllegalStateException("Cannot enter inner scope.");
+    // }
     PScope s = new PScope(this.theMod);
     s.parent = this;
     s.pos = this.pos;
@@ -105,6 +71,65 @@ class PScope {
     s.closure = this.closure;
     return s;
   }
+
+  void startDef() {  // call me after enterInner() in module's top scope
+    if (this.pos != 0) {
+      throw new IllegalStateException("Cannot start definition.");
+    }
+    this.pos = -1;
+  }
+
+  void defineFun(PEvalStmt eval) {  // call me after enterInner() in module's top scope
+    if (this.pos != 0) {
+      throw new IllegalStateException("Cannot define function.");
+    }
+    this.pos = 1;
+    this.evalStmt = eval;
+  }
+
+  void defineClosure(PClosure closure) {  // call me after enterInner() in fun/closure's scope
+    if (this.pos < 1) {
+      throw new IllegalStateException("Cannot define closure.");
+    }
+    this.pos++;
+    this.closure = closure;
+    this.envTVarList = new ArrayList<PTypeVarSlot>();
+    this.envEVarList = new ArrayList<PExprVarSlot>();
+  }
+
+  // PScope start() {
+    // if (this.pos != 0) {
+      // throw new IllegalStateException("Cannot start.");
+    // }
+    // PScope s = new PScope(this.theMod);
+    // s.parent = this;
+    // s.pos = -1;
+    // return s;
+  // }
+
+  // PScope defineFun(PEvalStmt evalStmt) {
+    // if (this.pos != 0) {
+      // throw new IllegalStateException("Cannot define function.");
+    // }
+    // PScope s = new PScope(this.theMod);
+    // s.parent = this;
+    // s.pos = 1;
+    // s.evalStmt = evalStmt;
+    // return s;
+  // }
+
+  // PScope enterClosure(PClosure closure) {
+    // if (this.pos < 1) {
+      // throw new IllegalStateException("Cannot enter closure.");
+    // }
+    // PScope s = new PScope(this.theMod);
+    // s.parent = this;
+    // s.pos = this.pos + 1;
+    // s.envTVarList = new ArrayList<PTypeVarSlot>();
+    // s.envEVarList = new ArrayList<PExprVarSlot>();
+    // s.closure = closure;
+    // return s;
+  // }
 
   PScope enterInnerWithParallelScopes() {  // for PCaseClause
     PScope s = this.enterInner();
