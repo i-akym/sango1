@@ -30,7 +30,8 @@ class PImportStmt extends PDefaultProgObj {
   Cstr modName;
 
   private PImportStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.start());
+    super(srcInfo, outerScope.enterInner());
+    this.scope.startDef();
   }
 
   public String toString() {

@@ -38,8 +38,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   PExprList.Seq implExprs;  // null means native impl
 
   private PEvalStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, null);
-    this.scope = outerScope.defineFun(this);  // hmmm, not elegant
+    super(srcInfo, outerScope.enterInner());
+    this.scope.defineFun(this);
   }
 
   public String toString() {

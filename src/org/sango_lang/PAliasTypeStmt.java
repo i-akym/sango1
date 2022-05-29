@@ -38,7 +38,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PTypeRefSkel bodySkel;
 
   PAliasTypeStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.start());
+    super(srcInfo, outerScope.enterInner());
+    this.scope.startDef();
   }
 
   public String toString() {

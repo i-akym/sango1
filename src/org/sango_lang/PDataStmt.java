@@ -40,7 +40,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   PDataConstrDef[] constrs;  // null means native impl
 
   PDataStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.start());
+    super(srcInfo, outerScope.enterInner());
+    this.scope.startDef();
   }
 
   public String toString() {
