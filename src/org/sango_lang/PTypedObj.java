@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,28 +23,20 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PTypedElem extends PProgElem {
+interface PTypedObj extends PProgObj {
 
-  PTypedElem setupScope(PScope scope) throws CompileException;  // interited
-
-  PTypedElem resolveId() throws CompileException;  // interited
+  PType getType();
 
   void normalizeTypes() throws CompileException;
 
-  PTypeDesc getType();
-
   PTypeSkel getNormalizedType();
-
-  PTypeSkel getFixedType();
-
-  // void setFixedType(PTypeDesc type);
 
   PTypeGraph.Node setupTypeGraph(PTypeGraph graph);
 
-  void setTypeGraphNode(PTypeGraph.Node node);
-
   PTypeGraph.Node getTypeGraphNode();
 
-  GFlow.Node setupFlow(GFlow flow);
+  void setTypeGraphNode(PTypeGraph.Node node);
+
+  PTypeSkel getFixedType();
 
 }

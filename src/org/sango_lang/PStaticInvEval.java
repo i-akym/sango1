@@ -26,11 +26,13 @@ package org.sango_lang;
 import java.util.List;
 import java.util.ArrayList;
 
-class PStaticInvEval extends PDefaultEvalElem {
+class PStaticInvEval extends PDefaultExprObj implements PEval {
   PExprId funId;  // HERE: official name needed
-  PEvalElem params[];
+  PExprObj params[];
 
-  private PStaticInvEval() {}
+  private PStaticInvEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -47,15 +49,14 @@ class PStaticInvEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PStaticInvEval create(Parser.SrcInfo srcInfo, PExprId funId, PEvalElem[] params) {
-    PStaticInvEval e = new PStaticInvEval();
-    e.srcInfo = srcInfo;
+  static PStaticInvEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId funId, PExprObj[] params) {
+    PStaticInvEval e = new PStaticInvEval(srcInfo, outerScope);
     e.funId = funId;
     e.params = params;
     return e;
   }
 
-  static PEvalElem acceptX(ParserB.Elem elem) throws CompileException {
+  static PEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("invoke")) { return null; }
     String id = elem.getAttrValueAsExtendedId("id");
@@ -77,7 +78,7 @@ class PStaticInvEval extends PDefaultEvalElem {
         throw new CompileException(emsg.toString());
       }
     } else if (Parser.isNormalId(id)) {
-      eid = PExprId.create(elem.getSrcInfo(), mid, id);;
+      eid = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);;
     } else {
       emsg = new StringBuffer();
       emsg.append("Invalid id at ");
@@ -86,10 +87,10 @@ class PStaticInvEval extends PDefaultEvalElem {
       emsg.append(id);
       throw new CompileException(emsg.toString());
     }
-    ArrayList<PEvalElem> ps = new ArrayList<PEvalElem>();
+    ArrayList<PExprObj> ps = new ArrayList<PExprObj>();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PEvalElem expr = PExpr.acceptX(e);
+      PExprObj expr = PExpr.acceptX(e, outerScope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -100,29 +101,35 @@ class PStaticInvEval extends PDefaultEvalElem {
       e = e.getNextSibling();
     }
     Parser.SrcInfo si = elem.getSrcInfo();
-    PEvalElem[] params = ps.toArray(new PEvalElem[ps.size()]);
+    PExprObj[] params = ps.toArray(new PExprObj[ps.size()]);
     return (eid != null)?
-      create(si, eid, params):
-      PDynamicInvEval.create(si, PFunRef.createSelf(si), params);
+      create(si, outerScope, eid, params):
+      PDynamicInvEval.create(si, outerScope, PFunRef.createSelf(si, outerScope), params);
   }
 
-  public PStaticInvEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+    // this.funId.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(scope);
+      this.params[i].collectModRefs();
     }
-    this.funId = (PExprId)this.funId.setupScope(scope);
-    return this;
+    this.funId.collectModRefs();
   }
 
-  public PStaticInvEval resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PStaticInvEval resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.funId = this.funId.resolveId();
+    this.funId = (PExprId)this.funId.resolve();
     return this;
   }
 

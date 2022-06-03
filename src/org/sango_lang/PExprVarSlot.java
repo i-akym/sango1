@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,9 +23,39 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PEvalAndPtnElem extends PEvalElem, PPtnElem {
+public class PExprVarSlot {
+  static int hashValue = 0;
 
-  PEvalAndPtnElem setupScope(PScope scope) throws CompileException;  // inherited
+  int hash;
+  PExprVarDef varDef;
 
-  PEvalAndPtnElem resolveId() throws CompileException;  // inherited
+  private PExprVarSlot() {}
+
+  static PExprVarSlot create(PExprVarDef varDef) {
+    PExprVarSlot s = createInternal();
+    s.varDef = varDef;
+    return s;
+  }
+
+  public static PExprVarSlot createInternal() {
+    PExprVarSlot s = new PExprVarSlot();
+    s.hash = hashValue++;
+    return s;
+  }
+
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    if (this.varDef != null) {
+      buf.append(this.varDef.name);
+      buf.append(":VE");
+    } else {
+      buf.append("PSEUDO");
+    }
+    buf.append(this.hash);
+    return buf.toString();
+  }
+
+  String repr() {
+    return (this.varDef != null)? this.varDef.name: "$" + this.hash;
+  }
 }

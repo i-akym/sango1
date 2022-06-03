@@ -27,17 +27,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PEvalStmt extends PDefaultProgElem implements PFunDef {
+class PEvalStmt extends PDefaultProgObj implements PFunDef {
   int availability;  // Module.AVAILABILITY_xxx
-  PEVarDef[] params;
+  PExprVarDef[] params;
   String official;
   String[] aliases;
   int acc;  // Module.ACC_xxx
   PScope bodyScope;
   PRetDef retDef;
-  PExpr[] implExprs;  // null means native impl
+  PExprList.Seq implExprs;  // null means native impl
 
-  private PEvalStmt() {}
+  private PEvalStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
+    this.scope.defineFun(this);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -56,10 +59,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     buf.append(this.retDef);
     if (this.implExprs != null) {
       buf.append(",exprs=[");
-      for (int i = 0; i < this.implExprs.length; i++) {
-        buf.append(this.implExprs[i]);
-      buf.append(",");
-      }
+      buf.append(this.implExprs);
       buf.append("]");
     } else {
       buf.append(",NATIVE_IMPL");
@@ -70,34 +70,38 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
 
   static class Builder {
     PEvalStmt eval;
-    List<PEVarDef> paramList;
+    // PScope retScope;
+    PScope bodyScope;
+    List<PExprVarDef> paramList;
     List<String> aliasList;
-    List<PExpr> implExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.eval = new PEvalStmt();
-      this.paramList = new ArrayList<PEVarDef>();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.eval = new PEvalStmt(srcInfo, outerScope);
+      // this.retScope = this.eval.scope.enterInner();
+      this.bodyScope = this.eval.scope.enterInner();
+      this.paramList = new ArrayList<PExprVarDef>();
       this.aliasList = new ArrayList<String>();
-      // implExprList will be initialized later
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.eval.srcInfo = si;
-    }
+    PScope getDefScope() { return this.eval.scope; }
+
+    // PScope getRetScope() { return this.retScope; }
+
+    PScope getBodyScope() { return this.bodyScope; }
 
     void setAvailability(int availability) {
       this.eval.availability = availability;
     }
 
-    void addParam(PEVarDef param) {
+    void addParam(PExprVarDef param) {
       this.paramList.add(param);
     }
 
-    void addParamList(List<PEVarDef> paramList) {
+    void addParamList(List<PExprVarDef> paramList) {
       for (int i = 0; i < paramList.size(); i++) {
         this.addParam(paramList.get(i));
       }
@@ -122,41 +126,31 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     void setRetDef(PRetDef retDef) {
       this.eval.retDef = retDef;
     }
-    void startImplExprSeq() {
-      this.implExprList = new ArrayList<PExpr>();
-    }
 
-    void addImplExpr(PExpr expr) {
-      this.implExprList.add(expr);
-    }
-
-    void addImplExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addImplExpr(exprList.get(i));
-      }
+    void setImplExprs(PExprList.Seq seq) {
+      this.eval.implExprs = seq;
     }
 
     PEvalStmt create() throws CompileException {
-      this.eval.params = this.paramList.toArray(new PEVarDef[this.paramList.size()]);
+      this.eval.params = this.paramList.toArray(new PExprVarDef[this.paramList.size()]);
       this.eval.aliases = this.aliasList.toArray(new String[this.aliasList.size()]);
-      if (this.implExprList != null) {
-        this.eval.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
-      }
       return this.eval;
     }
   }
 
-  static PEvalStmt accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PEvalStmt accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptSpecifiedWord(reader, "eval", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    // PScope retScope = builder.getRetScope();
+    PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
-    builder.addParamList(acceptParamList(reader));
-    PExprId official = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED);
+    builder.addParamList(acceptParamList(reader, defScope));
+    PExprId official = PExprId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED);
     if (official == null) {
       emsg = new StringBuffer();
       emsg.append("Function official name missing at ");
@@ -165,7 +159,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       throw new CompileException(emsg.toString());
     }
     builder.setOfficial(official.name);
-    builder.addAliasList(acceptAliasList(reader));
+    builder.addAliasList(acceptAliasList(reader, defScope));
     builder.setAcc(PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_EVAL, Module.ACC_PRIVATE));
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -174,12 +168,13 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PRetDef retDef = PRetDef.accept(reader, PRetDef.TYPE_NEEDED);
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(reader.getCurrentSrcInfo(), builder.getDefScope());
+    PScope retScope = retDefBuilder.getScope();
+    PRetDef retDef = PRetDef.accept(reader, retScope);
     builder.setRetDef(retDef);
-    List<PExpr> impl = acceptImpl(reader);
+    PExprList.Seq impl = acceptImpl(reader, bodyScope);
     if (impl != null) {
-      builder.startImplExprSeq();
-      builder.addImplExprList(impl);
+      builder.setImplExprs(impl);
     } else {
       ;  // native impl
     }
@@ -193,11 +188,13 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     return builder.create();
   }
 
-  static PEvalStmt acceptX(ParserB.Elem elem) throws CompileException {
+  static PEvalStmt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("eval-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    // PScope retScope = builder.getRetScope();
+    PScope bodyScope = builder.getBodyScope();
 
     String official = elem.getAttrValueAsId("official");
     if (official == null) {
@@ -242,7 +239,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEVarDef var = PEVarDef.acceptX(ee, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED);
+        PExprVarDef var = PExprVarDef.acceptX(ee, defScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -262,7 +259,9 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PRetDef ret = PRetDef.acceptX(e);
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(e.getSrcInfo(), builder.getDefScope());
+    PScope retScope = retDefBuilder.getScope();
+    PRetDef ret = PRetDef.acceptX(e, retScope);
     if (ret == null) {
       emsg = new StringBuffer();
       emsg.append("Return type missing at ");
@@ -274,45 +273,47 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     e = e.getNextSibling();
 
     if (e != null && e.getName().equals("impl")) {
-      builder.startImplExprSeq();
+      Parser.SrcInfo si = e.getSrcInfo();
+      List<PExpr> ies = new ArrayList<PExpr>();
       ParserB.Elem ee = e.getFirstChild();
       if (ee == null) {
-        builder.addImplExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+        ies.add(PExpr.createDummyVoidExpr(si, bodyScope));
       } else {
         while (ee != null) {
-          PExpr expr = PExpr.acceptX(ee);
+          PExpr expr = PExpr.acceptX(ee, bodyScope);
           if (expr == null) {
             emsg = new StringBuffer();
             emsg.append("Unexpected XML node. - ");
             emsg.append(ee.getSrcInfo().toString());
             throw new CompileException(emsg.toString());
           }
-          builder.addImplExpr(expr);
+          ies.add(expr);
           ee = ee.getNextSibling();
         }
       }
+      builder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
       e = e.getNextSibling();
     }
     return builder.create();
   }
 
-  private static List<PEVarDef> acceptParamList(ParserA.TokenReader reader) throws CompileException, IOException {
-    List<PEVarDef> paramList = new ArrayList<PEVarDef>();
-    PEVarDef param;
-    while ((param = PEVarDef.accept(reader, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED)) != null) {
+  private static List<PExprVarDef> acceptParamList(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
+    List<PExprVarDef> paramList = new ArrayList<PExprVarDef>();
+    PExprVarDef param;
+    while ((param = PExprVarDef.accept(reader, outerScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED)) != null) {
       paramList.add(param);
     }
     return paramList;
   }
 
-  private static List<String> acceptAliasList(ParserA.TokenReader reader) throws CompileException, IOException {
+  private static List<String> acceptAliasList(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
     List<String> aliasList = new ArrayList<String>();
     PExprId a = null;
     int state = 0;
     while (state >= 0) {
       if (ParserA.acceptToken(reader, LToken.VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
         state = 1;
-      } else if (state == 1 && (a = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
+      } else if (state == 1 && (a = PExprId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
         aliasList.add(a.name);
         state = 0;
       } else {
@@ -322,12 +323,12 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     return aliasList;
   }
 
-  static List<PExpr> acceptImpl(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PExprList.Seq acceptImpl(ParserA.TokenReader reader, PScope bodyScope) throws CompileException, IOException {
     StringBuffer emsg;
-    List<PExpr> impl = null;
+    PExprList.Seq impl = null;
     if (acceptImplNative(reader) != null) {
       ;
-    } else if ((impl= acceptImplExprSeq(reader)) != null) {
+    } else if ((impl= acceptImplExprSeq(reader, bodyScope)) != null) {
       ;
     } else {
       emsg = new StringBuffer();
@@ -343,13 +344,14 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     return ParserA.acceptSpecifiedWord(reader, PModule.IMPL_WORD_NATIVE, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  private static List<PExpr> acceptImplExprSeq(ParserA.TokenReader reader) throws CompileException, IOException {
+  private static PExprList.Seq acceptImplExprSeq(ParserA.TokenReader reader, PScope bodyScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    List<PExpr> exprList = PExpr.acceptSeq(reader, true);
+    Parser.SrcInfo si = t.getSrcInfo();
+    PExprList.Seq seq = PExprList.acceptSeq(reader, t.getSrcInfo(), bodyScope, true);
     if (ParserA.acceptToken(reader, LToken.RBRACE, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -362,38 +364,44 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       }
       throw new CompileException(emsg.toString());
     }
-    return exprList;
+    return seq;
   }
 
-  public PEvalStmt setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope.defineFun(this);
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // // if (scope == this.scope) { return; }
+    // this.scope = scope.defineFun(this);
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(this.scope);
+    // }
+    // if (this.implExprs != null) {
+      // this.bodyScope = this.scope.enterInner();
+      // this.implExprs.setupScope(this.bodyScope);
+    // }
+    // this.retDef.setupScope(this.scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(this.scope);
+      this.params[i].collectModRefs();
     }
     if (this.implExprs != null) {
-      this.bodyScope = scope.enterInner();
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i] = this.implExprs[i].setupScope(this.bodyScope);
-      }
+      this.implExprs.collectModRefs();
     }
-    this.retDef = this.retDef.setupScope(this.scope);
-    return this;
+    this.retDef.collectModRefs();
   }
 
-  public PEvalStmt resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PEvalStmt resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.retDef = this.retDef.resolveId();
+    this.retDef = this.retDef.resolve();
     if (this.implExprs != null) {
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i] = this.implExprs[i].resolveId();
-      }
+      this.implExprs = this.implExprs.resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
@@ -417,9 +425,7 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
     this.retDef.nTypeSkel.collectTconInfo(tis);
     this.scope.addReferredTcons(tis);
     if (this.implExprs != null) {
-      for (int i = 0; i < this.implExprs.length; i++) {
-        this.implExprs[i].normalizeTypes();
-      }
+      this.implExprs.normalizeTypes();
     }
   }
 
@@ -428,19 +434,8 @@ class PEvalStmt extends PDefaultProgElem implements PFunDef {
       this.params[i].setupTypeGraph(graph);
     }
     if (this.implExprs != null) {
-      PTypeGraph.Node n = null;
-      for (int i = 0; i < this.implExprs.length; i++) {
-        if (n == null) {
-          n = this.implExprs[i].setupTypeGraph(graph);
-        } else {
-          PTypeGraph.SeqNode s = graph.createSeqNode(this.implExprs[i]);
-          s.setLeadingTypeNode(n);
-          s.setInNode(this.implExprs[i].setupTypeGraph(graph));
-          n = s;
-        }
-      }
       PTypeGraph.RetNode rn = (PTypeGraph.RetNode)this.retDef.setupTypeGraph(graph);
-      rn.setInNode(n);
+      rn.setInNode(this.implExprs.setupTypeGraph(graph));
     }
   }
 

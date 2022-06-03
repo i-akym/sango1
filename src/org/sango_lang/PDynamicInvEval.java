@@ -26,11 +26,13 @@ package org.sango_lang;
 import java.util.ArrayList;
 import java.util.List;
 
-class PDynamicInvEval extends PDefaultEvalElem {
-  PEvalElem funObj;
-  PEvalElem params[];
+class PDynamicInvEval extends PDefaultExprObj implements PEval {
+  PExprObj funObj;
+  PExprObj params[];
 
-  private PDynamicInvEval() {}
+  private PDynamicInvEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -47,15 +49,14 @@ class PDynamicInvEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PDynamicInvEval create(Parser.SrcInfo srcInfo, PEvalElem funObj, PEvalElem[] params) {
-    PDynamicInvEval e = new PDynamicInvEval();
-    e.srcInfo = srcInfo;
+  static PDynamicInvEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj funObj, PExprObj[] params) {
+    PDynamicInvEval e = new PDynamicInvEval(srcInfo, outerScope);
     e.funObj = funObj;
     e.params = params;
     return e;
   }
 
-  static PDynamicInvEval acceptX(ParserB.Elem elem) throws CompileException {
+  static PDynamicInvEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("apply")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -66,11 +67,11 @@ class PDynamicInvEval extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    ArrayList<PEvalElem> ps = new ArrayList<PEvalElem>();
+    ArrayList<PExprObj> ps = new ArrayList<PExprObj>();
     if (e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEvalElem expr = PExpr.acceptX(ee);
+        PExprObj expr = PExpr.acceptX(ee, outerScope);
         if (expr == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -97,34 +98,40 @@ class PDynamicInvEval extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem closure = PEval.acceptX(ee);
+    PExprObj closure = PEval.acceptX(ee, outerScope);
     if (closure == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
       emsg.append(ee.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), closure, ps.toArray(new PEvalElem[ps.size()]));
+    return create(elem.getSrcInfo(), outerScope, closure, ps.toArray(new PExprObj[ps.size()]));
   }
 
-  public PDynamicInvEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+    // this.funObj.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(scope);
+      this.params[i].collectModRefs();
     }
-    this.funObj = this.funObj.setupScope(scope);
-    return this;
+    this.funObj.collectModRefs();
   }
 
-  public PDynamicInvEval resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PDynamicInvEval resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.funObj = this.funObj.resolveId();
-    this.idResolved = true;
+    this.funObj = this.funObj.resolve();
+    // this.idResolved = true;
     return this;
   }
 

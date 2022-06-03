@@ -27,144 +27,107 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PTuple extends PDefaultEvalElem {
-  PEvalElem[] elems;
+class PTuple extends PDefaultExprObj {
+  PExprList.Elems elems;
+
+  PTuple(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("tuple[src=");
     buf.append(this.srcInfo);
     buf.append(",elems=[");
-    for (int i = 0; i < this.elems.length; i++) {
-      buf.append(this.elems[i]);
-      buf.append(",");
-    }
+    buf.append(this.elems);
     buf.append("]]");
     return buf.toString();
   }
 
-  static class Builder {
-    PTuple tuple;
-    List<PEvalElem> elemList;
-
-    static Builder newInstance() {
-      return new Builder();
-    }
-
-    Builder() {
-      this.tuple = new PTuple();
-      this.elemList = new ArrayList<PEvalElem>();
-    }
-
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.tuple.srcInfo = si;
-    }
-
-    void addElem(PEvalElem elem) {
-      this.elemList.add(elem);
-    }
-
-    void addElemList(List<PEvalElem> elemList) {
-      for (int i = 0; i < elemList.size(); i++) {
-        this.addElem(elemList.get(i));
-      }
-    }
-
-    PTuple create() throws CompileException {
-      StringBuffer emsg;
-      if (this.elemList.size() < 2) {
-        emsg = new StringBuffer();
-        emsg.append("Insufficient expressions at ");
-        emsg.append(this.tuple.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      this.tuple.elems = this.elemList.toArray(new PEvalElem[this.elemList.size()]); 
-      return this.tuple;
-    }
+  static PTuple create(Parser.SrcInfo srcInfo, PScope outerScope, PExprList.Elems elems) {
+    PTuple t =  new PTuple(srcInfo, outerScope);
+    t.elems = elems;
+    return t;
   }
 
-  static PTuple accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PTuple accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LPAR_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
-    builder.addElemList(PExpr.acceptPosdSeq(reader, 2));
-    if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
+    PExprList.Elems es = PExprList.acceptElems(reader, reader.getCurrentSrcInfo(), outerScope, 2);
+    if (es == null) {
       emsg = new StringBuffer();
-      emsg.append("Syntax error at ");
+      emsg.append("Invalid tuple specification at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
-      ParserA.Token et = reader.getToken();
-      if (et.value != null) {
-        emsg.append(" - ");
-        emsg.append(et.value.token);
-      }
       throw new CompileException(emsg.toString());
     }
-    return builder.create();
+    if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Missing end of tuple at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return create(t.getSrcInfo(), outerScope, es);
   }
 
-  static PTuple acceptX(ParserB.Elem elem) throws CompileException {
+  static PTuple acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("tuple")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Parser.SrcInfo si = elem.getSrcInfo();
+    List<PExpr> es = new ArrayList<PExpr>();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PEvalElem expr = PExpr.acceptX(e);
+      PExpr expr = PExpr.acceptX(e, outerScope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
         emsg.append(e.getSrcInfo().toString());
         throw new CompileException(emsg.toString());
         }
-      builder.addElem(expr);
+      es.add(expr);
       e = e.getNextSibling();
     }
-    return builder.create();
+    return create(si, outerScope, PExprList.Elems.create(si, outerScope, es));
   }
 
-  public PTuple setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].setupScope(scope);
-    }
-    return this;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elems.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.elems.collectModRefs();
   }
 
-  public PTuple resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].resolveId();
-    }
-    this.idResolved = true;
+  public PTuple resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
+    this.elems = this.elems.resolve();
+    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].normalizeTypes();
-    }
+    this.elems.normalizeTypes();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createTupleNode(this, this.elems.length);
-    for (int i = 0; i < this.elems.length; i++) {
-      ((PTypeGraph.TupleNode)this.typeGraphNode).setElemNode(i, this.elems[i].setupTypeGraph(graph));
+    this.typeGraphNode = graph.createTupleNode(this, this.elems.exprs.length);
+    for (int i = 0; i < this.elems.exprs.length; i++) {
+      ((PTypeGraph.TupleNode)this.typeGraphNode).setElemNode(i, this.elems.exprs[i].setupTypeGraph(graph));
     }
     return this.typeGraphNode;
   }
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.TupleNode node = flow.createNodeForTuple(this.srcInfo);
-    for (int i = 0; i < this.elems.length; i++) {
-      node.addChild(this.elems[i].setupFlow(flow));
+    for (int i = 0; i < this.elems.exprs.length; i++) {
+      node.addChild(this.elems.exprs[i].setupFlow(flow));
     }
     return node;
   }

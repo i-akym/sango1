@@ -26,10 +26,12 @@ package org.sango_lang;
 import java.io.IOException;
 import java.util.List;
 
-class PFunRef extends PDefaultEvalElem {
+class PFunRef extends PDefaultExprObj {
   PExprId official;  // null means self
 
-  private PFunRef() {}
+  private PFunRef(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -45,31 +47,30 @@ class PFunRef extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PFunRef create(Parser.SrcInfo srcInfo, PExprId official) {
-    PFunRef fr = new PFunRef();
-    fr.srcInfo = srcInfo;
+  static PFunRef create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId official) {
+    PFunRef fr = new PFunRef(srcInfo, outerScope);
     fr.official = official;
     return fr;
   }
 
-  static PFunRef createSelf(Parser.SrcInfo srcInfo) {
-    return create(srcInfo, null);
+  static PFunRef createSelf(Parser.SrcInfo srcInfo, PScope outerScope) {
+    return create(srcInfo, outerScope, null);
   }
 
   boolean isSelfFormally() {
     return this.official == null;
   }
 
-  static PFunRef accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PFunRef accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     PExprId id;
     if ((t = ParserA.acceptToken(reader, LToken.CARET_CARET, spc)) != null) {
-      return createSelf(t.getSrcInfo());
+      return createSelf(t.getSrcInfo(), outerScope);
     } else if ((t = ParserA.acceptToken(reader, LToken.CARET, spc)) == null) {
       return null;
     }
-    if ((id = PExprId.accept(reader, PExprId.ID_MAYBE_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PExprId.accept(reader, outerScope, PExprId.ID_MAYBE_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function name missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -77,10 +78,10 @@ class PFunRef extends PDefaultEvalElem {
       throw new CompileException(emsg.toString());
     }
     id.setCat(PExprId.CAT_FUN_OFFICIAL);
-    return create(t.getSrcInfo(), id);
+    return create(t.getSrcInfo(), outerScope, id);
   }
 
-  static PFunRef acceptX(ParserB.Elem elem) throws CompileException {
+  static PFunRef acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("fun")) { return null; }
     String id = elem.getAttrValueAsExtendedId("id");
@@ -101,11 +102,11 @@ class PFunRef extends PDefaultEvalElem {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      f = createSelf(elem.getSrcInfo());
+      f = createSelf(elem.getSrcInfo(), outerScope);
     } else if (Parser.isNormalId(id)) {
-      PExprId official = PExprId.create(elem.getSrcInfo(), mid, id);
+      PExprId official = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);
       official.setCat(PExprId.CAT_FUN_OFFICIAL);
-      f = create(elem.getSrcInfo(), official);
+      f = create(elem.getSrcInfo(), outerScope, official);
     } else {
       emsg = new StringBuffer();
       emsg.append("Invalid id at ");
@@ -117,22 +118,25 @@ class PFunRef extends PDefaultEvalElem {
     return f;
   }
 
-  public PFunRef setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // if (this.official != null) {
+      // this.official.setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
     if (this.official != null) {
-      this.official = (PExprId)this.official.setupScope(scope);
+      this.official.collectModRefs();
     }
-    return this;
   }
 
-  public PFunRef resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PFunRef resolve() throws CompileException {
     if (this.official != null) {
-      this.official = this.official.resolveId();
+      this.official = (PExprId)this.official.resolve();
     }
-    this.idResolved = true;
     return this;
   }
 
@@ -141,14 +145,13 @@ class PFunRef extends PDefaultEvalElem {
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
       this.typeGraphNode = graph.createFunRefNode(this, this.official);
-    } else if (this.scope.funLevel == 0) {
+    } else if (this.scope.pos == 1) {
       PExprId callee = PExprId.create(
-          this.scope.evalStmt.srcInfo,
+          this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
       try {
-        callee.setupScope(this.scope);
-        callee.resolveId();
+        callee = (PExprId)callee.resolve();
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error.");
       }

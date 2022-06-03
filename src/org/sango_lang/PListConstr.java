@@ -26,10 +26,12 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PListConstr extends PList {
-  PEvalElem elem;
-  PEvalElem tail;
+  PExprObj elem;
+  PExprObj tail;
 
-  private PListConstr() {}
+  private PListConstr(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -43,28 +45,31 @@ class PListConstr extends PList {
     return buf.toString();
   }
 
-  static PListConstr create(Parser.SrcInfo srcInfo, PEvalElem elem, PEvalElem tail) {
-    PListConstr c = new PListConstr();
-    c.srcInfo = srcInfo;
+  static PListConstr create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj elem, PExprObj tail) {
+    PListConstr c = new PListConstr(srcInfo, outerScope);
     c.elem = elem;
     c.tail = tail;
     return c;
   }
 
-  public PListConstr setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.elem = this.elem.setupScope(scope);
-    this.tail = this.tail.setupScope(scope);
-    return this;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.elem.setupScope(scope);
+    // this.tail.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.elem.collectModRefs();
+    this.tail.collectModRefs();
   }
 
-  public PListConstr resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.elem = this.elem.resolveId();
-    this.tail = this.tail.resolveId();
-    this.idResolved = true;
+  public PListConstr resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
+    this.elem = this.elem.resolve();
+    this.tail = this.tail.resolve();
+    // this.idResolved = true;
     return this;
   }
 

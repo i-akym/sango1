@@ -26,7 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PSelfInv extends PDefaultProgElem {
-  private PSelfInv() {}
+  private PSelfInv(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -37,9 +39,7 @@ class PSelfInv extends PDefaultProgElem {
   }
 
   static PSelfInv create(Parser.SrcInfo srcInfo) {
-    PSelfInv i = new PSelfInv();
-    i.srcInfo = srcInfo;
-    return i;
+    return new PSelfInv(srcInfo);
   }
 
   static PSelfInv accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
@@ -47,11 +47,15 @@ class PSelfInv extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  public PSelfInv setupScope(PScope scope) throws CompileException {
-    throw new RuntimeException("PSelfInv#setupScope() should not be called. - " + this.toString());
+  // public void setupScope(PScope scope) {
+    // throw new RuntimeException("PSelfInv#setupScope() should not be called. - " + this.toString());
+  // }
+
+  public void collectModRefs() throws CompileException {
+    throw new RuntimeException("PSelfInv#collectModRefs() should not be called. - " + this.toString());
   }
 
-  public PSelfInv resolveId() throws CompileException {
+  public PSelfInv resolve() throws CompileException {
     throw new RuntimeException("PSelfInv#resolveId() called. - " + this.toString());
   }
 

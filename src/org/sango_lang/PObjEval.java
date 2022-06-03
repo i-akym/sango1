@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,30 +23,51 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PTypeDesc extends PProgElem {
+class PObjEval extends PDefaultExprObj implements PEval {
+  PExprObj obj;
 
-  PTypeDesc setupScope(PScope scope) throws CompileException;  // inherited
+  private PObjEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
-  PTypeDesc resolveId() throws CompileException;  // inherited
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("obj[src=");
+    buf.append(this.srcInfo);
+    buf.append(",obj=");
+    buf.append(this.obj);
+    buf.append("]");
+    return buf.toString();
+  }
 
-  PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt);
-  static final int COPY_EXT_KEEP = -1;
-  static final int COPY_EXT_OFF = 0;
-  static final int COPY_EXT_ON = 1;
-  static final int COPY_VARIANCE_KEEP = -1;
-  static final int COPY_VARIANCE_INVARIANT = 0;
-  static final int COPY_VARIANCE_COVARIANT = 1;
-  static final int COPY_VARIANCE_CONTRAVARIANT = 2;
-  static final int COPY_CONCRETE_KEEP = -1;
-  static final int COPY_CONCRETE_OFF = 0;
-  static final int COPY_CONCRETE_ON = 1;
+  static PObjEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj obj) {
+    PObjEval e = new PObjEval(srcInfo, outerScope);
+    e.obj = obj;
+    return e;
+  }
 
-  PDefDict.TconInfo getTconInfo();
+  // public void setupScope(PScope scope) {
+    // this.obj.setupScope(scope);
+  // }
 
-  void excludePrivateAcc() throws CompileException;
+  public void collectModRefs() throws CompileException {
+    this.obj.collectModRefs();
+  }
 
-  PTypeSkel getSkel();
+  public PObjEval resolve() throws CompileException {
+    this.obj = this.obj.resolve();
+    return this;
+  }
 
-  PTypeSkel normalize();
+  public void normalizeTypes() throws CompileException {
+    this.obj.normalizeTypes();
+  }
 
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    return this.obj.setupTypeGraph(graph);
+  }
+
+  public GFlow.Node setupFlow(GFlow flow) {
+    return this.obj.setupFlow(flow);
+  }
 }

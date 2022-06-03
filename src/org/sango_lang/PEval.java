@@ -27,12 +27,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class PEval {
-  private static final int TAG_NOT_DETERMINED = 0;
-  private static final int TAG_DATA_CONSTR_USING = 1;
-  private static final int TAG_CASE_EXPR = 2;
-  private static final int TAG_DYNAMIC_INV = 3;
-  private static final int TAG_SELF_INV = 4;
+interface PEval extends PExprObj {
+
+  PEval resolve() throws CompileException;
 
   static final int ACCEPT_NOTHING = 0;
   static final int ACCEPT_BYTE = 1 << 0;
@@ -45,54 +42,70 @@ abstract class PEval {
   static final int ACCEPT_ID = 1 << 7;
   static final int ACCEPT_FUN_REF = 1 << 8;
   static final int ACCEPT_CLOSURE = 1 << 9;
-  static final int ACCEPT_IF_BLOCK = 1 << 10;
+  static final int ACCEPT_IF_EVAL = 1 << 10;
   static final int ACCEPT_CASE_BLOCK = 1 << 11;
   static final int ACCEPT_DYNAMIC_INV = 1 << 12;
   static final int ACCEPT_SELF_INV = 1 << 13;
   static final int ACCEPT_DATA_CONSTR_USING = 1 << 14;
-  static final int ACCEPT_EVAL = 1 << 15;
+  static final int ACCEPT_ENCLOSED = 1 << 15;  // includes PEval
   static final int ACCEPT_PIPE = 1 << 16;
+  static final int ACCEPT_VAR_REF = 1 << 17;  // occurs when resolved
   static final int ACCEPT_PRIMITIVE = ACCEPT_BYTE + ACCEPT_INT + ACCEPT_REAL + ACCEPT_CHAR;
   static final int ACCEPT_COLLECTION = ACCEPT_LIST + ACCEPT_TUPLE + ACCEPT_STRING;
   static final int ACCEPT_DATA_OBJ = ACCEPT_PRIMITIVE + ACCEPT_COLLECTION;
   static final int ACCEPT_FUN_OBJ = ACCEPT_FUN_REF + ACCEPT_CLOSURE;
 
-  private static int[] acceptablesTab = {
-    // state 0:
-    ACCEPT_DATA_OBJ + ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_BLOCK
-    + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV + ACCEPT_EVAL,
-    // state 1: x
-    ACCEPT_DATA_OBJ + ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_BLOCK
-    + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV + ACCEPT_EVAL + ACCEPT_CASE_BLOCK + ACCEPT_DATA_CONSTR_USING + ACCEPT_PIPE,
-    // state 2: x x..
-    ACCEPT_DATA_OBJ + ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_BLOCK
-    + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV + ACCEPT_EVAL + ACCEPT_DATA_CONSTR_USING + ACCEPT_PIPE,
-    // state 3: x x.. ::
-    ACCEPT_ID + ACCEPT_IF_BLOCK + ACCEPT_EVAL,
-    // state 4: x x.. :: x
-    ACCEPT_ID,
-    // state 5: x x.. &
-    ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_BLOCK + ACCEPT_EVAL,
-    // state 6: evaluation ended -- ... :: x x  | ... & x  |  ... &&  |  x case { }  |  ... >> x
-    ACCEPT_PIPE,
-    // state 7: ... >>
-    ACCEPT_ID + ACCEPT_CASE_BLOCK + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV
-  };
-
   static class Builder {
+    private static final int TAG_NOT_DETERMINED = 0;
+    private static final int TAG_DATA_CONSTR_USING = 1;
+    private static final int TAG_CASE_EXPR = 2;
+    private static final int TAG_DYNAMIC_INV = 3;
+    private static final int TAG_SELF_INV = 4;
+
+    private static int[] acceptablesTab = {
+      // state 0:
+      ACCEPT_DATA_OBJ + ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_EVAL
+      + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV + ACCEPT_ENCLOSED
+      + ACCEPT_VAR_REF,
+      // state 1: x
+      ACCEPT_DATA_OBJ + ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_EVAL
+      + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV + ACCEPT_ENCLOSED + ACCEPT_CASE_BLOCK + ACCEPT_DATA_CONSTR_USING + ACCEPT_PIPE
+      + ACCEPT_VAR_REF,
+      // state 2: x x..
+      ACCEPT_DATA_OBJ + ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_EVAL
+      + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV + ACCEPT_ENCLOSED + ACCEPT_DATA_CONSTR_USING + ACCEPT_PIPE
+      + ACCEPT_VAR_REF,
+      // state 3: x x.. ::
+      ACCEPT_ID + ACCEPT_IF_EVAL + ACCEPT_ENCLOSED
+      + ACCEPT_VAR_REF,
+      // state 4: x x.. :: x
+      ACCEPT_ID
+      + ACCEPT_VAR_REF,
+      // state 5: x x.. &
+      ACCEPT_FUN_OBJ + ACCEPT_ID + ACCEPT_IF_EVAL + ACCEPT_ENCLOSED
+      + ACCEPT_VAR_REF,
+      // state 6: evaluation ended -- ... :: x x  | ... & x  |  ... &&  |  x case { }  |  ... >> x
+      ACCEPT_PIPE,
+      // state 7: ... >>
+      ACCEPT_ID + ACCEPT_CASE_BLOCK + ACCEPT_DYNAMIC_INV + ACCEPT_SELF_INV,
+    };
+
     int tag;
     int state;
     Parser.SrcInfo srcInfo;
+    PScope scope;
     Parser.SrcInfo lastSrcInfo;
-    List<PEvalItem> itemList;
+    List<PEvalItem.ObjItem> itemList;
     int followingSpace;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.itemList = new ArrayList<PEvalItem>();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.srcInfo = srcInfo;
+      this.scope = outerScope;
+      this.itemList = new ArrayList<PEvalItem.ObjItem>();
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
 
@@ -100,56 +113,65 @@ abstract class PEval {
 
     int getFollowingSpace() { return this.followingSpace; }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
 
     void addItem(PEvalItem item) throws CompileException {
-      PProgElem elem = item.elem;
-      if (elem instanceof PByte) {
-        this.addDataObj(ACCEPT_BYTE, item);
-      } else if (elem instanceof PInt) {
-        this.addDataObj(ACCEPT_INT, item);
-      } else if (elem instanceof PReal) {
-        this.addDataObj(ACCEPT_REAL, item);
-      } else if (elem instanceof PChar) {
-        this.addDataObj(ACCEPT_CHAR, item);
-      } else if (elem instanceof PList) {
-        this.addDataObj(ACCEPT_LIST, item);
-      } else if (elem instanceof PTuple) {
-        this.addDataObj(ACCEPT_TUPLE, item);
-      } else if (elem instanceof PString) {
-        this.addDataObj(ACCEPT_STRING, item);
-      } else if (elem instanceof PExprId) {
-        this.addId(item);
-      } else if (elem instanceof PFunRef) {
-        this.addFunObj(ACCEPT_FUN_REF, item);
-      } else if (elem instanceof PClosure) {
-        this.addFunObj(ACCEPT_CLOSURE, item);
-      } else if (elem instanceof PIfBlock) {
-        this.addIfBlock(item);
-      } else if (elem instanceof PCaseBlock) {
-        this.addCaseBlock(item);
-      } else if (elem instanceof PDynamicInv) {
-        this.dynamicInv();
-      } else if (elem instanceof PSelfInv) {
-        this.selfInv();
-      } else if (elem instanceof PDataConstrUsing) {
-        this.dataConstrUsing();
-      } else if (elem instanceof PEvalElem) {
-        this.addEval(item);
-      } else if (elem instanceof PPipe) {
-        this.pipe();
+      if (item.isObjItem()) {
+        PExprObj o = item.getObj();
+        if (o instanceof PByte) {
+          this.addDataObj(ACCEPT_BYTE, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PInt) {
+          this.addDataObj(ACCEPT_INT, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PReal) {
+          this.addDataObj(ACCEPT_REAL, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PChar) {
+          this.addDataObj(ACCEPT_CHAR, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PList) {
+          this.addDataObj(ACCEPT_LIST, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PTuple) {
+          this.addDataObj(ACCEPT_TUPLE, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PString) {
+          this.addDataObj(ACCEPT_STRING, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PExprId) {
+          this.addId(ACCEPT_ID, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PFunRef) {
+          this.addFunObj(ACCEPT_FUN_REF, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PClosure) {
+          this.addFunObj(ACCEPT_CLOSURE, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PIfEval) {
+          this.addIfEval(ACCEPT_IF_EVAL, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PCaseBlock) {
+          this.addCaseBlock(ACCEPT_CASE_BLOCK, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PExpr) {
+          this.addEnclosed(ACCEPT_ENCLOSED, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PExprVarRef) {
+          this.addVarRef(ACCEPT_VAR_REF, (PEvalItem.ObjItem)item);
+        } else if (o instanceof PEval) {  // should be at last
+          this.addEnclosed(ACCEPT_ENCLOSED, PEvalItem.create(PExpr.create(o.getSrcInfo(), this.scope, (PEval)o, null)));
+        } else {
+          throw new IllegalArgumentException("Invalid item. " + item.toString());
+        }
       } else {
-        /* DEBUG */ System.out.print("Invalid item = ");
-        /* DEBUG */ System.out.println(elem);
-        throw new IllegalArgumentException("Invalid item");
+        PProgElem s = item.getSym();
+        if (s instanceof PDynamicInv) {
+          this.dynamicInv();
+        } else if (s instanceof PSelfInv) {
+          this.selfInv();
+        } else if (s instanceof PDataConstrUsing) {
+          this.dataConstrUsing();
+        } else if (s instanceof PPipe) {
+          this.pipe();
+        } else {
+          throw new IllegalArgumentException("Invalid item. " + item.toString());
+        }
       }
       this.lastSrcInfo = item.srcInfo;
     }
 
-    private void addDataObj(int acpt, PEvalItem item) {
-      if ((acceptablesTab[this.state] & acpt) == 0) {
+    private void addDataObj(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -161,45 +183,45 @@ abstract class PEval {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addId(PEvalItem item) {
-      if ((acceptablesTab[this.state] & ACCEPT_ID) == 0) {
+    private void addId(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      ((PExprId)item.elem).cutOffCat(PExprId.CAT_DCON_PTN);
+      ((PExprId)item.obj).cutOffCat(PExprId.CAT_DCON_PTN);
       this.itemList.add(item);
       switch (this.state) {
       case 0: this.state = 1; break;
       case 1: this.state = 2; break;
       case 2: this.state = 2; break;
       case 3:
-        ((PExprId)item.elem).cutOffDcon();
+        ((PExprId)item.obj).cutOffDcon();
         this.state = 4;
         break;
       case 4:
-        ((PExprId)item.elem).setCat(PExprId.CAT_DCON_EVAL);
+        ((PExprId)item.obj).setCat(PExprId.CAT_DCON_EVAL);
         this.state = 6;
         break;
       case 5:
-        ((PExprId)item.elem).cutOffDcon();
+        ((PExprId)item.obj).cutOffDcon();
         this.state = 6;
         break;
       case 7:
-        ((PExprId)item.elem).setFun();
+        ((PExprId)item.obj).setFun();
         this.state = 6;
         break;
       }
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addFunObj(int acpt, PEvalItem item) throws CompileException {
+    private void addFunObj(int accept, PEvalItem.ObjItem item) throws CompileException {
       StringBuffer emsg;
-      if ((acceptablesTab[this.state] & acpt) == 0) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      if (this.state != 5 && item.elem instanceof PClosure) {
-        PClosure closure = (PClosure)item.elem;
+      if (this.state != 5 && item.obj instanceof PClosure) {
+        PClosure closure = (PClosure)item.obj;
         for (int i = 0; i < closure.params.length; i++) {
-          PEVarDef param = closure.params[i];
+          PExprVarDef param = closure.params[i];
           if (param.type == null) {
             emsg = new StringBuffer();
             emsg.append("Parameter type missing at ");
@@ -218,9 +240,9 @@ abstract class PEval {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addIfBlock(PEvalItem item) {
+    private void addIfEval(int accept, PEvalItem.ObjItem item) {
       StringBuffer emsg;
-      if ((acceptablesTab[this.state] & ACCEPT_IF_BLOCK) == 0) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -234,8 +256,8 @@ abstract class PEval {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    private void addCaseBlock(PEvalItem item) throws CompileException {
-      if ((acceptablesTab[this.state] & ACCEPT_CASE_BLOCK) == 0) {
+    private void addCaseBlock(int accept, PEvalItem.ObjItem item) throws CompileException {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -287,8 +309,8 @@ abstract class PEval {
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
 
-    private void addEval(PEvalItem item) {
-      if ((acceptablesTab[this.state] & ACCEPT_EVAL) == 0) {
+    private void addEnclosed(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
       this.itemList.add(item);
@@ -306,7 +328,7 @@ abstract class PEval {
       if ((acceptablesTab[this.state] & ACCEPT_PIPE) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      PEvalElem e = this.create();
+      PEval e = this.create();
       this.itemList.clear();
       this.tag = TAG_NOT_DETERMINED;
       this.itemList.add(PEvalItem.create(e));
@@ -318,7 +340,23 @@ abstract class PEval {
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
 
-    PEvalElem create() throws CompileException {
+    private void addVarRef(int accept, PEvalItem.ObjItem item) {
+      if ((acceptablesTab[this.state] & accept) == 0) {
+        throw new IllegalArgumentException("Invalid item");
+      }
+      this.itemList.add(item);
+      switch (this.state) {
+      case 0: this.state = 1; break;
+      case 1: this.state = 2; break;
+      case 2: this.state = 2; break;
+      case 3: this.state = 4; break;
+      case 4: this.state = 6; break;
+      case 5: this.state = 6; break;
+      }
+      this.followingSpace = ParserA.SPACE_NEEDED;
+    }
+
+    PEval create() throws CompileException {
       StringBuffer emsg;
       switch (this.state) {
       case 0:
@@ -336,9 +374,10 @@ abstract class PEval {
       return this.createDispatch();
     }
 
-    private PEvalElem createDispatch() throws CompileException {
+    private PEval createDispatch() throws CompileException {
       StringBuffer emsg;
-      PEvalElem e;
+      PEval e;
+// /* DEBUG */ System.out.print(this.tag);
       if (this.tag == TAG_DATA_CONSTR_USING) {
         e = this.createDataConstrUsingEval();
       } else if (this.tag == TAG_CASE_EXPR) {
@@ -348,8 +387,10 @@ abstract class PEval {
       } else if (this.tag == TAG_SELF_INV) {
         e = this.createSelfInvEval();
       } else if (this.itemList.size() == 1) {
-        PProgElem elem = this.itemList.get(0).elem;
-        if (elem instanceof PExprId) {
+        PExprObj elem = this.itemList.get(0).obj;
+        if (elem instanceof PEval) {
+          e = (PEval)elem;
+        } else if (elem instanceof PExprId) {
           e = this.createDispatch2();
         } else if (elem instanceof PByte
           || elem instanceof PInt
@@ -360,8 +401,6 @@ abstract class PEval {
           || elem instanceof PString
           || elem instanceof PFunRef
           || elem instanceof PClosure
-          || elem instanceof PIfBlock
-          || elem instanceof PEvalElem
           ) {
           e = this.createTermEval();
         } else {
@@ -370,12 +409,13 @@ abstract class PEval {
       } else {
         e = this.createDispatch2();
       }
+// /* DEBUG */ System.out.print("CREATED EVAL "); System.out.println(e);
       return e;
     }
 
-    private PEvalElem createDispatch2() throws CompileException {
+    private PEval createDispatch2() throws CompileException {
       StringBuffer emsg;
-      PEvalItem anchor = this.itemList.remove(this.itemList.size() - 1);
+      PEvalItem.ObjItem anchor = this.itemList.remove(this.itemList.size() - 1);
       if (anchor.name != null) {
         emsg = new StringBuffer();
         emsg.append("Attribute name not allowed at ");
@@ -383,7 +423,8 @@ abstract class PEval {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!(anchor.elem instanceof PExprId)) {
+      if (!(anchor.obj instanceof PExprId)) {
+// /* DEBUG */ System.out.print("anchor "); System.out.println(anchor);
         emsg = new StringBuffer();
         emsg.append("Either function or data constructor missing at ");
         emsg.append(anchor.srcInfo);
@@ -405,34 +446,31 @@ abstract class PEval {
           ;
         }
       }
-      PEvalElem posdParams[] = new PEvalElem[this.itemList.size() - namedAttrCount];
-      PEvalItem namedAttrs[] = new PEvalItem[namedAttrCount];
+      PEvalItem.ObjItem posdParams[] = new PEvalItem.ObjItem[this.itemList.size() - namedAttrCount];
+      PEvalItem.ObjItem namedAttrs[] = new PEvalItem.ObjItem[namedAttrCount];
       for (int i = 0; i < posdParams.length; i++) {
-        posdParams[i] = (PEvalElem)this.itemList.get(i).elem;
+        posdParams[i] = this.itemList.get(i);
       }
       for (int i = posdParams.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
       }
-      PEvalElem e;
+      PEval e;
       if (namedAttrCount > 0) {
-        PExprId dcon = (PExprId)anchor.elem;
+        PExprId dcon = (PExprId)anchor.obj;
 	dcon.setCat(PExprId.CAT_DCON_EVAL);
-        e = PDataConstrEval.create(this.srcInfo, dcon, posdParams, namedAttrs, null);
+        e = PDataConstrEval.create(this.srcInfo, this.scope, dcon, posdParams, namedAttrs, null);
       } else {
-        PExprId id = (PExprId)anchor.elem;
+        PExprId id = (PExprId)anchor.obj;
         id.cutOffCat(PExprId.CAT_DCON_PTN);
-        e = PUndetEval.create(this.srcInfo, id, posdParams);
+        e = PUndetEval.create(this.srcInfo, this.scope, id, posdParams);
       }
       return e;
-      // return (namedAttrCount > 0)?
-        // PDataConstrEval.create(this.srcInfo, (PExprId)anchor.elem, posdParams, namedAttrs, null):
-        // PUndetEval.create(this.srcInfo, (PExprId)anchor.elem, posdParams);
     }
 
-    private PEvalElem createDataConstrUsingEval() throws CompileException {
+    private PEval createDataConstrUsingEval() throws CompileException {
       StringBuffer emsg;
-      PEvalItem dcon = this.itemList.remove(this.itemList.size() - 1);
-      PEvalItem using = this.itemList.remove(this.itemList.size() - 1);
+      PEvalItem.ObjItem dcon = this.itemList.remove(this.itemList.size() - 1);
+      PEvalItem.ObjItem using = this.itemList.remove(this.itemList.size() - 1);
       if (using.name != null) {
         emsg = new StringBuffer();
         emsg.append("Attribuite name \"");
@@ -449,7 +487,7 @@ abstract class PEval {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!(dcon.elem instanceof PExprId)) {
+      if (!(dcon.obj instanceof PExprId)) {
         emsg = new StringBuffer();
         emsg.append("Either function or data constructor missing at ");
         emsg.append(dcon.srcInfo);
@@ -471,20 +509,23 @@ abstract class PEval {
           ;
         }
       }
-      PEvalElem posdAttrs[] = new PEvalElem[this.itemList.size() - namedAttrCount];
-      PEvalItem namedAttrs[] = new PEvalItem[namedAttrCount];
+      PEvalItem.ObjItem posdAttrs[] = new PEvalItem.ObjItem[this.itemList.size() - namedAttrCount];
+      PEvalItem.ObjItem namedAttrs[] = new PEvalItem.ObjItem[namedAttrCount];
       for (int i = 0; i < posdAttrs.length; i++) {
-        posdAttrs[i] = (PEvalElem)this.itemList.get(i).elem;
+        posdAttrs[i] = this.itemList.get(i);
       }
       for (int i = posdAttrs.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
       }
-      return PDataConstrEval.create(this.srcInfo, (PExprId)dcon.elem, posdAttrs, namedAttrs, (PEvalElem)using.elem);
+      if (using != null) {
+        using.fixAsParam();
+      }
+      return PDataConstrEval.create(this.srcInfo, this.scope, (PExprId)dcon.obj, posdAttrs, namedAttrs, using);
     }
 
-    private PEvalElem createCaseEval() throws CompileException {
+    private PEval createCaseEval() throws CompileException {
       StringBuffer emsg;
-      PEvalItem obj = this.itemList.get(0);
+      PEvalItem.ObjItem obj = this.itemList.get(0);
       if (obj.name != null) {
         emsg = new StringBuffer();
         emsg.append("Named attribute not allowed for case block at ");
@@ -492,16 +533,15 @@ abstract class PEval {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PEvalElem v = (obj.elem instanceof PExprId)? 
-        PUndetEval.create(this.srcInfo, (PExprId)obj.elem, new PEvalElem[0]):
-        (PEvalElem)obj.elem;
-      return PCaseEval.create(this.srcInfo, v, (PCaseBlock)this.itemList.get(1).elem);
-      // return PCaseEval.create(this.srcInfo, (PEvalElem)obj.elem, (PCaseBlock)this.itemList.get(1).elem);
+      PExprObj v = (obj.obj instanceof PExprId)? 
+        PUndetEval.create(this.srcInfo, this.scope, (PExprId)obj.obj, new PEvalItem.ObjItem[0]):
+        (PExprObj)obj.obj;
+      return PCaseEval.create(this.srcInfo, this.scope, v, (PCaseBlock)this.itemList.get(1).obj);
     }
 
-    private PEvalElem createDynInvEval() throws CompileException {
+    private PEval createDynInvEval() throws CompileException {
       StringBuffer emsg;
-      PEvalItem funObj = this.itemList.remove(this.itemList.size() - 1);
+      PEvalItem.ObjItem funObj = this.itemList.remove(this.itemList.size() - 1);
       if (funObj.name != null) {
         emsg = new StringBuffer();
         emsg.append("Name not allowed to function object at ");
@@ -509,20 +549,20 @@ abstract class PEval {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if ((funObj.elem instanceof PClosure) && this.itemList.size() != ((PClosure)funObj.elem).params.length) {
+      if ((funObj.obj instanceof PClosure) && this.itemList.size() != ((PClosure)funObj.obj).params.length) {
         emsg = new StringBuffer();
         emsg.append("Argument count mismatch at ");
         emsg.append(funObj.srcInfo);
         emsg.append(".");
         emsg.append("\n  closure param count = ");
-        emsg.append(((PClosure)funObj.elem).params.length);
+        emsg.append(((PClosure)funObj.obj).params.length);
         emsg.append("\n  actual argument count = ");
         emsg.append(this.itemList.size());
         throw new CompileException(emsg.toString());
       }
-      PEvalElem[] params = new PEvalElem[this.itemList.size()];
+      PExprObj[] params = new PExprObj[this.itemList.size()];
       for (int i = 0; i < params.length; i++) {
-        PEvalItem p = this.itemList.get(i);
+        PEvalItem.ObjItem p = this.itemList.get(i);
         if (p.name != null) {
           emsg = new StringBuffer();
           emsg.append("Name not allowed to function object at ");
@@ -531,16 +571,16 @@ abstract class PEval {
           throw new CompileException(emsg.toString());
         }
         p.fixAsParam();
-        params[i] = (PEvalElem)p.elem;
+        params[i] = (PExprObj)p.obj;
       }
-      return PDynamicInvEval.create(this.srcInfo, (PEvalElem)funObj.elem, params);
+      return PDynamicInvEval.create(this.srcInfo, this.scope, (PExprObj)funObj.obj, params);
     }
 
-    private PEvalElem createSelfInvEval() throws CompileException {
+    private PEval createSelfInvEval() throws CompileException {
       StringBuffer emsg;
-      PEvalElem[] params = new PEvalElem[this.itemList.size()];
+      PExprObj[] params = new PExprObj[this.itemList.size()];
       for (int i = 0; i < params.length; i++) {
-        PEvalItem p = this.itemList.get(i);
+        PEvalItem.ObjItem p = this.itemList.get(i);
         if (p.name != null) {
           emsg = new StringBuffer();
           emsg.append("Name not allowed to function object at ");
@@ -549,96 +589,74 @@ abstract class PEval {
           throw new CompileException(emsg.toString());
         }
         p.fixAsParam();
-        params[i] = (PEvalElem)p.elem;
+        params[i] = (PExprObj)p.obj;
       }
-      return PDynamicInvEval.create(this.srcInfo, PFunRef.createSelf(this.srcInfo), params);
+      return PDynamicInvEval.create(this.srcInfo, this.scope, PFunRef.createSelf(this.srcInfo, this.scope), params);
     }
 
-    private PEvalElem createTermEval() throws CompileException {
+    private PEval createTermEval() throws CompileException {
       StringBuffer emsg;
-      PEvalItem item = this.itemList.get(0);  // element count == 1
+      PEvalItem.ObjItem item = this.itemList.get(0);  // element count == 1
       if (item.name != null) {
+// /* DEBUG */ System.out.println(item);
         emsg = new StringBuffer();
         emsg.append("Attribute name not allowed at ");
         emsg.append(item.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      return (PEvalElem)item.elem;
+      return PObjEval.create(item.getSrcInfo(), this.scope, item.obj);
     }
   }
 
-  static PEvalElem accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PEval accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(reader.getCurrentSrcInfo());
+    Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), outerScope);
     int acceptables;
     PEvalItem item;
     while ((acceptables = builder.getAcceptables()) > 0
-        && (item = PEvalItem.accept(reader, builder.getFollowingSpace(), acceptables)) != null) {
+        && (item = PEvalItem.accept(reader, outerScope, builder.getFollowingSpace(), acceptables)) != null) {
       builder.addItem(item);
     }
     return builder.create();
   }
 
-  static PEvalElem acceptX(ParserB.Elem elem) throws CompileException {
-    PEvalElem eval = null;
-    if ((eval = PByte.acceptX(elem)) != null) {
+  static PEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
+    PEval eval = null;
+    PExprObj o = null;
+    if ((o = PByte.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PInt.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PReal.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PChar.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PTuple.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PEmptyList.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PList.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PString.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PDataConstrEval.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PClosure.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PFunRef.acceptX(elem, outerScope)) != null) {
+      eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
+    } else if ((o = PExprVarRef.acceptX(elem, outerScope)) != null) {
+      eval = PUndetEval.create(o.getSrcInfo(), outerScope, (PExprId)o, new PEvalItem.ObjItem[0]);
+    } else if ((eval = PStaticInvEval.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((eval = PInt.acceptX(elem)) != null) {
+    } else if ((eval = PDynamicInvEval.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((eval = PReal.acceptX(elem)) != null) {
+    } else if ((eval = PIfEval.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((eval = PChar.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PTuple.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PEmptyList.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PList.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PString.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PDataConstrEval.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PClosure.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PFunRef.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PEVarRef.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PStaticInvEval.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PDynamicInvEval.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PIfBlock.acceptX(elem)) != null) {
-      ;
-    } else if ((eval = PCaseEval.acceptX(elem)) != null) {
+    } else if ((eval = PCaseEval.acceptX(elem, outerScope)) != null) {
       ;
     }
-    return eval;
-  }
-
-  static PEvalElem acceptEnclosed(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    StringBuffer emsg;
-    ParserA.Token lpar;
-    if ((lpar = ParserA.acceptToken(reader, LToken.LPAR, spc)) == null) { return null; }
-    PEvalElem eval;
-    if ((eval = PExpr.accept(reader)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Expression missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    if ((ParserA.acceptToken(reader, LToken.RPAR, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("\")\" missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    eval.setSrcInfo(lpar.getSrcInfo());  // set source info to lpar's
     return eval;
   }
 }

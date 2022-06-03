@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PIfBlock extends PDefaultEvalElem {
+class PIfEval extends PDefaultExprObj implements PEval {
   PIfClause[] clauses;
 
-  private PIfBlock() {}
+  private PIfEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -46,46 +48,41 @@ class PIfBlock extends PDefaultEvalElem {
   }
 
   static class Builder {
-    PIfBlock ifBlock;
+    PIfEval ifEval;
     List<PIfClause> clauseList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.ifBlock = new PIfBlock();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.ifEval = new PIfEval(srcInfo, outerScope);
       this.clauseList = new ArrayList<PIfClause>();
-    }
-
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.ifBlock.srcInfo = si;
     }
 
     void addClause(PIfClause clause) {
       this.clauseList.add(clause);
     }
 
-    PIfBlock create() {
-      this.ifBlock.clauses = this.clauseList.toArray(new PIfClause[this.clauseList.size()]);
-      return this.ifBlock;
+    PIfEval create() {
+      this.ifEval.clauses = this.clauseList.toArray(new PIfClause[this.clauseList.size()]);
+      return this.ifEval;
     }
   }
 
-  static PIfBlock accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PIfEval accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token next = reader.getNextToken();
     if (!next.tagEquals(LToken.LBRACE) || ParserA.acceptSpecifiedWord(reader, "if", spc) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
+    Builder builder = Builder.newInstance(si, outerScope);
     ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE);
     PIfClause clause = null;
     int state = 0;
     while (state >= 0) {
-      if (state == 0 && (clause = PIfClause.accept(reader)) != null) {
+      if (state == 0 && (clause = PIfClause.accept(reader, outerScope)) != null) {
         builder.addClause(clause);
         state = 1;
       } else if (ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
@@ -109,14 +106,13 @@ class PIfBlock extends PDefaultEvalElem {
     return builder.create();
   }
 
-  static PIfBlock acceptX(ParserB.Elem elem) throws CompileException {
+  static PIfEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PIfClause c = PIfClause.acceptX(e);
+      PIfClause c = PIfClause.acceptX(e, outerScope);
       if (c == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -129,21 +125,26 @@ class PIfBlock extends PDefaultEvalElem {
     return builder.create();
   }
 
-  public PIfBlock setupScope(PScope scope) throws CompileException {
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.clauses.length; i++) {
+      // this.clauses[i].setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].setupScope(scope);
+      this.clauses[i].collectModRefs();
     }
-    return this;
   }
 
-  public PIfBlock resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PIfEval resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].resolveId();
+      this.clauses[i] = this.clauses[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

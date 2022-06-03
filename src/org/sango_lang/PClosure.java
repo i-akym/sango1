@@ -27,14 +27,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PClosure extends PDefaultEvalElem {
-  PEVarDef[] params;
+class PClosure extends PDefaultExprObj {
+  PExprVarDef[] params;
   PRetDef retDef;
-  PExpr[] implExprs;
+  PExprList.Seq implExprs;
   PScope outerScope;
   PScope bodyScope;
 
-  private PClosure() {}
+  private PClosure(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
+    this.scope.defineClosure(this);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -48,38 +51,37 @@ class PClosure extends PDefaultEvalElem {
     buf.append("],ret=");
     buf.append(this.retDef);
     buf.append(",exprs=[");
-    for (int i = 0; i < this.implExprs.length; i++) {
-      buf.append(this.implExprs[i]);
-      buf.append(",");
-    }
+    buf.append(this.implExprs);
     buf.append("]]");
     return buf.toString();
   }
 
   static class Builder {
     PClosure closure;
-    List<PEVarDef> paramList;
+    PScope bodyScope;
+    List<PExprVarDef> paramList;
     List<PExpr> implExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.closure = new PClosure();
-      this.paramList = new ArrayList<PEVarDef>();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.closure = new PClosure(srcInfo, outerScope);
+      this.bodyScope = this.closure.scope.enterInner();
+      this.paramList = new ArrayList<PExprVarDef>();
       this.implExprList = new ArrayList<PExpr>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.closure.srcInfo = si;
-    }
+    PScope getDefScope() { return this.closure.scope; }
 
-    void addParam(PEVarDef param) {
+    PScope getBodyScope() { return this.bodyScope; }
+
+    void addParam(PExprVarDef param) {
       this.paramList.add(param);
     }
 
-    void addParamList(List<PEVarDef> paramList) {
+    void addParamList(List<PExprVarDef> paramList) {
       for (int i = 0; i < paramList.size(); i++) {
         this.addParam(paramList.get(i));
       }
@@ -89,45 +91,39 @@ class PClosure extends PDefaultEvalElem {
       this.closure.retDef = retDef;
     }
 
-    void addImplExpr(PExpr expr) {
-      this.implExprList.add(expr);
-    }
-
-    void addImplExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addImplExpr(exprList.get(i));
-      }
+    void setImplExprs(PExprList.Seq seq) {
+      this.closure.implExprs = seq;
     }
 
     PClosure create() {
-      this.closure.params = this.paramList.toArray(new PEVarDef[this.paramList.size()]);
-      this.closure.implExprs = this.implExprList.toArray(new PExpr[this.implExprList.size()]);
+      this.closure.params = this.paramList.toArray(new PExprVarDef[this.paramList.size()]);
       return this.closure;
     }
   }
 
-  static PClosure accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PClosure accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     PClosure closure = null;
-    if ((closure = acceptNoArg(reader, spc)) != null) {
+    if ((closure = acceptNoArg(reader, outerScope, spc)) != null) {
       ;
-    } else if ((closure = acceptWithArgs(reader, spc)) != null) {
+    } else if ((closure = acceptWithArgs(reader, outerScope, spc)) != null) {
       ;
     }
     return closure;
   }
 
-  static PClosure acceptX(ParserB.Elem elem) throws CompileException {
+  static PClosure acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("closure-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
     ParserB.Elem e = elem.getFirstChild();
 
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PEVarDef var = PEVarDef.acceptX(ee, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_NEEDED);
+        PExprVarDef var = PExprVarDef.acceptX(ee, defScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -147,7 +143,7 @@ class PClosure extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PRetDef ret = PRetDef.acceptX(e);
+    PRetDef ret = PRetDef.acceptX(e, defScope);
     if (ret == null) {
       emsg = new StringBuffer();
       emsg.append("Return type missing at ");
@@ -171,57 +167,62 @@ class PClosure extends PDefaultEvalElem {
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
+    Parser.SrcInfo si = e.getSrcInfo();
+    List<PExpr> ies = new ArrayList<PExpr>();
     ParserB.Elem ee = e.getFirstChild();
     if (ee == null) {
-      builder.addImplExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      ies.add(PExpr.createDummyVoidExpr(si, bodyScope));
     } else {
       while (ee != null) {
-        PExpr expr = PExpr.acceptX(ee);
+        PExpr expr = PExpr.acceptX(ee, bodyScope);
         if (expr == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
           emsg.append(ee.getSrcInfo().toString());
           throw new CompileException(emsg.toString());
         }
-        builder.addImplExpr(expr);
+        ies.add(expr);
         ee = ee.getNextSibling();
       }
     }
+    builder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
     e = e.getNextSibling();
     return builder.create();
   }
 
-  private static PClosure acceptNoArg(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  private static PClosure acceptNoArg(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.BKSLASH_BKSLASH, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
-    builder.setRetDef(PRetDef.accept(reader, PRetDef.TYPE_MAYBE_SPECIFIED));
-    List<PExpr> implExprList;
-    if ((implExprList = acceptImplExprSeq(reader)) == null) {
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
+    builder.setRetDef(PRetDef.accept(reader, defScope));
+    PExprList.Seq implExprList;
+    if ((implExprList = acceptImplExprSeq(reader, bodyScope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function body missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.addImplExprList(implExprList);
+    builder.setImplExprs(implExprList);
     return builder.create();
   }
 
-  private static PClosure acceptWithArgs(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  private static PClosure acceptWithArgs(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.BKSLASH, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
-    PEVarDef param;
-    while ((param = PEVarDef.accept(reader, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
+    PExprVarDef param;
+    while ((param = PExprVarDef.accept(reader, defScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_NEEDED)) != null) {
       builder.addParam(param);
     }
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -231,26 +232,26 @@ class PClosure extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setRetDef(PRetDef.accept(reader, PRetDef.TYPE_MAYBE_SPECIFIED));
-    List<PExpr> implExprList;
-    if ((implExprList = acceptImplExprSeq(reader)) == null) {
+    builder.setRetDef(PRetDef.accept(reader, defScope));
+    PExprList.Seq implExprList;
+    if ((implExprList = acceptImplExprSeq(reader, bodyScope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function body missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.addImplExprList(implExprList);
+    builder.setImplExprs(implExprList);
     return builder.create();
   }
 
-  private static List<PExpr> acceptImplExprSeq(ParserA.TokenReader reader) throws CompileException, IOException {
+  private static PExprList.Seq acceptImplExprSeq(ParserA.TokenReader reader, PScope bodyScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    List<PExpr> exprList = PExpr.acceptSeq(reader, true);
+    PExprList.Seq exprList = PExprList.acceptSeq(reader, t.getSrcInfo(), bodyScope, true);
     if (ParserA.acceptToken(reader, LToken.RBRACE, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -266,32 +267,35 @@ class PClosure extends PDefaultEvalElem {
     return exprList;
   }
 
-  public PClosure setupScope(PScope scope) throws CompileException {
-    if (scope == this.outerScope) { return this; }
-    this.outerScope = scope;
-    this.scope = scope.enterClosure(this);
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.outerScope) { return; }
+    // this.outerScope = scope;
+    // this.scope = scope.enterClosure(this);
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(this.scope);
+    // }
+    // this.bodyScope = this.scope.enterInner();
+    // this.implExprs.setupScope(this.bodyScope);
+    // retDef.setupScope(this.scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(this.scope);
+      this.params[i].collectModRefs();
     }
-    this.bodyScope = this.scope.enterInner();
-    for (int i = 0; i < this.implExprs.length; i++) {
-      this.implExprs[i] = this.implExprs[i].setupScope(this.bodyScope);
-    }
-    this.retDef = this.retDef.setupScope(this.scope);
-    return this;
+    this.implExprs.collectModRefs();
+    retDef.collectModRefs();
   }
 
-  public PClosure resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PClosure resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.retDef = this.retDef.resolveId();
-    for (int i = 0; i < this.implExprs.length; i++) {
-      this.implExprs[i] = this.implExprs[i].resolveId();
-    }
-    this.idResolved = true;
+    this.retDef = this.retDef.resolve();
+    this.implExprs = this.implExprs.resolve();
+    // this.idResolved = true;
     return this;
   }
 
@@ -300,9 +304,7 @@ class PClosure extends PDefaultEvalElem {
       this.params[i].normalizeTypes();
     }
     this.retDef.normalizeTypes();
-    for (int i = 0; i < this.implExprs.length; i++) {
-      this.implExprs[i].normalizeTypes();
-    }
+    this.implExprs.normalizeTypes();
   }
 
   public PTypeSkel[] getParamDefinedTypes() {
@@ -318,20 +320,9 @@ class PClosure extends PDefaultEvalElem {
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }
-    PTypeGraph.Node n = null;
-    for (int i = 0; i < this.implExprs.length; i++) {  // guaranteed not to be empty
-      if (n == null) {
-        n = this.implExprs[i].setupTypeGraph(graph);
-      } else {
-        PTypeGraph.SeqNode s = graph.createSeqNode(this.implExprs[i]);
-        s.setLeadingTypeNode(n);
-        s.setInNode(this.implExprs[i].setupTypeGraph(graph));
-        n = s;
-      }
-    }
-    PTypeGraph.Node r = this.retDef.setupTypeGraph(graph);
-    r.setInNode(n);
-    ((PTypeGraph.ClosureNode)this.typeGraphNode).setRetNode(r);
+    PTypeGraph.Node rn = this.retDef.setupTypeGraph(graph);
+    rn.setInNode(this.implExprs.setupTypeGraph(graph));
+    ((PTypeGraph.ClosureNode)this.typeGraphNode).setRetNode(rn);
     return this.typeGraphNode;
   }
 
@@ -346,19 +337,19 @@ class PClosure extends PDefaultEvalElem {
 
   public GFlow.Node setupFlow(GFlow flow) {
     String name = this.scope.getFunOfficial() + ":" + this.scope.generateId();
-    PEVarSlot[] paramVarSlots = new PEVarSlot[this.params.length];
+    PExprVarSlot[] paramVarSlots = new PExprVarSlot[this.params.length];
     PTypeSkel[] paramTypes = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       paramVarSlots[i] = this.params[i].varSlot;
       paramTypes[i] = this.params[i].getFixedType();
     }
     GFlow.RootNode implNode = flow.createNodeForClosureImpl(this.srcInfo, name, paramVarSlots, paramTypes);
-    for (int i = 0; i < implExprs.length - 1; i++) {
-      implNode.addChild(this.implExprs[i].setupFlow(flow));
-      implNode.addChild(flow.createSinkNode(this.implExprs[i].getSrcInfo()));
+    for (int i = 0; i < implExprs.exprs.length - 1; i++) {
+      implNode.addChild(this.implExprs.exprs[i].setupFlow(flow));
+      implNode.addChild(flow.createSinkNode(this.implExprs.exprs[i].getSrcInfo()));
     }
-    implNode.addChild(this.implExprs[this.implExprs.length - 1].setupFlow(flow));
-    GFlow.SeqNode constrNode = flow.createNodeForClosureConstr(this.srcInfo, implNode /*, envList.size()*/);
+    implNode.addChild(this.implExprs.exprs[this.implExprs.exprs.length - 1].setupFlow(flow));
+    GFlow.SeqNode constrNode = flow.createNodeForClosureConstr(this.srcInfo, implNode);
     return constrNode;
   }
 }

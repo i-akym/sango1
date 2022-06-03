@@ -23,11 +23,13 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PCaseEval extends PDefaultEvalElem {
-  PEvalElem obj;
+class PCaseEval extends PDefaultExprObj implements PEval {
+  PExprObj obj;
   PCaseBlock caseBlock;
 
-  private PCaseEval() {}
+  private PCaseEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -41,19 +43,17 @@ class PCaseEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PCaseEval create(Parser.SrcInfo srcInfo, PEvalElem obj, PCaseBlock caseBlock) {
-    PCaseEval e = new PCaseEval();
-    e.srcInfo = srcInfo;
+  static PCaseEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprObj obj, PCaseBlock caseBlock) {
+    PCaseEval e = new PCaseEval(srcInfo, outerScope);
     e.obj = obj;
     e.caseBlock = caseBlock;
     return e;
   }
 
-  static PCaseEval acceptX(ParserB.Elem elem) throws CompileException {
+  static PCaseEval acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case")) { return null; }
-    PCaseBlock.Builder builder = PCaseBlock.Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    PCaseBlock.Builder builder = PCaseBlock.Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -76,7 +76,7 @@ class PCaseEval extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem obj = PEval.acceptX(ee);
+    PExprObj obj = PEval.acceptX(ee, outerScope);
     if (obj == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -99,7 +99,7 @@ class PCaseEval extends PDefaultEvalElem {
     }
     ee = e.getFirstChild();
     while (ee != null) {
-      PCaseClause c = PCaseClause.acceptX(ee);
+      PCaseClause c = PCaseClause.acceptX(ee, outerScope);
       if (c == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -109,23 +109,27 @@ class PCaseEval extends PDefaultEvalElem {
       builder.addClause(c);
       ee = ee.getNextSibling();
     }
-    return create(elem.getSrcInfo(), obj, builder.create());
+    return create(elem.getSrcInfo(), outerScope, obj, builder.create());
   }
 
-  public PCaseEval setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.obj = this.obj.setupScope(scope);
-    this.caseBlock = this.caseBlock.setupScope(scope);
-    return this;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.obj.setupScope(scope);
+    // this.caseBlock.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.obj.collectModRefs();
+    this.caseBlock.collectModRefs();
   }
 
-  public PCaseEval resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.obj = this.obj.resolveId();
-    this.caseBlock = this.caseBlock.resolveId();
-    this.idResolved = true;
+  public PCaseEval resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
+    this.obj = this.obj.resolve();
+    this.caseBlock = this.caseBlock.resolve();
+    // this.idResolved = true;
     return this;
   }
 

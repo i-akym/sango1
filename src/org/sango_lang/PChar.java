@@ -25,10 +25,12 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PChar extends PDefaultEvalAndPtnElem {
+class PChar extends PDefaultExprObj {
    int value;
 
-  private PChar() {}
+  private PChar(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -38,19 +40,18 @@ class PChar extends PDefaultEvalAndPtnElem {
     return buf.toString();
   }
 
-  static PChar create(Parser.SrcInfo srcInfo, int value) {
-    PChar c = new PChar();
-    c.srcInfo = srcInfo;
+  static PChar create(Parser.SrcInfo srcInfo, PScope outerScope, int value) {
+    PChar c = new PChar(srcInfo, outerScope);
     c.value = value;
     return c;
   }
 
-  static PChar accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PChar accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.CHAR, spc);
-    return (token != null)? create(token.getSrcInfo(), token.value.charValue): null;
+    return (token != null)? create(token.getSrcInfo(), outerScope, token.value.charValue): null;
   }
 
-  static PChar acceptX(ParserB.Elem elem) throws CompileException {
+  static PChar acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("char")) { return null; }
     String code = elem.getAttrValue("code");
@@ -80,17 +81,18 @@ class PChar extends PDefaultEvalAndPtnElem {
       emsg.append(code);
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), c);
+    return create(elem.getSrcInfo(), outerScope, c);
   }
 
-  public PChar setupScope(PScope scope) throws CompileException {
-    this.scope = scope;
-    this.idResolved = false;
-    return this;
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
-  public PChar resolveId() throws CompileException {
-    this.idResolved = true;
+  public void collectModRefs() throws CompileException {}
+
+  public PChar resolve() throws CompileException {
+    // this.idResolved = true;
     return this;
   }
 

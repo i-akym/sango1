@@ -23,11 +23,13 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PUndetEval extends PDefaultEvalElem {
+class PUndetEval extends PDefaultExprObj implements PEval {
   PExprId anchor;
-  PEvalElem params[];
+  PEvalItem.ObjItem params[];
 
-  private PUndetEval() {}
+  private PUndetEval(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -44,9 +46,8 @@ class PUndetEval extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PUndetEval create(Parser.SrcInfo srcInfo, PExprId anchor, PEvalElem[] params) {
-    PUndetEval e = new PUndetEval();
-    e.srcInfo = srcInfo;
+  static PUndetEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId anchor, PEvalItem.ObjItem[] params) {
+    PUndetEval e = new PUndetEval(srcInfo, outerScope);
     e.anchor = anchor;
     e.params = params;
     if (params.length > 0) {
@@ -55,43 +56,61 @@ class PUndetEval extends PDefaultEvalElem {
     return e;
   }
 
-  public PEvalElem setupScope(PScope scope) throws CompileException {
-    StringBuffer emsg;
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+    // this.anchor.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].setupScope(scope);
+      this.params[i].collectModRefs();
     }
-    PEvalElem e;
-    PEvalElem a = this.anchor.setupScope(scope);
-    if (a instanceof PEVarRef) {
-      e = a;
-    } else {
-      this.anchor = (PExprId)a;
-      e = this;
-    }
-    return e;
+    this.anchor.collectModRefs();
   }
 
-  public PEvalElem resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PEval resolve() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolveId();
+      this.params[i] = this.params[i].resolve();
     }
-    this.anchor = this.anchor.resolveId();
-    this.idResolved = true;
-    PEvalElem e;
-    if (this.anchor.maybeDcon()) {
-      this.anchor.setCat(PExprId.CAT_DCON_EVAL);
-      e = PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem[0], null).setupScope(this.scope).resolveId();
+    PExprObj a = this.anchor.resolve();
+    PEval e;
+    if (a instanceof PExprVarRef) {
+      if (this.params.length > 0) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Neither function name nor data constructor found at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      e = (PExprVarRef)a;
     } else {
-      e = PStaticInvEval.create(this.srcInfo, this.anchor, this.params).setupScope(this.scope).resolveId();
+      PExprId anc = (PExprId)a;
+      if (anc.maybeDcon()) {
+        e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, anc, this.params);
+        // e = PDataConstrEval.create(this.srcInfo, this.scope, anc, this.params, new PEvalItem.ObjItem[0], null);
+      } else {
+        e = PStaticInvEval.create(this.srcInfo, this.scope, anc, this.params);
+      }
+      // this.anchor = (PExprId)a;
+      // e = this;
     }
+    // if (e == this) {
+      // if (this.anchor.maybeDcon()) {
+        // this.anchor.setCat(PExprId.CAT_DCON_EVAL);
+        // e = PDataConstrEval.create(this.srcInfo, this.scope, this.anchor, this.params, new PEvalItem.ObjItem[0], null);
+        // // e = e.resolve();
+      // } else {
+        // e = PStaticInvEval.create(this.srcInfo, this.scope, this.anchor, this.params);
+        // // e = e.resolve();
+      // }
+    // }
     return e;
-    // return (this.anchor.maybeDcon())?  // TODO: Improve!
-      // PDataConstrEval.create(this.srcInfo, this.anchor, this.params, new PEvalItem[0], null).setupScope(this.scope).resolveId():
-      // PStaticInvEval.create(this.srcInfo, this.anchor, this.params).setupScope(this.scope).resolveId();
   }
 
   public void normalizeTypes() {

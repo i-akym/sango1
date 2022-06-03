@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,7 +25,7 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PEVarDef extends PDefaultPtnElem {
+class PExprVarDef extends PDefaultExprObj {
   static final int CAT_FUN_PARAM = 1;
   static final int CAT_LOCAL_VAR = 2;
 
@@ -35,13 +35,14 @@ class PEVarDef extends PDefaultPtnElem {
 
   String name;
   int cat;
-  PEVarSlot varSlot;
+  PExprVarSlot varSlot;
 
-  private PEVarDef() {}
+  private PExprVarDef(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
-  static PEVarDef create(Parser.SrcInfo srcInfo, int cat, PTypeDesc type, String name) {
-    PEVarDef var = new PEVarDef();
-    var.srcInfo = srcInfo;
+  static PExprVarDef create(Parser.SrcInfo srcInfo, PScope outerScope, int cat, PType type, String name) {
+    PExprVarDef var = new PExprVarDef(srcInfo, outerScope);
     var.cat = cat;
     var.type = type;
     var.name = name;
@@ -69,21 +70,12 @@ class PEVarDef extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  // public PEVarDef deepCopy(Parser.SrcInfo srcInfo) {
-    // PEVarDef v = new PEVarDef();
-    // v.srcInfo = srcInfo;
-    // // v.cat = this.cat;
-    // v.name = this.name;
-    // v.scope = this.scope;
-    // return v;
-  // }
-
-  static PEVarDef accept(ParserA.TokenReader reader, int cat, int typeSpec) throws CompileException, IOException {
+  static PExprVarDef accept(ParserA.TokenReader reader, PScope outerScope, int cat, int typeSpec) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    PTypeDesc type = null;
+    PType type = null;
     if (typeSpec == TYPE_MAYBE_SPECIFIED || typeSpec == TYPE_NEEDED) {
-      type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE);
+      type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE);
     }
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (type == null && varSym == null) {
@@ -111,10 +103,10 @@ class PEVarDef extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(si, cat, type, varId.value.token);
+    return create(si, outerScope, cat, type, varId.value.token);
   }
 
-  static PEVarDef acceptX(ParserB.Elem elem, int cat, int typeSpec) throws CompileException {
+  static PExprVarDef acceptX(ParserB.Elem elem, PScope outerScope, int cat, int typeSpec) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -125,10 +117,10 @@ class PEVarDef extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc type = null;
+    PType type = null;
     if (typeSpec == TYPE_NEEDED || typeSpec == TYPE_MAYBE_SPECIFIED) {
       ParserB.Elem ee = elem.getFirstChild();
-      type = (ee != null)? PType.acceptX(ee): null;
+      type = (ee != null)? PType.acceptX(ee, outerScope): null;
     }
     if (typeSpec == TYPE_NEEDED && type == null) {
       emsg = new StringBuffer();
@@ -137,35 +129,42 @@ class PEVarDef extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), cat, type, id);
+    return create(elem.getSrcInfo(), outerScope, cat, type, id);
   }
 
-  public PEVarDef setupScope(PScope scope) throws CompileException {
-    StringBuffer emsg;
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // if (this.type != null) {
+      // this.type.setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
     if (this.type != null) {
-      this.type = (PTypeDesc)this.type.setupScope(scope);
+      this.type.collectModRefs();
     }
-    if (!scope.canDefineEVar(this)) {
+  }
+
+  public PExprVarDef resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.varSlot != null) { return this; }
+    // if (this.idResolved) { return this; }
+    if (!this.scope.canDefineEVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
       emsg.append(". - ");
       emsg.append(this.name);
+      /* DEBUG */ // throw new RuntimeException(emsg.toString());
       throw new CompileException(emsg.toString());
     }
-    this.varSlot = scope.defineEVar(this);
-    return this;
-  }
-
-  public PEVarDef resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+    this.varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
-      this.type = (PTypeDesc)this.type.resolveId();
+      this.type = (PType)this.type.resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

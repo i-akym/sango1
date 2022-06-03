@@ -37,6 +37,6 @@ eval test033b -> <cstr> { "c:foo\\bar" wfs.parse_path = *P, P wfs.absolute? = fa
 eval test034a -> <cstr> { "..\\..\\hoge" wfs.parse_path = *P, P fs.path_names = [ "..", "..", "hoge" ], P wfs.path_repr = "..\\..\\hoge" } ;;
 eval test035a -> <cstr> { "foo\\bar\\.." wfs.parse_path = *P, P fs.path_names = [ "foo" ], P wfs.path_repr = "foo" } ;;
 eval test036a -> <cstr> { "foo\\.." wfs.parse_path = *P, P fs.path_names = [], P wfs.path_repr = "." } ;;
-eval test037a -> <fs.path_struct result> { \\ { "c:\\foo\\..\\.." wfs.parse_path } try = ** exc$ } ;;
+eval test037a -> <fs.path_struct result> { \\ <fs.path_struct> { "c:\\foo\\..\\.." wfs.parse_path } try = ** exc$ } ;;
 eval test051a -> <cstr list> { 'c' [ "foo" ] wfs.new_absolute_local_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "foo", "bar" ] } ;;
 eval test052a -> <cstr list> { [ "..", "..", "foo" ] wfs.new_relative_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "..", "..", "foo", "bar" ] } ;;

@@ -25,11 +25,14 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PImportStmt extends PDefaultProgElem {
+class PImportStmt extends PDefaultProgObj {
   String id;
   Cstr modName;
 
-  private PImportStmt() {}
+  private PImportStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
+    this.scope.startDef();
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -46,17 +49,15 @@ class PImportStmt extends PDefaultProgElem {
   static class Builder {
     PImportStmt imp;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.imp = new PImportStmt();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.imp = new PImportStmt(srcInfo, outerScope);
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.imp.srcInfo = si;
-    }
+    PScope getScope() { return this.imp.scope; }
 
     void setModName(Cstr modName) {
       this.imp.modName = modName;
@@ -73,14 +74,14 @@ class PImportStmt extends PDefaultProgElem {
     }
   }
 
-  static PImportStmt accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PImportStmt accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptSpecifiedWord(reader, "import", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Imported module name missing at ");
@@ -97,7 +98,7 @@ class PImportStmt extends PDefaultProgElem {
       throw new CompileException(emsg.toString());
     }
     PExprId id;
-    if ((id = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PExprId.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("No identifier for imported module at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -115,11 +116,10 @@ class PImportStmt extends PDefaultProgElem {
     return builder.create();
   }
 
-  static PImportStmt acceptX(ParserB.Elem elem) throws CompileException {
+  static PImportStmt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("import-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     Cstr mod = elem.getAttrValueAsCstrData("mod");
     if (mod == null) {
       emsg = new StringBuffer();
@@ -141,11 +141,11 @@ class PImportStmt extends PDefaultProgElem {
     return builder.create();
   }
 
-  public PImportStmt setupScope(PScope scope) throws CompileException {
-    throw new RuntimeException("PImportStmt#setupScope() called. - " + this.toString());
-  }
+  // public void setupScope(PScope scope) {}
 
-  public PImportStmt resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PImportStmt resolve() throws CompileException {
     throw new RuntimeException("PImportStmt#resolveId() called. - " + this.toString());
   }
 

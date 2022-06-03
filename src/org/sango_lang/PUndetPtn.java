@@ -23,10 +23,13 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PUndetPtn extends PDefaultPtnElem {
+class PUndetPtn extends PDefaultExprObj {
+  int context;
   PExprId anchor;
 
-  private PUndetPtn() {}
+  private PUndetPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -38,36 +41,37 @@ class PUndetPtn extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PUndetPtn create(Parser.SrcInfo srcInfo, PExprId anchor) {
-    PUndetPtn p = new PUndetPtn();
-    p.srcInfo = srcInfo;
+  static PUndetPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId anchor) {
+    PUndetPtn p = new PUndetPtn(srcInfo, outerScope);
+    p.context = context;
     p.anchor = anchor;
     return p;
   }
 
-  static PUndetPtn create(PExprId anchor) {
-    return create(anchor.srcInfo, anchor);
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.anchor.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.anchor.collectModRefs();
   }
 
-  public PPtnElem setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    PPtnElem a = this.anchor.setupScope(scope);
-    PPtnElem p;
-    if (a instanceof PEVarRef) {
-      p = a;
+  public PExprObj resolve() throws CompileException {
+    PExprObj p = this.anchor.resolve();
+    if (p instanceof PExprVarRef) {
+      ;
     } else {
-      PExprId dcon = (PExprId)a;
+      PExprId dcon = (PExprId)this.anchor;
       dcon.setCat(PExprId.CAT_DCON_PTN);
-      p = PDataConstrPtn.create(
-        this.srcInfo, dcon, new PPtnElem[0], new PPtnItem[0], false).setupScope(this.scope);
+      p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
+      // p = PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, new PExprObj[0], new PPtnItem[0], false);
+      // p.setupScope(this.scope);
+      // p = p.resolve();
     }
     return p;
-  }
-
-  public PUndetPtn resolveId() throws CompileException {
-    throw new RuntimeException("PUndetPtn#resolveId() called. - " + this.toString());
   }
 
   public void normalizeTypes() {

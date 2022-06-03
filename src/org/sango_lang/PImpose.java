@@ -23,13 +23,14 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PImpose extends PDefaultTypedElem {
+class PImpose extends PDefaultExprObj {
 
-  private PImpose() {}
+  private PImpose(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
-  static PImpose create(Parser.SrcInfo srcInfo, PTypeDesc type) {
-    PImpose i = new PImpose();
-    i.srcInfo = srcInfo;
+  static PImpose create(Parser.SrcInfo srcInfo, PScope outerScope, PType type) {
+    PImpose i = new PImpose(srcInfo, outerScope);
     i.type = type;
     return i;
   }
@@ -45,19 +46,22 @@ class PImpose extends PDefaultTypedElem {
     return buf.toString();
   }
 
-  public PImpose setupScope(PScope scope) throws CompileException {
-    StringBuffer emsg;
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.type = (PTypeDesc)this.type.setupScope(scope);
-    return this;
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.type.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.type.collectModRefs();
   }
 
-  public PImpose resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.type = (PTypeDesc)this.type.resolveId();
-    this.idResolved = true;
+  public PImpose resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
+    this.type = (PType)this.type.resolve();
+    // this.idResolved = true;
     return this;
   }
 

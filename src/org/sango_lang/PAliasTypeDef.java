@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 Akiyama Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,9 +23,22 @@
  ***************************************************************************/
 package org.sango_lang;
 
-interface PPtnElem extends PTypedElem {
+import java.util.List;
 
-  PPtnElem setupScope(PScope scope) throws CompileException;  // inherited
+public interface PAliasTypeDef {
 
-  PPtnElem resolveId() throws CompileException;  // inherited
+  String getTcon();
+
+  PTypeVarSlot[] getParamVarSlots();
+  
+  int getAvailability();
+
+  int getAcc();
+
+  void collectUnaliasTconInfo(List<PDefDict.TconInfo> list);
+
+  PTypeRefSkel getBody();
+
+  PTypeRefSkel unalias(PTypeSkel[] params);
+
 }

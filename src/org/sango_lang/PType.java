@@ -27,52 +27,79 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class PType {
-  private static final int ACCEPTABLE_NONE = 0;
-  private static final int ACCEPTABLE_ID = 1;
-  private static final int ACCEPTABLE_VARDEF = 2;
-  private static final int ACCEPTABLE_TYPE = 4;
-  private static final int ACCEPTABLE_BOUND = 8;
+interface PType extends PProgObj {
+  PType resolve() throws CompileException;
 
-  private static final int[] acceptable_tab = new int[] {
-    /* 0 */ ACCEPTABLE_NONE,  // no more
-    /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
-    /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
-    /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE + ACCEPTABLE_BOUND,  // -> 3; 4 if constrained var
-    /* 4 */ ACCEPTABLE_VARDEF  // -> 0
-  };
+  PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt);
+  static final int COPY_EXT_KEEP = -1;
+  static final int COPY_EXT_OFF = 0;
+  static final int COPY_EXT_ON = 1;
+  static final int COPY_VARIANCE_KEEP = -1;
+  static final int COPY_VARIANCE_INVARIANT = 0;
+  static final int COPY_VARIANCE_COVARIANT = 1;
+  static final int COPY_VARIANCE_CONTRAVARIANT = 2;
+  static final int COPY_CONCRETE_KEEP = -1;
+  static final int COPY_CONCRETE_OFF = 0;
+  static final int COPY_CONCRETE_ON = 1;
+
+  PDefDict.TconInfo getTconInfo();
+
+  void excludePrivateAcc() throws CompileException;
+
+  PTypeSkel getSkel();
+
+  PTypeSkel normalize();
 
   static final int INHIBIT_REQUIRE_CONCRETE = 0;
   static final int ALLOW_REQUIRE_CONCRETE = 1;
 
+  // internal
+  static final int ACCEPTABLE_NONE = 0;
+  static final int ACCEPTABLE_ID = 1;
+  static final int ACCEPTABLE_VARDEF = 2;
+  static final int ACCEPTABLE_TYPE = 4;
+  static final int ACCEPTABLE_BOUND = 8;
+
   static class Builder {
+
+    private static final int[] acceptable_tab = new int[] {
+      /* 0 */ ACCEPTABLE_NONE,  // no more
+      /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
+      /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
+      /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE + ACCEPTABLE_BOUND,  // -> 3; 4 if constrained var
+      /* 4 */ ACCEPTABLE_VARDEF  // -> 0
+    };
+
     Parser.SrcInfo srcInfo;
-    List<PTypeDesc> itemList;
-    PTVarDef constrainedVar;
+    PScope scope;
+    List<PProgObj> itemList;
+    PTypeVarDef constrainedVar;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new Builder(srcInfo, scope);
     }
 
-    Builder() {
-      this.itemList = new ArrayList<PTypeDesc>();
+    Builder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.srcInfo = srcInfo;
+      this.scope = scope;
+      this.itemList = new ArrayList<PProgObj>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
-    }
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
 
-    void addItem(PTypeDesc item) {
+    void addItem(PProgObj item) {
       this.itemList.add(item);
     }
 
-    void setConstrainedVar(PTVarDef var) {
+    void setConstrainedVar(PTypeVarDef var) {
       this.constrainedVar = var;
     }
 
-    PTypeDesc create() throws CompileException {
+    PType create() throws CompileException {
       StringBuffer emsg;
-      PTypeDesc t = null;
+      PType t = null;
       if (this.itemList.isEmpty()) {
         emsg = new StringBuffer();
         emsg.append("Empty type description at ");
@@ -80,16 +107,19 @@ abstract class PType {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PTypeDesc anchor = this.itemList.remove(this.itemList.size() - 1);
+      PProgObj anchor = this.itemList.remove(this.itemList.size() - 1);
       if (anchor instanceof PTypeId) {
         PTypeId id = (PTypeId)anchor;
         if (!id.maybeVar() || this.itemList.size() > 0) {
-          // id.cutOffCatOpt(PTypeId.CAT_VAR);
-          t = PTypeRef.create(this.srcInfo, id, this.itemList.toArray(new PTypeDesc[this.itemList.size()]));
+          PType[] ps = new PType[this.itemList.size()];
+          for (int i = 0; i < this.itemList.size(); i++) {
+            ps[i] = progObjToType(this.itemList.get(i));
+          }
+          t = PTypeRef.create(this.srcInfo, this.scope, id, ps);
         } else {
-          t = anchor;
+          t = Undet.create(id);
         }
-      } else if (anchor instanceof PTVarDef) {
+      } else if (anchor instanceof PTypeVarDef) {
         if (this.itemList.size() > 0) {
           emsg = new StringBuffer();
           emsg.append("No type constructor at ");
@@ -97,7 +127,7 @@ abstract class PType {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        t = anchor;
+        t = (PTypeVarDef)anchor;
       } else if (anchor instanceof PTypeRef) {
         if (this.itemList.size() > 0) {
           emsg = new StringBuffer();
@@ -106,19 +136,11 @@ abstract class PType {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        t = anchor;
+        t = (PTypeRef)anchor;
       } else {
         throw new IllegalArgumentException("Invalid item");
       }
       if (this.constrainedVar != null) {
-        // if (!(t instanceof PTypeRef)) {
-          // emsg = new StringBuffer();
-          // emsg.append("Invalid constraint at ");
-          // emsg.append(this.srcInfo);
-          // emsg.append(".");
-          // throw new CompileException(emsg.toString());
-        // }
-        // this.constrainedVar.constraint = (PTypeRef)t;
         this.constrainedVar.constraint = t;
         t = this.constrainedVar;
       }
@@ -126,27 +148,27 @@ abstract class PType {
     }
   }
 
-  static PTypeDesc accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    return accept(reader, spc, true);
+  static PType accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
+    return accept(reader, scope, spc, true);
   }
 
-  static PTypeDesc acceptRO(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    return accept(reader, spc, false);
+  static PType acceptRO(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
+    return accept(reader, scope, spc, false);
   }
 
-  private static PTypeDesc accept(ParserA.TokenReader reader, int spc, boolean acceptsVarDef) throws CompileException, IOException {
+  static PType accept(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LT, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
-    PTypeDesc item;
+    Builder builder = Builder.newInstance(t.getSrcInfo(), scope);
+    // builder.setSrcInfo(t.getSrcInfo());
+    PProgObj item;
     int state = acceptsVarDef? 1: 2;
     int sp = ParserA.SPACE_DO_NOT_CARE;
     while (state > 0) {
-      if ((item = acceptItem(reader, sp, acceptsVarDef, acceptable_tab[state])) != null) {
+      if ((item = acceptItem(reader, scope, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
         switch (state) {
         case 1:
           builder.addItem(item);
@@ -167,7 +189,7 @@ abstract class PType {
           }
           break;
         case 4:
-          builder.setConstrainedVar((PTVarDef)item);
+          builder.setConstrainedVar((PTypeVarDef)item);
           state = 0;
           break;
         default:
@@ -192,15 +214,15 @@ abstract class PType {
     return builder.create();
   }
 
-  static PTypeDesc acceptX(ParserB.Elem elem) throws CompileException {
-    return acceptX(elem, ACCEPTABLE_VARDEF);
+  static PType acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
+    return acceptX(elem, scope, ACCEPTABLE_VARDEF);
   }
 
-  static PTypeDesc acceptXRO(ParserB.Elem elem) throws CompileException {
-    return acceptX(elem, ACCEPTABLE_NONE);
+  static PType acceptXRO(ParserB.Elem elem, PScope scope) throws CompileException {
+    return acceptX(elem, scope, ACCEPTABLE_NONE);
   }
 
-  private static PTypeDesc acceptX(ParserB.Elem elem, int acceptables) throws CompileException {
+  static PType acceptX(ParserB.Elem elem, PScope scope, int acceptables) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("type-spec")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -212,166 +234,123 @@ abstract class PType {
       throw new CompileException(emsg.toString());
     }
 
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(e.getSrcInfo());
-    builder.addItem(acceptXItem(e, acceptables));
+    Builder builder = Builder.newInstance(e.getSrcInfo(), scope);
+    // builder.setSrcInfo(e.getSrcInfo());
+    builder.addItem(acceptXItem(e, scope, acceptables));
     return builder.create();
   }
 
-  static PTypeDesc acceptSig1(ParserA.TokenReader reader, int qual) throws CompileException, IOException {
+  static PTypeRef acceptSig1(ParserA.TokenReader reader, PScope scope, int qual) throws CompileException, IOException {
     StringBuffer emsg;
-    PTypeDesc sig = accept(reader, ParserA.SPACE_DO_NOT_CARE);
-    if (sig instanceof PTVarDef) {
+    PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+    if (t instanceof Undet) {
+      Undet u = (Undet)t;
+      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
+    }
+    if (!(t instanceof PTypeRef)) {
       emsg = new StringBuffer();
-      emsg.append("Type constructor missing at ");
-      emsg.append(sig.getSrcInfo());
+      emsg.append("Invalid signature definition at ");
+      emsg.append(t.getSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (sig instanceof PTypeRef) {
-      PTypeRef tr = (PTypeRef)sig;
-      for (int i = 0; i < tr.params.length; i++) {
-        if (!(tr.params[i] instanceof PTVarDef)) {
-          emsg = new StringBuffer();
-          emsg.append("Type parameter missing at ");
-          emsg.append(tr.params[i].getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        PTVarDef v = (PTVarDef)tr.params[i];
-        if (v.constraint != null) {
-          emsg = new StringBuffer();
-          emsg.append("Constrained type parameter not allowed at ");
-          emsg.append(tr.params[i].getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      }
-      if (qual == PExprId.ID_NO_QUAL && tr.mod != null) {
+    PTypeRef sig = (PTypeRef)t;
+    for (int i = 0; i < sig.params.length; i++) {
+      if (!(sig.params[i] instanceof PTypeVarDef)) {
         emsg = new StringBuffer();
-        emsg.append("Module id not allowed at ");
-        emsg.append(tr.tconSrcInfo);
+        emsg.append("Type parameter missing at ");
+        emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (tr.ext) {
+      PTypeVarDef v = (PTypeVarDef)sig.params[i];
+      if (v.constraint != null) {
         emsg = new StringBuffer();
-        emsg.append("Extension not allowed at ");
-        emsg.append(tr.tconSrcInfo);
+        emsg.append("Constrained type parameter not allowed at ");
+        emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-    } else if (sig instanceof PTypeId) {
-      PTypeId ti = (PTypeId)sig;
-      if (qual == PExprId.ID_NO_QUAL && ti.mod != null) {
-        emsg = new StringBuffer();
-        emsg.append("Module id not allowed at ");
-        emsg.append(ti.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      if (ti.ext) {
-        emsg = new StringBuffer();
-        emsg.append("Extension not allowed at ");
-        emsg.append(ti.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    } else {
-      throw new RuntimeException("Unexpected type.");
+    }
+    if (qual == PExprId.ID_NO_QUAL && sig.mod != null) {
+      emsg = new StringBuffer();
+      emsg.append("Module id not allowed at ");
+      emsg.append(sig.tconSrcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (sig.ext) {
+      emsg = new StringBuffer();
+      emsg.append("Extension not allowed at ");
+      emsg.append(sig.tconSrcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
     }
     return sig;
   }
 
-  static PTypeDesc acceptSig2(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PTypeRef acceptSig2(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
-    PTypeDesc sig = accept(reader, ParserA.SPACE_DO_NOT_CARE);
-    if (sig instanceof PTVarDef) {
+    PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+    if (t instanceof Undet) {
+      Undet u = (Undet)t;
+      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
+    }
+    if (!(t instanceof PTypeRef)) {
       emsg = new StringBuffer();
-      emsg.append("Type constructor missing at ");
-      emsg.append(sig.getSrcInfo());
+      emsg.append("Invalid signature definition at ");
+      emsg.append(t.getSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (sig instanceof PTypeRef) {
-      PTypeRef tr = (PTypeRef)sig;
-      for (int i = 0; i < tr.params.length; i++) {
-        if (!(tr.params[i] instanceof PTVarDef)) {
-          emsg = new StringBuffer();
-          emsg.append("Type parameter missing at ");
-          emsg.append(tr.params[i].getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        PTVarDef v = (PTVarDef)tr.params[i];
-        if (v.constraint != null) {
-          emsg = new StringBuffer();
-          emsg.append("Constrained type parameter not allowed at ");
-          emsg.append(tr.params[i].getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        if (v.requiresConcrete) {
-          emsg = new StringBuffer();
-          emsg.append("Requiring concrete type is not allowed at ");
-          emsg.append(tr.params[i].getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      }
-      if (tr.mod != null) {
+    PTypeRef sig = (PTypeRef)t;
+    for (int i = 0; i < sig.params.length; i++) {
+      if (!(sig.params[i] instanceof PTypeVarDef)) {
         emsg = new StringBuffer();
-        emsg.append("Module id not allowed at ");
-        emsg.append(tr.tconSrcInfo);
+        emsg.append("Type parameter missing at ");
+        emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (tr.ext) {
+      PTypeVarDef v = (PTypeVarDef)sig.params[i];
+      if (v.constraint != null) {
         emsg = new StringBuffer();
-        emsg.append("Extension not allowed at ");
-        emsg.append(tr.tconSrcInfo);
+        emsg.append("Constrained type parameter not allowed at ");
+        emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-    } else if (sig instanceof PTypeId) {
-      PTypeId ti = (PTypeId)sig;
-      if (ti.mod != null) {
-        emsg = new StringBuffer();
-        emsg.append("Module id not allowed at ");
-        emsg.append(ti.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      if (ti.ext) {
-        emsg = new StringBuffer();
-        emsg.append("Extension not allowed at ");
-        emsg.append(ti.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    } else {
-      throw new RuntimeException("Unexpected type.");
+    }
+    if (sig.mod != null) {
+      emsg = new StringBuffer();
+      emsg.append("Module id not allowed at ");
+      emsg.append(sig.tconSrcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (sig.ext) {
+      emsg = new StringBuffer();
+      emsg.append("Extension not allowed at ");
+      emsg.append(sig.tconSrcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
     }
     return sig;
   }
 
-  static PTypeDesc acceptItem(ParserA.TokenReader reader, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
-    StringBuffer emsg;
-    PTypeId id;
-    PTVarDef var;
-    PType type;
-    PTypeDesc item;
+  static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
+    PProgObj item;
     if ((acceptables & ACCEPTABLE_ID) > 0
-        && (item = PTypeId.accept(reader, PExprId.ID_MAYBE_QUAL, spc)) != null) {
+        && (item = PTypeId.accept(reader, scope, PExprId.ID_MAYBE_QUAL, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTVarDef.acceptSimple(reader)) != null) {
+        && (item = PTypeVarDef.acceptSimple(reader, scope)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
-        && (item = accept(reader, spc, acceptsVarDef)) != null) {
+        && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_BOUND) > 0
-        && (item = Bound.accept(reader)) != null) {
+        && (item = Bound.accept(reader, scope)) != null) {
       ;
     } else {
       item = null;
@@ -379,14 +358,14 @@ abstract class PType {
     return item;
   }
 
-  static PTypeDesc acceptXItem(ParserB.Elem elem, int acceptables) throws CompileException {
-    PTypeDesc item;
-    if ((item = PTypeRef.acceptX(elem, acceptables)) != null) {
+  static PProgObj acceptXItem(ParserB.Elem elem, PScope scope, int acceptables) throws CompileException {
+    PProgObj item;
+    if ((item = PTypeRef.acceptX(elem, scope, acceptables)) != null) {
       ;
-    } else if ((item = PTVarRef.acceptXTvar(elem)) != null) {
+    } else if ((item = PTypeVarRef.acceptXTvar(elem, scope)) != null) {
       ;
     } else if (((acceptables & ACCEPTABLE_VARDEF) > 0)
-        && (item = PTVarDef.acceptX(elem)) != null) {
+        && (item = PTypeVarDef.acceptX(elem, scope)) != null) {
       ;
     } else {
       item = null;
@@ -394,15 +373,161 @@ abstract class PType {
     return item;
   }
 
-  static class Bound extends PDefaultProgElem implements PTypeDesc {
-    private Bound() {}
+  static PType voidType(Parser.SrcInfo srcInfo, PScope scope) {
+    Builder builder = Builder.newInstance(srcInfo, scope);
+    // builder.setSrcInfo(srcInfo);
+    builder.addItem(PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
+    PType v = null;
+    try {
+      v = builder.create();
+    } catch (CompileException ex) {}  // not reached
+    return v;
+  }
 
-    static Bound accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PType progObjToType(PProgObj o) {
+    PType t;
+    if (o instanceof PTypeVarDef) {
+      t = (PTypeVarDef)o;
+    } else if (o instanceof PTypeVarRef) {
+      t = (PTypeVarRef)o;
+    } else if (o instanceof PTypeId) {
+      t = Undet.create((PTypeId)o);
+    } else if (o instanceof PTypeRef) {
+      t = (PTypeRef)o;
+    } else if (o instanceof Undet) {
+      t = (Undet)o;
+    } else {
+      throw new IllegalArgumentException("Invalid type. " + o.toString());
+    }
+    return t;
+  }
+
+  static class Undet extends PDefaultProgObj implements PType {
+    PTypeId id;
+
+    private Undet(Parser.SrcInfo srcInfo, PScope scope) {
+      super(srcInfo, scope);
+    }
+
+    static Undet create(PTypeId id) {
+      Undet u = new Undet(id.srcInfo, id.scope);
+      u.id = id;
+      return u;
+    }
+
+    // public void setupScope(PScope scope) {
+      // StringBuffer emsg;
+      // if (scope == this.scope) { return; }
+      // this.scope = scope;
+      // this.idResolved = false;
+      // this.id.setupScope(scope);
+    // }
+
+    public void collectModRefs() throws CompileException {
+      this.id.collectModRefs();
+    }
+
+    public PType resolve() throws CompileException {
+      StringBuffer emsg;
+      /* DEBUG */ if (this.scope == null || this.scope.pos == 0) { System.out.print("Scope is null or inactive. "); System.out.println(this); }
+      PType t;
+      if (this.id.mod == null) {
+        PTypeVarDef v;
+        if ((v = this.scope.lookupTVar(this.id.name)) != null) {
+          t = PTypeVarRef.create(this.id.srcInfo, this.id.scope, v);
+          // t.setupScope(this.scope);
+          t = t.resolve();
+        } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
+          t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
+          // t.setupScope(this.scope);
+          t = t.resolve();
+        } else {
+          emsg = new StringBuffer();
+          emsg.append("Type constructor \"");
+          emsg.append(this.id.name);
+          emsg.append("\" not defined at ");
+          emsg.append(this.id.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+      } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
+        t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
+        // t.setupScope(this.scope);
+        t = t.resolve();
+      } else {
+        emsg = new StringBuffer();
+        emsg.append("Type constructor \"");
+        emsg.append(PTypeId.repr(this.id.mod, this.id.name, false));
+        emsg.append("\" not defined at ");
+        emsg.append(this.id.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      // this.idResolved = true;
+      return t;
+    }
+
+    public PDefDict.TconInfo getTconInfo() {
+      throw new RuntimeException("Undet#getTconInfo is called.");
+    }
+
+    public void excludePrivateAcc() throws CompileException {
+      throw new RuntimeException("Undet#excludePrivateAcc is called.");
+    }
+
+    public void normalizeTypes() {
+      throw new RuntimeException("Undet#normalizeTypes is called.");
+    }
+
+    public PTypeSkel normalize() {
+      throw new RuntimeException("Undet#normalize is called.");
+    }
+
+    public PTypeSkel getSkel() {
+      throw new RuntimeException("Undet#getSkel is called.");
+    }
+
+    public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+      boolean ext;
+      if (extOpt == COPY_EXT_KEEP) {
+        ext = this.id.ext;
+      } else if (extOpt == COPY_EXT_OFF) {
+        ext = false;
+      } else if (extOpt == COPY_EXT_ON) {
+        ext = true;
+      } else {
+        throw new IllegalArgumentException("Unknown extOpt.");
+      }
+      return PTypeId.create(this.srcInfo, scope, this.id.mod, this.id.name, ext);  // rollback to PTypeId
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      if (this.srcInfo != null) {
+        buf.append("undet[src=");
+        buf.append(this.srcInfo);
+        buf.append(",");
+      }
+      String sep = "";
+      buf.append("<");
+      buf.append(this.id);
+      buf.append(">");
+      return buf.toString();
+    }
+  }
+
+  // pseudo object
+  static class Bound extends PDefaultProgObj {
+    private Bound(Parser.SrcInfo srcInfo, PScope scope) {
+      super(srcInfo, scope);
+    }
+
+    static Bound accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
       ParserA.Token t;
       if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
         return null;
       }
-      return new Bound();
+      return new Bound(t.getSrcInfo(), scope);
     }
 
     public String toString() {
@@ -411,15 +536,19 @@ abstract class PType {
       return buf.toString();
     }
 
-    public PTypeDesc setupScope(PScope scope) throws CompileException {
-      throw new RuntimeException("Bound#setupScope is called.");
-    }
-
-    public PTVarDef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
+    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
       throw new RuntimeException("Bound#deepCopy is called.");
     }
 
-    public PTypeId resolveId() throws CompileException {
+    // public void setupScope(PScope scope) {
+      // throw new RuntimeException("Bound#setupScope is called.");
+    // }
+
+    public void collectModRefs() throws CompileException {
+      throw new RuntimeException("Bound#collectModRefs is called.");
+    }
+
+    public PTypeId resolve() throws CompileException {
       throw new RuntimeException("Bound#resolveId is called.");
     }
 

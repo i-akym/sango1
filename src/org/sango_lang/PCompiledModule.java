@@ -86,7 +86,7 @@ class PCompiledModule implements PDefDict {
       }
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
       for (int j = 0; j < ads.length; j++) {
-        AliasDef ad = cm.convertAliasDef(mod, ads[j], unresolvedTypeRefList);
+        AliasTypeDef ad = cm.convertAliasTypeDef(mod, ads[j], unresolvedTypeRefList);
         PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], ads[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
@@ -135,7 +135,7 @@ class PCompiledModule implements PDefDict {
       }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
-        paramPropss, matd.acc, createDataDefGetter(cm.convertAliasDef(mod, matd, unresolvedTypeRefList))));
+        paramPropss, matd.acc, createDataDefGetter(cm.convertAliasTypeDef(mod, matd, unresolvedTypeRefList))));
     }
     cm.funOfficialDict = new HashMap<String, FunDef>();
     cm.funListDict = new HashMap<String, List<FunDef>>();
@@ -246,7 +246,7 @@ class PCompiledModule implements PDefDict {
       for (int i = 0; i < dataDef.params.length; i++) {
         PTypeVarSkel v = (PTypeVarSkel)convertType(dataDef.params[i], mod, varList, unresolvedTypeRefList);
         // PTypeVarSkel v = PTypeVarSkel.create(null, null,
-          // PTVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
+          // PTypeVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
           // XXX);
         dd.sigParams[i] = v;
         varList.add(v);
@@ -320,30 +320,30 @@ class PCompiledModule implements PDefDict {
     }
   }
 
-  AliasDef convertAliasDef(Module mod, MAliasTypeDef aliasDef, List<PTypeRefSkel> unresolvedTypeRefList) {
-    AliasDef ad = new AliasDef();
-    PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasDef.tcon);
+  AliasTypeDef convertAliasTypeDef(Module mod, MAliasTypeDef aliasTypeDef, List<PTypeRefSkel> unresolvedTypeRefList) {
+    AliasTypeDef ad = new AliasTypeDef();
+    PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasTypeDef.tcon);
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
-    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasDef.paramCount];
+    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
       paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
     }
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-      PTypeId.SUBCAT_ALIAS, paramPropss, aliasDef.acc, g);
+      PTypeId.SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.tconInfo = PDefDict.TconInfo.create(tk, tp);
-    ad.availability = aliasDef.availability;
-    ad.acc = aliasDef.acc;
-    ad.tparams = new PTypeVarSkel[aliasDef.paramCount];
+    ad.availability = aliasTypeDef.availability;
+    ad.acc = aliasTypeDef.acc;
+    ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false), null);
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(Module.INVARIANT, false), null);
       varList.add(ad.tparams[i]);
     }
-    ad.body = (PTypeRefSkel)this.convertType(aliasDef.body, mod, varList, unresolvedTypeRefList);
+    ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList);
     return ad;
   }
 
-  static class AliasDef implements PAliasDef {
+  static class AliasTypeDef implements PAliasTypeDef {
     PDefDict.TconInfo tconInfo;
     int availability;
     int acc;
@@ -352,8 +352,8 @@ class PCompiledModule implements PDefDict {
 
     public String getTcon() { return this.tconInfo.key.tcon; }
 
-    public PTVarSlot[] getParamVarSlots() {
-      PTVarSlot[] vs = new PTVarSlot[this.tparams.length];
+    public PTypeVarSlot[] getParamVarSlots() {
+      PTypeVarSlot[] vs = new PTypeVarSlot[this.tparams.length];
       for (int i = 0; i < this.tparams.length; i++) {
         vs[i] = this.tparams[i].varSlot;
       }
@@ -466,7 +466,7 @@ class PCompiledModule implements PDefDict {
     public PTypeSkel getRetType() { return this.retType; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {
     List<FunDef> funList = this.funListDict.get(name);
     if (funList == null) { return null; }
     PDefDict.FunSelRes sel = null;
@@ -513,7 +513,7 @@ class PCompiledModule implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
@@ -547,22 +547,22 @@ class PCompiledModule implements PDefDict {
     return new DataDefGetter(def, null);
   }
 
-  static DataDefGetter createDataDefGetter(PAliasDef def) {
+  static DataDefGetter createDataDefGetter(PAliasTypeDef def) {
     return new DataDefGetter(null, def);
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    PAliasDef aliasDef;
+    PAliasTypeDef aliasTypeDef;
 
-    DataDefGetter(PDataDef dataDef, PAliasDef aliasDef) {
+    DataDefGetter(PDataDef dataDef, PAliasTypeDef aliasTypeDef) {
       this.dataDef = dataDef;
-      this.aliasDef = aliasDef;
+      this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasDef getAliasDef() { return this.aliasDef; }
+    public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
   // PTypeSkel convertType(MType type, Module mod, List<PTypeRefSkel> unresolvedTypeRefList) {
@@ -604,7 +604,7 @@ class PCompiledModule implements PDefDict {
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
+      v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
       varList.add(v);
       if (tv.constraint != null) {
         v.constraint = (PTypeRefSkel)convertType(tv.constraint, mod, varList, unresolvedTypeRefList);

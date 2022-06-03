@@ -23,33 +23,34 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTypeRef extends PDefaultProgElem implements PTypeDesc {
+class PTypeRef extends PDefaultProgObj implements PType {
   Parser.SrcInfo tconSrcInfo;
   String mod;
   Cstr modName;
   String tcon;
   boolean ext;
-  PTypeDesc[] params;  // empty array if no params
+  PType[] params;  // empty array if no params
   PDefDict.TconInfo tconInfo;
 
-  private PTypeRef() {}
+  private PTypeRef(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
+  }
 
-  static PTypeRef create(Parser.SrcInfo srcInfo, PTypeId id, PTypeDesc[] param) {
-    PTypeRef t = new PTypeRef();
-    t.srcInfo = srcInfo;
+  static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeId id, PType[] param) {
+    PTypeRef t = new PTypeRef(srcInfo, scope);
     t.tconSrcInfo = id.srcInfo;
     t.mod = id.mod;
     t.tcon = id.name;
     t.ext = id.ext;
-    t.params = (param != null)? param: new PTypeDesc[0];
+    t.params = (param != null)? param: new PType[0];
     return t;
   }
 
-  static PTypeRef acceptX(ParserB.Elem elem, int acceptables) throws CompileException {
+  static PTypeRef acceptX(ParserB.Elem elem, PScope scope, int acceptables) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("type")) { return null; }
-    PType.Builder builder = PType.Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    PType.Builder builder = PType.Builder.newInstance(elem.getSrcInfo(), scope);
+    // builder.setSrcInfo(elem.getSrcInfo());
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {
@@ -61,11 +62,11 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     }
     String mid = elem.getAttrValueAsId("mid");
     boolean ext = elem.getAttrValueAsYesNoSwitch("ext", false);
-    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), mid, tcon, ext);
+    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), scope, mid, tcon, ext);
     tconItem.setTcon();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PTypeDesc t = PType.acceptXItem(e, acceptables);
+      PProgObj t = PType.acceptXItem(e, scope, acceptables);
       if (t == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -102,46 +103,64 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
     return buf.toString();
   }
 
-  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    PTypeRef t = new PTypeRef();
-    t.srcInfo = srcInfo;
+  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+    PTypeRef t = new PTypeRef(srcInfo, scope);
     t.mod = this.mod;
     t.modName = this.modName;
     t.tcon = this.tcon;
     switch (extOpt) {
-    case PTypeDesc.COPY_EXT_OFF:
+    case PType.COPY_EXT_OFF:
       t.ext = false;;
       break;
-    case PTypeDesc.COPY_EXT_ON:
+    case PType.COPY_EXT_ON:
       t.ext = true;;
       break;
-    default:  // PTypeDesc.COPY_EXT_KEEP
+    default:  // PType.COPY_EXT_KEEP
       t.ext = this.ext;
     }
-    t.params = new PTypeDesc[this.params.length];
+    t.params = new PType[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
-      t.params[i] = this.params[i].deepCopy(srcInfo, extOpt, varianceOpt, concreteOpt);
+      try {
+        PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
+        // b.setSrcInfo(srcInfo);
+        b.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, varianceOpt, concreteOpt));
+        t.params[i] = b.create();
+      } catch (Exception ex) {
+        throw new RuntimeException("Internal error. " + ex.toString());
+      }
     }
     return t;
   }
 
-  static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PTypeDesc[] paramTypeDescs) {
-    return  create(
-      srcInfo,
-      PTypeId.create(srcInfo, PModule.MOD_ID_LANG, tcon, false),
+  static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, PScope scope, String tcon, PType[] paramTypeDescs) {
+    return  create(srcInfo, scope,
+      PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, tcon, false),
       paramTypeDescs);
   }
 
-  public PTypeRef setupScope(PScope scope) throws CompileException {
-    StringBuffer emsg;
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.scope.referredModId(this.srcInfo, this.mod);
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = (PTypeDesc)this.params[i].setupScope(scope);
+      this.params[i].collectModRefs();
     }
+  }
+
+  public PTypeRef resolve() throws CompileException {
+    StringBuffer emsg;
+    // if (this.idResolved) { return this; }
+    /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
     if (this.mod != null) {
-      this.modName = scope.resolveModId(this.mod);
+      this.modName = this.scope.resolveModId(this.mod);
       if (this.modName == null) {
         emsg = new StringBuffer();
         emsg.append("Module id \"");
@@ -152,13 +171,6 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
         throw new CompileException(emsg.toString());
       }
     }
-    return this;
-  }
-
-  public PTypeRef resolveId() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
-    /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
     if ((this.tconInfo = this.scope.resolveTcon(this.mod, this.tcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -178,10 +190,10 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
       throw new CompileException(emsg.toString()) ;
     }
     for (int i = 0; i < this.params.length; i++) {
-      PTypeDesc p = (PTypeDesc)this.params[i].resolveId();
+      PType p = (PType)this.params[i].resolve();
       this.params[i] = p;
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
@@ -214,66 +226,25 @@ class PTypeRef extends PDefaultProgElem implements PTypeDesc {
 
   public PTypeSkel normalize() {
     PTypeSkel t;
-    // if (isBottom(this)) {
-      // t = PBottomSkel.create(this.srcInfo);
-    // } else {
-      PAliasDef a;
-      PTypeSkel[] ps = new PTypeSkel[this.params.length];
-      for (int i = 0; i < ps.length; i++) {
-        ps[i] = this.params[i].normalize();
-      }
-      if ((a = this.tconInfo.props.defGetter.getAliasDef()) != null) {
-        t = a.unalias(ps);
-      } else {
-        t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
-      }
-    // }
-    return t;
-  }
-
-  static boolean isExposed(PTypeDesc type) {
-    return isLangType(type, Module.TCON_EXPOSED);
-  }
-
-  static boolean isBottom(PTypeDesc type) {
-    return isLangType(type, Module.TCON_BOTTOM);
-  }
-
-  // static boolean willNotReturn(PTypeDesc type) {
-    // return isLangType(type, Module.TCON_BOTTOM);
-  // }
-
-  static boolean isList(PTypeDesc type) {
-    return isLangType(type, Module.TCON_LIST);
-  }
-
-  static boolean isFun(PTypeDesc type) {
-    return isLangType(type, Module.TCON_FUN);
-  }
-
-  static boolean isLangType(PTypeDesc type, String tcon) {
-    boolean b;
-    if (type instanceof PTypeRef) {
-      PTypeRef tr = (PTypeRef)type;
-      if (tr.tconInfo == null) { throw new IllegalArgumentException("Tcon not resolved. " + tr.toString()); }
-      b = tr.tconInfo.key.modName.equals(Module.MOD_LANG) && tr.tconInfo.key.tcon.equals(tcon);
-    } else {
-      b = false;
+    PAliasTypeDef a;
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].normalize();
     }
-    return b;
+    if ((a = this.tconInfo.props.defGetter.getAliasTypeDef()) != null) {
+      t = a.unalias(ps);
+    } else {
+      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+    }
+    return t;
   }
 
   public PTypeSkel getSkel() {
     PTypeSkel t;
-    // if (isBottom(this)) {
-      // t = PBottomSkel.create(this.srcInfo);
-    // } else {
-      PTypeSkel[] ps = new PTypeSkel[this.params.length];
-      for (int i = 0; i < ps.length; i++) {
-        ps[i] = this.params[i].getSkel();
-      }
-      t =  PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
-    // }
-    return t;
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].getSkel();
+    }
+    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
   }
 }

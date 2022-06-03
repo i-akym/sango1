@@ -27,9 +27,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PStringPtn extends PDefaultPtnElem {
+class PStringPtn extends PDefaultExprObj {
   boolean isFromCstr;
   PPtnMatch[] elems;
+
+  PStringPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -45,20 +49,21 @@ class PStringPtn extends PDefaultPtnElem {
   }
 
   static class Builder {
+    int context;  // PPtnMatch.CONTEXT_*
     PStringPtn string;
     List<PPtnMatch> elemList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.string = new PStringPtn();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.string = new PStringPtn(srcInfo, outerScope);
       this.elemList = new ArrayList<PPtnMatch>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.string.srcInfo = si;
+    void setContext(int context) {
+      this.context = context;
     }
 
     void setFromCstr() {
@@ -81,17 +86,16 @@ class PStringPtn extends PDefaultPtnElem {
     }
   }
 
-  static PStringPtn accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PStringPtn accept(ParserA.TokenReader reader, PScope outerScope, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.CSTR, spc)) != null) {
-      return fromCstr(t);
+      return fromCstr(t, outerScope, context);
     } else if ((t = ParserA.acceptToken(reader, LToken.LBRACKET_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
-    builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, 0));
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    builder.addElemSeq(PPtnMatch.acceptPosdSeq(reader, outerScope, 0, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -107,14 +111,13 @@ class PStringPtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PStringPtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PStringPtn acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("string")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PPtnMatch pm = PPtnMatch.acceptX(e);
+      PPtnMatch pm = PPtnMatch.acceptX(e, outerScope, context);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -127,34 +130,30 @@ class PStringPtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PStringPtn fromCstr(ParserA.Token cstrToken) {
-    Builder builder = new Builder();
-    builder.setSrcInfo(cstrToken.getSrcInfo());
+  static PStringPtn fromCstr(ParserA.Token cstrToken, PScope outerScope, int context) {
+    Builder builder = new Builder(cstrToken.getSrcInfo(), outerScope);
+    builder.setContext(context);
     builder.setFromCstr();
     Cstr cstr = cstrToken.value.cstrValue;
     Parser.SrcInfo si = cstrToken.getSrcInfo();
     for (int i = 0; i < cstr.getLength(); i++) {
-      builder.addElem(PPtnMatch.create(PChar.create(si, cstr.getCharAt(i))));
+      builder.addElem(PPtnMatch.create(cstrToken.getSrcInfo(), outerScope, context, null, PChar.create(si, outerScope, cstr.getCharAt(i))));
     }
     return builder.create();
   }
 
-  public PStringPtn setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].setupScope(scope);
+      this.elems[i].collectModRefs();
     }
-    return this;
   }
 
-  public PStringPtn resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PStringPtn resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].resolveId();
+      this.elems[i] = this.elems[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 
@@ -164,8 +163,6 @@ class PStringPtn extends PDefaultPtnElem {
     }
     if (this.isFromCstr) {
       this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getSkel();
-    // } else if (this.elems.length == 0)  {
-      // this.nTypeSkel = this.scope.getEmptyStringType(this.srcInfo).getSkel();
     }
   }
 

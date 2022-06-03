@@ -151,7 +151,7 @@ eval <cstr> *S <cstr> *Seq <cstr> *New replace_all_cstr @public -> <cstr> {
 eval <cstr> *S0 <cstr> *S1 compare @public -> <ordering> {
   S0 length = *L0,
   S1 length = *L1,
-  0 &\ <int> *Pos -> {
+  0 &\ <int> *Pos -> <ordering> {
     (| L0, L1 |) case {
     ; (| Pos, Pos |) -> eq$
     ; (| Pos, ** |) -> lt$
@@ -212,7 +212,7 @@ eval <cstr> *S0 <cstr> *S1 eq_ignore_case? @public -> <bool> {
 eval <cstr> *Str repr @public -> <cstr> {
   str.new_string_buf = *Buf,
   Buf "\"" str.append = *Buf',
-  Buf' 0 &\ <char str.string_buf> *B <int> *Pos -> {
+  Buf' 0 &\ <char str.string_buf> *B <int> *Pos -> <char str.string_buf> {
     if {
     ; Pos (Str length) lt? -> B ((Str Pos char) char.in_cstr$ char.raw_repr) str.append = *B', B' (Pos inc) &&
     ; otherwise -> B

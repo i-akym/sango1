@@ -30,7 +30,7 @@ import java.util.Map;
 import org.sango_lang.Module;
 import org.sango_lang.CompileException;
 import org.sango_lang.Cstr;
-import org.sango_lang.PAliasDef;
+import org.sango_lang.PAliasTypeDef;
 import org.sango_lang.PDataDef;
 import org.sango_lang.PDefDict;
 import org.sango_lang.PTypeId;
@@ -38,7 +38,7 @@ import org.sango_lang.PTypeSkel;
 import org.sango_lang.PTypeSkelBindings;
 import org.sango_lang.PTypeRefSkel;
 import org.sango_lang.PTypeVarSkel;
-import org.sango_lang.PTVarSlot;
+import org.sango_lang.PTypeVarSlot;
 import org.sango_lang.RActorHItem;
 import org.sango_lang.RArrayItem;
 import org.sango_lang.RClosureItem;
@@ -433,7 +433,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTVarSlot.createInternal(Module.INVARIANT, false), null);  // HERE
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(Module.INVARIANT, false), null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
@@ -448,16 +448,16 @@ public class SNImodule {
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    // PAliasDef aliasDef;
+    // PAliasTypeDef aliasTypeDef;
 
-    DataDefGetter(PDataDef dataDef /* , PAliasDef aliasDef */) {
+    DataDefGetter(PDataDef dataDef /* , PAliasTypeDef aliasTypeDef */) {
       this.dataDef = dataDef;
-      // this.aliasDef = aliasDef;
+      // this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasDef getAliasDef() { return null; /* this.aliasDef; */ }
+    public PAliasTypeDef getAliasTypeDef() { return null; /* this.aliasTypeDef; */ }
   }
 
   static class DataDef implements PDataDef {

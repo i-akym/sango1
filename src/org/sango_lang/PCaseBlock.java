@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PCaseBlock extends PDefaultTypedElem {
+class PCaseBlock extends PDefaultExprObj {
   PCaseClause[] clauses;
 
-  private PCaseBlock() {}
+  private PCaseBlock(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -49,18 +51,16 @@ class PCaseBlock extends PDefaultTypedElem {
     PCaseBlock caseBlock;
     List<PCaseClause> clauseList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.caseBlock = new PCaseBlock();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.caseBlock = new PCaseBlock(srcInfo, outerScope);
       this.clauseList = new ArrayList<PCaseClause>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.caseBlock.srcInfo = si;
-    }
+    PScope getScope() { return this.caseBlock.scope; }
 
     void addClause(PCaseClause clause) {
       this.clauseList.add(clause);
@@ -72,20 +72,20 @@ class PCaseBlock extends PDefaultTypedElem {
     }
   }
 
-  static PCaseBlock accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PCaseBlock accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token next = reader.getNextToken();
     if (!next.tagEquals(LToken.LBRACE) || ParserA.acceptSpecifiedWord(reader, "case", spc) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
+    Builder builder = Builder.newInstance(si, outerScope);
+    PScope scope = builder.getScope();
     ParserA.acceptToken(reader, LToken.LBRACE, ParserA.SPACE_DO_NOT_CARE);
     PCaseClause clause = null;
     int state = 0;
     while (state >= 0) {
-      if (state == 0 && (clause = PCaseClause.accept(reader)) != null) {
+      if (state == 0 && (clause = PCaseClause.accept(reader, scope)) != null) {
         builder.addClause(clause);
         state = 1;
       } else if (ParserA.acceptToken(reader, LToken.SEM, ParserA.SPACE_DO_NOT_CARE) != null) {
@@ -109,22 +109,27 @@ class PCaseBlock extends PDefaultTypedElem {
     return builder.create();
   }
 
-  public PCaseBlock setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.clauses.length; i++) {
+      // this.clauses[i].setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].setupScope(scope);
+      this.clauses[i].collectModRefs();
     }
-    return this;
   }
 
-  public PCaseBlock resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PCaseBlock resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].resolveId();
+      this.clauses[i] = this.clauses[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

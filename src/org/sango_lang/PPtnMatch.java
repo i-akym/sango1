@@ -27,11 +27,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PPtnMatch extends PDefaultPtnElem {
-  PImpose impose;  // maybe null
-  PPtnElem ptn;
+class PPtnMatch extends PDefaultExprObj {
+  static final int CONTEXT_FIXED = 1;
+  static final int CONTEXT_TRIAL = 2;
 
-  private PPtnMatch() {}
+  int context;
+  PImpose impose;  // maybe null
+  PExprObj ptn;
+
+  private PPtnMatch(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -47,32 +53,28 @@ class PPtnMatch extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PPtnMatch create(Parser.SrcInfo srcInfo, PImpose impose, PPtnElem ptn) {
-    PPtnMatch pm = new PPtnMatch();
-    pm.srcInfo = srcInfo;
+  static PPtnMatch create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PImpose impose, PExprObj ptn) {
+    PPtnMatch pm = new PPtnMatch(srcInfo, outerScope);
+    pm.context = context;
     pm.impose = impose;
     pm.ptn = ptn;
     return pm;
   }
 
-  static PPtnMatch create(PPtnElem ptn) {
-    return create(ptn.getSrcInfo(), null, ptn);
-  }
-
-  static PPtnMatch accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PPtnMatch accept(ParserA.TokenReader reader, PScope outerScope, int context) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    PTypeDesc type;
-    PTypeDesc imposingType = null;
-    PTypeDesc cast = null;
-    if ((type = PType.accept(reader, ParserA.SPACE_DO_NOT_CARE)) != null) {
+    PType type;
+    PType imposingType = null;
+    PType cast = null;
+    if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE)) != null) {
       if (ParserA.acceptToken(reader, LToken.EQ_EQ, ParserA.SPACE_DO_NOT_CARE) != null) {
         imposingType = type;
       } else {
         cast = type;
       }
     }
-    PPtnElem ptn = PPtn.accept(reader, cast);
+    PExprObj ptn = PPtn.accept(reader, outerScope, context, cast);
     if (type != null && ptn == null) {
       emsg = new StringBuffer();
       emsg.append("Pattern missing or invalid at ");
@@ -81,11 +83,11 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     return (ptn != null)?
-      create(si, (imposingType != null)? PImpose.create(si, imposingType): null, ptn):
+      create(si, outerScope, context, (imposingType != null)? PImpose.create(si, outerScope, imposingType): null, ptn):
       null;
   }
 
-  static PPtnMatch acceptX(ParserB.Elem elem) throws CompileException {
+  static PPtnMatch acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("ptn-match")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -97,7 +99,7 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     Parser.SrcInfo impsi = null;
-    PTypeDesc t = null;
+    PType t = null;
     if (e.getName().equals("impose")) {
       impsi = e.getSrcInfo();
       ParserB.Elem ee = e.getFirstChild();
@@ -108,7 +110,7 @@ class PPtnMatch extends PDefaultPtnElem {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      t = PType.acceptX(ee);
+      t = PType.acceptX(ee, outerScope);
       if (t == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -138,7 +140,7 @@ class PPtnMatch extends PDefaultPtnElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PPtnElem p = PPtn.acceptX(ee);
+    PExprObj p = PPtn.acceptX(ee, outerScope, context);
     if (p == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -146,17 +148,17 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     return create(
-      elem.getSrcInfo(),
-      (t != null)? PImpose.create(impsi, t): null,
+      elem.getSrcInfo(), outerScope, context,
+      (t != null)? PImpose.create(impsi, outerScope, t): null,
       p);
   }
 
-  static PPtnMatch acceptEnclosed(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PPtnMatch acceptEnclosed(ParserA.TokenReader reader, PScope outerScope, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token lpar;
     if ((lpar = ParserA.acceptToken(reader, LToken.LPAR, spc)) == null) { return null; }
     PPtnMatch ptnMatch;
-    if ((ptnMatch = accept(reader)) == null) {
+    if ((ptnMatch = accept(reader, outerScope, context)) == null) {
       emsg = new StringBuffer();
       emsg.append("Pattern missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -171,10 +173,11 @@ class PPtnMatch extends PDefaultPtnElem {
       throw new CompileException(emsg.toString());
     }
     ptnMatch.srcInfo = lpar.getSrcInfo();  // set source info to lpar's
+    ptnMatch.context = context;
     return ptnMatch;
   }
 
-  static List<PPtnMatch> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
+  static List<PPtnMatch> acceptPosdSeq(ParserA.TokenReader reader, PScope outerScope, int min, int context) throws CompileException, IOException {
     StringBuffer emsg;
     List<PPtnMatch> ptnMatchList = new ArrayList<PPtnMatch>();
     PPtnMatch ptnMatch = null;
@@ -184,7 +187,7 @@ class PPtnMatch extends PDefaultPtnElem {
       srcInfo = reader.getCurrentSrcInfo();
       switch (state) {
       case 0:
-        if ((ptnMatch = accept(reader)) != null) {
+        if ((ptnMatch = accept(reader, outerScope, context)) != null) {
           ptnMatchList.add(ptnMatch);
           state = 1;
         } else {
@@ -199,7 +202,7 @@ class PPtnMatch extends PDefaultPtnElem {
         }
         break;
       default:  // case 2
-        if ((ptnMatch = accept(reader)) != null) {
+        if ((ptnMatch = accept(reader, outerScope, context)) != null) {
           ptnMatchList.add(ptnMatch);
           state = 1;
         } else {
@@ -222,24 +225,30 @@ class PPtnMatch extends PDefaultPtnElem {
     return ptnMatchList;
   }
 
-  public PPtnMatch setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // if (this.impose != null) {
+      // this.impose.setupScope(scope);
+    // }
+    // this.ptn.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     if (this.impose != null) {
-      this.impose = this.impose.setupScope(scope);
+      this.impose.collectModRefs();
     }
-    this.ptn = (PPtnElem)this.ptn.setupScope(scope);
-    return this;
+    this.ptn.collectModRefs();
   }
 
-  public PPtnMatch resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PPtnMatch resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     if (this.impose != null) {
-      this.impose = this.impose.resolveId();
+      this.impose = this.impose.resolve();
     }
-    this.ptn = this.ptn.resolveId();
-    this.idResolved = true;
+    this.ptn = this.ptn.resolve();
+    // this.idResolved = true;
     return this;
   }
 

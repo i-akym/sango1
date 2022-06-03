@@ -27,13 +27,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PCaseClause extends PDefaultTypedElem {
+class PCaseClause extends PDefaultExprObj {
   PCasePtnMatch[] ptnMatches;
-  PExpr[] guardExprs;  // maybe null
-  PExpr[] actionExprs;  // void$ included if no expressions
+  PExprList.Seq guard;  // maybe null
+  PExprList.Seq action;  // void$ included if no expressions
   PScope outerScope;
 
-  private PCaseClause() {}
+  private PCaseClause(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -45,19 +47,13 @@ class PCaseClause extends PDefaultTypedElem {
       buf.append(",");
     }
     buf.append("]");
-    if (this.guardExprs != null) {
+    if (this.guard != null) {
       buf.append(",guard=[");
-      for (int i = 0; i < this.guardExprs.length; i++) {
-        buf.append(this.guardExprs[i]);
-        buf.append(",");
-      }
+      buf.append(this.guard);
       buf.append("]");
     }
-    buf.append(",exprs=[");
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      buf.append(this.actionExprs[i]);
-      buf.append(",");
-    }
+    buf.append(",action=[");
+    buf.append(this.action);
     buf.append("]]");
     return buf.toString();
   }
@@ -65,23 +61,21 @@ class PCaseClause extends PDefaultTypedElem {
   static class Builder {
     PCaseClause clause;
     List<PCasePtnMatch> ptnMatchList;
-    List<PExpr> guardExprList;
-    List<PExpr> actionExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.clause = new PCaseClause();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.clause = new PCaseClause(srcInfo, outerScope);
       this.ptnMatchList = new ArrayList<PCasePtnMatch>();
-      this.guardExprList = new ArrayList<PExpr>();
-      this.actionExprList = new ArrayList<PExpr>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.clause.srcInfo = si;
-    }
+    PScope getScope() { return this.clause.scope; }
+
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.clause.srcInfo = si;
+    // }
 
     void addPtnMatch(PCasePtnMatch ptnMatch) {
       this.ptnMatchList.add(ptnMatch);
@@ -93,24 +87,12 @@ class PCaseClause extends PDefaultTypedElem {
       }
     }
 
-    void addGuardExpr(PExpr expr) {
-      this.guardExprList.add(expr);
+    void setGuard(PExprList.Seq seq) {
+      this.clause.guard = seq;
     }
 
-    void addGuardExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addGuardExpr(exprList.get(i));
-      }
-    }
-
-    void addActionExpr(PExpr expr) {
-      this.actionExprList.add(expr);
-    }
-
-    void addActionExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addActionExpr(exprList.get(i));
-      }
+    void setAction(PExprList.Seq seq) {
+      this.clause.action = seq;
     }
 
     PCaseClause create() throws CompileException {
@@ -123,32 +105,30 @@ class PCaseClause extends PDefaultTypedElem {
         throw new CompileException(emsg.toString());
       }
       this.clause.ptnMatches = this.ptnMatchList.toArray(new PCasePtnMatch[this.ptnMatchList.size()]);
-      this.clause.guardExprs = this.guardExprList.isEmpty()? null: this.guardExprList.toArray(new PExpr[this.guardExprList.size()]);
-      this.clause.actionExprs = this.actionExprList.toArray(new PExpr[this.actionExprList.size()]);
       return this.clause;
     }
   }
 
-  static PCaseClause accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PCaseClause accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    List<PCasePtnMatch> ptnMatchList = PCasePtnMatch.acceptSeq(reader);
+    Builder builder = Builder.newInstance(si, outerScope);
+    PScope scope = builder.getScope();
+    List<PCasePtnMatch> ptnMatchList = PCasePtnMatch.acceptSeq(reader, scope);
     if (ptnMatchList.isEmpty()) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(si);
     builder.addPtnMatchList(ptnMatchList);
     if (ParserA.acceptToken(reader, LToken.VBAR_VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
-      List<PExpr> guardExprList = PExpr.acceptSeq(reader, false);
-      if (guardExprList == null || guardExprList.size() == 0) {
+      PExprList.Seq guardSeq = PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), scope, false);
+      if (guardSeq == null || guardSeq.exprs.length == 0) {
         emsg = new StringBuffer();
         emsg.append("Condition missing at ");
         emsg.append(reader.getCurrentSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      builder.addGuardExprList(guardExprList);
+      builder.setGuard(guardSeq);
     }
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -157,15 +137,15 @@ class PCaseClause extends PDefaultTypedElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.addActionExprList(PExpr.acceptSeq(reader, true));
+    builder.setAction(PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), scope, true));
     return builder.create();
   }
 
-  static PCaseClause acceptX(ParserB.Elem elem) throws CompileException {
+  static PCaseClause acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("case-clause")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -189,7 +169,7 @@ class PCaseClause extends PDefaultTypedElem {
       throw new CompileException(emsg.toString());
     }
     while (ee != null) {
-      PCasePtnMatch pm = PCasePtnMatch.acceptX(ee);
+      PCasePtnMatch pm = PCasePtnMatch.acceptX(ee, scope);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -201,17 +181,20 @@ class PCaseClause extends PDefaultTypedElem {
     }
     e = e.getNextSibling();
     if (e != null && e.getName().equals("cond")) {
+      Parser.SrcInfo si = e.getSrcInfo();
       ee = e.getFirstChild();
+      List<PExpr> ges = new ArrayList<PExpr>();
       while (ee != null) {
-        PExpr ex = PExpr.acceptX(ee);
+        PExpr ex = PExpr.acceptX(ee, scope);
         if (ex == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
           emsg.append(ee.getSrcInfo().toString());
           throw new CompileException(emsg.toString());
         }
-        builder.addGuardExpr(ex);
+        ges.add(ex);
       }
+      builder.setGuard(PExprList.Seq.create(si, scope, ges));
       e = e.getNextSibling();
     }
     if (e == null) {
@@ -227,65 +210,63 @@ class PCaseClause extends PDefaultTypedElem {
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
+    Parser.SrcInfo si = e.getSrcInfo();
     ee = e.getFirstChild();
+    List<PExpr> aes = new ArrayList<PExpr>();
     if (ee == null) {
-      builder.addActionExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo(), scope));
     } else {
       while (ee != null) {
-        PExpr ex = PExpr.acceptX(ee);
+        PExpr ex = PExpr.acceptX(ee, scope);
         if (ex == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
           emsg.append(ee.getSrcInfo().toString());
           throw new CompileException(emsg.toString());
         }
-        builder.addActionExpr(ex);
+        aes.add(ex);
         ee = ee.getNextSibling();
       }
     }
+    builder.setAction(PExprList.Seq.create(si, scope, aes));
     return builder.create();
   }
 
-  public PCaseClause setupScope(PScope scope) throws CompileException {
-    StringBuffer emsg;
-    if (scope == this.outerScope) { return this; }
-    this.outerScope = scope;
-    this.scope = scope.enterInner();
-    this.idResolved = false;
-    if (this.ptnMatches.length == 1) {
-      this.ptnMatches[0] = this.ptnMatches[0].setupScope(this.scope);
-    } else {
-      this.scope.enableDefineEVar(false);
-      for (int i = 0; i < this.ptnMatches.length; i++) {
-        ptnMatches[i].setupScope(this.scope);
-      }
-      this.scope.enableDefineEVar(true);
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (scope == this.outerScope) { return; }
+    // this.outerScope = scope;
+    // this.scope = scope.enterInnerWithParallelScopes();
+    // this.idResolved = false;
+    // for (int i = 0; i < this.ptnMatches.length; i++) {
+      // ptnMatches[i].setupScope(this.scope.enterInnterParallel());
+    // }
+    // if (this.guard != null) {
+      // this.guard.setupScope(this.scope);
+    // }
+    // this.action.setupScope(this.scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    for (int i = 0; i < this.ptnMatches.length; i++) {
+      ptnMatches[i].collectModRefs();
     }
-    if (this.guardExprs != null) {
-      for (int i = 0; i < this.guardExprs.length; i++) {
-        this.guardExprs[i] = this.guardExprs[i].setupScope(this.scope);
-      }
+    if (this.guard != null) {
+      this.guard.collectModRefs();
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].setupScope(this.scope);
-    }
-    return this;
+    this.action.collectModRefs();
   }
 
-  public PCaseClause resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PCaseClause resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.ptnMatches.length; i++) {
-      this.ptnMatches[i] = this.ptnMatches[i].resolveId();
+      this.ptnMatches[i] = this.ptnMatches[i].resolve();
     }
-    if (this.guardExprs != null) {
-      for (int i = 0; i < this.guardExprs.length; i++) {
-        this.guardExprs[i] = this.guardExprs[i].resolveId();
-      }
+    if (this.guard != null) {
+      this.guard = this.guard.resolve();
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].resolveId();
-    }
-    this.idResolved = true;
+    this.action = this.action.resolve();
+    // this.idResolved = true;
     return this;
   }
 
@@ -293,51 +274,21 @@ class PCaseClause extends PDefaultTypedElem {
     for (int i = 0; i < this.ptnMatches.length; i++) {
       this.ptnMatches[i].normalizeTypes();
     }
-    if (this.guardExprs != null) {
-      for (int i = 0; i < this.guardExprs.length; i++) {
-        this.guardExprs[i].normalizeTypes();
-      }
+    if (this.guard != null) {
+      this.guard.normalizeTypes();
     }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i].normalizeTypes();
-    }
+    this.action.normalizeTypes();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createRefNode(this);
     for (int i = 0; i < this.ptnMatches.length; i++) {
       this.ptnMatches[i].setupTypeGraph(graph);
     }
-    PTypeGraph.Node n = null;
-    PExpr e = null;
-    if (this.guardExprs != null) {
-      for (int i = 0; i < this.guardExprs.length; i++) {
-        e = this.guardExprs[i];
-        if (n == null) {
-          n = e.setupTypeGraph(graph);
-        } else {
-          PTypeGraph.SeqNode s = graph.createSeqNode(e);
-          s.setLeadingTypeNode(n);
-          s.setInNode(e.setupTypeGraph(graph));
-          n = s;
-        }
-      }
-      graph.createCondNode(e).setInNode(n);
+    if (this.guard != null) {
+      graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));
     }
-    e = null;
-    n = null;
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      e = this.actionExprs[i];
-      if (n == null) {
-        n = e.setupTypeGraph(graph);
-      } else {
-        PTypeGraph.SeqNode s = graph.createSeqNode(e);
-        s.setLeadingTypeNode(n);
-        s.setInNode(e.setupTypeGraph(graph));
-        n = s;
-      }
-    }
-    this.typeGraphNode.setInNode(n);
+    this.typeGraphNode = graph.createRefNode(this);
+    this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }
 
@@ -359,21 +310,13 @@ class PCaseClause extends PDefaultTypedElem {
       }
       gn.addChild(psn);
     }
-    if (this.guardExprs != null) {
-      GFlow.CondNode cn = flow.createNodeForCond(this.guardExprs[0].getSrcInfo());
-      for (int i = 0; i < this.guardExprs.length; i++) {
-        cn.addChild(this.guardExprs[i].setupFlow(flow));
-      }
+    if (this.guard != null) {
+      GFlow.CondNode cn = flow.createNodeForCond(this.guard.getSrcInfo());
+      cn.addChild(this.guard.setupFlow(flow));
       gn.addChild(cn);
     }
-    GFlow.TrialNode t = flow.createTrialNodeInBranch(this.srcInfo, gn, node);
-    node.addChild(t);
-    GFlow.SeqNode an = flow.createNodeForAction(this.actionExprs[0].getSrcInfo());
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      an.addChild(flow.createSinkNode(this.actionExprs[i].getSrcInfo()));  // first 'sink' purges preserved input value of case block
-      an.addChild(this.actionExprs[i].setupFlow(flow));
-    }
-    node.addChild(an);
+    node.addChild(flow.createTrialNodeInBranch(this.srcInfo, gn, node));
+    node.addChild(this.action.setupFlow(flow));
     return node;
   }
 }

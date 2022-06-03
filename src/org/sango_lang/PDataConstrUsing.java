@@ -26,7 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PDataConstrUsing extends PDefaultProgElem {
-  private PDataConstrUsing() {}
+  private PDataConstrUsing(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -37,9 +39,7 @@ class PDataConstrUsing extends PDefaultProgElem {
   }
 
   static PDataConstrUsing create(Parser.SrcInfo srcInfo) {
-    PDataConstrUsing dcu = new PDataConstrUsing();
-    dcu.srcInfo = srcInfo;
-    return dcu;
+    return new PDataConstrUsing(srcInfo);
   }
 
   static PDataConstrUsing accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
@@ -47,11 +47,15 @@ class PDataConstrUsing extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  public PDataConstrUsing setupScope(PScope scope) throws CompileException {
-    throw new RuntimeException("PDataConstrUsing#setupScope() called. - " + this.toString());
+  // public void setupScope(PScope scope) {
+    // throw new RuntimeException("PDataConstrUsing#setupScope() called. - " + this.toString());
+  // }
+
+  public void collectModRefs() throws CompileException {
+    throw new RuntimeException("PDataConstrUsing#collectModRefs() called. - " + this.toString());
   }
 
-  public PDataConstrUsing resolveId() throws CompileException {
+  public PDataConstrUsing resolve() throws CompileException {
     throw new RuntimeException("PDataConstrUsing#resolveId() called. - " + this.toString());
   }
 

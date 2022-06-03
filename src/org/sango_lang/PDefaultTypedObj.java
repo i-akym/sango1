@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,22 +23,29 @@
  ***************************************************************************/
 package org.sango_lang;
 
-import java.util.List;
+abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
+  PType type;
+  PTypeSkel nTypeSkel;
+  PTypeGraph.Node typeGraphNode;
 
-public interface PAliasDef {
+  PDefaultTypedObj(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
+  }
 
-  String getTcon();
+  public PType getType() { return this.type; }
 
-  PTVarSlot[] getParamVarSlots();
-  
-  int getAvailability();
+  public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
 
-  int getAcc();
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    throw new RuntimeException("PTypedObj#setupTypeGraph called. - " + this.toString());
+  }
 
-  void collectUnaliasTconInfo(List<PDefDict.TconInfo> list);
+  public PTypeGraph.Node getTypeGraphNode() { return this.typeGraphNode; }
 
-  PTypeRefSkel getBody();
+  public void setTypeGraphNode(PTypeGraph.Node node) {
+    this.typeGraphNode = node;
+  }
 
-  PTypeRefSkel unalias(PTypeSkel[] params);
+  public PTypeSkel getFixedType() { return this.typeGraphNode.getFixedType(); }
 
 }

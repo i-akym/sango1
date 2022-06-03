@@ -161,14 +161,14 @@ eval <board> *Board print_board -> <void> {
 eval <card list> *Homes print_homes -> <void> {
   "  Home   (.)  " stdio.print,
   (Homes
-    \ <card> *C -> { C (_initd_ color_display) card_display }
+    \ <card> *C -> <cstr> { C (_initd_ color_display) card_display }
     list.map) " " cstr.join_with_cstr >> stdio.print_and_newline
 } ;;
 
 eval <<card maybe> list> *Frees print_frees -> <void> {
   "  Free   (-)  " stdio.print,
   (Frees
-    \ <card maybe> *C_ -> { C_ (_initd_ color_display) maybe_card_display }
+    \ <card maybe> *C_ -> <cstr> { C_ (_initd_ color_display) maybe_card_display }
     list.map) " " cstr.join_with_cstr >> stdio.print_and_newline
 } ;;
 
@@ -179,7 +179,7 @@ eval <<card list> list> *Cascades print_cascades -> <void> {
 eval <card list> *Cascade print_cascade -> <void> {
   "  Cascade(>)  " stdio.print,
   ((Cascade list.reverse)
-    \ <card> *C -> { C (_initd_ color_display) card_display }
+    \ <card> *C -> <cstr> { C (_initd_ color_display) card_display }
     list.map) " " cstr.join_with_cstr >> stdio.print_and_newline
 } ;;
 

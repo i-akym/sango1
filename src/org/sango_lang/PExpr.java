@@ -27,12 +27,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PExpr extends PDefaultEvalElem {
-  PEvalElem eval;
+class PExpr extends PDefaultExprObj implements PEval {
+  PEval eval;
   PPtnMatch ptnMatch;
 
-  PExpr(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
-    this.srcInfo = srcInfo;
+  PExpr(Parser.SrcInfo srcInfo, PScope outerScope, PEval eval, PPtnMatch ptnMatch) {
+    super(srcInfo, outerScope);
     this.eval = eval;
     this.ptnMatch = ptnMatch;
   }
@@ -49,21 +49,21 @@ class PExpr extends PDefaultEvalElem {
     return buf.toString();
   }
 
-  static PExpr create(Parser.SrcInfo srcInfo, PEvalElem eval, PPtnMatch ptnMatch) {
-    return new PExpr(srcInfo, eval, ptnMatch);
+  static PExpr create(Parser.SrcInfo srcInfo, PScope outerScope, PEval eval, PPtnMatch ptnMatch) {
+    return new PExpr(srcInfo, outerScope, eval, ptnMatch);
   }
 
-  static PExpr create(PEvalElem eval) {
-    return create(eval.getSrcInfo(), eval, null);
+  static PExpr create(PEval eval) {
+    return create(eval.getSrcInfo(), eval.getScope(), eval, null);
   }
 
-  static PExpr accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PExpr accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
-    PEvalElem eval;
-    if ((eval = PEval.accept(reader)) == null) { return null; }
+    PEval eval;
+    if ((eval = PEval.accept(reader, outerScope)) == null) { return null; }
     PPtnMatch ptnMatch = null;
     if (ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE) != null) {
-      if ((ptnMatch = PPtnMatch.accept(reader)) == null) {
+      if ((ptnMatch = PPtnMatch.accept(reader, outerScope, PPtnMatch.CONTEXT_FIXED)) == null) {
         emsg = new StringBuffer();
         emsg.append("Pattern matching missing at ");
         emsg.append(reader.getCurrentSrcInfo());
@@ -71,55 +71,33 @@ class PExpr extends PDefaultEvalElem {
         throw new CompileException(emsg.toString());
       }
     }
-    return create(eval.getSrcInfo(), eval, ptnMatch);
+    return create(eval.getSrcInfo(), outerScope, eval, ptnMatch);
   }
 
-  static List<PEvalElem> acceptPosdSeq(ParserA.TokenReader reader, int min) throws CompileException, IOException {
+  static PExpr acceptEnclosed(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
-    List<PEvalElem> evalList = new ArrayList<PEvalElem>();
-    PEvalElem expr = null;
-    int state = 0;
-    while (state >= 0)  {
-      switch (state) {
-      case 0:
-        if ((expr = accept(reader)) != null) {
-          evalList.add(expr);
-          state = 1;
-        } else {
-          state = -1;
-        }
-        break;
-      case 1:
-        if (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE) != null) {
-          state = 2;
-        } else {
-          state = -1;
-        }
-        break;
-      default:  // case 2
-        if ((expr = accept(reader)) != null) {
-          evalList.add(expr);
-          state = 1;
-        } else {
-          emsg = new StringBuffer();
-          emsg.append("Expression missing at ");
-          emsg.append(reader.getCurrentSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        break;
-      }
-    }
-    if (evalList.size() < min) {
+    ParserA.Token lpar;
+    if ((lpar = ParserA.acceptToken(reader, LToken.LPAR, spc)) == null) { return null; }
+    PExpr expr;
+    if ((expr = accept(reader, outerScope)) == null) {
       emsg = new StringBuffer();
-      emsg.append("Insufficient expressions at ");
+      emsg.append("Expression missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return evalList;
+    if ((ParserA.acceptToken(reader, LToken.RPAR, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("\")\" missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    expr.srcInfo = lpar.getSrcInfo();  // set source info to lpar's
+    return expr;
   }
-  static PExpr acceptX(ParserB.Elem elem) throws CompileException {
+
+  static PExpr acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("expr")) { return null; }
     ParserB.Elem e = elem.getFirstChild();
@@ -144,7 +122,7 @@ class PExpr extends PDefaultEvalElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PEvalElem eval = PEval.acceptX(ee);
+    PEval eval = PEval.acceptX(ee, outerScope);
     if (eval == null) {
       emsg = new StringBuffer();
       emsg.append("Unexpected XML node. - ");
@@ -155,7 +133,7 @@ class PExpr extends PDefaultEvalElem {
 
     PPtnMatch pm = null;
     if (e != null) {
-      pm = PPtnMatch.acceptX(e);
+      pm = PPtnMatch.acceptX(e, outerScope, PPtnMatch.CONTEXT_FIXED);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -163,58 +141,44 @@ class PExpr extends PDefaultEvalElem {
         throw new CompileException(emsg.toString());
       }
     }
-    return create(elem.getSrcInfo(), eval, pm);
+    return create(elem.getSrcInfo(), outerScope, eval, pm);
   }
 
-  static List<PExpr> acceptSeq(ParserA.TokenReader reader, boolean voidAssumedWhenEmpty) throws CompileException, IOException {
-    List<PExpr> exprList = new ArrayList<PExpr>();
-    PExpr expr = null;
-    int state = 0;
-    while (state >= 0)  {
-      if (state == 0 && (expr = PExpr.accept(reader)) != null) {
-        exprList.add(expr);
-        state = 1;
-      } else if (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE) != null) {
-        state = 0;
-      } else {
-        state = -1;
-      }
-    }
-    if (exprList.size() == 0 && voidAssumedWhenEmpty) {
-      exprList.add(createDummyVoidExpr(reader.getCurrentSrcInfo()));
-    }
-    return exprList;
-  }
-
-  static PExpr createDummyVoidExpr(Parser.SrcInfo si) {
+  static PExpr createDummyVoidExpr(Parser.SrcInfo si, PScope outerScope) {
     try {
-      PEval.Builder voidEvalBuilder = PEval.Builder.newInstance();
-      voidEvalBuilder.setSrcInfo(si);
-      voidEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, PModule.MOD_ID_LANG, "void$")));
-      return create(si, voidEvalBuilder.create() , null);
+      PEval.Builder voidEvalBuilder = PEval.Builder.newInstance(si, outerScope);
+      /// voidEvalBuilder.setSrcInfo(si);
+      voidEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, outerScope, PModule.MOD_ID_LANG, "void$")));
+      return create(si, outerScope, voidEvalBuilder.create() , null);
     } catch (CompileException ex) {
       throw new RuntimeException(ex.toString());
     }
   }
 
-  public PExpr setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    this.eval = (PEvalElem)this.eval.setupScope(scope);
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // this.eval.setupScope(scope);
+    // if (this.ptnMatch != null) {
+      // this.ptnMatch.setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.eval.collectModRefs();
     if (this.ptnMatch != null) {
-      this.ptnMatch = this.ptnMatch.setupScope(scope);
+      this.ptnMatch.collectModRefs();
     }
-    return this;
   }
 
-  public PExpr resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    this.eval = (PEvalElem)this.eval.resolveId();
+  public PExpr resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
+    this.eval = this.eval.resolve();
     if (this.ptnMatch != null) {
-      this.ptnMatch = this.ptnMatch.resolveId();
+      this.ptnMatch = this.ptnMatch.resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

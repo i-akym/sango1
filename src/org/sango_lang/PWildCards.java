@@ -25,8 +25,10 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PWildCards extends PDefaultProgElem {
-  private PWildCards() {}
+class PWildCards extends PDefaultExprObj {
+  private PWildCards(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -36,24 +38,22 @@ class PWildCards extends PDefaultProgElem {
     return buf.toString();
   }
 
-  static PWildCards create(Parser.SrcInfo srcInfo) {
-    PWildCards i = new PWildCards();
-    i.srcInfo = srcInfo;
-    return i;
+  static PWildCards create(Parser.SrcInfo srcInfo, PScope outerScope) {
+    return new PWildCards(srcInfo, outerScope);
   }
 
-  static PWildCards accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PWildCards accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.AST_AST_AST, spc);
-    return (token != null)? create(token.getSrcInfo()): null;
+    return (token != null)? create(token.getSrcInfo(), outerScope): null;
   }
 
-  public PWildCards setupScope(PScope scope) throws CompileException {
-    this.scope = scope;
-    this.idResolved = false;
-    return this;
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+  // }
 
-  public PWildCards resolveId() throws CompileException {
+  public void collectModRefs() throws CompileException {}
+
+  public PWildCards resolve() throws CompileException {
     throw new RuntimeException("PWildCards#resolveId() called. - " + this.toString());
   }
 

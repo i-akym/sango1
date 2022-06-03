@@ -26,7 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PPipe extends PDefaultProgElem {
-  private PPipe() {}
+  private PPipe(Parser.SrcInfo srcInfo) {
+    super(srcInfo);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -37,9 +39,7 @@ class PPipe extends PDefaultProgElem {
   }
 
   static PPipe create(Parser.SrcInfo srcInfo) {
-    PPipe i = new PPipe();
-    i.srcInfo = srcInfo;
-    return i;
+    return new PPipe(srcInfo);
   }
 
   static PPipe accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
@@ -47,11 +47,15 @@ class PPipe extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  public PPipe setupScope(PScope scope) throws CompileException {
-    throw new RuntimeException("PProgElem#setupScope() called. - " + this.toString());
+  // public void setupScope(PScope scope) {
+    // throw new RuntimeException("PProgElem#setupScope() called. - " + this.toString());
+  // }
+
+  public void collectModRefs() throws CompileException {
+    throw new RuntimeException("PProgElem#collectModRefs() called. - " + this.toString());
   }
 
-  public PPipe resolveId() throws CompileException {
+  public PPipe resolve() throws CompileException {
     throw new RuntimeException("PProgElem#resolveId() called. - " + this.toString());
   }
 

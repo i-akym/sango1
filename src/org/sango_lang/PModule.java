@@ -34,7 +34,7 @@ import java.util.Set;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-class PModule extends PDefaultProgElem implements PDefDict {
+class PModule implements PDefDict {
   static final String IMPL_WORD_NATIVE = "@native";
 
   static final String MOD_ID_LANG = "@LANG";
@@ -69,6 +69,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
   static final String AVAILABILITY_WORDX_DEPRECATED = "deprecated";
 
   Compiler theCompiler;
+  Parser.SrcInfo srcInfo;
+  PScope scope;
   Parser.SrcInfo modDefSrcInfo;
   int availability;
   Cstr definedName;  // maybe null
@@ -77,7 +79,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
   List<PImportStmt> importStmtList;
   List<PDataStmt> dataStmtList;
   List<PExtendStmt> extendStmtList;
-  List<PAliasStmt> aliasStmtList;
+  List<PAliasTypeStmt> aliasTypeStmtList;
   List<PEvalStmt> evalStmtList;
   List<Cstr> farModList;  // foreign module other than "sango.lang"
   Map<String, Integer> modDict;
@@ -89,11 +91,14 @@ class PModule extends PDefaultProgElem implements PDefDict {
   ForeignIdResolver foreignIdResolver;
   int idSuffix;
 
-  private PModule() {
+  private PModule(Compiler theCompiler, Parser.SrcInfo srcInfo) {
+    this.theCompiler = theCompiler;
+    this.srcInfo = srcInfo;
+    this.scope = PScope.create(this);  // hmmm, not elegant
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
-    this.aliasStmtList = new ArrayList<PAliasStmt>();
+    this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
     this.evalStmtList = new ArrayList<PEvalStmt>();
     this.farModList = new ArrayList<Cstr>();
     this.modDict = new HashMap<String, Integer>();
@@ -157,26 +162,24 @@ class PModule extends PDefaultProgElem implements PDefDict {
     List<PImportStmt> importStmtList;
     List<PDataStmt> dataStmtList;
     List<PExtendStmt> extendStmtList;
-    List<PAliasStmt> aliasStmtList;
+    List<PAliasTypeStmt> aliasTypeStmtList;
     List<PEvalStmt> evalStmtList;
 
-    static Builder newInstance(Cstr requiredName) {
-      return new Builder(requiredName);
+    static Builder newInstance(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
+      return new Builder(theCompiler, srcInfo, requiredName);
     }
 
-    Builder(Cstr requiredName) {
+    Builder(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
       this.requiredName = requiredName;
-      this.mod = new PModule();
+      this.mod = new PModule(theCompiler, srcInfo);
       this.importStmtList = new ArrayList<PImportStmt>();
       this.dataStmtList = new ArrayList<PDataStmt>();
       this.extendStmtList = new ArrayList<PExtendStmt>();
-      this.aliasStmtList = new ArrayList<PAliasStmt>();
+      this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
       this.evalStmtList = new ArrayList<PEvalStmt>();
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.mod.srcInfo = si;
-    }
+    PScope getScope() { return this.mod.scope; }
 
     void setAvailability(int availability) {
       this.mod.availability = availability;
@@ -212,8 +215,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
       this.extendStmtList.add(ext);
     }
 
-    void addAliasStmt(PAliasStmt alias) throws CompileException {
-      this.aliasStmtList.add(alias);
+    void addAliasStmt(PAliasTypeStmt alias) throws CompileException {
+      this.aliasTypeStmtList.add(alias);
     }
 
     void addEvalStmt(PEvalStmt eval) throws CompileException {
@@ -227,7 +230,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
         this.mod.name = this.requiredName;
       }
       if (!this.mod.name.equals(Module.MOD_LANG)) {
-        PImportStmt.Builder ib = PImportStmt.Builder.newInstance();
+        PImportStmt.Builder ib = PImportStmt.Builder.newInstance(
+          new Parser.SrcInfo(Module.MOD_LANG,"auto"), this.mod.scope);
         ib.setModName(Module.MOD_LANG);
         ib.setId(MOD_ID_LANG);
         this.mod.addImportStmt(ib.create());
@@ -241,8 +245,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
       for (int i = 0; i < this.extendStmtList.size(); i++) {
         this.mod.addExtendStmt(this.extendStmtList.get(i));
       }
-      for (int i = 0; i < this.aliasStmtList.size(); i++) {
-        this.mod.addAliasStmt(this.aliasStmtList.get(i));
+      for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
+        this.mod.addAliasStmt(this.aliasTypeStmtList.get(i));
       }
       for (int i = 0; i < this.evalStmtList.size(); i++) {
         this.mod.addEvalStmt(this.evalStmtList.get(i));
@@ -250,14 +254,16 @@ class PModule extends PDefaultProgElem implements PDefDict {
       return this.mod;
     }
   }
-  static PModule accept(ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
+  static PModule accept(Compiler theCompiler, ParserA.TokenReader reader, Cstr modName) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance(modName);
+    Builder builder = Builder.newInstance(theCompiler, reader.getCurrentSrcInfo(), modName);
     acceptModuleStmt(reader, builder);
     if (modName.equals(Module.MOD_LANG)) {
-      Parser.SrcInfo si = new Parser.SrcInfo(Module.MOD_LANG, ":builtin");
-      builder.addDataStmt(PDataStmt.createForVariableParams(si, Module.TCON_TUPLE, Module.ACC_OPAQUE));
-      builder.addDataStmt(PDataStmt.createForVariableParams(si, Module.TCON_FUN, Module.ACC_OPAQUE));
+      Parser.SrcInfo si = new Parser.SrcInfo(Module.MOD_LANG, "builtin");
+      builder.addDataStmt(
+        PDataStmt.createForVariableParams(si, builder.getScope(), Module.TCON_TUPLE, Module.ACC_OPAQUE));
+      builder.addDataStmt(
+        PDataStmt.createForVariableParams(si, builder.getScope(), Module.TCON_FUN, Module.ACC_OPAQUE));
     }
     acceptDefStmts(reader, builder);
     PModule mod = builder.create();
@@ -267,7 +273,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     return mod;
   }
 
-  static PModule acceptX(ParserB.Elem elem, Cstr modName) throws CompileException {
+  static PModule acceptX(Compiler theCompiler, ParserB.Elem elem, Cstr modName) throws CompileException {
     StringBuffer emsg;
     if (elem == null) {
       throw new CompileException("No module definition.");
@@ -276,7 +282,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
       throw new CompileException("No module definition.");
     }
 
-    Builder builder = Builder.newInstance(modName);
+    Builder builder = Builder.newInstance(theCompiler, elem.getSrcInfo(), modName);
     Cstr name = elem.getAttrValueAsCstrData("name");
     if (name != null) {
       builder.setDefinedName(name);
@@ -303,17 +309,17 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PImportStmt imp;
     PDataStmt dat;
     PExtendStmt ext;
-    PAliasStmt alias;
+    PAliasTypeStmt alias;
     PEvalStmt eval;
-    if ((imp = PImportStmt.acceptX(elem)) != null) {
+    if ((imp = PImportStmt.acceptX(elem, builder.getScope())) != null) {
       builder.addImportStmt(imp);
-    } else if ((dat = PDataStmt.acceptX(elem)) != null) {
+    } else if ((dat = PDataStmt.acceptX(elem, builder.getScope())) != null) {
       builder.addDataStmt(dat);
-    } else if ((ext = PExtendStmt.acceptX(elem)) != null) {
+    } else if ((ext = PExtendStmt.acceptX(elem, builder.getScope())) != null) {
       builder.addExtendStmt(ext);
-    } else if ((alias = PAliasStmt.acceptX(elem)) != null) {
+    } else if ((alias = PAliasTypeStmt.acceptX(elem, builder.getScope())) != null) {
       builder.addAliasStmt(alias);
-    } else if ((eval = PEvalStmt.acceptX(elem)) != null) {
+    } else if ((eval = PEvalStmt.acceptX(elem, builder.getScope())) != null) {
       builder.addEvalStmt(eval);
     } else {
       StringBuffer emsg = new StringBuffer();
@@ -329,7 +335,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if ((t = ParserA.acceptSpecifiedWord(reader, "module", ParserA.SPACE_DO_NOT_CARE)) == null) {
       return;
     }
-    builder.setSrcInfo(t.getSrcInfo());
+    PScope scope = builder.getScope();
+    // PScope scope = builder.getScope().start();
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
@@ -341,7 +348,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     builder.setDefinedName(t.value.cstrValue);
     if ((t = ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE)) != null) {
       PExprId id;
-      if ((id = PExprId.accept(reader, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      if ((id = PExprId.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
         emsg.append("My id missing at ");
         emsg.append(reader.getCurrentSrcInfo());
@@ -365,18 +372,18 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PImportStmt imp;
     PDataStmt dat;
     PExtendStmt ext;
-    PAliasStmt alias;
+    PAliasTypeStmt alias;
     PEvalStmt eval;
     while (!t.isEOF()) {
-      if ((imp = PImportStmt.accept(reader)) != null) {
+      if ((imp = PImportStmt.accept(reader, builder.getScope())) != null) {
         builder.addImportStmt(imp);
-      } else if ((dat = PDataStmt.accept(reader)) != null) {
+      } else if ((dat = PDataStmt.accept(reader, builder.getScope())) != null) {
         builder.addDataStmt(dat);
-      } else if ((ext = PExtendStmt.accept(reader)) != null) {
+      } else if ((ext = PExtendStmt.accept(reader, builder.getScope())) != null) {
         builder.addExtendStmt(ext);
-      } else if ((alias = PAliasStmt.accept(reader)) != null) {
+      } else if ((alias = PAliasTypeStmt.accept(reader, builder.getScope())) != null) {
         builder.addAliasStmt(alias);
-      } else if ((eval = PEvalStmt.accept(reader)) != null) {
+      } else if ((eval = PEvalStmt.accept(reader, builder.getScope())) != null) {
         builder.addEvalStmt(eval);
       } else {
         emsg = new StringBuffer();
@@ -539,7 +546,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
-    dat.setupScope(PScope.create(this));
+    // dat.setupScope(this.scope);
+    dat.collectModRefs();
     if (this.tconDict.containsKey(dat.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -570,6 +578,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
     if (dat.constrs != null) {
       for (int i = 0; i < dat.constrs.length; i++) {
         PDataConstrDef constr = dat.constrs[i];
+// /* DEBUG */ System.out.println(constr);
         if (this.eidDict.containsKey(constr.dcon)) {
           emsg = new StringBuffer();
           emsg.append("\"");
@@ -589,7 +598,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   void addExtendStmt(PExtendStmt ext) throws CompileException {
     StringBuffer emsg;
-    ext.setupScope(PScope.create(this));
+    // ext.setupScope(this.scope);
+    ext.collectModRefs();
     if (this.tconDict.containsKey(ext.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -640,9 +650,10 @@ class PModule extends PDefaultProgElem implements PDefDict {
     // /* DEBUG */ System.out.println(ext);
   }
 
-  void addAliasStmt(PAliasStmt alias) throws CompileException {
+  void addAliasStmt(PAliasTypeStmt alias) throws CompileException {
     StringBuffer emsg;
-    alias.setupScope(PScope.create(this));
+    // alias.setupScope(this.scope);
+    alias.collectModRefs();
     if (this.tconDict.containsKey(alias.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
@@ -652,8 +663,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    int aliasIndex = this.aliasStmtList.size();
-    this.aliasStmtList.add(alias);
+    int aliasIndex = this.aliasTypeStmtList.size();
+    this.aliasTypeStmtList.add(alias);
     PDefDict.TparamProps[] paramPropss;
     if (alias.tparams != null) {
       paramPropss = new PDefDict.TparamProps[alias.tparams.length];
@@ -670,14 +681,15 @@ class PModule extends PDefaultProgElem implements PDefDict {
         PTypeId.SUBCAT_ALIAS,
         paramPropss,
         alias.acc,
-        DataDefGetter.createForAliasDef(alias)));
+        DataDefGetter.createForAliasTypeDef(alias)));
     // /* DEBUG */ System.out.print("alias stmt added: ");
     // /* DEBUG */ System.out.println(alias);
   }
 
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
-    eval.setupScope(PScope.create(this));
+    // eval.setupScope(this.scope);
+    eval.collectModRefs();
     String official = eval.official;
     String[] aliases = eval.aliases;
     if (this.funOfficialDict.containsKey(official)) {
@@ -749,13 +761,15 @@ class PModule extends PDefaultProgElem implements PDefDict {
   private void generateNameFun() throws CompileException {
     // eval _name_ @public -> <cstr> @native
     Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":name");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
     evalStmtBuilder.setOfficial(Module.FUN_NAME);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
-    PType.Builder retTypeBuilder = PType.Builder.newInstance();
-    retTypeBuilder.addItem(PTypeId.create(si, MOD_ID_LANG, "cstr", false));
-    evalStmtBuilder.setRetDef(PRetDef.create(retTypeBuilder.create()));
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
+    PScope retScope = retDefBuilder.getScope();
+    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_LANG, "cstr", false));
+    retDefBuilder.setType(retTypeBuilder.create());
+    evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
   }
 
@@ -764,13 +778,16 @@ class PModule extends PDefaultProgElem implements PDefDict {
     PEvalStmt eval;
     if ((eval = this.getInitFunDef()) == null) { return; }
     Parser.SrcInfo si = eval.srcInfo.appendPostfix("_initd");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance();
-    evalStmtBuilder.setSrcInfo(si);
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
     evalStmtBuilder.setOfficial(Module.FUN_INITD);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    PType.Builder retTypeBuilder = PType.Builder.newInstance();
-    evalStmtBuilder.setRetDef(PRetDef.create(eval.retDef.type.deepCopy(
-      si, PTypeDesc.COPY_EXT_KEEP, PTypeDesc.COPY_VARIANCE_INVARIANT, PTypeDesc.COPY_CONCRETE_OFF)));
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
+    PScope retScope = retDefBuilder.getScope();
+    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+    retTypeBuilder.addItem(eval.retDef.type.deepCopy(
+      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
+    retDefBuilder.setType(retTypeBuilder.create());
+    evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
   }
 
@@ -828,45 +845,23 @@ class PModule extends PDefaultProgElem implements PDefDict {
     return ids;
   }
 
-  public PModule setupScope(PScope scope) throws CompileException {
-    throw new RuntimeException("PModule#setupScope() called. - " + this.toString());
+  void collectModRefs() throws CompileException {
+    throw new RuntimeException("PModule#collectModRefs() called. - " + this.toString());
   }
 
-  public PProgElem resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  PModule resolve() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.set(i, this.dataStmtList.get(i).resolveId());
-      // /* DEBUG */ System.out.print("id category resolved - ");
-      // /* DEBUG */ System.out.print(this.dataStmtList.get(i).tcon);
-      // /* DEBUG */ System.out.print(" ");
-      // /* DEBUG */ System.out.println(this.dataStmtList.get(i));
+      this.dataStmtList.set(i, this.dataStmtList.get(i).resolve());
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.set(i, this.extendStmtList.get(i).resolveId());
-      // /* DEBUG */ System.out.print("id category resolved - ");
-      // /* DEBUG */ System.out.print(this.extendStmtList.get(i).baseOmod);
-      // /* DEBUG */ System.out.print("/");
-      // /* DEBUG */ System.out.print(this.extendStmtList.get(i).baseMod);
-      // /* DEBUG */ System.out.print(".");
-      // /* DEBUG */ System.out.print(this.extendStmtList.get(i).tcon);
-      // /* DEBUG */ System.out.print(" ");
-      // /* DEBUG */ System.out.println(this.extendStmtList.get(i));
+      this.extendStmtList.set(i, this.extendStmtList.get(i).resolve());
     }
-    for (int i = 0; i < this.aliasStmtList.size(); i++) {
-      this.aliasStmtList.set(i, this.aliasStmtList.get(i).resolveId());
-      // /* DEBUG */ System.out.print("id category resolved - ");
-      // /* DEBUG */ System.out.print(this.aliasStmtList.get(i).tcon);
-      // /* DEBUG */ System.out.print(" ");
-      // /* DEBUG */ System.out.println(this.aliasStmtList.get(i));
+    for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
+      this.aliasTypeStmtList.set(i, this.aliasTypeStmtList.get(i).resolve());
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.set(i, this.evalStmtList.get(i).resolveId());
-      // /* DEBUG */ System.out.print("id category resolved - ");
-      // /* DEBUG */ System.out.print(this.evalStmtList.get(i).official);
-      // /* DEBUG */ System.out.print(" ");
-      // /* DEBUG */ System.out.println(this.evalStmtList.get(i));
+      this.evalStmtList.set(i, this.evalStmtList.get(i).resolve());
     }
-    this.idResolved = true;
     return this;
   }
 
@@ -1005,7 +1000,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
@@ -1054,27 +1049,27 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    PAliasDef aliasDef;
+    PAliasTypeDef aliasTypeDef;
 
     static DataDefGetter createForDataDef(PDataDef dataDef) {
       return new DataDefGetter(dataDef, null);
     }
 
-    static DataDefGetter createForAliasDef(PAliasDef aliasDef) {
-      return new DataDefGetter(null, aliasDef);
+    static DataDefGetter createForAliasTypeDef(PAliasTypeDef aliasTypeDef) {
+      return new DataDefGetter(null, aliasTypeDef);
     }
 
-    private DataDefGetter(PDataDef dataDef, PAliasDef aliasDef) {
+    private DataDefGetter(PDataDef dataDef, PAliasTypeDef aliasTypeDef) {
       this.dataDef = dataDef;
-      this.aliasDef = aliasDef;
+      this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasDef getAliasDef() { return this.aliasDef; }
+    public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTVarSlot> givenTVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
     List<Integer> indices = this.funDict.get(name);
     PDefDict.FunSelRes sel = null;
     if (indices == null) { return null; }
@@ -1106,8 +1101,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
     for (int i = 0; i < this.extendStmtList.size(); i++) {
       this.extendStmtList.get(i).checkAcc();
     }
-    for (int i = 0; i < this.aliasStmtList.size(); i++) {
-      this.aliasStmtList.get(i).checkAcc();
+    for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
+      this.aliasTypeStmtList.get(i).checkAcc();
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
       this.evalStmtList.get(i).checkAcc();
@@ -1115,8 +1110,8 @@ class PModule extends PDefaultProgElem implements PDefDict {
   }
 
   void  checkCyclicAlias() throws CompileException {
-    for (int i = 0; i < this.aliasStmtList.size(); i++) {
-      this.aliasStmtList.get(i).checkCyclicAlias();
+    for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
+      this.aliasTypeStmtList.get(i).checkCyclicAlias();
     }
   }
 
@@ -1173,12 +1168,12 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
   class ForeignIdResolver {
     Map<Cstr, Map<String, ForeignDataDef>> dataDefDictDict;
-    Map<Cstr, Map<String, PAliasDef>> aliasDefDictDict;
+    Map<Cstr, Map<String, PAliasTypeDef>> aliasDefDictDict;
     Map<Cstr, Map<String, PFunDef>> funDefDictDict;
 
     ForeignIdResolver() {
       this.dataDefDictDict = new HashMap<Cstr, Map<String, ForeignDataDef>>();
-      this.aliasDefDictDict = new HashMap<Cstr, Map<String, PAliasDef>>();
+      this.aliasDefDictDict = new HashMap<Cstr, Map<String, PAliasTypeDef>>();
       this.funDefDictDict = new HashMap<Cstr, Map<String, PFunDef>>();
     }
 
@@ -1216,9 +1211,9 @@ class PModule extends PDefaultProgElem implements PDefDict {
       switch (tp.subcat) {
       case PTypeId.SUBCAT_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");
-        PAliasDef ad = tp.defGetter.getAliasDef();
+        PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
         if (this.aliasDefDictDict.containsKey(modName)) {
-          Map<String, PAliasDef> m = this.aliasDefDictDict.get(modName);
+          Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
           if (m.containsKey(ad.getTcon())) {
       // /* DEBUG */ System.out.println(" >> ALIAS >> already registered " + ad.getTcon());
           } else {
@@ -1227,7 +1222,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
           }
         } else {
       // /* DEBUG */ System.out.println(" >> ALIAS >> new module " + ad.getTcon());
-          Map<String, PAliasDef> m = new HashMap<String, PAliasDef>();
+          Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
           m.put(ad.getTcon(), ad);
           this.aliasDefDictDict.put(modName, m);
         }
@@ -1362,18 +1357,18 @@ class PModule extends PDefaultProgElem implements PDefDict {
       return dds;
     }
 
-    PAliasDef[] getReferredAliasDefsIn(Cstr modName) {
-      PAliasDef[] ads;
+    PAliasTypeDef[] getReferredAliasTypeDefsIn(Cstr modName) {
+      PAliasTypeDef[] ads;
       if (this.aliasDefDictDict.containsKey(modName)) {
-        Map<String, PAliasDef> m = this.aliasDefDictDict.get(modName);
+        Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
         Set<String> s = m.keySet();
-        ads = new PAliasDef[s.size()];
+        ads = new PAliasTypeDef[s.size()];
         Iterator<String> iter = s.iterator();
         for (int i = 0; iter.hasNext(); i++) {
           ads[i] = m.get(iter.next());
         }
       } else {
-        ads = new PAliasDef[0];
+        ads = new PAliasTypeDef[0];
       }
       return ads;
     }
@@ -1452,7 +1447,7 @@ class PModule extends PDefaultProgElem implements PDefDict {
 
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
-    // public PTVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
+    // public PTypeVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 

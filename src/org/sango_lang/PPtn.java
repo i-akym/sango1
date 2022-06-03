@@ -63,18 +63,22 @@ abstract class PPtn {
   };
 
   static class Builder {
+    int context;
     Parser.SrcInfo srcInfo;
+    PScope scope;
     Parser.SrcInfo lastSrcInfo;
     int state;
-    PTypeDesc leadingCast;
+    PType leadingCast;
     List<PPtnItem> itemList;
     int followingSpace;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.srcInfo = srcInfo;
+      this.scope = outerScope;
       this.itemList = new ArrayList<PPtnItem>();
       this.followingSpace = ParserA.SPACE_DO_NOT_CARE;
     }
@@ -83,11 +87,15 @@ abstract class PPtn {
 
     int getFollowingSpace() { return this.followingSpace; }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.srcInfo = si;
+    // void setSrcInfo(Parser.SrcInfo si) {
+      // this.srcInfo = si;
+    // }
+
+    void setContext(int context) {
+      this.context = context;
     }
 
-    void setLeadingCast(PTypeDesc cast) {
+    void setLeadingCast(PType cast) {
       StringBuffer emsg;
       if (this.state != 0) {
         throw new IllegalStateException("Cannot set leading cast.");
@@ -114,7 +122,7 @@ abstract class PPtn {
         this.addDataObj(ACCEPT_STRING, item);
       } else if (elem instanceof PExprId) {
         this.addId(item);
-      } else if (elem instanceof PEVarDef) {
+      } else if (elem instanceof PExprVarDef) {
         this.addVarDef(item);
       } else if (elem instanceof PWildCard) {
         this.addWildCard(item);
@@ -157,13 +165,13 @@ abstract class PPtn {
     }
 
     private void addVarDef(PPtnItem item) {
-      PEVarDef v = (PEVarDef)item.elem;
+      PExprVarDef v = (PExprVarDef)item.elem;
       if ((v.type == null && (acceptablesTab[this.state] & ACCEPT_VARDEF_NOT_CASTED) == 0)
           || (v.type != null && (acceptablesTab[this.state] & ACCEPT_VARDEF_CASTED) == 0)) {
         throw new IllegalArgumentException("Invalid item");
       }
       if (this.state == 1) {
-        ((PEVarDef)item.elem).type = this.leadingCast;
+        ((PExprVarDef)item.elem).type = this.leadingCast;
       }
       this.itemList.add(item);
       switch (this.state) {
@@ -210,7 +218,7 @@ abstract class PPtn {
       this.followingSpace = ParserA.SPACE_NEEDED;
     }
 
-    PPtnElem create() throws CompileException {
+    PExprObj create() throws CompileException {
       StringBuffer emsg;
       switch (this.state) {
       case 0:
@@ -226,10 +234,10 @@ abstract class PPtn {
       return this.createDispatch();
     }
 
-    PPtnElem createDispatch() throws CompileException {
+    PExprObj createDispatch() throws CompileException {
       StringBuffer emsg;
       PProgElem anchorElem = this.itemList.get(this.itemList.size() - 1).elem;
-      PPtnElem p;
+      PExprObj p;
       if (this.itemList.size() == 1) {
         if (anchorElem instanceof PExprId) {
           p = this.createUndetPtn();
@@ -240,9 +248,9 @@ abstract class PPtn {
             || anchorElem instanceof PListPtn
             || anchorElem instanceof PTuplePtn
             || anchorElem instanceof PStringPtn
-            || anchorElem instanceof PEVarDef
+            || anchorElem instanceof PExprVarDef
             || anchorElem instanceof PWildCard
-            || anchorElem instanceof PPtnElem) {
+            || anchorElem instanceof PExprObj) {
           p = this.createTermPtn();
         } else {
           emsg = new StringBuffer();
@@ -263,7 +271,7 @@ abstract class PPtn {
       return p;
     }
 
-    private PPtnElem createTermPtn() throws CompileException {
+    private PExprObj createTermPtn() throws CompileException {
       StringBuffer emsg;
       PPtnItem item = this.itemList.get(0);
       if (item.name != null) {
@@ -273,17 +281,17 @@ abstract class PPtn {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!(item.elem instanceof PPtnElem)) {
+      if (!(item.elem instanceof PExprObj)) {
         emsg = new StringBuffer();
         emsg.append("Not allowed for pattern at ");
         emsg.append(item.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      return (PPtnElem)item.elem;
+      return (PExprObj)item.elem;
     }
 
-    private PPtnElem createUndetPtn() throws CompileException {
+    private PExprObj createUndetPtn() throws CompileException {
       StringBuffer emsg;
       PPtnItem item = this.itemList.get(0);
       if (item.name != null) {
@@ -295,10 +303,10 @@ abstract class PPtn {
       }
       PExprId id = (PExprId)item.elem;
       id.cutOffCat(PExprId.CAT_DCON_EVAL);
-      return PUndetPtn.create(this.srcInfo, id);
+      return PUndetPtn.create(this.srcInfo, this.scope, this.context, id);
     }
 
-    private PPtnElem createDataConstrPtn() throws CompileException {
+    private PExprObj createDataConstrPtn() throws CompileException {
       StringBuffer emsg;
       PPtnItem anchor = this.itemList.remove(this.itemList.size() - 1);
       if (anchor.name != null) {
@@ -332,61 +340,62 @@ abstract class PPtn {
           ;
         }
       }
-      PPtnElem posdAttrs[] = new PPtnElem[this.itemList.size() - namedAttrCount];
+      PExprObj posdAttrs[] = new PExprObj[this.itemList.size() - namedAttrCount];
       PPtnItem namedAttrs[] = new PPtnItem[namedAttrCount];
       for (int i = 0; i < posdAttrs.length; i++) {
-        posdAttrs[i] = (PPtnElem)this.itemList.get(i).elem;
+        posdAttrs[i] = (PExprObj)this.itemList.get(i).elem;
       }
       for (int i = posdAttrs.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
       }
       PExprId dcon = (PExprId)anchor.elem;
       dcon.setCat(PExprId.CAT_DCON_PTN);
-      return PDataConstrPtn.create(this.srcInfo, dcon, posdAttrs, namedAttrs, wildCards);
+      return PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, posdAttrs, namedAttrs, wildCards);
     }
   }
 
-  static PPtnElem accept(ParserA.TokenReader reader, PTypeDesc leadingCast) throws CompileException, IOException {
+  static PExprObj accept(ParserA.TokenReader reader, PScope outerScope, int context, PType leadingCast) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance();
+    Builder builder;
     if (leadingCast != null) {
-      builder.setSrcInfo(leadingCast.getSrcInfo());
+      builder = Builder.newInstance(leadingCast.getSrcInfo(), outerScope);
       builder.setLeadingCast(leadingCast);
     } else {
-      builder.setSrcInfo(reader.getCurrentSrcInfo());
+      builder = Builder.newInstance(reader.getCurrentSrcInfo(), outerScope);
     }
+    builder.setContext(context);
     PPtnItem item;
     int acceptables;
     while ((acceptables = builder.getAcceptables()) > 0
-        && (item = PPtnItem.accept(reader, builder.getFollowingSpace(), acceptables)) != null) {
+        && (item = PPtnItem.accept(reader, outerScope, builder.getFollowingSpace(), acceptables, context)) != null) {
       builder.addItem(item);
     }
     return builder.create();
   }
 
-  static PPtnElem acceptX(ParserB.Elem elem ) throws CompileException {
-    PPtnElem ptn = null;
-    if ((ptn = PByte.acceptX(elem)) != null) {
+  static PExprObj acceptX(ParserB.Elem elem , PScope outerScope, int context) throws CompileException {
+    PExprObj ptn = null;
+    if ((ptn = PByte.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PInt.acceptX(elem)) != null) {
+    } else if ((ptn = PInt.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PChar.acceptX(elem)) != null) {
+    } else if ((ptn = PChar.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PTuplePtn.acceptX(elem)) != null) {
+    } else if ((ptn = PTuplePtn.acceptX(elem, outerScope, context)) != null) {
       ;
-    } else if ((ptn = PEmptyListPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PEmptyListPtn.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PListPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PListPtn.acceptX(elem, outerScope, context)) != null) {
       ;
-    } else if ((ptn = PStringPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PStringPtn.acceptX(elem, outerScope, context)) != null) {
       ;
-    } else if ((ptn = PEVarDef.acceptX(elem, PEVarDef.CAT_FUN_PARAM, PEVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
+    } else if ((ptn = PExprVarDef.acceptX(elem, outerScope, PExprVarDef.CAT_FUN_PARAM, PExprVarDef.TYPE_MAYBE_SPECIFIED)) != null) {
       ;
-    } else if ((ptn = PWildCard.acceptX(elem)) != null) {
+    } else if ((ptn = PWildCard.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PEVarRef.acceptX(elem)) != null) {
+    } else if ((ptn = PExprVarRef.acceptX(elem, outerScope)) != null) {
       ;
-    } else if ((ptn = PDataConstrPtn.acceptX(elem)) != null) {
+    } else if ((ptn = PDataConstrPtn.acceptX(elem, outerScope, context)) != null) {
       ;
     }
     return ptn;

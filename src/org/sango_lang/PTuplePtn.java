@@ -27,8 +27,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PTuplePtn extends PDefaultPtnElem {
+class PTuplePtn extends PDefaultExprObj {
   PPtnMatch[] elems;
+
+  PTuplePtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -47,17 +51,13 @@ class PTuplePtn extends PDefaultPtnElem {
     PTuplePtn tuple;
     List<PPtnMatch> elemList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.tuple = new PTuplePtn();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.tuple = new PTuplePtn(srcInfo, outerScope);
       this.elemList = new ArrayList<PPtnMatch>();
-    }
-
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.tuple.srcInfo = si;
     }
 
     void addElem(PPtnMatch elem) {
@@ -84,15 +84,14 @@ class PTuplePtn extends PDefaultPtnElem {
     }
   }
 
-  static PTuplePtn accept(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
+  static PTuplePtn accept(ParserA.TokenReader reader, PScope outerScope, int spc, int context) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LPAR_VBAR, spc)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
-    builder.addElemList(PPtnMatch.acceptPosdSeq(reader, 2));
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    builder.addElemList(PPtnMatch.acceptPosdSeq(reader, outerScope, 2, context));
     if (ParserA.acceptToken(reader, LToken.VBAR_RPAR, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Syntax error at ");
@@ -108,14 +107,13 @@ class PTuplePtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  static PTuplePtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PTuplePtn acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("tuple")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
-      PPtnMatch pm = PPtnMatch.acceptX(e);
+      PPtnMatch pm = PPtnMatch.acceptX(e, outerScope, context);
       if (pm == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
@@ -128,22 +126,27 @@ class PTuplePtn extends PDefaultPtnElem {
     return builder.create();
   }
 
-  public PTuplePtn setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.elems.length; i++) {
+      // this.elems[i].setupScope(scope);
+    // }
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].setupScope(scope);
+      this.elems[i].collectModRefs();
     }
-    return this;
   }
 
-  public PTuplePtn resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PTuplePtn resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].resolveId();
+      this.elems[i] = this.elems[i].resolve();
     }
-    this.idResolved = true;
+    // this.idResolved = true;
     return this;
   }
 

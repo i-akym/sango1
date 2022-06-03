@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,28 +23,15 @@
  ***************************************************************************/
 package org.sango_lang;
 
-abstract class PDefaultTypedElem extends PDefaultProgElem implements PTypedElem {
-  PTypeDesc type;
-  PTypeSkel nTypeSkel;
-  PTypeGraph.Node typeGraphNode;
+abstract class PDefaultProgObj extends PDefaultProgElem implements PProgObj {
+  PScope scope;
+  // boolean idResolved;
 
-  public PTypeDesc getType() { return this.type; }
-
-  public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
-
-  public PTypeSkel getFixedType() { return this.typeGraphNode.getFixedType(); }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    throw new RuntimeException("PTypedElem#setupTypeGraph called. - " + this.toString());
+  PDefaultProgObj(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo);
+    this.scope = scope;
   }
 
-  public void setTypeGraphNode(PTypeGraph.Node node) {
-    this.typeGraphNode = node;
-  }
-
-  public PTypeGraph.Node getTypeGraphNode() { return this.typeGraphNode; }
-
-  public GFlow.Node setupFlow(GFlow flow) {
-    throw new RuntimeException("PTypedElem#setupFlow called. - " + this.toString());
-  }
+  public PScope getScope() { return this.scope; }
 }
+

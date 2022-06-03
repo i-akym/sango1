@@ -27,95 +27,72 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PIfClause extends PDefaultTypedElem {
-  PExpr[] guardExprs;
-  PExpr[] actionExprs;
-  PScope outerScope;
+class PIfClause extends PDefaultExprObj {
+  PExprList.Seq guard;
+  PExprList.Seq action;
+  // PScope outerScope;
 
-  private PIfClause() {}
+  private PIfClause(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("ifclause[src=");
     buf.append(this.srcInfo);
     buf.append(",guard=[");
-    for (int i = 0; i < this.guardExprs.length; i++) {
-      buf.append(this.guardExprs[i]);
-      buf.append(",");
-    }
-    buf.append("],exprs=[");
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      buf.append(this.actionExprs[i]);
-      buf.append(",");
-    }
+    buf.append(this.guard);
+    buf.append("],action=[");
+    buf.append(this.action);
     buf.append("]]");
     return buf.toString();
   }
 
   static class Builder {
     PIfClause clause;
-    List<PExpr> guardExprList;
-    List<PExpr> actionExprList;
+    // List<PExpr> guardExprList;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.clause = new PIfClause();
-      this.guardExprList = new ArrayList<PExpr>();
-      this.actionExprList = new ArrayList<PExpr>();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.clause = new PIfClause(srcInfo, outerScope);
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.clause.srcInfo = si;
+    PScope getScope() { return this.clause.scope; }
+
+    void setGuard(PExprList.Seq seq) {
+      this.clause.guard = seq;
     }
 
-    void addGuardExpr(PExpr expr) {
-      this.guardExprList.add(expr);
-    }
-
-    void addGuardExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addGuardExpr(exprList.get(i));
-      }
-    }
-
-    void addActionExpr(PExpr expr) {
-      this.actionExprList.add(expr);
-    }
-
-    void addActionExprList(List<PExpr> exprList) {
-      for (int i = 0; i < exprList.size(); i++) {
-        this.addActionExpr(exprList.get(i));
-      }
+    void setAction(PExprList.Seq seq) {
+      this.clause.action = seq;
     }
 
     PIfClause create() throws CompileException {
       StringBuffer emsg;
-      if (this.guardExprList.size() == 0) {
+      if (this.clause.guard.exprs.length == 0) {
         emsg = new StringBuffer();
         emsg.append("Condition missing at ");
         emsg.append(this.clause.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.clause.guardExprs = this.guardExprList.toArray(new PExpr[this.guardExprList.size()]);
-      this.clause.actionExprs = this.actionExprList.toArray(new PExpr[this.actionExprList.size()]);
       return this.clause;
     }
   }
 
-  static PIfClause accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PIfClause accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
-    Builder builder = Builder.newInstance();
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    List<PExpr> guardExprList = PExpr.acceptSeq(reader, false);
-    if (guardExprList == null || guardExprList.size() == 0) {
+    Builder builder = Builder.newInstance(si, outerScope);
+    PScope scope = builder.getScope();
+    PExprList.Seq guardSeq = PExprList.acceptSeq(reader, si, scope, false);
+    if (guardSeq == null || guardSeq.exprs.length == 0) {
       return null;
     }
-    builder.setSrcInfo(si);
-    builder.addGuardExprList(guardExprList);
+    builder.setGuard(guardSeq);
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("\"->\" missing at ");
@@ -123,15 +100,15 @@ class PIfClause extends PDefaultTypedElem {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.addActionExprList(PExpr.acceptSeq(reader, true));
+    builder.setAction(PExprList.acceptSeq(reader, reader.getCurrentSrcInfo(), scope, true));
     return builder.create();
   }
 
-  static PIfClause acceptX(ParserB.Elem elem) throws CompileException {
+  static PIfClause acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("if-clause")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
     ParserB.Elem e = elem.getFirstChild();
     if (e == null) {
       emsg = new StringBuffer();
@@ -146,18 +123,21 @@ class PIfClause extends PDefaultTypedElem {
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
+    Parser.SrcInfo si = e.getSrcInfo();
+    List<PExpr> ges = new ArrayList<PExpr>();
     ParserB.Elem ee = e.getFirstChild();
     while (ee != null) {
-      PExpr expr = PExpr.acceptX(ee);
+      PExpr expr = PExpr.acceptX(ee, scope);
       if (expr == null) {
         emsg = new StringBuffer();
         emsg.append("Unexpected XML node. - ");
         emsg.append(ee.getSrcInfo().toString());
         throw new CompileException(emsg.toString());
       }
-      builder.addGuardExpr(expr);
+      ges.add(expr);
       ee = ee.getNextSibling();
     }
+    builder.setGuard(PExprList.Seq.create(si, scope, ges));
     e = e.getNextSibling();
     if (e == null) {
       emsg = new StringBuffer();
@@ -172,110 +152,89 @@ class PIfClause extends PDefaultTypedElem {
       emsg.append(e.getSrcInfo().toString());
       throw new CompileException(emsg.toString());
     }
+    si = e.getSrcInfo();
     ee = e.getFirstChild();
+    List<PExpr> aes = new ArrayList<PExpr>();
     if (ee == null) {
-      builder.addActionExpr(PExpr.createDummyVoidExpr(e.getSrcInfo()));
+      aes.add(PExpr.createDummyVoidExpr(e.getSrcInfo(), scope));
     } else {
       while (ee != null) {
-        PExpr expr = PExpr.acceptX(ee);
+        PExpr expr = PExpr.acceptX(ee, scope);
         if (expr == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
           emsg.append(ee.getSrcInfo().toString());
           throw new CompileException(emsg.toString());
         }
-        builder.addActionExpr(expr);
+        aes.add(expr);
         ee = ee.getNextSibling();
       }
     }
+    builder.setAction(PExprList.Seq.create(si, scope, aes));
     return builder.create();
   }
 
-  public PIfClause setupScope(PScope scope) throws CompileException {
-    if (scope == this.outerScope) { return this; }
-    this.outerScope = scope;
-    this.scope = scope.enterInner();
-    this.idResolved = false;
-    for (int i = 0; i < this.guardExprs.length; i++) {
-      this.guardExprs[i] = this.guardExprs[i].setupScope(this.scope);
-    }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].setupScope(this.scope);
-    }
-    return this;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.outerScope) { return; }
+    // this.outerScope = scope;
+    // this.scope = scope.enterInner();
+    // this.idResolved = false;
+    // this.guard.setupScope(this.scope);
+    // this.action.setupScope(this.scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    this.guard.collectModRefs();
+    this.action.collectModRefs();
   }
 
-  public PIfClause resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
-    for (int i = 0; i < this.guardExprs.length; i++) {
-      this.guardExprs[i] = this.guardExprs[i].resolveId();
-    }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i] = this.actionExprs[i].resolveId();
-    }
-    this.idResolved = true;
+  public PIfClause resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
+    this.guard = this.guard.resolve();
+    this.action = this.action.resolve();
+    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.guardExprs.length; i++) {
-      this.guardExprs[i].normalizeTypes();
-    }
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      this.actionExprs[i].normalizeTypes();
-    }
+    this.guard.normalizeTypes();
+    this.action.normalizeTypes();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??
+    // PExpr e = null;
+    // PTypeGraph.Node n = null;
+    // for (int i = 0; i < this.guardExprs.length; i++) {
+      // e = this.guardExprs[i];
+      // if (n == null) {
+        // n = e.setupTypeGraph(graph);
+      // } else {
+        // PTypeGraph.SeqNode s = graph.createSeqNode(e);
+        // s.setLeadingTypeNode(n);
+        // s.setInNode(e.setupTypeGraph(graph));
+        // n = s;
+      // }
+    // }
+    // if (e != null) {
+      // graph.createCondNode(e).setInNode(n);
+    // }
     this.typeGraphNode = graph.createRefNode(this);
-    PExpr e = null;
-    PTypeGraph.Node n = null;
-    for (int i = 0; i < this.guardExprs.length; i++) {
-      e = this.guardExprs[i];
-      if (n == null) {
-        n = e.setupTypeGraph(graph);
-      } else {
-        PTypeGraph.SeqNode s = graph.createSeqNode(e);
-        s.setLeadingTypeNode(n);
-        s.setInNode(e.setupTypeGraph(graph));
-        n = s;
-      }
-    }
-    if (e != null) {
-      graph.createCondNode(e).setInNode(n);
-    }
-    n = null;
-    for (int i = 0; i < this.actionExprs.length; i++) {
-      e = this.actionExprs[i];
-      if (n == null) {
-        n = e.setupTypeGraph(graph);
-      } else {
-        PTypeGraph.SeqNode s = graph.createSeqNode(e);
-        s.setLeadingTypeNode(n);
-        s.setInNode(e.setupTypeGraph(graph));
-        n = s;
-      }
-    }
-    this.typeGraphNode.setInNode(n);
+    this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.BranchNode node = flow.createNodeForIfClause(this.srcInfo);
     GFlow.CondNode cn = flow.createNodeForCond(this.srcInfo);
-    for (int i = 0; i < this.guardExprs.length - 1; i++) {
-      cn.addChild(this.guardExprs[i].setupFlow(flow));
-      cn.addChild(flow.createSinkNode(this.guardExprs[i].getSrcInfo()));
-    }
-    cn.addChild(this.guardExprs[this.guardExprs.length - 1].setupFlow(flow));
+    cn.addChild(this.guard.setupFlow(flow));
+    // for (int i = 0; i < this.guardExprs.length - 1; i++) {
+      // cn.addChild(this.guardExprs[i].setupFlow(flow));
+      // cn.addChild(flow.createSinkNode(this.guardExprs[i].getSrcInfo()));
+    // }
+    // cn.addChild(this.guardExprs[this.guardExprs.length - 1].setupFlow(flow));
     node.addChild(flow.createTrialNodeInBranch(this.srcInfo, cn, node));
-    GFlow.SeqNode an = flow.createNodeForAction(this.actionExprs[0].getSrcInfo());
-    for (int i = 0; i < this.actionExprs.length - 1; i++) {
-      an.addChild(this.actionExprs[i].setupFlow(flow));
-      an.addChild(flow.createSinkNode(this.actionExprs[i].getSrcInfo()));
-    }
-    an.addChild(this.actionExprs[this.actionExprs.length - 1].setupFlow(flow));
-    node.addChild(an);
+    node.addChild(this.action.setupFlow(flow));
     return node;
   }
 }

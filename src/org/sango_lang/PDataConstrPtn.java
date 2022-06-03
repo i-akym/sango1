@@ -27,15 +27,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class PDataConstrPtn extends PDefaultPtnElem {
+class PDataConstrPtn extends PDefaultExprObj {
+  int context;  // PPtnMatch.CONTEXT_*
   PExprId dcon;
-  PPtnElem posdAttrs[];
+  PExprObj posdAttrs[];
   PPtnItem namedAttrs[];
   Map<String, PPtnItem> namedAttrDict;
   boolean wildCards;
-  PPtnElem[] sortedAttrs;
+  PExprObj[] sortedAttrs;
 
-  private PDataConstrPtn() {}
+  private PDataConstrPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -59,12 +62,12 @@ class PDataConstrPtn extends PDefaultPtnElem {
     return buf.toString();
   }
 
-  static PDataConstrPtn create(Parser.SrcInfo srcInfo, PExprId dcon,
-      PPtnElem[] posdAttrs, PPtnItem[] namedAttrs,
+  static PDataConstrPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId dcon,
+      PExprObj[] posdAttrs, PPtnItem[] namedAttrs,
       boolean wildCards) throws CompileException {
     StringBuffer emsg;
-    PDataConstrPtn p = new PDataConstrPtn();
-    p.srcInfo = srcInfo;
+    PDataConstrPtn p = new PDataConstrPtn(srcInfo, outerScope);
+    p.context = context;
     p.dcon = dcon;
     p.posdAttrs = posdAttrs;
     p.namedAttrs = namedAttrs;
@@ -87,7 +90,19 @@ class PDataConstrPtn extends PDefaultPtnElem {
     return p;
   }
 
-  static PDataConstrPtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PDataConstrPtn convertFromResolvedUndet(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId dcon) throws CompileException {
+    StringBuffer emsg;
+    PDataConstrPtn p = new PDataConstrPtn(srcInfo, outerScope);
+    p.context = context;
+    p.dcon = dcon;
+    p.posdAttrs = new PExprObj[0];
+    p.namedAttrs = new PPtnItem[0];
+    p.sortedAttrs = new PExprObj[0];
+    p.namedAttrDict = new HashMap<String, PPtnItem>();
+    return p;
+  }
+
+  static PDataConstrPtn acceptX(ParserB.Elem elem, PScope outerScope, int context) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("constr")) { return null; }
     String dcon = elem.getAttrValueAsId("dcon");
@@ -100,7 +115,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
     }
     String mid = elem.getAttrValueAsId("mid");
 
-    ArrayList<PPtnElem> pas = new ArrayList<PPtnElem>();
+    ArrayList<PExprObj> pas = new ArrayList<PExprObj>();
     ArrayList<PPtnItem> nas = new ArrayList<PPtnItem>();
     ParserB.Elem e = elem.getFirstChild();
     if (e != null && e.getName().equals("attrs")) {
@@ -120,7 +135,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        PPtnMatch pm = PPtnMatch.acceptX(eee);
+        PPtnMatch pm = PPtnMatch.acceptX(eee, outerScope, context);
         if (pm == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -129,7 +144,7 @@ class PDataConstrPtn extends PDefaultPtnElem {
         }
         String name = ee.getAttrValueAsId("name");
         if (name != null) {
-          nas.add(PPtnItem.create(ee.getSrcInfo(), name, pm));
+          nas.add(PPtnItem.create(ee.getSrcInfo(), outerScope, context, name, pm));
         } else if (!nas.isEmpty()) {
           emsg = new StringBuffer();
           emsg.append("Attribute name missing at ");
@@ -151,37 +166,46 @@ class PDataConstrPtn extends PDefaultPtnElem {
 
     Parser.SrcInfo si = elem.getSrcInfo();
     return create(
-      si,
-      PExprId.create(si, mid, dcon),
-      pas.toArray(new PPtnElem[pas.size()]),
+      si, outerScope, context,
+      PExprId.create(si, outerScope, mid, dcon),
+      pas.toArray(new PExprObj[pas.size()]),
       nas.toArray(new PPtnItem[nas.size()]),
       wildCards);
   }
 
-  public PDataConstrPtn setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+    // this.idResolved = false;
+    // for (int i = 0; i < this.posdAttrs.length; i++) {
+      // this.posdAttrs[i].setupScope(scope);
+    // }
+    // for (int i = 0; i < this.namedAttrs.length; i++) {
+      // this.namedAttrs[i].setupScope(scope);
+    // }
+    // this.dcon.setupScope(scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i] = this.posdAttrs[i].setupScope(scope);
+      this.posdAttrs[i].collectModRefs();
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].setupScope(scope);
+      this.namedAttrs[i].collectModRefs();
     }
-    this.dcon = (PExprId)this.dcon.setupScope(scope);
-    return this;
+    this.dcon.collectModRefs();
   }
 
-  public PDataConstrPtn resolveId() throws CompileException {
-    if (this.idResolved) { return this; }
+  public PDataConstrPtn resolve() throws CompileException {
+    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.posdAttrs.length; i++) {
-      this.posdAttrs[i] = this.posdAttrs[i].resolveId();
+      this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].resolveId();
+      this.namedAttrs[i] = this.namedAttrs[i].resolve();
     }
-    this.dcon = this.dcon.resolveId();
-    this.idResolved = true;
+    this.dcon = (PExprId)this.dcon.resolve();
+    // this.idResolved = true;
     this.sortAttrs();
     return this;
   }
@@ -194,19 +218,19 @@ class PDataConstrPtn extends PDefaultPtnElem {
 
   private void sortAttrs() throws CompileException {
     int[] attrDsts = this.analyzeAttrDst();
-    this.sortedAttrs = new PPtnElem[attrDsts.length];
+    this.sortedAttrs = new PExprObj[attrDsts.length];
     for (int i = 0; i < attrDsts.length; i++) {
       int ad = attrDsts[i];
-      PPtnElem p;
+      PExprObj p;
       switch (ad) {
       case ATTR_TO_POSD:
         p = this.posdAttrs[i];
         break;
       case ATTR_TO_NONE:
-        p = PWildCard.create(this.srcInfo);
+        p = PWildCard.create(this.srcInfo, this.scope);
         break;
       default:  //  to named attribute
-        p = (PPtnElem)this.namedAttrs[ad].elem;
+        p = (PExprObj)this.namedAttrs[ad].elem;
         break;
       }
       this.sortedAttrs[i] = p;
@@ -269,13 +293,14 @@ class PDataConstrPtn extends PDefaultPtnElem {
   }
 
   public void normalizeTypes() throws CompileException {
+/* DEBUG */ if (this.sortedAttrs == null) { System.out.println(this); }
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       this.sortedAttrs[i].normalizeTypes();
     }
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.dcon);
+    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);
       PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.dcon, i);

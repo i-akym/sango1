@@ -426,14 +426,14 @@ eval <byte reader_data> *RD <act.msg+> *Msg byte_reader_dispatch -> <<byte reade
 
 eval <byte reader_data> *RD <act.post_h> *Ret byte_reader_read_byte -> <<byte reader_data> maybe> {
   RD r_config >> rc_impl = *Impl,
-  \\ { &(Impl io.read_f) } try = *Res,
+  \\ <byte io.instream_read_res> { &(Impl io.read_f) } try = *Res,
   Ret (Res read_byte_res$) act.send,
   (r_status: rs_received$ :: RD reader_data$) value$
 } ;;
 
 eval <byte reader_data> *RD <act.post_h> *Ret <int> *Len byte_reader_read_bstr -> <<byte reader_data> maybe> {
   RD r_config >> rc_impl = *Impl,
-  \\ { Len &(Impl io.read_string_f) } try = *Res,
+  \\ <bstr io.instream_read_res> { Len &(Impl io.read_string_f) } try = *Res,
   Ret (Res read_bstr_res$) act.send,
   (r_status: rs_received$ :: RD reader_data$) value$
 } ;;
@@ -453,7 +453,7 @@ eval <byte reader_data> *RD byte_reader_do_oclose -> <<void result> <byte reader
 
 eval <byte reader_data> *RD <act.post_h> *Ret byte_reader_status -> <<byte reader_data> maybe> {
   RD r_config >> rc_impl = *Impl,
-  \\ { &(Impl io.status_f) } try = *Res,
+  \\ <io.instream_status> { &(Impl io.status_f) } try = *Res,
   Ret (Res istatus_res$) act.send,
   RD value$
 } ;;
@@ -577,7 +577,7 @@ eval <byte writer_data> *WD byte_writer_do_oclose -> <<void result> <byte writer
 
 eval <byte writer_data> *WD <act.post_h> *Ret byte_writer_status -> <<byte writer_data> maybe> {
   WD w_config >> wc_impl = *Impl,
-  \\ { &(Impl io.status_f) } try = *Res,
+  \\ <io.outstream_status> { &(Impl io.status_f) } try = *Res,
   Ret (Res ostatus_res$) act.send,
   WD value$
 } ;;

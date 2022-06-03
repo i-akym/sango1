@@ -25,16 +25,8 @@ package org.sango_lang;
 
 interface PProgElem {
 
-  void setSrcInfo(Parser.SrcInfo srcInfo);
+  // void setSrcInfo(Parser.SrcInfo srcInfo);
 
   Parser.SrcInfo getSrcInfo();
-
-  PProgElem setupScope(PScope scope) throws CompileException;
-
-  PScope getScope();
-
-  PProgElem resolveId() throws CompileException;
-
-  void normalizeTypes() throws CompileException;
 
 }

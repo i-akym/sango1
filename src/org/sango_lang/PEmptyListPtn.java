@@ -25,7 +25,9 @@ package org.sango_lang;
 
 class PEmptyListPtn extends PListPtn {
 
-  private PEmptyListPtn() {}
+  private PEmptyListPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -35,25 +37,24 @@ class PEmptyListPtn extends PListPtn {
     return buf.toString();
   }
 
-  static PEmptyListPtn create(Parser.SrcInfo srcInfo) {
-    PEmptyListPtn L = new PEmptyListPtn();
-    L.srcInfo = srcInfo;
-    return L;
+  static PEmptyListPtn create(Parser.SrcInfo srcInfo, PScope outerScope) {
+    return new PEmptyListPtn(srcInfo, outerScope);
   }
 
-  static PEmptyListPtn acceptX(ParserB.Elem elem) throws CompileException {
+  static PEmptyListPtn acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     if (!elem.getName().equals("nil")) { return null; }
-    return create(elem.getSrcInfo());
+    return create(elem.getSrcInfo(), outerScope);
   }
 
-  public PEmptyListPtn setupScope(PScope scope) throws CompileException {
-    this.scope = scope;
-    this.idResolved = false;
-    return this;
-  }
+  // public void setupScope(PScope scope) {
+    // this.scope = scope;
+    // this.idResolved = false;
+  // }
 
-  public PEmptyListPtn resolveId() throws CompileException {
-    this.idResolved = true;
+  public void collectModRefs() throws CompileException {}
+
+  public PEmptyListPtn resolve() throws CompileException {
+    // this.idResolved = true;
     return this;
   }
 

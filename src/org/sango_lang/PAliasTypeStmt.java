@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -28,14 +28,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class PAliasStmt extends PDefaultProgElem implements PAliasDef {
-  PTypeDesc sig;
+class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
+  PType sig;
   String tcon;
   int availability;
   int acc;
-  PTVarDef[] tparams;
-  PTypeDesc body;  // is PTypeRef after circular def check
+  PTypeVarDef[] tparams;
+  PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
+
+  PAliasTypeStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope.enterInner());
+    this.scope.startDef();
+  }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
@@ -52,21 +57,19 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   }
 
   static class Builder {
-    PAliasStmt alias;
+    PAliasTypeStmt alias;
 
-    static Builder newInstance() {
-      return new Builder();
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
     }
 
-    Builder() {
-      this.alias = new PAliasStmt();
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.alias = new PAliasTypeStmt(srcInfo, outerScope);
     }
 
-    void setSrcInfo(Parser.SrcInfo si) {
-      this.alias.srcInfo = si;
-    }
+    PScope getScope() { return this.alias.scope; }
 
-    void setSig(PTypeDesc sig) {
+    void setSig(PType sig) {
       this.alias.sig = sig;
     }
 
@@ -78,30 +81,30 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       this.alias.acc = acc;
     }
 
-    void setBody(PTypeDesc body) {
+    void setBody(PType body) {
       this.alias.body = body;
     }
 
-    PAliasStmt create() throws CompileException {
+    PAliasTypeStmt create() throws CompileException {
       if (this.alias.sig instanceof PTypeId) {
         PTypeId ti = (PTypeId)this.alias.sig;
         this.alias.tcon = ti.name;
-        this.alias.tparams = new PTVarDef[0];
+        this.alias.tparams = new PTypeVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.alias.sig;
         this.alias.tcon = tr.tcon;
-        this.alias.tparams = new PTVarDef[tr.params.length];
+        this.alias.tparams = new PTypeVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
-          this.alias.tparams[i] = (PTVarDef)tr.params[i];
+          this.alias.tparams[i] = (PTypeVarDef)tr.params[i];
         }
       } else {
-        throw new RuntimeException("Unexpected type.");
+        throw new RuntimeException("Unexpected type. " + this.alias.sig.toString());
       }
       return this.alias;
     }
   }
 
-  static PAliasStmt accept(ParserA.TokenReader reader) throws CompileException, IOException {
+  static PAliasTypeStmt accept(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token next = reader.getNextToken();
     ParserA.Token t;
@@ -112,11 +115,11 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       return null;
     }
     ParserA.acceptSpecifiedWord(reader, "type", ParserA.SPACE_NEEDED);
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(t.getSrcInfo());
+    Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
-    PTypeDesc tsig;
-    if ((tsig = PType.acceptSig2(reader)) == null) {
+    PType tsig;
+    if ((tsig = PType.acceptSig2(reader, scope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -132,8 +135,8 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc body;
-    if ((body = acceptAliasBodyDef(reader)) == null) {
+    PType body;
+    if ((body = acceptAliasBodyDef(reader, scope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Alias definition missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -151,11 +154,11 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     return builder.create();
   }
 
-  static PAliasStmt acceptX(ParserB.Elem elem) throws CompileException {
+  static PAliasTypeStmt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("alias-type-def")) { return null; }
-    Builder builder = Builder.newInstance();
-    builder.setSrcInfo(elem.getSrcInfo());
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    PScope scope = builder.getScope();
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {
@@ -165,19 +168,19 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), null, tcon, false);
+    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), scope, null, tcon, false);
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
     int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
     builder.setAcc(acc);
 
-    PType.Builder tb = PType.Builder.newInstance();
+    PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), scope);
     ParserB.Elem e = elem.getFirstChild();
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PTVarDef var = PTVarDef.acceptX(ee);
+        PTypeVarDef var = PTypeVarDef.acceptX(ee, scope);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -214,7 +217,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeDesc body = PType.acceptXRO(d);
+    PType body = PType.acceptXRO(d, scope);
     if (body == null) {
       emsg = new StringBuffer();
       emsg.append("Alias definition missing at ");
@@ -226,18 +229,33 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
     return builder.create();
   }
 
-  private static PTypeDesc acceptAliasBodyDef(ParserA.TokenReader reader) throws CompileException, IOException {
-    return PType.acceptRO(reader, ParserA.SPACE_DO_NOT_CARE);
+  private static PType acceptAliasBodyDef(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    return PType.acceptRO(reader, scope, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  public PAliasStmt setupScope(PScope scope) throws CompileException {
+  // public void setupScope(PScope scope) {
+    // StringBuffer emsg;
+    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
+    // // if (s == this.scope) { return; }
+    // this.scope = scope.start();
+    // this.idResolved = false;
+    // this.sig.setupScope(this.scope);
+    // this.body.setupScope(this.scope);
+  // }
+
+  public void collectModRefs() throws CompileException {
+    // sig has no mod refs
+    this.body.collectModRefs();
+  }
+
+  public PAliasTypeStmt resolve() throws CompileException {
     StringBuffer emsg;
-    PScope s = scope.start();
-    if (s == this.scope) { return this; }
-    this.scope = s;
-    this.idResolved = false;
-    this.sig = this.sig.setupScope(s);
-    this.body = this.body.setupScope(this.scope);
+    // if (this.idResolved) { return this; }
+    this.sig = this.sig.resolve();
+    // for (int i = 0; i < this.tparams.length; i++) {
+      // this.tparams[i] = this.tparams[i].resolve();
+    // }
+    this.body = this.body.resolve();
     if (!(this.body instanceof PTypeRef)) {
       emsg = new StringBuffer();
       emsg.append("Alias of non-concrete type at ");
@@ -245,29 +263,11 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    // this.idResolved = true;
     return this;
   }
 
-  public PAliasStmt resolveId() throws CompileException {
-    StringBuffer emsg;
-    if (this.idResolved) { return this; }
-    for (int i = 0; i < this.tparams.length; i++) {
-      this.tparams[i] = this.tparams[i].resolveId();
-    }
-    this.sig = this.sig.resolveId();
-    this.body = this.body.resolveId();
-    this.idResolved = true;
-    if (/* PTypeRef.willNotReturn(this.body) || */ PTypeRef.isExposed(this.body)) {
-      emsg = new StringBuffer();
-      emsg.append("Alias of non-concrete type at ");
-      emsg.append(this.body.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    return this;
-  }
-
-  PAliasDef getAliasDef() { return this; }
+  PAliasTypeDef getAliasTypeDef() { return this; }
 
   void checkCyclicAlias() throws CompileException {
 // /* DEBUG */ System.out.println("unalias " + this.tcon);
@@ -281,7 +281,7 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
 // /* DEBUG */ System.out.println(this);
     if (a.ti.props.subcat != PTypeId.SUBCAT_ALIAS) { return; }
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    a.ti.props.defGetter.getAliasDef().collectUnaliasTconInfo(tis);
+    a.ti.props.defGetter.getAliasTypeDef().collectUnaliasTconInfo(tis);
 // /* DEBUG */ System.out.println("unalias to " + tis.toString());
     for (int i = 0; i < tis.size(); i++) {
       AliasGraphNode c = a.addChild(tis.get(i));
@@ -304,13 +304,13 @@ class PAliasStmt extends PDefaultProgElem implements PAliasDef {
   }
 
   public void normalizeTypes() {
-    throw new RuntimeException("PAliasStmt#normalizeTypes() should not be called. - " + this.toString());
+    throw new RuntimeException("PAliasTypeStmt#normalizeTypes() should not be called. - " + this.toString());
   }
 
   public String getTcon() { return this.tcon; }
 
-  public PTVarSlot[] getParamVarSlots() {
-    PTVarSlot[] vs = new PTVarSlot[this.tparams.length] ;
+  public PTypeVarSlot[] getParamVarSlots() {
+    PTypeVarSlot[] vs = new PTypeVarSlot[this.tparams.length] ;
     for (int i = 0; i < this.tparams.length; i++) {
       vs[i] = this.tparams[i].varSlot;
     }

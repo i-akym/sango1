@@ -264,10 +264,9 @@ eval <*A string_buf> *Buf sbuf_empty? | empty? @public -> <bool> {
 
 eval <*A string_buf> *Buf sbuf_length | length @public -> <int> {
   Buf = *AL sbuf$,
-  0
-  AL
-  \ <int> *N <A string> *As -> { N (As length) sum }
-  list.fold
+  0 AL
+    \ <int> *N <A string> *As -> <int> { N (As length) sum }
+    list.fold
 } ;;
 
 eval <*A string_buf> *Buf sbuf_pack_all | pack_all @public -> <A string> {

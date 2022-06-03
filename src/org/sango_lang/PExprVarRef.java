@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2021 AKIYAMA Isao                                         *
+ * Copyright (c) 2022 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,29 +23,22 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
-  // String name;
-  PTVarDef def;
-  // PTVarSlot varSlot;
+class PExprVarRef extends PDefaultExprObj implements PEval {
+  String name;
+  PExprVarSlot varSlot;
 
-  private PTVarRef() {}
+  private PExprVarRef(Parser.SrcInfo srcInfo, PScope outerScope) {
+    super(srcInfo, outerScope);
+  }
 
-  static PTVarRef create(Parser.SrcInfo srcInfo, PTVarDef def) {
-    PTVarRef v = new PTVarRef();
-    v.srcInfo = srcInfo;
-    v.def = def;
+  static PExprVarRef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PExprVarSlot varSlot) {
+    PExprVarRef v = new PExprVarRef(srcInfo, outerScope);
+    v.name = name;
+    v.varSlot = varSlot;
     return v;
   }
 
-  // static PTVarRef create(Parser.SrcInfo srcInfo, String name, PTVarSlot varSlot) {
-    // PTVarRef v = new PTVarRef();
-    // v.srcInfo = srcInfo;
-    // v.name = name;
-    // v.varSlot = varSlot;
-    // return v;
-  // }
-
-  static PTypeId acceptXTvar(ParserB.Elem elem) throws CompileException {
+  static PExprId acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("var")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -56,21 +49,7 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return PTypeId.createVar(elem.getSrcInfo(), id);
-  }
-
-  static PExprId acceptXEvar(ParserB.Elem elem) throws CompileException {
-    StringBuffer emsg;
-    if (!elem.getName().equals("var")) { return null; }
-    String id = elem.getAttrValueAsId("id");
-    if (id == null) {
-      emsg = new StringBuffer();
-      emsg.append("Variable name missing at ");
-      emsg.append(elem.getSrcInfo().toString());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    PExprId v = PExprId.create(elem.getSrcInfo(), null, id);
+    PExprId v = PExprId.create(elem.getSrcInfo(), outerScope, null, id);
     v.setVar();
     return v;
   }
@@ -83,29 +62,27 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
       buf.append(this.srcInfo);
     }
     buf.append(",name=");
-    buf.append(this.def.name);
-    // if (this.varSlot != null) {
-      // buf.append(",slot=");
-      // buf.append(this.varSlot);
-    // }
+    buf.append(this.name);
+    if (this.varSlot != null) {
+      buf.append(",slot=");
+      buf.append(this.varSlot);
+    }
     buf.append("]");
     return buf.toString();
   }
 
-  public PTypeDesc deepCopy(Parser.SrcInfo srcInfo, int extOpt, int varianceOpt, int concreteOpt) {
-    // rollback to PTypeId
-    return PTypeId.create(srcInfo, null, this.def.name, false);
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope outerScope) {  // rollback to PTypeId
+    return PTypeId.create(srcInfo, outerScope, null, this.name, false);
   }
 
-  public PTVarRef setupScope(PScope scope) throws CompileException {
-    if (scope == this.scope) { return this; }
-    this.scope = scope;
-    this.idResolved = false;
-    return this;
-  }
+  // public void setupScope(PScope scope) {
+    // if (scope == this.scope) { return; }
+    // this.scope = scope;
+  // }
 
-  public PTVarRef resolveId() throws CompileException {
-    this.idResolved = true;
+  public void collectModRefs() throws CompileException {}
+
+  public PExprVarRef resolve() throws CompileException {
     return this;
   }
 
@@ -114,30 +91,23 @@ class PTVarRef extends PDefaultEvalAndPtnElem implements PTypeDesc {
   public void excludePrivateAcc() throws CompileException {}
 
   public void normalizeTypes() {
-    if (this.def.nTypeSkel == null) {
-      this.def.normalizeTypes();
+    if (this.varSlot.varDef.nTypeSkel == null) {
+      this.varSlot.varDef.normalizeTypes();
     }
-  }
-
-  public PTypeVarSkel normalize() {  // called when top level
-    return (PTypeVarSkel)this.getSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
-    return graph.createVarRefNode(this, def.name, this.def.typeGraphNode);
+    return graph.createVarRefNode(this, name, this.varSlot.varDef.typeGraphNode);
   }
 
   public PTypeGraph.Node getTypeGraphNode() {
-    return this.def.typeGraphNode;
+    return this.varSlot.varDef.typeGraphNode;
   }
 
-  public PTypeSkel getSkel() {
-    /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
-    return this.def.getSkel();
-    // return PTypeVarSkel.create(this.srcInfo, this.def.name, this.def.varSlot,
-      // (this.def.constraint != null)? (PTypeRefSkel)this.def.constraint.getSkel(): null);
-  }
+  public PTypeSkel getFixedType() { return this.varSlot.varDef.getFixedType(); }
 
-  public PTypeSkel getFixedType() { return this.def.getFixedType(); }
+  public GFlow.Node setupFlow(GFlow flow) {
+    return flow.createNodeForVarRef(this.srcInfo, this.varSlot);
+  }
 }

@@ -34,7 +34,7 @@ eval <*A iter> *Iter new_list @public -> <A list> {
 } ;;
 
 eval <*A iter> *Iter new_reverse_list @public -> <A list> {
-  Iter [] &\ <A iter> *I <A list> *Xs -> {
+  Iter [] &\ <A iter> *I <A list> *Xs -> <A list> {
     I next >> case {
     ; (| *Y, *I' |) value$ -> I' [ Y ; Xs ] &&
     ; none$ -> Xs
@@ -69,7 +69,9 @@ eval <*A list> *Xs non_empty? @public -> <bool> {
 } ;;
 
 eval <*A list> *Xs length @public -> <int> {
-  0 Xs \ <int> *N <A> *X -> { N inc } fold
+  0 Xs
+    \ <int> *N <A> *X -> <int> { N inc }
+    fold
 } ;;
 
 eval <*A list> *Xs head | first @public -> <A maybe> {

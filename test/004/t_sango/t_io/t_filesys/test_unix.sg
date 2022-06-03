@@ -31,6 +31,6 @@ eval test033 -> <cstr> { "foo/bar" ufs.parse_path = *P, P ufs.absolute? = false$
 eval test034 -> <cstr> { "../../hoge" ufs.parse_path = *P, P fs.path_names = [ "..", "..", "hoge" ], P ufs.path_repr = "../../hoge" } ;;
 eval test035 -> <cstr> { "foo/bar/.." ufs.parse_path = *P, P fs.path_names = [ "foo" ], P ufs.path_repr = "foo" } ;;
 eval test036 -> <cstr> { "foo/.." ufs.parse_path = *P, P fs.path_names = [], P ufs.path_repr = "." } ;;
-eval test037 -> <fs.path_struct result> { \\ { "/foo/../.." ufs.parse_path } try = ** exc$ } ;;
+eval test037 -> <fs.path_struct result> { \\ <fs.path_struct> { "/foo/../.." ufs.parse_path } try = ** exc$ } ;;
 eval test051 -> <cstr list> { [ "foo" ] ufs.new_absolute_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "foo", "bar" ] } ;;
 eval test052 -> <cstr list> { [ "..", "..", "foo" ] ufs.new_relative_path = *P, P "bar" fs.child_path = *C, C fs.path_names = [ "..", "..", "foo", "bar" ] } ;;
