@@ -403,24 +403,34 @@ class PScope {
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.evalStmt.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
-      List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
-      if (justExtracted != null) {
-        this.givenTVarList.addAll(justExtracted);
-      }
+      pts[i].extractVars(this.givenTVarList);
     }
+    // this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    // PTypeSkel[] pts = this.evalStmt.getParamTypes();
+    // for (int i = 0; i < pts.length; i++) {
+      // List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
+      // if (justExtracted != null) {
+        // this.givenTVarList.addAll(justExtracted);
+      // }
+    // }
   }
 
   private void setupGivenTVarListForClosure() {
-    this.givenTVarList = new ArrayList<PTypeVarSlot>(this.parent.getGivenTVarList());
+    this.givenTVarList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
     for (int i = 0; i < pts.length; i++) {
-      if (pts[i] != null) {
-        List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
-        if (justExtracted != null) {
-          this.givenTVarList.addAll(justExtracted);
-        }
-      }
+      pts[i].extractVars(this.givenTVarList);
     }
+    // this.givenTVarList = new ArrayList<PTypeVarSlot>(this.parent.getGivenTVarList());
+    // PTypeSkel[] pts = this.closure.getParamDefinedTypes();
+    // for (int i = 0; i < pts.length; i++) {
+      // if (pts[i] != null) {
+        // List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
+        // if (justExtracted != null) {
+          // this.givenTVarList.addAll(justExtracted);
+        // }
+      // }
+    // }
   }
 
   String getFunOfficial() {
