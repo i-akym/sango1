@@ -65,7 +65,7 @@ public interface PTypeSkel {
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
-  List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted);  // return value possibly null
+  void extractVars(List<PTypeVarSlot> extracted);
 
   void collectTconInfo(List<PDefDict.TconInfo> list);
 

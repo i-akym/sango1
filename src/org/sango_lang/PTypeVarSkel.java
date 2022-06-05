@@ -498,13 +498,10 @@ if (PTypeGraph.DEBUG > 1) {
     return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
   }
 
-  public List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted) {
-    List<PTypeVarSlot> newlyExtracted = null;
-    if (!alreadyExtracted.contains(this.varSlot)) {
-      newlyExtracted = new ArrayList<PTypeVarSlot>();
-      newlyExtracted.add(this.varSlot);
+  public void extractVars(List<PTypeVarSlot> extracted) {
+    if (!extracted.contains(this.varSlot)) {
+      extracted.add(this.varSlot);
     }
-    return newlyExtracted;
   }
 
   PTypeRefSkel castTo(PTypeRefSkel tr, PTypeSkelBindings bindings) {

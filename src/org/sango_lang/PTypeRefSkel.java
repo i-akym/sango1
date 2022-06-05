@@ -568,15 +568,10 @@ if (PTypeGraph.DEBUG > 1) {
     return b.create();
   }
 
-  public List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted) {
-    List<PTypeVarSlot> newlyExtracted = new ArrayList<PTypeVarSlot>();
+  public void extractVars(List<PTypeVarSlot> extracted) {
     for (int i = 0; i < this.params.length; i++) {
-      List<PTypeVarSlot> justExtracted = this.params[i].extractVars(alreadyExtracted);
-      if (justExtracted != null) {
-        newlyExtracted.addAll(justExtracted);
-      }
+      this.params[i].extractVars(extracted);
     }
-    return newlyExtracted;
   }
 
   public void collectTconInfo(List<PDefDict.TconInfo> list) {
