@@ -490,12 +490,15 @@ if (PTypeGraph.DEBUG > 1) {
   public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
     MTypeVar tv;
     int index = slotList.indexOf(this.varSlot);
-    if (index < 0) {
+    if (index < 0) {  // definition
       index = slotList.size();
       slotList.add(this.varSlot);
+      MType c = (this.constraint != null)? this.constraint.toMType(mod, slotList): null;
+      tv = MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
+    } else {  // reference
+      tv = MTypeVar.create(index, Module.INVARIANT, false, null);  // do not care attributes
     }
-    MType c = (this.constraint != null)? this.constraint.toMType(mod, slotList): null;
-    return MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
+    return tv;
   }
 
   public void extractVars(List<PTypeVarSlot> extracted) {
