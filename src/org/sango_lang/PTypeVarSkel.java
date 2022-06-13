@@ -177,7 +177,14 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkelBindings b;
     PTypeSkel tt = this.resolveBindings(trialBindings);
     if (tt == this) {
-      if (trialBindings.isGivenTVar(this.varSlot)) {
+      if (this.constraint != null) {
+        if (this.constraint.includesVar(this.varSlot, trialBindings)) {
+          b = null;
+        } else {
+          trialBindings.bind(this.varSlot, this.constraint);
+          b = this.constraint.accept(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
+        }
+      } else if (trialBindings.isGivenTVar(this.varSlot)) {
         b = this.acceptGiven(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
       } else {
         b = this.acceptFree(width, bindsRef, type.resolveBindings(trialBindings), trialBindings);
@@ -386,6 +393,7 @@ if (PTypeGraph.DEBUG > 1) {
     } else {
       bound = false;
     }
+// /* DEBUG */ System.out.print("bindConstraint "); System.out.println(bound);
     return bound;
   }
 
@@ -504,6 +512,9 @@ if (PTypeGraph.DEBUG > 1) {
   public void extractVars(List<PTypeVarSlot> extracted) {
     if (!extracted.contains(this.varSlot)) {
       extracted.add(this.varSlot);
+    }
+    if (this.constraint != null) {
+      this.constraint.extractVars(extracted);
     }
   }
 
