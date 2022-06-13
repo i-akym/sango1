@@ -403,9 +403,14 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
       b = null;
-    } else {
+    } else if (this.includesVar(tv.varSlot, trialBindings)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar 2 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = null;
+    } else {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
       b = this.accept(width, bindsRef, tv.castTo(this, trialBindings), trialBindings);
     }

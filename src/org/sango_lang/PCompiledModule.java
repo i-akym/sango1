@@ -533,11 +533,6 @@ class PCompiledModule implements PDefDict {
         ;
       } else if (this.searchInLang) {
         throw new RuntimeException("PCompiledModule.ExprDefGetter#getFunDef when 'search in lang' is on.");
-        // PDefDict.EidProps p = PModule.this.defDictGetter.getDefDict(Module.MOD_LANG).resolveEid(
-          // this.funName, PExprId.CAT_FUN_OFFICIAL, Module.ACC_PUBLIC);
-        // if (p != null) {
-          // d = p.defGetter.getFunDef();
-        // }
       }
       return d;
     }
@@ -565,11 +560,6 @@ class PCompiledModule implements PDefDict {
     public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
-  // PTypeSkel convertType(MType type, Module mod, List<PTypeRefSkel> unresolvedTypeRefList) {
-    // List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
-    // return this.convertType(type, mod, varList, unresolvedTypeRefList);
-  // }
-
   PTypeSkel convertType(MType type, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
     PTypeSkel t;
     if (type instanceof MTypeRef) {
@@ -589,13 +579,9 @@ class PCompiledModule implements PDefDict {
     }
     PTypeSkel t;
     Cstr n = (tr.modName != null)? tr.modName: mod.name;
-    // if (n.equals(Module.MOD_LANG) && tr.tcon.equals(Module.TCON_BOTTOM)) {
-      // t = PBottomSkel.create(null);
-    // } else {
-      PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
-      t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
-      unresolvedTypeRefList.add((PTypeRefSkel)t);
-    // }
+    PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
+    t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
+    unresolvedTypeRefList.add((PTypeRefSkel)t);
     return t;
   }
 
@@ -612,6 +598,7 @@ class PCompiledModule implements PDefDict {
     } else {
       throw new RuntimeException("Slot number is not sequential. " + mod.name.toJavaString() + " " + tv.toString() + " " + varList.size());
     }
+// /* DEBUG */ if (v.constraint != null) { System.out.print("CONVERT "); System.out.print(tv); System.out.print(" -> "); System.out.println(v); }
     return v;
   }
 }
