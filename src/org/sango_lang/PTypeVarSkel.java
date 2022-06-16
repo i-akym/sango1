@@ -37,7 +37,7 @@ public class PTypeVarSkel implements PTypeSkel {
   public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTypeVarSlot varSlot, PTypeSkel constraint) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
-    var.name =  name + "." + Integer.toString(varSlot.id);
+    var.name = ((name != null)? name + ".": "$") + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
     var.constraint = constraint;
     return var;
@@ -543,7 +543,23 @@ if (PTypeGraph.DEBUG > 1) {
       r.append(this.constraint.repr());
       r.add("=");
     }
-    r.add(this.varSlot.repr());
+    StringBuffer buf = new StringBuffer();
+    switch (this.varSlot.variance) {
+    case Module.COVARIANT:
+      buf.append("+");
+      break;
+    case Module.CONTRAVARIANT:
+      buf.append("-");
+      break;
+    default:
+      break;
+    }
+    buf.append(name);
+    if (this.varSlot.requiresConcrete) {
+      buf.append("!");
+    }
+    r.add(buf.toString());
+    // r.add(this.varSlot.repr());
     return r;
   }
 }
