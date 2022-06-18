@@ -249,7 +249,6 @@ class PCompiledModule implements PDefDict {
           // PTypeVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
           // XXX);
         dd.sigParams[i] = v;
-        varList.add(v);
       }
     }
     dd.acc = dataDef.acc;
@@ -589,6 +588,7 @@ class PCompiledModule implements PDefDict {
     PTypeVarSkel v;
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
+// /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
       v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
       varList.add(v);
