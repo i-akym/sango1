@@ -97,40 +97,6 @@ class PScope {
     this.envEVarList = new ArrayList<PExprVarSlot>();
   }
 
-  // PScope start() {
-    // if (this.pos != 0) {
-      // throw new IllegalStateException("Cannot start.");
-    // }
-    // PScope s = new PScope(this.theMod);
-    // s.parent = this;
-    // s.pos = -1;
-    // return s;
-  // }
-
-  // PScope defineFun(PEvalStmt evalStmt) {
-    // if (this.pos != 0) {
-      // throw new IllegalStateException("Cannot define function.");
-    // }
-    // PScope s = new PScope(this.theMod);
-    // s.parent = this;
-    // s.pos = 1;
-    // s.evalStmt = evalStmt;
-    // return s;
-  // }
-
-  // PScope enterClosure(PClosure closure) {
-    // if (this.pos < 1) {
-      // throw new IllegalStateException("Cannot enter closure.");
-    // }
-    // PScope s = new PScope(this.theMod);
-    // s.parent = this;
-    // s.pos = this.pos + 1;
-    // s.envTVarList = new ArrayList<PTypeVarSlot>();
-    // s.envEVarList = new ArrayList<PExprVarSlot>();
-    // s.closure = closure;
-    // return s;
-  // }
-
   PScope enterInnerWithParallelScopes() {  // for PCaseClause
     PScope s = this.enterInner();
     s.parallelScopes = new ArrayList<PScope>();
@@ -155,7 +121,6 @@ class PScope {
   PTypeVarDef lookupTVar(String var) {
     if (this.pos == 0) {
       return null;
-      // throw new IllegalStateException("Not active. " + this.pos);
     }
     PTypeVarDef v = this.tvarDict.get(var);
     if (v == null) {
