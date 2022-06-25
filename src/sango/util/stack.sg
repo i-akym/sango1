@@ -23,32 +23,31 @@
 ###########################################################################
 module "sango.util.stack" ;;
 
+import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
 data <*A stack> @public :=
-  d: <A stack_d+>
+  d: <A data.d1+>
   fs: <A stack_fs>
   stack$ ;;
 
-data <*A stack_d> @public := _dummy_stack_d$ ;;
-
 data <*A stack_fs> @public :=
-  empty?_f: <<A stack_d+> bool fun>
-  depth_f: <<A stack_d+> int fun>
-  push_f: <<A stack_d+> A <A stack_d+> fun>
-  top_f: <<A stack_d+> <A maybe> fun>
-  pop_f: <<A stack_d+> <<A <A stack_d+> tuple> maybe> fun>
-  to_list_f_: <<<A stack_d+> <A list> fun> maybe>
-  clear_f: <<A stack_d+> <A stack_d+> fun>
+  empty?_f: <<A data.d1+> bool fun>
+  depth_f: <<A data.d1+> int fun>
+  push_f: <<A data.d1+> A <A data.d1+> fun>
+  top_f: <<A data.d1+> <A maybe> fun>
+  pop_f: <<A data.d1+> <<A <A data.d1+> tuple> maybe> fun>
+  to_list_f_: <<<A data.d1+> <A list> fun> maybe>
+  clear_f: <<A data.d1+> <A data.d1+> fun>
   stack_fs$ ;;
 
-eval <*A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <<A stack_d+> <A list> fun> {
+eval <*A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <<A data.d1+> <A list> fun> {
   Fs to_list_f_ >> case {
   ; *F value$ -> F
   ; ** ->
-    \ <A stack_d+> *Stack_d -> <A list> {
-      Stack_d [] &\ <A stack_d+> *D <A list> *L_r -> <A list> {
+    \ <A data.d1+> *Stack_d -> <A list> {
+      Stack_d [] &\ <A data.d1+> *D <A list> *L_r -> <A list> {
         D &(Fs pop_f) >> case {
         ; (| *E, *D' |) value$ -> D' [ E ; L_r ] &&
         ; ** -> L_r list.reverse

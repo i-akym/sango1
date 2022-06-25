@@ -23,48 +23,47 @@
 ###########################################################################
 module "sango.util.bag" ;;
 
+import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
 # -- bag framework --
 
 data <*A bag> @public :=
-  d: <A bag_d+>
+  d: <A data.d1+>
   fs: <A bag_fs>
   bag$ ;;
 
-data <*A bag_d> @public := _dummy_bag_d$ ;;
-
 data <*A bag_fs> @public :=
-  empty?_f: <<A bag_d+> bool fun>
-  size_f: <<A bag_d+> int fun>
-  contain?_f: <<A bag_d+> A bool fun>
-  get_all_f: <<A bag_d+> A <A list> fun>
-  add_f: <<A bag_d+> A <A bag_d+> fun>
-  remove_f: <<A bag_d+> A <<A bag_d+> <A maybe> tuple> fun>
-  remove_all_f: <<A bag_d+> A <<A bag_d+> <A list> tuple> fun>
-  delete_f_: <<<A bag_d+> A <A bag_d+> fun> maybe>
-  delete_all_f_: <<<A bag_d+> A <A bag_d+> fun> maybe>
-  take_f: <<A bag_d+> <<A <A bag_d+> tuple> maybe> fun>
-  clear_f: <<A bag_d+> <A bag_d+> fun>
+  empty?_f: <<A data.d1+> bool fun>
+  size_f: <<A data.d1+> int fun>
+  contain?_f: <<A data.d1+> A bool fun>
+  get_all_f: <<A data.d1+> A <A list> fun>
+  add_f: <<A data.d1+> A <A data.d1+> fun>
+  remove_f: <<A data.d1+> A <<A data.d1+> <A maybe> tuple> fun>
+  remove_all_f: <<A data.d1+> A <<A data.d1+> <A list> tuple> fun>
+  delete_f_: <<<A data.d1+> A <A data.d1+> fun> maybe>
+  delete_all_f_: <<<A data.d1+> A <A data.d1+> fun> maybe>
+  take_f: <<A data.d1+> <<A <A data.d1+> tuple> maybe> fun>
+  clear_f: <<A data.d1+> <A data.d1+> fun>
   bag_fs$ ;;
 
-eval <*A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <<A bag_d+> A <A bag_d+> fun> {
+eval <*A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <<A data.d1+> A <A data.d1+> fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A bag_d+> *D <A> *Elem -> <A bag_d+> {
+    \ <A data.d1+> *D <A> *Elem -> <A data.d1+> {
       D Elem &(Fs remove_f) = (| *D', ** |),
       D'
     }
   }
 } ;;
 
-eval <*A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <<A bag_d+> A <A bag_d+> fun> {
+eval <*A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <<A data.d1+> A <A data.d1+> fun> {
   Fs delete_all_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A bag_d+> *D <A> *Elem -> <A bag_d+> {
+    \ <A data.d1+> *D <A> *Elem -> <A data.d1+> {
       D Elem &(Fs remove_all_f) = (| *D', ** |),
       D'
     }

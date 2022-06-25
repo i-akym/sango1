@@ -23,10 +23,11 @@
 ###########################################################################
 module "sango.util.stack.liststack" ;;
 
+import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.util.stack" -> stack ;;
 
-extend <*A stack.stack_d> := <A list> list_stack_d$ ;;
+extend <*A data.d1> := <A list> list_stack_d$ ;;
 
 eval new_stack @public -> <*A stack.stack> {
   [] to_stack
@@ -47,27 +48,27 @@ eval stack_fs @public -> <*A stack.stack_fs> {
   stack.stack_fs$
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d empty? -> <bool> {
+eval <*A data.d1+> *Stack_d empty? -> <bool> {
   Stack_d = *Elems list_stack_d$,
   Elems list.empty?
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d depth -> <int> {
+eval <*A data.d1+> *Stack_d depth -> <int> {
   Stack_d = *Elems list_stack_d$,
   Elems list.length
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d <A> *Elem push -> <A stack.stack_d+> {
+eval <*A data.d1+> *Stack_d <A> *Elem push -> <A data.d1+> {
   Stack_d = *Elems list_stack_d$,
   [ Elem ; Elems ] list_stack_d$
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d top -> <A maybe> {
+eval <*A data.d1+> *Stack_d top -> <A maybe> {
   Stack_d = *Elems list_stack_d$,
   Elems list.head
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d pop -> <<A <A stack.stack_d+> tuple> maybe> {
+eval <*A data.d1+> *Stack_d pop -> <<A <A data.d1+> tuple> maybe> {
   Stack_d = *Elems list_stack_d$,
   Elems case {
   ; [ *Top ; *Others ] -> (| Top, Others list_stack_d$ |) value$
@@ -75,11 +76,11 @@ eval <*A stack.stack_d+> *Stack_d pop -> <<A <A stack.stack_d+> tuple> maybe> {
   }
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d to_list -> <A list> {
+eval <*A data.d1+> *Stack_d to_list -> <A list> {
   Stack_d = *Elems list_stack_d$,
   Elems
 } ;;
 
-eval <*A stack.stack_d+> *Stack_d clear -> <A stack.stack_d+> {
+eval <*A data.d1+> *Stack_d clear -> <A data.d1+> {
   [] list_stack_d$
 } ;;

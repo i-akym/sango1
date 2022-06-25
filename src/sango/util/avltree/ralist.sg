@@ -23,10 +23,11 @@
 ###########################################################################
 module "sango.util.avltree.ralist" ;;
 
+import "sango.data" -> data ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.ralist" -> ral ;;
 
-extend <*A ral.ralist_d> :=
+extend <*A data.d1> :=
   body: <A avl.tree>
   d$ ;;
 
@@ -73,16 +74,16 @@ eval ralist_fs -> <*A ral.ralist_fs> {
     ral.ralist_fs$
 } ;;
 
-eval <*A ral.ralist_d+> *D empty? -> <bool> {
+eval <*A data.d1+> *D empty? -> <bool> {
   D length >> zero?
 } ;;
 
-eval <*A ral.ralist_d+> *D length -> <int> {
+eval <*A data.d1+> *D length -> <int> {
   D = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
+eval <*A data.d1+> *D <int> *Index elem -> <A maybe> {
   D = body: *Body *** d$,
   Body (Index find_locator) avl.get >> case {
   ; *Y avl.get_done$ -> Y value$
@@ -90,13 +91,13 @@ eval <*A ral.ralist_d+> *D <int> *Index elem -> <A maybe> {
   }
 } ;;
 
-eval <*A ral.ralist_d+> *D <int> *Index <A> *X insert_at -> <A ral.ralist_d+> {
+eval <*A data.d1+> *D <int> *Index <A> *X insert_at -> <A data.d1+> {
   D = body: *Body *** d$,
   Body (Index insert_locator) X avl.put = *Body' avl.put_new_done$,
   body: Body' :: D d$
 } ;;
 
-eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe> tuple> {
+eval <*A data.d1+> *D <int> *Index remove_at -> <<A data.d1+> <A maybe> tuple> {
   D = body: *Body *** d$,
   Body (Index find_locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: D d$, Removed value$ |)
@@ -104,6 +105,6 @@ eval <*A ral.ralist_d+> *D <int> *Index remove_at -> <<A ral.ralist_d+> <A maybe
   }
 } ;;
 
-eval <*A ral.ralist_d+> *D clear -> <A ral.ralist_d+> {
+eval <*A data.d1+> *D clear -> <A data.d1+> {
   body: avl.new_tree d$
 } ;;

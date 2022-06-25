@@ -23,11 +23,12 @@
 ###########################################################################
 module "sango.util.avltree.set" ;;
 
+import "sango.data" -> data ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.set" -> set ;;
 
-extend <*A set.set_d> :=
+extend <*A data.d1> :=
   ord: <A ord_fs>
   body: <A avl.tree>
   d$ ;;
@@ -72,16 +73,16 @@ eval set_fs -> <*A set.set_fs> {
     set.set_fs$
 } ;;
 
-eval <*A set.set_d+> *Set_d empty? -> <bool> {
+eval <*A data.d1+> *Set_d empty? -> <bool> {
   Set_d size >> zero?
 } ;;
 
-eval <*A set.set_d+> *Set_d size -> <int> {
+eval <*A data.d1+> *Set_d size -> <int> {
   Set_d = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem get -> <A maybe> {
+eval <*A data.d1+> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
   ; *E avl.get_done$ -> E value$
@@ -89,11 +90,11 @@ eval <*A set.set_d+> *Set_d <A> *Elem get -> <A maybe> {
   }
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem contain? -> <bool> {
+eval <*A data.d1+> *Set_d <A> *Elem contain? -> <bool> {
   Set_d Elem get >> something?
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
+eval <*A data.d1+> *Set_d <A> *Elem put -> <<A data.d1+> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) Elem avl.put >> case {
   ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, none$ |)
@@ -101,7 +102,7 @@ eval <*A set.set_d+> *Set_d <A> *Elem put -> <<A set.set_d+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem put_new -> <<A set.set_d+> bool tuple> {
+eval <*A data.d1+> *Set_d <A> *Elem put_new -> <<A data.d1+> bool tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem put_new_locator) Elem avl.put >> case {
   ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, true$ |)
@@ -109,11 +110,11 @@ eval <*A set.set_d+> *Set_d <A> *Elem put_new -> <<A set.set_d+> bool tuple> {
   }
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem add -> <A set.set_d+> {
+eval <*A data.d1+> *Set_d <A> *Elem add -> <A data.d1+> {
   Set_d Elem put >> tuple.pair_first
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple> {
+eval <*A data.d1+> *Set_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Set_d d$, Removed value$ |)
@@ -121,11 +122,11 @@ eval <*A set.set_d+> *Set_d <A> *Elem remove -> <<A set.set_d+> <A maybe> tuple>
   }
 } ;;
 
-eval <*A set.set_d+> *Set_d <A> *Elem delete -> <A set.set_d+> {
+eval <*A data.d1+> *Set_d <A> *Elem delete -> <A data.d1+> {
   Set_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A set.set_d+> *Set_d take -> <<A <A set.set_d+> tuple> maybe> {
+eval <*A data.d1+> *Set_d take -> <<A <A data.d1+> tuple> maybe> {
   Set_d = body: *Body *** d$,
   Body avl.take >> case {
   ; (| *E, *Body' |) value$ -> (| E, body: Body' :: Set_d d$ |) value$
@@ -133,6 +134,6 @@ eval <*A set.set_d+> *Set_d take -> <<A <A set.set_d+> tuple> maybe> {
   }
 } ;;
 
-eval <*A set.set_d+> *Set_d clear -> <A set.set_d+> {
+eval <*A data.d1+> *Set_d clear -> <A data.d1+> {
   body: avl.new_tree :: Set_d d$
 } ;;
