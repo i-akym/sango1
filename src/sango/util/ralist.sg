@@ -23,6 +23,7 @@
 ###########################################################################
 module "sango.util.ralist" ;;
 
+import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.iter" -> iter ;;
@@ -30,63 +31,61 @@ import "sango.util.iter" -> iter ;;
 # -- random access list --
 
 data <*A ralist> @public :=
-  d: <A ralist_d+>
+  d: <A data.d1+>
   fs: <A ralist_fs>
   ralist$ ;;
 
-data <*A ralist_d> @public := _dummy_ralist_d$ ;;
-
 data <*A ralist_fs> @public :=
-  empty?_f_: <<<A ralist_d+> bool fun> maybe>
-  length_f: <<A ralist_d+> int fun>
-  elem_f: <<A ralist_d+> int <A maybe> fun>
-  first_f_: <<<A ralist_d+> <A maybe> fun> maybe>
-  last_f_: <<<A ralist_d+> <A maybe> fun> maybe>
-  tail_f_: <<<A ralist_d+> <<A ralist_d+> maybe> fun> maybe>
-  insert_at_f: <<A ralist_d+> int A <A ralist_d+> fun>
-  append_f_: <<<A ralist_d+> A <A ralist_d+> fun> maybe>
-  remove_at_f: <<A ralist_d+> int <<A ralist_d+> <A maybe> tuple> fun>
-  replace_at_f_: <<<A ralist_d+> int A <<A ralist_d+> <A maybe> tuple> fun> maybe>
-  take_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
-  drop_f_: <<<A ralist_d+> int <A ralist_d+> fun> maybe>
-  clear_f: <<A ralist_d+> <A ralist_d+> fun>
+  empty?_f_: <<<A data.d1+> bool fun> maybe>
+  length_f: <<A data.d1+> int fun>
+  elem_f: <<A data.d1+> int <A maybe> fun>
+  first_f_: <<<A data.d1+> <A maybe> fun> maybe>
+  last_f_: <<<A data.d1+> <A maybe> fun> maybe>
+  tail_f_: <<<A data.d1+> <<A data.d1+> maybe> fun> maybe>
+  insert_at_f: <<A data.d1+> int A <A data.d1+> fun>
+  append_f_: <<<A data.d1+> A <A data.d1+> fun> maybe>
+  remove_at_f: <<A data.d1+> int <<A data.d1+> <A maybe> tuple> fun>
+  replace_at_f_: <<<A data.d1+> int A <<A data.d1+> <A maybe> tuple> fun> maybe>
+  take_f_: <<<A data.d1+> int <A data.d1+> fun> maybe>
+  drop_f_: <<<A data.d1+> int <A data.d1+> fun> maybe>
+  clear_f: <<A data.d1+> <A data.d1+> fun>
   ralist_fs$ ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_empty?_f | empty?_f @public -> <<A ralist_d+> bool fun> {
+eval <*A ralist_fs> *Fs ralist_fs_empty?_f | empty?_f @public -> <<A data.d1+> bool fun> {
   Fs empty?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D -> <bool> {
+    \ <A data.d1+> *D -> <bool> {
       D &(Fs length_f) >> zero?
     }
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_first_f | first_f @public -> <<A ralist_d+> <A maybe> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_first_f | first_f @public -> <<A data.d1+> <A maybe> fun> {
   Fs first_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D -> <A maybe> {
+    \ <A data.d1+> *D -> <A maybe> {
       D 0 &(Fs elem_f)
     }
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_last_f | last_f @public -> <<A ralist_d+> <A maybe> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_last_f | last_f @public -> <<A data.d1+> <A maybe> fun> {
   Fs last_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D -> <A maybe> {
+    \ <A data.d1+> *D -> <A maybe> {
       D (D &(Fs length_f) >> dec) &(Fs elem_f)
     }
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_tail_f | tail_f @public -> <<A ralist_d+> <<A ralist_d+> maybe> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_tail_f | tail_f @public -> <<A data.d1+> <<A data.d1+> maybe> fun> {
   Fs tail_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D -> <<A ralist_d+> maybe> {
+    \ <A data.d1+> *D -> <<A data.d1+> maybe> {
       D &(Fs empty?_f) >> case {
       ; true$ -> none$
       ; ** -> (D 0 &(Fs delete_at_f)) value$
@@ -95,27 +94,27 @@ eval <*A ralist_fs> *Fs ralist_fs_tail_f | tail_f @public -> <<A ralist_d+> <<A 
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_append_f | append_f @public -> <<A ralist_d+> A <A ralist_d+> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_append_f | append_f @public -> <<A data.d1+> A <A data.d1+> fun> {
   Fs append_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D <A> *X -> <A ralist_d+> {
+    \ <A data.d1+> *D <A> *X -> <A data.d1+> {
       D (D &(Fs length_f)) X &(Fs insert_at_f)
     }
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_delete_at_f | delete_at_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
-  \ <A ralist_d+> *D <int> *Index -> <A ralist_d+> {
+eval <*A ralist_fs> *Fs ralist_fs_delete_at_f | delete_at_f @public -> <<A data.d1+> int <A data.d1+> fun> {
+  \ <A data.d1+> *D <int> *Index -> <A data.d1+> {
     D Index &(Fs remove_at_f) >> tuple.pair_first
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A ralist_d+> int A <<A ralist_d+> <A maybe> tuple> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A data.d1+> int A <<A data.d1+> <A maybe> tuple> fun> {
   Fs replace_at_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D <int> *Index <A> *X -> <<A ralist_d+> <A maybe> tuple> {
+    \ <A data.d1+> *D <int> *Index <A> *X -> <<A data.d1+> <A maybe> tuple> {
       D Index &(Fs remove_at_f) >> case {
       ; (| *D', *Removed value$ |) -> (| D' Index X &(Fs insert_at_f), Removed value$ |)
       ; ** -> (| D, none$ |)
@@ -124,17 +123,17 @@ eval <*A ralist_fs> *Fs ralist_fs_replace_at_f | replace_at_f @public -> <<A ral
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_update_at_f | update_at_f @public -> <<A ralist_d+> int A <A ralist_d+> fun> {
-  \ <A ralist_d+> *D <int> *Index <A> *X -> <A ralist_d+> {
+eval <*A ralist_fs> *Fs ralist_fs_update_at_f | update_at_f @public -> <<A data.d1+> int A <A data.d1+> fun> {
+  \ <A data.d1+> *D <int> *Index <A> *X -> <A data.d1+> {
     D Index X &(Fs replace_at_f) >> tuple.pair_first
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_take_f | take_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_take_f | take_f @public -> <<A data.d1+> int <A data.d1+> fun> {
   Fs take_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D <int> *Count -> <A ralist_d+> {
+    \ <A data.d1+> *D <int> *Count -> <A data.d1+> {
       if {
       ; Count ge0? ->
       ; otherwise -> bad_arg$ "Negative count." new_exception >> throw
@@ -144,7 +143,7 @@ eval <*A ralist_fs> *Fs ralist_fs_take_f | take_f @public -> <<A ralist_d+> int 
       Fs tail_f = *Tail_f,
       Fs append_f = *Append_f,
       Count D (D &(Fs clear_f))
-          &\ <int> *CC <A ralist_d+> *D_from <A ralist_d+> *D_to -> <A ralist_d+> {
+          &\ <int> *CC <A data.d1+> *D_from <A data.d1+> *D_to -> <A data.d1+> {
         (| D_from &Empty?_f, CC |) case {
         ; (| true$, ** |) -> D_to
         ; (| **, 0 |) -> D_to
@@ -155,18 +154,18 @@ eval <*A ralist_fs> *Fs ralist_fs_take_f | take_f @public -> <<A ralist_d+> int 
   }
 } ;;
 
-eval <*A ralist_fs> *Fs ralist_fs_drop_f | drop_f @public -> <<A ralist_d+> int <A ralist_d+> fun> {
+eval <*A ralist_fs> *Fs ralist_fs_drop_f | drop_f @public -> <<A data.d1+> int <A data.d1+> fun> {
   Fs take_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A ralist_d+> *D <int> *Count -> <A ralist_d+> {
+    \ <A data.d1+> *D <int> *Count -> <A data.d1+> {
       if {
       ; Count ge0? ->
       ; otherwise -> bad_arg$ "Negative count." new_exception >> throw
       },
       Fs empty?_f = *Empty?_f,
       Fs tail_f = *Tail_f,
-      Count D &\ <int> *CC <A ralist_d+> *DD -> <A ralist_d+> {
+      Count D &\ <int> *CC <A data.d1+> *DD -> <A data.d1+> {
         (| DD &Empty?_f, CC |) case {
         ; (| true$, ** |) -> DD
         ; (| **, 0 |) -> DD

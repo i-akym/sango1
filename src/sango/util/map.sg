@@ -23,6 +23,7 @@
 ###########################################################################
 module "sango.util.map" ;;
 
+import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.iter" -> iter ;;
@@ -30,52 +31,50 @@ import "sango.util.iter" -> iter ;;
 # -- map framework --
 
 data <*A *B map> @public :=
-  d: <A B map_d+>
+  d: <A B data.d2+>
   fs: <A B map_fs>
   map$ ;;
 
-data <*A *B map_d> @public := _dummy_map_d$ ;;
-
 data <*A *B map_fs> @public :=
-  empty?_f: <<A B map_d+> bool fun>
-  size_f: <<A B map_d+> int fun>
-  get_f: <<A B map_d+> A <<A B tuple> maybe> fun>
-  assoc_f_: <<<A B map_d+> A <B maybe> fun> maybe>
-  contain_key?_f_: <<<A B map_d+> A bool fun> maybe>
-  put_f: <<A B map_d+> A B <<A B map_d+> <<A B tuple> maybe> tuple> fun>
-  put_new_f_: <<<A B map_d+> A B <<A B map_d+> bool tuple> fun> maybe>
-  add_f_: <<<A B map_d+> A B <A B map_d+> fun> maybe>
-  remove_f: <<A B map_d+> A <<A B map_d+> <<A B tuple> maybe> tuple> fun>
-  delete_f_: <<<A B map_d+> A <A B map_d+> fun> maybe>
-  take_f: <<A B map_d+> <<<A B tuple> <A B map_d+> tuple> maybe> fun>
-  clear_f: <<A B map_d+> <A B map_d+> fun>
+  empty?_f: <<A B data.d2+> bool fun>
+  size_f: <<A B data.d2+> int fun>
+  get_f: <<A B data.d2+> A <<A B tuple> maybe> fun>
+  assoc_f_: <<<A B data.d2+> A <B maybe> fun> maybe>
+  contain_key?_f_: <<<A B data.d2+> A bool fun> maybe>
+  put_f: <<A B data.d2+> A B <<A B data.d2+> <<A B tuple> maybe> tuple> fun>
+  put_new_f_: <<<A B data.d2+> A B <<A B data.d2+> bool tuple> fun> maybe>
+  add_f_: <<<A B data.d2+> A B <A B data.d2+> fun> maybe>
+  remove_f: <<A B data.d2+> A <<A B data.d2+> <<A B tuple> maybe> tuple> fun>
+  delete_f_: <<<A B data.d2+> A <A B data.d2+> fun> maybe>
+  take_f: <<A B data.d2+> <<<A B tuple> <A B data.d2+> tuple> maybe> fun>
+  clear_f: <<A B data.d2+> <A B data.d2+> fun>
   map_fs$ ;;
 
-eval <*A *B map_fs> *Fs map_fs_assoc_f | assoc_f @public -> <<A B map_d+> A <B maybe> fun> {
+eval <*A *B map_fs> *Fs map_fs_assoc_f | assoc_f @public -> <<A B data.d2+> A <B maybe> fun> {
   Fs assoc_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A B map_d+> *D <A> *Key -> <B maybe> {
+    \ <A B data.d2+> *D <A> *Key -> <B maybe> {
       (D Key &(Fs get_f)) ^tuple.pair_second apply_to_something
     }
   }
 } ;;
 
-eval <*A *B map_fs> *Fs map_fs_contain_key?_f | contain_key?_f @public -> <<A B map_d+> A bool fun> {
+eval <*A *B map_fs> *Fs map_fs_contain_key?_f | contain_key?_f @public -> <<A B data.d2+> A bool fun> {
   Fs contain_key?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A B map_d+> *D <A> *Key -> <bool> {
+    \ <A B data.d2+> *D <A> *Key -> <bool> {
       D Key &(Fs get_f) >> something?
     }
   }
 } ;;
 
-eval <*A *B map_fs> *Fs map_fs_put_new_f | put_new_f @public -> <<A B map_d+> A B <<A B map_d+> bool tuple> fun> {
+eval <*A *B map_fs> *Fs map_fs_put_new_f | put_new_f @public -> <<A B data.d2+> A B <<A B data.d2+> bool tuple> fun> {
   Fs put_new_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A B map_d+> *D <A> *Key <B> *Value -> <<A B map_d+> bool tuple> {
+    \ <A B data.d2+> *D <A> *Key <B> *Value -> <<A B data.d2+> bool tuple> {
       D Key &(Fs contain_key?_f) >> case {
       ; true$ -> (| D, false$ |)
       ; ** -> (| D Key Value &(Fs add_f), true$ |)
@@ -84,21 +83,21 @@ eval <*A *B map_fs> *Fs map_fs_put_new_f | put_new_f @public -> <<A B map_d+> A 
   }
 } ;;
 
-eval <*A *B map_fs> *Fs map_fs_add_f | add_f @public -> <<A B map_d+> A B <A B map_d+> fun> {
+eval <*A *B map_fs> *Fs map_fs_add_f | add_f @public -> <<A B data.d2+> A B <A B data.d2+> fun> {
   Fs add_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A B map_d+> *D <A> *Key <B> *Value -> <A B map_d+> {
+    \ <A B data.d2+> *D <A> *Key <B> *Value -> <A B data.d2+> {
       D Key Value &(Fs put_f) >> tuple.pair_first
     }
   }
 } ;;
 
-eval <*A *B map_fs> *Fs map_fs_delete_f | delete_f @public -> <<A B map_d+> A <A B map_d+> fun> {
+eval <*A *B map_fs> *Fs map_fs_delete_f | delete_f @public -> <<A B data.d2+> A <A B data.d2+> fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A B map_d+> *D <A> *Key -> <A B map_d+> {
+    \ <A B data.d2+> *D <A> *Key -> <A B data.d2+> {
       D Key &(Fs remove_f) >> tuple.pair_first
     }
   }

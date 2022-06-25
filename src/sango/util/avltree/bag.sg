@@ -24,12 +24,13 @@
 module "sango.util.avltree.bag" ;;
 
 import "sango.arith" -> arith ;;
+import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.bag" -> bag ;;
 
-extend <*A bag.bag_d> :=
+extend <*A data.d1> :=
   ord: <A ord_fs>
   body: <<A list> avl.tree>
   d$ ;;
@@ -96,11 +97,11 @@ eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
   d: D fs: bag_fs bag.bag$
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d empty? -> <bool> {
+eval <*A data.d1+> *Bag_d empty? -> <bool> {
   Bag_d size >> zero?
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d size -> <int> {
+eval <*A data.d1+> *Bag_d size -> <int> {
   Bag_d = body: *Body *** d$,
   Body avl.node_ >> case {
   ; *Node value$ -> Node avl.aux = count: *Count *** aux$, Count
@@ -108,11 +109,11 @@ eval <*A bag.bag_d+> *Bag_d size -> <int> {
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem contain? -> <bool> {
+eval <*A data.d1+> *Bag_d <A> *Elem contain? -> <bool> {
   Bag_d Elem get_all >> list.non_empty?
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem get_all -> <A list> {
+eval <*A data.d1+> *Bag_d <A> *Elem get_all -> <A list> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
   ; *Elems avl.get_done$ -> Elems
@@ -120,7 +121,7 @@ eval <*A bag.bag_d+> *Bag_d <A> *Elem get_all -> <A list> {
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem add -> <A bag.bag_d+> {
+eval <*A data.d1+> *Bag_d <A> *Elem add -> <A data.d1+> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put >> case {
   ; *Body' avl.put_new_done$ -> body: Body' :: Bag_d d$
@@ -128,7 +129,7 @@ eval <*A bag.bag_d+> *Bag_d <A> *Elem add -> <A bag.bag_d+> {
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem remove -> <<A bag.bag_d+> <A maybe> tuple> {
+eval <*A data.d1+> *Bag_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Bag_d Elem get_all >> case {
   ; [] ->
@@ -142,7 +143,7 @@ eval <*A bag.bag_d+> *Bag_d <A> *Elem remove -> <<A bag.bag_d+> <A maybe> tuple>
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem remove_all -> <<A bag.bag_d+> <A list> tuple> {
+eval <*A data.d1+> *Bag_d <A> *Elem remove_all -> <<A data.d1+> <A list> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Bag_d d$, Removed |)
@@ -150,15 +151,15 @@ eval <*A bag.bag_d+> *Bag_d <A> *Elem remove_all -> <<A bag.bag_d+> <A list> tup
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem delete -> <A bag.bag_d+> {
+eval <*A data.d1+> *Bag_d <A> *Elem delete -> <A data.d1+> {
   Bag_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d <A> *Elem delete_all -> <A bag.bag_d+> {
+eval <*A data.d1+> *Bag_d <A> *Elem delete_all -> <A data.d1+> {
   Bag_d Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d take -> <<A <A bag.bag_d+> tuple> maybe> {
+eval <*A data.d1+> *Bag_d take -> <<A <A data.d1+> tuple> maybe> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body avl.node_ >> case {
   ; *Node value$ ->
@@ -169,6 +170,6 @@ eval <*A bag.bag_d+> *Bag_d take -> <<A <A bag.bag_d+> tuple> maybe> {
   }
 } ;;
 
-eval <*A bag.bag_d+> *Bag_d clear -> <A bag.bag_d+> {
+eval <*A data.d1+> *Bag_d clear -> <A data.d1+> {
   body: (^build_aux avl.new_tree) :: Bag_d d$
 } ;;
