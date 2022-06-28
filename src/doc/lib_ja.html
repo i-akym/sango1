@@ -3488,22 +3488,18 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 <h2 id="sango.util.enum.2"><code>sango.util.enum</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A context&gt; @public :=
-  d: &lt;A context_d+&gt;
+  d: &lt;A &quot;sango.data&quot;.d1+&gt;
   fs: &lt;A context_fs&gt;
   context$ ;;</code></td></tr></table>
 <p>列挙の文脈を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A context_d&gt; @public := _dummy_context_d$ ;;</code></td></tr></table>
-<p>文脈の実装データを表します。
-  これはダミーの定義で，文脈を実装する際に拡張します。</p>
-
 <table border width="100%"><tr><td class="def"><code>data &lt;*A context_fs&gt; @public :=
-  min_ge: &lt;&lt;A context_d+&gt; A &lt;A maybe&gt; fun&gt;
-  min_gt: &lt;&lt;A context_d+&gt; A &lt;A maybe&gt; fun&gt;
-  max_le: &lt;&lt;A context_d+&gt; A &lt;A maybe&gt; fun&gt;
-  max_lt: &lt;&lt;A context_d+&gt; A &lt;A maybe&gt; fun&gt;
-  contain?_f: &lt;&lt;A context_d+&gt; A bool fun&gt;
-  count_f: &lt;&lt;A context_d+&gt; &lt;A A tuple&gt; int fun&gt;
+  min_ge: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
+  min_gt: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
+  max_le: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
+  max_lt: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
+  contain?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A bool fun&gt;
+  count_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A A tuple&gt; int fun&gt;
   ord_fs: &lt;A ord_fs&gt;
   context_fs$ ;;</code></td></tr></table>
 <p>文脈の実装関数群を表します。
