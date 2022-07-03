@@ -373,23 +373,29 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeVar 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
       b = trialBindings;
-    } else if (!this.varSlot.requiresConcrete) {
+    } else if (this.constraint != null) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeVar 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
+      PTypeVarSkel var = create(this.srcInfo, null,
+        PTypeVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete), this.constraint);  // ok?
+      trialBindings.bind(tv.varSlot, var);
       trialBindings.bind(this.varSlot, tv);
       b = trialBindings;
-    } else if (tv.isConcrete(trialBindings)) {
+    } else if (this.varSlot.requiresConcrete) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeVar 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
+      PTypeVarSkel var = create(this.srcInfo, null,
+        PTypeVarSlot.createInternal(this.varSlot.variance, true), tv.constraint);
+      trialBindings.bind(tv.varSlot, var);
       trialBindings.bind(this.varSlot, tv);
       b = trialBindings;
     } else {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#acceptFreeVar 4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
-      tv.constrainAs(this, trialBindings);
+      trialBindings.bind(this.varSlot, tv);
       b = trialBindings;
     }
     return b;
@@ -544,13 +550,13 @@ if (PTypeGraph.DEBUG > 1) {
     return tr.castFor(this, bindings);
   }
 
-  PTypeVarSkel constrainAs(PTypeVarSkel tv, PTypeSkelBindings bindings) {
-    PTypeVarSkel var = new PTypeVarSkel();
-    var.srcInfo = this.srcInfo;
-    var.varSlot = PTypeVarSlot.createInternal(tv.varSlot.variance, tv.varSlot.requiresConcrete);
-    bindings.bind(this.varSlot, var);
-    return var;
-  }
+  // PTypeVarSkel constrainAs(PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    // PTypeVarSkel var = new PTypeVarSkel();
+    // var.srcInfo = this.srcInfo;
+    // var.varSlot = PTypeVarSlot.createInternal(tv.varSlot.variance, tv.varSlot.requiresConcrete);
+    // bindings.bind(this.varSlot, var);
+    // return var;
+  // }
 
   public void collectTconInfo(List<PDefDict.TconInfo> list) {}
 
