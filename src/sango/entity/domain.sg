@@ -92,7 +92,7 @@ eval <*A! weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <do
 eval <*A! weak_holder_h> *Weak_holder weak_holder_unique_num | unique_num @public -> <int> { Weak_holder unique } ;;
 eval <*A! weak_holder_h> *Weak_holder weak_holder_existence | existence @public -> <ex.existence> { Weak_holder existence } ;;
 
-eval <*A! weak_holder_h> *W0 <*B weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
+eval <*A! weak_holder_h> *W0 <*B! weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
   W0 = domain_h: *D0 unique: *N0 *** weak_holder_h$,
   W1 = domain_h: *D1 unique: *N1 *** weak_holder_h$,
   D0 case {

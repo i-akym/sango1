@@ -49,6 +49,9 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   PTypeRefSkel castFor(PTypeVarSkel var, PTypeSkelBindings bindings) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#castFor "); System.out.print(this); System.out.print(" "); System.out.print(var); System.out.print(" "); System.out.println(bindings);
+}
     PTypeRefSkel t = new PTypeRefSkel();
     t.defDictGetter = this.defDictGetter;
     t.srcInfo = this.srcInfo;
@@ -213,39 +216,51 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   public PTypeSkelBindings accept1(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#accept1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept1 A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
       b = trialBindings;
     } else if (cat == PTypeSkel.CAT_SOME) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept1 B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
       b = (width == PTypeSkel.WIDER)? trialBindings: null;
     } else {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept1 C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
       b = this.acceptVar(width, bindsRef, (PTypeVarSkel)type, trialBindings);
     }
     return b;
   }
 
   public PTypeSkelBindings accept2(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#accept2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept2 A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
       b = (width == PTypeSkel.NARROWER)? trialBindings: null;
-      // b = this.acceptBottom(width, bindsRef, type, trialBindings);
     } else if (cat == PTypeSkel.CAT_SOME) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept2 B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
       b = this.acceptTypeRef(width, bindsRef, (PTypeRefSkel)type, trialBindings);
     } else {
-      PTypeVarSkel v = (PTypeVarSkel)type;
-      if (v.bindConstraint(trialBindings)) {
-        b = this.accept(width, bindsRef, v, trialBindings);  // retry
-      } else {
-        b = this.acceptVar(width, bindsRef, v, trialBindings);
-      }
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#accept2 C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = this.acceptVar(width, bindsRef, (PTypeVarSkel)type, trialBindings);
     }
     return b;
   }
@@ -258,20 +273,29 @@ if (PTypeGraph.DEBUG > 1) {
   // }
 
   PTypeSkelBindings acceptTypeRef(int width, boolean bindsRef, PTypeRefSkel tr, PTypeSkelBindings trialBindings) throws CompileException {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#acceptTypeRef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptTypeRef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
     if (this.params.length != tr.params.length) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#acceptTypeRef 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptTypeRef A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
 }
       b = null;
     } else if (width == PTypeSkel.EQUAL) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptTypeRef B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
+}
       b = this.acceptEqualTypeRef(bindsRef, tr, trialBindings);
     } else if (width == PTypeSkel.NARROWER) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptTypeRef C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
+}
       b = this.acceptNarrowerTypeRef(bindsRef, tr, trialBindings);
     } else {  // WIDER
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptTypeRef D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
+}
       b = this.acceptWiderTypeRef(bindsRef, tr, trialBindings);
     }
     return b;
@@ -394,23 +418,69 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   PTypeSkelBindings acceptVar(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+    return (tv.constraint != null)?
+      this.acceptVarConstrained(width, bindsRef, tv, trialBindings):
+      this.acceptVarSimple(width, bindsRef, tv, trialBindings);
+  }
+
+  PTypeSkelBindings acceptVarConstrained(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarConstrained "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
     PTypeSkelBindings b;
     if (trialBindings.isGivenTVar(tv.varSlot)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarConstrained A "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = null;
+    } else if ((b = this.accept(width, bindsRef, tv.constraint, trialBindings)) == null) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarConstrained B "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
       b = null;
     } else if (this.includesVar(tv.varSlot, trialBindings)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar 2 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarConstrained C "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
       b = null;
     } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#acceptVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarConstrained D "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = this.accept(width, bindsRef, tv.constraint, trialBindings);
+    // } else {
+      // b = this.accept(width, bindsRef, tv.castTo(this, trialBindings), trialBindings);
+    // } else if ((b = this.accept(width, bindsRef, tv.constraint, trialBindings)) == null) {
+      // b = null;
+    // } else if (this.includesVar(tv.varSlot, trialBindings)) {
+      // b = null;
+    // } else {
+      // b = this.accept(width, bindsRef, tv.castTo(this, trialBindings), trialBindings);
+    }
+    return b;
+  }
+
+  PTypeSkelBindings acceptVarSimple(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarFree "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+    PTypeSkelBindings b;
+    if (trialBindings.isGivenTVar(tv.varSlot)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarFree A "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = null;
+    } else if (this.includesVar(tv.varSlot, trialBindings)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarFree B "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
+}
+      b = null;
+    } else {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#acceptVarFree C "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
       b = this.accept(width, bindsRef, tv.castTo(this, trialBindings), trialBindings);
     }
