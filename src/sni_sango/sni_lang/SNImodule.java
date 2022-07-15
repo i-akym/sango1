@@ -167,32 +167,28 @@ public class SNImodule {
     }
     PTypeSkelBindings b = PTypeSkelBindings.create();
     RObjItem[] vs = new RObjItem[as.size()];
-    try {
-      for (int i = 0; i < c.getAttrCount(); i++) {
-        TaoItem tv = as.get(i);
-        // if (PTypeRefSkel.willNotReturn(tv.type)) { ... }  // HERE
-        PDataDef.Attr a = c.getAttrAt(i);
-        PTypeSkel at = a.getNormalizedType();
-        PTypeSkelBindings bb = b;
-        if ((b = at.accept(PTypeSkel.NARROWER, true, tv.type, b)) == null) {
-          StringBuffer emsg = new StringBuffer();
-          emsg.append("Type mismatch at ");
-          emsg.append(Integer.toString(i));
-          emsg.append(".");
-          emsg.append("\n  attribute def: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(at));
-          emsg.append("\n  attribute def in context: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bb)));
-          emsg.append("\n  actual attribute: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(tv.type));
-          helper.setException(sni_sango.SNIlang.createBadArgException(
-            helper, new Cstr(emsg.toString()), null));
-          return;
-        }
-        vs[i] = tv.value;
+    for (int i = 0; i < c.getAttrCount(); i++) {
+      TaoItem tv = as.get(i);
+      // if (PTypeRefSkel.willNotReturn(tv.type)) { ... }  // HERE
+      PDataDef.Attr a = c.getAttrAt(i);
+      PTypeSkel at = a.getNormalizedType();
+      PTypeSkelBindings bb = b;
+      if ((b = at.accept(PTypeSkel.NARROWER, true, tv.type, b)) == null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Type mismatch at ");
+        emsg.append(Integer.toString(i));
+        emsg.append(".");
+        emsg.append("\n  attribute def: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(at));
+        emsg.append("\n  attribute def in context: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bb)));
+        emsg.append("\n  actual attribute: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(tv.type));
+        helper.setException(sni_sango.SNIlang.createBadArgException(
+          helper, new Cstr(emsg.toString()), null));
+        return;
       }
-    } catch (CompileException ex) {
-      throw new RuntimeException("Unexpected exception. - " + ex.toString());
+      vs[i] = tv.value;
     }
     RDataConstr dc = helper.getDataConstr(modName, dconName);
     RStructItem data = helper.getStructItem(dc, vs);
@@ -220,11 +216,7 @@ public class SNImodule {
     PTypeSkel ts = dd.getTypeSig();
     PDataDef.Constr c = dd.getConstr(dconName);
     PTypeSkelBindings b = PTypeSkelBindings.create();
-    try {
-      b = ts.accept(PTypeSkel.NARROWER, true, constrTao.type, b);
-    } catch (CompileException ex) {
-      throw new RuntimeException("Unexpected exception. - " + ex.toString());
-    }
+    b = ts.accept(PTypeSkel.NARROWER, true, constrTao.type, b);
     PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(b);
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
@@ -264,29 +256,23 @@ public class SNImodule {
     RObjItem[] ps = new RObjItem[pts.length - 1];
     RObjItem L = params;
     PTypeSkelBindings b = PTypeSkelBindings.create();
-    try {
-      for (int i = 0; i < pts.length - 1; i++) {
-        if (!(L instanceof RListItem.Cell)) {
-          helper.setException(sni_sango.SNIlang.createBadArgException(
-            helper, new Cstr("Insufficient parameters."), null));
-          return;
-        }
-        RListItem.Cell lc = (RListItem.Cell)L;
-        TaoItem p = (TaoItem)lc.head;
-        PTypeSkelBindings bb = pts[i].accept(PTypeSkel.NARROWER, true, p.type, b);
-        if (bb == null) {
-          helper.setException(sni_sango.SNIlang.createBadArgException(
-            helper, new Cstr("Parameter type mismatch."), null));
-          return;
-        }
-        ps[i] = p.value;
-        b = bb;
-        L = lc.tail;
+    for (int i = 0; i < pts.length - 1; i++) {
+      if (!(L instanceof RListItem.Cell)) {
+        helper.setException(sni_sango.SNIlang.createBadArgException(
+          helper, new Cstr("Insufficient parameters."), null));
+        return;
       }
-    } catch (CompileException ex) {
-      helper.setException(sni_sango.SNIlang.createBadArgException(
-        helper, new Cstr("Parameter type mismatch."), null));
-      return;
+      RListItem.Cell lc = (RListItem.Cell)L;
+      TaoItem p = (TaoItem)lc.head;
+      PTypeSkelBindings bb = pts[i].accept(PTypeSkel.NARROWER, true, p.type, b);
+      if (bb == null) {
+        helper.setException(sni_sango.SNIlang.createBadArgException(
+          helper, new Cstr("Parameter type mismatch."), null));
+        return;
+      }
+      ps[i] = p.value;
+      b = bb;
+      L = lc.tail;
     }
     if (!(L instanceof RListItem.Nil)) {
       helper.setException(sni_sango.SNIlang.createBadArgException(

@@ -49,7 +49,7 @@ public interface PTypeSkel {
 
   void checkVariance(int width) throws CompileException;
 
-  PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings);
   // where, width is
   static final int EQUAL = 0;
   static final int NARROWER = 1;
@@ -59,9 +59,9 @@ public interface PTypeSkel {
 
   PTypeVarSlot getVarSlot();
 
-  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
+  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
     // foward to following method by combination of target and param
-  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
+  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
