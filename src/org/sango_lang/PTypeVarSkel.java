@@ -171,7 +171,7 @@ public class PTypeVarSkel implements PTypeSkel {
     }
   }
 
-  public PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
+  public PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -202,7 +202,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  public PTypeSkelBindings acceptConstrained(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
+  public PTypeSkelBindings acceptConstrained(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrained "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -226,7 +226,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  PTypeSkelBindings acceptConstrainedGiven(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedGiven(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedGiven "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -265,7 +265,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return null;
   }
 
-  PTypeSkelBindings acceptConstrainedGivenVar(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedGivenVar(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedGivenVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -288,7 +288,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  PTypeSkelBindings acceptConstrainedGivenVarConstrained(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedGivenVarConstrained(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedGivenVarConstrained "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -320,7 +320,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return trialBindings;
   }
 
-  PTypeSkelBindings acceptConstrainedFree(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedFree(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedFree "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -353,7 +353,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return trialBindings;
   }
 
-  PTypeSkelBindings acceptConstrainedFreeTypeRef(int width, boolean bindsRef, PTypeSkel tr, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedFreeTypeRef(int width, boolean bindsRef, PTypeSkel tr, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedFreeTyperef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -377,7 +377,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  PTypeSkelBindings acceptConstrainedFreeVar(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedFreeVar(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedFreeVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -401,7 +401,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  PTypeSkelBindings acceptConstrainedFreeVarConstrained(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedFreeVarConstrained(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedFreeVarConstrained "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -422,7 +422,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  PTypeSkelBindings acceptConstrainedFreeVarSimple(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) throws CompileException {
+  PTypeSkelBindings acceptConstrainedFreeVarSimple(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptConstrainedFreeVarSimple "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -444,7 +444,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  public PTypeSkelBindings acceptSimple(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException {
+  public PTypeSkelBindings acceptSimple(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptSimple "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(trialBindings);
 }
@@ -691,7 +691,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return bound;
   }
 
-  public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException {
+  public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
