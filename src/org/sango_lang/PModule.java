@@ -1077,12 +1077,13 @@ class PModule implements PDefDict {
       PFunDef fd = this.evalStmtList.get(indices.get(i));
       PTypeSkel[] pts = fd.getParamTypes();
       if (pts.length != paramTypes.length) { continue; }
-      PTypeSkelBindings b = PTypeSkelBindings.create(givenTVarList);
-      for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], b);
+      PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
+      boolean b = true;
+      for (int j = 0; b && j < pts.length; j++) {
+        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], bindings);
       }
-      if (b != null) {
-        sel = PDefDict.FunSelRes.create(fd, b);
+      if (b) {
+        sel = PDefDict.FunSelRes.create(fd, bindings);
       }
     }
     return sel;
