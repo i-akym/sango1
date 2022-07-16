@@ -147,7 +147,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
+        } else if (!this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -206,7 +206,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.accept(PTypeSkel.NARROWER, this.cat == PExprVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (!this.type.accept(PTypeSkel.NARROWER, this.cat == PExprVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -251,7 +251,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.getGivenTvarList())) == null) {
+        } else if (!this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -292,7 +292,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.type.accept(PTypeSkel.NARROWER, false, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList())) == null) {
+        } else if (!this.type.accept(PTypeSkel.NARROWER, false, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -549,8 +549,8 @@ if (DEBUG > 1) {
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
         PTypeSkelBindings bb = this.bindings;  // before looks for debug
-        this.bindings = ctr.params[i].accept(PTypeSkel.NARROWER, true, t, this.bindings);
-        if (this.bindings == null) {
+        boolean b = ctr.params[i].accept(PTypeSkel.NARROWER, true, t, this.bindings);
+        if (!b) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -876,7 +876,7 @@ if (DEBUG > 1) {
           /* DEBUG */ System.out.print("bindings: ");
           /* DEBUG */ System.out.println(b);
 }
-        if ((b = at.accept(PTypeSkel.NARROWER, true, t, b)) == null) {
+        if (!at.accept(PTypeSkel.NARROWER, true, t, b)) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -1087,7 +1087,7 @@ if (DEBUG > 1) {
       PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
       int width = PTypeSkel.WIDER;  // may strengthen check; warning?
       // int width = (this.context == PPtnMatch.CONTEXT_FIXED)? PTypeSkel.EQUAL: PTypeSkel.WIDER;
-      if (sig.accept(width, true, t, b) == null) {
+      if (!sig.accept(width, true, t, b)) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.exprObj.getSrcInfo());

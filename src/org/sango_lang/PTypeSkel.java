@@ -49,7 +49,7 @@ public interface PTypeSkel {
 
   void checkVariance(int width) throws CompileException;
 
-  PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings);
+  boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
   // where, width is
   static final int EQUAL = 0;
   static final int NARROWER = 1;
