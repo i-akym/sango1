@@ -43,15 +43,6 @@ public class PTypeVarSkel implements PTypeSkel {
     return var;
   }
 
-  PTypeVarSkel copy() {
-    PTypeVarSkel var = new PTypeVarSkel();
-    var.srcInfo = this.srcInfo;
-    var.name = this.name;
-    var.varSlot = this.varSlot;
-    var.constraint = this.constraint;
-    return var;
-  }
-
   public boolean equals(Object o) {
     boolean b;
     if (o == this) {
@@ -108,10 +99,12 @@ public class PTypeVarSkel implements PTypeSkel {
       t = iBindings.lookupAppl(this.varSlot);
     } else if (iBindings.isBound(this.varSlot)) {
       t = iBindings.lookup(this.varSlot);
-    } else {  // HERE: for what?
-      PTypeVarSlot s = PTypeVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
-      PTypeVarSkel v = this.copy();
-      v.varSlot = s;
+    } else {  // create new var for free
+      PTypeVarSkel v = new PTypeVarSkel();
+      v.srcInfo = this.srcInfo;
+      v.name = this.name;
+      v.varSlot = PTypeVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
+      v.constraint = (this.constraint != null)? this.constraint.instanciate(iBindings): null;
       iBindings.bind(this.varSlot, v);
       t = v;
     }
