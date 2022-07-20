@@ -376,7 +376,8 @@ class PCompiledModule implements PDefDict {
       for (int i = 0; i < params.length; i++) {
         bindings.bind(this.tparams[i].varSlot, params[i]);
       }
-      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+      PTypeRefSkel tr = (PTypeRefSkel)this.body.resolveBindings(bindings);
+      // PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
       // /* DEBUG */ System.out.print("unalias ");
       // /* DEBUG */ System.out.print(this.tconInfo.key);
       // /* DEBUG */ System.out.print(" -> ");

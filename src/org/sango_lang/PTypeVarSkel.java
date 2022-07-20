@@ -93,21 +93,27 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel t;
-    if (iBindings.isGivenTVar(this.varSlot)) {
-      t = this;
+// /* DEBUG */ System.out.print("INSTANCIATE V "); System.out.print(this); System.out.print(" "); System.out.print(iBindings.applBindings); System.out.print(" "); System.out.println(iBindings.bindingDict);
+    if (iBindings.isBound(this.varSlot)) {
+// /* DEBUG */ System.out.print("INSTANCIATE 1 "); System.out.println(this);
+      t = iBindings.lookup(this.varSlot);  // created before
     } else if (iBindings.isBoundAppl(this.varSlot)) {
-      t = iBindings.lookupAppl(this.varSlot);
-    } else if (iBindings.isBound(this.varSlot)) {
-      t = iBindings.lookup(this.varSlot);
+// /* DEBUG */ System.out.print("INSTANCIATE 2 "); System.out.println(this);
+      t = iBindings.lookupAppl(this.varSlot).instanciate(iBindings);  // forward
+    } else if (iBindings.isGivenTVar(this.varSlot)) {
+// /* DEBUG */ System.out.print("INSTANCIATE 3 "); System.out.println(this);
+      t = this;
     } else {  // create new var for free
+// /* DEBUG */ System.out.print("INSTANCIATE 4 "); System.out.println(this);
       PTypeVarSkel v = new PTypeVarSkel();
       v.srcInfo = this.srcInfo;
-      v.name = this.name;
       v.varSlot = PTypeVarSlot.createInternal(this.varSlot.variance, this.varSlot.requiresConcrete);
+      v.name = this.name + "." + v.varSlot.id;
       v.constraint = (this.constraint != null)? this.constraint.instanciate(iBindings): null;
       iBindings.bind(this.varSlot, v);
       t = v;
     }
+// /* DEBUG */ System.out.print("INSTANCIATE ! "); System.out.print(this); System.out.print(" => "); System.out.println(t);
     return t;
   }
 

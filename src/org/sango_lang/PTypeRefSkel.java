@@ -187,11 +187,15 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
+// /* DEBUG */ System.out.print("INSTANCIATE R "); System.out.print(this); System.out.print(" "); System.out.print(iBindings.applBindings); System.out.print(" "); System.out.println(iBindings.bindingDict);
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].instanciate(iBindings);
     }
     return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
+// /* DEBUG */ PTypeRefSkel t = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
+// /* DEBUG */ System.out.print("INSTANCIATE ! "); System.out.print(this); System.out.print(" => "); System.out.println(t);
+// /* DEBUG */ return t;
   }
 
   public PTypeRefSkel resolveBindings(PTypeSkelBindings bindings) {
