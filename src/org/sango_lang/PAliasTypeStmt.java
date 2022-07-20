@@ -350,7 +350,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     // /* DEBUG */ System.out.print(this.bodySkel.toString());
     // /* DEBUG */ System.out.print(" ...start instanciation... ");
     // /* DEBUG */ System.out.print(bindings.toString());
-    PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+    PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.resolveBindings(bindings);
+    // PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
     return tr;
   }
 

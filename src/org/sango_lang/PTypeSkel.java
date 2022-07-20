@@ -76,13 +76,13 @@ public interface PTypeSkel {
   public static class InstanciationBindings {
     PTypeSkelBindings applBindings;
     Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
-    List<PTypeVarSlot> varSlotList;
+    // List<PTypeVarSlot> varSlotList;
 
     public static InstanciationBindings create(PTypeSkelBindings applBindings) {
       InstanciationBindings ib = new InstanciationBindings();
       ib.applBindings = applBindings;
       ib.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
-      ib.varSlotList = new ArrayList<PTypeVarSlot>();
+      // ib.varSlotList = new ArrayList<PTypeVarSlot>();
       return ib;
     }
 
@@ -96,11 +96,11 @@ public interface PTypeSkel {
 
     void bind(PTypeVarSlot var, PTypeVarSkel vs) {
       PTypeVarSlot s = vs.getVarSlot();
-      if (this.varSlotList.contains(s)) {
-        throw new IllegalArgumentException("Already added. " + s);
+      if (this.bindingDict.containsKey(var)) {
+        throw new IllegalArgumentException("Already added. " + var);
       }
       this.bindingDict.put(var, vs);
-      this.varSlotList.add(s);
+      // this.varSlotList.add(s);
     }
 
     PTypeVarSkel lookup(PTypeVarSlot var) {
