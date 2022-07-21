@@ -23,20 +23,18 @@
 ###########################################################################
 module @alpha "sango.util.enum" ;;
 
-import "sango.data" -> data ;;
-
 data <*A context> @public :=
-  d: <A data.d1+>
+  d: <A _1+>
   fs: <A context_fs>
   context$ ;;
 
 data <*A context_fs> @public :=
-  min_ge: <<A data.d1+> A <A maybe> fun>
-  min_gt: <<A data.d1+> A <A maybe> fun>
-  max_le: <<A data.d1+> A <A maybe> fun>
-  max_lt: <<A data.d1+> A <A maybe> fun>
-  contain?_f: <<A data.d1+> A bool fun>
-  count_f: <<A data.d1+> <A A tuple> int fun>
+  min_ge: <<A _1+> A <A maybe> fun>
+  min_gt: <<A _1+> A <A maybe> fun>
+  max_le: <<A _1+> A <A maybe> fun>
+  max_lt: <<A _1+> A <A maybe> fun>
+  contain?_f: <<A _1+> A bool fun>
+  count_f: <<A _1+> <A A tuple> int fun>
   ord_fs: <A ord_fs>
   context_fs$ ;;
 

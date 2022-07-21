@@ -23,18 +23,17 @@
 ###########################################################################
 module @alpha "sango.util.array" ;;
 
-import "sango.data" -> data ;;
 import "sango.util.enum" -> enum ;;
 
 data <*A *B array> @public :=
-  d: <A B data.d2+>
+  d: <A B _2+>
   ix: <A enum.enum>
   fs: <A B array_fs>
   array$ ;;
 
 data <*A *B array_fs> @public :=
-  get_f: <<A B data.d2+> A B fun>
-  set_f: <<A B data.d2+> A B <A B data.d2+> fun>
+  get_f: <<A B _2+> A B fun>
+  set_f: <<A B _2+> A B <A B _2+> fun>
   array_fs$ ;;
 
 

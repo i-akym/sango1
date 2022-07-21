@@ -23,11 +23,10 @@
 ###########################################################################
 module "sango.util.avltree.queue" ;;
 
-import "sango.data" -> data ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.queue" -> queue ;;
 
-extend <*A data.d1> :=
+extend <*A _1> :=
   body: <A avl.tree>
   d$ ;;
 
@@ -57,22 +56,22 @@ eval queue_fs -> <*A queue.queue_fs> {
     queue.queue_fs$
 } ;;
 
-eval <*A data.d1+> *Queue_d empty? -> <bool> {
+eval <*A _1+> *Queue_d empty? -> <bool> {
   Queue_d length >> zero?
 } ;;
 
-eval <*A data.d1+> *Queue_d length -> <int> {
+eval <*A _1+> *Queue_d length -> <int> {
   Queue_d = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A data.d1+> *Queue_d <A> *Elem enqueue -> <A data.d1+> {
+eval <*A _1+> *Queue_d <A> *Elem enqueue -> <A _1+> {
   Queue_d = body: *Body *** d$,
   Body ^locate_enqueue Elem avl.put = *Body' avl.put_new_done$,
   body: Body' :: Queue_d d$
 } ;;
 
-eval <*A data.d1+> *Queue_d head -> <A maybe> {
+eval <*A _1+> *Queue_d head -> <A maybe> {
   Queue_d = body: *Body *** d$,
   Body ^locate_head avl.get >> case {
   ; *E avl.get_done$ -> E value$
@@ -80,7 +79,7 @@ eval <*A data.d1+> *Queue_d head -> <A maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Queue_d dequeue -> <<A <A data.d1+> tuple> maybe> {
+eval <*A _1+> *Queue_d dequeue -> <<A <A _1+> tuple> maybe> {
   Queue_d = body: *Body *** d$,
   Body avl.take >> case {
   ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue_d d$ |) value$
@@ -88,6 +87,6 @@ eval <*A data.d1+> *Queue_d dequeue -> <<A <A data.d1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Queue_d clear -> <A data.d1+> {
+eval <*A _1+> *Queue_d clear -> <A _1+> {
   body: avl.new_tree d$
 } ;;

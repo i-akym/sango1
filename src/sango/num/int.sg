@@ -25,7 +25,6 @@ module "sango.num.int" ;;
 
 import "sango.arith" -> arith ;;
 import "sango.cstr" -> cstr ;;
-import "sango.data" -> data ;;
 import "sango.string" -> str ;;
 import "sango.util.enum" -> enum ;;
 import "sango.util.iter" -> iter ;;
@@ -67,7 +66,7 @@ eval <cstr> *Str parse @public -> <int> {
 
 # -- enum --
 
-extend <*A data.d1> := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
+extend <*A _1> := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
 
 eval @alpha <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> {
   if {
@@ -81,32 +80,32 @@ eval @alpha <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> 
 
 eval <int ord_fs> *Ord_fs step_ec_f -> <int enum.context_fs> {
   min_ge:
-    \ <int data.d1+> *D <int> *B -> <int maybe> {
+    \ <int _1+> *D <int> *B -> <int maybe> {
       D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
       Origin Stepw Dir B step_ec_min_ge
     }
   min_gt:
-    \ <int data.d1+> *D <int> *B -> <int maybe> {
+    \ <int _1+> *D <int> *B -> <int maybe> {
       D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
       Origin Stepw Dir (B Dir sum) step_ec_min_ge
     }
   max_le:
-    \ <int data.d1+> *D <int> *B -> <int maybe> {
+    \ <int _1+> *D <int> *B -> <int maybe> {
       D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
       Origin Stepw Dir B step_ec_max_le
     }
   max_lt:
-    \ <int data.d1+> *D <int> *B -> <int maybe> {
+    \ <int _1+> *D <int> *B -> <int maybe> {
       D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
       Origin Stepw Dir (B Dir diff) step_ec_max_le
     }
   contain?_f:
-    \ <int data.d1+> *D <int> *X -> <bool> {
+    \ <int _1+> *D <int> *X -> <bool> {
       D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
       (X Origin diff) Stepw div >> case { (| **, 0 |) -> true$ ; ** -> false$ }
     }
   count_f:
-    \ <int data.d1+> *D <int int tuple> *R -> <int> {
+    \ <int _1+> *D <int int tuple> *R -> <int> {
       D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
       R = (| *L, *U |),
       Origin Stepw Dir L step_ec_min_ge >> value = *Min,
