@@ -23,22 +23,21 @@
 ###########################################################################
 module "sango.util.queue" ;;
 
-import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
 data <*A queue> @public :=
-  d: <A data.d1+>
+  d: <A _1+>
   fs: <A queue_fs>
   queue$ ;;
 
 data <*A queue_fs> @public :=
-  empty?_f: <<A data.d1+> bool fun>
-  length_f: <<A data.d1+> int fun>
-  enqueue_f: <<A data.d1+> A <A data.d1+> fun>
-  head_f: <<A data.d1+> <A maybe> fun>
-  dequeue_f: <<A data.d1+> <<A <A data.d1+> tuple> maybe> fun>
-  clear_f: <<A data.d1+> <A data.d1+> fun>
+  empty?_f: <<A _1+> bool fun>
+  length_f: <<A _1+> int fun>
+  enqueue_f: <<A _1+> A <A _1+> fun>
+  head_f: <<A _1+> <A maybe> fun>
+  dequeue_f: <<A _1+> <<A <A _1+> tuple> maybe> fun>
+  clear_f: <<A _1+> <A _1+> fun>
   queue_fs$ ;;
 
 

@@ -94,7 +94,7 @@ eval <*A async_h> *Async async_peek_result | peek @public -> <<A result> maybe> 
 
 #  -- messaging --
 
-extend <independent> -> msg @public :=
+extend <_0> -> msg @public :=
 | signal$
 | no_post$
 | <sys_msg> sys_msg$

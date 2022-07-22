@@ -91,8 +91,6 @@ kbd {
   <a href="#sango.cstr.1">生成</a>
   <a href="#sango.cstr.2">要素処理</a>
   <a href="#sango.cstr.3">行</a>
-<a href="#sango.data"><code>sango.data</code></a> 【Beta】
-  <a href="#sango.data.1">データ定義</a>
 <a href="#sango.debug"><code>sango.debug</code></a>
   <a href="#sango.debug.1">オブジェクト情報</a>
   <a href="#sango.debug.2">アサーション</a>
@@ -260,6 +258,14 @@ kbd {
 
 <table border width="100%"><tr><td class="def"><code>data &lt;void&gt; @public := void$ ;;</code></td></tr></table>
 <p>関数から返すべき値が無いことを表す便宜的な型です。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;_0&gt; @public := _0$ ;;
+data &lt;*A _1&gt; @public := _1$ ;;
+data &lt;*A *B _2&gt; @public := _2$ ;;
+data &lt;*A *B *C _3&gt; @public := _3$ ;;
+data &lt;*A *B *C *D _4&gt; @public := _4$ ;;
+data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
+<p>n個の型パラメタを持つ型を表したいとき，拡張して使用します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;bool&gt; @public := true$ | false$ ;;</code></td></tr></table>
 <p>論理的な「真」と「偽」を表します。</p>
@@ -1414,22 +1420,6 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *CharStr split_into_lines | lines @public -&gt; &lt;line list&gt; ;;</code></td></tr></table>
 <p>改行シーケンス（CR，LF，CR+LF）のいずれかを終端として，行に分割します。
   <code>CharStr</code>の末尾において，通常の文字があり，かつ，改行シーケンスが無い場合，終端無しの行として切り出します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.data"><code>sango.data</code> 【Beta】</h1>
-
-<p>データに関する有用な機能を提供します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.data.1"></code>sango.data</code> - データ定義</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;d0&gt; @public := d0$ ;;
-data &lt;*A d1&gt; @public := d1$ ;;
-data &lt;*A *B d2&gt; @public := d2$ ;;
-data &lt;*A *B *C d3&gt; @public := d3$ ;;
-data &lt;*A *B *C *D d4&gt; @public := d4$ ;;
-data &lt;*A *B *C *D *E d5&gt; @public := d5$ ;;</code></td></tr></table>
-<p>n個の型パラメタを持つ型を表したいとき，拡張して使用します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.debug"><code>sango.debug</code></h1>
@@ -3063,7 +3053,7 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A *B array&gt; @public :=
-  d: &lt;A B &quot;sango.data&quot;.d2+&gt;
+  d: &lt;A B _2+&gt;
   ix: &lt;A &quot;sango.util.enum&quot;.enum&gt;
   fs: &lt;A B array_fs&gt;
   array$ ;;</code></td></tr></table>
@@ -3087,8 +3077,8 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <h2 id="sango.util.array.2"><code>sango.util.array</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A *B array_fs&gt; @public :=
-  get_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B fun&gt;
-  set_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B &lt;A B &quot;sango.data&quot;.d2+&gt; fun&gt;
+  get_f: &lt;&lt;A B _2+&gt; A B fun&gt;
+  set_f: &lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt;
   array_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
@@ -3223,7 +3213,7 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A bag&gt; @public :=
-  d: &lt;A &quot;sango.data&quot;.d1+&gt;
+  d: &lt;A _1+&gt;
   fs: &lt;A bag_fs&gt;
   bag$ ;;</code></td></tr></table>
 <p>カプセル化されたバッグオブジェクトを表します。
@@ -3294,25 +3284,25 @@ remove_all @public -&gt; &lt;&lt;A bag&gt; &lt;A list&gt; tuple&gt; ;;</code></t
 <h2 id="sango.util.bag.2"><code>sango.util.bag</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A bag_fs&gt; @public :=
-  empty?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool fun&gt;
-  size_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int fun&gt;
-  contain?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A bool fun&gt;
-  get_all_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A list&gt; fun&gt;
-  add_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
-  remove_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  remove_all_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A list&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; maybe&gt;
-  delete_all_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;&lt;A &lt;A &quot;sango.data&quot;.d1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
+  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
+  size_f: &lt;&lt;A _1+&gt; int fun&gt;
+  contain?_f: &lt;&lt;A _1+&gt; A bool fun&gt;
+  get_all_f: &lt;&lt;A _1+&gt; A &lt;A list&gt; fun&gt;
+  add_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
+  remove_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
+  remove_all_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A list&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
+  delete_all_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
+  take_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
   bag_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag_fs&gt; *Fs bag_fs_delete_f | delete_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag_fs&gt; *Fs bag_fs_delete_f | delete_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>指定された値に等価な一つの要素をバッグから削除する関数を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A bag_fs&gt; *Fs
-  bag_fs_delete_all_f | delete_all_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+  bag_fs_delete_all_f | delete_all_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>指定された値に等価な全ての要素をバッグから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3488,18 +3478,18 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 <h2 id="sango.util.enum.2"><code>sango.util.enum</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A context&gt; @public :=
-  d: &lt;A &quot;sango.data&quot;.d1+&gt;
+  d: &lt;A _1+&gt;
   fs: &lt;A context_fs&gt;
   context$ ;;</code></td></tr></table>
 <p>列挙の文脈を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A context_fs&gt; @public :=
-  min_ge: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
-  min_gt: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
-  max_le: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
-  max_lt: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
-  contain?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A bool fun&gt;
-  count_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A A tuple&gt; int fun&gt;
+  min_ge: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
+  min_gt: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
+  max_le: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
+  max_lt: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
+  contain?_f: &lt;&lt;A _1+&gt; A bool fun&gt;
+  count_f: &lt;&lt;A _1+&gt; &lt;A A tuple&gt; int fun&gt;
   ord_fs: &lt;A ord_fs&gt;
   context_fs$ ;;</code></td></tr></table>
 <p>文脈の実装関数群を表します。
@@ -3586,7 +3576,7 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @public :=
-  d: &lt;A B &quot;sango.data&quot;.d2+&gt;
+  d: &lt;A B _2+&gt;
   fs: &lt;A B map_fs&gt;
   map$ ;;</code></td></tr></table>
 <p>カプセル化されたマップオブジェクトを表します。
@@ -3663,37 +3653,37 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <h2 id="sango.util.map.2"><code>sango.util.map</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A *B map_fs&gt; @public :=
-  empty?_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; bool fun&gt;
-  size_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; int fun&gt;
-  get_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
-  assoc_f_: &lt;&lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A &lt;B maybe&gt; fun&gt; maybe&gt;
-  contain_key?_f_: &lt;&lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A bool fun&gt; maybe&gt;
-  put_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
-  put_new_f_: &lt;&lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; bool tuple&gt; fun&gt; maybe&gt;
-  add_f_: &lt;&lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B &lt;A B &quot;sango.data&quot;.d2+&gt; fun&gt; maybe&gt;
-  remove_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A &lt;A B &quot;sango.data&quot;.d2+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B &quot;sango.data&quot;.d2+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; &lt;A B &quot;sango.data&quot;.d2+&gt; fun&gt;
+  empty?_f: &lt;&lt;A B _2+&gt; bool fun&gt;
+  size_f: &lt;&lt;A B _2+&gt; int fun&gt;
+  get_f: &lt;&lt;A B _2+&gt; A &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
+  assoc_f_: &lt;&lt;&lt;A B _2+&gt; A &lt;B maybe&gt; fun&gt; maybe&gt;
+  contain_key?_f_: &lt;&lt;&lt;A B _2+&gt; A bool fun&gt; maybe&gt;
+  put_f: &lt;&lt;A B _2+&gt; A B &lt;&lt;A B _2+&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
+  put_new_f_: &lt;&lt;&lt;A B _2+&gt; A B &lt;&lt;A B _2+&gt; bool tuple&gt; fun&gt; maybe&gt;
+  add_f_: &lt;&lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt; maybe&gt;
+  remove_f: &lt;&lt;A B _2+&gt; A &lt;&lt;A B _2+&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;&lt;A B _2+&gt; A &lt;A B _2+&gt; fun&gt; maybe&gt;
+  take_f: &lt;&lt;A B _2+&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B _2+&gt; tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;&lt;A B _2+&gt; &lt;A B _2+&gt; fun&gt;
   map_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs
-  map_fs_assoc_f | assoc_f @public -&gt; &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A &lt;B maybe&gt; fun&gt; ;;</code></td></tr></table>
+  map_fs_assoc_f | assoc_f @public -&gt; &lt;&lt;A B _2+&gt; A &lt;B maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>キーに対する値を返す関数を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs
-  map_fs_contain_key?_f | contain_key?_f @public -&gt; &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A bool fun&gt; ;;</code></td></tr></table>
+  map_fs_contain_key?_f | contain_key?_f @public -&gt; &lt;&lt;A B _2+&gt; A bool fun&gt; ;;</code></td></tr></table>
 <p>キーがマップに登録されているかどうか判定する関数を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs
-  map_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
+  map_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A B _2+&gt; A B &lt;&lt;A B _2+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>新しいキーと値のペアをマップに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_add_f | add_f @public -&gt; &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A B &lt;A B &quot;sango.data&quot;.d2+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_add_f | add_f @public -&gt; &lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_delete_f | delete_f @public  -&gt; &lt;&lt;A B &quot;sango.data&quot;.d2+&gt; A &lt;A B &quot;sango.data&quot;.d2+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_delete_f | delete_f @public -&gt; &lt;&lt;A B _2+&gt; A &lt;A B _2+&gt; fun&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3841,7 +3831,7 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @public :=
-  d: &lt;A &quot;sango.data&quot;.d1+&gt;
+  d: &lt;A _1+&gt;
   fs: &lt;A queue_fs&gt;
   queue$ ;;</code></td></tr></table>
 <p>カプセル化されたキューオブジェクトを表します。
@@ -3882,12 +3872,12 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <h2 id="sango.util.queue.2"><code>sango.util.queue</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A queue_fs&gt; @public :=
-  empty?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool fun&gt;
-  length_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int fun&gt;
-  enqueue_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
-  head_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; fun&gt;
-  dequeue_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;&lt;A &lt;A &quot;sango.data&quot;.d1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
+  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
+  length_f: &lt;&lt;A _1+&gt; int fun&gt;
+  enqueue_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
+  head_f: &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt;
+  dequeue_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
   queue_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
@@ -3934,7 +3924,7 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A ralist&gt; @public :=
-  d: &lt;A &quot;sango.data&quot;.d1+&gt;
+  d: &lt;A _1+&gt;
   fs: &lt;A ralist_fs&gt;
   ralist$ ;;</code></td></tr></table>
 <p>カプセル化されたランダム・アクセス・リストのオブジェクトを表します。
@@ -4015,50 +4005,50 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <h2 id="sango.util.ralist.2"><code>sango.util.ralist</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A ralist_fs&gt; @public :=
-  empty?_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool fun&gt; maybe&gt;
-  length_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int fun&gt;
-  elem_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;A maybe&gt; fun&gt;
-  first_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
-  last_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
-  tail_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; maybe&gt; fun&gt; maybe&gt;
-  insert_at_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
-  append_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; maybe&gt;
-  remove_at_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  replace_at_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; int A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; maybe&gt;
-  take_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; maybe&gt;
-  drop_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; maybe&gt;
-  clear_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
+  empty?_f_: &lt;&lt;&lt;A _1+&gt; bool fun&gt; maybe&gt;
+  length_f: &lt;&lt;A _1+&gt; int fun&gt;
+  elem_f: &lt;&lt;A _1+&gt; int &lt;A maybe&gt; fun&gt;
+  first_f_: &lt;&lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
+  last_f_: &lt;&lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
+  tail_f_: &lt;&lt;&lt;A _1+&gt; &lt;&lt;A _1+&gt; maybe&gt; fun&gt; maybe&gt;
+  insert_at_f: &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt;
+  append_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
+  remove_at_f: &lt;&lt;A _1+&gt; int &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
+  replace_at_f_: &lt;&lt;&lt;A _1+&gt; int A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; maybe&gt;
+  take_f_: &lt;&lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; maybe&gt;
+  drop_f_: &lt;&lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; maybe&gt;
+  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
   ralist_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_empty?_f | empty?_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_empty?_f | empty?_f @public -&gt; &lt;&lt;A _1+&gt; bool fun&gt; ;;</code></td></tr></table>
 <p>リストが空かどうかを判定する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_first_f | first_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_first_f | first_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭要素を返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_last_f | last_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_last_f | last_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの末尾要素を返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_tail_f | tail_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_tail_f | tail_f @public -&gt; &lt;&lt;A _1+&gt; &lt;&lt;A _1+&gt; maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>先頭要素を除いたリストを返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_append_f | append_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_append_f | append_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>値をリストの末尾に追加する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_delete_at_f | delete_at_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_delete_at_f | delete_at_f @public -&gt; &lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの指標の位置の要素を削除する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_replace_at_f | replace_at_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_replace_at_f | replace_at_f @public -&gt; &lt;&lt;A _1+&gt; int A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの指標の位置の要素を置換する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_update_at_f | update_at_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_update_at_f | update_at_f @public -&gt; &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの指標の位置の要素を置換する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_take_f | take_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_take_f | take_f @public -&gt; &lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭から指定された個数の要素を取り出す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_drop_f | drop_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_drop_f | drop_f @public -&gt; &lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭から指定された個数の要素を除く関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4074,7 +4064,7 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A set&gt; @public :=
-  d: &lt;A &quot;sango.data&quot;.d1+&gt;
+  d: &lt;A _1+&gt;
   fs: &lt;A set_fs&gt;
   set$ ;;</code></td></tr></table>
 <p>カプセル化されたセットオブジェクトを表します。
@@ -4154,32 +4144,32 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <h2 id="sango.util.set.2"><code>sango.util.set</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A set_fs&gt; @public :=
-  empty?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool fun&gt;
-  size_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int fun&gt;
-  get_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A maybe&gt; fun&gt;
-  contain?_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A bool fun&gt; maybe&gt;
-  put_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  put_new_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool tuple&gt; fun&gt; maybe&gt;
-  add_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;  maybe&gt;
-  remove_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;&lt;A &lt;A &quot;sango.data&quot;.d1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
+  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
+  size_f: &lt;&lt;A _1+&gt; int fun&gt;
+  get_f: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
+  contain?_f_: &lt;&lt;&lt;A _1+&gt; A bool fun&gt; maybe&gt;
+  put_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
+  put_new_f_: &lt;&lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; bool tuple&gt; fun&gt; maybe&gt;
+  add_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;  maybe&gt;
+  remove_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
+  take_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
   set_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs
-  set_fs_contain?_f | contain?_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;bool&gt; fun&gt; ;;</code></td></tr></table>
+  set_fs_contain?_f | contain?_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;bool&gt; fun&gt; ;;</code></td></tr></table>
 <p>値がセットに登録されているかどうか判定する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_add_f | add_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_add_f | add_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>値をセットに登録する関数を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs
-  set_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
+  set_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>新しい値をセットに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_delete_f | delete_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_delete_f | delete_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
 <p>値をセットから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4586,7 +4576,7 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A stack&gt; @public :=
-  d: &lt;A &quot;sango.data&quot;.d1+&gt;
+  d: &lt;A _1+&gt;
   fs: &lt;A stack_fs&gt;
   stack$ ;;</code></td></tr></table>
 <p>カプセル化されたスタックオブジェクトを表します。
@@ -4629,17 +4619,17 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 <h2 id="sango.util.stack.2"><code>sango.util.stack</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A stack_fs&gt; @public :=
-  empty?_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; bool fun&gt;
-  depth_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; int fun&gt;
-  push_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; A &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
-  top_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A maybe&gt; fun&gt;
-  pop_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;&lt;A &lt;A &quot;sango.data&quot;.d1+&gt; tuple&gt; maybe&gt; fun&gt;
-  to_list_f_: &lt;&lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A list&gt; fun&gt; maybe&gt;
-  clear_f: &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A &quot;sango.data&quot;.d1+&gt; fun&gt;
+  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
+  depth_f: &lt;&lt;A _1+&gt; int fun&gt;
+  push_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
+  top_f: &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt;
+  pop_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
+  to_list_f_: &lt;&lt;&lt;A _1+&gt; &lt;A list&gt; fun&gt; maybe&gt;
+  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
   stack_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;&lt;A &quot;sango.data&quot;.d1+&gt; &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストに変換する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

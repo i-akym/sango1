@@ -23,13 +23,12 @@
 ###########################################################################
 module "sango.util.bag.simplebag" ;;
 
-import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.bag" -> bag ;;
 import "sango.util.iter" -> iter ;;
 
-extend <*A data.d1> := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
+extend <*A _1> := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
 
 eval new_bag @public -> <*A bag.bag> {
   hard_eq_fs new_bag
@@ -54,17 +53,17 @@ eval bag_fs -> <*A bag.bag_fs> {
     bag.bag_fs$
 } ;;
 
-eval <*A data.d1+> *Bag_d empty? -> <bool> {
+eval <*A _1+> *Bag_d empty? -> <bool> {
   Bag_d = col: *Col *** simple_bag_d$,
   Col list.empty?
 } ;;
 
-eval <*A data.d1+> *Bag_d size -> <int> {
+eval <*A _1+> *Bag_d size -> <int> {
   Bag_d = col: *Col *** simple_bag_d$,
   Col list.length
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem contain? -> <bool> {
+eval <*A _1+> *Bag_d <A> *Elem contain? -> <bool> {
   Bag_d = *Eq *Col simple_bag_d$,
   Col &\ <A list> *Xs -> <bool> {
     Xs case {
@@ -75,7 +74,7 @@ eval <*A data.d1+> *Bag_d <A> *Elem contain? -> <bool> {
   }
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem get_all -> <A list> {
+eval <*A _1+> *Bag_d <A> *Elem get_all -> <A list> {
   Bag_d = *Eq *Col simple_bag_d$,
   Col [] &\ <A list> *Xs <A list> *Found -> <A list> {
     Xs case {
@@ -86,15 +85,15 @@ eval <*A data.d1+> *Bag_d <A> *Elem get_all -> <A list> {
   }
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem add -> <A data.d1+> {
+eval <*A _1+> *Bag_d <A> *Elem add -> <A _1+> {
   Bag_d = col: *Col *** simple_bag_d$,
   col: [ Elem ; Col] :: Bag_d simple_bag_d$
 
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
+eval <*A _1+> *Bag_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
   Bag_d = *Eq *Col simple_bag_d$,
-  Col [] &\ <A list> *Xs <A list> *Nes -> <<A data.d1+> <A maybe> tuple> {
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A _1+> <A maybe> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? -> (| col: (T Nes list.append) :: Bag_d simple_bag_d$, H value$ |)
     ; [ *H ; *T ] -> T [ H ; Nes ] &&
@@ -103,9 +102,9 @@ eval <*A data.d1+> *Bag_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem remove_all -> <<A data.d1+> <A list> tuple> {
+eval <*A _1+> *Bag_d <A> *Elem remove_all -> <<A _1+> <A list> tuple> {
   Bag_d = *Eq *Col simple_bag_d$,
-  Col [] [] &\ <A list> *Xs <A list> *Nes <A list> *Removed -> <<A data.d1+> <A list> tuple> {
+  Col [] [] &\ <A list> *Xs <A list> *Nes <A list> *Removed -> <<A _1+> <A list> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? -> T Nes [ H ; Removed] &&
     ; [ *H ; *T ] -> T [ H ; Nes ] Removed &&
@@ -114,15 +113,15 @@ eval <*A data.d1+> *Bag_d <A> *Elem remove_all -> <<A data.d1+> <A list> tuple> 
   }
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem delete -> <A data.d1+> {
+eval <*A _1+> *Bag_d <A> *Elem delete -> <A _1+> {
   Bag_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A data.d1+> *Bag_d <A> *Elem delete_all -> <A data.d1+> {
+eval <*A _1+> *Bag_d <A> *Elem delete_all -> <A _1+> {
   Bag_d Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A data.d1+> *Bag_d take -> <<A <A data.d1+> tuple> maybe> {
+eval <*A _1+> *Bag_d take -> <<A <A _1+> tuple> maybe> {
   Bag_d = col: *Col *** simple_bag_d$,
   Col case {
   ; [ *E ; *Col' ] -> (| E, col: Col' :: Bag_d simple_bag_d$ |) value$
@@ -130,7 +129,7 @@ eval <*A data.d1+> *Bag_d take -> <<A <A data.d1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Bag_d clear -> <A data.d1+> {
+eval <*A _1+> *Bag_d clear -> <A _1+> {
   col: [] :: Bag_d simple_bag_d$
 } ;;
 

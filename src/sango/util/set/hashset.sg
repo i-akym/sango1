@@ -23,13 +23,12 @@
 ###########################################################################
 module "sango.util.set.hashset" ;;
 
-import "sango.data" -> data ;;
 import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.set" -> set ;;
 import "sango.util.set.simpleset" -> sset ;;
 
-extend <*A data.d1> :=
+extend <*A _1> :=
   eq_fs: <A eq_fs>
   col: <int <A set.set> map.map>
   count: <int>
@@ -60,17 +59,17 @@ eval set_fs -> <*A set.set_fs> {
     set.set_fs$
 } ;;
 
-eval <*A data.d1+> *Set_d empty? -> <bool> {
+eval <*A _1+> *Set_d empty? -> <bool> {
   Set_d = *Eq *Col *Count hash_set_d$,
   Count zero?
 } ;;
 
-eval <*A data.d1+> *Set_d size -> <int> {
+eval <*A _1+> *Set_d size -> <int> {
   Set_d = *Eq *Col *Count hash_set_d$,
   Count
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem get -> <A maybe> {
+eval <*A _1+> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = *Eq *Col *Count hash_set_d$,
   Col (Elem &(Eq hash_f)) map.assoc >> case {
   ; *S value$ -> S Elem set.get
@@ -78,11 +77,11 @@ eval <*A data.d1+> *Set_d <A> *Elem get -> <A maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem contain? -> <bool> {
+eval <*A _1+> *Set_d <A> *Elem contain? -> <bool> {
   Set_d Elem get >> something?
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem put -> <<A data.d1+> <A maybe> tuple> {
+eval <*A _1+> *Set_d <A> *Elem put -> <<A _1+> <A maybe> tuple> {
   Set_d = *Eq *Col *Count hash_set_d$,
   Elem &(Eq hash_f) = *H,
   Col H map.assoc >> case {
@@ -101,19 +100,19 @@ eval <*A data.d1+> *Set_d <A> *Elem put -> <<A data.d1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem put_new -> <<A data.d1+> bool tuple> {
+eval <*A _1+> *Set_d <A> *Elem put_new -> <<A _1+> bool tuple> {
   Set_d Elem contain? >> case {
   ; true$ -> (| Set_d, false$ |)
   ; ** -> (| Set_d Elem add, true$ |)
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem add -> <A data.d1+> {
+eval <*A _1+> *Set_d <A> *Elem add -> <A _1+> {
   Set_d Elem put = (| *Set_d', ** |),
   Set_d'
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
+eval <*A _1+> *Set_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
   Set_d = *Eq *Col *Count hash_set_d$,
   Elem &(Eq hash_f) = *H,
   Col H map.assoc >> case {
@@ -128,12 +127,12 @@ eval <*A data.d1+> *Set_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem delete -> <A data.d1+> {
+eval <*A _1+> *Set_d <A> *Elem delete -> <A _1+> {
   Set_d Elem remove = (| *Set_d', ** |),
   Set_d'
 } ;;
 
-eval <*A data.d1+> *Set_d take -> <<A <A data.d1+> tuple> maybe> {
+eval <*A _1+> *Set_d take -> <<A <A _1+> tuple> maybe> {
   Set_d = *Eq *Col *Count hash_set_d$,
   Col map.take >> case {
   ; (| (| *H, *S |), *Col' |) value$ ->
@@ -150,7 +149,7 @@ eval <*A data.d1+> *Set_d take -> <<A <A data.d1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d clear -> <A data.d1+> {
+eval <*A _1+> *Set_d clear -> <A _1+> {
   Set_d = *Eq *Col *Count hash_set_d$,
   col: (Col map.clear) count: 0 :: Set_d hash_set_d$
 } ;;

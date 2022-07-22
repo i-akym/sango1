@@ -99,12 +99,21 @@ data <exc_info> @opaque := @native ;;
 
 # 'independent' type
 
-data <independent> @public := <_?_> exposed$ ;;
+data @deprecated <independent> @public := <_?_> exposed$ ;;
 
-data <*A seal_fs> @public :=
+data @deprecated <*A seal_fs> @public :=
   seal_f: <A independent+ fun>
   unseal_f: <independent+ <A maybe> fun>
   seal_fs$ ;;
+
+# base types -- for extension
+
+data <_0> @public := _0$ ;;
+data <*A _1> @public := _1$ ;;
+data <*A *B _2> @public := _2$ ;;
+data <*A *B *C _3> @public := _3$ ;;
+data <*A *B *C *D _4> @public := _4$ ;;
+data <*A *B *C *D *E _5> @public := _5$ ;;
 
 # miscellaneous types
 

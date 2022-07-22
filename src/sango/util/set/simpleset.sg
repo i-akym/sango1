@@ -23,12 +23,11 @@
 ###########################################################################
 module "sango.util.set.simpleset" ;;
 
-import "sango.data" -> data ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.set" -> set ;;
 
-extend <*A data.d1> := eq_fs: <A eq_fs> col: <A list> simple_set_d$ ;;
+extend <*A _1> := eq_fs: <A eq_fs> col: <A list> simple_set_d$ ;;
 
 eval new_set @public -> <*A set.set> {
   hard_eq_fs new_set
@@ -53,17 +52,17 @@ eval set_fs -> <*A set.set_fs> {
     set.set_fs$
 } ;;
 
-eval <*A data.d1+> *Set_d empty? -> <bool> {
+eval <*A _1+> *Set_d empty? -> <bool> {
   Set_d = *Eq *Col simple_set_d$,
   Col list.empty?
 } ;;
 
-eval <*A data.d1+> *Set_d size -> <int> {
+eval <*A _1+> *Set_d size -> <int> {
   Set_d = *Eq *Col simple_set_d$,
   Col list.length
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem get -> <A maybe> {
+eval <*A _1+> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = *Eq *Col simple_set_d$,
   Col &\ <A list> *Xs -> <A maybe> {
     Xs case {
@@ -74,13 +73,13 @@ eval <*A data.d1+> *Set_d <A> *Elem get -> <A maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem contain? -> <bool> {
+eval <*A _1+> *Set_d <A> *Elem contain? -> <bool> {
   Set_d Elem get >> something?
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem put -> <<A data.d1+> <A maybe> tuple> {
+eval <*A _1+> *Set_d <A> *Elem put -> <<A _1+> <A maybe> tuple> {
   Set_d = *Eq *Col simple_set_d$,
-  Col [] &\ <A list> *Xs <A list> *Nes -> <<A data.d1+> <A maybe> tuple> {
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A _1+> <A maybe> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? ->
       (| col: ([ Elem ; T ] Nes list.append) :: Set_d simple_set_d$,
@@ -93,21 +92,21 @@ eval <*A data.d1+> *Set_d <A> *Elem put -> <<A data.d1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem put_new -> <<A data.d1+> bool tuple> {
+eval <*A _1+> *Set_d <A> *Elem put_new -> <<A _1+> bool tuple> {
   Set_d Elem contain? >> case {
   ; true$ -> (| Set_d, false$ |)
   ; ** -> (| Set_d Elem add, true$ |)
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem add -> <A data.d1+> {
+eval <*A _1+> *Set_d <A> *Elem add -> <A _1+> {
   Set_d Elem put = (| *Set_d', ** |),
   Set_d'
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
+eval <*A _1+> *Set_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
   Set_d = *Eq *Col simple_set_d$,
-  Col [] &\ <A list> *Xs <A list> *Nes -> <<A data.d1+> <A maybe> tuple> {
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A _1+> <A maybe> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? ->
       (| col: (T Nes list.append) :: Set_d simple_set_d$,
@@ -120,12 +119,12 @@ eval <*A data.d1+> *Set_d <A> *Elem remove -> <<A data.d1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d <A> *Elem delete -> <A data.d1+> {
+eval <*A _1+> *Set_d <A> *Elem delete -> <A _1+> {
   Set_d Elem remove = (| *Set_d', ** |),
   Set_d'
 } ;;
 
-eval <*A data.d1+> *Set_d take -> <<A <A data.d1+> tuple> maybe> {
+eval <*A _1+> *Set_d take -> <<A <A _1+> tuple> maybe> {
   Set_d = *Eq *Col simple_set_d$,
   Col case {
   ; [ *E ; *Col' ] -> (| E, col: Col' :: Set_d simple_set_d$ |) value$
@@ -133,7 +132,7 @@ eval <*A data.d1+> *Set_d take -> <<A <A data.d1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A data.d1+> *Set_d clear -> <A data.d1+> {
+eval <*A _1+> *Set_d clear -> <A _1+> {
   col: [] :: Set_d simple_set_d$
 } ;;
 
