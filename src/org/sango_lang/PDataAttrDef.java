@@ -29,17 +29,15 @@ import java.util.List;
 
 class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   String name;
-  PExprVarDef var;
 
   private PDataAttrDef(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope);
+    super(srcInfo, outerScope.enterInner());
   }
 
-  static PDataAttrDef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PType type, PExprVarDef var) {
+  static PDataAttrDef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PType type) {
     PDataAttrDef attr = new PDataAttrDef(srcInfo, outerScope);
     attr.name = name;
     attr.type = type;
-    attr.var = var;
     return attr;
   }
 
@@ -51,92 +49,82 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     buf.append(this.name);
     buf.append(",type=");
     buf.append(this.type);
-    buf.append(",var=");
-    buf.append(this.var);
     buf.append("]");
     return buf.toString();
+  }
+
+  static class Builder {
+    PDataAttrDef attr;
+
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
+      return new Builder(srcInfo, outerScope);
+    }
+
+    Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
+      this.attr= new PDataAttrDef(srcInfo, outerScope);
+    }
+
+    PScope getScope() { return this.attr.scope; }
+
+    void setName(String name) {
+      this.attr.name = name;
+    }
+
+    void setType(PType type) {
+      this.attr.type = type;
+    }
+
+    PDataAttrDef create() {
+      return this.attr;
+    }
   }
 
   static List<PDataAttrDef> acceptList(ParserA.TokenReader reader, PScope outerScope) throws CompileException, IOException {
     StringBuffer emsg;
     List<PDataAttrDef> attrList = new ArrayList<PDataAttrDef>();
-    Parser.SrcInfo si = null;
-    String name = null;
     PType type = null;
-    PExprVarDef var = null;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     int state = 0;
-    DataAttrName aname;
-    PType type2;
+    Builder builder = null;
     while (state >= 0) {
       switch (state) {
       case 0:  // (empty)
-        if ((aname = acceptDataAttrName(reader, spc)) != null) {
-          si = aname.srcInfo;
-          name = aname.name;
+        builder = Builder.newInstance(reader.getCurrentSrcInfo(), outerScope);
+        ParserA.Token name;
+        ParserA.Token next = reader.getNextToken();
+        if (next.tagEquals(LToken.COL) && (name = ParserA.acceptNormalWord(reader, spc)) != null) {
+          builder.setName(name.value.token);
+          ParserA.acceptToken(reader, LToken.COL, ParserA.SPACE_DO_NOT_CARE);
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 1;
-        } else if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE)) != null) {
-          si = type.getSrcInfo();
-          type = type;
-          spc = ParserA.SPACE_DO_NOT_CARE;
-          state = 2;
+        } else if ((type = PType.accept(reader, builder.getScope(), ParserA.SPACE_DO_NOT_CARE)) != null) {
+          builder.setType(type);
+          attrList.add(builder.create());
+          builder = null;
+          spc = ParserA.SPACE_NEEDED;
+          state = 0;
         } else {
           state = -1;
         }
         break;
       case 1:  // name:
-        if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE)) != null) {
-          spc = ParserA.SPACE_DO_NOT_CARE;
-          state = 2;
+        if ((type = PType.accept(reader, builder.getScope(), ParserA.SPACE_DO_NOT_CARE)) != null) {
+          builder.setType(type);
+          attrList.add(builder.create());
+          builder = null;
+          spc = ParserA.SPACE_NEEDED;
+          state = 0;
         } else {
           emsg = new StringBuffer();
-          emsg.append("Data type missing at ");
+          emsg.append("Attribute type missing at ");
           emsg.append(reader.getCurrentSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
         break;
-      case 2:  // [name:] <type>
-	if ((aname = acceptDataAttrName(reader, ParserA.SPACE_NEEDED)) != null) {
-          attrList.add(create(si, outerScope, name, type, var));
-          si = aname.srcInfo;
-          name = aname.name;
-          type = null;
-          var = null;
-          spc = ParserA.SPACE_DO_NOT_CARE;
-          state = 1;
-        } else if ((type2 = PType.accept(reader, outerScope, ParserA.SPACE_NEEDED)) != null) {
-          attrList.add(create(si, outerScope, name, type, var));
-          si = type.getSrcInfo();
-          name = null;
-          type = type2;
-          var = null;
-          spc = ParserA.SPACE_DO_NOT_CARE;
-          state = 2;
-        } else  {
-          attrList.add(create(si, outerScope, name, type, var));
-          state = -1;
-        }
-        break;
       }
     }
     return attrList;
-  }
-
-  private static DataAttrName acceptDataAttrName(ParserA.TokenReader reader, int spc) throws CompileException, IOException {
-    StringBuffer emsg;
-    ParserA.Token next = reader.getNextToken();
-    ParserA.Token name;
-    if (next.tagEquals(LToken.COL) && (name = ParserA.acceptNormalWord(reader, spc)) != null) {
-      DataAttrName aname = new DataAttrName();
-      aname.srcInfo = name.getSrcInfo();
-      aname.name = name.value.token;
-      ParserA.acceptToken(reader, LToken.COL, ParserA.SPACE_DO_NOT_CARE);
-      return aname;
-    } else {
-      return null;
-    }
   }
 
   static PDataAttrDef acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
@@ -158,31 +146,20 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), outerScope, elem.getAttrValueAsId("name"), t, null);
-  }
-
-  private static class DataAttrName {
-    Parser.SrcInfo srcInfo;
-    String name;
+    Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
+    builder.setName(elem.getAttrValueAsId("name"));
+    builder.setType(t);
+    return builder.create();
   }
 
   public String getName() { return this.name; }
-
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.type.setupScope(scope);
-  // }
 
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PDataAttrDef resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    // this.idResolved = true;
     return this;
   }
 
