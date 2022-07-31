@@ -34,7 +34,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   PType sig;  // null means variable params
   String tcon;
   PFeature.Id feature;
-  String featureFor;
+  Integer featureFor;
   int acc;
   PTypeVarDef[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
@@ -74,6 +74,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   static class Builder {
     PDataStmt dat;
+    PTypeId featureVar;
     List<PDataConstrDef> constrList;
     Set<String> nameSet;
 
@@ -101,8 +102,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.dat.feature = feature;
     }
 
-    void setFeatureFor(String featureFor) {
-      this.dat.featureFor = featureFor;
+    void setFeatureFor(PTypeId featureFor) {
+      this.featureVar = featureFor;
     }
 
     void setAcc(int acc) {
@@ -133,8 +134,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         for (int i = 0; i < constrList.size(); i++) {
           this.addConstr(constrList.get(i));
         }
-      // } else {
-        // this.setNativeImpl();
       }
     }
 
@@ -159,6 +158,24 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         }
       } else {
         throw new RuntimeException("Unexpected type.");
+      }
+      if (this.featureVar != null) {
+        Integer v = null;
+        for (int i = 0; v == null && i < this.dat.tparams.length; i++) {
+          if (this.dat.tparams[i].name.equals(this.featureVar.name)) {
+            v = i;
+          }
+        }
+        if (v == null) {
+          emsg = new StringBuffer();
+          emsg.append("Invalid variable \"");
+          emsg.append(this.featureVar.name);
+          emsg.append("\" for feature at ");
+          emsg.append(this.featureVar.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        this.dat.featureFor = v;
       }
       if (!this.constrList.isEmpty()) {
         this.dat.constrs = this.constrList.toArray(new PDataConstrDef[this.constrList.size()]);
@@ -200,19 +217,21 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString());
     }
     builder.setSig(tsig);
-    PFeature.Id fid;
-    if ((fid = PFeature.Id.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
-      builder.setFeature(fid);
-      if (ParserA.acceptToken(reader, LToken.SLASH, ParserA.SPACE_DO_NOT_CARE) != null) {
-        PTypeId featureFor;
-        if ((featureFor = PTypeId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
-          emsg = new StringBuffer();
-          emsg.append("Variable name for feature missing at ");
-          emsg.append(reader.getCurrentSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
+    if (ParserA.acceptToken(reader, LToken.TILD, ParserA.SPACE_NEEDED) != null) {
+      PFeature.Id fid;
+      if ((fid = PFeature.Id.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        builder.setFeature(fid);
+        if (ParserA.acceptToken(reader, LToken.SLASH, ParserA.SPACE_DO_NOT_CARE) != null) {
+          PTypeId featureFor;
+          if ((featureFor = PTypeId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+            emsg = new StringBuffer();
+            emsg.append("Variable name for feature missing at ");
+            emsg.append(reader.getCurrentSrcInfo());
+            emsg.append(".");
+            throw new CompileException(emsg.toString());
+          }
+          builder.setFeatureFor(featureFor);
         }
-        builder.setFeatureFor(featureFor.name);
       }
     }
     int acc = PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
@@ -356,22 +375,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     List<PDataConstrDef> constrList;
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (s == this.scope) { return; }
-    // this.scope = scope.start();
-    // this.idResolved = false;
-    // if (this.sig != null) {  // tuple, fun
-      // this.sig.setupScope(this.scope);
-    // }
-    // if (this.constrs != null) {  // skip if native impl
-      // for (int i = 0; i < this.constrs.length; i++) {
-        // this.constrs[i].setupScope(this.scope);
-      // }
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     // sig has no mod refs
     if (this.constrs != null) {  // skip if native impl
@@ -382,7 +385,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   public PDataStmt resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     if (this.sig != null) {
       this.sig = this.sig.resolve();
     }
@@ -392,7 +394,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         this.constrs[i].setDataType(this.sig);
       }
     }
-    // this.idResolved = true;
     return this;
   }
 
