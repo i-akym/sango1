@@ -33,7 +33,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   int availability;
   PType sig;  // null means variable params
   String tcon;
-  String feature;
+  PFeature.Id feature;
   String featureFor;
   int acc;
   PTypeVarDef[] tparams;  // null means variable params
@@ -97,7 +97,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.dat.sig = sig;
     }
 
-    void setFeature(String feature) {
+    void setFeature(PFeature.Id feature) {
       this.dat.feature = feature;
     }
 
@@ -200,16 +200,9 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString());
     }
     builder.setSig(tsig);
-    if (ParserA.acceptToken(reader, LToken.COL, ParserA.SPACE_DO_NOT_CARE) != null) {
-      PTypeId feature;
-      if ((feature = PTypeId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
-        emsg = new StringBuffer();
-        emsg.append("Feature name missing at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      builder.setFeature(feature.name);
+    PFeature.Id fid;
+    if ((fid = PFeature.Id.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
+      builder.setFeature(fid);
       if (ParserA.acceptToken(reader, LToken.SLASH, ParserA.SPACE_DO_NOT_CARE) != null) {
         PTypeId featureFor;
         if ((featureFor = PTypeId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {

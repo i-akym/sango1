@@ -25,7 +25,6 @@ package org.sango_lang;
 
 abstract class PDefaultProgObj extends PDefaultProgElem implements PProgObj {
   PScope scope;
-  // boolean idResolved;
 
   PDefaultProgObj(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo);
