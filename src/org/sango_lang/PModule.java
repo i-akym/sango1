@@ -1167,6 +1167,17 @@ class PModule implements PDefDict {
     return index;
   }
 
+  void addImplicitFarModRef(Cstr modName) {
+    if (modName.equals(this.name)) {
+      ;
+    } else if (modName.equals(Module.MOD_LANG)) {
+      ;
+    } else if (this.farModList.indexOf(modName) < 0) {
+/* DEBUG */ System.out.print("Implicit far mod ref "); System.out.print(modName.toJavaString()); System.out.print(" in "); System.out.println(this.name.toJavaString()); 
+      this.farModList.add(modName);
+    }
+  }
+
   class ForeignIdResolver {
     Map<Cstr, Map<String, ForeignDataDef>> dataDefDictDict;
     Map<Cstr, Map<String, PAliasTypeDef>> aliasDefDictDict;
@@ -1209,6 +1220,7 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print(tcon); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(tp); 
+      PModule.this.addImplicitFarModRef(modName);  // maybe not registered...
       switch (tp.subcat) {
       case PTypeId.SUBCAT_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");
