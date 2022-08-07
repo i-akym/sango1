@@ -67,8 +67,8 @@ class RModMgr implements PDefDict.DefDictGetter {
       if (!loaded.containsKey(m)) {
         Module mm = this.load(m);
         loaded.put(m, mm);
-        Cstr[] rs = mm.getModTab();
-        for (int i = 1; i < rs.length; i++) {
+        Cstr[] rs = mm.getModTab().getForeignMods();
+        for (int i = 0; i < rs.length; i++) {
             loadQueue.add(rs[i]);
         }
       }
@@ -216,8 +216,8 @@ class RModMgr implements PDefDict.DefDictGetter {
         Module mm = this.load(m);
         mergedModDict.put(m, mm);
         justLoaded.add(m);
-        Cstr[] rs = mm.getModTab();
-        for (int i = 1; i < rs.length; i++) {
+        Cstr[] rs = mm.getModTab().getForeignMods();
+        for (int i = 0; i < rs.length; i++) {
           loadQueue.add(rs[i]);
         }
       }

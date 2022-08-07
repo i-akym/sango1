@@ -58,8 +58,7 @@ class PCompiledModule implements PDefDict {
     cm.name = mod.name;
     cm.availability = mod.availability;
 
-    cm.foreignMods = new Cstr[mod.getModTab().length - 1];
-    System.arraycopy(mod.getModTab(), 1, cm.foreignMods, 0, cm.foreignMods.length);
+    cm.foreignMods = mod.getModTab().getForeignMods();
 
     List<PTypeRefSkel> unresolvedTypeRefList = new ArrayList<PTypeRefSkel>();
 
