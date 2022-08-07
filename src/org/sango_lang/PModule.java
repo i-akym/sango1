@@ -1173,7 +1173,7 @@ class PModule implements PDefDict {
     } else if (modName.equals(Module.MOD_LANG)) {
       ;
     } else if (this.farModList.indexOf(modName) < 0) {
-/* DEBUG */ System.out.print("Implicit far mod ref "); System.out.print(modName.toJavaString()); System.out.print(" in "); System.out.println(this.name.toJavaString()); 
+// /* DEBUG */ System.out.print("Implicit far mod ref "); System.out.print(modName.toJavaString()); System.out.print(" in "); System.out.println(this.name.toJavaString()); 
       this.farModList.add(modName);
     }
   }
