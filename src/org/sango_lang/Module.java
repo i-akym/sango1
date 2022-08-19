@@ -45,9 +45,9 @@ public class Module {
   // module file format version
   // static final String CUR_FORMAT_VERSION = "1.0";
   // initial
-  static final String CUR_FORMAT_VERSION = "1.1";
-  // add needs_concrete attribute to type var slot, which must be checked for type consistency
-  // planned: static final String CUR_FORMAT_VERSION = "1.2";
+  // static final String CUR_FORMAT_VERSION = "1.1";
+  // add requires_concrete attribute to type var slot, which must be checked for type consistency
+  static final String CUR_FORMAT_VERSION = "1.2";
   // planned: always use module index on type ref
 
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
