@@ -108,7 +108,7 @@ public interface PDefDict {
     public String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append("tconkey[mod=");
-      buf.append(this.modName);
+      buf.append(this.modName.repr());
       buf.append(",tcon=");
       buf.append(this.tcon);
       buf.append("]");

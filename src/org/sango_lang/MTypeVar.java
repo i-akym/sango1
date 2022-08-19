@@ -166,13 +166,13 @@ class MTypeVar implements MType {
     return constraint;
   }
 
-  public boolean isCompatible(Cstr defModName, MType type) {
+  public boolean isCompatible(Module.ModTab modTab, MType type, Module.ModTab defModTab) {
     boolean b;
     if (!(type instanceof MTypeVar)) {
       b = false;
     } else {
-      MTypeVar v = (MTypeVar)type;
-      b = v.slot == this.slot;
+      MTypeVar tv = (MTypeVar)type;
+      b = tv.slot == this.slot;
     }
     return b;
   }

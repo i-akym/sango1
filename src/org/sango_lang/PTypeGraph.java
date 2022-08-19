@@ -87,6 +87,14 @@ class PTypeGraph {
     for (int i = 0; i < this.nodeList.size(); i++) {
       this.nodeList.get(i).check();
     }
+    // collect tcon info including implicitly referred
+    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    for (int i = 0; i < this.nodeList.size(); i++) {
+      this.nodeList.get(i).collectTconInfo(tis);
+    }
+    for (int i = 0; i < tis.size(); i++) {
+      this.theMod.addReferredTcon(tis.get(i));
+    }
   }
 
   abstract class Node {
@@ -119,6 +127,10 @@ class PTypeGraph {
     abstract PTypeSkel infer() throws CompileException;
 
     void check() throws CompileException {}
+
+    void collectTconInfo(List<PDefDict.TconInfo> tis) {
+      this.type.collectTconInfo(tis);
+    }
 
   }
 
@@ -478,6 +490,17 @@ class PTypeGraph {
       }
       PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(this.bindings);
       return rt.instanciate(ib);
+    }
+
+    void collectTconInfo(List<PDefDict.TconInfo> tis) {
+// /* DEBUG */ System.out.print("G "); System.out.println(this.funDef.getOfficialName());
+      super.collectTconInfo(tis);
+      PTypeSkel[] pts = this.funDef.getParamTypes();
+      for (int i = 0; i < pts.length; i++) {
+// /* DEBUG */ System.out.print("p "); System.out.println(pts[i]);
+        pts[i].collectTconInfo(tis);
+      }
+      this.funDef.getRetType().collectTconInfo(tis);
     }
   }
 

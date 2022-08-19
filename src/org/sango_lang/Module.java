@@ -45,9 +45,9 @@ public class Module {
   // module file format version
   // static final String CUR_FORMAT_VERSION = "1.0";
   // initial
-  static final String CUR_FORMAT_VERSION = "1.1";
-  // add needs_concrete attribute to type var slot, which must be checked for type consistency
-  // planned: static final String CUR_FORMAT_VERSION = "1.2";
+  // static final String CUR_FORMAT_VERSION = "1.1";
+  // add requires_concrete attribute to type var slot, which must be checked for type consistency
+  static final String CUR_FORMAT_VERSION = "1.2";
   // planned: always use module index on type ref
 
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
@@ -1722,6 +1722,8 @@ public class Module {
       return this.tab.get(index);
     }
 
+    Cstr getMyModName() { return this.get(0); }
+
     int lookup(Cstr modName) {
       int index = this.tab.indexOf(modName);
       if (index < 0) { throw new IllegalArgumentException("Not found. " + modName.toJavaString()); }
@@ -1953,21 +1955,21 @@ public class Module {
     for (int i = 0; i < foreignMods.length; i++) {
       Cstr m = foreignMods[i];
       Module defMod = modDict.get(m);
+      if (defMod == null) {
+        throw new RuntimeException("Module not found. - " + m.repr());
+      }
       MDataDef[] dds = this.foreignDataDefsDict.get(m);
       if (dds != null && dds.length > 0) {
-        this.checkDataDefsCompat(dds, m, defMod);
+        this.checkDataDefsCompat(dds, defMod);
       }
       MFunDef[] fds = this.foreignFunDefsDict.get(m);
       if (fds != null && fds.length > 0) {
-        this.checkFunDefsCompat(fds, m, defMod);
+        this.checkFunDefsCompat(fds, defMod);
       }
     }
   }
 
-  void checkDataDefsCompat(MDataDef[] dds, Cstr defModName, Module defMod) throws FormatException {
-    if (defMod == null) {
-      throw new IllegalArgumentException("Module not found. - " + defModName.toJavaString());
-    }
+  void checkDataDefsCompat(MDataDef[] dds, Module defMod) throws FormatException {
     for (int i = 0; i < dds.length; i++) {
       MDataDef dd = dds[i];
       MDataDef ddd = defMod.dataDefDict.get(dd.tcon);
@@ -1978,18 +1980,15 @@ public class Module {
         emsg.append(", referred in: ");
         emsg.append(this.name.repr());
         emsg.append(" defined in: ");
-        emsg.append(defModName.repr());
+        emsg.append(defMod.name.repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }
-      dd.checkCompat(this.name, defModName, ddd);
+      dd.checkCompat(this.modTab, ddd, defMod.modTab);
     }
   }
 
-  void checkFunDefsCompat(MFunDef[] fds, Cstr defModName, Module defMod) throws FormatException {
-    if (defMod == null) {
-      throw new IllegalArgumentException("Module not found. - " + defModName.toJavaString());
-    }
+  void checkFunDefsCompat(MFunDef[] fds, Module defMod) throws FormatException {
     for (int i = 0; i < fds.length; i++) {
       MFunDef fd = fds[i];
       MFunDef dfd = defMod.funDefDict.get(fd.name);
@@ -2000,11 +1999,11 @@ public class Module {
         emsg.append(", referred in: ");
         emsg.append(this.name.repr());
         emsg.append(" defined in: ");
-        emsg.append(defModName.repr());
+        emsg.append(defMod.name.repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }
-      fd.checkCompat(this.name, defModName, dfd);
+      fd.checkCompat(this.modTab, dfd, defMod.modTab);
     }
   }
 

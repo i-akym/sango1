@@ -337,11 +337,11 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     if (this.bodySkel == null) {
       this.setupBodySkel();
     }
-    // /* DEBUG */ System.out.print("unalias");
+// /* DEBUG */ System.out.print("unalias");
     PTypeSkelBindings bindings = PTypeSkelBindings.create();
     for (int i = 0; i < this.tparams.length; i++) {
-    // /* DEBUG */ System.out.print(" ");
-    // /* DEBUG */ System.out.print(this.tparams[i]);
+// /* DEBUG */ System.out.print(" ");
+// /* DEBUG */ System.out.print(this.tparams[i]);
     /* DEBUG */ if (this.tparams[i].varSlot == params[i].getVarSlot()) { throw new RuntimeException("Attempt to bind itself."); }
       bindings.bind(this.tparams[i].varSlot, params[i]);  // param is normalized in advance
     }
@@ -351,6 +351,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     // /* DEBUG */ System.out.print(" ...start instanciation... ");
     // /* DEBUG */ System.out.print(bindings.toString());
     PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.resolveBindings(bindings);
+// /* DEBUG */ System.out.print(" -> "); System.out.println(tr);
     // PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
     return tr;
   }

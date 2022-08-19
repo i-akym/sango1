@@ -117,7 +117,7 @@ public class MFunDef implements Module.Elem {
     return funDefNode;
   }
 
-  void checkCompat(Cstr refModName, Cstr defModName, MFunDef fd) throws FormatException {
+  void checkCompat(Module.ModTab modTab, MFunDef fd, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
     if (Module.equalOrMoreOpenAcc(fd.acc, this.acc)) {
       ;
@@ -126,9 +126,9 @@ public class MFunDef implements Module.Elem {
       emsg.append("Incompatible access mode - function: ");
       emsg.append(fd.name);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
@@ -139,37 +139,37 @@ public class MFunDef implements Module.Elem {
       emsg.append("Incompatible parameter count - function: ");
       emsg.append(this.name);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
     for (int i = 0; i < this.paramTypes.length; i++) {
-      if (this.paramTypes[i].isCompatible(defModName, fd.paramTypes[i])) {
+      if (this.paramTypes[i].isCompatible(modTab, fd.paramTypes[i], defModTab)) {
         ;
       } else {
         emsg = new StringBuffer();
         emsg.append("Incompatible parameter - function: ");
         emsg.append(this.name);
         emsg.append(", referred in: ");
-        emsg.append(refModName.repr());
+        emsg.append(modTab.getMyModName().repr());
         emsg.append(" defined in: ");
-        emsg.append(defModName.repr());
+        emsg.append(defModTab.getMyModName().repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }
     }
-    if (this.retType.isCompatible(defModName, fd.retType)) {
+    if (this.retType.isCompatible(modTab, fd.retType, defModTab)) {
       ;
     } else {
       emsg = new StringBuffer();
       emsg.append("Incompatible return value - function: ");
       emsg.append(this.name);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }

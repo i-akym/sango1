@@ -31,7 +31,7 @@ interface MType extends Module.Elem {
 
   // Element externalize(Document doc);  // inherited
 
-  boolean isCompatible(Cstr defModName, MType type);
+  boolean isCompatible(Module.ModTab modTab, MType type, Module.ModTab defModTab);
 
   abstract static class Envelope {
     static Element externalize(Document doc, MType type) {

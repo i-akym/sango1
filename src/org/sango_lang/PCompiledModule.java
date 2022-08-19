@@ -578,7 +578,8 @@ class PCompiledModule implements PDefDict {
       params[i] = this.convertType(tr.params[i], mod, varList, unresolvedTypeRefList);
     }
     PTypeSkel t;
-    Cstr n = (tr.modName != null)? tr.modName: mod.name;
+    Cstr n = mod.getModTab().get(tr.modIndex);
+    // Cstr n = (tr.modName != null)? tr.modName: mod.name;
     PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
     t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
     unresolvedTypeRefList.add((PTypeRefSkel)t);

@@ -629,10 +629,10 @@ if (PTypeGraph.DEBUG > 1) {
   public PTypeSkel[] getParams() { return this.params; }
 
   public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
-// /* DEBUG */ System.out.print("{MM "); System.out.print(this); System.out.print(slotList); System.out.println(" mm}");
+// /* DEBUG */ System.out.println(this);
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     if (!this.tconInfo.key.modName.equals(mod.name)) {
-      b.setModName(this.tconInfo.key.modName);
+      b.setModIndex(mod.modNameToModRefIndex(this.tconInfo.key.modName));
     }
     b.setTcon(this.tconInfo.key.tcon);
     b.setExt(this.ext);
