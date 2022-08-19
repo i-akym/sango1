@@ -56,18 +56,18 @@ public class MAttrDef {
     return attrDefNode;
   }
 
-  void checkCompat(Cstr refModName, Cstr defModName, MAttrDef ad) throws FormatException {
+  void checkCompat(Module.ModTab modTab, MAttrDef ad, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
-    if (this.type.isCompatible(defModName, ad.type)) {
+    if (this.type.isCompatible(modTab, ad.type, defModTab)) {
       ;
     } else {
       emsg = new StringBuffer();
       emsg.append("Incompatible attribute - data constructor: ");
       emsg.append(this.theConstrDef.dcon);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }

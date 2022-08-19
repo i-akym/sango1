@@ -1160,7 +1160,7 @@ class PModule implements PDefDict {
     } else {
       int i = this.farModList.indexOf(modName);
       if (i < 0) {
-        throw new IllegalArgumentException("Unknown module name: " + modName);
+        throw new IllegalArgumentException("Unknown module name " + modName.repr() + " in " + ((this.name != null)? this.name.repr(): null));
       }
       index = 2 + i;
     }
@@ -1202,6 +1202,7 @@ class PModule implements PDefDict {
     }
 
     PDefDict.TconInfo resolveTcon(String mod, String tcon) throws CompileException {
+// /* DEBUG */ System.out.print("resolveTcon "); System.out.print(PModule.this.name.repr()); System.out.print(" "); System.out.print(mod); System.out.print("."); System.out.println(tcon);
       Cstr modName = PModule.this.resolveModId(mod);
       PDefDict.TconInfo ti = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
         tcon,
@@ -1215,7 +1216,7 @@ class PModule implements PDefDict {
 
     void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {
 // /* DEBUG */ System.out.print("FIR tcon "); 
-// /* DEBUG */ System.out.print(modName.toJavaString()); 
+// /* DEBUG */ System.out.print(modName.repr()); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.print(tcon); 
 // /* DEBUG */ System.out.print(" "); 
@@ -1327,10 +1328,11 @@ class PModule implements PDefDict {
           this.dataDefDictDict.put(modName, m);
         }
         break;
-      case PExprId.CAT_FUN_OFFICIAL:
+      // when function referred, registered later
+      // case PExprId.CAT_FUN_OFFICIAL:
       // /* DEBUG */ System.out.println(" >> FUN official " + id);
-        this.referredFunOfficial(ep.defGetter.getFunDef());
-        break;
+        // this.referredFunOfficial(ep.defGetter.getFunDef());
+        // break;
       // case PExprId.CAT_FUN_ALIAS:
       // /* DEBUG */ System.out.println(" >> FUN alias " + id);
         // break;
@@ -1342,6 +1344,7 @@ class PModule implements PDefDict {
 
     void referredFunOfficial(PFunDef fd) {
       Cstr modName = fd.getModName();
+      // PModule.this.addImplicitFarModRef(modName);  // maybe not registered...
       String official = fd.getOfficialName();
 // /* DEBUG */ System.out.println("official " + official);
       Map<String, PFunDef> m;
@@ -1352,6 +1355,19 @@ class PModule implements PDefDict {
       } else if (!m.containsKey(official)) {
       m.put(official, fd);
       }
+      // add included tcons -- hmmm, to early here
+      // PTypeSkel[] pts = fd.getParamTypes();
+      // PTypeSkel rt = fd.getRetType();
+      // List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+      // for (int i = 0; i < pts.length; i++) {
+        // pts[i].collectTconInfo(tis);
+      // }
+      // rt.collectTconInfo(tis);
+      // for (int i = 0; i < tis.size(); i++) {
+        // PDefDict.TconInfo ti = tis.get(i);
+// /* DEBUG */ System.out.print("Included "); System.out.println(ti.key);
+        // this.referredTcon(ti.key.modName, ti.key.tcon, ti.props);
+      // }
     }
 
     PDataDef[] getReferredDataDefsIn(Cstr modName) {

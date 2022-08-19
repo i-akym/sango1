@@ -254,12 +254,14 @@ class Generator {
   }
 
   void generateFunDef(PFunDef fd) {  // foreign
+// /* DEBUG */ System.out.print("Gen FD "); System.out.println(fd);
     MFunDef.Builder b = MFunDef.Builder.newInstance();
     b.setName(fd.getOfficialName());
     b.setAcc(Module.ACC_PUBLIC);
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = fd.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
+// /* DEBUG */ System.out.print("param "); System.out.println(pts[i]);
       b.addParamType(pts[i].toMType(this.parser.mod, varSlotList));
     }
     b.setRetType(fd.getRetType().toMType(this.parser.mod, varSlotList));
