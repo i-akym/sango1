@@ -154,9 +154,7 @@ class Generator {
     PTypeSkel sig = dd.getTypeSig();
     if (sig == null) { return; }  // fun, tuple?
     PTypeVarSkel[] pvs;
-    // if (sig instanceof PBottomSkel) {
-      // pvs = new PTypeVarSkel[0];
-    /* } else */ if (sig instanceof PTypeRefSkel) {
+    if (sig instanceof PTypeRefSkel) {
       PTypeRefSkel str = (PTypeRefSkel)sig;
       if (str.params == null) { return; }  // fun, tuple?
       pvs = new PTypeVarSkel[str.params.length];
@@ -176,12 +174,9 @@ class Generator {
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       this.modBuilder.putDataDefParam((MTypeVar)pvs[i].toMType(this.parser.mod, varSlotList));
-      // this.modBuilder.putDataDefParam(MTypeVar.create(i, pvs[i].varSlot.variance, pvs[i].varSlot.requiresConcrete,
-        // (pvs[i].constraint != null)? (MTypeRef)pvs[i].constraint.toMType(this.parser.mod, varSlotList): null));
-      // varSlotList.add(pvs[i].varSlot);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {
-      this.generateConstrDef(dd.getConstrAt(i), varSlotList);
+      this.generateConstrDef(dd.getConstrAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
     }
     this.modBuilder.endDataDef();
 
