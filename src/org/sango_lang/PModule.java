@@ -142,11 +142,12 @@ class PModule implements PDefDict {
       Integer i = this.modDict.get(id);
       if (i != null) {
         n = this.importStmtList.get(i).modName;
-        if (!n.equals(this.name)
-             && !n.equals(Module.MOD_LANG)
-             && !this.farModList.contains(n)) {
-          this.farModList.add(n);
-        }
+        this.maintainFarModRef(n);
+        // if (!n.equals(this.name)
+             // && !n.equals(Module.MOD_LANG)
+             // && !this.farModList.contains(n)) {
+          // this.farModList.add(n);
+        // }
       }
     }
     return n;
@@ -1167,7 +1168,7 @@ class PModule implements PDefDict {
     return index;
   }
 
-  void addImplicitFarModRef(Cstr modName) {
+  void maintainFarModRef(Cstr modName) {
     if (modName.equals(this.name)) {
       ;
     } else if (modName.equals(Module.MOD_LANG)) {
@@ -1175,6 +1176,7 @@ class PModule implements PDefDict {
     } else if (this.farModList.indexOf(modName) < 0) {
 // /* DEBUG */ System.out.print("Implicit far mod ref "); System.out.print(modName.toJavaString()); System.out.print(" in "); System.out.println(this.name.toJavaString()); 
       this.farModList.add(modName);
+// /* DEBUG */ throw new RuntimeException("TRAPPED " + this.name.repr());
     }
   }
 
@@ -1221,7 +1223,6 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print(tcon); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(tp); 
-      PModule.this.addImplicitFarModRef(modName);  // maybe not registered...
       switch (tp.subcat) {
       case PTypeId.SUBCAT_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");
@@ -1239,6 +1240,7 @@ class PModule implements PDefDict {
           Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
           m.put(ad.getTcon(), ad);
           this.aliasDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       default:
@@ -1261,6 +1263,7 @@ class PModule implements PDefDict {
           ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
           m.put(dd.getFormalTcon(), fdd);
           this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       }
@@ -1301,6 +1304,7 @@ class PModule implements PDefDict {
           fdd.referredDcon(id);
           m.put(dd.getFormalTcon(), fdd);
           this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       case PExprId.CAT_DCON_PTN:
@@ -1326,6 +1330,7 @@ class PModule implements PDefDict {
           fdd.referredDcon(id);
           m.put(dd.getFormalTcon(), fdd);
           this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       // when function referred, registered later
@@ -1355,19 +1360,6 @@ class PModule implements PDefDict {
       } else if (!m.containsKey(official)) {
       m.put(official, fd);
       }
-      // add included tcons -- hmmm, to early here
-      // PTypeSkel[] pts = fd.getParamTypes();
-      // PTypeSkel rt = fd.getRetType();
-      // List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-      // for (int i = 0; i < pts.length; i++) {
-        // pts[i].collectTconInfo(tis);
-      // }
-      // rt.collectTconInfo(tis);
-      // for (int i = 0; i < tis.size(); i++) {
-        // PDefDict.TconInfo ti = tis.get(i);
-// /* DEBUG */ System.out.print("Included "); System.out.println(ti.key);
-        // this.referredTcon(ti.key.modName, ti.key.tcon, ti.props);
-      // }
     }
 
     PDataDef[] getReferredDataDefsIn(Cstr modName) {
