@@ -2067,4 +2067,17 @@ public class Module {
     }
     return ret;
   }
+
+  static boolean isValidModName(Cstr modName) {
+    boolean b;
+    int L = modName.getLength();
+    b = L > 0;
+    for (int i = 0; b && i < L; i++) {
+      switch (modName.getCharAt(i)) {
+      case 0: b = false; break;
+      default: break;
+      }
+    }
+    return b;
+  }
 }

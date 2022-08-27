@@ -188,13 +188,20 @@ class PModule implements PDefDict {
 
     void setDefinedName(Cstr name) throws CompileException {
       StringBuffer emsg;
+      if (!Module.isValidModName(name)) {
+        emsg = new StringBuffer();
+        emsg.append("Invalid module name. ");
+        emsg.append(name.repr());
+        emsg.append(" (Remark: Non-printable characters may be included.)");
+        throw new CompileException(emsg.toString());
+      }
       if (this.requiredName != null && !name.equals(this.requiredName)) {
         emsg = new StringBuffer();
         emsg.append("Module name mismatch.");
         emsg.append("\n  required: ");
-        emsg.append(this.requiredName.toJavaString());
+        emsg.append(this.requiredName.repr());
         emsg.append("\n  defined: ");
-        emsg.append(name.toJavaString());
+        emsg.append(name.repr());
         throw new CompileException(emsg.toString());
       }
       this.mod.definedName = name;
@@ -337,7 +344,6 @@ class PModule implements PDefDict {
       return;
     }
     PScope scope = builder.getScope();
-    // PScope scope = builder.getScope().start();
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
