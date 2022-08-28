@@ -302,6 +302,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconInfo);
+    if (this.baseTconInfo.props.acc == Module.ACC_OPAQUE) {
+      emsg = new StringBuffer();
+      emsg.append("Cannot extend opaque data at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
     if (this.baseTconInfo.props.paramCount() >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of 'extend' definition mismatch at ");
