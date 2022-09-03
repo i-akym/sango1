@@ -153,7 +153,7 @@ public class RModule {
 
   void resolveRefs() {
     // /* DEBUG */ System.out.println("resolving module references...");
-    Cstr[] mods = this.theEngine.modMgr.getMod(this.name).getModTab();
+    Cstr[] mods = this.theEngine.modMgr.getMod(this.name).getModTab().getAllMods();
     this.modTab = new RModule[mods.length];
     for (int i = 0; i < mods.length; i++) {
       this.modTab[i] = this.theEngine.modMgr.getRMod(mods[i]);

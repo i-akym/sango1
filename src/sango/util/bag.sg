@@ -29,42 +29,40 @@ import "sango.util.iter" -> iter ;;
 # -- bag framework --
 
 data <*A bag> @public :=
-  d: <A bag_d+>
+  d: <A _1+>
   fs: <A bag_fs>
   bag$ ;;
 
-data <*A bag_d> @public := _dummy_bag_d$ ;;
-
 data <*A bag_fs> @public :=
-  empty?_f: <<A bag_d+> bool fun>
-  size_f: <<A bag_d+> int fun>
-  contain?_f: <<A bag_d+> A bool fun>
-  get_all_f: <<A bag_d+> A <A list> fun>
-  add_f: <<A bag_d+> A <A bag_d+> fun>
-  remove_f: <<A bag_d+> A <<A bag_d+> <A maybe> tuple> fun>
-  remove_all_f: <<A bag_d+> A <<A bag_d+> <A list> tuple> fun>
-  delete_f_: <<<A bag_d+> A <A bag_d+> fun> maybe>
-  delete_all_f_: <<<A bag_d+> A <A bag_d+> fun> maybe>
-  take_f: <<A bag_d+> <<A <A bag_d+> tuple> maybe> fun>
-  clear_f: <<A bag_d+> <A bag_d+> fun>
+  empty?_f: <<A _1+> bool fun>
+  size_f: <<A _1+> int fun>
+  contain?_f: <<A _1+> A bool fun>
+  get_all_f: <<A _1+> A <A list> fun>
+  add_f: <<A _1+> A <A _1+> fun>
+  remove_f: <<A _1+> A <<A _1+> <A maybe> tuple> fun>
+  remove_all_f: <<A _1+> A <<A _1+> <A list> tuple> fun>
+  delete_f_: <<<A _1+> A <A _1+> fun> maybe>
+  delete_all_f_: <<<A _1+> A <A _1+> fun> maybe>
+  take_f: <<A _1+> <<A <A _1+> tuple> maybe> fun>
+  clear_f: <<A _1+> <A _1+> fun>
   bag_fs$ ;;
 
-eval <*A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <<A bag_d+> A <A bag_d+> fun> {
+eval <*A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <<A _1+> A <A _1+> fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A bag_d+> *D <A> *Elem -> <A bag_d+> {
+    \ <A _1+> *D <A> *Elem -> <A _1+> {
       D Elem &(Fs remove_f) = (| *D', ** |),
       D'
     }
   }
 } ;;
 
-eval <*A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <<A bag_d+> A <A bag_d+> fun> {
+eval <*A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <<A _1+> A <A _1+> fun> {
   Fs delete_all_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A bag_d+> *D <A> *Elem -> <A bag_d+> {
+    \ <A _1+> *D <A> *Elem -> <A _1+> {
       D Elem &(Fs remove_all_f) = (| *D', ** |),
       D'
     }

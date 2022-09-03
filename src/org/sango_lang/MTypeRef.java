@@ -32,11 +32,10 @@ import org.w3c.dom.Node;
 
 
 class MTypeRef implements MType {
-  Cstr modName;
+  int modIndex;
   String tcon;
   boolean ext;
   MType[] params;
-  // MTypeVar bound;
 
   private MTypeRef() {}
 
@@ -50,18 +49,12 @@ class MTypeRef implements MType {
       sp = " ";
     }
     buf.append(sp);
-    if (this.modName != null) {
-      buf.append(this.modName.toJavaString());
-      buf.append(".");
-    }
+    buf.append(this.modIndex);
+    buf.append(".");
     buf.append(tcon);
     if (this.ext) {
       buf.append("+");
     }
-    // if (this.bound != null) {
-      // buf.append("=");
-      // buf.append(bound.toString());
-    // }
     buf.append(">");
     return buf.toString();
   }
@@ -69,8 +62,8 @@ class MTypeRef implements MType {
   public Element externalize(Document doc) {
     Element node = doc.createElement(Module.TAG_TYPE_REF);
     node.setAttribute(Module.ATTR_TCON, this.tcon);
-    if (this.modName != null) {
-      node.setAttribute(Module.ATTR_MOD, this.modName.toJavaString());
+    if (this.modIndex != 0) {
+      node.setAttribute(Module.ATTR_MOD_INDEX, Integer.toString(this.modIndex));
     }
     if (this.ext) {
       node.setAttribute(Module.ATTR_EXT, "yes");
@@ -80,11 +73,6 @@ class MTypeRef implements MType {
         node.appendChild(this.params[i].externalize(doc));
       }
     }
-    // if (this.bound != null) {
-      // Element nb = doc.createElement(Module.TAG_BOUND);
-      // nb.appendChild(this.bound.externalize(doc));
-      // node.appendChild(nb);
-    // }
     return node;
   }
 
@@ -95,12 +83,12 @@ class MTypeRef implements MType {
 
     NamedNodeMap attrs = node.getAttributes();
 
-    Cstr modName = null;
-    Node aModName = attrs.getNamedItem(Module.ATTR_MOD);
-    if (aModName != null) {
-      modName = new Cstr(aModName.getNodeValue());
+    int modIndex = 0;
+    Node aModIndex = attrs.getNamedItem(Module.ATTR_MOD_INDEX);
+    if (aModIndex != null) {
+      modIndex = Module.parseInt(aModIndex.getNodeValue());
     }
-    builder.setModName(modName);
+    builder.setModIndex(modIndex);
 
     Node aTcon = attrs.getNamedItem(Module.ATTR_TCON);
     if (aTcon == null) {
@@ -151,8 +139,8 @@ class MTypeRef implements MType {
 
     public static Builder newInstance() { return new Builder(); }
 
-    public void setModName(Cstr modName) {
-      this.typeRef.modName = modName;
+    public void setModIndex(int modIndex) {
+      this.typeRef.modIndex = modIndex;
     }
 
     public void setTcon(String tcon) {
@@ -173,23 +161,22 @@ class MTypeRef implements MType {
     }
   }
 
-  public boolean isCompatible(Cstr defModName, MType type) {
+  public boolean isCompatible(Module.ModTab modTab, MType type, Module.ModTab defModTab) {
     boolean b;
     if (!(type instanceof MTypeRef)) {
       b = false;
     } else {
-      MTypeRef r = (MTypeRef)type;
-      Cstr m = (r.modName != null)? r.modName: defModName;
-      if (!m.equals(this.modName)) {
+      MTypeRef tr = (MTypeRef)type;
+      if (!defModTab.get(tr.modIndex).equals(modTab.get(this.modIndex))) {
         b = false;
-      } else if (!r.tcon.equals(this.tcon)) {
+      } else if (!tr.tcon.equals(this.tcon)) {
         b = false;
-      } else if (!r.ext && this.ext) {
+      } else if (!tr.ext && this.ext) {
         b = false;
       } else {
         b = true;
         for (int i = 0; b && i < this.params.length; i++) {
-          b = this.params[i].isCompatible(defModName, r.params[i]);
+          b = this.params[i].isCompatible(modTab, tr.params[i], defModTab);
         }
       }
     }

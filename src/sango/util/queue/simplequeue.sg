@@ -27,7 +27,7 @@ import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.queue" -> queue ;;
 
-extend <*A queue.queue_d> :=
+extend <*A _1> :=
   in: <A list>
   out: <A list>
   simple_queue_d$ ;;
@@ -48,7 +48,7 @@ eval queue_fs -> <*A queue.queue_fs> {
     queue.queue_fs$
 } ;;
 
-eval <*A queue.queue_d+> *Queue_d empty? -> <bool> {
+eval <*A _1+> *Queue_d empty? -> <bool> {
   Queue_d = in: *In out: *Out simple_queue_d$,
   (| Out, In |) case {
   ; (| [], [] |) -> true$
@@ -56,17 +56,17 @@ eval <*A queue.queue_d+> *Queue_d empty? -> <bool> {
   }
 } ;;
 
-eval <*A queue.queue_d+> *Queue_d length -> <int> {
+eval <*A _1+> *Queue_d length -> <int> {
   Queue_d = in: *In out: *Out simple_queue_d$,
   (In list.length) (Out list.length) sum
 } ;;
 
-eval <*A queue.queue_d+> *Queue_d <A> *Elem enqueue -> <A queue.queue_d+> {
+eval <*A _1+> *Queue_d <A> *Elem enqueue -> <A _1+> {
   Queue_d = in: *In out: *Out simple_queue_d$,
   [ Elem ; In ] Out simple_queue_d$
 } ;;
 
-eval <*A queue.queue_d+> *Queue_d head -> <A maybe> {
+eval <*A _1+> *Queue_d head -> <A maybe> {
   Queue_d = in: *In out: *Out simple_queue_d$,
   Out case {
   ; [ *Head ; ** ] -> Head value$
@@ -74,7 +74,7 @@ eval <*A queue.queue_d+> *Queue_d head -> <A maybe> {
   }
 } ;;
 
-eval <*A queue.queue_d+> *Queue_d dequeue -> <<A <A queue.queue_d+> tuple> maybe> {
+eval <*A _1+> *Queue_d dequeue -> <<A <A _1+> tuple> maybe> {
   Queue_d = in: *In out: *Out simple_queue_d$,
   (| Out, In |) case {
   ; (| [ *Head ; *Tail ], ** |) -> (| Head, In Tail simple_queue_d$ |) value$
@@ -83,7 +83,7 @@ eval <*A queue.queue_d+> *Queue_d dequeue -> <<A <A queue.queue_d+> tuple> maybe
   }
 } ;;
 
-eval <*A queue.queue_d+> *Queue_d clear -> <A queue.queue_d+> {
+eval <*A _1+> *Queue_d clear -> <A _1+> {
   [] [] simple_queue_d$
 } ;;
 

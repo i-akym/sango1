@@ -415,14 +415,6 @@ interface PType extends PProgObj {
       return u;
     }
 
-    // public void setupScope(PScope scope) {
-      // StringBuffer emsg;
-      // if (scope == this.scope) { return; }
-      // this.scope = scope;
-      // this.idResolved = false;
-      // this.id.setupScope(scope);
-    // }
-
     public void collectModRefs() throws CompileException {
       this.id.collectModRefs();
     }
@@ -498,7 +490,7 @@ interface PType extends PProgObj {
       } else {
         throw new IllegalArgumentException("Unknown extOpt.");
       }
-      return PTypeId.create(this.srcInfo, scope, this.id.mod, this.id.name, ext);  // rollback to PTypeId
+      return PTypeId.create(srcInfo, scope, this.id.mod, this.id.name, ext);  // rollback to PTypeId
     }
 
     public String toString() {

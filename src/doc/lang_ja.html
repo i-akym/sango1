@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.5.3言語解説</title>
+<title>Sango 1.6.0言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -30,7 +30,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
 <p>SangoはMIT Licenseに基いて配布されています。</p>
 <table border><tr><td>
 <p>MIT License </p>
-<p>Copyright (c) 2021 AKIYAMA Isao</p>
+<p>Copyright (c) 2022 AKIYAMA Isao</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
 <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
@@ -1956,7 +1956,7 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="A.2">A.2. モジュール名</h2>
-<p>モジュール名は，文法上は任意の文字列が使用できますが，ファイルのパスにマッピングされるため，マッピング上の制約が発生します。
+<p>モジュール名は，文法上は，空でなくかつヌル文字（コードポイント0）を含まない任意の文字列が使用できますが，ファイルのパスにマッピングされるため，マッピング上の制約が発生します。
   マッピング規則は処理系の実装依存ですが，既存実装では「<code>.</code>」で区切った部分がパスの名前の列になります。
   したがって，「<code>.</code>」で区切った部分がファイルシステムで許された名前になる必要があります。
   また，現在，モジュールのネイティブ実装はJavaでプログラミングするため，Javaのパッケージ名，クラス名で使用できる文字でなければなりません。
@@ -2328,6 +2328,15 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <p>■　1.5.3</p>
 <ul>
 <li>関数／クロージャの返り値の型が指定されていない場合に<code>&lt;void&gt;</code>を仮定</li>
+</ul>
+
+<p>■　1.6.0</p>
+<ul>
+<li>【非互換】モジュールファイルの形式を変更。以前のバージョンのモジュールファイルはインポートできなくなりました。新バージョンのモジュールファイルを使用するか，ソースコードを再コンパイルしてモジュールファイルの形式を新しくしてください。</li>
+<li>【非互換】<code>&lt;A &quot;sango.lang&quot;.ord_fs&gt;</code>に属性を追加</li>
+<li>コレクション（セット，バッグ，マップ，キュー，スタック，ランダム・アクセス・リスト）の実装フレームワークを変更。コレクションのユーザに影響はありません。</li>
+<li><code>&quot;sango.lang&quot;._0</code>～<code>_5</code>を追加</li>
+<li>【Deprecated】<code>&quot;sango.lang&quot;.independent</code>，<code>&quot;sango.lang&quot;.seal_fs</code></li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

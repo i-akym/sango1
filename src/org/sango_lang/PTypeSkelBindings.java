@@ -55,6 +55,7 @@ public class PTypeSkelBindings {
   }
 
   void bind(PTypeVarSlot var, PTypeSkel typeSkel) {
+/* DEBUG */ if (this.isBound(var) || this.isGivenTVar(var)) { throw new IllegalArgumentException("Cannto bind. " + var.toString()); }
     this.bindingDict.put(var, typeSkel);
   }
 

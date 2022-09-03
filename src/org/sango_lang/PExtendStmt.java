@@ -266,28 +266,15 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (s == this.scope) { return; }
-    // this.scope = scope.start();
-    // this.idResolved = false;
-    // // /* DEBUG */ System.out.print("extend sig setupscope "); System.out.println(this.sig);
-    // this.sig.setupScope(this.scope);
-    // for (int i = 0; i < this.constrs.length; i++) {
-      // this.constrs[i].setupScope(this.scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
-    this.sig.collectModRefs();
+    this.scope.referredModId(this.srcInfo, this.baseMod);
+    // this.sig.collectModRefs();
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].collectModRefs();
     }
   }
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
-    // if (this.idResolved) { return this; }
     if (this.baseMod != null && this.scope.resolveModId(this.baseMod) == null) {  // refer base mod id in order to register foreign mod
       emsg = new StringBuffer();
       emsg.append("Module id \"");
@@ -315,6 +302,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconInfo);
+    if (this.baseTconInfo.props.acc == Module.ACC_OPAQUE) {
+      emsg = new StringBuffer();
+      emsg.append("Cannot extend opaque data at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
     if (this.baseTconInfo.props.paramCount() >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of 'extend' definition mismatch at ");
@@ -335,7 +329,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
         }
       }
     }
-    // this.idResolved = true;
     return this;
   }
 

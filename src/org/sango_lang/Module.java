@@ -45,8 +45,10 @@ public class Module {
   // module file format version
   // static final String CUR_FORMAT_VERSION = "1.0";
   // initial
-  static final String CUR_FORMAT_VERSION = "1.1";
-  // add needs_concrete attribute to type var slot, which must be checked for type consistency
+  // static final String CUR_FORMAT_VERSION = "1.1";
+  // add requires_concrete attribute to type var slot, which must be checked for type consistency
+  static final String CUR_FORMAT_VERSION = "1.2";
+  // planned: always use module index on type ref
 
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
   public static final Cstr MOD_ENTITY = new Cstr("sango.entity");
@@ -178,7 +180,7 @@ public class Module {
   Cstr name;
   int availability;
   int slotCount;
-  Cstr[] modTab;
+  ModTab modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
   Map<Cstr, MAliasTypeDef[]> foreignAliasTypeDefsDict;
   Map<Cstr, MFunDef[]> foreignFunDefsDict;
@@ -216,9 +218,9 @@ public class Module {
 
   public MClosureImpl[] getClosureImpls() { return this.closureImpls; }
 
-  public Cstr[] getModTab() { return this.modTab; }
+  public ModTab getModTab() { return this.modTab; }
 
-  public Cstr getModAt(int index) { return this.modTab[index]; }
+  public Cstr getModAt(int index) { return this.modTab.get(index); }
 
   MDataDef[] getForeignDataDefs(Cstr modName) { return this.foreignDataDefsDict.get(modName); }
 
@@ -1203,7 +1205,7 @@ public class Module {
       moduleNode.setAttribute(ATTR_SLOT_COUNT, Integer.toString(this.slotCount));
     }
 
-    if (this.modTab.length > 1) {
+    if (this.modTab.getSize() > 1) {
       moduleNode.appendChild(this.externalizeModRefs(doc));
     }
     if (this.dataDefs.length > 0) {
@@ -1232,8 +1234,9 @@ public class Module {
 
   Element externalizeModRefs(Document doc) {
     Element modRefsNode = doc.createElement(TAG_MOD_REFS);
-    for (int i = 1; i < this.modTab.length; i++) {
-      modRefsNode.appendChild(this.externalizeModRef(doc, this.modTab[i]));
+    Cstr[] foreignMods = this.modTab.getForeignMods();
+    for (int i = 0; i < foreignMods.length; i++) {
+      modRefsNode.appendChild(this.externalizeModRef(doc, foreignMods[i]));
     }
     return modRefsNode;
   }
@@ -1659,10 +1662,9 @@ public class Module {
     }
 
     public Module create() {
-      this.mod.modTab = new Cstr[1 + this.foreignModList.size()];
-      this.mod.modTab[MOD_INDEX_SELF] = this.mod.name;
-      for (int i = 1, j = 0; j < this.foreignModList.size(); i++, j++) {
-        this.mod.modTab[i] = this.foreignModList.get(j);
+      this.mod.modTab = ModTab.create(this.mod.name);
+      for (int i = 0; i < this.foreignModList.size(); i++) {
+        this.mod.modTab.add(this.foreignModList.get(i));
       }
       if (this.mod.name != null && this.mod.name.equals(MOD_LANG)) {
         this.startDataDefSpecial(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC);
@@ -1673,13 +1675,14 @@ public class Module {
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();
       this.mod.foreignAliasTypeDefsDict = new HashMap<Cstr, MAliasTypeDef[]>();
       this.mod.foreignFunDefsDict = new HashMap<Cstr, MFunDef[]>();
-      for (int i = 1; i < this.mod.modTab.length; i++) {
-        List<MDataDef> dl = this.foreignDataDefListDict.get(this.mod.modTab[i]);
-        this.mod.foreignDataDefsDict.put(this.mod.modTab[i], dl.toArray(new MDataDef[dl.size()]));
-        List<MAliasTypeDef> al = this.foreignAliasTypeDefListDict.get(this.mod.modTab[i]);
-        this.mod.foreignAliasTypeDefsDict.put(this.mod.modTab[i], al.toArray(new MAliasTypeDef[al.size()]));
-        List<MFunDef> fl = this.foreignFunDefListDict.get(this.mod.modTab[i]);
-        this.mod.foreignFunDefsDict.put(this.mod.modTab[i], fl.toArray(new MFunDef[fl.size()]));
+      Cstr[] foreignMods = this.mod.modTab.getForeignMods();
+      for (int i = 0; i < foreignMods.length; i++) {
+        List<MDataDef> dl = this.foreignDataDefListDict.get(foreignMods[i]);
+        this.mod.foreignDataDefsDict.put(foreignMods[i], dl.toArray(new MDataDef[dl.size()]));
+        List<MAliasTypeDef> al = this.foreignAliasTypeDefListDict.get(foreignMods[i]);
+        this.mod.foreignAliasTypeDefsDict.put(foreignMods[i], al.toArray(new MAliasTypeDef[al.size()]));
+        List<MFunDef> fl = this.foreignFunDefListDict.get(foreignMods[i]);
+        this.mod.foreignFunDefsDict.put(foreignMods[i], fl.toArray(new MFunDef[fl.size()]));
       }
       this.mod.dataDefs = this.dataDefList.toArray(new MDataDef[this.dataDefList.size()]);
       this.mod.aliasTypeDefs = this.aliasTypeDefList.toArray(new MAliasTypeDef[this.aliasTypeDefList.size()]);
@@ -1689,6 +1692,58 @@ public class Module {
       this.mod.closureConstrs = this.closureConstrList.toArray(new MClosureConstr[this.closureConstrList.size()]);
       this.mod.consts = this.constList.toArray(new ConstElem[this.constList.size()]);
       return this.mod;
+    }
+  }
+
+  static class ModTab {
+    List<Cstr> tab; 
+
+    static ModTab create(Cstr ownerModName) {
+      return new ModTab(ownerModName);
+    }
+
+    private ModTab(Cstr ownerModName) {
+      this.tab = new ArrayList<Cstr>();
+      if (ownerModName == null || !ownerModName.equals(MOD_LANG)) {
+        this.tab.add(ownerModName);
+      }
+      this.tab.add(MOD_LANG);
+    }
+
+    int getSize() { return this.tab.size(); }
+
+    void add(Cstr modName) {
+      if (this.tab.indexOf(modName) < 0) {
+        this.tab.add(modName);
+      }
+    }
+
+    Cstr get(int index) {
+      return this.tab.get(index);
+    }
+
+    Cstr getMyModName() { return this.get(0); }
+
+    int lookup(Cstr modName) {
+      int index = this.tab.indexOf(modName);
+      if (index < 0) { throw new IllegalArgumentException("Not found. " + modName.toJavaString()); }
+      return index;
+    }
+
+    Cstr[] getAllMods() {
+      Cstr[] ms = new Cstr[this.tab.size()];
+      for (int i = 0; i < ms.length; i++) {
+        ms[i] = this.tab.get(i);
+      }
+      return ms;
+    }
+
+    Cstr[] getForeignMods() {
+      Cstr[] ms = new Cstr[this.tab.size() - 1];
+      for (int i = 0, j = 1; i < ms.length; i++, j++) {
+        ms[i] = this.tab.get(j);
+      }
+      return ms;
     }
   }
 
@@ -1896,24 +1951,25 @@ public class Module {
   }
 
   public void checkDefsCompat(Map<Cstr, Module> modDict) throws FormatException {
-    for (int i = 1; i < this.modTab.length; i++) {
-      Cstr m = this.modTab[i];
+    Cstr[] foreignMods = this.modTab.getForeignMods();
+    for (int i = 0; i < foreignMods.length; i++) {
+      Cstr m = foreignMods[i];
       Module defMod = modDict.get(m);
+      if (defMod == null) {
+        throw new RuntimeException("Module not found. - " + m.repr());
+      }
       MDataDef[] dds = this.foreignDataDefsDict.get(m);
       if (dds != null && dds.length > 0) {
-        this.checkDataDefsCompat(dds, m, defMod);
+        this.checkDataDefsCompat(dds, defMod);
       }
       MFunDef[] fds = this.foreignFunDefsDict.get(m);
       if (fds != null && fds.length > 0) {
-        this.checkFunDefsCompat(fds, m, defMod);
+        this.checkFunDefsCompat(fds, defMod);
       }
     }
   }
 
-  void checkDataDefsCompat(MDataDef[] dds, Cstr defModName, Module defMod) throws FormatException {
-    if (defMod == null) {
-      throw new IllegalArgumentException("Module not found. - " + defModName.toJavaString());
-    }
+  void checkDataDefsCompat(MDataDef[] dds, Module defMod) throws FormatException {
     for (int i = 0; i < dds.length; i++) {
       MDataDef dd = dds[i];
       MDataDef ddd = defMod.dataDefDict.get(dd.tcon);
@@ -1924,18 +1980,15 @@ public class Module {
         emsg.append(", referred in: ");
         emsg.append(this.name.repr());
         emsg.append(" defined in: ");
-        emsg.append(defModName.repr());
+        emsg.append(defMod.name.repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }
-      dd.checkCompat(this.name, defModName, ddd);
+      dd.checkCompat(this.modTab, ddd, defMod.modTab);
     }
   }
 
-  void checkFunDefsCompat(MFunDef[] fds, Cstr defModName, Module defMod) throws FormatException {
-    if (defMod == null) {
-      throw new IllegalArgumentException("Module not found. - " + defModName.toJavaString());
-    }
+  void checkFunDefsCompat(MFunDef[] fds, Module defMod) throws FormatException {
     for (int i = 0; i < fds.length; i++) {
       MFunDef fd = fds[i];
       MFunDef dfd = defMod.funDefDict.get(fd.name);
@@ -1946,11 +1999,11 @@ public class Module {
         emsg.append(", referred in: ");
         emsg.append(this.name.repr());
         emsg.append(" defined in: ");
-        emsg.append(defModName.repr());
+        emsg.append(defMod.name.repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }
-      fd.checkCompat(this.name, defModName, dfd);
+      fd.checkCompat(this.modTab, dfd, defMod.modTab);
     }
   }
 
@@ -2013,5 +2066,18 @@ public class Module {
       throw new FormatException("Incomplete escape sequence.");
     }
     return ret;
+  }
+
+  static boolean isValidModName(Cstr modName) {
+    boolean b;
+    int L = modName.getLength();
+    b = L > 0;
+    for (int i = 0; b && i < L; i++) {
+      switch (modName.getCharAt(i)) {
+      case 0: b = false; break;
+      default: break;
+      }
+    }
+    return b;
   }
 }

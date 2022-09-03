@@ -49,7 +49,7 @@ public interface PTypeSkel {
 
   void checkVariance(int width) throws CompileException;
 
-  PTypeSkelBindings accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings trialBindings) throws CompileException;
+  boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
   // where, width is
   static final int EQUAL = 0;
   static final int NARROWER = 1;
@@ -59,13 +59,13 @@ public interface PTypeSkel {
 
   PTypeVarSlot getVarSlot();
 
-  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
+  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
     // foward to following method by combination of target and param
-  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
+  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
-  List<PTypeVarSlot> extractVars(List<PTypeVarSlot> alreadyExtracted);  // return value possibly null
+  void extractVars(List<PTypeVarSlot> extracted);
 
   void collectTconInfo(List<PDefDict.TconInfo> list);
 
@@ -76,13 +76,13 @@ public interface PTypeSkel {
   public static class InstanciationBindings {
     PTypeSkelBindings applBindings;
     Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
-    List<PTypeVarSlot> varSlotList;
+    // List<PTypeVarSlot> varSlotList;
 
     public static InstanciationBindings create(PTypeSkelBindings applBindings) {
       InstanciationBindings ib = new InstanciationBindings();
       ib.applBindings = applBindings;
       ib.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
-      ib.varSlotList = new ArrayList<PTypeVarSlot>();
+      // ib.varSlotList = new ArrayList<PTypeVarSlot>();
       return ib;
     }
 
@@ -96,11 +96,11 @@ public interface PTypeSkel {
 
     void bind(PTypeVarSlot var, PTypeVarSkel vs) {
       PTypeVarSlot s = vs.getVarSlot();
-      if (this.varSlotList.contains(s)) {
-        throw new IllegalArgumentException("Already added. " + s);
+      if (this.bindingDict.containsKey(var)) {
+        throw new IllegalArgumentException("Already added. " + var);
       }
       this.bindingDict.put(var, vs);
-      this.varSlotList.add(s);
+      // this.varSlotList.add(s);
     }
 
     PTypeVarSkel lookup(PTypeVarSlot var) {

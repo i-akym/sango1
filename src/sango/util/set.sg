@@ -29,41 +29,39 @@ import "sango.util.iter" -> iter ;;
 # -- set framework --
 
 data <*A set> @public :=
-  d: <A set_d+>
+  d: <A _1+>
   fs: <A set_fs>
   set$ ;;
 
-data <*A set_d> @public := _dummy_set_d$ ;;
-
 data <*A set_fs> @public :=
-  empty?_f: <<A set_d+> bool fun>
-  size_f: <<A set_d+> int fun>
-  get_f: <<A set_d+> A <A maybe> fun>
-  contain?_f_: <<<A set_d+> A bool fun> maybe>
-  put_f: <<A set_d+> A <<A set_d+> <A maybe> tuple> fun>
-  put_new_f_: <<<A set_d+> A <<A set_d+> bool tuple> fun> maybe>
-  add_f_: <<<A set_d+> A <A set_d+> fun>  maybe>
-  remove_f: <<A set_d+> A <<A set_d+> <A maybe> tuple> fun>
-  delete_f_: <<<A set_d+> A <A set_d+> fun> maybe>
-  take_f: <<A set_d+> <<A <A set_d+> tuple> maybe> fun>
-  clear_f: <<A set_d+> <A set_d+> fun>
+  empty?_f: <<A _1+> bool fun>
+  size_f: <<A _1+> int fun>
+  get_f: <<A _1+> A <A maybe> fun>
+  contain?_f_: <<<A _1+> A bool fun> maybe>
+  put_f: <<A _1+> A <<A _1+> <A maybe> tuple> fun>
+  put_new_f_: <<<A _1+> A <<A _1+> bool tuple> fun> maybe>
+  add_f_: <<<A _1+> A <A _1+> fun>  maybe>
+  remove_f: <<A _1+> A <<A _1+> <A maybe> tuple> fun>
+  delete_f_: <<<A _1+> A <A _1+> fun> maybe>
+  take_f: <<A _1+> <<A <A _1+> tuple> maybe> fun>
+  clear_f: <<A _1+> <A _1+> fun>
   set_fs$ ;;
 
-eval <*A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <<A set_d+> A bool fun> {
+eval <*A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <<A _1+> A bool fun> {
   Fs contain?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A set_d+> *D <A> *Elem -> <bool> {
+    \ <A _1+> *D <A> *Elem -> <bool> {
       D Elem &(Fs get_f) >> something? 
     }
   }
 } ;;
 
-eval <*A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <<A set_d+> A <<A set_d+> bool tuple> fun> {
+eval <*A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <<A _1+> A <<A _1+> bool tuple> fun> {
   Fs put_new_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A set_d+> *D <A> *Elem -> <<A set_d+> bool tuple> {
+    \ <A _1+> *D <A> *Elem -> <<A _1+> bool tuple> {
       D Elem &(Fs contain?_f) >> case {
       ; true$ -> (| D, false$ |)
       ; ** -> (| D Elem &(Fs add_f), true$ |)
@@ -72,22 +70,22 @@ eval <*A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <<A set_d+> A <<A s
   }
 } ;;
 
-eval <*A set_fs> *Fs set_fs_add_f | add_f @public -> <<A set_d+> A <A set_d+> fun> {
+eval <*A set_fs> *Fs set_fs_add_f | add_f @public -> <<A _1+> A <A _1+> fun> {
   Fs add_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A set_d+> *D <A> *Elem -> <A set_d+> {
+    \ <A _1+> *D <A> *Elem -> <A _1+> {
       D Elem &(Fs put_f) = (| *D', ** |),
       D'
     }
   }
 } ;;
 
-eval <*A set_fs> *Fs set_fs_delete_f | delete_f @public -> <<A set_d+> A <A set_d+> fun> {
+eval <*A set_fs> *Fs set_fs_delete_f | delete_f @public -> <<A _1+> A <A _1+> fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <A set_d+> *D <A> *Elem -> <A set_d+> {
+    \ <A _1+> *D <A> *Elem -> <A _1+> {
       D Elem &(Fs remove_f) = (| *D', ** |),
       D'
     }

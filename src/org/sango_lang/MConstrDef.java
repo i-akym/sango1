@@ -80,7 +80,7 @@ public class MConstrDef {
     return attrDef.externalize(doc);
   }
 
-  void checkCompat(Cstr refModName, Cstr defModName, MDataDef dd) throws FormatException {
+  void checkCompat(Module.ModTab modTab, MDataDef dd, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
     MConstrDef cd = null;
     for (int i = 0; cd == null && i < dd.constrs.length; i++) {
@@ -95,9 +95,9 @@ public class MConstrDef {
       emsg.append("Data constructor missing - data constructor: ");
       emsg.append(this.dcon);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
@@ -108,14 +108,14 @@ public class MConstrDef {
       emsg.append("Attribute count mismatch - data constructor: ");
       emsg.append(this.dcon);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
     for (int i = 0; i < this.attrs.length; i++) {
-      this.attrs[i].checkCompat(refModName, defModName, cd.attrs[i]);
+      this.attrs[i].checkCompat(modTab, cd.attrs[i], defModTab);
     }
   }
 }

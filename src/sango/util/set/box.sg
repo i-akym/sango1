@@ -29,66 +29,66 @@ import "sango.list" -> list ;;
 import "sango.util.set" -> set ;;
 
 data <*A box_fs> @public :=
-  empty?_f:   <<<A set.set_d+> box.box_h> bool fun>
-  size_f:     <<<A set.set_d+> box.box_h> int fun>
-  get_f:      <<<A set.set_d+> box.box_h> A <A maybe> fun>
-  contain?_f: <<<A set.set_d+> box.box_h> A bool fun>
-  put_f:      <<<A set.set_d+> box.box_h> A <A maybe> fun>
-  put_new_f:  <<<A set.set_d+> box.box_h> A bool fun>
-  add_f:      <<<A set.set_d+> box.box_h> A void fun>
-  remove_f:   <<<A set.set_d+> box.box_h> A <A maybe> fun>
-  delete_f:   <<<A set.set_d+> box.box_h> A void fun>
-  take_f:     <<<A set.set_d+> box.box_h> <A maybe> fun>
-  clear_f:    <<<A set.set_d+> box.box_h> void fun>
+  empty?_f:   <<<A _1+> box.box_h> bool fun>
+  size_f:     <<<A _1+> box.box_h> int fun>
+  get_f:      <<<A _1+> box.box_h> A <A maybe> fun>
+  contain?_f: <<<A _1+> box.box_h> A bool fun>
+  put_f:      <<<A _1+> box.box_h> A <A maybe> fun>
+  put_new_f:  <<<A _1+> box.box_h> A bool fun>
+  add_f:      <<<A _1+> box.box_h> A void fun>
+  remove_f:   <<<A _1+> box.box_h> A <A maybe> fun>
+  delete_f:   <<<A _1+> box.box_h> A void fun>
+  take_f:     <<<A _1+> box.box_h> <A maybe> fun>
+  clear_f:    <<<A _1+> box.box_h> void fun>
   box_fs$ ;;
 
 eval <*A! set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
   empty?_f:
-    \ <<A set.set_d+> box.box_h> *Box -> <bool> {
+    \ <<A _1+> box.box_h> *Box -> <bool> {
       (Box box.read) &(Set_fs set.empty?_f)
     }
   size_f:
-    \ <<A set.set_d+> box.box_h> *Box -> <int> {
+    \ <<A _1+> box.box_h> *Box -> <int> {
       (Box box.read) &(Set_fs set.size_f)
     }
   get_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <A maybe> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <A maybe> {
       (Box box.read) X &(Set_fs set.get_f)
     }
   contain?_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <bool> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <bool> {
       (Box box.read) X &(Set_fs set.contain?_f)
     }
   put_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <A maybe> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <A maybe> {
       (Box box.read) X &(Set_fs set.put_f) = (| *D', *Replaced_ |),
       Box D' box.write,
       Replaced_
     }
   put_new_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <bool> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <bool> {
       (Box box.read) X &(Set_fs set.put_new_f) = (| *D', *Succeeded? |),
       Box D' box.write,
       Succeeded?
     }
   add_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <void> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <void> {
       (Box box.read) X &(Set_fs set.add_f) = *D',
       Box D' box.write >> ignore
     }
   remove_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <A maybe> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <A maybe> {
       (Box box.read) X &(Set_fs set.remove_f) = (| *D', *Removed_ |),
       Box D' box.write,
       Removed_
     }
   delete_f:
-    \ <<A set.set_d+> box.box_h> *Box <A> *X -> <void> {
+    \ <<A _1+> box.box_h> *Box <A> *X -> <void> {
       (Box box.read) X &(Set_fs set.delete_f) = *D',
       Box D' box.write >> ignore
     }
   take_f:
-    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> {
+    \ <<A _1+> box.box_h> *Box -> <A maybe> {
       (Box box.read) &(Set_fs set.take_f) >> case {
       ; (| *X, *D' |) value$ ->
         Box D' box.write,
@@ -97,7 +97,7 @@ eval <*A! set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
       }
     }
   clear_f:
-    \ <<A set.set_d+> box.box_h> *Box -> <void> {
+    \ <<A _1+> box.box_h> *Box -> <void> {
       (Box box.read) &(Set_fs set.clear_f) = *D',
       Box D' box.write >> ignore
     }
@@ -105,7 +105,7 @@ eval <*A! set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
 } ;;
 
 data <*A! set_h> @opaque :=
-  mon: <<A set.set_d+> actu.box_monitor_h>
+  mon: <<A _1+> actu.box_monitor_h>
   set_fs: <A set.set_fs>
   box_fs: <A box_fs>
   set_h$ ;;
@@ -119,7 +119,7 @@ eval <*A! set.set> *Set create_box @public -> <A set_h> {
 eval <*A! set_h> *Set_h snapshot @public -> <A set.set> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <A set.set> {
+    \ <<A _1+> box.box_h> *Box -> <A set.set> {
       d: (Box box.read) fs: (Set_h set_fs) set.set$
     }
     actu.run
@@ -128,77 +128,77 @@ eval <*A! set_h> *Set_h snapshot @public -> <A set.set> {
 eval <*A! set_h> *Set_h empty? @public -> <bool> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <bool> { Box &(Fs empty?_f) }
+    \ <<A _1+> box.box_h> *Box -> <bool> { Box &(Fs empty?_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h size @public -> <int> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <int> { Box &(Fs size_f) }
+    \ <<A _1+> box.box_h> *Box -> <int> { Box &(Fs size_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem get @public -> <A maybe> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs get_f) }
+    \ <<A _1+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs get_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem contain? @public -> <bool> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <bool> { Box Elem &(Fs contain?_f) }
+    \ <<A _1+> box.box_h> *Box -> <bool> { Box Elem &(Fs contain?_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem put @public -> <A maybe> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs put_f) }
+    \ <<A _1+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs put_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem put_new @public -> <bool> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <bool> { Box Elem &(Fs put_new_f) }
+    \ <<A _1+> box.box_h> *Box -> <bool> { Box Elem &(Fs put_new_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem add @public -> <void> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <void> { Box Elem &(Fs add_f) }
+    \ <<A _1+> box.box_h> *Box -> <void> { Box Elem &(Fs add_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem remove @public -> <A maybe> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs remove_f) }
+    \ <<A _1+> box.box_h> *Box -> <A maybe> { Box Elem &(Fs remove_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h <A> *Elem delete @public -> <void> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <void> { Box Elem &(Fs delete_f) }
+    \ <<A _1+> box.box_h> *Box -> <void> { Box Elem &(Fs delete_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h take @public -> <A maybe> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <A maybe> { Box &(Fs take_f) }
+    \ <<A _1+> box.box_h> *Box -> <A maybe> { Box &(Fs take_f) }
     actu.run
 } ;;
 
 eval <*A! set_h> *Set_h clear @public -> <void> {
   Set_h = mon: *Monitor set_fs: *Sfs box_fs: *Fs set_h$,
   Monitor
-    \ <<A set.set_d+> box.box_h> *Box -> <void> { Box &(Fs clear_f) }
+    \ <<A _1+> box.box_h> *Box -> <void> { Box &(Fs clear_f) }
     actu.run
 } ;;
 

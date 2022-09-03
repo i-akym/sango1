@@ -142,11 +142,12 @@ class PModule implements PDefDict {
       Integer i = this.modDict.get(id);
       if (i != null) {
         n = this.importStmtList.get(i).modName;
-        if (!n.equals(this.name)
-             && !n.equals(Module.MOD_LANG)
-             && !this.farModList.contains(n)) {
-          this.farModList.add(n);
-        }
+        this.maintainFarModRef(n);
+        // if (!n.equals(this.name)
+             // && !n.equals(Module.MOD_LANG)
+             // && !this.farModList.contains(n)) {
+          // this.farModList.add(n);
+        // }
       }
     }
     return n;
@@ -187,13 +188,20 @@ class PModule implements PDefDict {
 
     void setDefinedName(Cstr name) throws CompileException {
       StringBuffer emsg;
+      if (!Module.isValidModName(name)) {
+        emsg = new StringBuffer();
+        emsg.append("Invalid module name. ");
+        emsg.append(name.repr());
+        emsg.append(" (Remark: Non-printable characters may be included.)");
+        throw new CompileException(emsg.toString());
+      }
       if (this.requiredName != null && !name.equals(this.requiredName)) {
         emsg = new StringBuffer();
         emsg.append("Module name mismatch.");
         emsg.append("\n  required: ");
-        emsg.append(this.requiredName.toJavaString());
+        emsg.append(this.requiredName.repr());
         emsg.append("\n  defined: ");
-        emsg.append(name.toJavaString());
+        emsg.append(name.repr());
         throw new CompileException(emsg.toString());
       }
       this.mod.definedName = name;
@@ -336,7 +344,6 @@ class PModule implements PDefDict {
       return;
     }
     PScope scope = builder.getScope();
-    // PScope scope = builder.getScope().start();
     builder.setAvailability(acceptAvailability(reader));
     if ((t = ParserA.acceptCstr(reader, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
@@ -1077,12 +1084,13 @@ class PModule implements PDefDict {
       PFunDef fd = this.evalStmtList.get(indices.get(i));
       PTypeSkel[] pts = fd.getParamTypes();
       if (pts.length != paramTypes.length) { continue; }
-      PTypeSkelBindings b = PTypeSkelBindings.create(givenTVarList);
-      for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], b);
+      PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
+      boolean b = true;
+      for (int j = 0; b && j < pts.length; j++) {
+        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], bindings);
       }
-      if (b != null) {
-        sel = PDefDict.FunSelRes.create(fd, b);
+      if (b) {
+        sel = PDefDict.FunSelRes.create(fd, bindings);
       }
     }
     return sel;
@@ -1159,11 +1167,23 @@ class PModule implements PDefDict {
     } else {
       int i = this.farModList.indexOf(modName);
       if (i < 0) {
-        throw new IllegalArgumentException("Unknown module name: " + modName);
+        throw new IllegalArgumentException("Unknown module name " + modName.repr() + " in " + ((this.name != null)? this.name.repr(): null));
       }
       index = 2 + i;
     }
     return index;
+  }
+
+  void maintainFarModRef(Cstr modName) {
+    if (modName.equals(this.name)) {
+      ;
+    } else if (modName.equals(Module.MOD_LANG)) {
+      ;
+    } else if (this.farModList.indexOf(modName) < 0) {
+// /* DEBUG */ System.out.print("Implicit far mod ref "); System.out.print(modName.toJavaString()); System.out.print(" in "); System.out.println(this.name.toJavaString()); 
+      this.farModList.add(modName);
+// /* DEBUG */ throw new RuntimeException("TRAPPED " + this.name.repr());
+    }
   }
 
   class ForeignIdResolver {
@@ -1190,6 +1210,7 @@ class PModule implements PDefDict {
     }
 
     PDefDict.TconInfo resolveTcon(String mod, String tcon) throws CompileException {
+// /* DEBUG */ System.out.print("resolveTcon "); System.out.print(PModule.this.name.repr()); System.out.print(" "); System.out.print(mod); System.out.print("."); System.out.println(tcon);
       Cstr modName = PModule.this.resolveModId(mod);
       PDefDict.TconInfo ti = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
         tcon,
@@ -1203,7 +1224,7 @@ class PModule implements PDefDict {
 
     void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {
 // /* DEBUG */ System.out.print("FIR tcon "); 
-// /* DEBUG */ System.out.print(modName.toJavaString()); 
+// /* DEBUG */ System.out.print(modName.repr()); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.print(tcon); 
 // /* DEBUG */ System.out.print(" "); 
@@ -1225,6 +1246,7 @@ class PModule implements PDefDict {
           Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
           m.put(ad.getTcon(), ad);
           this.aliasDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       default:
@@ -1247,6 +1269,7 @@ class PModule implements PDefDict {
           ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
           m.put(dd.getFormalTcon(), fdd);
           this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       }
@@ -1287,6 +1310,7 @@ class PModule implements PDefDict {
           fdd.referredDcon(id);
           m.put(dd.getFormalTcon(), fdd);
           this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
       case PExprId.CAT_DCON_PTN:
@@ -1312,12 +1336,14 @@ class PModule implements PDefDict {
           fdd.referredDcon(id);
           m.put(dd.getFormalTcon(), fdd);
           this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
         }
         break;
-      case PExprId.CAT_FUN_OFFICIAL:
+      // when function referred, registered later
+      // case PExprId.CAT_FUN_OFFICIAL:
       // /* DEBUG */ System.out.println(" >> FUN official " + id);
-        this.referredFunOfficial(ep.defGetter.getFunDef());
-        break;
+        // this.referredFunOfficial(ep.defGetter.getFunDef());
+        // break;
       // case PExprId.CAT_FUN_ALIAS:
       // /* DEBUG */ System.out.println(" >> FUN alias " + id);
         // break;
@@ -1329,6 +1355,7 @@ class PModule implements PDefDict {
 
     void referredFunOfficial(PFunDef fd) {
       Cstr modName = fd.getModName();
+      // PModule.this.addImplicitFarModRef(modName);  // maybe not registered...
       String official = fd.getOfficialName();
 // /* DEBUG */ System.out.println("official " + official);
       Map<String, PFunDef> m;

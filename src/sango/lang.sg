@@ -99,12 +99,21 @@ data <exc_info> @opaque := @native ;;
 
 # 'independent' type
 
-data <independent> @public := <_?_> exposed$ ;;
+data @deprecated <independent> @public := <_?_> exposed$ ;;
 
-data <*A seal_fs> @public :=
+data @deprecated <*A seal_fs> @public :=
   seal_f: <A independent+ fun>
   unseal_f: <independent+ <A maybe> fun>
   seal_fs$ ;;
+
+# base types -- for extension
+
+data <_0> @public := _0$ ;;
+data <*A _1> @public := _1$ ;;
+data <*A *B _2> @public := _2$ ;;
+data <*A *B *C _3> @public := _3$ ;;
+data <*A *B *C *D _4> @public := _4$ ;;
+data <*A *B *C *D *E _5> @public := _5$ ;;
 
 # miscellaneous types
 
@@ -134,6 +143,7 @@ data <*A ord_fs> @public :=
   le?_f_: <<A A bool fun> maybe>
   gt?_f_: <<A A bool fun> maybe>
   ge?_f_: <<A A bool fun> maybe>
+  hash_f: <A int fun>
   ord_fs$ ;;
 
 data <*A iter> @public :=
@@ -532,6 +542,7 @@ eval <*A ord_fs> *Ord ord_fs_inverse | inverse @public -> <A ord_fs> {
     le?_f_: *Le?_f_
     gt?_f_: *Gt?_f_
     ge?_f_: *Ge?_f_
+    hash_f: *Hash_f
     ord_fs$,
   compare_f: \ <A> *V0 <A> *V1 -> <ordering> { V1 V0 &Compare_f }
     eq?_f_: Eq?_f_
@@ -539,6 +550,7 @@ eval <*A ord_fs> *Ord ord_fs_inverse | inverse @public -> <A ord_fs> {
     le?_f_: Ge?_f_
     gt?_f_: Lt?_f_ 
     ge?_f_: Le?_f_
+    hash_f: Hash_f
     ord_fs$
 } ;;
 
@@ -549,6 +561,7 @@ eval int_ord_fs @public -> <int ord_fs> {
     le?_f_: (^int_le? value$)
     gt?_f_: (^int_gt? value$)
     ge?_f_: (^int_ge? value$)
+    hash_f: ^hash
     ord_fs$
 } ;;
 eval real_ord_fs @public -> <real ord_fs> {
@@ -558,6 +571,7 @@ eval real_ord_fs @public -> <real ord_fs> {
     le?_f_: (^real_le? value$)
     gt?_f_: (^real_gt? value$)
     ge?_f_: (^real_ge? value$)
+    hash_f: ^hash
     ord_fs$
 } ;;
 eval byte_ord_fs @public -> <byte ord_fs> {
@@ -567,6 +581,7 @@ eval byte_ord_fs @public -> <byte ord_fs> {
     le?_f_: (^byte_le? value$)
     gt?_f_: (^byte_gt? value$)
     ge?_f_: (^byte_ge? value$)
+    hash_f: ^hash
     ord_fs$
 } ;;
 
@@ -608,6 +623,7 @@ eval char_ord_fs @public -> <char ord_fs> {
     le?_f_: (^char_le? value$)
     gt?_f_: (^char_gt? value$)
     ge?_f_: (^char_ge? value$)
+    hash_f: ^hash
     ord_fs$
 } ;;
 

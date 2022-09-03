@@ -130,7 +130,7 @@ public class MDataDef implements Module.Elem {
     return constrDef.externalize(doc);
   }
 
-  void checkCompat(Cstr refModName, Cstr defModName, MDataDef dd) throws FormatException {
+  void checkCompat(Module.ModTab modTab, MDataDef dd, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
     if (Module.equalOrMoreOpenAcc(dd.acc, this.acc)) {
       ;
@@ -139,9 +139,9 @@ public class MDataDef implements Module.Elem {
       emsg.append("Incompatible access mode - type: ");
       emsg.append(dd.tcon);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
@@ -154,15 +154,15 @@ public class MDataDef implements Module.Elem {
       emsg.append("Incompatible parameter count - type: ");
       emsg.append(dd.tcon);
       emsg.append(", referred in: ");
-      emsg.append(refModName.repr());
+      emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
-      emsg.append(defModName.repr());
+      emsg.append(defModTab.getMyModName().repr());
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
     for (int i = 0; i < this.constrs.length; i++) {
       MConstrDef cd = this.constrs[i];
-      cd.checkCompat(refModName, defModName, dd);
+      cd.checkCompat(modTab, dd, defModTab);
     }
   }
 }

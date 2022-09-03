@@ -26,16 +26,14 @@ module @alpha "sango.util.array" ;;
 import "sango.util.enum" -> enum ;;
 
 data <*A *B array> @public :=
-  d: <A B array_d+>
+  d: <A B _2+>
   ix: <A enum.enum>
   fs: <A B array_fs>
   array$ ;;
 
-data <*A *B array_d> @public := _dummy_array_d$ ;;
-
 data <*A *B array_fs> @public :=
-  get_f: <<A B array_d+> A B fun>
-  set_f: <<A B array_d+> A B <A B array_d+> fun>
+  get_f: <<A B _2+> A B fun>
+  set_f: <<A B _2+> A B <A B _2+> fun>
   array_fs$ ;;
 
 

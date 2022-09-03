@@ -58,8 +58,7 @@ class PCompiledModule implements PDefDict {
     cm.name = mod.name;
     cm.availability = mod.availability;
 
-    cm.foreignMods = new Cstr[mod.getModTab().length - 1];
-    System.arraycopy(mod.getModTab(), 1, cm.foreignMods, 0, cm.foreignMods.length);
+    cm.foreignMods = mod.getModTab().getForeignMods();
 
     List<PTypeRefSkel> unresolvedTypeRefList = new ArrayList<PTypeRefSkel>();
 
@@ -249,7 +248,6 @@ class PCompiledModule implements PDefDict {
           // PTypeVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
           // XXX);
         dd.sigParams[i] = v;
-        varList.add(v);
       }
     }
     dd.acc = dataDef.acc;
@@ -377,7 +375,8 @@ class PCompiledModule implements PDefDict {
       for (int i = 0; i < params.length; i++) {
         bindings.bind(this.tparams[i].varSlot, params[i]);
       }
-      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+      PTypeRefSkel tr = (PTypeRefSkel)this.body.resolveBindings(bindings);
+      // PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
       // /* DEBUG */ System.out.print("unalias ");
       // /* DEBUG */ System.out.print(this.tconInfo.key);
       // /* DEBUG */ System.out.print(" -> ");
@@ -474,12 +473,13 @@ class PCompiledModule implements PDefDict {
       FunDef fd = funList.get(i);
       PTypeSkel[] pts = fd.getParamTypes();
       if (pts.length != paramTypes.length) { continue; }
-      PTypeSkelBindings b = PTypeSkelBindings.create(givenVarList);
-      for (int j = 0; b != null && j < pts.length; j++) {
-        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], b);
+      PTypeSkelBindings bindings = PTypeSkelBindings.create(givenVarList);
+      boolean b = true;
+      for (int j = 0; b && j < pts.length; j++) {
+        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], bindings);
       }
-      if (b != null) {
-        sel = PDefDict.FunSelRes.create(fd, b);
+      if (b) {
+        sel = PDefDict.FunSelRes.create(fd, bindings);
       }
     }
     return sel;
@@ -533,11 +533,6 @@ class PCompiledModule implements PDefDict {
         ;
       } else if (this.searchInLang) {
         throw new RuntimeException("PCompiledModule.ExprDefGetter#getFunDef when 'search in lang' is on.");
-        // PDefDict.EidProps p = PModule.this.defDictGetter.getDefDict(Module.MOD_LANG).resolveEid(
-          // this.funName, PExprId.CAT_FUN_OFFICIAL, Module.ACC_PUBLIC);
-        // if (p != null) {
-          // d = p.defGetter.getFunDef();
-        // }
       }
       return d;
     }
@@ -565,11 +560,6 @@ class PCompiledModule implements PDefDict {
     public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
   }
 
-  // PTypeSkel convertType(MType type, Module mod, List<PTypeRefSkel> unresolvedTypeRefList) {
-    // List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
-    // return this.convertType(type, mod, varList, unresolvedTypeRefList);
-  // }
-
   PTypeSkel convertType(MType type, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
     PTypeSkel t;
     if (type instanceof MTypeRef) {
@@ -588,14 +578,11 @@ class PCompiledModule implements PDefDict {
       params[i] = this.convertType(tr.params[i], mod, varList, unresolvedTypeRefList);
     }
     PTypeSkel t;
-    Cstr n = (tr.modName != null)? tr.modName: mod.name;
-    // if (n.equals(Module.MOD_LANG) && tr.tcon.equals(Module.TCON_BOTTOM)) {
-      // t = PBottomSkel.create(null);
-    // } else {
-      PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
-      t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
-      unresolvedTypeRefList.add((PTypeRefSkel)t);
-    // }
+    Cstr n = mod.getModTab().get(tr.modIndex);
+    // Cstr n = (tr.modName != null)? tr.modName: mod.name;
+    PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
+    t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
+    unresolvedTypeRefList.add((PTypeRefSkel)t);
     return t;
   }
 
@@ -603,6 +590,7 @@ class PCompiledModule implements PDefDict {
     PTypeVarSkel v;
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
+// /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
       v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
       varList.add(v);
@@ -612,6 +600,7 @@ class PCompiledModule implements PDefDict {
     } else {
       throw new RuntimeException("Slot number is not sequential. " + mod.name.toJavaString() + " " + tv.toString() + " " + varList.size());
     }
+// /* DEBUG */ if (v.constraint != null) { System.out.print("CONVERT "); System.out.print(tv); System.out.print(" -> "); System.out.println(v); }
     return v;
   }
 }
