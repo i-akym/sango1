@@ -500,7 +500,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, evalDefScope);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTypeVarDef.create(si, evalDefScope, paramNames[i], Module.INVARIANT, false, null));
+      paramTypeBuilder.addItem(PTypeVarDef.create(si, evalDefScope, paramNames[i], Module.INVARIANT, this.tparams[i].requiresConcrete, null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));

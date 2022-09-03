@@ -265,6 +265,7 @@ eval date_ord_fs @public -> <date ord_fs> {
     le?_f_: none$
     gt?_f_: none$
     ge?_f_: none$
+    hash_f: ^hash
     ord_fs$
 } ;;
 
@@ -275,6 +276,7 @@ eval time_ord_fs @public -> <time ord_fs> {
     le?_f_: none$
     gt?_f_: none$
     ge?_f_: none$
+    hash_f: ^hash
     ord_fs$
 } ;;
 
@@ -285,6 +287,7 @@ eval date_time_ord_fs @public -> <date_time ord_fs> {
     le?_f_: none$
     gt?_f_: none$
     ge?_f_: none$
+    hash_f: ^hash
     ord_fs$
 } ;;
 

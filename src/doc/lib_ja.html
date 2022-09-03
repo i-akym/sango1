@@ -583,9 +583,12 @@ eval &lt;byte&gt; *B &lt;int&gt; *Count byte_shift_left | shift_left @public -&g
   le?_f_: &lt;&lt;A A bool fun&gt; maybe&gt;
   gt?_f_: &lt;&lt;A A bool fun&gt; maybe&gt;
   ge?_f_: &lt;&lt;A A bool fun&gt; maybe&gt;
+  hash_f: &lt;A int fun&gt;
   ord_fs$ ;;</code></td></tr></table>
 <p>大小判定するための機能群を表します。
-  実装する場合は，最小限，<code>compare_f</code>を実装する必要があります。</p>
+  実装する場合は，最小限，<code>compare_f</code>を実装する必要があります。
+  <code>hash_f</code>には，この等価判定と整合するハッシュ関数を指定します。
+  ハッシュ関数が返す値（ハッシュ値）の制約条件については，関数<code>hash</code>の説明を参照してください。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord ord_fs_inverse | inverse @public -&gt; &lt;A ord_fs&gt; ;;</code></td></tr></table>
 <p><code>Ord</code>から，大小判定を逆に行う機能群を作成します。</p>
