@@ -188,6 +188,7 @@ eval ord_fs @public -> <cstr ord_fs> {
     le?_f_: (^le? value$)
     gt?_f_: (^gt? value$)
     ge?_f_: (^ge? value$)
+    hash_f: ^hash
     ord_fs$
 } ;;
 

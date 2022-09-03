@@ -23,6 +23,7 @@ eval ord_fs -> <int ord_fs> {
     le?_f_: none$
     gt?_f_: none$
     ge?_f_: none$
+    hash_f: \ <int> *I -> <int> { I 10 quot }
     ord_fs$
 } ;;
 

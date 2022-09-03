@@ -61,6 +61,8 @@ eval <*A! entity_h> *Entity entity_domain | domain @public -> <domain_h> { Entit
 eval <*A! entity_h> *Entity entity_unique_num | unique_num @public -> <int> { Entity unique } ;;
 eval <*A! entity_h> *Entity entity_existence | existence @public -> <ex.existence> { Entity box_holder >> box.existence } ;;
 
+eval <*A! entity_h> *Entity _hash_entity_h -> <int> { Entity unique } ;;
+
 eval <*A! entity_h> *E0 <*B! entity_h> *E1 entity_compare | compare @public -> <ordering> {
   E0 = domain_h: *D0 unique: *N0 *** entity_h$,
   E1 = domain_h: *D1 unique: *N1 *** entity_h$,
@@ -78,6 +80,7 @@ eval entity_ord_fs @public -> <<*A! entity_h> ord_fs> {
     le?_f_: none$
     gt?_f_: none$
     ge?_f_: none$
+    hash_f: ^_hash_entity_h
     ord_fs$
 } ;;
 
@@ -91,6 +94,8 @@ data <*A! weak_holder_h> @opaque :=
 eval <*A! weak_holder_h> *Weak_holder weak_holder_domain | domain @public -> <domain_h> { Weak_holder domain_h } ;;
 eval <*A! weak_holder_h> *Weak_holder weak_holder_unique_num | unique_num @public -> <int> { Weak_holder unique } ;;
 eval <*A! weak_holder_h> *Weak_holder weak_holder_existence | existence @public -> <ex.existence> { Weak_holder existence } ;;
+
+eval <*A! weak_holder_h> *Weak_holder _hash_weak_holder_h -> <int> { Weak_holder unique } ;;
 
 eval <*A! weak_holder_h> *W0 <*B! weak_holder_h> *W1 weak_holder_compare | compare @public -> <ordering> {
   W0 = domain_h: *D0 unique: *N0 *** weak_holder_h$,
@@ -109,6 +114,7 @@ eval weak_holder_ord_fs @public -> <<*A! weak_holder_h> ord_fs> {
     le?_f_: none$
     gt?_f_: none$
     ge?_f_: none$
+    hash_f: ^_hash_weak_holder_h
     ord_fs$
 } ;;
 
