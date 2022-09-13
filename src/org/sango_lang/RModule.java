@@ -93,37 +93,7 @@ public class RModule {
           ci.srcInfoTab,
           ci.varCount);
       } else {
-        if (m.nativeImplClass == null) {
-          String nativeImplClassName = FileSystem.getInstance().moduleNameToNativeClass(m.name);
-          try {
-            m.nativeImplClass = Class.forName(nativeImplClassName);
-            Method instanceGetter = m.nativeImplClass.getMethod("getInstance", new Class[] { eng.getClass() });
-            m.nativeImplInstance = instanceGetter.invoke(null, new Object[] { eng } );
-          } catch (ClassNotFoundException ex) {
-            throw new IOException("Native implementation class not found - " + nativeImplClassName);
-          } catch (NoSuchMethodException ex) {
-            throw new IOException("Native implementation getter \"getInstance(RuntimeEngine)\" not found in " + nativeImplClassName);
-          } catch (Exception ex) {
-            throw new IOException("Native implementation get error in " + nativeImplClassName + " - " + ex.toString());
-	  }
-        }
-        Class[] paramTypes = new Class[ci.paramCount + 2];
-        paramTypes[0] = RNativeImplHelper.class;
-        paramTypes[1] = RClosureItem.class;  // self
-        for (int j = 2; j < paramTypes.length; j++) {
-          paramTypes[j] = RObjItem.class;
-        }
-        String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
-        try {
-          Method nm = m.nativeImplClass.getMethod(nativeMethod, paramTypes);
-          //  -- no check for return value type
-          // if (nm.getReturnType() != RResult.class) {  // even subclass ok
-            // throw new Exception("Invalid return type.");
-          // }
-          cir = RClosureImpl.createNative(m, ci.name, ci.paramCount, /* nativeMethod, */ m.nativeImplInstance, nm);
-        } catch (Exception ex) {
-          throw new IOException("Native implementation method link error for " + nativeMethod, ex);
-        }
+        cir = linkNativeMethod(ci, m);
       }
       m.closureImplDict.put(ci.name, cir);
       m.closureImpls[i] = cir;
@@ -135,6 +105,70 @@ public class RModule {
       m.consts[i] = convertConst(eng, consts[i]);
     }
     return m;
+  }
+
+  private static RClosureImpl linkNativeMethod(MClosureImpl ci, RModule m) throws IOException, FormatException {
+    return ci.name.startsWith("_builtin_")?
+      linkNativeMethodBuiltin(ci, m):
+      linkNativeMethodGeneric(ci, m);
+  }
+
+  private static RClosureImpl linkNativeMethodBuiltin(MClosureImpl ci, RModule m) throws IOException, FormatException {
+    Class[] paramTypes = new Class[ci.paramCount + 2];
+    paramTypes[0] = RNativeImplHelper.class;
+    paramTypes[1] = RClosureItem.class;  // self
+    for (int i = 2; i < paramTypes.length; i++) {
+      paramTypes[i] = RObjItem.class;
+    }
+    RClosureImpl cir;
+    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
+    try {
+      Method nm = m.getClass().getMethod(nativeMethod, paramTypes);
+      //  -- no check for return value type
+      // if (nm.getReturnType() != RResult.class) {  // even subclass ok
+        // throw new Exception("Invalid return type.");
+      // }
+      cir = RClosureImpl.createNative(m, ci.name, ci.paramCount, m, nm);
+    } catch (Exception ex) {
+      throw new IOException("Native implementation method link error for " + nativeMethod, ex);
+    }
+    return cir;
+  }
+
+  private static RClosureImpl linkNativeMethodGeneric(MClosureImpl ci, RModule m) throws IOException, FormatException {
+    if (m.nativeImplClass == null) {
+      String nativeImplClassName = FileSystem.getInstance().moduleNameToNativeClass(m.name);
+      try {
+        m.nativeImplClass = Class.forName(nativeImplClassName);
+        Method instanceGetter = m.nativeImplClass.getMethod("getInstance", new Class[] { m.theEngine.getClass() });
+        m.nativeImplInstance = instanceGetter.invoke(null, new Object[] { m.theEngine } );
+      } catch (ClassNotFoundException ex) {
+        throw new IOException("Native implementation class not found - " + nativeImplClassName);
+      } catch (NoSuchMethodException ex) {
+        throw new IOException("Native implementation getter \"getInstance(RuntimeEngine)\" not found in " + nativeImplClassName);
+      } catch (Exception ex) {
+        throw new IOException("Native implementation get error in " + nativeImplClassName + " - " + ex.toString());
+      }
+    }
+    Class[] paramTypes = new Class[ci.paramCount + 2];
+    paramTypes[0] = RNativeImplHelper.class;
+    paramTypes[1] = RClosureItem.class;  // self
+    for (int i = 2; i < paramTypes.length; i++) {
+      paramTypes[i] = RObjItem.class;
+    }
+    RClosureImpl cir;
+    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
+    try {
+      Method nm = m.nativeImplClass.getMethod(nativeMethod, paramTypes);
+      //  -- no check for return value type
+      // if (nm.getReturnType() != RResult.class) {  // even subclass ok
+        // throw new Exception("Invalid return type.");
+      // }
+      cir = RClosureImpl.createNative(m, ci.name, ci.paramCount, m.nativeImplInstance, nm);
+    } catch (Exception ex) {
+      throw new IOException("Native implementation method link error for " + nativeMethod, ex);
+    }
+    return cir;
   }
 
   private static RObjItem convertConst(RuntimeEngine eng, Module.ConstElem c) {
