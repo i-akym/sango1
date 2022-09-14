@@ -267,4 +267,11 @@ public class RModule {
   RClosureItem getInitClosure() { return this.initClosure; }
 
   RClosureItem getMainClosure() { return this.mainClosure; }
+
+
+// builtin-function implementations
+
+  public void sni__builtin_feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem obj, RObjItem feature) {
+    throw new RuntimeException("_builtin_feature_get not implemented.");
+  }
 }
