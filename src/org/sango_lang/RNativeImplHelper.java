@@ -460,6 +460,16 @@ public class RNativeImplHelper {
       return c;
     }
 
+    public RClosureItem getFeatureGetter(RObjItem obj, Cstr featureMod, String featureName) {
+      RClosureItem c = null;
+      RType.Sig s = obj.getTsig();
+      RModule m = RNativeImplHelper.this.theEngine.modMgr.getRMod(s.mod);
+      if (m != null) {  // always
+        c = m.getFeatureGetter(s.name.toJavaString(), featureMod, featureName);
+      }
+      return c;
+    }
+
     public PDataDef getDataDef(Cstr modName, String dcon) {
       PDataDef dd = null;
       try {
