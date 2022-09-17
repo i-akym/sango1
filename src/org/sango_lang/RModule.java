@@ -40,6 +40,7 @@ public class RModule {
   Map<String, RClosureImpl> closureImplDict;
   RClosureImpl[] closureImpls;
   RObjItem[] consts;
+  Map<String, FeatureInfo[]> featureInfoTab;
   Class<?> nativeImplClass;
   Object nativeImplInstance;
   RClosureItem initClosure;
@@ -105,6 +106,9 @@ public class RModule {
     for (int i = 0; i < consts.length; i++) {
       m.consts[i] = convertConst(eng, consts[i]);
     }
+
+    m.featureInfoTab = new HashMap<String, FeatureInfo[]>();
+
     return m;
   }
 
@@ -270,7 +274,17 @@ public class RModule {
   RClosureItem getMainClosure() { return this.mainClosure; }
 
   RClosureItem getFeatureGetter(String tcon, Cstr featureMod, String featureName) {
-    throw new RuntimeException("RModule#getFeatureGetter not implemented.");
+    RClosureItem g = null;
+    FeatureInfo[] fis = this.featureInfoTab.get(tcon);
+    if (fis != null) {
+      for (int i = 0; g == null && i < fis.length; i++) {
+        FeatureInfo fi = fis[i];
+        if (fi.featureMod.equals(featureMod) && fi.featureName.equals(featureName)) {
+          g = fi.getter;
+        }
+      }
+    }
+    return g;
   }
 
 
@@ -289,6 +303,18 @@ public class RModule {
       }
     } else {
       helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
+    }
+  }
+
+  static class FeatureInfo {
+    Cstr featureMod;
+    String featureName;
+    RClosureItem getter;
+
+    FeatureInfo(Cstr featureMod, String featureName, RClosureItem gettter) {
+      this.featureMod = featureMod;
+      this.featureName = featureName;
+      this.getter = getter;
     }
   }
 }
