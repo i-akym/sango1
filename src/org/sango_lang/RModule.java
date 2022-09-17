@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import sni_sango.SNIlang;
 
 public class RModule {
   RuntimeEngine theEngine;
@@ -268,10 +269,26 @@ public class RModule {
 
   RClosureItem getMainClosure() { return this.mainClosure; }
 
+  RClosureItem getFeatureGetter(String tcon, Cstr featureMod, String featureName) {
+    throw new RuntimeException("RModule#getFeatureGetter not implemented.");
+  }
+
 
 // builtin-function implementations
 
   public void sni__builtin_feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem obj, RObjItem feature) {
-    throw new RuntimeException("_builtin_feature_get not implemented.");
+    if (helper.getAndClearResumeInfo() == null) {
+      RClosureItem g = helper.getCore().getFeatureGetter(
+        obj,
+        this.name,
+        helper.arrayItemToCstr(((RArrayItem)feature)).toJavaString());
+      if (g == null) {
+        helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
+      } else {
+        helper.scheduleInvocation(g, new RObjItem[] { obj }, self);
+      }
+    } else {
+      helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
+    }
   }
 }
