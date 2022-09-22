@@ -211,7 +211,14 @@ public class RModule {
     if (mci != null) {
       this.mainClosure = RClosureItem.create(this.theEngine, mci, null);
     }
-    // HERE
+    // /* DEV */ if (this.name.toJavaString().equals("f")) {
+    // /* DEV */   RClosureItem g = this.getClosure("_bridge_bar_as_a'foo");
+    // /* DEV */   System.out.print("FEATURE put getter in table. "); System.out.println(g != null);
+    // /* DEV */   this.featureInfoTab.put(
+    // /* DEV */     "bar",
+    // /* DEV */     new FeatureInfo[] { new FeatureInfo(this.name, "a'foo", g)
+    // /* DEV */   });
+    // /* DEV */ }
   }
 
   void spawnInitTask() {
@@ -311,7 +318,7 @@ public class RModule {
     String featureName;
     RClosureItem getter;
 
-    FeatureInfo(Cstr featureMod, String featureName, RClosureItem gettter) {
+    FeatureInfo(Cstr featureMod, String featureName, RClosureItem getter) {
       this.featureMod = featureMod;
       this.featureName = featureName;
       this.getter = getter;
