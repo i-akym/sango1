@@ -32,6 +32,7 @@ class MTypeVar implements MType {
   int slot;
   int variance;
   boolean requiresConcrete;
+  MFeature.List features;
   MType constraint;  // maybe null
 
   private MTypeVar() {}
@@ -64,6 +65,9 @@ class MTypeVar implements MType {
     buf.append(this.slot);
     if (this.requiresConcrete) {
       buf.append("!");
+    }
+    if (this.features != null) {
+      buf.append(this.features.toString());
     }
     buf.append(">");
     return buf.toString();

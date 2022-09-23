@@ -95,6 +95,7 @@ public class Module {
   static final String TAG_DATA_CONSTRS = "data_constrs";
   static final String TAG_DATA_DEF = "data_def";
   static final String TAG_DATA_DEFS = "data_defs";
+  static final String TAG_FEATURE = "feature";
   static final String TAG_FOREIGN = "foreign";
   static final String TAG_FUN_DEF = "fun_def";
   static final String TAG_FUN_DEFS = "fun_defs";
