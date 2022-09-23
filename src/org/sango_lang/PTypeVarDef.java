@@ -29,6 +29,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
   int variance;
   boolean requiresConcrete;
+  PFeature.List features;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
   PTypeSkel nConstraint;
   PTypeVarSlot varSlot;  // setup later
@@ -57,6 +58,10 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     buf.append(this.variance);
     if (this.requiresConcrete) {
       buf.append("!");
+    }
+    if (this.features != null) {
+      buf.append(",features=");
+      buf.append(this.features);
     }
     if (this.constraint != null) {
       buf.append(",constraint=");
@@ -97,10 +102,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     default:  // PType.COPY_CONCRETE_KEEP
       v.requiresConcrete = this.requiresConcrete;
     }
+    if (this.features != null) {
+      throw new RuntimeException("Feature not implemented in PTypeVarDef.");
+    }
     if (this.constraint != null) {
       try {
         PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
-        // b.setSrcInfo(srcInfo);
         b.addItem(this.constraint.deepCopy(srcInfo, scope, extOpt, varianceOpt, concreteOpt));
         v.constraint = b.create();
       } catch (Exception ex) {
@@ -149,17 +156,10 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return create(elem.getSrcInfo(), scope, id, Module.INVARIANT, false, null);  // HERE
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // if (this.constraint != null) {
-      // this.constraint.setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
+    if (this.features != null) {
+      throw new RuntimeException("Feature not implemented in PTypeVarDef.");
+    }
     if (this.constraint != null) {
       this.constraint.collectModRefs();
     }
@@ -168,7 +168,6 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public PTypeVarDef resolve() throws CompileException {
     StringBuffer emsg;
     if (this.varSlot != null) { return this; }
-    // if (this.idResolved) { return this; }
     if (!this.scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -181,7 +180,6 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     if (this.constraint != null) {
       this.constraint = this.constraint.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -190,6 +188,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public void excludePrivateAcc() throws CompileException {}
 
   public void normalizeTypes() {
+    if (this.features != null) {
+      throw new RuntimeException("Feature not implemented in PTypeVarDef.");
+    }
     if (this.constraint != null) {
       this.nConstraint = this.constraint.normalize();
     }
