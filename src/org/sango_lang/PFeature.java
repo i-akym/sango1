@@ -37,7 +37,10 @@ public class PFeature extends PDefaultProgObj {
   }
 
   public void collectModRefs() throws CompileException {
-    throw new RuntimeException("PFeature#collectModRefs not implemented.");
+    this.scope.referredModId(this.srcInfo, this.mod);
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
   }
 
   public PFeature resolve() throws CompileException {
