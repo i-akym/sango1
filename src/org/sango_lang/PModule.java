@@ -570,7 +570,7 @@ class PModule implements PDefDict {
     if (dat.tparams != null) {
       paramPropss = new PDefDict.TparamProps[dat.tparams.length];
       for (int i = 0; i < dat.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].variance, dat.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(dat.tparams[i].variance, dat.tparams[i].requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -626,7 +626,7 @@ class PModule implements PDefDict {
     if (ext.tparams != null) {
       paramPropss = new PDefDict.TparamProps[ext.tparams.length];
       for (int i = 0; i < ext.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].variance, ext.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(ext.tparams[i].variance, ext.tparams[i].requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -676,7 +676,7 @@ class PModule implements PDefDict {
     if (alias.tparams != null) {
       paramPropss = new PDefDict.TparamProps[alias.tparams.length];
       for (int i = 0; i < alias.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(alias.tparams[i].variance, alias.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(alias.tparams[i].variance, alias.tparams[i].requiresConcrete);
           // actually (invariant, false)
       }
     } else {
