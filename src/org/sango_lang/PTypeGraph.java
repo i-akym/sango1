@@ -464,7 +464,7 @@ class PTypeGraph {
       if (sel == null) {
         emsg = new StringBuffer();
         emsg.append("Function ");
-        emsg.append(this.funId.toRepr());
+        emsg.append(this.funId.repr());
         emsg.append(" not found at ");
         emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
