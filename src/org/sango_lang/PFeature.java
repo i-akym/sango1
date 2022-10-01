@@ -29,6 +29,7 @@ import java.util.List;
 
 public class PFeature extends PDefaultProgObj {
   String mod;
+  Cstr modName;
   String name;
   PType[] params;
 
@@ -44,7 +45,46 @@ public class PFeature extends PDefaultProgObj {
   }
 
   public PFeature resolve() throws CompileException {
-    throw new RuntimeException("PFeature#resolve not implemented.");
+    StringBuffer emsg;
+    if (this.mod != null) {
+      this.modName = this.scope.resolveModId(this.mod);
+      if (this.modName == null) {
+        emsg = new StringBuffer();
+        emsg.append("Module id \"");
+        emsg.append(this.mod);
+        emsg.append("\" not defined at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+
+    // following code is a copy for referece...
+
+    // if ((this.tconInfo = this.scope.resolveTcon(this.mod, this.tcon)) == null) {
+      // emsg = new StringBuffer();
+      // emsg.append("Type constructor \"");
+      // emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      // emsg.append("\" not defined at ");
+      // emsg.append(this.tconSrcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    // if (this.tconInfo.props.paramCount() >= 0 && this.params.length != this.tconInfo.props.paramCount()) {
+      // emsg = new StringBuffer();
+      // emsg.append("Parameter count of \"");
+      // emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      // emsg.append("\" mismatch at ");
+      // emsg.append(this.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString()) ;
+    // }
+
+    for (int i = 0; i < this.params.length; i++) {
+      PType p = (PType)this.params[i].resolve();
+      this.params[i] = p;
+    }
+    return this;
   }
 
   public void normalizeTypes() {

@@ -73,7 +73,7 @@ class PCompiledModule implements PDefDict {
         if (dds[j].params != null) {
           paramPropss = new PDefDict.TparamProps[dds[j].params.length];
           for (int k = 0; k < dds[j].params.length; k++) {
-            paramPropss[k] = new PDefDict.TparamProps(dds[j].params[k].variance, dds[j].params[k].requiresConcrete);
+            paramPropss[k] = PDefDict.TparamProps.create(dds[j].params[k].variance, dds[j].params[k].requiresConcrete);
           }
         } else {
           paramPropss = null;
@@ -90,7 +90,7 @@ class PCompiledModule implements PDefDict {
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
         for (int k = 0; k < paramPropss.length; k++) {
-          paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
+          paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
@@ -110,7 +110,7 @@ class PCompiledModule implements PDefDict {
       if (mdd.params != null) {
         paramPropss = new PDefDict.TparamProps[mdd.params.length];
         for (int k = 0; k < mdd.params.length; k++) {
-          paramPropss[k] = new PDefDict.TparamProps(mdd.params[k].variance, mdd.params[k].requiresConcrete);
+          paramPropss[k] = PDefDict.TparamProps.create(mdd.params[k].variance, mdd.params[k].requiresConcrete);
         }
       } else {
         paramPropss = null;
@@ -130,7 +130,7 @@ class PCompiledModule implements PDefDict {
       MAliasTypeDef matd = matds[i];
       PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[matd.paramCount];
       for (int k = 0; k < matd.paramCount; k++) {
-        paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
+        paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
       }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PTypeId.SUBCAT_ALIAS,
@@ -324,7 +324,7 @@ class PCompiledModule implements PDefDict {
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
     PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
-      paramPropss[k] = new PDefDict.TparamProps(Module.INVARIANT, false);
+      paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
     }
     PDefDict.TconProps tp = PDefDict.TconProps.create(
       PTypeId.SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);

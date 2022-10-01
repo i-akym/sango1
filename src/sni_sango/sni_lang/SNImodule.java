@@ -476,7 +476,7 @@ public class SNImodule {
           PDefDict.DataDefGetter ddg = new DataDefGetter(this);
           PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
           for (int i = 0; i < this.sigParams.length; i++) {
-            paramPropss[i] = PDefDict.createTparamProps(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
+            paramPropss[i] = PDefDict.TparamProps.create(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
           }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
             (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,

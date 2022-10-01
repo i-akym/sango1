@@ -503,7 +503,7 @@ public class RNativeImplHelper {
         PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, "fun");
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[pts.length];
         for (int i = 0; i < pts.length; i++) {
-          paramPropss[i] = new PDefDict.TparamProps(Module.INVARIANT, false);  // HERE
+          paramPropss[i] = PDefDict.TparamProps.create(Module.INVARIANT, false);  // HERE
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
           PTypeId.SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);

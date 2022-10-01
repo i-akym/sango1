@@ -91,6 +91,43 @@ public interface PDefDict {
 
   }
 
+  static class TconInfo {
+    TconKey key;
+    TconProps props;
+
+    public static TconInfo create(TconKey key, TconProps props) {
+      return new TconInfo(key, props);
+    }
+
+    TconInfo(TconKey key, TconProps props) {
+      this.key = key;
+      this.props = props;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("tconinfo[tconkey=");
+      buf.append(this.key);
+      buf.append(",tconprops=");
+      buf.append(this.props);
+      buf.append("]");
+      return buf.toString();
+    }
+
+    public boolean equals(Object o) {
+      boolean b;
+      if (o == this) {
+        b = true;
+      } else if (!(o instanceof TconInfo)) {
+        b = false;
+      } else {
+        TconInfo ti = (TconInfo)o;
+        b = ti.key.equals(this.key);
+      }
+      return b;
+    }
+  }
+
   static class TconKey {
     Cstr modName;
     String tcon;
@@ -175,52 +212,15 @@ public interface PDefDict {
     }
   }
 
-  static class TconInfo {
-    TconKey key;
-    TconProps props;
-
-    public static TconInfo create(TconKey key, TconProps props) {
-      return new TconInfo(key, props);
-    }
-
-    TconInfo(TconKey key, TconProps props) {
-      this.key = key;
-      this.props = props;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("tconinfo[tconkey=");
-      buf.append(this.key);
-      buf.append(",tconprops=");
-      buf.append(this.props);
-      buf.append("]");
-      return buf.toString();
-    }
-
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof TconInfo)) {
-        b = false;
-      } else {
-        TconInfo ti = (TconInfo)o;
-        b = ti.key.equals(this.key);
-      }
-      return b;
-    }
-  }
-
-  public static TparamProps createTparamProps(int variance, boolean concrete) {
-    return new TparamProps(variance, concrete);
-  }
-
   static class TparamProps {
     int variance;
     boolean concrete;
 
-    TparamProps(int variance, boolean concrete) {
+    public static TparamProps create(int variance, boolean concrete) {
+      return new TparamProps(variance, concrete);
+    }
+
+    private TparamProps(int variance, boolean concrete) {
       this.variance = variance;
       this.concrete = concrete;
     }
