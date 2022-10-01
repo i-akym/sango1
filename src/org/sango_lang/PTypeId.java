@@ -140,12 +140,12 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
       buf.append(",FX");
     }
     buf.append(",id=");
-    buf.append(this.toRepr());
+    buf.append(this.repr());
     buf.append("]");
     return buf.toString();
   }
 
-  String toRepr() {
+  String repr() {
     return repr(this.mod, this.name, this.ext);
   }
 

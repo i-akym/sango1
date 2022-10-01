@@ -37,7 +37,7 @@ public class PTypeRefSkel implements PTypeSkel {
 
   public static PTypeRefSkel create(PDefDict.DefDictGetter defDictGetter, Parser.SrcInfo srcInfo, PDefDict.TconInfo tconInfo, boolean ext, PTypeSkel[] params) {
 /* DEBUG */ if (defDictGetter == null) {
-/* DEBUG */   throw new IllegalArgumentException("nulll defDictGetter " + tconInfo.key.toRepr());
+/* DEBUG */   throw new IllegalArgumentException("nulll defDictGetter " + tconInfo.key.repr());
 /* DEBUG */ }
     PTypeRefSkel t = new PTypeRefSkel();
     t.defDictGetter = defDictGetter;
@@ -100,7 +100,7 @@ public class PTypeRefSkel implements PTypeSkel {
       sep = " ";
     }
     buf.append(sep);
-    buf.append(this.tconInfo.key.toRepr());
+    buf.append(this.tconInfo.key.repr());
     if (this.ext) {
       buf.append("+");
     }
@@ -677,7 +677,7 @@ if (PTypeGraph.DEBUG > 1) {
     for (int i = 0; i < this.params.length; i++) {
       r.add(this.params[i].repr());
     }
-    r.add(this.tconInfo.key.toRepr() + ((this.ext)? "+": ""));
+    r.add(this.tconInfo.key.repr() + ((this.ext)? "+": ""));
     return r;
   }
 }

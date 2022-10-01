@@ -152,7 +152,7 @@ public interface PDefDict {
       return buf.toString();
     }
 
-    String toRepr() {
+    String repr() {
       StringBuffer buf = new StringBuffer();
       buf.append(this.modName.repr());
       buf.append(".");
@@ -248,7 +248,6 @@ public interface PDefDict {
     }
 
     void addExtension(PDefDict.TconKey base, PDefDict.TconKey ext) throws CompileException {
-// /* DEBUG */ System.out.print("ExtGraph "); System.out.print(base.toRepr()); System.out.print(" "); System.out.println(ext.toRepr());
       ExtNode en;
       if ((en = this.nodeMap.get(ext)) == null) {
         en = this.createNode(ext);
@@ -277,7 +276,6 @@ public interface PDefDict {
     }
 
     boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
-// /* DEBUG */ System.out.print("is base of "); System.out.print(b.toRepr()); System.out.print(" "); System.out.println(e.toRepr());
       ExtNode en = this.nodeMap.get(e);
       return (en != null)? en.includesInAncestor(b): false;
     }

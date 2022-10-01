@@ -132,12 +132,12 @@ class PExprId extends PDefaultExprObj {
       buf.append(",(FUN_ALIAS)");
     }
     buf.append(",id=");
-    buf.append(this.toRepr());
+    buf.append(this.repr());
     buf.append("]");
     return buf.toString();
   }
 
-  String toRepr() {
+  String repr() {
     return repr(this.mod, this.name);
   }
 
@@ -230,7 +230,7 @@ class PExprId extends PDefaultExprObj {
       if (this.props == null) {
         emsg = new StringBuffer();
         emsg.append("Id \"");
-        emsg.append(this.toRepr());
+        emsg.append(this.repr());
         emsg.append("\" not found at ");
         emsg.append(this.srcInfo);
         emsg.append(".");
@@ -239,7 +239,7 @@ class PExprId extends PDefaultExprObj {
       if ((this.props.cat & this.catOpt) == 0) {
         emsg = new StringBuffer();
         emsg.append("Misusing \"");
-        emsg.append(this.toRepr());
+        emsg.append(this.repr());
         emsg.append("\" at ");
         emsg.append(this.srcInfo);
         emsg.append(".");
