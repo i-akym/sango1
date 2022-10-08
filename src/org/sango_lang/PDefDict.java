@@ -37,6 +37,12 @@ public interface PDefDict {
 
   TconInfo resolveTcon(String tcon, int subcatOpts, int accOpts) throws CompileException;
 
+  interface GlobalDefDict {
+
+    boolean isBaseOf(TconKey b, TconKey e);
+
+  }
+
   interface DefDictGetter {
 
     PDefDict getReferredDefDict(Cstr mod) throws CompileException;
@@ -45,9 +51,23 @@ public interface PDefDict {
 
   }
 
-  interface GlobalDefDict {
+  interface ExprDefGetter {
 
-    boolean isBaseOf(TconKey b, TconKey e);
+    void setSearchInLang();
+
+    PDataDef getDataDef() throws CompileException;
+
+    FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException;
+
+    PFunDef getFunDef() throws CompileException;  // get by official name
+
+  }
+
+  interface DataDefGetter {
+
+    PDataDef getDataDef();
+
+    PAliasTypeDef getAliasTypeDef();
 
   }
 
@@ -77,18 +97,6 @@ public interface PDefDict {
       buf.append("]");
       return buf.toString();
     }
-  }
-
-  interface ExprDefGetter {
-
-    void setSearchInLang();
-
-    PDataDef getDataDef() throws CompileException;
-
-    FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException;
-
-    PFunDef getFunDef() throws CompileException;  // get by official name
-
   }
 
   static class TconInfo {
@@ -212,6 +220,36 @@ public interface PDefDict {
     }
   }
 
+  static class FeatureProps {
+    int paramCount;
+    int acc;
+    DataDefGetter defGetter;
+
+    public static FeatureProps create(int paramCount, int acc, DataDefGetter getter) {
+      return new FeatureProps(paramCount, acc, getter);
+    }
+
+    FeatureProps(int paramCount, int acc, DataDefGetter getter) {
+      this.paramCount = paramCount;
+      this.acc = acc;
+      this.defGetter = getter;
+    }
+
+    int paramCount() {
+      return this.paramCount;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("featueprops[paramcount=");
+      buf.append(this.paramCount());
+      buf.append(",acc=");
+      buf.append(this.acc);
+      buf.append("]");
+      return buf.toString();
+    }
+  }
+
   static class TparamProps {
     int variance;
     boolean concrete;
@@ -316,14 +354,6 @@ public interface PDefDict {
         return b;
       }
     }
-  }
-
-  interface DataDefGetter {
-
-    PDataDef getDataDef();
-
-    PAliasTypeDef getAliasTypeDef();
-
   }
 
   static class FunSelRes {
