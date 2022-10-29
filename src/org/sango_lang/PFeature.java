@@ -37,6 +37,10 @@ public class PFeature extends PDefaultProgObj {
     super(srcInfo, scope);
   }
 
+  static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) {
+    throw new RuntimeException("PFeature#acceptSig not implemented.");
+  }
+
   public void collectModRefs() throws CompileException {
     this.scope.referredModId(this.srcInfo, this.mod);
     for (int i = 0; i < this.params.length; i++) {

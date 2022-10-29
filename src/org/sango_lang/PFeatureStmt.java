@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PFeatureStmt extends PDefaultProgObj implements PDataDef {
+class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   PFeature sig;
   int availability;
   int acc;
@@ -63,7 +63,7 @@ class PFeatureStmt extends PDefaultProgObj implements PDataDef {
     }
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
-      this.ext = new PFeatureStmt(srcInfo, outerScope);
+      this.feature = new PFeatureStmt(srcInfo, outerScope);
     }
 
     PScope getDefScope() { return this.feature.scope; }
@@ -123,7 +123,7 @@ class PFeatureStmt extends PDefaultProgObj implements PDataDef {
     }
 
     PType objType;
-    if ((objType = Type.accept(reader, defScope)) == null) {
+    if ((objType = PType.accept(reader, defScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Object type missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -142,14 +142,22 @@ class PFeatureStmt extends PDefaultProgObj implements PDataDef {
     }
 
     PType implType;
-    if ((implType = Type.accept(reader, defScope)) == null) {
+    if ((implType = PType.accept(reader, defScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Implementation type missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setImplType(implType);
+    if (!(implType instanceof PTypeRef)) {
+      emsg = new StringBuffer();
+      emsg.append("Invalid implementation type at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(". - ");
+      emsg.append(implType.toString());
+      throw new CompileException(emsg.toString());
+    }
+    builder.setImplType((PTypeRef)implType);
 
     return builder.create();
   }
@@ -181,33 +189,13 @@ class PFeatureStmt extends PDefaultProgObj implements PDataDef {
       }
       e = e.getNextSibling();
     }
-    tb.addItem(btconItem);
-    builder.setBase(tb.create());
 
-    if (e == null) {
-      emsg = new StringBuffer();
-      emsg.append("Data definition body missing at ");
-      emsg.append(elem.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    PDataStmt.DataDefBody body = PDataStmt.acceptXDataDefBody(e, builder.getDefScope());
-    if (body == null) {
-      emsg = new StringBuffer();
-      emsg.append("Data definition body missing at ");
-      emsg.append(elem.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    builder.addConstrList(body.constrList);
+// HERE
     return builder.create();
   }
 
   public void collectModRefs() throws CompileException {
     this.sig.collectModRefs();
-    for (int i = 0; i < this.constrs.length; i++) {
-      this.constrs[i].collectModRefs();
-    }
     this.impl.collectModRefs();
   }
 
@@ -223,21 +211,25 @@ class PFeatureStmt extends PDefaultProgObj implements PDataDef {
 
   public int getAcc() { return this.acc; }
 
+  public int getParamCount() { return this.sig.params.length; }
+
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
-    this.impl.checkAcc();
+    // this.impl.checkAcc();  // HERE
+    return;
   }
 
   public void normalizeTypes() throws CompileException {
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    for (int i = 0; i < this.constrs.length; i++) {
-      this.constrs[i].normalizeTypes();
-      for (int j = 0; j < constrs[i].attrs.length; j++) {
-        constrs[i].attrs[j].nTypeSkel.checkVariance(PTypeSkel.WIDER);
-        constrs[i].attrs[j].nTypeSkel.collectTconInfo(tis);
-      }
-    }
-    this.scope.addReferredTcons(tis);
+// HERE
+    // List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    // for (int i = 0; i < this.constrs.length; i++) {
+      // this.constrs[i].normalizeTypes();
+      // for (int j = 0; j < constrs[i].attrs.length; j++) {
+        // constrs[i].attrs[j].nTypeSkel.checkVariance(PTypeSkel.WIDER);
+        // constrs[i].attrs[j].nTypeSkel.collectTconInfo(tis);
+      // }
+    // }
+    // this.scope.addReferredTcons(tis);
   }
 
   public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
@@ -246,49 +238,43 @@ class PFeatureStmt extends PDefaultProgObj implements PDataDef {
 
   List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
     List<PEvalStmt> funs = new ArrayList<PEvalStmt>();
-    PEvalStmt e;
-    List<PEvalStmt> es;
-    if ((e = this.generateCallHashFun(mod)) != null) { funs.add(e); }
-    if ((e = this.generateCallDebugReprFun(mod)) != null) { funs.add(e); }
-    if ((e = this.generateInFun(mod)) != null) { funs.add(e); }
-    if ((e = this.generateNarrowFun(mod)) != null) { funs.add(e); }
-    if ((es = this.generateAttrFuns(mod)) != null) { funs.addAll(es); }
     return funs;
   }
 
-  PEvalStmt generateCallHashFun(PModule mod) throws CompileException {
+  // PEvalStmt generateCallHashFun(PModule mod) throws CompileException {
     // eval <*T0 *T1 .. TCON> *X _call_hash_TCON @private -> <int> {
     //   X _hash_TCON
     // }
-    if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
-    Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
-    PScope modScope = this.scope.theMod.scope;
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, modScope);
-    PScope defScope = evalStmtBuilder.getDefScope();
-    // PScope retScope = evalStmtBuilder.getRetScope();
-    PScope bodyScope = evalStmtBuilder.getBodyScope();
-    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
-    PScope retScope = retDefBuilder.getScope();
-    evalStmtBuilder.setOfficial("_call_hash_" + this.tcon);
-    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
-    String[] paramNames = PModule.generateIds("T", this.tparams.length);
-    for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], Module.INVARIANT, false, null));
-    }
-    paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
-    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
-    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTypeId.create(si, retScope, PModule.MOD_ID_LANG, "int", false));
-    retDefBuilder.setType(retTypeBuilder.create());
-    evalStmtBuilder.setRetDef(retDefBuilder.create());
-    PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "_hash_" + this.tcon)));
-    List<PExpr> ies = new ArrayList<PExpr>();
-    ies.add(PExpr.create(callEvalBuilder.create()));
-    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
-    return evalStmtBuilder.create();
-  }
+
+    // if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
+    // Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
+    // PScope modScope = this.scope.theMod.scope;
+    // PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, modScope);
+    // PScope defScope = evalStmtBuilder.getDefScope();
+    // // PScope retScope = evalStmtBuilder.getRetScope();
+    // PScope bodyScope = evalStmtBuilder.getBodyScope();
+    // PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
+    // PScope retScope = retDefBuilder.getScope();
+    // evalStmtBuilder.setOfficial("_call_hash_" + this.tcon);
+    // evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    // PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
+    // String[] paramNames = PModule.generateIds("T", this.tparams.length);
+    // for (int i = 0; i < paramNames.length; i++) {
+      // paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], Module.INVARIANT, false, null));
+    // }
+    // paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
+    // evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
+    // PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+    // retTypeBuilder.addItem(PTypeId.create(si, retScope, PModule.MOD_ID_LANG, "int", false));
+    // retDefBuilder.setType(retTypeBuilder.create());
+    // evalStmtBuilder.setRetDef(retDefBuilder.create());
+    // PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
+    // callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
+    // callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "_hash_" + this.tcon)));
+    // List<PExpr> ies = new ArrayList<PExpr>();
+    // ies.add(PExpr.create(callEvalBuilder.create()));
+    // evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
+    // return evalStmtBuilder.create();
+  // }
 
 }

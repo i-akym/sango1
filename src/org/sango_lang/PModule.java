@@ -52,10 +52,12 @@ class PModule implements PDefDict {
   static final int ACC_OPTS_FOR_DATA = Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE;
   static final int ACC_OPTS_FOR_EXTEND = Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE;
   static final int ACC_OPTS_FOR_ALIAS = Module.ACC_PUBLIC + Module.ACC_PRIVATE;
+  static final int ACC_OPTS_FOR_FEATURE = Module.ACC_PUBLIC + Module.ACC_PRIVATE;
   static final int ACC_DEFAULT_FOR_EVAL = Module.ACC_PRIVATE;
   static final int ACC_DEFAULT_FOR_DATA = Module.ACC_PRIVATE;
   static final int ACC_DEFAULT_FOR_EXTEND = Module.ACC_PRIVATE;
   static final int ACC_DEFAULT_FOR_ALIAS = Module.ACC_PRIVATE;
+  static final int ACC_DEFAULT_FOR_FEATURE = Module.ACC_PRIVATE;
 
   static final String AVAILABILITY_WORD_GENERAL = "@general";
   static final String AVAILABILITY_WORD_ALPHA = "@alpha";
@@ -80,6 +82,7 @@ class PModule implements PDefDict {
   List<PDataStmt> dataStmtList;
   List<PExtendStmt> extendStmtList;
   List<PAliasTypeStmt> aliasTypeStmtList;
+  List<PFeatureStmt> featureStmtList;
   List<PEvalStmt> evalStmtList;
   List<Cstr> farModList;  // foreign module other than "sango.lang"
   Map<String, Integer> modDict;
@@ -99,6 +102,7 @@ class PModule implements PDefDict {
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
     this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
+    this.featureStmtList = new ArrayList<PFeatureStmt>();
     this.evalStmtList = new ArrayList<PEvalStmt>();
     this.farModList = new ArrayList<Cstr>();
     this.modDict = new HashMap<String, Integer>();
