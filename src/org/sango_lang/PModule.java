@@ -168,6 +168,7 @@ class PModule implements PDefDict {
     List<PDataStmt> dataStmtList;
     List<PExtendStmt> extendStmtList;
     List<PAliasTypeStmt> aliasTypeStmtList;
+    List<PFeatureStmt> featureStmtList;
     List<PEvalStmt> evalStmtList;
 
     static Builder newInstance(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
@@ -181,6 +182,7 @@ class PModule implements PDefDict {
       this.dataStmtList = new ArrayList<PDataStmt>();
       this.extendStmtList = new ArrayList<PExtendStmt>();
       this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
+      this.featureStmtList = new ArrayList<PFeatureStmt>();
       this.evalStmtList = new ArrayList<PEvalStmt>();
     }
 
@@ -231,6 +233,10 @@ class PModule implements PDefDict {
       this.aliasTypeStmtList.add(alias);
     }
 
+    void addFeatureStmt(PFeatureStmt feat) throws CompileException {
+      this.featureStmtList.add(feat);
+    }
+
     void addEvalStmt(PEvalStmt eval) throws CompileException {
       this.evalStmtList.add(eval);
     }
@@ -259,6 +265,9 @@ class PModule implements PDefDict {
       }
       for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
         this.mod.addAliasStmt(this.aliasTypeStmtList.get(i));
+      }
+      for (int i = 0; i < this.featureStmtList.size(); i++) {
+        this.mod.addFeatureStmt(this.featureStmtList.get(i));
       }
       for (int i = 0; i < this.evalStmtList.size(); i++) {
         this.mod.addEvalStmt(this.evalStmtList.get(i));
@@ -384,6 +393,7 @@ class PModule implements PDefDict {
     PDataStmt dat;
     PExtendStmt ext;
     PAliasTypeStmt alias;
+    PFeatureStmt feat;
     PEvalStmt eval;
     while (!t.isEOF()) {
       if ((imp = PImportStmt.accept(reader, builder.getScope())) != null) {
@@ -394,6 +404,8 @@ class PModule implements PDefDict {
         builder.addExtendStmt(ext);
       } else if ((alias = PAliasTypeStmt.accept(reader, builder.getScope())) != null) {
         builder.addAliasStmt(alias);
+      } else if ((feat = PFeatureStmt.accept(reader, builder.getScope())) != null) {
+        builder.addFeatureStmt(feat);
       } else if ((eval = PEvalStmt.accept(reader, builder.getScope())) != null) {
         builder.addEvalStmt(eval);
       } else {
@@ -697,9 +709,16 @@ class PModule implements PDefDict {
     // /* DEBUG */ System.out.println(alias);
   }
 
+  void addFeatureStmt(PFeatureStmt feat) throws CompileException {
+    StringBuffer emsg;
+    feat.collectModRefs();
+// HERE
+    // /* DEBUG */ System.out.print("feature stmt added: ");
+    // /* DEBUG */ System.out.println(feature);
+  }
+
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
-    // eval.setupScope(this.scope);
     eval.collectModRefs();
     String official = eval.official;
     String[] aliases = eval.aliases;
