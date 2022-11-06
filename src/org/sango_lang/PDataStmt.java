@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 class PDataStmt extends PDefaultProgObj implements PDataDef {
-  int availability;
+  Module.Availability availability;
   PType sig;  // null means variable params
   String tcon;
   // PFeature.Id feature;
@@ -42,6 +42,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   PDataStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
   }
 
   public String toString() {
@@ -90,17 +91,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     PScope getDefScope() { return this.dat.scope; }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.dat.availability = availability;
     }
 
     void setSig(PType sig) {
       this.dat.sig = sig;
     }
-
-    // void setFeature(PFeature.Id feature) {
-      // this.dat.feature = feature;
-    // }
 
     void setFeatureFor(PTypeId featureFor) {
       this.featureVar = featureFor;
@@ -405,7 +402,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     return (this.sig != null)? this.sig.getSkel(): null;
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 
 public class MFunDef implements Module.Elem {
   String name;
-  int availability;
+  Module.Availability availability;
   int acc;
   String[] aliases;
   MType[] paramTypes;
@@ -49,6 +49,7 @@ public class MFunDef implements Module.Elem {
 
     Builder() {
       this.funDef = new MFunDef();
+      this.funDef.availability = Module.AVAILABILITY_GENERAL;
       this.aliasList = new ArrayList<String>();
       this.paramTypeList = new ArrayList<MType>();
     }
@@ -57,7 +58,7 @@ public class MFunDef implements Module.Elem {
       this.funDef.name = name;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.funDef.availability = availability;
     }
 

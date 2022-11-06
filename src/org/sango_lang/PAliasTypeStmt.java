@@ -31,7 +31,7 @@ import java.util.Map;
 class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PType sig;
   String tcon;
-  int availability;
+  Module.Availability availability;
   int acc;
   PTypeVarDef[] tparams;
   PType body;  // is PTypeRef after circular def check
@@ -40,6 +40,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PAliasTypeStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
   }
 
   public String toString() {
@@ -73,7 +74,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       this.alias.sig = sig;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.alias.availability = availability;
     }
 
@@ -317,7 +318,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     return vs;
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

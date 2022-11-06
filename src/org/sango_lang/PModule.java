@@ -74,7 +74,7 @@ class PModule implements PDefDict {
   Parser.SrcInfo srcInfo;
   PScope scope;
   Parser.SrcInfo modDefSrcInfo;
-  int availability;
+  Module.Availability availability;
   Cstr definedName;  // maybe null
   Cstr name;
   String myId;
@@ -98,6 +98,7 @@ class PModule implements PDefDict {
     this.theCompiler = theCompiler;
     this.srcInfo = srcInfo;
     this.scope = PScope.create(this);  // hmmm, not elegant
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -188,7 +189,7 @@ class PModule implements PDefDict {
 
     PScope getScope() { return this.mod.scope; }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.mod.availability = availability;
     }
 
@@ -470,9 +471,9 @@ class PModule implements PDefDict {
     return a;
   }
 
-  static int acceptAvailability(ParserA.TokenReader reader) throws CompileException, IOException {
+  static Module.Availability acceptAvailability(ParserA.TokenReader reader) throws CompileException, IOException {
     ParserA.Token a = ParserA.acceptSpecialWord(reader, ParserA.SPACE_NEEDED);
-    int av;
+    Module.Availability av;
     if (a == null) {
       av = Module.AVAILABILITY_GENERAL;
     } else if (a.value.token.equals(AVAILABILITY_WORD_GENERAL)) {
@@ -501,8 +502,8 @@ class PModule implements PDefDict {
     return av;
   }
 
-  static int acceptXAvailabilityAttr(ParserB.Elem elem) throws CompileException {
-    int av;
+  static Module.Availability acceptXAvailabilityAttr(ParserB.Elem elem) throws CompileException {
+    Module.Availability av;
     String avail = elem.getAttrValue("availability");
     if (avail == null) {
       av = Module.AVAILABILITY_GENERAL;
@@ -979,7 +980,7 @@ class PModule implements PDefDict {
     this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.tcon, ti.props);
   }
 
-  public int getModAvailability() { return this.availability; }
+  public Module.Availability getModAvailability() { return this.availability; }
 
   public Cstr[] getForeignMods() {
     Cstr[] ms;
@@ -1501,7 +1502,7 @@ class PModule implements PDefDict {
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
-    public int getAvailability() { return this.referredDataDef.getAvailability(); }
+    public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
 
     public int getAcc() {
       int acc;

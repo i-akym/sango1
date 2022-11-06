@@ -165,11 +165,15 @@ public class Module {
   public static final int ACC_OPAQUE = 1 << 2;
   public static final int ACC_PRIVATE = 1 << 3;
 
-  public static final int AVAILABILITY_GENERAL = 0;
-  public static final int AVAILABILITY_ALPHA = 1;
-  public static final int AVAILABILITY_BETA = 2;
-  public static final int AVAILABILITY_LIMITED = 7;
-  public static final int AVAILABILITY_DEPRECATED = 9;
+  public static class Availability extends Option {
+    private static int nextSN = 0;
+    int nextSN() { return nextSN++; };
+  }
+  public static final Availability AVAILABILITY_GENERAL = new Availability();
+  public static final Availability AVAILABILITY_ALPHA = new Availability();
+  public static final Availability AVAILABILITY_BETA = new Availability();
+  public static final Availability AVAILABILITY_LIMITED = new Availability();
+  public static final Availability AVAILABILITY_DEPRECATED = new Availability();
 
   public static final int INVARIANT = 0;
   public static final int COVARIANT = 1;
@@ -179,7 +183,7 @@ public class Module {
   static final int MSLOT_INDEX_INITD = 1;
 
   Cstr name;
-  int availability;
+  Availability availability;
   int slotCount;
   ModTab modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
@@ -199,7 +203,7 @@ public class Module {
 
   private Module() {}
 
-  public int getAvailability() { return this.availability; }
+  public Availability getAvailability() { return this.availability; }
 
   public int getSlotCount() { return this.slotCount; }
 
@@ -301,7 +305,7 @@ public class Module {
       }
     }
 
-    int av = AVAILABILITY_GENERAL;
+    Availability av = AVAILABILITY_GENERAL;
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
       av = parseAvailabilityAttr(aAvailability.getNodeValue());
@@ -407,7 +411,7 @@ public class Module {
     // /* DEBUG */ System.out.print("tcon = ");
     // /* DEBUG */ System.out.println(aTcon.getNodeValue());
 
-    int av = AVAILABILITY_GENERAL;  // default
+    Availability av = AVAILABILITY_GENERAL;  // default
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
       av = parseAvailabilityAttr(aAvailability.getNodeValue());
@@ -570,7 +574,7 @@ public class Module {
       throw new FormatException("Type constructor not found.");
     }
 
-    int av = AVAILABILITY_GENERAL;
+    Availability av = AVAILABILITY_GENERAL;
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
       av = parseAvailabilityAttr(aAvailability.getNodeValue());
@@ -649,7 +653,7 @@ public class Module {
     // /* DEBUG */ System.out.print("name = ");
     // /* DEBUG */ System.out.println(funName);
 
-    int av = AVAILABILITY_GENERAL;
+    Availability av = AVAILABILITY_GENERAL;
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
       av = parseAvailabilityAttr(aAvailability.getNodeValue());
@@ -1407,7 +1411,7 @@ public class Module {
       this.mod.name = name;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Availability availability) {
       this.mod.availability = availability;
     }
 
@@ -1438,7 +1442,7 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
-    void startDataDefSpecial(String tcon, int availability, int acc) {
+    void startDataDefSpecial(String tcon, Availability availability, int acc) {
       // for tuple, fun
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.setTcon(tcon);
@@ -1448,11 +1452,11 @@ public class Module {
       this.dataDefBuilder.setBaseTcon(null);
     }
 
-    void startDataDef(String tcon, int availability, int acc) {
+    void startDataDef(String tcon, Availability availability, int acc) {
       this.startDataDef(tcon, availability, acc, 0, null);
     }
 
-    void startDataDef(String tcon, int availability, int acc, int baseModIndex, String baseTcon) {
+    void startDataDef(String tcon, Availability availability, int acc, int baseModIndex, String baseTcon) {
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.prepareForParams();
       this.dataDefBuilder.setTcon(tcon);
@@ -1502,7 +1506,7 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
-    void startAliasTypeDef(String tcon, int availability, int acc, int paramCount) {
+    void startAliasTypeDef(String tcon, Availability availability, int acc, int paramCount) {
       this.currentAliasTypeDef = MAliasTypeDef.create(tcon, availability, acc, paramCount);
     }
 
@@ -1769,32 +1773,26 @@ public class Module {
     return r;
   }
 
-  static String reprOfAvailability(int availability) {
+  static String reprOfAvailability(Availability availability) {
     String r;
-    switch (availability) {
-    case AVAILABILITY_GENERAL:
+    if (availability == AVAILABILITY_GENERAL) {
       r = REPR_GENERAL;
-      break;
-    case AVAILABILITY_ALPHA:
+    } else if (availability == AVAILABILITY_ALPHA) {
       r = REPR_ALPHA;
-      break;
-    case AVAILABILITY_BETA:
+    } else if (availability == AVAILABILITY_BETA) {
       r = REPR_BETA;
-      break;
-    case AVAILABILITY_LIMITED:
+    } else if (availability == AVAILABILITY_LIMITED) {
       r = REPR_LIMITED;
-      break;
-    case AVAILABILITY_DEPRECATED:
+    } else if (availability == AVAILABILITY_DEPRECATED) {
       r = REPR_DEPRECATED;
-      break;
-    default:
+    } else {
       throw new IllegalArgumentException();
     }
     return r;
   }
 
-  static int parseAvailabilityAttr(String s) {
-    int av;
+  static Availability parseAvailabilityAttr(String s) {
+    Availability av;
     if (s.equals(REPR_GENERAL)) {
       av = AVAILABILITY_GENERAL;
     } else if (s.equals(REPR_ALPHA)) {

@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PEvalStmt extends PDefaultProgObj implements PFunDef {
-  int availability;  // Module.AVAILABILITY_xxx
+  Module.Availability availability;
   PExprVarDef[] params;
   String official;
   String[] aliases;
@@ -40,6 +40,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   private PEvalStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.defineFun(this);
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
   }
 
   public String toString() {
@@ -70,7 +71,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
   static class Builder {
     PEvalStmt eval;
-    // PScope retScope;
     PScope bodyScope;
     List<PExprVarDef> paramList;
     List<String> aliasList;
@@ -81,7 +81,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.eval = new PEvalStmt(srcInfo, outerScope);
-      // this.retScope = this.eval.scope.enterInner();
       this.bodyScope = this.eval.scope.enterInner();
       this.paramList = new ArrayList<PExprVarDef>();
       this.aliasList = new ArrayList<String>();
@@ -89,11 +88,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
     PScope getDefScope() { return this.eval.scope; }
 
-    // PScope getRetScope() { return this.retScope; }
-
     PScope getBodyScope() { return this.bodyScope; }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.eval.availability = availability;
     }
 
@@ -146,7 +143,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
     PScope defScope = builder.getDefScope();
-    // PScope retScope = builder.getRetScope();
     PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader, defScope));
@@ -447,7 +443,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return this.official;
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
   public PTypeSkel[] getParamTypes() {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];

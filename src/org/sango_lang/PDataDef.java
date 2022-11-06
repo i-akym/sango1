@@ -33,7 +33,7 @@ public interface PDataDef {
 
   PTypeSkel getTypeSig();
 
-  int getAvailability();  // Module.AVAILABILITY_xxx
+  Module.Availability getAvailability();
 
   int getAcc();
 

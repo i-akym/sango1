@@ -33,7 +33,7 @@ import java.util.Set;
 
 class PCompiledModule implements PDefDict {
   PDefDict.DefDictGetter defDictGetter;
-  int availability;
+  Module.Availability availability;
   Cstr name;
   Cstr[] foreignMods;
   Map<PDefDict.TconKey, PDefDict.TconProps> foreignTconDict;
@@ -211,7 +211,7 @@ class PCompiledModule implements PDefDict {
     p.acc |= acc;
   }
 
-  public int getModAvailability() { return this.availability; }
+  public Module.Availability getModAvailability() { return this.availability; }
 
   public Cstr[] getForeignMods() {
     return this.foreignMods;
@@ -266,7 +266,7 @@ class PCompiledModule implements PDefDict {
   }
 
   class DataDef implements PDataDef {
-    int availability;
+    Module.Availability availability;
     PTypeSkel sig;  // lazy setup
     String sigTcon;
     PTypeVarSkel[] sigParams;
@@ -297,7 +297,7 @@ class PCompiledModule implements PDefDict {
       return this.sig;
     }
 
-    public int getAvailability() { return this.availability; }
+    public Module.Availability getAvailability() { return this.availability; }
 
     public int getAcc() { return this.acc; }
 
@@ -343,7 +343,7 @@ class PCompiledModule implements PDefDict {
 
   static class AliasTypeDef implements PAliasTypeDef {
     PDefDict.TconInfo tconInfo;
-    int availability;
+    Module.Availability availability;
     int acc;
     PTypeVarSkel[] tparams;
     PTypeRefSkel body;
@@ -358,7 +358,7 @@ class PCompiledModule implements PDefDict {
       return vs;
     }
 
-    public int getAvailability() { return this.availability; }
+    public Module.Availability getAvailability() { return this.availability; }
 
     public int getAcc() { return this.acc; }
 
@@ -450,7 +450,7 @@ class PCompiledModule implements PDefDict {
   static class FunDef implements PFunDef {
     Cstr modName;
     String name;
-    int availability;
+    Module.Availability availability;
     PTypeSkel[] paramTypes;
     PTypeSkel retType;
 
@@ -458,7 +458,7 @@ class PCompiledModule implements PDefDict {
 
     public String getOfficialName() { return this.name; }
 
-    public int getAvailability() { return this.availability; }
+    public Module.Availability getAvailability() { return this.availability; }
 
     public PTypeSkel[] getParamTypes() { return this.paramTypes; }
 

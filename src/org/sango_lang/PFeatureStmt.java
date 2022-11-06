@@ -29,7 +29,7 @@ import java.util.List;
 
 class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   PFeature sig;
-  int availability;
+  Module.Availability availability;
   int acc;
   PType obj;  // PTypeVarDef or PTypeVarRef
   PTypeRef impl;
@@ -37,6 +37,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   PFeatureStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
   }
 
   public String toString() {
@@ -68,7 +69,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
     PScope getDefScope() { return this.feature.scope; }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.feature.availability = availability;
     }
 
@@ -207,7 +208,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     return this;
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 
