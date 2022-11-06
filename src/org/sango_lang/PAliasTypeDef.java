@@ -31,7 +31,7 @@ public interface PAliasTypeDef {
 
   PTypeVarSlot[] getParamVarSlots();
   
-  int getAvailability();
+  Module.Availability getAvailability();
 
   int getAcc();
 

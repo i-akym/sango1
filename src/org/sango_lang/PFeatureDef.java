@@ -27,7 +27,7 @@ public interface PFeatureDef {
 
   int getParamCount();
 
-  int getAvailability();  // Module.AVAILABILITY_xxx
+  Module.Availability getAvailability();
 
   int getAcc();
 

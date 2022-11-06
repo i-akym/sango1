@@ -235,6 +235,7 @@ class Generator {
   void generateFunDef(PEvalStmt eval) {
     MFunDef.Builder b = MFunDef.Builder.newInstance();
     b.setName(eval.official);
+/* DEBUG */ if (eval.availability == null) { throw new RuntimeException("Null availability. " + eval.official); }
     b.setAvailability(eval.availability);
     b.setAcc(eval.acc);
     for (int i = 0; i < eval.aliases.length; i++) {

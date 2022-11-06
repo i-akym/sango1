@@ -29,7 +29,7 @@ interface PFunDef {
 
   String getOfficialName();
 
-  int getAvailability();
+  Module.Availability getAvailability();
 
   PTypeSkel[] getParamTypes();
 

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface PDefDict {
-  int getModAvailability();
+  Module.Availability getModAvailability();
 
   Cstr[] getForeignMods();
 

@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 
 public class MDataDef implements Module.Elem {
   String tcon;
-  int availability;
+  Module.Availability availability;
   int acc;
   MTypeVar[] params;
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
@@ -50,6 +50,7 @@ public class MDataDef implements Module.Elem {
 
     Builder() {
       this.dataDef = new MDataDef();
+      this.dataDef.availability = Module.AVAILABILITY_GENERAL;
       this.constrList = new ArrayList<MConstrDef>();
     }
 
@@ -61,7 +62,7 @@ public class MDataDef implements Module.Elem {
       this.dataDef.tcon = tcon;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.dataDef.availability = availability;
     }
 

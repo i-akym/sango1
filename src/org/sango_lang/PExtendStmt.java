@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PExtendStmt extends PDefaultProgObj implements PDataDef {
-  int availability;
+  Module.Availability availability;
   String baseMod;
   String baseTcon;
   String tcon;
@@ -41,6 +41,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   PExtendStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
   }
 
   public String toString() {
@@ -89,7 +90,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.rename = rename;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.ext.availability = availability;
     }
 
@@ -340,7 +341,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     return (PTypeRefSkel)this.sig.getSkel();
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
   public int getAcc() { return this.acc; }
 

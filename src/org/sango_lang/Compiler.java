@@ -43,9 +43,15 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict {
-  static final int ACTION_IGNORE = 0;
-  static final int ACTION_WARN = 1;
-  static final int ACTION_ERROR = 2;
+  static class Action extends Option {
+    private static int nextSN = 0;
+    int severity;
+    Action(int severity) { super(); this.severity = severity; }
+    int nextSN() { return nextSN++; };
+  }
+  static final Action ACTION_IGNORE = new Action(0);
+  static final Action ACTION_WARN = new Action(1);
+  static final Action ACTION_ERROR = new Action(2);
 
   PrintStream msgOut;
   List<String> srcList;
@@ -66,11 +72,11 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
   File modOutPath;
   boolean verboseModule;
   boolean compileError;
-  int onAvGeneral;
-  int onAvAlpha;
-  int onAvBeta;
-  int onAvLimited;
-  int onAvDeprecated;
+  Action onAvGeneral;
+  Action onAvAlpha;
+  Action onAvBeta;
+  Action onAvLimited;
+  Action onAvDeprecated;
 
   public static void main(String[] args) {
     LauncherControl lc = new LauncherControl();
@@ -342,7 +348,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     processActionOptWithParams(lc, c, optParam, ACTION_ERROR);
   }
 
-  static void processActionOptWithParams(LauncherControl lc, Compiler c, String optParam, int action) {
+  static void processActionOptWithParams(LauncherControl lc, Compiler c, String optParam, Action action) {
     String[] ps = optParam.split("\\+");
     for (int i = 0; i < ps.length; i++) {
       if (ps[i] != null) {
@@ -351,7 +357,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     }
   }
 
-  static void processActionOpt(LauncherControl lc, Compiler c, String param, int action) {
+  static void processActionOpt(LauncherControl lc, Compiler c, String param, Action action) {
     if (param.equals("av-all")) {
       c.onAvGeneral = action;
       c.onAvAlpha = action;
@@ -679,21 +685,23 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     }
   }
 
-  void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
+  void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, Module.Availability featureAv)
       throws CompileException {
+/* DEBUG */ if (featureAv == null) { throw new IllegalArgumentException( "Null availability. " + referrerModName.repr() + " " + referredModName.repr()); }
     PDefDict dd = this.defDictDict.get(referredModName);
     if (dd != null) {  // should be not null...
-      int ma = dd.getModAvailability();
-      switch (this.decideAvailabilityAction(ma, featureAv)) {
-      case ACTION_IGNORE: break;
-      case ACTION_WARN:
+      Module.Availability ma = dd.getModAvailability();
+/* DEBUG */ if (ma == null) { throw new IllegalArgumentException( "Null availability. " + referredModName.repr()); }
+      Action a = this.decideAvailabilityAction(ma, featureAv);
+      if (a == ACTION_IGNORE) {
+        ;
+      } else if (a == ACTION_WARN) {
         this.msgOut.print("Warning: ");
         this.msgOut.println(funAvailabilityMsg(
             referrerModName,
             referredModName, ma,
             id, featureAv));
-        break;
-      case ACTION_ERROR:
+      } else if (a == ACTION_ERROR) {
         this.msgOut.print("Error: ");
         this.msgOut.println(funAvailabilityMsg(
             referrerModName,
@@ -705,7 +713,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     }
   }
 
-  static String funAvailabilityMsg(Cstr referrerModName, Cstr referredModName, int modAv, String id, int featureAv) {
+  static String funAvailabilityMsg(Cstr referrerModName, Cstr referredModName, Module.Availability modAv, String id, Module.Availability featureAv) {
     String ma = (modAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(modAv) + "]";
     String fa = (featureAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(featureAv) + "]";
     return
@@ -714,21 +722,21 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
       + " in " + referredModName.repr() + ma + ".";
   }
 
-  void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, int featureAv)
+  void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, Module.Availability featureAv)
       throws CompileException {
     PDefDict dd = this.defDictDict.get(referredModName);
     if (dd != null) {  // should be not null...
-      int ma = dd.getModAvailability();
-      switch (this.decideAvailabilityAction(ma, featureAv)) {
-      case ACTION_IGNORE: break;
-      case ACTION_WARN:
+      Module.Availability ma = dd.getModAvailability();
+      Action a = this.decideAvailabilityAction(ma, featureAv);
+      if (a == ACTION_IGNORE) {
+        ;
+      } else if (a == ACTION_WARN) {
         this.msgOut.print("Warning: ");
         this.msgOut.println(typeAvailabilityMsg(
             referrerModName,
             referredModName, ma,
             id, featureAv));
-        break;
-      case ACTION_ERROR:
+      } else if (a == ACTION_ERROR) {
         this.msgOut.print("Error: ");
         this.msgOut.println(typeAvailabilityMsg(
             referrerModName,
@@ -740,7 +748,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     }
   }
 
-  static String typeAvailabilityMsg(Cstr referrerModName, Cstr referredModName, int modAv, String id, int featureAv) {
+  static String typeAvailabilityMsg(Cstr referrerModName, Cstr referredModName, Module.Availability modAv, String id, Module.Availability featureAv) {
     String ma = (modAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(modAv) + "]";
     String fa = (featureAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(featureAv) + "]";
     return
@@ -749,34 +757,46 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
       + " in " + referredModName.repr() + ma + ".";
   }
 
-  int decideAvailabilityAction(int modAv, int featureAv) {
-    int ma = this.availabilityAction(modAv);
-    int fa = this.availabilityAction(featureAv);
-    return (ma > fa)? ma: fa;
+  Action decideAvailabilityAction(Module.Availability modAv, Module.Availability featureAv) {
+    if (modAv == null) { throw new IllegalArgumentException("Null module availability."); }
+    if (featureAv == null) { throw new IllegalArgumentException("Null feature availability."); }
+    Action ma = this.availabilityAction(modAv);
+    Action fa = this.availabilityAction(featureAv);
+    return (ma.severity > fa.severity)? ma: fa;
   }
 
-  int availabilityAction(int availability) {
-    int a;
-    switch (availability) {
-    case Module.AVAILABILITY_GENERAL: a = this.onAvGeneral; break;
-    case Module.AVAILABILITY_ALPHA: a = this.onAvAlpha; break;
-    case Module.AVAILABILITY_BETA: a = this.onAvBeta; break;
-    case Module.AVAILABILITY_LIMITED: a = this.onAvLimited; break;
-    case Module.AVAILABILITY_DEPRECATED: a = this.onAvDeprecated; break;
-    default: throw new IllegalArgumentException("Invalid availability.");
+  Action availabilityAction(Module.Availability availability) {
+    Action a;
+    if (availability == Module.AVAILABILITY_GENERAL) {
+      a = this.onAvGeneral;
+    } else if (availability == Module.AVAILABILITY_ALPHA) {
+      a = this.onAvAlpha;
+    } else if (availability == Module.AVAILABILITY_BETA) {
+      a = this.onAvBeta;
+    } else if (availability == Module.AVAILABILITY_LIMITED) {
+      a = this.onAvLimited;
+    } else if (availability == Module.AVAILABILITY_DEPRECATED) {
+      a = this.onAvDeprecated;
+    } else {
+      throw new IllegalArgumentException("Invalid availability. " + availability);
     }
     return a;
   }
 
-  static String availabilityRepr(int availability) {
+  static String availabilityRepr(Module.Availability availability) {
     String s;
-    switch (availability) {
-    case Module.AVAILABILITY_GENERAL: s = "General"; break;
-    case Module.AVAILABILITY_ALPHA: s = "Alpha"; break;
-    case Module.AVAILABILITY_BETA: s = "Beta"; break;
-    case Module.AVAILABILITY_LIMITED: s = "Limited"; break;
-    case Module.AVAILABILITY_DEPRECATED: s = "Deprecated"; break;
-    default: throw new IllegalArgumentException("Invalid availability.");
+    if (availability == Module.AVAILABILITY_GENERAL) {
+      s = "General";
+    } else if (availability == Module.AVAILABILITY_ALPHA) {
+      s = "Alpha";
+    } else if (availability == Module.AVAILABILITY_BETA) {
+      s = "Beta";
+    } else if (availability == Module.AVAILABILITY_LIMITED) {
+      s = "Limited";
+    } else if (availability == Module.AVAILABILITY_DEPRECATED) {
+      s = "Deprecated";
+    } else {
+      throw new IllegalArgumentException("Invalid availability.");
     }
     return s;
   }
