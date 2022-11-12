@@ -28,10 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
-  PFeature sig;
   Module.Availability availability;
   int acc;
-  PType obj;  // PTypeVarDef or PTypeVarRef
+  PTypeVarDef obj;
+  PFeature sig;
   PTypeRef impl;
 
   PFeatureStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -44,12 +44,12 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     StringBuffer buf = new StringBuffer();
     buf.append("feature[src=");
     buf.append(this.srcInfo);
-    buf.append(",sig=");
-    buf.append(this.sig);
     buf.append(",acc=");
     buf.append(this.acc);
     buf.append(",obj=");
     buf.append(this.obj);
+    buf.append(",sig=");
+    buf.append(this.sig);
     buf.append(",impl=");
     buf.append(this.impl);
     buf.append("]");
@@ -73,16 +73,16 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.feature.availability = availability;
     }
 
-    void setSig(PFeature sig) {
-      this.feature.sig = sig;
-    }
-
     void setAcc(int acc) {
       this.feature.acc = acc;
     }
 
-    void setObjType(PType t) {
+    void setObjType(PTypeVarDef t) {
       this.feature.obj = t;
+    }
+
+    void setSig(PFeature sig) {
+      this.feature.sig = sig;
     }
 
     void setImplType(PTypeRef tr) {
@@ -103,6 +103,31 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
     PScope defScope = builder.getDefScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
+
+    PTypeVarDef objType;
+    if ((t = ParserA.acceptToken(reader, LToken.LT, ParserA.SPACE_NEEDED)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Object type missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if ((objType = PTypeVarDef.acceptSimple(reader, defScope)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Invalid object type at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if ((t = ParserA.acceptToken(reader, LToken.GT, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Systax error at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    builder.setObjType(objType);
+
     PFeature sig;
     if ((sig = PFeature.acceptSig(reader, defScope)) == null) {
       emsg = new StringBuffer();
@@ -122,17 +147,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-
-    PType objType;
-    if ((objType = PType.accept(reader, defScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Object type missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    // HERE: obj type check
-    builder.setObjType(objType);
 
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
