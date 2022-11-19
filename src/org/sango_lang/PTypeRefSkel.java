@@ -485,10 +485,13 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   static PDefDict.TconInfo resolveTcon(PDefDict.TconKey key, PDefDict.DefDictGetter defDictGetter) throws CompileException {
+    Option.Set<Module.Access> as = (new Option.Set<Module.Access>())
+      .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
+      .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
     return defDictGetter.getReferredDefDict(key.modName).resolveTcon(
       key.tcon,
       PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
-      Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
+      as);
   }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {

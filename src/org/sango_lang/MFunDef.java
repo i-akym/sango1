@@ -31,7 +31,7 @@ import org.w3c.dom.Element;
 public class MFunDef implements Module.Elem {
   String name;
   Module.Availability availability;
-  int acc;
+  Module.Access acc;
   String[] aliases;
   MType[] paramTypes;
   MType retType;
@@ -62,7 +62,7 @@ public class MFunDef implements Module.Elem {
       this.funDef.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.funDef.acc = acc;
     }
 

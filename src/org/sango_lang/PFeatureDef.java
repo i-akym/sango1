@@ -29,6 +29,6 @@ public interface PFeatureDef {
 
   Module.Availability getAvailability();
 
-  int getAcc();
+  Module.Access getAcc();
 
 }

@@ -450,7 +450,7 @@ public class SNImodule {
     PTypeSkel sig;  // lazy setup
     String sigTcon;
     PTypeVarSkel[] sigParams;
-    int acc;
+    Module.Access acc;
     List<String> constrList;
     Map<String, PDataDef.Constr> constrDict;
     PDefDict.TconKey baseTconKey;
@@ -490,7 +490,7 @@ public class SNImodule {
 
     public Module.Availability getAvailability() { return this.availability; }
 
-    public int getAcc() { return this.acc; }
+    public Module.Access getAcc() { return this.acc; }
 
     public int getConstrCount() { return this.constrDict.size(); }
 

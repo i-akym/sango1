@@ -160,10 +160,18 @@ public class Module {
   static final String REPR_COVARIANT = "co";  // CAUTION: symbol differs from constant name
   static final String REPR_CONTRAVARIANT = "cx";  // CAUTION: symbol differs from constant name
 
-  public static final int ACC_PUBLIC = 1 << 0;
-  public static final int ACC_PROTECTED = 1 << 1;
-  public static final int ACC_OPAQUE = 1 << 2;
-  public static final int ACC_PRIVATE = 1 << 3;
+  public static class Access extends Option {
+    private static int nextSN = 0;
+    String repr;
+    int openness;
+    Access(String repr, int openness) { super(); this.repr = repr; this.openness = openness; }
+    int nextSN() { return nextSN++; };
+    public String toString() { return this.repr + ":" + this.sn; }
+  }
+  public static final Access ACC_PUBLIC = new Access("public", 3);
+  public static final Access ACC_PROTECTED = new Access("protected", 2);
+  public static final Access ACC_OPAQUE = new Access("opaque", 1);
+  public static final Access ACC_PRIVATE = new Access("private", 0);
 
   public static class Availability extends Option {
     private static int nextSN = 0;
@@ -419,7 +427,7 @@ public class Module {
     // /* DEBUG */ System.out.print("availability = ");
     // /* DEBUG */ System.out.println(av);
 
-    int acc = ACC_PRIVATE;  // default
+    Access acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
       String sAcc = aAcc.getNodeValue();
@@ -589,7 +597,7 @@ public class Module {
       throw new FormatException("Invalid '" + ATTR_PARAM_COUNT + "' attribute: " + paramCount);
     }
 
-    int acc = ACC_PRIVATE;  // default
+    Access acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
       String sAcc = aAcc.getNodeValue();
@@ -661,7 +669,7 @@ public class Module {
     // /* DEBUG */ System.out.print("avilability = ");
     // /* DEBUG */ System.out.println(av);
 
-    int acc = ACC_PRIVATE;  // default
+    Access acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
     if (aAcc != null) {
       String sAcc = aAcc.getNodeValue();
@@ -1442,7 +1450,7 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
-    void startDataDefSpecial(String tcon, Availability availability, int acc) {
+    void startDataDefSpecial(String tcon, Availability availability, Access acc) {
       // for tuple, fun
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.setTcon(tcon);
@@ -1452,11 +1460,11 @@ public class Module {
       this.dataDefBuilder.setBaseTcon(null);
     }
 
-    void startDataDef(String tcon, Availability availability, int acc) {
+    void startDataDef(String tcon, Availability availability, Access acc) {
       this.startDataDef(tcon, availability, acc, 0, null);
     }
 
-    void startDataDef(String tcon, Availability availability, int acc, int baseModIndex, String baseTcon) {
+    void startDataDef(String tcon, Availability availability, Access acc, int baseModIndex, String baseTcon) {
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.prepareForParams();
       this.dataDefBuilder.setTcon(tcon);
@@ -1506,7 +1514,7 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
-    void startAliasTypeDef(String tcon, Availability availability, int acc, int paramCount) {
+    void startAliasTypeDef(String tcon, Availability availability, Access acc, int paramCount) {
       this.currentAliasTypeDef = MAliasTypeDef.create(tcon, availability, acc, paramCount);
     }
 
@@ -1752,22 +1760,17 @@ public class Module {
     }
   }
 
-  static String reprOfAcc(int acc) {
+  static String reprOfAcc(Access acc) {  // repr in xml
     String r;
-    switch (acc) {
-    case ACC_PUBLIC:
+    if (acc == ACC_PUBLIC) {
       r = REPR_PUBLIC;
-      break;
-    case ACC_PROTECTED:
+    } else if (acc == ACC_PROTECTED) {
       r = REPR_PROTECTED;
-      break;
-    case ACC_OPAQUE:
+    } else if (acc == ACC_OPAQUE) {
       r = REPR_OPAQUE;
-      break;
-    case ACC_PRIVATE:
+    } else if (acc == ACC_PRIVATE) {
       r = REPR_PRIVATE;
-      break;
-    default:
+    } else {
       throw new IllegalArgumentException();
     }
     return r;
@@ -1941,12 +1944,12 @@ public class Module {
     }
   }
 
-  public static boolean moreOpenAcc(int a0, int a1) {
-    return a0 < a1;
+  public static boolean moreOpenAcc(Access a0, Access a1) {
+    return a0.openness > a1.openness;
   }
 
-  public static boolean equalOrMoreOpenAcc(int a0, int a1) {
-    return a0 <= a1;
+  public static boolean equalOrMoreOpenAcc(Access a0, Access a1) {
+    return a0.openness >= a1.openness;
   }
 
   public void checkDefsCompat(Map<Cstr, Module> modDict) throws FormatException {

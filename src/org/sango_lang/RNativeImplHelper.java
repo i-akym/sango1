@@ -475,9 +475,10 @@ public class RNativeImplHelper {
       try {
         PDefDict d = this.getDefDictGetter().getReferredDefDict(modName);
         if (d == null) { return null; }
-        PDefDict.EidProps ep = d.resolveEid(
-          dcon, PExprId.CAT_DCON,
-          Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
+        Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+        as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
+          .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
+        PDefDict.EidProps ep = d.resolveEid(dcon, PExprId.CAT_DCON, as);
         if (ep == null) { return null; }
         dd = ep.defGetter.getDataDef();
       } catch (CompileException ex) {}
@@ -489,8 +490,10 @@ public class RNativeImplHelper {
       try {
         PDefDict d = this.getDefDictGetter().getReferredDefDict(modName);
         if (d == null) { return null; }
+        Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+        as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
         PDefDict.EidProps ep = d.resolveEid(
-          official, PExprId.CAT_FUN_OFFICIAL, Module.ACC_PUBLIC + Module.ACC_PRIVATE);
+          official, PExprId.CAT_FUN_OFFICIAL, as);
         if (ep == null) { return null; }
         PFunDef fd = ep.defGetter.getFunDef();
         PTypeSkel.InstanciationBindings ibs = PTypeSkel.InstanciationBindings.create(PTypeSkelBindings.create());

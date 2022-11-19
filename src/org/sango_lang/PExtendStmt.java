@@ -29,12 +29,12 @@ import java.util.List;
 
 class PExtendStmt extends PDefaultProgObj implements PDataDef {
   Module.Availability availability;
+  Module.Access acc;
   String baseMod;
   String baseTcon;
   String tcon;
   PTypeVarDef[] tparams;
   PType sig;
-  int acc;
   PDataConstrDef[] constrs;
   PDefDict.TconInfo baseTconInfo;
 
@@ -42,6 +42,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
     this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -94,7 +95,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.ext.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.ext.acc = acc;
     }
 
@@ -225,7 +226,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EXTEND, PModule.ACC_DEFAULT_FOR_EXTEND);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EXTEND, PModule.ACC_DEFAULT_FOR_EXTEND);
     builder.setAcc(acc);
 
     PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), defScope);
@@ -343,7 +344,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public Module.Availability getAvailability() { return this.availability; }
 
-  public int getAcc() { return this.acc; }
+  public Module.Access getAcc() { return this.acc; }
 
   public int getConstrCount() { return this.constrs.length; }
 

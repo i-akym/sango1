@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Map;
 
 class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
+  Module.Availability availability;
+  Module.Access acc;
   PType sig;
   String tcon;
-  Module.Availability availability;
-  int acc;
   PTypeVarDef[] tparams;
   PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
@@ -41,6 +41,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
     this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -78,7 +79,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       this.alias.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.alias.acc = acc;
     }
 
@@ -173,7 +174,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
     builder.setAcc(acc);
 
     PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), scope);
@@ -320,7 +321,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public Module.Availability getAvailability() { return this.availability; }
 
-  public int getAcc() { return this.acc; }
+  public Module.Access getAcc() { return this.acc; }
 
   public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.getSkel().collectTconInfo(list); }
 
