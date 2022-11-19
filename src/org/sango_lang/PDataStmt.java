@@ -31,11 +31,11 @@ import java.util.Set;
 
 class PDataStmt extends PDefaultProgObj implements PDataDef {
   Module.Availability availability;
+  Module.Access acc;
   PType sig;  // null means variable params
   String tcon;
   // PFeature.Id feature;
   Integer featureFor;
-  int acc;
   PTypeVarDef[] tparams;  // null means variable params
   PDataConstrDef[] constrs;  // null means native impl
 
@@ -43,6 +43,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
     this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -103,7 +104,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.featureVar = featureFor;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.dat.acc = acc;
     }
 
@@ -189,7 +190,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  static PDataStmt createForVariableParams(Parser.SrcInfo srcInfo, PScope scope, String tcon, int acc) {  // 'tuple', 'fun'
+  static PDataStmt createForVariableParams(Parser.SrcInfo srcInfo, PScope scope, String tcon, Module.Access acc) {  // 'tuple', 'fun'
     PDataStmt dat = new PDataStmt(srcInfo, scope);
     dat.tcon = tcon;
     dat.acc = acc;
@@ -231,7 +232,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         // }
       // }
     // }
-    int acc = PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
+    Module.Access acc = PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
     builder.setAcc(acc);
     if (ParserA.acceptToken(reader, LToken.COL_EQ, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -277,7 +278,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
     builder.setAcc(acc);
 
     PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), defScope);
@@ -404,7 +405,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   public Module.Availability getAvailability() { return this.availability; }
 
-  public int getAcc() { return this.acc; }
+  public Module.Access getAcc() { return this.acc; }
 
   public int getConstrCount() {
     return (this.constrs != null)? this.constrs.length: 0;

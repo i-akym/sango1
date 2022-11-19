@@ -47,6 +47,8 @@ abstract public class Option {
       this.options = new ArrayList<T>();
     }
 
+    public String toString() { return this.options.toString(); }
+
     public boolean contains(T o) {
       return o == ((o.sn < this.options.size())? this.options.get(o.sn): null);
     }
@@ -67,7 +69,7 @@ abstract public class Option {
       if (o.sn < s.options.size()) {
         s.options.set(o.sn, o);
       } else {
-        for (int i = s.options.size(); i < o.sn - 1; i++) {
+        for (int i = s.options.size(); i < o.sn; i++) {
           s.options.add(null);
         }
         s.options.add(o);

@@ -29,10 +29,10 @@ import java.util.List;
 
 class PEvalStmt extends PDefaultProgObj implements PFunDef {
   Module.Availability availability;
+  Module.Access acc;
   PExprVarDef[] params;
   String official;
   String[] aliases;
-  int acc;  // Module.ACC_xxx
   PScope bodyScope;
   PRetDef retDef;
   PExprList.Seq implExprs;  // null means native impl
@@ -41,6 +41,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     super(srcInfo, outerScope.enterInner());
     this.scope.defineFun(this);
     this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -116,7 +117,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       this.aliasList.addAll(aliasList);
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.eval.acc = acc;
     }
 
@@ -203,7 +204,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     builder.setOfficial(official);
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EVAL, PModule.ACC_DEFAULT_FOR_EVAL);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EVAL, PModule.ACC_DEFAULT_FOR_EVAL);
     builder.setAcc(acc);
 
     ParserB.Elem e = elem.getFirstChild();

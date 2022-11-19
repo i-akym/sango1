@@ -31,7 +31,7 @@ import org.w3c.dom.Element;
 public class MDataDef implements Module.Elem {
   String tcon;
   Module.Availability availability;
-  int acc;
+  Module.Access acc;
   MTypeVar[] params;
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
   String baseTcon;
@@ -66,7 +66,7 @@ public class MDataDef implements Module.Elem {
       this.dataDef.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.dataDef.acc = acc;
     }
 

@@ -29,7 +29,7 @@ import java.util.List;
 
 class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Availability availability;
-  int acc;
+  Module.Access acc;
   PTypeVarDef obj;
   PFeature sig;
   PTypeRef impl;
@@ -38,6 +38,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
     this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -73,7 +74,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.feature.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.feature.acc = acc;
     }
 
@@ -184,7 +185,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PScope defScope = builder.getDefScope();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EXTEND, PModule.ACC_DEFAULT_FOR_EXTEND);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EXTEND, PModule.ACC_DEFAULT_FOR_EXTEND);
     builder.setAcc(acc);
 
     PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), defScope);
@@ -224,7 +225,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public Module.Availability getAvailability() { return this.availability; }
 
-  public int getAcc() { return this.acc; }
+  public Module.Access getAcc() { return this.acc; }
 
   public int getParamCount() { return this.sig.params.length; }
 

@@ -205,10 +205,10 @@ class PCompiledModule implements PDefDict {
     }
   }
 
-  private void mergeFunToEidDict(String name, int cat, int acc) {
+  private void mergeFunToEidDict(String name, int cat, Module.Access acc) {
     PDefDict.EidProps p = this.eidDict.get(name);
     p.cat |= cat;
-    p.acc |= acc;
+    p.acc = Module.moreOpenAcc(acc, p.acc)? acc: p.acc;
   }
 
   public Module.Availability getModAvailability() { return this.availability; }
@@ -217,17 +217,21 @@ class PCompiledModule implements PDefDict {
     return this.foreignMods;
   }
 
-  public PDefDict.EidProps resolveEid(String id, int catOpts, int accOpts) {
+  public PDefDict.EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) {
     PDefDict.EidProps props = this.eidDict.get(id);
-    return (props != null && (props.cat & catOpts) > 0 && (props.acc & accOpts) > 0)? props: null;
+    return (props != null && (props.cat & catOpts) > 0 && accOpts.contains(props.acc))?
+     props: null;
   }
 
-  public PDefDict.TconInfo resolveTcon(String tcon, int subcatOpts, int accOpts) {
+  public PDefDict.TconInfo resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
     PDefDict.TconProps tp;
     // /* DEBUG */ System.out.print("compiled_module resolve tcon ");
     // /* DEBUG */ System.out.print(tcon);
     // /* DEBUG */ System.out.print(" -> ");
-    PDefDict.TconInfo ti = ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && (tp.acc & accOpts) > 0)?
+    PDefDict.TconInfo ti =
+      ((tp = this.tconDict.get(tcon)) != null
+        && (tp.subcat & subcatOpts) > 0
+        && accOpts.contains(tp.acc))?
       PDefDict.TconInfo.create(PDefDict.TconKey.create(this.name, tcon), tp): null;
     // /* DEBUG */ System.out.println(ti);
     return ti;
@@ -270,7 +274,7 @@ class PCompiledModule implements PDefDict {
     PTypeSkel sig;  // lazy setup
     String sigTcon;
     PTypeVarSkel[] sigParams;
-    int acc;
+    Module.Access acc;
     List<String> constrList;
     Map<String, ConstrDef> constrDict;
     PDefDict.TconKey baseTconKey;
@@ -299,7 +303,7 @@ class PCompiledModule implements PDefDict {
 
     public Module.Availability getAvailability() { return this.availability; }
 
-    public int getAcc() { return this.acc; }
+    public Module.Access getAcc() { return this.acc; }
 
     public int getConstrCount() { return this.constrDict.size(); }
 
@@ -344,7 +348,7 @@ class PCompiledModule implements PDefDict {
   static class AliasTypeDef implements PAliasTypeDef {
     PDefDict.TconInfo tconInfo;
     Module.Availability availability;
-    int acc;
+    Module.Access acc;
     PTypeVarSkel[] tparams;
     PTypeRefSkel body;
 
@@ -360,7 +364,7 @@ class PCompiledModule implements PDefDict {
 
     public Module.Availability getAvailability() { return this.availability; }
 
-    public int getAcc() { return this.acc; }
+    public Module.Access getAcc() { return this.acc; }
 
     public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.collectTconInfo(list); }
     // public PDefDict.TconInfo unaliasTconInfo() { return this.body.tconInfo; }

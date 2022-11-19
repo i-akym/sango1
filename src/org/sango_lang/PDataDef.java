@@ -29,13 +29,11 @@ public interface PDataDef {
 
   int getParamCount();  // -1 if variable count  // needed?
 
-  // PTypeVarSkel[] getParamVarSlots();  // null if variable count params
-
   PTypeSkel getTypeSig();
 
   Module.Availability getAvailability();
 
-  int getAcc();
+  Module.Access getAcc();
 
   int getConstrCount();  // 0 if native impl
 

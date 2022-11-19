@@ -33,9 +33,9 @@ public interface PDefDict {
 
   Cstr[] getForeignMods();
 
-  EidProps resolveEid(String id, int catOpts, int accOpts) throws CompileException;
+  EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
-  TconInfo resolveTcon(String tcon, int subcatOpts, int accOpts) throws CompileException;
+  TconInfo resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
   interface GlobalDefDict {
 
@@ -74,14 +74,14 @@ public interface PDefDict {
   static class EidProps {
     Cstr modName;
     int cat;
-    int acc;
+    Module.Access acc;
     ExprDefGetter defGetter;
 
-    static EidProps create(Cstr modName, int cat, int acc, ExprDefGetter getter) {
+    static EidProps create(Cstr modName, int cat, Module.Access acc, ExprDefGetter getter) {
       return new EidProps(modName, cat, acc, getter);
     }
 
-    EidProps(Cstr modName, int cat, int acc, ExprDefGetter getter) {
+    EidProps(Cstr modName, int cat, Module.Access acc, ExprDefGetter getter) {
       this.modName = modName;
       this.cat = cat;
       this.acc = acc;
@@ -189,14 +189,14 @@ public interface PDefDict {
   static class TconProps {
     int subcat;
     TparamProps[] paramProps;  // null means variable
-    int acc;
+    Module.Access acc;
     DataDefGetter defGetter;
 
-    public static TconProps create(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
+    public static TconProps create(int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
       return new TconProps(subcat, paramProps, acc, getter);
     }
 
-    TconProps(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
+    TconProps(int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
       this.subcat = subcat;
       this.paramProps = paramProps;
       this.acc = acc;
@@ -222,14 +222,14 @@ public interface PDefDict {
 
   static class FeatureProps {
     int paramCount;
-    int acc;
+    Module.Access acc;
     DataDefGetter defGetter;
 
-    public static FeatureProps create(int paramCount, int acc, DataDefGetter getter) {
+    public static FeatureProps create(int paramCount, Module.Access acc, DataDefGetter getter) {
       return new FeatureProps(paramCount, acc, getter);
     }
 
-    FeatureProps(int paramCount, int acc, DataDefGetter getter) {
+    FeatureProps(int paramCount, Module.Access acc, DataDefGetter getter) {
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;

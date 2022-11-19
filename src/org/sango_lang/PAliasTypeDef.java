@@ -33,7 +33,7 @@ public interface PAliasTypeDef {
   
   Module.Availability getAvailability();
 
-  int getAcc();
+  Module.Access getAcc();
 
   void collectUnaliasTconInfo(List<PDefDict.TconInfo> list);
 
