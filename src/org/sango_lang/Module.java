@@ -166,7 +166,7 @@ public class Module {
     int openness;
     Access(String repr, int openness) { super(); this.repr = repr; this.openness = openness; }
     int nextSN() { return nextSN++; };
-    public String toString() { return this.repr + ":" + this.sn; }
+    public String toString() { return this.repr; }
   }
   public static final Access ACC_PUBLIC = new Access("public", 3);
   public static final Access ACC_PROTECTED = new Access("protected", 2);
@@ -175,17 +175,27 @@ public class Module {
 
   public static class Availability extends Option {
     private static int nextSN = 0;
+    String repr;
+    Availability(String repr) { super(); this.repr = repr; }
     int nextSN() { return nextSN++; };
+    public String toString() { return this.repr; }
   }
-  public static final Availability AVAILABILITY_GENERAL = new Availability();
-  public static final Availability AVAILABILITY_ALPHA = new Availability();
-  public static final Availability AVAILABILITY_BETA = new Availability();
-  public static final Availability AVAILABILITY_LIMITED = new Availability();
-  public static final Availability AVAILABILITY_DEPRECATED = new Availability();
+  public static final Availability AVAILABILITY_GENERAL = new Availability("general");
+  public static final Availability AVAILABILITY_ALPHA = new Availability("alpha");
+  public static final Availability AVAILABILITY_BETA = new Availability("beta");
+  public static final Availability AVAILABILITY_LIMITED = new Availability("limited");
+  public static final Availability AVAILABILITY_DEPRECATED = new Availability("deprecated");
 
-  public static final int INVARIANT = 0;
-  public static final int COVARIANT = 1;
-  public static final int CONTRAVARIANT = 2;
+  public static class Variance extends Option {
+    private static int nextSN = 0;
+    String repr;
+    Variance(String repr) { super(); this.repr = repr; }
+    int nextSN() { return nextSN++; };
+    public String toString() { return this.repr; }
+  }
+  public static final Variance INVARIANT = new Variance("invariant");
+  public static final Variance COVARIANT = new Variance("covariant");
+  public static final Variance CONTRAVARIANT = new Variance("contravariant");
 
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;

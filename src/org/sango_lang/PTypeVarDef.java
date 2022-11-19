@@ -27,7 +27,7 @@ import java.io.IOException;
 
 class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
-  int variance;
+  Module.Variance variance;
   boolean requiresConcrete;
   PFeature.List features;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
@@ -38,7 +38,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     super(srcInfo, scope);
   }
 
-  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
+  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope, String name, Module.Variance variance, boolean requiresConcrete, PTypeRef constraint) {
     PTypeVarDef var = new PTypeVarDef(srcInfo, scope);
     var.name = name;
     var.variance = variance;
@@ -122,7 +122,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (varSym == null) { return null; }
-    int variance;
+    Module.Variance variance;
     if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
       variance = Module.COVARIANT;
     } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {

@@ -27,7 +27,7 @@ public class PTypeVarSlot {
   static int idValue = 0;
 
   int id;
-  int variance;
+  Module.Variance variance;
   boolean requiresConcrete;
 
   private PTypeVarSlot() {}
@@ -36,7 +36,7 @@ public class PTypeVarSlot {
     return createInternal(varDef.variance, varDef.requiresConcrete);
   }
 
-  public static PTypeVarSlot createInternal(int variance, boolean requiresConcrete) {
+  public static PTypeVarSlot createInternal(Module.Variance variance, boolean requiresConcrete) {
     PTypeVarSlot s = new PTypeVarSlot();
     s.id = idValue++;
     s.variance = variance;
@@ -46,15 +46,10 @@ public class PTypeVarSlot {
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
-    switch (this.variance) {
-    case Module.COVARIANT:
+    if (this.variance == Module.COVARIANT) {
       buf.append("+");
-      break;
-    case Module.CONTRAVARIANT:
+    } else if (this.variance == Module.CONTRAVARIANT) {
       buf.append("-");
-      break;
-    default:
-      break;
     }
     buf.append("$");
     buf.append(this.id);
@@ -66,15 +61,10 @@ public class PTypeVarSlot {
 
   String repr() {
     StringBuffer buf = new StringBuffer();
-    switch (this.variance) {
-    case Module.COVARIANT:
+    if (this.variance == Module.COVARIANT) {
       buf.append("+");
-      break;
-    case Module.CONTRAVARIANT:
+    } else if (this.variance == Module.CONTRAVARIANT) {
       buf.append("-");
-      break;
-    default:
-      break;
     }
     buf.append("$");
     buf.append(this.id);

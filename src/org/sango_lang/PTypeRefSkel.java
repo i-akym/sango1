@@ -58,7 +58,7 @@ public class PTypeRefSkel implements PTypeSkel {
     t.tconInfo = this.tconInfo;
     t.ext = this.ext;
     t.params = new PTypeSkel[this.params.length];
-    int vv[] = this.paramVariances();
+    Module.Variance[] vv = this.paramVariances();
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
         PTypeVarSlot s = PTypeVarSlot.createInternal(vv[i], var.varSlot.requiresConcrete);
@@ -145,8 +145,8 @@ public class PTypeRefSkel implements PTypeSkel {
     return this.tconInfo;
   }
 
-  int[] paramVariances() {
-    int[] vv = new int[this.params.length] ;
+  Module.Variance[] paramVariances() {
+    Module.Variance[] vv = new Module.Variance[this.params.length] ;
     if (isTuple(this)) {
       for (int i = 0; i < this.params.length; i++) {
         vv[i] = Module.COVARIANT;
@@ -166,7 +166,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return vv;
   }
 
-  static int[] paramWidths(int width, int[] variances) {
+  static int[] paramWidths(int width, Module.Variance[] variances) {
     int[] ww = new int[variances.length] ;
     if (width == PTypeSkel.EQUAL) {
       for (int i = 0; i < variances.length; i++) {

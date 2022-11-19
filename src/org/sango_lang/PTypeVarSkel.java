@@ -76,7 +76,7 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
-  public int getVariance() { return this.varSlot.variance; }
+  public Module.Variance getVariance() { return this.varSlot.variance; }
 
   public boolean isConcrete() { return this.varSlot.requiresConcrete; }
 
@@ -127,33 +127,36 @@ public class PTypeVarSkel implements PTypeSkel {
     boolean b;
     switch (width) {
     case PTypeSkel.EQUAL:
-      switch (this.varSlot.variance) {
-      case Module.INVARIANT:
-        b = true;
-        break;
-      default:
-        b = false;
-      }
+      b = this.varSlot.variance == Module.INVARIANT;
+      // switch (this.varSlot.variance) {
+      // case Module.INVARIANT:
+        // b = true;
+        // break;
+      // default:
+        // b = false;
+      // }
       break;
     case PTypeSkel.NARROWER:
-      switch (this.varSlot.variance) {
-      case Module.INVARIANT:
-      case Module.CONTRAVARIANT:
-        b = true;
-        break;
-      default:
-        b = false;
-      }
+      b = (this.varSlot.variance == Module.INVARIANT) || (this.varSlot.variance == Module.CONTRAVARIANT);
+      // switch (this.varSlot.variance) {
+      // case Module.INVARIANT:
+      // case Module.CONTRAVARIANT:
+        // b = true;
+        // break;
+      // default:
+        // b = false;
+      // }
       break;
     default:
-      switch (this.varSlot.variance) {
-      case Module.INVARIANT:
-      case Module.COVARIANT:
-        b = true;
-        break;
-      default:
-        b = false;
-      }
+      b = (this.varSlot.variance == Module.INVARIANT) || (this.varSlot.variance == Module.COVARIANT);
+      // switch (this.varSlot.variance) {
+      // case Module.INVARIANT:
+      // case Module.COVARIANT:
+        // b = true;
+        // break;
+      // default:
+        // b = false;
+      // }
       break;
     }
     if (!b) {
@@ -841,15 +844,10 @@ if (PTypeGraph.DEBUG > 1) {
       r.add("=");
     }
     StringBuffer buf = new StringBuffer();
-    switch (this.varSlot.variance) {
-    case Module.COVARIANT:
+    if (this.varSlot.variance == Module.COVARIANT) {
       buf.append("+");
-      break;
-    case Module.CONTRAVARIANT:
+    } else if(this.varSlot.variance == Module.CONTRAVARIANT) {
       buf.append("-");
-      break;
-    default:
-      break;
     }
     buf.append(name);
     if (this.varSlot.requiresConcrete) {

@@ -315,7 +315,7 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
-  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
+  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, Module.Variance variance) {
     PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null);
     return v;
   }
