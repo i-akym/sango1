@@ -251,14 +251,14 @@ public interface PDefDict {
   }
 
   static class TparamProps {
-    int variance;
+    Module.Variance variance;
     boolean concrete;
 
-    public static TparamProps create(int variance, boolean concrete) {
+    public static TparamProps create(Module.Variance variance, boolean concrete) {
       return new TparamProps(variance, concrete);
     }
 
-    private TparamProps(int variance, boolean concrete) {
+    private TparamProps(Module.Variance variance, boolean concrete) {
       this.variance = variance;
       this.concrete = concrete;
     }

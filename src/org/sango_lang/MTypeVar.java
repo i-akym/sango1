@@ -30,14 +30,14 @@ import org.w3c.dom.Node;
 
 class MTypeVar implements MType {
   int slot;
-  int variance;
+  Module.Variance variance;
   boolean requiresConcrete;
   MFeature.List features;
   MType constraint;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, int variance, boolean requiresConcrete, MType constraint) {
+  static MTypeVar create(int slot, Module.Variance variance, boolean requiresConcrete, MType constraint) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
     t.variance = variance;
@@ -53,13 +53,10 @@ class MTypeVar implements MType {
       buf.append(this.constraint.toString());  // HERE: do not embrace by < >
       buf.append(" = ");
     }
-    switch (this.variance) {
-    case Module.COVARIANT:
+    if (this.variance == Module.COVARIANT) {
       buf.append("+");
-      break;
-    case Module.CONTRAVARIANT:
+    } else if (this.variance == Module.CONTRAVARIANT) {
       buf.append("-");
-      break;
     }
     buf.append("_");
     buf.append(this.slot);
@@ -77,13 +74,10 @@ class MTypeVar implements MType {
 // /* DEBUG */ System.out.println(this);
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
-    switch (this.variance) {
-    case Module.COVARIANT:
+    if (this.variance == Module.COVARIANT) {
       node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
-      break;
-    case Module.CONTRAVARIANT:
+    } else if (this.variance == Module.CONTRAVARIANT) {
       node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
-      break;
     }
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
@@ -108,7 +102,7 @@ class MTypeVar implements MType {
     // if (slot < 0 || slot > builder.typeVarCount) {
       // throw new FormatException("Invalid slot: " + aSlot.getNodeValue());
     // }
-    int variance = Module.INVARIANT;
+    Module.Variance variance = Module.INVARIANT;
     Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
     if (aVariance != null) {
       String sVariance = aVariance.getNodeValue();
