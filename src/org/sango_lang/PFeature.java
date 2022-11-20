@@ -30,15 +30,45 @@ import java.util.List;
 public class PFeature extends PDefaultProgObj {
   String mod;
   Cstr modName;
-  String name;
+  PTypeId fname;
   PType[] params;
 
   private PFeature(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
   }
 
-  static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) {
-    throw new RuntimeException("PFeature#acceptSig not implemented.");
+  static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      return null;
+    }
+    Builder builder = Builder.newInstance(t.getSrcInfo(), scope);
+    int state = 0;
+    while (state >= 0) {
+      PTypeVarDef p;
+      PTypeId n;
+      if (state == 0 && (p = PTypeVarDef.acceptSimple(reader, scope)) != null) {
+        builder.addParam(p);
+      } else if (state == 0 && (n = PTypeId.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED)) != null) {
+        builder.setName(n);
+        state = -1;
+      } else {
+        emsg = new StringBuffer();
+        emsg.append("Syntax error in feature signature at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+    if (ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
+      emsg = new StringBuffer();
+      emsg.append("] missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return builder.create();
   }
 
   public void collectModRefs() throws CompileException {
@@ -93,6 +123,34 @@ public class PFeature extends PDefaultProgObj {
 
   public void normalizeTypes() {
     throw new RuntimeException("PFeature#normalizeTypes not implemented.");
+  }
+
+  static class Builder {
+    PFeature feature;
+    java.util.List<PType> params;
+
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new Builder(srcInfo, scope);
+    }
+
+    Builder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.feature = new PFeature(srcInfo, scope);
+      this.params = new ArrayList<PType>();
+    }
+
+    void addParam(PTypeVarDef v) {
+      this.params.add(v);
+    }
+
+    void setName(PTypeId n) {
+      this.feature.fname = n;
+    }
+
+    PFeature create() {
+      this.feature.params = this.params.toArray(new PType[this.params.size()]);
+/* DEBUG */ System.out.println(this.feature);
+      return this.feature;
+    }
   }
 
   static class List{}

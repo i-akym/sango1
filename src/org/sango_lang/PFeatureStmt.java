@@ -132,7 +132,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PFeature sig;
     if ((sig = PFeature.acceptSig(reader, defScope)) == null) {
       emsg = new StringBuffer();
-      emsg.append("Feature sig missing at ");
+      emsg.append("Feature signature missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
@@ -140,14 +140,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     builder.setSig(sig);
 
     builder.setAcc(PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_FEATURE, PModule.ACC_DEFAULT_FOR_FEATURE));
-
-    if (ParserA.acceptToken(reader, LToken.COL_EQ, ParserA.SPACE_DO_NOT_CARE) == null) {
-      emsg = new StringBuffer();
-      emsg.append("\":=\" missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
 
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -167,7 +159,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
     if (!(implType instanceof PTypeRef)) {
       emsg = new StringBuffer();
-      emsg.append("Invalid implementation type at ");
+      emsg.append("Invalid implementation data type at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(". - ");
       emsg.append(implType.toString());
