@@ -37,6 +37,27 @@ public class PFeature extends PDefaultProgObj {
     super(srcInfo, scope);
   }
 
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("feature[");
+    if (this.srcInfo != null) {
+      buf.append("src=");
+      buf.append(this.srcInfo);
+      buf.append(",");
+    }
+    buf.append("name=");
+    buf.append(PTypeId.repr(this.fname.mod, this.fname.name, false));
+    buf.append(",params=[");
+    String sep = "";
+    for (int i = 0; i < this.params.length; i++) {
+      buf.append(sep);
+      buf.append(this.params[i]);
+      sep = ",";
+    }
+    buf.append("]]");
+    return buf.toString();
+  }
+
   static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
