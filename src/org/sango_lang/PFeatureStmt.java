@@ -167,6 +167,14 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
     builder.setImplType((PTypeRef)implType);
 
+    if (ParserA.acceptToken(reader, LToken.SEM_SEM, ParserA.SPACE_DO_NOT_CARE) == null) {
+      emsg = new StringBuffer();
+      emsg.append("\";;\" missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+
     return builder.create();
   }
 
