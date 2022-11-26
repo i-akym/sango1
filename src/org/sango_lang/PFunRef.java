@@ -70,7 +70,7 @@ class PFunRef extends PDefaultExprObj {
     } else if ((t = ParserA.acceptToken(reader, LToken.CARET, spc)) == null) {
       return null;
     }
-    if ((id = PExprId.accept(reader, outerScope, PExprId.ID_MAYBE_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function name missing at ");
       emsg.append(reader.getCurrentSrcInfo());

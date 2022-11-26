@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PFeature extends PDefaultProgObj {
-  String mod;
+  String modId;
   Cstr modName;
   PTypeId fname;
   PType[] params;
@@ -46,7 +46,7 @@ public class PFeature extends PDefaultProgObj {
       buf.append(",");
     }
     buf.append("name=");
-    buf.append(PTypeId.repr(this.fname.mod, this.fname.name, false));
+    buf.append(PTypeId.repr(this.fname.modId, this.fname.name, false));
     buf.append(",params=[");
     String sep = "";
     for (int i = 0; i < this.params.length; i++) {
@@ -69,9 +69,9 @@ public class PFeature extends PDefaultProgObj {
     while (state >= 0) {
       PTypeVarDef p;
       PTypeId n;
-      if (state == 0 && (p = PTypeVarDef.acceptSimple(reader, scope)) != null) {
+      if (state == 0 && (p = PTypeVarDef.accept(reader, scope)) != null) {
         builder.addParam(p);
-      } else if (state == 0 && (n = PTypeId.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED)) != null) {
+      } else if (state == 0 && (n = PTypeId.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
         builder.setName(n);
         state = -1;
       } else {
@@ -93,7 +93,7 @@ public class PFeature extends PDefaultProgObj {
   }
 
   public void collectModRefs() throws CompileException {
-    this.scope.referredModId(this.srcInfo, this.mod);
+    this.scope.referredModId(this.srcInfo, this.modId);
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
     }
@@ -101,12 +101,12 @@ public class PFeature extends PDefaultProgObj {
 
   public PFeature resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.mod != null) {
-      this.modName = this.scope.resolveModId(this.mod);
+    if (this.modId != null) {
+      this.modName = this.scope.resolveModId(this.modId);
       if (this.modName == null) {
         emsg = new StringBuffer();
         emsg.append("Module id \"");
-        emsg.append(this.mod);
+        emsg.append(this.modId);
         emsg.append("\" not defined at ");
         emsg.append(this.srcInfo);
         emsg.append(".");
@@ -116,10 +116,10 @@ public class PFeature extends PDefaultProgObj {
 
     // following code is a copy for referece...
 
-    // if ((this.tconInfo = this.scope.resolveTcon(this.mod, this.tcon)) == null) {
+    // if ((this.tconInfo = this.scope.resolveTcon(this.modId, this.tcon)) == null) {
       // emsg = new StringBuffer();
       // emsg.append("Type constructor \"");
-      // emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      // emsg.append(PTypeId.repr(this.modId, this.tcon, false));
       // emsg.append("\" not defined at ");
       // emsg.append(this.tconSrcInfo);
       // emsg.append(".");
@@ -128,7 +128,7 @@ public class PFeature extends PDefaultProgObj {
     // if (this.tconInfo.props.paramCount() >= 0 && this.params.length != this.tconInfo.props.paramCount()) {
       // emsg = new StringBuffer();
       // emsg.append("Parameter count of \"");
-      // emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      // emsg.append(PTypeId.repr(this.modId, this.tcon, false));
       // emsg.append("\" mismatch at ");
       // emsg.append(this.srcInfo);
       // emsg.append(".");

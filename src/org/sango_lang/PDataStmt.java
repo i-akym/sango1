@@ -207,7 +207,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PScope defScope = builder.getDefScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
-    if ((tsig = PType.acceptSig1(reader, defScope, PExprId.ID_NO_QUAL)) == null) {
+    if ((tsig = PType.acceptSig1(reader, defScope, Parser.QUAL_INHIBITED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
