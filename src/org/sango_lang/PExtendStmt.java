@@ -30,7 +30,7 @@ import java.util.List;
 class PExtendStmt extends PDefaultProgObj implements PDataDef {
   Module.Availability availability;
   Module.Access acc;
-  String baseMod;
+  String baseModId;
   String baseTcon;
   String tcon;
   PTypeVarDef[] tparams;
@@ -50,7 +50,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     buf.append("extend[src=");
     buf.append(this.srcInfo);
     buf.append(",basemod=");
-    buf.append(this.baseMod);
+    buf.append(this.baseModId);
     buf.append(",basetcon=");
     buf.append(this.baseTcon);
     buf.append(",sig=");
@@ -112,7 +112,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PExtendStmt create() throws CompileException {
       if (this.base instanceof PType.Undet) {
         PType.Undet u = (PType.Undet)this.base;
-        this.ext.baseMod = (u.id.mod != null)? u.id.mod: PModule.MOD_ID_LANG;
+        this.ext.baseModId = (u.id.modId != null)? u.id.modId: PModule.MOD_ID_LANG;
         this.ext.baseTcon = u.id.name;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
         this.ext.tparams = new PTypeVarDef[0];
@@ -123,7 +123,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
         this.ext.sig = sigBuilder.create();
       } else if (this.base instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.base;
-        this.ext.baseMod = (tr.mod != null)? tr.mod: PModule.MOD_ID_LANG;
+        this.ext.baseModId = (tr.modId != null)? tr.modId: PModule.MOD_ID_LANG;
         this.ext.baseTcon = tr.tcon;
         this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
         this.ext.tparams = new PTypeVarDef[tr.params.length];
@@ -157,7 +157,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PScope defScope = builder.getDefScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType base;
-    if ((base = PType.acceptSig1(reader, defScope, PExprId.ID_MAYBE_QUAL)) == null) {
+    if ((base = PType.acceptSig1(reader, defScope, Parser.QUAL_MAYBE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -167,7 +167,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     builder.setBase(base);
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) != null) {
       PTypeId rename;
-      if ((rename = PTypeId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      if ((rename = PTypeId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
         emsg.append("New name missing at ");
         emsg.append(reader.getCurrentSrcInfo());
@@ -269,7 +269,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   }
 
   public void collectModRefs() throws CompileException {
-    this.scope.referredModId(this.srcInfo, this.baseMod);
+    this.scope.referredModId(this.srcInfo, this.baseModId);
     // this.sig.collectModRefs();
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].collectModRefs();
@@ -277,10 +277,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   }
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.baseMod != null && this.scope.resolveModId(this.baseMod) == null) {  // refer base mod id in order to register foreign mod
+    if (this.baseModId != null && this.scope.resolveModId(this.baseModId) == null) {  // refer base mod id in order to register foreign mod
       emsg = new StringBuffer();
       emsg.append("Module id \"");
-      emsg.append(this.baseMod);
+      emsg.append(this.baseModId);
       emsg.append("\" not defined at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
@@ -295,8 +295,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.constrs[i] = this.constrs[i].resolve();
       this.constrs[i].setDataType(this.sig);
     }
-    // /* DEBUG */ System.out.println("resolve " + this.baseMod + "." + this.baseTcon);
-    if ((this.baseTconInfo = this.scope.resolveTcon(this.baseMod, this.baseTcon)) == null) {
+    // /* DEBUG */ System.out.println("resolve " + this.baseModId + "." + this.baseTcon);
+    if ((this.baseTconInfo = this.scope.resolveTcon(this.baseModId, this.baseTcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Base type constructor not found at ");
       emsg.append(this.srcInfo);
@@ -555,7 +555,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder forwardingEvalBuilder = PEval.Builder.newInstance(si, otherwiseScope);
     // forwardingEvalBuilder.setSrcInfo(si);
     forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, null, "X")));
-    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, this.baseMod, baseNames[0])));
+    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, this.baseModId, baseNames[0])));
     List<PExpr> aes = new ArrayList<PExpr>();
     aes.add(PExpr.create(forwardingEvalBuilder.create()));
     otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, otherwiseScope, aes));
@@ -660,7 +660,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PEval.Builder forwardingEvalBuilder = PEval.Builder.newInstance(si, otherwiseScope);
     // forwardingEvalBuilder.setSrcInfo(si);
     forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, null, "X")));
-    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, this.baseMod, baseNames[0])));
+    forwardingEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, this.baseModId, baseNames[0])));
     List<PExpr> aes = new ArrayList<PExpr>();
     aes.add(PExpr.create(forwardingEvalBuilder.create()));
     otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, otherwiseScope, aes));

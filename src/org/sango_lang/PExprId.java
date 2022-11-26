@@ -26,9 +26,6 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PExprId extends PDefaultExprObj {
-  static final int ID_NO_QUAL = 0;
-  static final int ID_MAYBE_QUAL = 1;
-
   static final int CAT_NOT_FOUND = 0;
   static final int CAT_VAR = 1;
   static final int CAT_DCON_EVAL = 2;
@@ -39,7 +36,7 @@ class PExprId extends PDefaultExprObj {
   static final int CAT_FUN = CAT_FUN_OFFICIAL + CAT_FUN_ALIAS;
 
   int catOpt;
-  String mod;
+  String modId;
   String name;
   PDefDict.EidProps props;
 
@@ -47,11 +44,11 @@ class PExprId extends PDefaultExprObj {
     super(srcInfo, outerScope);
   }
 
-  static PExprId create(Parser.SrcInfo srcInfo, PScope outerScope, String mod, String name) {
+  static PExprId create(Parser.SrcInfo srcInfo, PScope outerScope, String modId, String name) {
     PExprId id = new PExprId(srcInfo, outerScope);
-    id.mod = mod;
+    id.modId = modId;
     id.name = name;
-    if (id.mod == null) {
+    if (id.modId == null) {
       id.catOpt = CAT_VAR + CAT_FUN + CAT_DCON;
     } else {
       id.catOpt = CAT_FUN + CAT_DCON;
@@ -106,7 +103,7 @@ class PExprId extends PDefaultExprObj {
   }
 
   boolean isSimple() {
-    return this.mod == null;
+    return this.modId == null;
   }
 
   public String toString() {
@@ -138,23 +135,25 @@ class PExprId extends PDefaultExprObj {
   }
 
   String repr() {
-    return repr(this.mod, this.name);
+    return repr(this.modId, this.name);
   }
 
-  static String repr(String mod, String name) {
-    return (mod != null)? mod + "." + name: name;
+  static String repr(String modId, String name) {
+    return (modId != null)? modId + "." + name: name;
   }
 
-  static PExprId accept(ParserA.TokenReader reader, PScope outerScope, int qual, int spc) throws CompileException, IOException {
+  static PExprId accept(ParserA.TokenReader reader, PScope outerScope,
+      Option.Set<Parser.QualState> qual, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token word;
     if ((word = ParserA.acceptNormalWord(reader, spc)) == null) {
       return null;
     }
     Parser.SrcInfo si = word.getSrcInfo();
-    String mod = null;
+    String modId = null;
     String name = null;
-    if (qual == ID_NO_QUAL || ParserA.acceptToken(reader, LToken.DOT, ParserA.SPACE_DO_NOT_CARE) == null) {
+    if (!qual.contains(Parser.WITH_QUAL)
+        || ParserA.acceptToken(reader, LToken.DOT, ParserA.SPACE_DO_NOT_CARE) == null) {
       name = word.value.token;
     } else {
       ParserA.Token word2;
@@ -165,26 +164,18 @@ class PExprId extends PDefaultExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      mod = word.value.token;
+      modId = word.value.token;
       name = word2.value.token;
     }
-    return create(si, outerScope, mod, name);
+    return create(si, outerScope, modId, name);
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {
-    this.scope.referredModId(this.srcInfo, this.mod);
+    this.scope.referredModId(this.srcInfo, this.modId);
   }
 
   public PExprObj resolve() throws CompileException {
     StringBuffer emsg;
-    // if (this.idResolved) { return this; }
     PExprObj ret = this;
     if (this.isSimple()) {
       PExprVarDef v;
@@ -199,7 +190,6 @@ class PExprId extends PDefaultExprObj {
           throw new CompileException(emsg.toString());
         }
         ret = PExprVarRef.create(this.srcInfo, this.scope, this.name, v.varSlot);
-        // ret.setupScope(scope);
         ret = ret.resolve();
       } else if (this.maybeDcon() || this.maybeFun()) {
         this.cutOffVar();
@@ -212,10 +202,10 @@ class PExprId extends PDefaultExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-    } else if (this.scope.resolveModId(this.mod) == null) {
+    } else if (this.scope.resolveModId(this.modId) == null) {
       emsg = new StringBuffer();
       emsg.append("Module id \"");
-      emsg.append(this.mod);
+      emsg.append(this.modId);
       emsg.append("\" not defined at ");
       emsg.append(this.srcInfo);
       emsg.append(".");

@@ -285,8 +285,8 @@ class PScope {
     return this.theMod.resolveEid(id);
   }
 
-  PDefDict.TconInfo resolveTcon(String mod, String name) throws CompileException {
-    return this.theMod.resolveTcon(mod, name);
+  PDefDict.TconInfo resolveTcon(String modId, String name) throws CompileException {
+    return this.theMod.resolveTcon(modId, name);
   }
 
   void addReferredTcons(List<PDefDict.TconInfo> tis) {

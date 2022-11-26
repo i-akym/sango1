@@ -117,7 +117,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTypeVarDef acceptSimple(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+  static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);

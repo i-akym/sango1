@@ -240,7 +240,7 @@ interface PType extends PProgObj {
     return builder.create();
   }
 
-  static PTypeRef acceptSig1(ParserA.TokenReader reader, PScope scope, int qual) throws CompileException, IOException {
+  static PTypeRef acceptSig1(ParserA.TokenReader reader, PScope scope, Option.Set<Parser.QualState> qual) throws CompileException, IOException {
     StringBuffer emsg;
     PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (t instanceof Undet) {
@@ -272,7 +272,7 @@ interface PType extends PProgObj {
         throw new CompileException(emsg.toString());
       }
     }
-    if (qual == PExprId.ID_NO_QUAL && sig.mod != null) {
+    if (!qual.contains(Parser.WITH_QUAL) && sig.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
       emsg.append(sig.tconSrcInfo);
@@ -321,7 +321,7 @@ interface PType extends PProgObj {
         throw new CompileException(emsg.toString());
       }
     }
-    if (sig.mod != null) {
+    if (sig.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
       emsg.append(sig.tconSrcInfo);
@@ -341,10 +341,10 @@ interface PType extends PProgObj {
   static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
     PProgObj item;
     if ((acceptables & ACCEPTABLE_ID) > 0
-        && (item = PTypeId.accept(reader, scope, PExprId.ID_MAYBE_QUAL, spc)) != null) {
+        && (item = PTypeId.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTypeVarDef.acceptSimple(reader, scope)) != null) {
+        && (item = PTypeVarDef.accept(reader, scope)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
         && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
@@ -423,13 +423,13 @@ interface PType extends PProgObj {
       StringBuffer emsg;
       /* DEBUG */ if (this.scope == null || this.scope.pos == 0) { System.out.print("Scope is null or inactive. "); System.out.println(this); }
       PType t;
-      if (this.id.mod == null) {
+      if (this.id.modId == null) {
         PTypeVarDef v;
         if ((v = this.scope.lookupTVar(this.id.name)) != null) {
           t = PTypeVarRef.create(this.id.srcInfo, this.id.scope, v);
           // t.setupScope(this.scope);
           t = t.resolve();
-        } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
+        } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
           t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
           // t.setupScope(this.scope);
           t = t.resolve();
@@ -442,14 +442,14 @@ interface PType extends PProgObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-      } else if (this.scope.resolveTcon(this.id.mod, this.id.name) != null) {
+      } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
         t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
         // t.setupScope(this.scope);
         t = t.resolve();
       } else {
         emsg = new StringBuffer();
         emsg.append("Type constructor \"");
-        emsg.append(PTypeId.repr(this.id.mod, this.id.name, false));
+        emsg.append(PTypeId.repr(this.id.modId, this.id.name, false));
         emsg.append("\" not defined at ");
         emsg.append(this.id.srcInfo);
         emsg.append(".");
@@ -490,7 +490,7 @@ interface PType extends PProgObj {
       } else {
         throw new IllegalArgumentException("Unknown extOpt.");
       }
-      return PTypeId.create(srcInfo, scope, this.id.mod, this.id.name, ext);  // rollback to PTypeId
+      return PTypeId.create(srcInfo, scope, this.id.modId, this.id.name, ext);  // rollback to PTypeId
     }
 
     public String toString() {

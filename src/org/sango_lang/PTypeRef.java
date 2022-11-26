@@ -25,7 +25,7 @@ package org.sango_lang;
 
 class PTypeRef extends PDefaultProgObj implements PType {
   Parser.SrcInfo tconSrcInfo;
-  String mod;
+  String modId;
   Cstr modName;
   String tcon;
   boolean ext;
@@ -39,7 +39,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
   static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeId id, PType[] param) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
     t.tconSrcInfo = id.srcInfo;
-    t.mod = id.mod;
+    t.modId = id.modId;
     t.tcon = id.name;
     t.ext = id.ext;
     t.params = (param != null)? param: new PType[0];
@@ -95,7 +95,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       sep = " ";
     }
     buf.append(sep);
-    buf.append(PTypeId.repr(this.mod, this.tcon, this.ext));
+    buf.append(PTypeId.repr(this.modId, this.tcon, this.ext));
     buf.append(">");
     if (this.srcInfo != null) {
       buf.append("]");
@@ -105,7 +105,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   public PTypeRef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
-    t.mod = this.mod;
+    t.modId = this.modId;
     t.modName = this.modName;
     t.tcon = this.tcon;
     switch (extOpt) {
@@ -138,18 +138,8 @@ class PTypeRef extends PDefaultProgObj implements PType {
       paramTypeDescs);
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
-    this.scope.referredModId(this.srcInfo, this.mod);
+    this.scope.referredModId(this.srcInfo, this.modId);
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
     }
@@ -157,24 +147,23 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   public PTypeRef resolve() throws CompileException {
     StringBuffer emsg;
-    // if (this.idResolved) { return this; }
     /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
-    if (this.mod != null) {
-      this.modName = this.scope.resolveModId(this.mod);
+    if (this.modId != null) {
+      this.modName = this.scope.resolveModId(this.modId);
       if (this.modName == null) {
         emsg = new StringBuffer();
         emsg.append("Module id \"");
-        emsg.append(this.mod);
+        emsg.append(this.modId);
         emsg.append("\" not defined at ");
         emsg.append(this.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
     }
-    if ((this.tconInfo = this.scope.resolveTcon(this.mod, this.tcon)) == null) {
+    if ((this.tconInfo = this.scope.resolveTcon(this.modId, this.tcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
-      emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      emsg.append(PTypeId.repr(this.modId, this.tcon, false));
       emsg.append("\" not defined at ");
       emsg.append(this.tconSrcInfo);
       emsg.append(".");
@@ -183,7 +172,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     if (this.tconInfo.props.paramCount() >= 0 && this.params.length != this.tconInfo.props.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
-      emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      emsg.append(PTypeId.repr(this.modId, this.tcon, false));
       emsg.append("\" mismatch at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
@@ -193,7 +182,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
       PType p = (PType)this.params[i].resolve();
       this.params[i] = p;
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -209,7 +197,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     if (this.tconInfo.props.acc == Module.ACC_PRIVATE) {
       emsg = new StringBuffer();
       emsg.append("\"");
-      emsg.append(PTypeId.repr(this.mod, this.tcon, false));
+      emsg.append(PTypeId.repr(this.modId, this.tcon, false));
       emsg.append("\" should not be private at ");
       emsg.append(this.srcInfo);
       emsg.append(".");

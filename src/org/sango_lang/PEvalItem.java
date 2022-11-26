@@ -214,7 +214,7 @@ abstract class PEvalItem extends PDefaultExprObj {
       ;
     } else if ((acceptables & PEval.ACCEPT_CASE_BLOCK) > 0 && (obj = PCaseBlock.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PExprId.accept(reader, outerScope, PExprId.ID_MAYBE_QUAL, space)) != null) {  // must be after 'if' 'case'
+    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, space)) != null) {  // must be after 'if' 'case'
       ;
     } else if ((acceptables & PEval.ACCEPT_DYNAMIC_INV) > 0 && (sym = PDynamicInv.accept(reader, space)) != null) {
       ;
