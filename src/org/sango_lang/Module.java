@@ -193,6 +193,7 @@ public class Module {
     int nextSN() { return nextSN++; };
     public String toString() { return this.repr; }
   }
+  public static final Variance NO_VARIANCE = null;
   public static final Variance INVARIANT = new Variance("invariant");
   public static final Variance COVARIANT = new Variance("covariant");
   public static final Variance CONTRAVARIANT = new Variance("contravariant");
