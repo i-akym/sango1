@@ -97,7 +97,18 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
 
     void setSig(PType sig) {
-      this.dat.sig = sig;
+      if (sig instanceof PTypeRef) {
+        PTypeRef trsig = (PTypeRef)sig;
+        for (int i = 0; i < trsig.params.length; i++) {
+          PTypeVarDef v = (PTypeVarDef)trsig.params[i];
+          if (v.variance == null) {
+            v.variance = Module.INVARIANT;
+          }
+        }
+        this.dat.sig = trsig;
+      } else {
+        this.dat.sig = sig;
+      }
     }
 
     void setFeatureFor(PTypeId featureFor) {
@@ -215,23 +226,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString());
     }
     builder.setSig(tsig);
-    // if (ParserA.acceptToken(reader, LToken.TILD, ParserA.SPACE_NEEDED) != null) {
-      // PFeature.Id fid;
-      // if ((fid = PFeature.Id.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
-        // builder.setFeature(fid);
-        // if (ParserA.acceptToken(reader, LToken.SLASH, ParserA.SPACE_DO_NOT_CARE) != null) {
-          // PTypeId featureFor;
-          // if ((featureFor = PTypeId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
-            // emsg = new StringBuffer();
-            // emsg.append("Variable name for feature missing at ");
-            // emsg.append(reader.getCurrentSrcInfo());
-            // emsg.append(".");
-            // throw new CompileException(emsg.toString());
-          // }
-          // builder.setFeatureFor(featureFor);
-        // }
-      // }
-    // }
     Module.Access acc = PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
     builder.setAcc(acc);
     if (ParserA.acceptToken(reader, LToken.COL_EQ, ParserA.SPACE_DO_NOT_CARE) == null) {

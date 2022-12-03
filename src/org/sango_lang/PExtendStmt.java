@@ -84,7 +84,18 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PScope getDefScope() { return this.ext.scope; }
 
     void setBase(PType base) {
-      this.base = base;
+      if (base instanceof PTypeRef) {
+        PTypeRef trbase = (PTypeRef)base;
+        for (int i = 0; i < trbase.params.length; i++) {
+          PTypeVarDef v = (PTypeVarDef)trbase.params[i];
+          if (v.variance == null) {
+            v.variance = Module.INVARIANT;
+          }
+        }
+        this.base = trbase;
+      } else {
+        this.base = base;
+      }
     }
 
     void setRename(String rename) {

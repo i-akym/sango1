@@ -74,11 +74,13 @@ class MTypeVar implements MType {
 // /* DEBUG */ System.out.println(this);
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
-    if (this.variance == Module.COVARIANT) {
+    if (this.variance == Module.INVARIANT) {
+      node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_INVARIANT);
+    } else if (this.variance == Module.COVARIANT) {
       node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
     } else if (this.variance == Module.CONTRAVARIANT) {
       node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
-    }
+    }  // if null, nothing added
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
@@ -102,12 +104,12 @@ class MTypeVar implements MType {
     // if (slot < 0 || slot > builder.typeVarCount) {
       // throw new FormatException("Invalid slot: " + aSlot.getNodeValue());
     // }
-    Module.Variance variance = Module.INVARIANT;
+    Module.Variance variance = Module.NO_VARIANCE;
     Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
     if (aVariance != null) {
       String sVariance = aVariance.getNodeValue();
       if (sVariance.equals(Module.REPR_INVARIANT)) {
-        ;
+        variance = Module.INVARIANT;
       } else if (sVariance.equals(Module.REPR_COVARIANT)) {
         variance = Module.COVARIANT;
       } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {

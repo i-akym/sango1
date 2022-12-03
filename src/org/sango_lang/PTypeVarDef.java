@@ -122,13 +122,13 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (varSym == null) { return null; }
-    Module.Variance variance;
+    Module.Variance variance = Module.NO_VARIANCE;
     if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
       variance = Module.COVARIANT;
     } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
       variance = Module.CONTRAVARIANT;
     } else {
-      variance = Module.INVARIANT;
+      // variance = Module.INVARIANT;  // no variance; assume 'invariant' on data def later
     }
     ParserA.Token varId;
     if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {

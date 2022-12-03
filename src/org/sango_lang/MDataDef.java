@@ -71,6 +71,9 @@ public class MDataDef implements Module.Elem {
     }
 
     void addParam(MTypeVar param) {
+      if (param.variance == null) {  // for module file compatibility
+        param.variance = Module.INVARIANT;
+      }
       this.paramList.add(param);
     }
 

@@ -801,7 +801,7 @@ if (PTypeGraph.DEBUG > 1) {
       MType c = (this.constraint != null)? this.constraint.toMType(mod, slotList): null;
       tv = MTypeVar.create(index, this.varSlot.variance, this.varSlot.requiresConcrete, c);
     } else {  // reference
-      tv = MTypeVar.create(index, Module.INVARIANT, false, null);  // do not care attributes
+      tv = MTypeVar.create(index, null, false, null);  // do not care attributes
     }
     return tv;
   }
