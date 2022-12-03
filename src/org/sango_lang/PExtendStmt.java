@@ -168,7 +168,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PScope defScope = builder.getDefScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType base;
-    if ((base = PType.acceptSig1(reader, defScope, Parser.QUAL_MAYBE)) == null) {
+    if ((base = PType.acceptSig(reader, defScope, true, Parser.QUAL_MAYBE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());

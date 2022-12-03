@@ -240,7 +240,8 @@ interface PType extends PProgObj {
     return builder.create();
   }
 
-  static PTypeRef acceptSig1(ParserA.TokenReader reader, PScope scope, Option.Set<Parser.QualState> qual) throws CompileException, IOException {
+  static PTypeRef acceptSig(ParserA.TokenReader reader, PScope scope,
+    boolean varianceAllowed, Option.Set<Parser.QualState> qual) throws CompileException, IOException {
     StringBuffer emsg;
     PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (t instanceof Undet) {
@@ -267,61 +268,19 @@ interface PType extends PProgObj {
       if (v.constraint != null) {
         emsg = new StringBuffer();
         emsg.append("Constrained type parameter not allowed at ");
+        emsg.append(sig.params[i].getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      if (!varianceAllowed && v.variance != Module.NO_VARIANCE) {
+        emsg = new StringBuffer();
+        emsg.append("Variance not allowed at ");
         emsg.append(sig.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
     }
     if (!qual.contains(Parser.WITH_QUAL) && sig.modId != null) {
-      emsg = new StringBuffer();
-      emsg.append("Module id not allowed at ");
-      emsg.append(sig.tconSrcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    if (sig.ext) {
-      emsg = new StringBuffer();
-      emsg.append("Extension not allowed at ");
-      emsg.append(sig.tconSrcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    return sig;
-  }
-
-  static PTypeRef acceptSig2(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-    StringBuffer emsg;
-    PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
-    if (t instanceof Undet) {
-      Undet u = (Undet)t;
-      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
-    }
-    if (!(t instanceof PTypeRef)) {
-      emsg = new StringBuffer();
-      emsg.append("Invalid signature definition at ");
-      emsg.append(t.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    PTypeRef sig = (PTypeRef)t;
-    for (int i = 0; i < sig.params.length; i++) {
-      if (!(sig.params[i] instanceof PTypeVarDef)) {
-        emsg = new StringBuffer();
-        emsg.append("Type parameter missing at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      PTypeVarDef v = (PTypeVarDef)sig.params[i];
-      if (v.constraint != null) {
-        emsg = new StringBuffer();
-        emsg.append("Constrained type parameter not allowed at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    }
-    if (sig.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
       emsg.append(sig.tconSrcInfo);
