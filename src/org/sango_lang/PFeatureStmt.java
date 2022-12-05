@@ -217,8 +217,8 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public PFeatureStmt resolve() throws CompileException {
     StringBuffer emsg;
-    this.sig = this.sig.resolve();
     this.obj = this.obj.resolve();
+    this.sig = this.sig.resolve();
     this.impl = this.impl.resolve();
     return this;
   }
@@ -231,21 +231,15 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
-    // this.impl.checkAcc();  // HERE
+    this.impl.excludePrivateAcc();
     return;
   }
 
   public void normalizeTypes() throws CompileException {
-// HERE
-    // List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    // for (int i = 0; i < this.constrs.length; i++) {
-      // this.constrs[i].normalizeTypes();
-      // for (int j = 0; j < constrs[i].attrs.length; j++) {
-        // constrs[i].attrs[j].nTypeSkel.checkVariance(PTypeSkel.WIDER);
-        // constrs[i].attrs[j].nTypeSkel.collectTconInfo(tis);
-      // }
-    // }
-    // this.scope.addReferredTcons(tis);
+    this.impl.normalizeTypes();
+    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    this.impl.getSkel().collectTconInfo(tis);
+    this.scope.addReferredTcons(tis);
   }
 
   public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
