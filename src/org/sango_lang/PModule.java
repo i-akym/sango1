@@ -303,6 +303,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
   }
@@ -335,6 +336,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
   }
@@ -723,6 +725,7 @@ class PModule implements PDefDict {
   void addFeatureStmt(PFeatureStmt feat) throws CompileException {
     StringBuffer emsg;
     feat.collectModRefs();
+    this.featureStmtList.add(feat);
 // HERE
     // /* DEBUG */ System.out.print("feature stmt added: ");
     // /* DEBUG */ System.out.println(feature);
@@ -845,8 +848,54 @@ class PModule implements PDefDict {
     return this.getInitFunDef() != null;
   }
 
+  private void generateFeatureFuns() throws CompileException {
+    if (this.featureStmtList.size() > 0) {
+      this.generateFeatureDataDef();
+      this.generateFeatureGetterFun();
+      // List<PEvalStmt> es;
+      // for (int i = 0; i < this.featureStmtList.size(); i++) {
+        // es = this.featureStmtList.get(i).generateFuns(this);
+        // for (int j = 0; j < es.size(); j++) {
+          // this.addEvalStmt(es.get(j));
+        // }
+      // }
+    }
+  }
+
+  void generateFeatureDataDef() throws CompileException {
+    // data <_feature_> := <impl_type> _feature_name$ | ...
+    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
+    PDataStmt.Builder dataStmtBuilder = PDataStmt.Builder.newInstance(si, this.scope);
+    dataStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
+
+    // HERE
+  }
+
+  void generateFeatureGetterFun() throws CompileException {
+    // eval <*T> *X <cstr> *F  _feature_get -> <_feature_ maybe> @native
+    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
+    evalStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
+    evalStmtBuilder.setOfficial("_feature_get");
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PScope defScope = evalStmtBuilder.getDefScope();
+    PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
+    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", Module.NO_VARIANCE, false, null));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param1TypeBuilder.create(), "X"));
+    PType.Builder param2TypeBuilder = PType.Builder.newInstance(si, defScope);
+    param2TypeBuilder.addItem(PTypeId.create(si, defScope, MOD_ID_LANG, "cstr", false));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param2TypeBuilder.create(), "F"));
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
+    PScope retScope = retDefBuilder.getScope();
+    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_HERE, "_feature_", false));
+    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_LANG, "maybe", false));
+    retDefBuilder.setType(retTypeBuilder.create());
+    evalStmtBuilder.setRetDef(retDefBuilder.create());
+    // this.addEvalStmt(evalStmtBuilder.create());  // HERE
+  }
+
   private void generateDataFuns() throws CompileException {
-    StringBuffer emsg;
     List<PEvalStmt> es;
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       es = this.dataStmtList.get(i).generateFuns(this);
@@ -899,6 +948,9 @@ class PModule implements PDefDict {
     }
     for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
       this.aliasTypeStmtList.set(i, this.aliasTypeStmtList.get(i).resolve());
+    }
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      this.featureStmtList.set(i, this.featureStmtList.get(i).resolve());
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
       this.evalStmtList.set(i, this.evalStmtList.get(i).resolve());
