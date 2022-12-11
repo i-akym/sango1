@@ -25,7 +25,9 @@ package org.sango_lang;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Availability availability;
@@ -165,7 +167,23 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(implType.toString());
       throw new CompileException(emsg.toString());
     }
-    builder.setImplType((PTypeRef)implType);
+    PTypeRef itr = (PTypeRef)implType;
+    // following check will be done in data stmt generation
+    // for (int i = 0; i < itr.params.length; i++) {
+      // if (itr.params[i] instanceof PType.Undet) {  // var ref or type ref w/o params
+        // ;
+      // } else if (itr.params[i] instanceof PTypeVarDef) {
+        // ;
+      // } else {  // PTypeRef
+        // emsg = new StringBuffer();
+        // emsg.append("Invalid feature implementation type paramter at ");
+        // emsg.append(itr.params[i].getSrcInfo());
+        // emsg.append(". parameter ");
+        // emsg.append(i + 1);
+        // throw new CompileException(emsg.toString());
+      // }
+    // }
+    builder.setImplType(itr);
 
     if (ParserA.acceptToken(reader, LToken.SEM_SEM, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -220,6 +238,30 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     this.obj = this.obj.resolve();
     this.sig = this.sig.resolve();
     this.impl = this.impl.resolve();
+
+    Set<String> ivs = new HashSet<String>();  // var refs in impl
+    for (int i = 0; i < this.impl.params.length; i++) {
+      if (this.impl.params[i] instanceof PTypeVarRef) {
+        ivs.add(((PTypeVarRef)this.impl.params[i]).def.name);
+        ;
+      } else if (this.impl.params[i] instanceof PTypeVarDef) {
+        ;
+      } else {
+        emsg = new StringBuffer();
+        emsg.append("Invalid feature implementation type paramter at ");
+        emsg.append(this.impl.params[i].getSrcInfo());
+        emsg.append(". parameter ");
+        emsg.append(i + 1);
+        throw new CompileException(emsg.toString());
+      }
+    }
+    if (ivs.size() != 1 + this.sig.params.length) {
+      emsg = new StringBuffer();
+      emsg.append("Insufficient variable references in feature implementation type at ");
+      emsg.append(this.impl.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     return this;
   }
 

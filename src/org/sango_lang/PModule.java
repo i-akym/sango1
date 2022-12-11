@@ -863,20 +863,76 @@ class PModule implements PDefDict {
   }
 
   void generateFeatureDataDef() throws CompileException {
-    // data <_feature_> := <impl_type> _feature_name$ | ...
+    // data <_feature_> @public := <impl_type> _feature_name$ | ...
+    StringBuffer emsg;
     Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
     PDataStmt.Builder dataStmtBuilder = PDataStmt.Builder.newInstance(si, this.scope);
+    PScope defScope = dataStmtBuilder.getDefScope();
     dataStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
+    dataStmtBuilder.setAcc(Module.ACC_PUBLIC);
+    PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
+    sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_", false));
+    dataStmtBuilder.setSig(sigBuilder.create());
 
-    // HERE
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      PFeatureStmt fs = this.featureStmtList.get(i);
+      PDataConstrDef.Builder constrBuilder = PDataConstrDef.Builder.newInstance(si, defScope);
+      PScope constrScope = constrBuilder.getScope();
+
+      // collect var names from obj type and feature sig
+      Set<String> vs = new HashSet<String>();
+      vs.add(fs.obj.name);
+      for (int j = 0; j < fs.sig.params.length; j++) {
+        vs.add(((PTypeVarDef)fs.sig.params[j]).name);
+      }
+
+      // convert impl type
+      PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, constrScope);
+      for (int j = 0; j < fs.impl.params.length; j++) {
+        PType p = null;
+        if (fs.impl.params[j] instanceof PType.Undet) {  // var ref or type ref w/o params
+          PType.Undet u = (PType.Undet)fs.impl.params[j];
+          if (vs.contains(u.id.name)) {
+            p = PTypeVarDef.create(si, constrScope, u.id.name, Module.NO_VARIANCE, false, null);  // ok?
+          } else {
+            emsg = new StringBuffer();
+            emsg.append("Invalid feature implementation type paramter at ");
+            emsg.append(fs.impl.params[j].getSrcInfo());
+            emsg.append(". parameter ");
+            emsg.append(j + 1);
+            throw new CompileException(emsg.toString());
+          }
+        } else if (fs.impl.params[j] instanceof PTypeVarDef) {
+          p = fs.impl.params[j];
+        } else {  // PTypeRef
+          emsg = new StringBuffer();
+          emsg.append("Invalid feature implementation type paramter at ");
+          emsg.append(fs.impl.params[j].getSrcInfo());
+          emsg.append(". parameter ");
+          emsg.append(j + 1);
+          throw new CompileException(emsg.toString());
+        }
+/* DEBUG */ System.out.println(p);
+        paramTypeBuilder.addItem(p);
+      }
+      paramTypeBuilder.addItem(PTypeId.create(si, constrScope, fs.impl.modId, fs.impl.tcon, false));
+
+      PDataAttrDef a = PDataAttrDef.create(si, constrScope, null, paramTypeBuilder.create());
+/* DEBUG */ System.out.println(a);
+
+      constrBuilder.addAttr(a);
+      constrBuilder.setDcon("_feature_" + fs.sig.fname.name + "$");
+      dataStmtBuilder.addConstr(constrBuilder.create());
+    }
+    this.addDataStmt(dataStmtBuilder.create());
   }
 
   void generateFeatureGetterFun() throws CompileException {
-    // eval <*T> *X <cstr> *F  _feature_get -> <_feature_ maybe> @native
+    // eval <*T> *X <cstr> *F  _builtin_feature_get -> <_feature_ maybe> @native
     Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
     evalStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
-    evalStmtBuilder.setOfficial("_feature_get");
+    evalStmtBuilder.setOfficial("_builtin_feature_get");
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PScope defScope = evalStmtBuilder.getDefScope();
     PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
