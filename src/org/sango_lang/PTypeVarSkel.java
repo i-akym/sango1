@@ -125,39 +125,20 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public void checkVariance(int width) throws CompileException {
     boolean b;
-    switch (width) {
-    case PTypeSkel.EQUAL:
-      b = this.varSlot.variance == Module.INVARIANT;
-      // switch (this.varSlot.variance) {
-      // case Module.INVARIANT:
-        // b = true;
-        // break;
-      // default:
-        // b = false;
-      // }
-      break;
-    case PTypeSkel.NARROWER:
-      b = (this.varSlot.variance == Module.INVARIANT) || (this.varSlot.variance == Module.CONTRAVARIANT);
-      // switch (this.varSlot.variance) {
-      // case Module.INVARIANT:
-      // case Module.CONTRAVARIANT:
-        // b = true;
-        // break;
-      // default:
-        // b = false;
-      // }
-      break;
-    default:
-      b = (this.varSlot.variance == Module.INVARIANT) || (this.varSlot.variance == Module.COVARIANT);
-      // switch (this.varSlot.variance) {
-      // case Module.INVARIANT:
-      // case Module.COVARIANT:
-        // b = true;
-        // break;
-      // default:
-        // b = false;
-      // }
-      break;
+    if (this.varSlot.variance == Module.NO_VARIANCE || this.varSlot.variance == Module.INVARIANT) {
+      b = true;
+    } else {
+      switch (width) {
+      case PTypeSkel.EQUAL:
+        b = false;
+        break;
+      case PTypeSkel.NARROWER:
+        b = this.varSlot.variance == Module.CONTRAVARIANT;
+        break;
+      default:
+        b = this.varSlot.variance == Module.COVARIANT;
+        break;
+      }
     }
     if (!b) {
       StringBuffer emsg = new StringBuffer();
