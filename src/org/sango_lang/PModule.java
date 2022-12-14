@@ -863,13 +863,13 @@ class PModule implements PDefDict {
   }
 
   void generateFeatureDataDef() throws CompileException {
-    // data <_feature_> @public := <impl_type> _feature_name$ | ...
+    // data <_feature_> := <impl_type> _feature_name$ | ...
     StringBuffer emsg;
     Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
     PDataStmt.Builder dataStmtBuilder = PDataStmt.Builder.newInstance(si, this.scope);
     PScope defScope = dataStmtBuilder.getDefScope();
     dataStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
-    dataStmtBuilder.setAcc(Module.ACC_PUBLIC);
+    // dataStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
     sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_", false));
     dataStmtBuilder.setSig(sigBuilder.create());
