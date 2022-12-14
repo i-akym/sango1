@@ -228,6 +228,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     builder.setSig(tsig);
     Module.Access acc = PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_DATA, PModule.ACC_DEFAULT_FOR_DATA);
     builder.setAcc(acc);
+
     if (ParserA.acceptToken(reader, LToken.COL_EQ, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("\":=\" missing at ");
@@ -235,6 +236,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+
     DataDefBody body;
     if ((body = acceptDataDefBody(reader, defScope)) == null) {
       emsg = new StringBuffer();
@@ -244,6 +246,12 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString());
     }
     builder.addConstrList(body.constrList);
+
+    PDataFeatureDef fd;
+    while ((fd = PDataFeatureDef.accept(reader, defScope)) != null) {
+      // HERE
+    }
+
     if (ParserA.acceptToken(reader, LToken.SEM_SEM, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("\";;\" missing at ");
