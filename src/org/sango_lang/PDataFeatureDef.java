@@ -90,6 +90,7 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    provider.setCat(PExprId.CAT_FUN_OFFICIAL);
     builder.setProvider(provider);
     PDataFeatureDef fd = builder.create();
 /* DEBUG */ System.out.println(fd);
@@ -140,17 +141,7 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
   }
 
   public PDataFeatureDef resolve() throws CompileException {
-    StringBuffer emsg;
-    PExprObj p = this.provider.resolve();
-    if (!(p instanceof PExprId)) {
-      emsg = new StringBuffer();
-      emsg.append("Invalid feature provider at ");
-      emsg.append(this.provider.srcInfo);
-      emsg.append(". - ");
-      emsg.append(this.provider.repr());
-      throw new CompileException(emsg.toString());
-    }
-    this.provider = (PExprId)p;
+    this.provider = (PExprId)this.provider.resolve();
     this.feature = this.feature.resolve();
     return this;
   }
