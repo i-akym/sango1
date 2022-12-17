@@ -58,13 +58,39 @@ public class PFeature extends PDefaultProgObj {
     return buf.toString();
   }
 
+  static PFeature accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
+    PFeature f = acceptDesc(reader, scope);
+    if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("] missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return f;
+  }
+
+  static PFeature acceptDesc(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), scope);
+    int state = 0;
+    while (state >= 0) {
+      state = -1;
+    }
+    return builder.create();
+  }
+
   static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
       return null;
     }
-    Builder builder = Builder.newInstance(t.getSrcInfo(), scope);
+    SigBuilder builder = SigBuilder.newInstance(t.getSrcInfo(), scope);
     int state = 0;
     while (state >= 0) {
       PTypeVarDef p;
@@ -146,15 +172,15 @@ public class PFeature extends PDefaultProgObj {
     throw new RuntimeException("PFeature#normalizeTypes not implemented.");
   }
 
-  static class Builder {
+  static class SigBuilder {
     PFeature feature;
     java.util.List<PType> params;
 
-    static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
-      return new Builder(srcInfo, scope);
+    static SigBuilder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new SigBuilder(srcInfo, scope);
     }
 
-    Builder(Parser.SrcInfo srcInfo, PScope scope) {
+    SigBuilder(Parser.SrcInfo srcInfo, PScope scope) {
       this.feature = new PFeature(srcInfo, scope);
       this.params = new ArrayList<PType>();
     }
@@ -171,6 +197,20 @@ public class PFeature extends PDefaultProgObj {
       this.feature.params = this.params.toArray(new PType[this.params.size()]);
 /* DEBUG */ System.out.println(this.feature);
       return this.feature;
+    }
+  }
+
+  static class Builder {
+
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new Builder(srcInfo, scope);
+    }
+
+    Builder(Parser.SrcInfo srcInfo, PScope scope) {
+    }
+
+    PFeature create() {
+      return null;
     }
   }
 
