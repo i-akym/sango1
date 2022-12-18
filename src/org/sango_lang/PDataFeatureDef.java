@@ -82,8 +82,7 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
     if (ParserA.acceptToken(reader, LToken.PLUS_PLUS, ParserA.SPACE_DO_NOT_CARE) == null) { return null; }
 
     PExprId provider;
-    if ((provider = PExprId.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_NEEDED)) != null) {
-    } else {
+    if ((provider = PExprId.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Feature provider missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -92,6 +91,24 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
     }
     provider.setCat(PExprId.CAT_FUN_OFFICIAL);
     builder.setProvider(provider);
+
+    if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
+      emsg = new StringBuffer();
+      emsg.append("\"->\" missing missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+
+    PFeature f;
+    if ((f = PFeature.accept(reader, scope)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Provided feature missing missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+
     PDataFeatureDef fd = builder.create();
 /* DEBUG */ System.out.println(fd);
     return fd;
