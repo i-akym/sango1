@@ -159,8 +159,76 @@ public class PFeature extends PDefaultProgObj {
     return this;
   }
 
-  public void normalizeTypes() {
-    throw new RuntimeException("PFeature#normalizeTypes not implemented.");
+  public void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].normalizeTypes();
+    }
+  }
+
+  static class List extends PDefaultProgObj {
+    PFeature[] features;  // at least one element
+
+    private List(Parser.SrcInfo srcInfo, PScope scope) {
+      super(srcInfo, scope);
+    }
+
+    static List accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+      StringBuffer emsg;
+      ParserA.Token t;
+      if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
+      ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
+      PFeature f;
+      while ((f = acceptDesc(reader, scope)) != null) {
+        builder.addFeature(f);
+      }
+
+      if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        emsg = new StringBuffer();
+        emsg.append("] missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      return builder.create();
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("feature.list[");
+      if (this.srcInfo != null) {
+        buf.append("src=");
+        buf.append(this.srcInfo);
+        buf.append(",");
+      }
+      buf.append("features=[");
+      String sep = "";
+      for (int i = 0; i < this.features.length; i++) {
+        buf.append(sep);
+        buf.append(this.features[i]);
+        sep = ",";
+      }
+      buf.append("]]");
+      return buf.toString();
+    }
+
+    public void collectModRefs() throws CompileException {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i].collectModRefs();
+      }
+    }
+
+    public List resolve() throws CompileException {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i] = this.features[i].resolve();
+      }
+      return this;
+    }
+
+    public void normalizeTypes() throws CompileException {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i].normalizeTypes();
+      }
+    }
   }
 
   static class SigBuilder {
@@ -251,5 +319,34 @@ public class PFeature extends PDefaultProgObj {
     }
   }
 
-  static class List{}
+  static class ListBuilder {
+    List list;
+    java.util.List<PFeature> features;
+
+    static ListBuilder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new ListBuilder(srcInfo, scope);
+    }
+
+    ListBuilder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.list = new List(srcInfo, scope);
+      this.features = new ArrayList<PFeature>();
+    }
+
+    void addFeature(PFeature feature) {
+      this.features.add(feature);
+    }
+
+    List create() throws CompileException {
+      StringBuffer emsg;
+      if (this.features.size() == 0) {
+        emsg = new StringBuffer();
+        emsg.append("Empty feature list at ");
+        emsg.append(this.list.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      this.list.features = this.features.toArray(new PFeature[this.features.size()]);
+      return this.list;
+    }
+  }
 }
