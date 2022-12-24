@@ -168,7 +168,7 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
     // this.feature.excludePrivateAcc();
   }
 
-  public void normalizeTypes() {
+  public void normalizeTypes() throws CompileException {
     this.provider.normalizeTypes();
     this.feature.normalizeTypes();
   }
