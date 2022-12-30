@@ -402,7 +402,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   public int getParamCount() { return (this.tparams != null)? this.tparams.length: -1 ; }
 
   public PTypeSkel getTypeSig() {
-    return (this.sig != null)? this.sig.getSkel(): null;
+    return (this.sig != null)? this.sig.toSkel(): null;
   }
 
   public Module.Availability getAvailability() { return this.availability; }

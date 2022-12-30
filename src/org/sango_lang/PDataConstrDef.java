@@ -184,19 +184,8 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
 
   public PTypeSkel getType(PTypeSkelBindings bindings) {
     PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-    return this.dataType.getSkel().instanciate(ib);
+    return this.dataType.toSkel().instanciate(ib);
   }
-
-  // public void setupScope(PScope scope) {
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (scope == this.outerScope) { return; }
-    // // this.outerScope = scope;
-    // this.scope = scope.enterInner();
-    // this.idResolved = false;
-    // for (int i = 0; i < this.attrs.length; i++) {
-      // this.attrs[i].setupScope(this.scope);
-    // }
-  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
@@ -205,11 +194,9 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   }
 
   public PDataConstrDef resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.attrs.length; i++) {
       this.attrs[i] = this.attrs[i].resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 

@@ -116,22 +116,12 @@ class PRetDef extends PDefaultExprObj {
     }
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.type.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PRetDef resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    // this.idResolved = true;
     return this;
   }
 
@@ -140,7 +130,7 @@ class PRetDef extends PDefaultExprObj {
   }
 
   public void normalizeTypes() {
-    this.nTypeSkel = this.type.normalize();
+    this.nTypeSkel = this.type.getNormalizedSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {

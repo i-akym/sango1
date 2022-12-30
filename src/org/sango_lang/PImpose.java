@@ -46,28 +46,18 @@ class PImpose extends PDefaultExprObj {
     return buf.toString();
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.type.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PImpose resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() throws CompileException {
     StringBuffer emsg;
-    this.nTypeSkel = this.type.normalize();
+    this.nTypeSkel = this.type.getNormalizedSkel();
     if (!(this.nTypeSkel instanceof PTypeRefSkel)) {
       emsg = new StringBuffer();
       emsg.append("Non-concrete imposing at ");

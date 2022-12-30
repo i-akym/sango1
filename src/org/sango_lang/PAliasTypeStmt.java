@@ -323,7 +323,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public Module.Access getAcc() { return this.acc; }
 
-  public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.getSkel().collectTconInfo(list); }
+  public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.toSkel().collectTconInfo(list); }
 
   public PTypeRefSkel getBody() {
     if (this.bodySkel == null) {
@@ -359,7 +359,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   }
 
   void setupBodySkel() {
-    this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.getSkel()).unalias(PTypeSkelBindings.create());
+    this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.toSkel()).unalias(PTypeSkelBindings.create());
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     this.bodySkel.collectTconInfo(tis);
     this.scope.addReferredTcons(tis);

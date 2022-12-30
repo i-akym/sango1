@@ -280,7 +280,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   public void normalizeTypes() throws CompileException {
     this.impl.normalizeTypes();
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    this.impl.getSkel().collectTconInfo(tis);
+    this.impl.toSkel().collectTconInfo(tis);
     this.scope.addReferredTcons(tis);
   }
 

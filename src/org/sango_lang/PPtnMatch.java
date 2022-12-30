@@ -225,16 +225,6 @@ class PPtnMatch extends PDefaultExprObj {
     return ptnMatchList;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // if (this.impose != null) {
-      // this.impose.setupScope(scope);
-    // }
-    // this.ptn.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     if (this.impose != null) {
       this.impose.collectModRefs();
@@ -243,18 +233,16 @@ class PPtnMatch extends PDefaultExprObj {
   }
 
   public PPtnMatch resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     if (this.impose != null) {
       this.impose = this.impose.resolve();
     }
     this.ptn = this.ptn.resolve();
-    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() throws CompileException {
     if (this.impose != null) {
-      this.nTypeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).getSkel();
+      this.nTypeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).getNormalizedSkel();
       this.impose.normalizeTypes();
     }
     this.ptn.normalizeTypes();

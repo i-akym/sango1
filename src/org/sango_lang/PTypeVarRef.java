@@ -50,22 +50,6 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return PTypeId.createVar(elem.getSrcInfo(), scope, id);
   }
 
-  // static PExprId acceptXEvar(ParserB.Elem elem) throws CompileException {
-    // StringBuffer emsg;
-    // if (!elem.getName().equals("var")) { return null; }
-    // String id = elem.getAttrValueAsId("id");
-    // if (id == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Variable name missing at ");
-      // emsg.append(elem.getSrcInfo().toString());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // PExprId v = PExprId.create(elem.getSrcInfo(), null, id);
-    // v.setVar();
-    // return v;
-  // }
-
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("varref[");
@@ -84,16 +68,9 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return PTypeId.create(srcInfo, scope, null, this.def.name, false);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PTypeVarRef resolve() throws CompileException {
-    // this.idResolved = true;
     return this;
   }
 
@@ -107,13 +84,13 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     }
   }
 
-  public PTypeVarSkel normalize() {  // called when top level
-    return (PTypeVarSkel)this.getSkel();
+  public PTypeSkel toSkel() {
+    /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
+    return this.def.toSkel();
   }
 
-  public PTypeSkel getSkel() {
-    /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
-    return this.def.getSkel();
+  public PTypeVarSkel getNormalizedSkel() {  // called when top level
+    return (PTypeVarSkel)this.toSkel();
   }
 
   public PTypeSkel getFixedType() { return this.def.getFixedType(); }
