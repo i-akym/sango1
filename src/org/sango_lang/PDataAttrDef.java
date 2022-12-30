@@ -168,7 +168,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   }
 
   public void normalizeTypes() {
-    this.nTypeSkel = this.type.normalize();
+    this.nTypeSkel = this.type.getNormalizedSkel();
   }
 
   public void checkConcreteness() throws CompileException {

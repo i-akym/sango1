@@ -84,20 +84,14 @@ class PChar extends PDefaultExprObj {
     return create(elem.getSrcInfo(), outerScope, c);
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PChar resolve() throws CompileException {
-    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "char").getSkel();
+    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "char").getNormalizedSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {

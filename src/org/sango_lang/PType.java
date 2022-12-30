@@ -46,9 +46,9 @@ interface PType extends PProgObj {
 
   void excludePrivateAcc() throws CompileException;
 
-  PTypeSkel getSkel();
+  PTypeSkel toSkel();
 
-  PTypeSkel normalize();
+  PTypeSkel getNormalizedSkel();
 
   static final int INHIBIT_REQUIRE_CONCRETE = 0;
   static final int ALLOW_REQUIRE_CONCRETE = 1;
@@ -386,11 +386,9 @@ interface PType extends PProgObj {
         PTypeVarDef v;
         if ((v = this.scope.lookupTVar(this.id.name)) != null) {
           t = PTypeVarRef.create(this.id.srcInfo, this.id.scope, v);
-          // t.setupScope(this.scope);
           t = t.resolve();
         } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
           t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
-          // t.setupScope(this.scope);
           t = t.resolve();
         } else {
           emsg = new StringBuffer();
@@ -403,7 +401,6 @@ interface PType extends PProgObj {
         }
       } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
         t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
-        // t.setupScope(this.scope);
         t = t.resolve();
       } else {
         emsg = new StringBuffer();
@@ -414,7 +411,6 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      // this.idResolved = true;
       return t;
     }
 
@@ -430,12 +426,12 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#normalizeTypes is called.");
     }
 
-    public PTypeSkel normalize() {
-      throw new RuntimeException("Undet#normalize is called.");
+    public PTypeSkel toSkel() {
+      throw new RuntimeException("Undet#toSkel is called.");
     }
 
-    public PTypeSkel getSkel() {
-      throw new RuntimeException("Undet#getSkel is called.");
+    public PTypeSkel getNormalizedSkel() {
+      throw new RuntimeException("Undet#getNormalizedSkel is called.");
     }
 
     public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {

@@ -94,20 +94,14 @@ class PInt extends PDefaultExprObj {
     return create(elem.getSrcInfo(), outerScope, i);
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PInt resolve() throws CompileException {
-    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "int").getSkel();
+    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "int").getNormalizedSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {

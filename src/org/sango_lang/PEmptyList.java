@@ -46,33 +46,20 @@ class PEmptyList extends PList {
     return create(elem.getSrcInfo(), outerScope);
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PEmptyList resolve() throws CompileException {
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() {
-    // this.nTypeSkel = this.scope.getEmptyListType(this.srcInfo).getSkel();
-  }
+  public void normalizeTypes() {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.typeGraphNode = graph.createEmptyListNode(this);
-    // this.typeGraphNode = graph.createDetNode(this);
     return this.typeGraphNode;
   }
 
   public GFlow.Node setupFlow(GFlow flow) {
     return flow.createNodeForEmptyListBody(this.srcInfo);
-    // GFlow.SeqNode n = flow.createNodeForEmptyList(this.srcInfo);
-    // n.addChild(flow.createNodeForNewTvar(this.srcInfo, this.typeGraphNode.getNewvarList().get(0), this.scope));
-    // n.addChild(flow.createNodeForEmptyListBody(this.srcInfo));
-    // return n;
   }
 }

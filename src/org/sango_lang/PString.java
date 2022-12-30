@@ -110,28 +110,19 @@ class PString extends PDefaultExprObj {
     return create(si, outerScope, true, PExprList.Elems.create(si, outerScope, es));
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.elems.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.elems.collectModRefs();
   }
 
   public PString resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.elems = this.elems.resolve();
-    // this.idResolved = true;
     return this;
   }
 
   public void normalizeTypes() throws CompileException {
     this.elems.normalizeTypes();
     if (this.isFromCstr) {
-      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getSkel();
+      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getNormalizedSkel();
     }
   }
 

@@ -212,12 +212,21 @@ class PTypeRef extends PDefaultProgObj implements PType {
     throw new RuntimeException("PTypeRef#normalizeTypes should not be called.");
   }
 
-  public PTypeSkel normalize() {
+  public PTypeSkel toSkel() {
+    PTypeSkel t;
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].toSkel();
+    }
+    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+  }
+
+  public PTypeSkel getNormalizedSkel() {
     PTypeSkel t;
     PAliasTypeDef a;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].normalize();
+      ps[i] = this.params[i].getNormalizedSkel();
     }
     if ((a = this.tconInfo.props.defGetter.getAliasTypeDef()) != null) {
       t = a.unalias(ps);
@@ -225,14 +234,5 @@ class PTypeRef extends PDefaultProgObj implements PType {
       t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
     }
     return t;
-  }
-
-  public PTypeSkel getSkel() {
-    PTypeSkel t;
-    PTypeSkel[] ps = new PTypeSkel[this.params.length];
-    for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].getSkel();
-    }
-    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
   }
 }

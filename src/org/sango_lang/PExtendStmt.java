@@ -350,7 +350,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   public int getParamCount() { return this.tparams.length; }
 
   public PTypeRefSkel getTypeSig() {
-    return (PTypeRefSkel)this.sig.getSkel();
+    return (PTypeRefSkel)this.sig.toSkel();
   }
 
   public Module.Availability getAvailability() { return this.availability; }

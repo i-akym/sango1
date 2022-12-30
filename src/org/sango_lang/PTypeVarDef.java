@@ -192,16 +192,20 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new RuntimeException("Feature not implemented in PTypeVarDef.");
     }
     if (this.constraint != null) {
-      this.nConstraint = this.constraint.normalize();
+      this.nConstraint = this.constraint.getNormalizedSkel();
     }
     this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
   }
 
-  public PTypeVarSkel normalize() {
-    return (PTypeVarSkel)this.getSkel();
+  public PTypeVarSkel toSkel() {
+    if (this.features != null) {
+      throw new RuntimeException("Feature not implemented in PTypeVarDef.");
+    }
+    PTypeRefSkel c = (this.constraint != null)? (PTypeRefSkel)this.constraint.toSkel(): null;
+    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, c);
   }
 
-  public PTypeVarSkel getSkel() {
+  public PTypeVarSkel getNormalizedSkel() {
     if (this.nTypeSkel == null) {
       this.normalizeTypes();
     }

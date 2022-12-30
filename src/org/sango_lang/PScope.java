@@ -322,12 +322,12 @@ class PScope {
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
     PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
-    return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).getSkel();
+    return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).getNormalizedSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
     PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
-    return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).getSkel();
+    return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).getNormalizedSkel();
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
