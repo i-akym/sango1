@@ -82,6 +82,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     v.name = this.name;
     // v.varSlot = this.varSlot;  // not copied
     switch (varianceOpt) {
+    case PType.COPY_VARIANCE_CUT:
+      v.variance = Module.NO_VARIANCE;
+      break;
     case PType.COPY_VARIANCE_INVARIANT:
       v.variance = Module.INVARIANT;
       break;
