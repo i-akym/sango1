@@ -316,7 +316,7 @@ class PScope {
   }
 
   PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, Module.Variance variance) {
-    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null);
+    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null, null);
     return v;
   }
 

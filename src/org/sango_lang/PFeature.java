@@ -178,10 +178,17 @@ public class PFeature extends PDefaultProgObj {
       if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
       ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
       PFeature f;
-      while ((f = acceptDesc(reader, scope)) != null) {
-        builder.addFeature(f);
+      int state = 0;
+      while (state >= 0) {
+        if (state == 0 && (f = acceptDesc(reader, scope)) != null) {
+          builder.addFeature(f);
+          state = 1;
+        } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
+          state = 0;
+        } else {
+          state = -1;
+        }
       }
-
       if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
         emsg.append("] missing at ");
