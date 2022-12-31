@@ -893,7 +893,7 @@ class PModule implements PDefDict {
         if (fs.impl.params[j] instanceof PType.Undet) {  // var ref or type ref w/o params
           PType.Undet u = (PType.Undet)fs.impl.params[j];
           if (vs.contains(u.id.name)) {
-            p = PTypeVarDef.create(si, constrScope, u.id.name, Module.NO_VARIANCE, false, null);  // ok?
+            p = PTypeVarDef.create(si, constrScope, u.id.name, Module.NO_VARIANCE, false, null, null);  // ok?
           } else {
             emsg = new StringBuffer();
             emsg.append("Invalid feature implementation type paramter at ");
@@ -936,7 +936,7 @@ class PModule implements PDefDict {
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PScope defScope = evalStmtBuilder.getDefScope();
     PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
-    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", Module.NO_VARIANCE, false, null));
+    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", Module.NO_VARIANCE, false, null, null));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param1TypeBuilder.create(), "X"));
     PType.Builder param2TypeBuilder = PType.Builder.newInstance(si, defScope);
     param2TypeBuilder.addItem(PTypeId.create(si, defScope, MOD_ID_LANG, "cstr", false));

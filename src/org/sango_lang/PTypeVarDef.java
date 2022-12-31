@@ -38,11 +38,13 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     super(srcInfo, scope);
   }
 
-  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope, String name, Module.Variance variance, boolean requiresConcrete, PTypeRef constraint) {
+  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope,
+      String name, Module.Variance variance, boolean requiresConcrete, PFeature.List features, PTypeRef constraint) {
     PTypeVarDef var = new PTypeVarDef(srcInfo, scope);
     var.name = name;
     var.variance = variance;
     var.requiresConcrete = requiresConcrete;
+    var.features = features;
     var.constraint = constraint;
     return var;
   }
@@ -139,7 +141,8 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, scope, varId.value.token, variance, requiresConcrete, null);
+    PFeature.List fs = PFeature.List.accept(reader, scope);
+    return create(si, scope, varId.value.token, variance, requiresConcrete, fs, null);
   }
 
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
@@ -153,7 +156,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), scope, id, Module.INVARIANT, false, null);  // HERE
+    return create(elem.getSrcInfo(), scope, id, Module.INVARIANT, false, null, null);  // HERE
   }
 
   public void collectModRefs() throws CompileException {
