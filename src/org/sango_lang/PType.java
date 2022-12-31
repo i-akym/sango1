@@ -35,9 +35,10 @@ interface PType extends PProgObj {
   static final int COPY_EXT_OFF = 0;
   static final int COPY_EXT_ON = 1;
   static final int COPY_VARIANCE_KEEP = -1;
-  static final int COPY_VARIANCE_INVARIANT = 0;
-  static final int COPY_VARIANCE_COVARIANT = 1;
-  static final int COPY_VARIANCE_CONTRAVARIANT = 2;
+  static final int COPY_VARIANCE_CUT = 0;
+  static final int COPY_VARIANCE_INVARIANT = 1;
+  static final int COPY_VARIANCE_COVARIANT = 2;
+  static final int COPY_VARIANCE_CONTRAVARIANT = 3;
   static final int COPY_CONCRETE_KEEP = -1;
   static final int COPY_CONCRETE_OFF = 0;
   static final int COPY_CONCRETE_ON = 1;
