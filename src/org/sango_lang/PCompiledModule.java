@@ -73,7 +73,7 @@ class PCompiledModule implements PDefDict {
         if (dds[j].params != null) {
           paramPropss = new PDefDict.TparamProps[dds[j].params.length];
           for (int k = 0; k < dds[j].params.length; k++) {
-            paramPropss[k] = PDefDict.TparamProps.create(dds[j].params[k].variance, dds[j].params[k].requiresConcrete);
+            paramPropss[k] = PDefDict.TparamProps.create(dds[j].params[k].variance, dds[j].params[k].var.requiresConcrete);
           }
         } else {
           paramPropss = null;
@@ -110,7 +110,7 @@ class PCompiledModule implements PDefDict {
       if (mdd.params != null) {
         paramPropss = new PDefDict.TparamProps[mdd.params.length];
         for (int k = 0; k < mdd.params.length; k++) {
-          paramPropss[k] = PDefDict.TparamProps.create(mdd.params[k].variance, mdd.params[k].requiresConcrete);
+          paramPropss[k] = PDefDict.TparamProps.create(mdd.params[k].variance, mdd.params[k].var.requiresConcrete);
         }
       } else {
         paramPropss = null;
@@ -245,9 +245,11 @@ class PCompiledModule implements PDefDict {
     dd.sigTcon = dataDef.tcon;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     if (dataDef.params != null) {
+      dd.paramVariances = new Module.Variance[dataDef.params.length];
       dd.sigParams = new PTypeVarSkel[dataDef.params.length];
       for (int i = 0; i < dataDef.params.length; i++) {
-        PTypeVarSkel v = (PTypeVarSkel)convertType(dataDef.params[i], mod, varList, unresolvedTypeRefList);
+        dd.paramVariances[i] = dataDef.params[i].variance;
+        PTypeVarSkel v = (PTypeVarSkel)convertType(dataDef.params[i].var, mod, varList, unresolvedTypeRefList);
         // PTypeVarSkel v = PTypeVarSkel.create(null, null,
           // PTypeVarSlot.createInternal(dataDef.params[i].variance, dataDef.params[i].requiresConcrete),
           // XXX);
@@ -273,6 +275,7 @@ class PCompiledModule implements PDefDict {
     Module.Availability availability;
     PTypeSkel sig;  // lazy setup
     String sigTcon;
+    Module.Variance[] paramVariances;
     PTypeVarSkel[] sigParams;
     Module.Access acc;
     List<String> constrList;
@@ -300,6 +303,8 @@ class PCompiledModule implements PDefDict {
       }
       return this.sig;
     }
+
+    public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public Module.Availability getAvailability() { return this.availability; }
 
@@ -338,7 +343,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(Module.INVARIANT, false), null);
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(/* Module.INVARIANT, */ false), null);
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList);
@@ -596,7 +601,7 @@ class PCompiledModule implements PDefDict {
       v = varList.get(tv.slot);
 // /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(tv.variance, tv.requiresConcrete), null);
+      v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(/* tv.variance, */ tv.requiresConcrete), null);
       varList.add(v);
       if (tv.constraint != null) {
         v.constraint = (PTypeRefSkel)convertType(tv.constraint, mod, varList, unresolvedTypeRefList);

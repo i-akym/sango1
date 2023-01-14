@@ -63,7 +63,7 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+  public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
     // rollback to PTypeId
     return PTypeId.create(srcInfo, scope, null, this.def.name, false);
   }

@@ -31,6 +31,8 @@ public interface PDataDef {
 
   PTypeSkel getTypeSig();
 
+  Module.Variance getParamVarianceAt(int pos);
+
   Module.Availability getAvailability();
 
   Module.Access getAcc();

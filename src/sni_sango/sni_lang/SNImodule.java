@@ -416,7 +416,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(Module.INVARIANT, false), null);  // HERE
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(/* Module.INVARIANT, */ false), null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
@@ -476,7 +476,8 @@ public class SNImodule {
           PDefDict.DataDefGetter ddg = new DataDefGetter(this);
           PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
           for (int i = 0; i < this.sigParams.length; i++) {
-            paramPropss[i] = PDefDict.TparamProps.create(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
+            paramPropss[i] = PDefDict.TparamProps.create(this.getParamVarianceAt(i), this.sigParams[i].isConcrete());
+            // paramPropss[i] = PDefDict.TparamProps.create(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
           }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
             (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
@@ -486,6 +487,10 @@ public class SNImodule {
         }
       }
       return this.sig;
+    }
+
+    public Module.Variance getParamVarianceAt(int pos) {
+      throw new RuntimeException("getParamVariance not implemtented.");
     }
 
     public Module.Availability getAvailability() { return this.availability; }

@@ -601,7 +601,7 @@ class PModule implements PDefDict {
     if (dat.tparams != null) {
       paramPropss = new PDefDict.TparamProps[dat.tparams.length];
       for (int i = 0; i < dat.tparams.length; i++) {
-        paramPropss[i] = PDefDict.TparamProps.create(dat.tparams[i].variance, dat.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(dat.tparams[i].variance, dat.tparams[i].varDef.requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -656,7 +656,7 @@ class PModule implements PDefDict {
     if (ext.tparams != null) {
       paramPropss = new PDefDict.TparamProps[ext.tparams.length];
       for (int i = 0; i < ext.tparams.length; i++) {
-        paramPropss[i] = PDefDict.TparamProps.create(ext.tparams[i].variance, ext.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(ext.tparams[i].variance, ext.tparams[i].varDef.requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -705,7 +705,7 @@ class PModule implements PDefDict {
     if (alias.tparams != null) {
       paramPropss = new PDefDict.TparamProps[alias.tparams.length];
       for (int i = 0; i < alias.tparams.length; i++) {
-        paramPropss[i] = PDefDict.TparamProps.create(alias.tparams[i].variance, alias.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(Module.NO_VARIANCE /* old: alias.tparams[i].variance */ , alias.tparams[i].requiresConcrete);
           // actually (invariant, false)
       }
     } else {
@@ -829,7 +829,7 @@ class PModule implements PDefDict {
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     retTypeBuilder.addItem(eval.retDef.type.deepCopy(
-      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_CUT, PType.COPY_CONCRETE_OFF));
+      si, retScope, PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
@@ -870,9 +870,10 @@ class PModule implements PDefDict {
     PScope defScope = dataStmtBuilder.getDefScope();
     dataStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
     // dataStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
-    sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_", false));
-    dataStmtBuilder.setSig(sigBuilder.create());
+    dataStmtBuilder.setTcon(PTypeId.create(si, defScope, null, "_feature_", false));
+    // PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
+    // sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_", false));
+    // dataStmtBuilder.setSig(sigBuilder.create());
 
     for (int i = 0; i < this.featureStmtList.size(); i++) {
       PFeatureStmt fs = this.featureStmtList.get(i);
@@ -893,7 +894,7 @@ class PModule implements PDefDict {
         if (fs.impl.params[j] instanceof PType.Undet) {  // var ref or type ref w/o params
           PType.Undet u = (PType.Undet)fs.impl.params[j];
           if (vs.contains(u.id.name)) {
-            p = PTypeVarDef.create(si, constrScope, u.id.name, Module.NO_VARIANCE, false, null, null);  // ok?
+            p = PTypeVarDef.create(si, constrScope, u.id.name, /* Module.NO_VARIANCE, */ false, null, null);  // ok?
           } else {
             emsg = new StringBuffer();
             emsg.append("Invalid feature implementation type paramter at ");
@@ -936,7 +937,7 @@ class PModule implements PDefDict {
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PScope defScope = evalStmtBuilder.getDefScope();
     PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
-    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", Module.NO_VARIANCE, false, null, null));
+    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", /* Module.NO_VARIANCE, */ false, null, null));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param1TypeBuilder.create(), "X"));
     PType.Builder param2TypeBuilder = PType.Builder.newInstance(si, defScope);
     param2TypeBuilder.addItem(PTypeId.create(si, defScope, MOD_ID_LANG, "cstr", false));
@@ -1635,6 +1636,8 @@ class PModule implements PDefDict {
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
+
+    public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
 
     public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
 
