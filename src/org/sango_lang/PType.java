@@ -30,15 +30,15 @@ import java.util.List;
 interface PType extends PProgObj {
   PType resolve() throws CompileException;
 
-  PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt);
+  PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt);
   static final int COPY_EXT_KEEP = -1;
   static final int COPY_EXT_OFF = 0;
   static final int COPY_EXT_ON = 1;
-  static final int COPY_VARIANCE_KEEP = -1;
-  static final int COPY_VARIANCE_CUT = 0;
-  static final int COPY_VARIANCE_INVARIANT = 1;
-  static final int COPY_VARIANCE_COVARIANT = 2;
-  static final int COPY_VARIANCE_CONTRAVARIANT = 3;
+  // static final int COPY_VARIANCE_KEEP = -1;
+  // static final int COPY_VARIANCE_CUT = 0;
+  // static final int COPY_VARIANCE_INVARIANT = 1;
+  // static final int COPY_VARIANCE_COVARIANT = 2;
+  // static final int COPY_VARIANCE_CONTRAVARIANT = 3;
   static final int COPY_CONCRETE_KEEP = -1;
   static final int COPY_CONCRETE_OFF = 0;
   static final int COPY_CONCRETE_ON = 1;
@@ -242,7 +242,7 @@ interface PType extends PProgObj {
   }
 
   static PTypeRef acceptSig(ParserA.TokenReader reader, PScope scope,
-    boolean varianceAllowed, Option.Set<Parser.QualState> qual) throws CompileException, IOException {
+    /* boolean varianceAllowed, */ Option.Set<Parser.QualState> qual) throws CompileException, IOException {
     StringBuffer emsg;
     PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (t instanceof Undet) {
@@ -273,13 +273,13 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!varianceAllowed && v.variance != Module.NO_VARIANCE) {
-        emsg = new StringBuffer();
-        emsg.append("Variance not allowed at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      // if (!varianceAllowed && v.variance != Module.NO_VARIANCE) {
+        // emsg = new StringBuffer();
+        // emsg.append("Variance not allowed at ");
+        // emsg.append(sig.params[i].getSrcInfo());
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
     }
     if (!qual.contains(Parser.WITH_QUAL) && sig.modId != null) {
       emsg = new StringBuffer();
@@ -435,7 +435,7 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#getNormalizedSkel is called.");
     }
 
-    public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+    public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
       boolean ext;
       if (extOpt == COPY_EXT_KEEP) {
         ext = this.id.ext;
@@ -484,13 +484,9 @@ interface PType extends PProgObj {
       return buf.toString();
     }
 
-    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
       throw new RuntimeException("Bound#deepCopy is called.");
     }
-
-    // public void setupScope(PScope scope) {
-      // throw new RuntimeException("Bound#setupScope is called.");
-    // }
 
     public void collectModRefs() throws CompileException {
       throw new RuntimeException("Bound#collectModRefs is called.");

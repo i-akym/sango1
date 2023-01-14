@@ -61,7 +61,7 @@ public class PTypeRefSkel implements PTypeSkel {
     Module.Variance[] vv = this.paramVariances();
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
-        PTypeVarSlot s = PTypeVarSlot.createInternal(vv[i], var.varSlot.requiresConcrete);
+        PTypeVarSlot s = PTypeVarSlot.createInternal(/* vv[i], */ var.varSlot.requiresConcrete);
         v = PTypeVarSkel.create(this.srcInfo, null, s, null);  // constraint == null ok?
       t.params[i] = v;
     }
@@ -158,9 +158,10 @@ public class PTypeRefSkel implements PTypeSkel {
       vv[this.params.length - 1] = Module.COVARIANT;
     } else {
       PDataDef dd = this.tconInfo.props.defGetter.getDataDef();
-      PTypeRefSkel tr = (PTypeRefSkel)dd.getTypeSig();
+      // PTypeRefSkel tr = (PTypeRefSkel)dd.getTypeSig();
       for (int i = 0; i < this.params.length; i++) {
-        vv[i] = tr.params[i].getVarSlot().variance;
+        vv[i] = dd.getParamVarianceAt(i);
+        // vv[i] = tr.params[i].getVarSlot().variance;
       }
     }
     return vv;
@@ -206,12 +207,12 @@ public class PTypeRefSkel implements PTypeSkel {
     return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
   }
 
-  public void checkVariance(int width) throws CompileException {
-    int[] ww = paramWidths(width, this.paramVariances());
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].checkVariance(ww[i]);
-    }
-  }
+  // public void checkVariance(int width) throws CompileException {
+    // int[] ww = paramWidths(width, this.paramVariances());
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].checkVariance(ww[i]);
+    // }
+  // }
 
   public boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
     return (this.getCat() == PTypeSkel.CAT_BOTTOM)?

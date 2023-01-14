@@ -482,10 +482,10 @@ public class Module {
       if (isIgnorable(n)) {
         ;
       } else if (state == 0 & n.getNodeName().equals(TAG_PARAMS)) {  // appears first if any
-        internalizeParams(n, builder);
+        internalizeDataDefParams(n, builder);
         state = 1;
       } else if (n.getNodeName().equals(TAG_CONSTR)) {
-        internalizeConstr(n, builder);
+        internalizeDataDefConstr(n, builder);
         state = 1;
       } else {
         throw new FormatException("Unknown element under '" + TAG_DATA_DEF + "' element: " + n.getNodeName());
@@ -495,14 +495,29 @@ public class Module {
     builder.endDataDef();
   }
 
-  static void internalizeParams(Node node, Builder builder) throws FormatException {
+  static void internalizeDataDefParams(Node node, Builder builder) throws FormatException {
     Node n = node.getFirstChild();
     MTypeVar v;
     while (n != null) {
       if (isIgnorable(n)) {
         ;
       } else if ((v = MTypeVar.internalize(n)) != null) {
-        builder.putDataDefParam(v);
+        NamedNodeMap attrs = n.getAttributes();
+        Module.Variance variance = Module.NO_VARIANCE;
+        Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
+        if (aVariance != null) {
+          String sVariance = aVariance.getNodeValue();
+          if (sVariance.equals(Module.REPR_INVARIANT)) {
+            variance = Module.INVARIANT;
+          } else if (sVariance.equals(Module.REPR_COVARIANT)) {
+            variance = Module.COVARIANT;
+          } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
+            variance = Module.COVARIANT;
+          } else {
+            throw new FormatException("Invalid 'variance': " + sVariance);
+          }
+        }
+        builder.putDataDefParam(MDataDef.Param.create(variance, v));
       } else {
         throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
       }
@@ -510,7 +525,7 @@ public class Module {
     }
   }
 
-  static void internalizeConstr(Node node, Builder builder) throws FormatException {
+  static void internalizeDataDefConstr(Node node, Builder builder) throws FormatException {
     NamedNodeMap attrs = node.getAttributes();
     Node aDcon = attrs.getNamedItem(ATTR_DCON);
     if (aDcon == null) {
@@ -1485,8 +1500,8 @@ public class Module {
       this.dataDefBuilder.setBaseTcon(baseTcon);
     }
 
-    void putDataDefParam(MTypeVar v) {
-      this.dataDefBuilder.addParam(v);
+    void putDataDefParam(MDataDef.Param p) {
+      this.dataDefBuilder.addParam(p);
     }
 
     void endDataDef() {

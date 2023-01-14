@@ -32,7 +32,7 @@ public class MDataDef implements Module.Elem {
   String tcon;
   Module.Availability availability;
   Module.Access acc;
-  MTypeVar[] params;
+  Param[] params;
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
   String baseTcon;
   MConstrDef[] constrs;
@@ -41,7 +41,7 @@ public class MDataDef implements Module.Elem {
 
   static class Builder {
     MDataDef dataDef;
-    List<MTypeVar> paramList;
+    List<Param> paramList;
     List<MConstrDef> constrList;
 
     static Builder newInstance() {
@@ -55,7 +55,7 @@ public class MDataDef implements Module.Elem {
     }
 
     void prepareForParams() {
-      this.paramList = new ArrayList<MTypeVar>();
+      this.paramList = new ArrayList<Param>();
     }
 
     void setTcon(String tcon) {
@@ -70,10 +70,7 @@ public class MDataDef implements Module.Elem {
       this.dataDef.acc = acc;
     }
 
-    void addParam(MTypeVar param) {
-      if (param.variance == null) {  // for module file compatibility
-        param.variance = Module.INVARIANT;
-      }
+    void addParam(Param param) {
       this.paramList.add(param);
     }
 
@@ -92,10 +89,22 @@ public class MDataDef implements Module.Elem {
 
     MDataDef create() {
       this.dataDef.params = (this.paramList != null)?
-        this.paramList.toArray(new MTypeVar[this.paramList.size()]):
+        this.paramList.toArray(new Param[this.paramList.size()]):
         null;
       this.dataDef.constrs = this.constrList.toArray(new MConstrDef[this.constrList.size()]);
       return this.dataDef;
+    }
+  }
+
+  public static class Param {
+    Module.Variance variance;
+    MTypeVar var;
+
+    static Param create(Module.Variance variance, MTypeVar var) {
+      Param p = new Param();
+      p.variance = variance;
+      p.var = var;
+      return p;
     }
   }
 
@@ -118,7 +127,15 @@ public class MDataDef implements Module.Elem {
     if (this.params.length > 0) {
       Element paramsNode = doc.createElement(Module.TAG_PARAMS);
       for (int i = 0; i < this.params.length; i++) {
-        paramsNode.appendChild(this.params[i].externalize(doc));
+        Element paramNode = this.params[i].var.externalize(doc);
+        if (this.params[i].variance == Module.INVARIANT) {
+          ;  // nothing added
+        } else if (this.params[i].variance == Module.COVARIANT) {
+          paramNode.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
+        } else if (this.params[i].variance == Module.CONTRAVARIANT) {
+          paramNode.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
+        }  // if no variance, nothing added
+        paramsNode.appendChild(paramNode);
       }
       dataDefNode.appendChild(paramsNode);
     }

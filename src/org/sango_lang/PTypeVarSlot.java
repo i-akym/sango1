@@ -27,30 +27,30 @@ public class PTypeVarSlot {
   static int idValue = 0;
 
   int id;
-  Module.Variance variance;
+  // Module.Variance variance;
   boolean requiresConcrete;
 
   private PTypeVarSlot() {}
 
   static PTypeVarSlot create(PTypeVarDef varDef) {
-    return createInternal(varDef.variance, varDef.requiresConcrete);
+    return createInternal(/* varDef.variance, */ varDef.requiresConcrete);
   }
 
-  public static PTypeVarSlot createInternal(Module.Variance variance, boolean requiresConcrete) {
+  public static PTypeVarSlot createInternal(/* Module.Variance variance, */ boolean requiresConcrete) {
     PTypeVarSlot s = new PTypeVarSlot();
     s.id = idValue++;
-    s.variance = variance;
+    // s.variance = variance;
     s.requiresConcrete = requiresConcrete;
     return s;
   }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
-    if (this.variance == Module.COVARIANT) {
-      buf.append("+");
-    } else if (this.variance == Module.CONTRAVARIANT) {
-      buf.append("-");
-    }
+    // if (this.variance == Module.COVARIANT) {
+      // buf.append("+");
+    // } else if (this.variance == Module.CONTRAVARIANT) {
+      // buf.append("-");
+    // }
     buf.append("$");
     buf.append(this.id);
     if (this.requiresConcrete) {
@@ -61,11 +61,11 @@ public class PTypeVarSlot {
 
   String repr() {
     StringBuffer buf = new StringBuffer();
-    if (this.variance == Module.COVARIANT) {
-      buf.append("+");
-    } else if (this.variance == Module.CONTRAVARIANT) {
-      buf.append("-");
-    }
+    // if (this.variance == Module.COVARIANT) {
+      // buf.append("+");
+    // } else if (this.variance == Module.CONTRAVARIANT) {
+      // buf.append("-");
+    // }
     buf.append("$");
     buf.append(this.id);
     if (this.requiresConcrete) {

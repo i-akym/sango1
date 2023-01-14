@@ -121,7 +121,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     PScope scope = builder.getScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
-    if ((tsig = PType.acceptSig(reader, scope, false, Parser.QUAL_INHIBITED)) == null) {
+    if ((tsig = PType.acceptSig(reader, scope, /* false, */ Parser.QUAL_INHIBITED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());

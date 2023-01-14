@@ -315,18 +315,18 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
-  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, Module.Variance variance) {
-    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null, null);
+  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo /* , Module.Variance variance */) {
+    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), /* variance, */ false, null, null);
     return v;
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
+    PTypeVarDef nv = this.getNewTVar(srcInfo /* , Module.INVARIANT */ );
     return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).getNormalizedSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
+    PTypeVarDef nv = this.getNewTVar(srcInfo /* , Module.INVARIANT */);
     return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).getNormalizedSkel();
   }
 

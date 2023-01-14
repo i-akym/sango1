@@ -2167,17 +2167,17 @@ eval &lt;t&gt; *X t_to_int -&gt; &lt;int&gt; {
 <code>&lt;A list&gt;</code> の<code>A</code>は共変であり，<code>&lt;A B fun&gt;</code> の<code>A</code>は反変，<code>B</code>は共変です。</p>
 
 <p>型パラメタのこの性質を変位(variance)と呼び，プログラマはこれをコンパイラに伝えるため，型定義（<code>data</code>文，<code>extend</code>文）において指定します。
-具体的には，型パラメタ宣言において，共変の場合は「<code>+</code>」，反変の場合には「<code>-</code>」をパラメタ名の前に置きます。
+具体的には，型パラメタ宣言において，共変の場合は「<code>+</code>」，反変の場合には「<code>-</code>」を「<code>*</code>」の前に置きます。
 いずれも付けない場合は非変を表します。</p>
 
-<blockquote class="code-sample"><code>data &lt;*+A *-B *C foo&gt; := ...</code> # <code>A</code>は共変，<code>B</code>は反変，<code>C</code>は非変</blockquote>
+<blockquote class="code-sample"><code>data &lt;+*A -*B *C foo&gt; := ...</code> # <code>A</code>は共変，<code>B</code>は反変，<code>C</code>は非変</blockquote>
 
 <p>型を拡張するとき，それぞれ型パラメタは，基底型のそれと一致しなければなりません。
 なお，クロージャとタプルの型パラメタは，コンパイラによって，次のように扱われます。</p>
 
 <blockquote class="code-sample">疑似定義<code>
-data &lt;*-<var>T<sub>1</sub></var> *-<var>T<sub>2</sub></var> ... *-<var>T<sub>n</sub></var> *+<var>T<sub>out</sub></var> fun&gt;
-data &lt;*+<var>T<sub>1</sub></var> *+<var>T<sub>2</sub></var> ... *+<var>T<sub>n</sub></var> tuple&gt;</code></blockquote>
+data &lt;-*<var>T<sub>1</sub></var> -*<var>T<sub>2</sub></var> ... -*<var>T<sub>n</sub></var> +*<var>T<sub>out</sub></var> fun&gt;
+data &lt;+*<var>T<sub>1</sub></var> +*<var>T<sub>2</sub></var> ... +*<var>T<sub>n</sub></var> tuple&gt;</code></blockquote>
 
 
 <p>■型の大小の判定</p>
@@ -2337,6 +2337,11 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>コレクション（セット，バッグ，マップ，キュー，スタック，ランダム・アクセス・リスト）の実装フレームワークを変更。コレクションのユーザに影響はありません。</li>
 <li><code>&quot;sango.lang&quot;._0</code>～<code>_5</code>を追加</li>
 <li>【Deprecated】<code>&quot;sango.lang&quot;.independent</code>，<code>&quot;sango.lang&quot;.seal_fs</code></li>
+</ul>
+
+<p>■　NEXT VERSION</p>
+<ul>
+<li>【非互換】型パラメタの変位の定義方法を変更</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
