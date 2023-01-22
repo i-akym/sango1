@@ -173,6 +173,21 @@ public class PFeature extends PDefaultProgObj {
     return PFeatureSkel.create(this.srcInfo, this.fname, ps);
   }
 
+  PFeature deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    Builder builder = Builder.newInstance(srcInfo, scope);
+    for (int i = 0; i < this.params.length; i++) {
+      builder.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+    }
+    builder.addItem(this.fname.deepCopy(srcInfo, scope, extOpt, concreteOpt));
+    PFeature f = null;
+    try {
+      f = builder.create();
+    } catch (Exception ex) {
+      throw new RuntimeException("Internal error. " + ex.toString());
+    }
+    return f;
+  }
+
   static class List extends PDefaultProgObj {
     PFeature[] features;  // at least one element
 
@@ -251,6 +266,20 @@ public class PFeature extends PDefaultProgObj {
         fss[i] = this.features[i].getNormalizedSkel();
       }
       return PFeatureSkel.List.create(this.srcInfo, fss);
+    }
+
+    List deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+      ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
+      for (int i = 0; i < this.features.length; i++) {
+        builder.addFeature(this.features[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+      }
+      List L = null;
+      try {
+        L = builder.create();
+      } catch (Exception ex) {
+        throw new RuntimeException("Internal error. " + ex.toString());
+      }
+      return L;
     }
   }
 
