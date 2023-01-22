@@ -162,7 +162,7 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
     PTypeId id = new PTypeId(srcInfo, scope);
     id.catOpt = this.catOpt;
     id.modId = this.modId;
