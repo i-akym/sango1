@@ -440,6 +440,8 @@ class PCompiledModule implements PDefDict {
     public String getName() { return this.name; }
 
     public PTypeSkel getNormalizedType() { return this.type; }
+
+    public PTypeSkel getFixedType() { return this.type; }
   }
 
   FunDef convertFunDef(Module mod, MFunDef funDef, List<PTypeRefSkel> unresolvedTypeRefList) {
@@ -471,7 +473,11 @@ class PCompiledModule implements PDefDict {
 
     public PTypeSkel[] getParamTypes() { return this.paramTypes; }
 
+    public PTypeSkel[] getFixedParamTypes() { return this.paramTypes; }
+
     public PTypeSkel getRetType() { return this.retType; }
+
+    public PTypeSkel getFixedRetType() { return this.retType; }
   }
 
   PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {

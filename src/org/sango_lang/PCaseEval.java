@@ -112,33 +112,23 @@ class PCaseEval extends PDefaultExprObj implements PEval {
     return create(elem.getSrcInfo(), outerScope, obj, builder.create());
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.obj.setupScope(scope);
-    // this.caseBlock.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.obj.collectModRefs();
     this.caseBlock.collectModRefs();
   }
 
   public PCaseEval resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.obj = this.obj.resolve();
     this.caseBlock = this.caseBlock.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.obj.normalizeTypes();
-    this.caseBlock.normalizeTypes();
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.obj.normalizeTypes();
+    // this.caseBlock.normalizeTypes();
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     PTypeGraph.Node on = this.obj.setupTypeGraph(graph);
     PTypeGraph.Node bn = this.caseBlock.setupTypeGraph(graph);
     this.caseBlock.setTypeGraphInNode(on);

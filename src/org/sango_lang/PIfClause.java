@@ -174,51 +174,24 @@ class PIfClause extends PDefaultExprObj {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.outerScope) { return; }
-    // this.outerScope = scope;
-    // this.scope = scope.enterInner();
-    // this.idResolved = false;
-    // this.guard.setupScope(this.scope);
-    // this.action.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.guard.collectModRefs();
     this.action.collectModRefs();
   }
 
   public PIfClause resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.guard = this.guard.resolve();
     this.action = this.action.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.guard.normalizeTypes();
-    this.action.normalizeTypes();
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.guard.normalizeTypes();
+    // this.action.normalizeTypes();
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??
-    // PExpr e = null;
-    // PTypeGraph.Node n = null;
-    // for (int i = 0; i < this.guardExprs.length; i++) {
-      // e = this.guardExprs[i];
-      // if (n == null) {
-        // n = e.setupTypeGraph(graph);
-      // } else {
-        // PTypeGraph.SeqNode s = graph.createSeqNode(e);
-        // s.setLeadingTypeNode(n);
-        // s.setInNode(e.setupTypeGraph(graph));
-        // n = s;
-      // }
-    // }
-    // if (e != null) {
-      // graph.createCondNode(e).setInNode(n);
-    // }
     this.typeGraphNode = graph.createRefNode(this);
     this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
@@ -228,11 +201,6 @@ class PIfClause extends PDefaultExprObj {
     GFlow.BranchNode node = flow.createNodeForIfClause(this.srcInfo);
     GFlow.CondNode cn = flow.createNodeForCond(this.srcInfo);
     cn.addChild(this.guard.setupFlow(flow));
-    // for (int i = 0; i < this.guardExprs.length - 1; i++) {
-      // cn.addChild(this.guardExprs[i].setupFlow(flow));
-      // cn.addChild(flow.createSinkNode(this.guardExprs[i].getSrcInfo()));
-    // }
-    // cn.addChild(this.guardExprs[this.guardExprs.length - 1].setupFlow(flow));
     node.addChild(flow.createTrialNodeInBranch(this.srcInfo, cn, node));
     node.addChild(this.action.setupFlow(flow));
     return node;

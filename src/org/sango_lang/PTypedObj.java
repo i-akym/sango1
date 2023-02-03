@@ -27,11 +27,11 @@ interface PTypedObj extends PProgObj {
 
   PType getType();
 
-  void normalizeTypes() throws CompileException;
+  // void normalizeTypes() throws CompileException;
 
-  PTypeSkel getNormalizedType();
+  PTypeSkel getNormalizedType() throws CompileException;
 
-  PTypeGraph.Node setupTypeGraph(PTypeGraph graph);
+  PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException;
 
   PTypeGraph.Node getTypeGraphNode();
 

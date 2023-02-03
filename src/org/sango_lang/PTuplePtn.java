@@ -126,15 +126,6 @@ class PTuplePtn extends PDefaultExprObj {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.elems.length; i++) {
-      // this.elems[i].setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.elems.length; i++) {
       this.elems[i].collectModRefs();
@@ -142,21 +133,19 @@ class PTuplePtn extends PDefaultExprObj {
   }
 
   public PTuplePtn resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.elems.length; i++) {
       this.elems[i] = this.elems[i].resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.elems.length; i++) {
+      // this.elems[i].normalizeTypes();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createTuplePtnNode(this, this.elems.length);
     for (int i = 0; i < this.elems.length; i++) {
       PTypeGraph.Node en = this.elems[i].setupTypeGraph(graph);

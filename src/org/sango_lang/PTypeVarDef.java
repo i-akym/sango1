@@ -168,7 +168,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void normalizeTypes() {
+  public void normalizeTypes() throws CompileException {
     if (this.features != null) {
       throw new RuntimeException("Feature not implemented in PTypeVarDef.");
     }
@@ -186,7 +186,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, c);
   }
 
-  public PTypeVarSkel getNormalizedSkel() {
+  public PTypeVarSkel getNormalizedSkel() throws CompileException {
     if (this.nTypeSkel == null) {
       this.normalizeTypes();
     }

@@ -87,14 +87,15 @@ class PChar extends PDefaultExprObj {
   public void collectModRefs() throws CompileException {}
 
   public PChar resolve() throws CompileException {
+    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "char").toSkel();
     return this;
   }
 
-  public void normalizeTypes() {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "char").getNormalizedSkel();
-  }
+  // public void normalizeTypes() {
+    // this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "char").getNormalizedSkel();
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDetNode(this);
     return this.typeGraphNode;
   }

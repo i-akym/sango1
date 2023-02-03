@@ -75,11 +75,6 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return PTypeId.create(srcInfo, outerScope, null, this.name, false);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PExprVarRef resolve() throws CompileException {
@@ -90,7 +85,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void normalizeTypes() {
+  public void normalizeTypes() throws CompileException {
     if (this.varSlot.varDef.nTypeSkel == null) {
       this.varSlot.varDef.normalizeTypes();
     }

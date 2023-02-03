@@ -171,7 +171,7 @@ public class SNImodule {
       TaoItem tv = as.get(i);
       // if (PTypeRefSkel.willNotReturn(tv.type)) { ... }  // HERE
       PDataDef.Attr a = c.getAttrAt(i);
-      PTypeSkel at = a.getNormalizedType();
+      PTypeSkel at = a.getFixedType();
       if (!at.accept(PTypeSkel.NARROWER, true, tv.type, bindings)) {
         StringBuffer emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
@@ -220,7 +220,7 @@ public class SNImodule {
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
       PDataDef.Attr a = c.getAttrAt(i);
-      PTypeSkel at = a.getNormalizedType().instanciate(ib);
+      PTypeSkel at = a.getFixedType().instanciate(ib);
       RListItem.Cell lc = helper.createListCellItem();
       lc.head = TaoItem.create(helper, at, s.getFieldAt(i));
       lc.tail = L;

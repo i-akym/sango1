@@ -49,7 +49,7 @@ interface PType extends PProgObj {
 
   PTypeSkel toSkel();
 
-  PTypeSkel getNormalizedSkel();
+  PTypeSkel getNormalizedSkel() throws CompileException;
 
   static final int INHIBIT_REQUIRE_CONCRETE = 0;
   static final int ALLOW_REQUIRE_CONCRETE = 1;

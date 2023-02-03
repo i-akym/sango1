@@ -63,7 +63,9 @@ public interface PDataDef {
   
     String getName();
 
-    PTypeSkel getNormalizedType();
+    PTypeSkel getNormalizedType() throws CompileException;
+
+    PTypeSkel getFixedType();
   
   }
 }
