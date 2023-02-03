@@ -85,29 +85,20 @@ abstract class PEvalItem extends PDefaultExprObj {
       }
     }
 
-    // public void setupScope(PScope scope) {
-      // if (scope == this.scope) { return; }
-      // this.scope = scope;
-      // this.idResolved = false;
-      // this.obj.setupScope(scope);
-    // }
-
     public void collectModRefs() throws CompileException {
       this.obj.collectModRefs();
     }
 
     public ObjItem resolve() throws CompileException {
-      // if (this.idResolved) { return this; }
       this.obj = this.obj.resolve();
-      // this.idResolved = true;
       return this;
     }
 
-    public void normalizeTypes() throws CompileException {
-      this.obj.normalizeTypes();
-    }
+    // public void normalizeTypes() throws CompileException {
+      // this.obj.normalizeTypes();
+    // }
 
-    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
       return this.obj.setupTypeGraph(graph);
     }
 

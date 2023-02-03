@@ -159,13 +159,13 @@ public class PFeature extends PDefaultProgObj {
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].normalizeTypes();
+    // }
+  // }
 
-  PFeatureSkel getNormalizedSkel() {
+  PFeatureSkel getNormalizedSkel() throws CompileException {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].getNormalizedSkel();
@@ -254,13 +254,13 @@ public class PFeature extends PDefaultProgObj {
       return this;
     }
 
-    public void normalizeTypes() throws CompileException {
-      for (int i = 0; i < this.features.length; i++) {
-        this.features[i].normalizeTypes();
-      }
-    }
+    // public void normalizeTypes() throws CompileException {
+      // for (int i = 0; i < this.features.length; i++) {
+        // this.features[i].normalizeTypes();
+      // }
+    // }
 
-    PFeatureSkel.List getNormalizedSkel() {
+    PFeatureSkel.List getNormalizedSkel() throws CompileException {
       PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
       for (int i = 0; i < fss.length; i++) {
         fss[i] = this.features[i].getNormalizedSkel();

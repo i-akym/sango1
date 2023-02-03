@@ -221,7 +221,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
   }
 
-  public PTypeSkel getNormalizedSkel() {
+  public PTypeSkel getNormalizedSkel() throws CompileException {
     PTypeSkel t;
     PAliasTypeDef a;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];

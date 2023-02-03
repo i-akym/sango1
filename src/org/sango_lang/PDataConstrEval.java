@@ -188,22 +188,6 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       PEvalItem.ObjItem.create(using.getSrcInfo(), outerScope, null, using));
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.posdAttrs.length; i++) {
-      // this.posdAttrs[i].setupScope(scope);
-    // }
-    // for (int i = 0; i < this.namedAttrs.length; i++) {
-      // this.namedAttrs[i].setupScope(scope);
-    // }
-    // if (this.using != null) {
-      // this.using.setupScope(scope);
-    // }
-    // this.dcon.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i].collectModRefs();
@@ -218,7 +202,6 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   }
 
   public PDataConstrEval resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
@@ -229,7 +212,6 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       this.using = this.using.resolve();
     }
     this.dcon = (PExprId)this.dcon.resolve();
-    // this.idResolved = true;
     this.breakDown();
     return this;
   }
@@ -451,26 +433,26 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     }
   }
 
-  public void normalizeTypes() throws CompileException {
-    if (this.bdPosd != null) {
-      for (int i = 0; i < this.bdPosd.length; i++) {
-        this.bdPosd[i].normalizeTypes();
-      }
-    }
-    if (this.bdNamed != null) {
-      for (int i = 0; i < this.bdNamed.length; i++) {
-        this.bdNamed[i].normalizeTypes();
-      }
-    }
-    if (this.bdUsing != null) {
-      this.bdUsing.normalizeTypes();
-    }
-    for (int i = 0; i < this.bdAttrs.length; i++) {
-      this.bdAttrs[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // if (this.bdPosd != null) {
+      // for (int i = 0; i < this.bdPosd.length; i++) {
+        // this.bdPosd[i].normalizeTypes();
+      // }
+    // }
+    // if (this.bdNamed != null) {
+      // for (int i = 0; i < this.bdNamed.length; i++) {
+        // this.bdNamed[i].normalizeTypes();
+      // }
+    // }
+    // if (this.bdUsing != null) {
+      // this.bdUsing.normalizeTypes();
+    // }
+    // for (int i = 0; i < this.bdAttrs.length; i++) {
+      // this.bdAttrs[i].normalizeTypes();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.bdPosd != null) {
       for (int i = 0; i < this.bdPosd.length; i++) {
         this.bdPosd[i].setupTypeGraph(graph);

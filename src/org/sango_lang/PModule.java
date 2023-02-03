@@ -1279,15 +1279,27 @@ class PModule implements PDefDict {
     }
   }
 
-  public void normalizeTypes() throws CompileException {
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.dataStmtList.size(); i++) {
+      // this.dataStmtList.get(i).normalizeTypes();
+    // }
+    // for (int i = 0; i < this.extendStmtList.size(); i++) {
+      // this.extendStmtList.get(i).normalizeTypes();
+    // }
+    // for (int i = 0; i < this.evalStmtList.size(); i++) {
+      // this.evalStmtList.get(i).normalizeTypes();
+    // }
+  // }
+
+  void collectTconInfo() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.get(i).normalizeTypes();
+      this.dataStmtList.get(i).collectTconInfo();
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.get(i).normalizeTypes();
+      this.extendStmtList.get(i).collectTconInfo();
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.get(i).normalizeTypes();
+      this.evalStmtList.get(i).collectTconInfo();
     }
   }
 

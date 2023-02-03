@@ -125,14 +125,6 @@ class PIfEval extends PDefaultExprObj implements PEval {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.clauses.length; i++) {
-      // this.clauses[i].setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.clauses.length; i++) {
       this.clauses[i].collectModRefs();
@@ -140,21 +132,19 @@ class PIfEval extends PDefaultExprObj implements PEval {
   }
 
   public PIfEval resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.clauses.length; i++) {
       this.clauses[i] = this.clauses[i].resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.clauses.length; i++) {
+      // this.clauses[i].normalizeTypes();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createJoinNode(this, this.clauses.length);
     for (int i = 0; i < this.clauses.length; i++) {
       ((PTypeGraph.JoinNode)this.typeGraphNode).setBranchNode(i, this.clauses[i].setupTypeGraph(graph));

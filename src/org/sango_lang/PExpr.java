@@ -173,23 +173,21 @@ class PExpr extends PDefaultExprObj implements PEval {
   }
 
   public PExpr resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.eval = this.eval.resolve();
     if (this.ptnMatch != null) {
       this.ptnMatch = this.ptnMatch.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.eval.normalizeTypes();
-    if (this.ptnMatch != null) {
-      this.ptnMatch.normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.eval.normalizeTypes();
+    // if (this.ptnMatch != null) {
+      // this.ptnMatch.normalizeTypes();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = this.eval.setupTypeGraph(graph);
     if (this.ptnMatch != null) {
       this.ptnMatch.setupTypeGraph(graph).setInNode(this.typeGraphNode);

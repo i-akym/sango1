@@ -140,25 +140,16 @@ class PPtnItem extends PDefaultExprObj {
     }
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.elem.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.elem.collectModRefs();
   }
 
   public PPtnItem resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.elem = this.elem.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.elem.normalizeTypes();
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.elem.normalizeTypes();
+  // }
 }

@@ -194,7 +194,7 @@ class Generator {
 
   void generateAttrDef(PDataDef.Attr attrDef, List<PTypeVarSlot> varSlotList) {
     this.modBuilder.startAttrDef(attrDef.getName());
-    this.modBuilder.setAttrType(attrDef.getNormalizedType().toMType(this.parser.mod, varSlotList));
+    this.modBuilder.setAttrType(attrDef.getFixedType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.endAttrDef();
   }
 
@@ -257,12 +257,12 @@ class Generator {
     b.setName(fd.getOfficialName());
     b.setAcc(Module.ACC_PUBLIC);
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
-    PTypeSkel[] pts = fd.getParamTypes();
+    PTypeSkel[] pts = fd.getFixedParamTypes();
     for (int i = 0; i < pts.length; i++) {
 // /* DEBUG */ System.out.print("param "); System.out.println(pts[i]);
       b.addParamType(pts[i].toMType(this.parser.mod, varSlotList));
     }
-    b.setRetType(fd.getRetType().toMType(this.parser.mod, varSlotList));
+    b.setRetType(fd.getFixedRetType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.putFunDef(b.create());
   }
 
@@ -278,7 +278,7 @@ class Generator {
       paramVarSlots[i] = eval.params[i].varSlot;
     }
     if (eval.implExprs != null) {
-      GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getParamTypes());
+      GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getFixedParamTypes());
       GFlow.RootNode root = flow.getTopRoot();
       for (int i = 0; i < eval.implExprs.exprs.length -1; i++) {
         root.addChild(eval.implExprs.exprs[i].setupFlow(flow));
@@ -310,7 +310,7 @@ class Generator {
         this.modBuilder.endClosureImpl();
       }
     } else if (eval.official.equals(Module.FUN_NAME)) {
-      GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getParamTypes());
+      GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getFixedParamTypes());
       GFlow.RootNode root = flow.getTopRoot();
       root.addChild(flow.createNameImplNode(eval.getSrcInfo()));
       flow.prepareAll();
@@ -333,7 +333,7 @@ class Generator {
       this.modBuilder.endClosureImplVMCode();
       this.modBuilder.endClosureImpl();
     } else if (eval.official.equals(Module.FUN_INITD)) {
-      GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getParamTypes());
+      GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getFixedParamTypes());
       GFlow.RootNode root = flow.getTopRoot();
       root.addChild(flow.createInitdImplNode(eval.getSrcInfo()));
       flow.prepareAll();

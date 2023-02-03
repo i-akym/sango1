@@ -94,29 +94,20 @@ class PTuple extends PDefaultExprObj {
     return create(si, outerScope, PExprList.Elems.create(si, outerScope, es));
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.elems.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.elems.collectModRefs();
   }
 
   public PTuple resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.elems = this.elems.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.elems.normalizeTypes();
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.elems.normalizeTypes();
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createTupleNode(this, this.elems.exprs.length);
     for (int i = 0; i < this.elems.exprs.length; i++) {
       ((PTypeGraph.TupleNode)this.typeGraphNode).setElemNode(i, this.elems.exprs[i].setupTypeGraph(graph));

@@ -46,10 +46,6 @@ class PObjEval extends PDefaultExprObj implements PEval {
     return e;
   }
 
-  // public void setupScope(PScope scope) {
-    // this.obj.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.obj.collectModRefs();
   }
@@ -59,11 +55,11 @@ class PObjEval extends PDefaultExprObj implements PEval {
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.obj.normalizeTypes();
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.obj.normalizeTypes();
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     return this.obj.setupTypeGraph(graph);
   }
 

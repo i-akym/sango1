@@ -122,19 +122,21 @@ class PTypeGraph {
 
     PTypeSkel getFixedType() { return this.type; }
 
-    List<PTypeVarSlot> getGivenTvarList() { return this.exprObj.getScope().getGivenTVarList(); }
+    List<PTypeVarSlot> getGivenTvarList() throws CompileException {
+      return this.exprObj.getScope().getGivenTVarList();
+    }
 
     abstract PTypeSkel infer() throws CompileException;
 
     void check() throws CompileException {}
 
-    void collectTconInfo(List<PDefDict.TconInfo> tis) {
+    void collectTconInfo(List<PDefDict.TconInfo> tis) throws CompileException {
       this.type.collectTconInfo(tis);
     }
 
   }
 
-  DetNode createDetNode(PExprObj exprObj) {
+  DetNode createDetNode(PExprObj exprObj) throws CompileException {
       DetNode n = new DetNode(exprObj);
       // exprObj.setFixedType(exprObj.getNormalizedType());
       return n;
@@ -142,9 +144,10 @@ class PTypeGraph {
 
   class DetNode extends Node {
 
-    DetNode(PExprObj exprObj) {
+    DetNode(PExprObj exprObj) throws CompileException {
       super(exprObj);
       this.type = exprObj.getNormalizedType();
+      /* DEBUG */ if (this.type == null) { throw new IllegalArgumentException("Null type. " + exprObj); }
     }
 
     PTypeSkel infer() throws CompileException {
@@ -190,7 +193,7 @@ class PTypeGraph {
     }
   }
 
-  VarNode createVarNode(PExprObj exprObj, String name, int cat) {
+  VarNode createVarNode(PExprObj exprObj, String name, int cat) throws CompileException {
     return new VarNode(exprObj, name, cat);
   }
 
@@ -198,7 +201,7 @@ class PTypeGraph {
     String name;
     int cat;  // PExprVarDef.CAT_xx
 
-    VarNode(PExprObj exprObj, String name, int cat) {
+    VarNode(PExprObj exprObj, String name, int cat) throws CompileException {
       super(exprObj);
       this.name = name;
       this.cat = cat;
@@ -280,13 +283,13 @@ class PTypeGraph {
     }
   }
 
-  RetNode createRetNode(PExprObj exprObj) {
+  RetNode createRetNode(PExprObj exprObj) throws CompileException {
     return new RetNode(exprObj);
   }
 
   class RetNode extends Node {
 
-    RetNode(PExprObj exprObj) {
+    RetNode(PExprObj exprObj) throws CompileException {
       super(exprObj);
       this.type = exprObj.getNormalizedType();
     }
@@ -492,7 +495,7 @@ class PTypeGraph {
       return rt.instanciate(ib);
     }
 
-    void collectTconInfo(List<PDefDict.TconInfo> tis) {
+    void collectTconInfo(List<PDefDict.TconInfo> tis) throws CompileException {
 // /* DEBUG */ System.out.print("G "); System.out.println(this.funDef.getOfficialName());
       super.collectTconInfo(tis);
       PTypeSkel[] pts = this.funDef.getParamTypes();

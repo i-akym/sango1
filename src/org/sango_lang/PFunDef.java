@@ -31,8 +31,12 @@ interface PFunDef {
 
   Module.Availability getAvailability();
 
-  PTypeSkel[] getParamTypes();
+  PTypeSkel[] getParamTypes() throws CompileException;
 
-  PTypeSkel getRetType();
+  PTypeSkel[] getFixedParamTypes();
+
+  PTypeSkel getRetType() throws CompileException;
+
+  PTypeSkel getFixedRetType();
 
 }

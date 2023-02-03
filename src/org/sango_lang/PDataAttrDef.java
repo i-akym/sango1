@@ -167,7 +167,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     this.type.excludePrivateAcc();
   }
 
-  public void normalizeTypes() {
+  public void normalizeTypes() throws CompileException {
     this.nTypeSkel = this.type.getNormalizedSkel();
   }
 

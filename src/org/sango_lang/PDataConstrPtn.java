@@ -173,19 +173,6 @@ class PDataConstrPtn extends PDefaultExprObj {
       wildCards);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.posdAttrs.length; i++) {
-      // this.posdAttrs[i].setupScope(scope);
-    // }
-    // for (int i = 0; i < this.namedAttrs.length; i++) {
-      // this.namedAttrs[i].setupScope(scope);
-    // }
-    // this.dcon.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i].collectModRefs();
@@ -197,7 +184,6 @@ class PDataConstrPtn extends PDefaultExprObj {
   }
 
   public PDataConstrPtn resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
@@ -205,7 +191,6 @@ class PDataConstrPtn extends PDefaultExprObj {
       this.namedAttrs[i] = this.namedAttrs[i].resolve();
     }
     this.dcon = (PExprId)this.dcon.resolve();
-    // this.idResolved = true;
     this.sortAttrs();
     return this;
   }
@@ -292,14 +277,14 @@ class PDataConstrPtn extends PDefaultExprObj {
     return attrDsts;
   }
 
-  public void normalizeTypes() throws CompileException {
-/* DEBUG */ if (this.sortedAttrs == null) { System.out.println(this); }
-    for (int i = 0; i < this.sortedAttrs.length; i++) {
-      this.sortedAttrs[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+// /* DEBUG */ if (this.sortedAttrs == null) { System.out.println(this); }
+    // for (int i = 0; i < this.sortedAttrs.length; i++) {
+      // this.sortedAttrs[i].normalizeTypes();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDataConstrPtnNode(this, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);

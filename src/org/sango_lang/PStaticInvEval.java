@@ -107,16 +107,6 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
       PDynamicInvEval.create(si, outerScope, PFunRef.createSelf(si, outerScope), params);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(scope);
-    // }
-    // this.funId.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -125,7 +115,6 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PStaticInvEval resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
@@ -133,13 +122,13 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.params.length; i++) {
+      // this.params[i].normalizeTypes();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createStaticInvNode(this, this.funId, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.StaticInvNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
@@ -150,38 +139,13 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForInv(this.srcInfo);
     PFunDef fd = ((PTypeGraph.StaticInvNode)this.typeGraphNode).funDef;
-    PTypeSkel[] pts = fd.getParamTypes();
+    PTypeSkel[] pts = fd.getFixedParamTypes();
     PTypeSkelBindings bindings = ((PTypeGraph.StaticInvNode)this.typeGraphNode).bindings;
-// /* DEBUG */ System.out.println("static inv to " + fd.getOfficialName() + " with " + bindings);
-    // List<PVarSlot> nvList = this.typeGraphNode.getNewvarList();
-// /* DEBUG */ System.out.println("nvList " + nvList);
-    // for (int i = 0; i < nvList.size(); i++) {
-      // node.addChild(flow.createNodeForNewTvar(this.srcInfo, nvList.get(i), this.scope));
-    // }
     for (int i = 0; i < this.params.length; i++) {
       node.addChild(this.params[i].setupFlow(flow));
     }
     node.addChild(flow.createNodeForFunRefBody(
       this.srcInfo, this.scope.theMod.modNameToModRefIndex(fd.getModName()), fd.getOfficialName()));
-    // List<PVarSlot> extracted = new ArrayList<PVarSlot>();
-    // int varIndex = 0;
-    // for (int i = 0; i < this.params.length; i++) {
-      // List<PVarSlot> tvList = pts[i].extractVars(extracted);
-      // if (tvList != null) {
-        // for (int j = 0; j < tvList.size(); j++) {
-          // PVarSlot v = tvList.get(j);
-          // if (!bindings.isGivenTvar(v)) {
-            // PTypeSkel t = bindings.resolveShallow(v);
-            // if (t == null) { throw new RuntimeException("Unbound. " + v + bindings); }
-            // node.addChild(flow.createNodeForClosureCast(
-              // this.srcInfo,
-              // varIndex,
-	      // t.setupFlow(flow, this.scope, bindings)));
-          // }
-          // extracted.addAll(tvList);
-        // }
-      // }
-    // }
     return node;
   }
 }

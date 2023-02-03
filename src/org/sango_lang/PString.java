@@ -103,7 +103,6 @@ class PString extends PDefaultExprObj {
     List<PExpr> es = new ArrayList<PExpr>();
     for (int i = 0; i < cstr.getLength(); i++) {
       PEval.Builder eb = PEval.Builder.newInstance(si, outerScope);
-      // eb.setSrcInfo(si);
       eb.addItem(PEvalItem.ObjItem.create(si, outerScope, null, PChar.create(si, outerScope, cstr.getCharAt(i))));
       es.add(PExpr.create(eb.create()));
     }
@@ -116,17 +115,20 @@ class PString extends PDefaultExprObj {
 
   public PString resolve() throws CompileException {
     this.elems = this.elems.resolve();
+    if (this.isFromCstr) {
+      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).toSkel();
+    }
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.elems.normalizeTypes();
-    if (this.isFromCstr) {
-      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getNormalizedSkel();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // this.elems.normalizeTypes();
+    // if (this.isFromCstr) {
+      // this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getNormalizedSkel();
+    // }
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.nTypeSkel != null) {
       this.typeGraphNode = graph.createDetNode(this);
     } else {  // one or more elements

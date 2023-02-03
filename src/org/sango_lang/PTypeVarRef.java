@@ -78,7 +78,7 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void normalizeTypes() {
+  public void normalizeTypes() throws CompileException {
     if (this.def.nTypeSkel == null) {
       this.def.normalizeTypes();
     }

@@ -232,21 +232,6 @@ class PCaseClause extends PDefaultExprObj {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.outerScope) { return; }
-    // this.outerScope = scope;
-    // this.scope = scope.enterInnerWithParallelScopes();
-    // this.idResolved = false;
-    // for (int i = 0; i < this.ptnMatches.length; i++) {
-      // ptnMatches[i].setupScope(this.scope.enterInnterParallel());
-    // }
-    // if (this.guard != null) {
-      // this.guard.setupScope(this.scope);
-    // }
-    // this.action.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.ptnMatches.length; i++) {
       ptnMatches[i].collectModRefs();
@@ -258,7 +243,6 @@ class PCaseClause extends PDefaultExprObj {
   }
 
   public PCaseClause resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.ptnMatches.length; i++) {
       this.ptnMatches[i] = this.ptnMatches[i].resolve();
     }
@@ -266,21 +250,20 @@ class PCaseClause extends PDefaultExprObj {
       this.guard = this.guard.resolve();
     }
     this.action = this.action.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.ptnMatches.length; i++) {
-      this.ptnMatches[i].normalizeTypes();
-    }
-    if (this.guard != null) {
-      this.guard.normalizeTypes();
-    }
-    this.action.normalizeTypes();
-  }
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.ptnMatches.length; i++) {
+      // this.ptnMatches[i].normalizeTypes();
+    // }
+    // if (this.guard != null) {
+      // this.guard.normalizeTypes();
+    // }
+    // this.action.normalizeTypes();
+  // }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.ptnMatches.length; i++) {
       this.ptnMatches[i].setupTypeGraph(graph);
     }

@@ -410,23 +410,34 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     this.retDef.excludePrivateAcc();
   }
 
-  public void normalizeTypes() throws CompileException {
+  // public void normalizeTypes() throws CompileException {
+    // List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    // if (this.params != null) {
+      // for (int i = 0; i < this.params.length; i++) {
+        // this.params[i].normalizeTypes();
+        // this.params[i].nTypeSkel.collectTconInfo(tis);
+      // }
+    // }
+    // this.retDef.normalizeTypes();
+    // this.retDef.nTypeSkel.collectTconInfo(tis);
+    // this.scope.addReferredTcons(tis);
+    // if (this.implExprs != null) {
+      // this.implExprs.normalizeTypes();
+    // }
+  // }
+
+  public void collectTconInfo() throws CompileException {
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
     if (this.params != null) {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].normalizeTypes();
-        this.params[i].nTypeSkel.collectTconInfo(tis);
+        this.params[i].getNormalizedType().collectTconInfo(tis);
       }
     }
-    this.retDef.normalizeTypes();
-    this.retDef.nTypeSkel.collectTconInfo(tis);
+    this.retDef.getNormalizedType().collectTconInfo(tis);
     this.scope.addReferredTcons(tis);
-    if (this.implExprs != null) {
-      this.implExprs.normalizeTypes();
-    }
   }
 
-  void setupTypeGraph(PTypeGraph graph) {
+  void setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].setupTypeGraph(graph);
     }
@@ -446,7 +457,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
   public Module.Availability getAvailability() { return this.availability; }
 
-  public PTypeSkel[] getParamTypes() {
+  public PTypeSkel[] getParamTypes() throws CompileException {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
       pts[i] = this.params[i].getNormalizedType();
@@ -454,7 +465,19 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return pts;
   }
 
-  public PTypeSkel getRetType() {
+  public PTypeSkel[] getFixedParamTypes() {
+    PTypeSkel[] pts = new PTypeSkel[this.params.length];
+    for (int i = 0; i < pts.length; i++) {
+      pts[i] = this.params[i].getFixedType();
+    }
+    return pts;
+  }
+
+  public PTypeSkel getRetType() throws CompileException {
     return this.retDef.getNormalizedType();
+  }
+
+  public PTypeSkel getFixedRetType() {
+    return this.retDef.getFixedType();
   }
 }

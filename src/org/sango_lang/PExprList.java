@@ -113,15 +113,6 @@ abstract class PExprList extends PDefaultExprObj {
     return Elems.create(srcInfo, outerScope, exprList);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // for (int i = 0; i < this.exprs.length; i++) {
-      // this.exprs[i].setupScope(scope);
-    // }
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.exprs.length; i++) {
       this.exprs[i].collectModRefs();
@@ -129,19 +120,17 @@ abstract class PExprList extends PDefaultExprObj {
   }
 
   public PExprList resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.exprs.length; i++) {
       this.exprs[i] = this.exprs[i].resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.exprs.length; i++) {
-      this.exprs[i].normalizeTypes();
-    }
-  }
+  // public void normalizeTypes() throws CompileException {
+    // for (int i = 0; i < this.exprs.length; i++) {
+      // this.exprs[i].normalizeTypes();
+    // }
+  // }
 
   static class Seq extends PExprList /* implements PEval */ {
     static Seq create(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
@@ -154,7 +143,7 @@ abstract class PExprList extends PDefaultExprObj {
 
     public Seq resolve() throws CompileException { return (Seq)super.resolve(); }
 
-    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
       this.typeGraphNode = graph.createRefNode(this);
       PTypeGraph.Node n = null;
       for (int i = 0; i < this.exprs.length; i++) {
