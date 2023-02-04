@@ -223,10 +223,6 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     throw new RuntimeException("PTypeId#excludePrivateAcc should not called.");
   }
 
-  public PTypeSkel normalize() {
-    throw new IllegalStateException("PTypeId#normalize is called. " + this.toString());
-  }
-
   public PTypeSkel getSkel() {
     throw new RuntimeException("PTypeId#getSkel is called. " + this.toString());
   }

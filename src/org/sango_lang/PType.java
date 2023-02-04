@@ -500,10 +500,6 @@ interface PType extends PProgObj {
       throw new RuntimeException("Bound#excludePrivateAcc is called.");
     }
 
-    public PTypeSkel normalize() {
-      throw new RuntimeException("Bound#normalize is called.");
-    }
-
     public PTypeSkel getSkel() {
       throw new RuntimeException("Bound#getSkel is called.");
     }
