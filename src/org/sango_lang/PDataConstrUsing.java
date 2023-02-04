@@ -47,19 +47,11 @@ class PDataConstrUsing extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  // public void setupScope(PScope scope) {
-    // throw new RuntimeException("PDataConstrUsing#setupScope() called. - " + this.toString());
-  // }
-
   public void collectModRefs() throws CompileException {
     throw new RuntimeException("PDataConstrUsing#collectModRefs() called. - " + this.toString());
   }
 
   public PDataConstrUsing resolve() throws CompileException {
     throw new RuntimeException("PDataConstrUsing#resolveId() called. - " + this.toString());
-  }
-
-  public void normalizeTypes() {
-    throw new IllegalStateException("PDataConstrUsing#normalizeTypes should not be called.");
   }
 }

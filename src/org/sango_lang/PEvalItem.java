@@ -94,10 +94,6 @@ abstract class PEvalItem extends PDefaultExprObj {
       return this;
     }
 
-    // public void normalizeTypes() throws CompileException {
-      // this.obj.normalizeTypes();
-    // }
-
     public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
       return this.obj.setupTypeGraph(graph);
     }
@@ -142,16 +138,11 @@ abstract class PEvalItem extends PDefaultExprObj {
 
     PProgElem getSym() { return this.sym; }
 
-
-    // public void setupScope(PScope scope) {}
-
     public void collectModRefs() {}
 
     public SymItem resolve() throws CompileException {
       return this;
     }
-
-    public void normalizeTypes() throws CompileException {}
 
     public String toString() {
       StringBuffer buf = new StringBuffer();

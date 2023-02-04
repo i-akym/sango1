@@ -165,12 +165,6 @@ class PExprVarDef extends PDefaultExprObj {
     }
   }
 
-  public void normalizeTypes() throws CompileException {
-    if (this.type != null) {
-      this.nTypeSkel = this.type.getNormalizedSkel();
-    }
-  }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createVarNode(this, this.name, this.cat);
     return this.typeGraphNode;

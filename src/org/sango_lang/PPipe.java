@@ -47,19 +47,11 @@ class PPipe extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  // public void setupScope(PScope scope) {
-    // throw new RuntimeException("PProgElem#setupScope() called. - " + this.toString());
-  // }
-
   public void collectModRefs() throws CompileException {
     throw new RuntimeException("PProgElem#collectModRefs() called. - " + this.toString());
   }
 
   public PPipe resolve() throws CompileException {
     throw new RuntimeException("PProgElem#resolveId() called. - " + this.toString());
-  }
-
-  public void normalizeTypes() {
-    throw new IllegalStateException("PPipe#normalizeTypes should not be called.");
   }
 }

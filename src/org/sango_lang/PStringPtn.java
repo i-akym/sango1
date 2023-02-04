@@ -155,15 +155,6 @@ class PStringPtn extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.elems.length; i++) {
-      // this.elems[i].normalizeTypes();
-    // }
-    // if (this.isFromCstr) {
-      // this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getNormalizedSkel();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.nTypeSkel != null) {
       this.typeGraphNode = graph.createDetNode(this);

@@ -47,19 +47,11 @@ class PSelfInv extends PDefaultProgElem {
     return (token != null)? create(token.getSrcInfo()): null;
   }
 
-  // public void setupScope(PScope scope) {
-    // throw new RuntimeException("PSelfInv#setupScope() should not be called. - " + this.toString());
-  // }
-
   public void collectModRefs() throws CompileException {
     throw new RuntimeException("PSelfInv#collectModRefs() should not be called. - " + this.toString());
   }
 
   public PSelfInv resolve() throws CompileException {
     throw new RuntimeException("PSelfInv#resolveId() called. - " + this.toString());
-  }
-
-  public void normalizeTypes() {
-    throw new IllegalStateException("PSelfInv#normalizeTypes should not be called.");
   }
 }

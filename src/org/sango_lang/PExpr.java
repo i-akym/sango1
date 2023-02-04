@@ -147,23 +147,12 @@ class PExpr extends PDefaultExprObj implements PEval {
   static PExpr createDummyVoidExpr(Parser.SrcInfo si, PScope outerScope) {
     try {
       PEval.Builder voidEvalBuilder = PEval.Builder.newInstance(si, outerScope);
-      /// voidEvalBuilder.setSrcInfo(si);
       voidEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, outerScope, PModule.MOD_ID_LANG, "void$")));
       return create(si, outerScope, voidEvalBuilder.create() , null);
     } catch (CompileException ex) {
       throw new RuntimeException(ex.toString());
     }
   }
-
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.eval.setupScope(scope);
-    // if (this.ptnMatch != null) {
-      // this.ptnMatch.setupScope(scope);
-    // }
-  // }
 
   public void collectModRefs() throws CompileException {
     this.eval.collectModRefs();
@@ -179,13 +168,6 @@ class PExpr extends PDefaultExprObj implements PEval {
     }
     return this;
   }
-
-  // public void normalizeTypes() throws CompileException {
-    // this.eval.normalizeTypes();
-    // if (this.ptnMatch != null) {
-      // this.ptnMatch.normalizeTypes();
-    // }
-  // }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = this.eval.setupTypeGraph(graph);

@@ -126,12 +126,6 @@ abstract class PExprList extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.exprs.length; i++) {
-      // this.exprs[i].normalizeTypes();
-    // }
-  // }
-
   static class Seq extends PExprList /* implements PEval */ {
     static Seq create(Parser.SrcInfo srcInfo, PScope outerScope, List<PExpr> list) {
       return new Seq(srcInfo, outerScope, list);

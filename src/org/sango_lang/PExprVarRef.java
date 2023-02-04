@@ -85,12 +85,6 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void normalizeTypes() throws CompileException {
-    if (this.varSlot.varDef.nTypeSkel == null) {
-      this.varSlot.varDef.normalizeTypes();
-    }
-  }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
     return graph.createVarRefNode(this, name, this.varSlot.varDef.typeGraphNode);

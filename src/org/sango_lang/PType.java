@@ -423,10 +423,6 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#excludePrivateAcc is called.");
     }
 
-    public void normalizeTypes() {
-      throw new RuntimeException("Undet#normalizeTypes is called.");
-    }
-
     public PTypeSkel toSkel() {
       throw new RuntimeException("Undet#toSkel is called.");
     }
@@ -502,10 +498,6 @@ interface PType extends PProgObj {
 
     public void excludePrivateAcc() throws CompileException {
       throw new RuntimeException("Bound#excludePrivateAcc is called.");
-    }
-
-    public void normalizeTypes() {
-      throw new RuntimeException("Bound#normalizeTypes is called.");
     }
 
     public PTypeSkel normalize() {

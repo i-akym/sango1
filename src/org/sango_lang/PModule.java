@@ -584,7 +584,6 @@ class PModule implements PDefDict {
 
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
-    // dat.setupScope(this.scope);
     dat.collectModRefs();
     if (this.tconDict.containsKey(dat.tcon)) {
       emsg = new StringBuffer();
@@ -1278,18 +1277,6 @@ class PModule implements PDefDict {
       this.aliasTypeStmtList.get(i).checkCyclicAlias();
     }
   }
-
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.dataStmtList.size(); i++) {
-      // this.dataStmtList.get(i).normalizeTypes();
-    // }
-    // for (int i = 0; i < this.extendStmtList.size(); i++) {
-      // this.extendStmtList.get(i).normalizeTypes();
-    // }
-    // for (int i = 0; i < this.evalStmtList.size(); i++) {
-      // this.evalStmtList.get(i).normalizeTypes();
-    // }
-  // }
 
   void collectTconInfo() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {

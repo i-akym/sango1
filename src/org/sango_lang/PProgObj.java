@@ -31,6 +31,4 @@ interface PProgObj extends PProgElem {
 
   PProgObj resolve() throws CompileException;
 
-  // void normalizeTypes() throws CompileException;
-
 }

@@ -253,16 +253,6 @@ class PCaseClause extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.ptnMatches.length; i++) {
-      // this.ptnMatches[i].normalizeTypes();
-    // }
-    // if (this.guard != null) {
-      // this.guard.normalizeTypes();
-    // }
-    // this.action.normalizeTypes();
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.ptnMatches.length; i++) {
       this.ptnMatches[i].setupTypeGraph(graph);

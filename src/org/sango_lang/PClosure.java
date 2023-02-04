@@ -267,19 +267,6 @@ class PClosure extends PDefaultExprObj {
     return exprList;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.outerScope) { return; }
-    // this.outerScope = scope;
-    // this.scope = scope.enterClosure(this);
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(this.scope);
-    // }
-    // this.bodyScope = this.scope.enterInner();
-    // this.implExprs.setupScope(this.bodyScope);
-    // retDef.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -296,14 +283,6 @@ class PClosure extends PDefaultExprObj {
     this.implExprs = this.implExprs.resolve();
     return this;
   }
-
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].normalizeTypes();
-    // }
-    // this.retDef.normalizeTypes();
-    // this.implExprs.normalizeTypes();
-  // }
 
   public PTypeSkel[] getParamDefinedTypes() throws CompileException {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];

@@ -277,13 +277,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     return;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.impl.normalizeTypes();
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    this.impl.toSkel().collectTconInfo(tis);
-    this.scope.addReferredTcons(tis);
-  }
-
   public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
 
   public void checkConcreteness() throws CompileException {}

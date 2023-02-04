@@ -101,10 +101,6 @@ class PInt extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() {
-    // this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "int").getNormalizedSkel();
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDetNode(this);
     return this.typeGraphNode;

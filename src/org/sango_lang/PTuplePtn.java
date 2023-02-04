@@ -139,12 +139,6 @@ class PTuplePtn extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.elems.length; i++) {
-      // this.elems[i].normalizeTypes();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createTuplePtnNode(this, this.elems.length);
     for (int i = 0; i < this.elems.length; i++) {

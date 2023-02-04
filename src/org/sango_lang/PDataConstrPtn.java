@@ -277,13 +277,6 @@ class PDataConstrPtn extends PDefaultExprObj {
     return attrDsts;
   }
 
-  // public void normalizeTypes() throws CompileException {
-// /* DEBUG */ if (this.sortedAttrs == null) { System.out.println(this); }
-    // for (int i = 0; i < this.sortedAttrs.length; i++) {
-      // this.sortedAttrs[i].normalizeTypes();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDataConstrPtnNode(this, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {

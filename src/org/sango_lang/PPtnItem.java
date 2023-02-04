@@ -148,8 +148,4 @@ class PPtnItem extends PDefaultExprObj {
     this.elem = this.elem.resolve();
     return this;
   }
-
-  // public void normalizeTypes() throws CompileException {
-    // this.elem.normalizeTypes();
-  // }
 }

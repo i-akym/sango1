@@ -103,10 +103,6 @@ class PTuple extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // this.elems.normalizeTypes();
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createTupleNode(this, this.elems.exprs.length);
     for (int i = 0; i < this.elems.exprs.length; i++) {

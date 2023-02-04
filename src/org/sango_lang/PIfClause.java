@@ -30,7 +30,6 @@ import java.util.List;
 class PIfClause extends PDefaultExprObj {
   PExprList.Seq guard;
   PExprList.Seq action;
-  // PScope outerScope;
 
   private PIfClause(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
@@ -50,7 +49,6 @@ class PIfClause extends PDefaultExprObj {
 
   static class Builder {
     PIfClause clause;
-    // List<PExpr> guardExprList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
       return new Builder(srcInfo, outerScope);
@@ -184,11 +182,6 @@ class PIfClause extends PDefaultExprObj {
     this.action = this.action.resolve();
     return this;
   }
-
-  // public void normalizeTypes() throws CompileException {
-    // this.guard.normalizeTypes();
-    // this.action.normalizeTypes();
-  // }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??

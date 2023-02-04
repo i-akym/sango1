@@ -141,15 +141,9 @@ class PImportStmt extends PDefaultProgObj {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {}
-
   public void collectModRefs() throws CompileException {}
 
   public PImportStmt resolve() throws CompileException {
     throw new RuntimeException("PImportStmt#resolveId() called. - " + this.toString());
-  }
-
-  public void normalizeTypes() {
-    throw new RuntimeException("PImportStmt#normalizeTypes() should not be called. - " + this.toString());
   }
 }

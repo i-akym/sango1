@@ -122,12 +122,6 @@ class PCaseBlock extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.clauses.length; i++) {
-      // this.clauses[i].normalizeTypes();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createJoinNode(this, this.clauses.length);
     for (int i = 0; i < this.clauses.length; i++) {

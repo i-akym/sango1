@@ -129,10 +129,6 @@ class PPtnDetail extends PExpr {
     return detailList;
   }
 
-  // public void setupScope(PScope scope) {
-    // super.setupScope(scope);
-  // }
-
   public PPtnDetail resolve() throws CompileException {
     StringBuffer emsg;
     PPtnDetail pd = (PPtnDetail)super.resolve();

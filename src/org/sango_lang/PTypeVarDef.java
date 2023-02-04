@@ -27,7 +27,6 @@ import java.io.IOException;
 
 class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
-  // Module.Variance variance;
   boolean requiresConcrete;
   PFeature.List features;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
@@ -168,16 +167,6 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void normalizeTypes() throws CompileException {
-    if (this.features != null) {
-      throw new RuntimeException("Feature not implemented in PTypeVarDef.");
-    }
-    if (this.constraint != null) {
-      this.nConstraint = this.constraint.getNormalizedSkel();
-    }
-    this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
-  }
-
   public PTypeVarSkel toSkel() {
     if (this.features != null) {
       throw new RuntimeException("Feature not implemented in PTypeVarDef.");
@@ -188,7 +177,13 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 
   public PTypeVarSkel getNormalizedSkel() throws CompileException {
     if (this.nTypeSkel == null) {
-      this.normalizeTypes();
+      if (this.features != null) {
+        throw new RuntimeException("Feature not implemented in PTypeVarDef.");
+      }
+      if (this.constraint != null) {
+        this.nConstraint = this.constraint.getNormalizedSkel();
+      }
+      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
     }
     return (PTypeVarSkel)this.nTypeSkel;
   }

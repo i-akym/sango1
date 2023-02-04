@@ -240,8 +240,4 @@ class PExprId extends PDefaultExprObj {
     }
     return ret;
   }
-
-  public void normalizeTypes() {
-    throw new RuntimeException("PExprId#normalizeType should not called. - " + this.toString());
-  }
 }

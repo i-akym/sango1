@@ -30,19 +30,6 @@ class PRetDef extends PDefaultExprObj {
     super(srcInfo, defScope.enterInner());
   }
 
-  // static PRetDef create(PType type) {
-    // if (type == null) {
-      // throw new IllegalArgumentException("Type is null.");
-    // }
-    // return create(type.getSrcInfo(), type. type.getScope());
-  // }
-
-  // static PRetDef create(Parser.SrcInfo srcInfo, PType type, PScope defScope) {
-    // PRetDef ret = new PRetDef(srcInfo, defScope);
-    // ret.type = type;
-    // return ret;
-  // }
-
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("ret[");
@@ -127,10 +114,6 @@ class PRetDef extends PDefaultExprObj {
 
   public void excludePrivateAcc() throws CompileException {
     this.type.excludePrivateAcc();
-  }
-
-  public void normalizeTypes() throws CompileException {
-    this.nTypeSkel = this.type.getNormalizedSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

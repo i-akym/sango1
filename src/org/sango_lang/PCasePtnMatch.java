@@ -187,13 +187,6 @@ class PCasePtnMatch extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // this.ptnMatch.normalizeTypes();
-    // for (int i = 0; i < this.details.length; i++) {
-      // this.details[i].normalizeTypes();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.ptnMatch.setupTypeGraph(graph);
     for (int i = 0; i < this.details.length; i++) {

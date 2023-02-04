@@ -364,21 +364,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return seq;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (scope == this.scope) { return; }
-    // this.scope = scope.defineFun(this);
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(this.scope);
-    // }
-    // if (this.implExprs != null) {
-      // this.bodyScope = this.scope.enterInner();
-      // this.implExprs.setupScope(this.bodyScope);
-    // }
-    // this.retDef.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -390,7 +375,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   }
 
   public PEvalStmt resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
@@ -398,7 +382,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     if (this.implExprs != null) {
       this.implExprs = this.implExprs.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -409,22 +392,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     this.retDef.excludePrivateAcc();
   }
-
-  // public void normalizeTypes() throws CompileException {
-    // List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    // if (this.params != null) {
-      // for (int i = 0; i < this.params.length; i++) {
-        // this.params[i].normalizeTypes();
-        // this.params[i].nTypeSkel.collectTconInfo(tis);
-      // }
-    // }
-    // this.retDef.normalizeTypes();
-    // this.retDef.nTypeSkel.collectTconInfo(tis);
-    // this.scope.addReferredTcons(tis);
-    // if (this.implExprs != null) {
-      // this.implExprs.normalizeTypes();
-    // }
-  // }
 
   public void collectTconInfo() throws CompileException {
     List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();

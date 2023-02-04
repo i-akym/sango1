@@ -55,35 +55,6 @@ class PImpose extends PDefaultExprObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // StringBuffer emsg;
-    // this.nTypeSkel = this.type.getNormalizedSkel();
-    // if (!(this.nTypeSkel instanceof PTypeRefSkel)) {
-      // emsg = new StringBuffer();
-      // emsg.append("Non-concrete imposing at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // PTypeRefSkel tr = (PTypeRefSkel)this.nTypeSkel;
-    // if (tr.ext) {
-      // emsg = new StringBuffer();
-      // emsg.append("Extended type not allowed for imposing at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // for (int i = 0; i < tr.params.length; i++) {
-      // if (!tr.params[i].isLiteralNaked()) {
-        // emsg = new StringBuffer();
-        // emsg.append("Invalid imposing parameter at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     StringBuffer emsg;
     PTypeSkel t = this.getNormalizedType();
@@ -111,7 +82,6 @@ class PImpose extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
     }
-// /* DEBUG */ System.out.println(this.getNormalizedType());
     this.typeGraphNode = graph.createDetNode(this);
     return this.typeGraphNode;
   }

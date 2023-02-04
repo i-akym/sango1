@@ -235,16 +235,6 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     return PType.acceptRO(reader, scope, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (s == this.scope) { return; }
-    // this.scope = scope.start();
-    // this.idResolved = false;
-    // this.sig.setupScope(this.scope);
-    // this.body.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     // sig has no mod refs
     this.body.collectModRefs();
@@ -252,11 +242,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public PAliasTypeStmt resolve() throws CompileException {
     StringBuffer emsg;
-    // if (this.idResolved) { return this; }
     this.sig = this.sig.resolve();
-    // for (int i = 0; i < this.tparams.length; i++) {
-      // this.tparams[i] = this.tparams[i].resolve();
-    // }
     this.body = this.body.resolve();
     if (!(this.body instanceof PTypeRef)) {
       emsg = new StringBuffer();
@@ -265,7 +251,6 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -303,10 +288,6 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
     this.body.excludePrivateAcc();
-  }
-
-  public void normalizeTypes() {
-    throw new RuntimeException("PAliasTypeStmt#normalizeTypes() should not be called. - " + this.toString());
   }
 
   public String getTcon() { return this.tcon; }

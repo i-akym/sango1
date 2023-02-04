@@ -208,10 +208,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
     }
   }
 
-  public void normalizeTypes() {
-    throw new RuntimeException("PTypeRef#normalizeTypes should not be called.");
-  }
-
   public PTypeSkel toSkel() {
     PTypeSkel t;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];

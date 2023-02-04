@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PFeature extends PDefaultProgObj {
-  // String modId;
   Cstr modName;
   PTypeId fname;
   PType[] params;
@@ -159,12 +158,6 @@ public class PFeature extends PDefaultProgObj {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].normalizeTypes();
-    // }
-  // }
-
   PFeatureSkel getNormalizedSkel() throws CompileException {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
@@ -253,12 +246,6 @@ public class PFeature extends PDefaultProgObj {
       }
       return this;
     }
-
-    // public void normalizeTypes() throws CompileException {
-      // for (int i = 0; i < this.features.length; i++) {
-        // this.features[i].normalizeTypes();
-      // }
-    // }
 
     PFeatureSkel.List getNormalizedSkel() throws CompileException {
       PFeatureSkel[] fss = new PFeatureSkel[this.features.length];

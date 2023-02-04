@@ -122,12 +122,6 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     return this;
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].normalizeTypes();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createStaticInvNode(this, this.funId, this.params.length);
     for (int i = 0; i < this.params.length; i++) {

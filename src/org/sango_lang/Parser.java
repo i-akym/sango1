@@ -51,7 +51,6 @@ abstract class Parser {
 
   void parse4() throws CompileException {
     this.mod.collectTconInfo();
-    // this.mod.normalizeTypes();
     this.mod.setupExtensionGraph(this.theCompiler.extGraph);
     this.mod.checkConcreteness();
   }

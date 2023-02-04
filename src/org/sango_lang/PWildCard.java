@@ -52,17 +52,11 @@ class PWildCard extends PDefaultExprObj {
     return create(elem.getSrcInfo(), outerScope);
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PWildCard resolve() throws CompileException {
     return this;
   }
-
-  public void normalizeTypes() {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.typeGraphNode = graph.createRefNode(this);

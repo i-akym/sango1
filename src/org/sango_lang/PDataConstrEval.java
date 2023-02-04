@@ -433,25 +433,6 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     }
   }
 
-  // public void normalizeTypes() throws CompileException {
-    // if (this.bdPosd != null) {
-      // for (int i = 0; i < this.bdPosd.length; i++) {
-        // this.bdPosd[i].normalizeTypes();
-      // }
-    // }
-    // if (this.bdNamed != null) {
-      // for (int i = 0; i < this.bdNamed.length; i++) {
-        // this.bdNamed[i].normalizeTypes();
-      // }
-    // }
-    // if (this.bdUsing != null) {
-      // this.bdUsing.normalizeTypes();
-    // }
-    // for (int i = 0; i < this.bdAttrs.length; i++) {
-      // this.bdAttrs[i].normalizeTypes();
-    // }
-  // }
-
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.bdPosd != null) {
       for (int i = 0; i < this.bdPosd.length; i++) {
@@ -477,10 +458,6 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForDataConstr(this.srcInfo);
-    // List<PVarSlot> nvList = this.typeGraphNode.getNewvarList();
-    // for (int i = 0; i < nvList.size(); i++) {
-      // node.addChild(flow.createNodeForNewTvar(this.srcInfo, nvList.get(i), this.scope));
-    // }
     if (this.bdPosd != null) {
       for (int i = 0; i < this.bdPosd.length; i++) {
         node.addChild(this.bdPosd[i].setupFlow(flow));

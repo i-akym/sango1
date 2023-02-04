@@ -118,15 +118,6 @@ class PFunRef extends PDefaultExprObj {
     return f;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // if (this.official != null) {
-      // this.official.setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     if (this.official != null) {
       this.official.collectModRefs();
@@ -139,8 +130,6 @@ class PFunRef extends PDefaultExprObj {
     }
     return this;
   }
-
-  public void normalizeTypes() {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
