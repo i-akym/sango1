@@ -158,6 +158,14 @@ public class PFeature extends PDefaultProgObj {
     return this;
   }
 
+  PFeatureSkel toSkel() {
+    PTypeSkel ps[] = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].toSkel();
+    }
+    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+  }
+
   PFeatureSkel getNormalizedSkel() throws CompileException {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
@@ -245,6 +253,14 @@ public class PFeature extends PDefaultProgObj {
         this.features[i] = this.features[i].resolve();
       }
       return this;
+    }
+
+    PFeatureSkel.List toSkel() {
+      PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
+      for (int i = 0; i < fss.length; i++) {
+        fss[i] = this.features[i].toSkel();
+      }
+      return PFeatureSkel.List.create(this.srcInfo, fss);
     }
 
     PFeatureSkel.List getNormalizedSkel() throws CompileException {

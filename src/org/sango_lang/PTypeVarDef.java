@@ -29,6 +29,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
   boolean requiresConcrete;
   PFeature.List features;
+  PFeatureSkel.List nFeatures;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
   PTypeSkel nConstraint;
   PTypeVarSlot varSlot;  // setup later
@@ -38,10 +39,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   }
 
   static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope,
-      String name, /* Module.Variance variance, */ boolean requiresConcrete, PFeature.List features, PTypeRef constraint) {
+      String name, boolean requiresConcrete, PFeature.List features, PTypeRef constraint) {
     PTypeVarDef var = new PTypeVarDef(srcInfo, scope);
     var.name = name;
-    // var.variance = variance;
     var.requiresConcrete = requiresConcrete;
     var.features = features;
     var.constraint = constraint;
@@ -55,8 +55,6 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     buf.append(this.srcInfo);
     buf.append(",name=");
     buf.append(this.name);
-    // buf.append(",variance=");
-    // buf.append(this.variance);
     if (this.requiresConcrete) {
       buf.append("!");
     }
@@ -157,6 +155,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     this.varSlot = this.scope.defineTVar(this);
+    if (this.features != null) {
+      this.features = this.features.resolve();
+    }
     if (this.constraint != null) {
       this.constraint = this.constraint.resolve();
     }
@@ -168,9 +169,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public void excludePrivateAcc() throws CompileException {}
 
   public PTypeVarSkel toSkel() {
-    if (this.features != null) {
-      throw new RuntimeException("Feature not implemented in PTypeVarDef.");
-    }
+    PFeatureSkel.List fl = (this.features != null)? this.features.toSkel(): null;
     PTypeRefSkel c = (this.constraint != null)? (PTypeRefSkel)this.constraint.toSkel(): null;
     return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, c);
   }
@@ -178,7 +177,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public PTypeVarSkel getNormalizedSkel() throws CompileException {
     if (this.nTypeSkel == null) {
       if (this.features != null) {
-        throw new RuntimeException("Feature not implemented in PTypeVarDef.");
+        this.nFeatures = this.features.getNormalizedSkel();
       }
       if (this.constraint != null) {
         this.nConstraint = this.constraint.getNormalizedSkel();
