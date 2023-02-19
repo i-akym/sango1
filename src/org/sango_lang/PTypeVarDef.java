@@ -169,9 +169,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public void excludePrivateAcc() throws CompileException {}
 
   public PTypeVarSkel toSkel() {
-    PFeatureSkel.List fl = (this.features != null)? this.features.toSkel(): null;
+    PFeatureSkel.List fs = (this.features != null)? this.features.toSkel(): null;
     PTypeRefSkel c = (this.constraint != null)? (PTypeRefSkel)this.constraint.toSkel(): null;
-    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, c);
+    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, fs, c);
   }
 
   public PTypeVarSkel getNormalizedSkel() throws CompileException {
@@ -182,7 +182,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       if (this.constraint != null) {
         this.nConstraint = this.constraint.getNormalizedSkel();
       }
-      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
+      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nFeatures, this.nConstraint);
     }
     return (PTypeVarSkel)this.nTypeSkel;
   }
