@@ -472,7 +472,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   }
 
   public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
-    g.addExtension(this.baseTconInfo.key, PDefDict.TconKey.create(this.scope.myModName(), this.tcon));
+    g.addExtension(this.baseTconInfo.key, PDefDict.TidKey.create(this.scope.myModName(), this.tcon));
   }
 
   public void checkConcreteness() throws CompileException {
@@ -481,7 +481,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  public PDefDict.TconKey getBaseTconKey() { return this.baseTconInfo.key; }
+  public PDefDict.TidKey getBaseTconKey() { return this.baseTconInfo.key; }
 
   List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
     List<PEvalStmt> funs = new ArrayList<PEvalStmt>();

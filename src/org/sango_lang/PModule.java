@@ -1102,7 +1102,7 @@ class PModule implements PDefDict {
   }
 
   void addReferredTcon(PDefDict.TconInfo ti) {
-    this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.tcon, ti.props);
+    this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.id, ti.props);
   }
 
   public Module.Availability getModAvailability() { return this.availability; }
@@ -1132,7 +1132,7 @@ class PModule implements PDefDict {
     PDefDict.TconProps tp;
     return
       ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && accOpts.contains(tp.acc))?
-      PDefDict.TconInfo.create(PDefDict.TconKey.create(this.name, tcon), tp): null;
+      PDefDict.TconInfo.create(PDefDict.TidKey.create(this.name, tcon), tp): null;
   }
 
   ExprDefGetter createExprDefGetter(PDataDef dataDef) {
@@ -1663,6 +1663,6 @@ class PModule implements PDefDict {
       return this.referredDataDef.getConstr(this.referredDconList.get(index));
     }
 
-    public PDefDict.TconKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
+    public PDefDict.TidKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
   }
 }

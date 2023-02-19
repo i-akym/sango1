@@ -36,7 +36,7 @@ class PCompiledModule implements PDefDict {
   Module.Availability availability;
   Cstr name;
   Cstr[] foreignMods;
-  Map<PDefDict.TconKey, PDefDict.TconProps> foreignTconDict;
+  Map<PDefDict.TidKey, PDefDict.TconProps> foreignTconDict;
   Map<String, PDefDict.TconProps> tconDict;
   Map<String, PDefDict.EidProps> eidDict;
   HashMap<String, FunDef> funOfficialDict;
@@ -62,12 +62,12 @@ class PCompiledModule implements PDefDict {
 
     List<PTypeRefSkel> unresolvedTypeRefList = new ArrayList<PTypeRefSkel>();
 
-    cm.foreignTconDict = new HashMap<PDefDict.TconKey, PDefDict.TconProps>();
+    cm.foreignTconDict = new HashMap<PDefDict.TidKey, PDefDict.TconProps>();
     for (int i = 0; i < cm.foreignMods.length; i++) {
       MDataDef[] dds = mod.getForeignDataDefs(cm.foreignMods[i]);
       for (int j = 0; j < dds.length; j++) {
         DataDef dd = cm.convertDataDef(mod, dds[j], unresolvedTypeRefList);
-        PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], dds[j].tcon);
+        PDefDict.TidKey tk = PDefDict.TidKey.create(cm.foreignMods[i], dds[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(dd);
         PDefDict.TparamProps[] paramPropss;
         if (dds[j].params != null) {
@@ -86,7 +86,7 @@ class PCompiledModule implements PDefDict {
       MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
       for (int j = 0; j < ads.length; j++) {
         AliasTypeDef ad = cm.convertAliasTypeDef(mod, ads[j], unresolvedTypeRefList);
-        PDefDict.TconKey tk = PDefDict.TconKey.create(cm.foreignMods[i], ads[j].tcon);
+        PDefDict.TidKey tk = PDefDict.TidKey.create(cm.foreignMods[i], ads[j].tcon);
         PDefDict.DataDefGetter g = createDataDefGetter(ad);
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
         for (int k = 0; k < paramPropss.length; k++) {
@@ -178,7 +178,7 @@ class PCompiledModule implements PDefDict {
     for (int i = 0; i < unresolvedTypeRefList.size(); i++) {
       PTypeRefSkel tr = unresolvedTypeRefList.get(i);
       if (cm.name.equals(tr.tconInfo.key.modName)) {
-        tr.tconInfo.props = cm.tconDict.get(tr.tconInfo.key.tcon);
+        tr.tconInfo.props = cm.tconDict.get(tr.tconInfo.key.id);
       } else {
         tr.tconInfo.props = cm.foreignTconDict.get(tr.tconInfo.key);
       }
@@ -200,7 +200,7 @@ class PCompiledModule implements PDefDict {
       PDefDict.TconProps p = this.tconDict.get(tcon);
       if (p.subcat == PTypeId.SUBCAT_EXTEND) {
         PDataDef dd = p.defGetter.getDataDef();
-        g.addExtension(dd.getBaseTconKey(), PDefDict.TconKey.create(this.name, tcon));
+        g.addExtension(dd.getBaseTconKey(), PDefDict.TidKey.create(this.name, tcon));
       }
     }
   }
@@ -232,11 +232,11 @@ class PCompiledModule implements PDefDict {
       ((tp = this.tconDict.get(tcon)) != null
         && (tp.subcat & subcatOpts) > 0
         && accOpts.contains(tp.acc))?
-      PDefDict.TconInfo.create(PDefDict.TconKey.create(this.name, tcon), tp): null;
+      PDefDict.TconInfo.create(PDefDict.TidKey.create(this.name, tcon), tp): null;
     // /* DEBUG */ System.out.println(ti);
     return ti;
     // return ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && (tp.acc & accOpts) > 0)?
-      // PDefDict.TconInfo.create(PDefDict.TconKey.create(this.name, tcon), tp): null;
+      // PDefDict.TconInfo.create(PDefDict.TidKey.create(this.name, tcon), tp): null;
   }
 
   DataDef convertDataDef(Module mod, MDataDef dataDef, List<PTypeRefSkel> unresolvedTypeRefList) {
@@ -266,7 +266,7 @@ class PCompiledModule implements PDefDict {
       }
     }
     if (dataDef.baseModIndex > 0) {
-      dd.baseTconKey = PDefDict.TconKey.create(mod.getModAt(dataDef.baseModIndex), dataDef.baseTcon);
+      dd.baseTconKey = PDefDict.TidKey.create(mod.getModAt(dataDef.baseModIndex), dataDef.baseTcon);
     }
     return dd;
   }
@@ -280,7 +280,7 @@ class PCompiledModule implements PDefDict {
     Module.Access acc;
     List<String> constrList;
     Map<String, ConstrDef> constrDict;
-    PDefDict.TconKey baseTconKey;
+    PDefDict.TidKey baseTconKey;
 
     DataDef() {
       this.constrList = new ArrayList<String>();
@@ -296,7 +296,7 @@ class PCompiledModule implements PDefDict {
         // if (this.sigTcon.equals(Module.TCON_BOTTOM)) {
           // this.sig = PBottomSkel.create(null);
         // } else {
-          PDefDict.TconKey tk = PDefDict.TconKey.create(PCompiledModule.this.name, this.sigTcon);
+          PDefDict.TidKey tk = PDefDict.TidKey.create(PCompiledModule.this.name, this.sigTcon);
           PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
           this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
         // }
@@ -316,7 +316,7 @@ class PCompiledModule implements PDefDict {
 
     public PDataDef.Constr getConstr(String dcon) { return this.constrDict.get(dcon); }
 
-    public PDefDict.TconKey getBaseTconKey() { return this.baseTconKey; }
+    public PDefDict.TidKey getBaseTconKey() { return this.baseTconKey; }
 
     ConstrDef addConstr(String dcon) {
       ConstrDef cd = new ConstrDef(dcon);
@@ -329,7 +329,7 @@ class PCompiledModule implements PDefDict {
 
   AliasTypeDef convertAliasTypeDef(Module mod, MAliasTypeDef aliasTypeDef, List<PTypeRefSkel> unresolvedTypeRefList) {
     AliasTypeDef ad = new AliasTypeDef();
-    PDefDict.TconKey tk = PDefDict.TconKey.create(mod.name, aliasTypeDef.tcon);
+    PDefDict.TidKey tk = PDefDict.TidKey.create(mod.name, aliasTypeDef.tcon);
     PDefDict.DataDefGetter g = createDataDefGetter(ad);
     PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
@@ -357,7 +357,7 @@ class PCompiledModule implements PDefDict {
     PTypeVarSkel[] tparams;
     PTypeRefSkel body;
 
-    public String getTcon() { return this.tconInfo.key.tcon; }
+    public String getTcon() { return this.tconInfo.key.id; }
 
     public PTypeVarSlot[] getParamVarSlots() {
       PTypeVarSlot[] vs = new PTypeVarSlot[this.tparams.length];
@@ -595,7 +595,7 @@ class PCompiledModule implements PDefDict {
     PTypeSkel t;
     Cstr n = mod.getModTab().get(tr.modIndex);
     // Cstr n = (tr.modName != null)? tr.modName: mod.name;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(n, tr.tcon);
+    PDefDict.TidKey tk = PDefDict.TidKey.create(n, tr.tcon);
     t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(tk, null), tr.ext, params);
     unresolvedTypeRefList.add((PTypeRefSkel)t);
     return t;

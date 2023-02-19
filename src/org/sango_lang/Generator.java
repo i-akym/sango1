@@ -164,10 +164,10 @@ class Generator {
     } else {
       throw new RuntimeException("Unknown type sig. " + sig.toString());
     }
-    PDefDict.TconKey btk = dd.getBaseTconKey();
+    PDefDict.TidKey btk = dd.getBaseTconKey();
     if (btk != null) {
       this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(),
-        this.parser.mod.modNameToModRefIndex(btk.modName), btk.tcon);
+        this.parser.mod.modNameToModRefIndex(btk.modName), btk.id);
     } else {
       this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc());
     }
