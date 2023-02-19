@@ -187,6 +187,26 @@ class MFeature {
       return s;
     }
 
+    public static List internalize(Node node) throws FormatException {
+      if (!node.getNodeName().equals(Module.TAG_FEATURES)) { return null; }
+      Node n = node.getFirstChild();
+      java.util.List<MFeature> fs = new ArrayList<MFeature>();
+      MFeature f = null;
+      while (n != null) {
+        if (Module.isIgnorable(n)) {
+          ;
+        } else {
+          f = MFeature.internalize(n);
+	  if (f == null) {
+            throw new FormatException("Unknown element : " + n.getNodeName());
+	  }
+	  fs.add(f);
+        }
+        n = n.getNextSibling();
+      }
+      return (fs.size() > 0)? create(fs): null;
+    }
+
     public void externalizeAsChildren(Document doc, Element parent) {
       for (int i = 0; i < this.features.length; i++) {
         parent.appendChild(this.features[i].externalize(doc));

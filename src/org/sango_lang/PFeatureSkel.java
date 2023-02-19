@@ -82,6 +82,24 @@ public class PFeatureSkel {
 
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
 
+  PFeatureSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < this.params.length; i++) {
+      ps[i] = this.params[i].instanciate(iBindings);
+    }
+    return create(this.srcInfo, this.fname, ps);
+  }
+
+  MFeature toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
+    MFeature.Builder builder = MFeature.Builder.newInstance();
+    // builder.setModIndex(mod.modNameToModRefIndex(this.fname.modName));  HERE
+    builder.setName(this.fname.name);
+    for (int i = 0; i < this.params.length; i++) {
+      builder.addParam(this.params[i].toMType(mod, slotList));
+    }
+    return builder.create();
+  }
+
   static class List {
     Parser.SrcInfo srcInfo;
     PFeatureSkel[] features;
@@ -114,6 +132,22 @@ public class PFeatureSkel {
         buf.append("]");
       }
       return buf.toString();
+    }
+
+    List instanciate(PTypeSkel.InstanciationBindings iBindings) {
+      PFeatureSkel[] fs = new PFeatureSkel[this.features.length];
+      for (int i = 0; i < this.features.length; i++) {
+        fs[i] = this.features[i].instanciate(iBindings);
+      }
+      return create(this.srcInfo, fs);
+    }
+
+    MFeature.List toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
+      java.util.List<MFeature> fs = new ArrayList<MFeature>();
+      for (int i = 0; i < this.features.length; i++) {
+        fs.add(this.features[i].toMType(mod, slotList));
+      }
+      return MFeature.List.create(fs);
     }
   }
 }

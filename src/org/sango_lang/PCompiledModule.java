@@ -343,7 +343,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(/* Module.INVARIANT, */ false), null);
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), null, null);
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList);
@@ -607,7 +607,10 @@ class PCompiledModule implements PDefDict {
       v = varList.get(tv.slot);
 // /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
-      v = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(/* tv.variance, */ tv.requiresConcrete), null);
+      v = PTypeVarSkel.create(null, null,
+        PTypeVarSlot.createInternal(tv.requiresConcrete),
+        convertFeatures(tv.features, mod, varList, unresolvedTypeRefList),
+        null);
       varList.add(v);
       if (tv.constraint != null) {
         v.constraint = (PTypeRefSkel)convertType(tv.constraint, mod, varList, unresolvedTypeRefList);
@@ -617,5 +620,20 @@ class PCompiledModule implements PDefDict {
     }
 // /* DEBUG */ if (v.constraint != null) { System.out.print("CONVERT "); System.out.print(tv); System.out.print(" -> "); System.out.println(v); }
     return v;
+  }
+
+  PFeatureSkel.List convertFeatures(MFeature.List features, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
+    return null;  // HERE
+  }
+
+  PFeatureSkel convertFeature(MFeature feature, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
+    PTypeSkel[] ps = new PTypeSkel[feature.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = convertType(feature.params[i], mod, varList, unresolvedTypeRefList);
+    }
+    Cstr n = mod.getModTab().get(feature.modIndex);
+    // PTypeId fname = PTypeId.create();  HERE
+    // return PFeatureSkel.create(null, fname, ps);
+    return null;
   }
 }

@@ -58,11 +58,10 @@ public class PTypeRefSkel implements PTypeSkel {
     t.tconInfo = this.tconInfo;
     t.ext = this.ext;
     t.params = new PTypeSkel[this.params.length];
-    Module.Variance[] vv = this.paramVariances();
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
-        PTypeVarSlot s = PTypeVarSlot.createInternal(/* vv[i], */ var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s, null);  // constraint == null ok?
+        PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
+        v = PTypeVarSkel.create(this.srcInfo, null, s, null, null);  // features, constraint == null ok?
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);
