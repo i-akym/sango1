@@ -43,7 +43,7 @@ public interface PDataDef {
 
   Constr getConstrAt(int index);
 
-  PDefDict.TconKey getBaseTconKey();
+  PDefDict.TidKey getBaseTconKey();
 
   interface Constr {
 

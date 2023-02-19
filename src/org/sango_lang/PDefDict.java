@@ -39,7 +39,7 @@ public interface PDefDict {
 
   interface GlobalDefDict {
 
-    boolean isBaseOf(TconKey b, TconKey e);
+    boolean isBaseOf(TidKey b, TidKey e);
 
   }
 
@@ -100,14 +100,14 @@ public interface PDefDict {
   }
 
   static class TconInfo {
-    TconKey key;
+    TidKey key;
     TconProps props;
 
-    public static TconInfo create(TconKey key, TconProps props) {
+    public static TconInfo create(TidKey key, TconProps props) {
       return new TconInfo(key, props);
     }
 
-    TconInfo(TconKey key, TconProps props) {
+    TconInfo(TidKey key, TconProps props) {
       this.key = key;
       this.props = props;
     }
@@ -136,26 +136,26 @@ public interface PDefDict {
     }
   }
 
-  static class TconKey {
+  static class TidKey {
     Cstr modName;
-    String tcon;
+    String id;
 
-    public static TconKey create(Cstr modName, String tcon) {
-      return new TconKey(modName, tcon);
+    public static TidKey create(Cstr modName, String id) {
+      return new TidKey(modName, id);
     }
 
-    TconKey(Cstr modName, String tcon) {
+    TidKey(Cstr modName, String id) {
       /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tcon key's mod name is null."); }
       this.modName = modName;
-      this.tcon = tcon;
+      this.id = id;
     }
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append("tconkey[mod=");
       buf.append(this.modName.repr());
-      buf.append(",tcon=");
-      buf.append(this.tcon);
+      buf.append(",id=");
+      buf.append(this.id);
       buf.append("]");
       return buf.toString();
     }
@@ -164,23 +164,23 @@ public interface PDefDict {
       StringBuffer buf = new StringBuffer();
       buf.append(this.modName.repr());
       buf.append(".");
-      buf.append(this.tcon);
+      buf.append(this.id);
       return buf.toString();
     }
 
     public int hashCode() {
-      return this.modName.hashCode() ^ this.tcon.hashCode();
+      return this.modName.hashCode() ^ this.id.hashCode();
     }
 
     public boolean equals(Object o) {
       boolean b;
       if (o == this) {
         b = true;
-      } else if (!(o instanceof TconKey)) {
+      } else if (!(o instanceof TidKey)) {
         b = false;
       } else {
-        TconKey tk = (TconKey)o;
-        b = tk.modName.equals(this.modName) && tk.tcon.equals(this.tcon); 
+        TidKey tk = (TidKey)o;
+        b = tk.modName.equals(this.modName) && tk.id.equals(this.id); 
       }
       return b;
     }
@@ -279,13 +279,13 @@ public interface PDefDict {
   }
 
   static class ExtGraph {
-    Map<PDefDict.TconKey, ExtNode> nodeMap;
+    Map<PDefDict.TidKey, ExtNode> nodeMap;
 
     ExtGraph() {
-      this.nodeMap = new HashMap<PDefDict.TconKey, ExtNode>();
+      this.nodeMap = new HashMap<PDefDict.TidKey, ExtNode>();
     }
 
-    void addExtension(PDefDict.TconKey base, PDefDict.TconKey ext) throws CompileException {
+    void addExtension(PDefDict.TidKey base, PDefDict.TidKey ext) throws CompileException {
       ExtNode en;
       if ((en = this.nodeMap.get(ext)) == null) {
         en = this.createNode(ext);
@@ -307,29 +307,29 @@ public interface PDefDict {
       }
     }
 
-    private ExtNode createNode(PDefDict.TconKey tcon) {
+    private ExtNode createNode(PDefDict.TidKey tcon) {
       ExtNode n = new ExtNode(tcon);
       this.nodeMap.put(tcon, n);
       return n;
     }
 
-    boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
+    boolean isBaseOf(PDefDict.TidKey b, PDefDict.TidKey e) {
       ExtNode en = this.nodeMap.get(e);
       return (en != null)? en.includesInAncestor(b): false;
     }
 
     private class ExtNode {
-      PDefDict.TconKey tcon;
+      PDefDict.TidKey tcon;
       ExtNode base;  // maybe null
       List<ExtNode> exts;
 
-      ExtNode(PDefDict.TconKey tcon) {
+      ExtNode(PDefDict.TidKey tcon) {
         this.tcon = tcon;
         this.base = null;
         this.exts = new ArrayList<ExtNode>();
       }
 
-      boolean includesInDescendant(PDefDict.TconKey t) {
+      boolean includesInDescendant(PDefDict.TidKey t) {
         boolean b;
         if (this.tcon.equals(t)) {
           b = true;
@@ -342,7 +342,7 @@ public interface PDefDict {
         return b;
       }
 
-      boolean includesInAncestor(PDefDict.TconKey t) {
+      boolean includesInAncestor(PDefDict.TidKey t) {
         boolean b = false;
         ExtNode n = this;
         while (!b && n != null) {
