@@ -71,6 +71,12 @@ public interface PDefDict {
 
   }
 
+  interface FeatureDefGetter {
+
+    PFeatureDef getFeatureDef();
+
+  }
+
   static class EidProps {
     Cstr modName;
     int cat;
@@ -96,6 +102,56 @@ public interface PDefDict {
       buf.append(this.acc);
       buf.append("]");
       return buf.toString();
+    }
+  }
+
+  static class TidKey {
+    Cstr modName;
+    String id;
+
+    public static TidKey create(Cstr modName, String id) {
+      return new TidKey(modName, id);
+    }
+
+    TidKey(Cstr modName, String id) {
+      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
+      this.modName = modName;
+      this.id = id;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("tidkey[mod=");
+      buf.append(this.modName.repr());
+      buf.append(",id=");
+      buf.append(this.id);
+      buf.append("]");
+      return buf.toString();
+    }
+
+    String repr() {
+      StringBuffer buf = new StringBuffer();
+      buf.append(this.modName.repr());
+      buf.append(".");
+      buf.append(this.id);
+      return buf.toString();
+    }
+
+    public int hashCode() {
+      return this.modName.hashCode() ^ this.id.hashCode();
+    }
+
+    public boolean equals(Object o) {
+      boolean b;
+      if (o == this) {
+        b = true;
+      } else if (!(o instanceof TidKey)) {
+        b = false;
+      } else {
+        TidKey tk = (TidKey)o;
+        b = tk.modName.equals(this.modName) && tk.id.equals(this.id); 
+      }
+      return b;
     }
   }
 
@@ -136,56 +192,6 @@ public interface PDefDict {
     }
   }
 
-  static class TidKey {
-    Cstr modName;
-    String id;
-
-    public static TidKey create(Cstr modName, String id) {
-      return new TidKey(modName, id);
-    }
-
-    TidKey(Cstr modName, String id) {
-      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tcon key's mod name is null."); }
-      this.modName = modName;
-      this.id = id;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("tconkey[mod=");
-      buf.append(this.modName.repr());
-      buf.append(",id=");
-      buf.append(this.id);
-      buf.append("]");
-      return buf.toString();
-    }
-
-    String repr() {
-      StringBuffer buf = new StringBuffer();
-      buf.append(this.modName.repr());
-      buf.append(".");
-      buf.append(this.id);
-      return buf.toString();
-    }
-
-    public int hashCode() {
-      return this.modName.hashCode() ^ this.id.hashCode();
-    }
-
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof TidKey)) {
-        b = false;
-      } else {
-        TidKey tk = (TidKey)o;
-        b = tk.modName.equals(this.modName) && tk.id.equals(this.id); 
-      }
-      return b;
-    }
-  }
-
   static class TconProps {
     int subcat;
     TparamProps[] paramProps;  // null means variable
@@ -220,16 +226,53 @@ public interface PDefDict {
     }
   }
 
+  static class FeatureInfo {
+    TidKey key;
+    FeatureProps props;
+
+    public static FeatureInfo create(TidKey key, FeatureProps props) {
+      return new FeatureInfo(key, props);
+    }
+
+    FeatureInfo(TidKey key, FeatureProps props) {
+      this.key = key;
+      this.props = props;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("featureinfo[fname=");
+      buf.append(this.key);
+      buf.append(",featureprops=");
+      buf.append(this.props);
+      buf.append("]");
+      return buf.toString();
+    }
+
+    public boolean equals(Object o) {
+      boolean b;
+      if (o == this) {
+        b = true;
+      } else if (!(o instanceof FeatureInfo)) {
+        b = false;
+      } else {
+        FeatureInfo fi = (FeatureInfo)o;
+        b = fi.key.equals(this.key);
+      }
+      return b;
+    }
+  }
+
   static class FeatureProps {
     int paramCount;
     Module.Access acc;
-    DataDefGetter defGetter;
+    FeatureDefGetter defGetter;
 
-    public static FeatureProps create(int paramCount, Module.Access acc, DataDefGetter getter) {
+    public static FeatureProps create(int paramCount, Module.Access acc, FeatureDefGetter getter) {
       return new FeatureProps(paramCount, acc, getter);
     }
 
-    FeatureProps(int paramCount, Module.Access acc, DataDefGetter getter) {
+    FeatureProps(int paramCount, Module.Access acc, FeatureDefGetter getter) {
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;
