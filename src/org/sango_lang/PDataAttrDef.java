@@ -170,9 +170,9 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   public void checkConcreteness() throws CompileException {
     if (this.nTypeSkel instanceof PTypeRefSkel) {
       PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
-      if (t.tconInfo.key.equals(new PDefDict.TidKey(Module.MOD_LANG, Module.TCON_FUN))) {
+      if (t.tconInfo.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_FUN))) {
         // formally OK...
-      } else if (t.tconInfo.key.equals(new PDefDict.TidKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
+      } else if (t.tconInfo.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
         // formally OK...
       } else {
         PDefDict.TparamProps[] ps = t.tconInfo.props.paramProps;

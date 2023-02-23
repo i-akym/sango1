@@ -401,7 +401,7 @@ public class SNImodule {
     dd.sigParams = new PTypeVarSkel[0];
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
-    PDefDict.TidKey tk = PDefDict.TidKey.create(Module.MOD_LANG, tcon);
+    PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, tcon);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
         PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
@@ -420,7 +420,7 @@ public class SNImodule {
     };
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
-    PDefDict.TidKey tk = PDefDict.TidKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
+    PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
         PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
@@ -453,7 +453,7 @@ public class SNImodule {
     Module.Access acc;
     List<String> constrList;
     Map<String, PDataDef.Constr> constrDict;
-    PDefDict.TidKey baseTconKey;
+    PDefDict.IdKey baseTconKey;
 
     DataDef(PDefDict.DefDictGetter defDictGetter) {
       this.defDictGetter = defDictGetter;
@@ -472,7 +472,7 @@ public class SNImodule {
         } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {  // needed?
           throw new RuntimeException("Attempted to make sig of EXPOSED.");
         } else {
-          PDefDict.TidKey tk = PDefDict.TidKey.create(this.mod, this.sigTcon);
+          PDefDict.IdKey tk = PDefDict.IdKey.create(this.mod, this.sigTcon);
           PDefDict.DataDefGetter ddg = new DataDefGetter(this);
           PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
           for (int i = 0; i < this.sigParams.length; i++) {
@@ -503,7 +503,7 @@ public class SNImodule {
 
     public PDataDef.Constr getConstr(String dcon) { return this.constrDict.get(dcon); }
 
-    public PDefDict.TidKey getBaseTconKey() { return this.baseTconKey; }
+    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
     PDataDef.Constr addConstr(String dcon) {
       throw new RuntimeException("Not implemented");

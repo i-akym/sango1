@@ -39,7 +39,7 @@ public interface PDefDict {
 
   interface GlobalDefDict {
 
-    boolean isBaseOf(TidKey b, TidKey e);
+    boolean isBaseOf(IdKey b, IdKey e);
 
   }
 
@@ -77,6 +77,56 @@ public interface PDefDict {
 
   }
 
+  static class IdKey {
+    Cstr modName;
+    String idName;
+
+    public static IdKey create(Cstr modName, String idName) {
+      return new IdKey(modName, idName);
+    }
+
+    IdKey(Cstr modName, String idName) {
+      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
+      this.modName = modName;
+      this.idName = idName;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("idkey[mod=");
+      buf.append(this.modName.repr());
+      buf.append(",id=");
+      buf.append(this.idName);
+      buf.append("]");
+      return buf.toString();
+    }
+
+    String repr() {
+      StringBuffer buf = new StringBuffer();
+      buf.append(this.modName.repr());
+      buf.append(".");
+      buf.append(this.idName);
+      return buf.toString();
+    }
+
+    public int hashCode() {
+      return this.modName.hashCode() ^ this.idName.hashCode();
+    }
+
+    public boolean equals(Object o) {
+      boolean b;
+      if (o == this) {
+        b = true;
+      } else if (!(o instanceof IdKey)) {
+        b = false;
+      } else {
+        IdKey ik = (IdKey)o;
+        b = ik.modName.equals(this.modName) && ik.idName.equals(this.idName); 
+      }
+      return b;
+    }
+  }
+
   static class EidProps {
     Cstr modName;
     int cat;
@@ -105,65 +155,15 @@ public interface PDefDict {
     }
   }
 
-  static class TidKey {
-    Cstr modName;
-    String id;
-
-    public static TidKey create(Cstr modName, String id) {
-      return new TidKey(modName, id);
-    }
-
-    TidKey(Cstr modName, String id) {
-      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
-      this.modName = modName;
-      this.id = id;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("tidkey[mod=");
-      buf.append(this.modName.repr());
-      buf.append(",id=");
-      buf.append(this.id);
-      buf.append("]");
-      return buf.toString();
-    }
-
-    String repr() {
-      StringBuffer buf = new StringBuffer();
-      buf.append(this.modName.repr());
-      buf.append(".");
-      buf.append(this.id);
-      return buf.toString();
-    }
-
-    public int hashCode() {
-      return this.modName.hashCode() ^ this.id.hashCode();
-    }
-
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof TidKey)) {
-        b = false;
-      } else {
-        TidKey tk = (TidKey)o;
-        b = tk.modName.equals(this.modName) && tk.id.equals(this.id); 
-      }
-      return b;
-    }
-  }
-
   static class TconInfo {
-    TidKey key;
+    IdKey key;
     TconProps props;
 
-    public static TconInfo create(TidKey key, TconProps props) {
+    public static TconInfo create(IdKey key, TconProps props) {
       return new TconInfo(key, props);
     }
 
-    TconInfo(TidKey key, TconProps props) {
+    TconInfo(IdKey key, TconProps props) {
       this.key = key;
       this.props = props;
     }
@@ -227,14 +227,14 @@ public interface PDefDict {
   }
 
   static class FeatureInfo {
-    TidKey key;
+    IdKey key;
     FeatureProps props;
 
-    public static FeatureInfo create(TidKey key, FeatureProps props) {
+    public static FeatureInfo create(IdKey key, FeatureProps props) {
       return new FeatureInfo(key, props);
     }
 
-    FeatureInfo(TidKey key, FeatureProps props) {
+    FeatureInfo(IdKey key, FeatureProps props) {
       this.key = key;
       this.props = props;
     }
@@ -322,13 +322,13 @@ public interface PDefDict {
   }
 
   static class ExtGraph {
-    Map<PDefDict.TidKey, ExtNode> nodeMap;
+    Map<PDefDict.IdKey, ExtNode> nodeMap;
 
     ExtGraph() {
-      this.nodeMap = new HashMap<PDefDict.TidKey, ExtNode>();
+      this.nodeMap = new HashMap<PDefDict.IdKey, ExtNode>();
     }
 
-    void addExtension(PDefDict.TidKey base, PDefDict.TidKey ext) throws CompileException {
+    void addExtension(PDefDict.IdKey base, PDefDict.IdKey ext) throws CompileException {
       ExtNode en;
       if ((en = this.nodeMap.get(ext)) == null) {
         en = this.createNode(ext);
@@ -350,29 +350,29 @@ public interface PDefDict {
       }
     }
 
-    private ExtNode createNode(PDefDict.TidKey tcon) {
+    private ExtNode createNode(PDefDict.IdKey tcon) {
       ExtNode n = new ExtNode(tcon);
       this.nodeMap.put(tcon, n);
       return n;
     }
 
-    boolean isBaseOf(PDefDict.TidKey b, PDefDict.TidKey e) {
+    boolean isBaseOf(PDefDict.IdKey b, PDefDict.IdKey e) {
       ExtNode en = this.nodeMap.get(e);
       return (en != null)? en.includesInAncestor(b): false;
     }
 
     private class ExtNode {
-      PDefDict.TidKey tcon;
+      PDefDict.IdKey tcon;
       ExtNode base;  // maybe null
       List<ExtNode> exts;
 
-      ExtNode(PDefDict.TidKey tcon) {
+      ExtNode(PDefDict.IdKey tcon) {
         this.tcon = tcon;
         this.base = null;
         this.exts = new ArrayList<ExtNode>();
       }
 
-      boolean includesInDescendant(PDefDict.TidKey t) {
+      boolean includesInDescendant(PDefDict.IdKey t) {
         boolean b;
         if (this.tcon.equals(t)) {
           b = true;
@@ -385,7 +385,7 @@ public interface PDefDict {
         return b;
       }
 
-      boolean includesInAncestor(PDefDict.TidKey t) {
+      boolean includesInAncestor(PDefDict.IdKey t) {
         boolean b = false;
         ExtNode n = this;
         while (!b && n != null) {

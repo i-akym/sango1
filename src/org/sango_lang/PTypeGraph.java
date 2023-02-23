@@ -554,7 +554,7 @@ if (DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       PTypeRefSkel ctr = (PTypeRefSkel)ct;
-      if (ctr.tconInfo.key.modName.equals(Module.MOD_LANG) && ctr.tconInfo.key.id.equals("fun")) {
+      if (ctr.tconInfo.key.modName.equals(Module.MOD_LANG) && ctr.tconInfo.key.idName.equals("fun")) {
         ;
       } else {
         emsg = new StringBuffer();

@@ -528,7 +528,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     return (this.constrs != null)? this.constrs[index]: null;
   }
 
-  public PDefDict.TidKey getBaseTconKey() { return null; }
+  public PDefDict.IdKey getBaseTconKey() { return null; }
 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }

@@ -871,7 +871,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     return b;
   }
 
-  public boolean isBaseOf(PDefDict.TidKey b, PDefDict.TidKey e) {
+  public boolean isBaseOf(PDefDict.IdKey b, PDefDict.IdKey e) {
     return this.extGraph.isBaseOf(b, e);
   }
 
