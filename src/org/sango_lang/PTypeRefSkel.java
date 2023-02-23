@@ -118,7 +118,7 @@ public class PTypeRefSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() {
     return this.tconInfo.key.modName.equals(Module.MOD_LANG) && 
-      this.tconInfo.key.id.equals(Module.TCON_EXPOSED) ;
+      this.tconInfo.key.idName.equals(Module.TCON_EXPOSED) ;
   }
 
   public boolean isConcrete() {
@@ -484,12 +484,12 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  static PDefDict.TconInfo resolveTcon(PDefDict.TidKey key, PDefDict.DefDictGetter defDictGetter) throws CompileException {
+  static PDefDict.TconInfo resolveTcon(PDefDict.IdKey key, PDefDict.DefDictGetter defDictGetter) throws CompileException {
     Option.Set<Module.Access> as = (new Option.Set<Module.Access>())
       .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
       .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
     return defDictGetter.getReferredDefDict(key.modName).resolveTcon(
-      key.id,
+      key.idName,
       PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
       as);
   }
@@ -622,7 +622,7 @@ if (PTypeGraph.DEBUG > 1) {
     if (type instanceof PTypeRefSkel) {
       PTypeRefSkel tr = (PTypeRefSkel)type;
       if (tr.tconInfo == null) { throw new IllegalArgumentException("Tcon not resolved."); }
-      b = tr.tconInfo.key.modName.equals(Module.MOD_LANG) && tr.tconInfo.key.id.equals(tcon);
+      b = tr.tconInfo.key.modName.equals(Module.MOD_LANG) && tr.tconInfo.key.idName.equals(tcon);
     } else {
       b = false;
     }
@@ -637,7 +637,7 @@ if (PTypeGraph.DEBUG > 1) {
     if (!this.tconInfo.key.modName.equals(mod.name)) {
       b.setModIndex(mod.modNameToModRefIndex(this.tconInfo.key.modName));
     }
-    b.setTcon(this.tconInfo.key.id);
+    b.setTcon(this.tconInfo.key.idName);
     b.setExt(this.ext);
     for (int i = 0; i < params.length; i++) {
       b.addParam(this.params[i].toMType(mod, slotList));

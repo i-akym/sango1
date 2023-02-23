@@ -503,7 +503,7 @@ public class RNativeImplHelper {
           tis[i] = pts[i].instanciate(ibs);
         }
         tis[pts.length] = fd.getRetType().instanciate(ibs);
-        PDefDict.TidKey tk = PDefDict.TidKey.create(Module.MOD_LANG, "fun");
+        PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, "fun");
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[pts.length];
         for (int i = 0; i < pts.length; i++) {
           paramPropss[i] = PDefDict.TparamProps.create(Module.INVARIANT, false);  // HERE
