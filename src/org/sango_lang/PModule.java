@@ -1101,6 +1101,10 @@ class PModule implements PDefDict {
       as);
   }
 
+  PDefDict.FeatureInfo resolveFeature(String modId, String fname) throws CompileException {
+    throw new RuntimeException("PModule#resolveFeature not implemented.");
+  }
+
   void addReferredTcon(PDefDict.TconInfo ti) {
     this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.id, ti.props);
   }
