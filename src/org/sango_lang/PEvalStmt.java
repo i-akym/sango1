@@ -393,15 +393,15 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     this.retDef.excludePrivateAcc();
   }
 
-  public void collectTconInfo() throws CompileException {
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+  public void collectTconProps() throws CompileException {
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     if (this.params != null) {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].getNormalizedType().collectTconInfo(tis);
+        this.params[i].getNormalizedType().collectTconProps(tps);
       }
     }
-    this.retDef.getNormalizedType().collectTconInfo(tis);
-    this.scope.addReferredTcons(tis);
+    this.retDef.getNormalizedType().collectTconProps(tps);
+    this.scope.addReferredTcons(tps);
   }
 
   void setupTypeGraph(PTypeGraph graph) throws CompileException {

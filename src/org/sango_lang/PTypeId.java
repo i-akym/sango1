@@ -39,7 +39,7 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   String modId;
   String name;
   boolean ext;
-  PDefDict.TconInfo tconInfo;
+  PDefDict.TconProps tconProps;
 
   private PTypeId(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -215,8 +215,8 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     throw new RuntimeException("PTypeId#resolve is called.");
   }
 
-  public PDefDict.TconInfo getTconInfo() {
-    throw new IllegalStateException("PTypeId#getTconInfo should not called.");
+  public PDefDict.TconProps getTconProps() {
+    throw new IllegalStateException("PTypeId#getTconProps should not called.");
   }
 
   public void excludePrivateAcc() throws CompileException {

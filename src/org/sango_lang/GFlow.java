@@ -1131,8 +1131,8 @@ class GFlow {
     }
 
     void generateBody(Module.Builder builder, int context, RootNode frameRoot, TrialNode trialNode, AllocMap allocMap) {
-      int modIndex = builder.putUniqueConstItem(Module.createConstForCstr(this.imposingType.tconInfo.key.modName));
-      int tconIndex = builder.putUniqueConstItem(Module.createConstForCstr(this.imposingType.tconInfo.key.idName));
+      int modIndex = builder.putUniqueConstItem(Module.createConstForCstr(this.imposingType.tconProps.key.modName));
+      int tconIndex = builder.putUniqueConstItem(Module.createConstForCstr(this.imposingType.tconProps.key.idName));
       this.codeChunk.addChild(frameRoot.createCode(MInstruction.OP_DUP));
       this.codeChunk.addChild(frameRoot.createCode(MInstruction.OP_LOAD_CONST, GFlow.this.theGenerator.createIntParam(modIndex)));
       this.codeChunk.addChild(frameRoot.createCode(MInstruction.OP_LOAD_CONST, GFlow.this.theGenerator.createIntParam(tconIndex)));

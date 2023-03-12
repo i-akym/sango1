@@ -164,7 +164,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return this;
   }
 
-  public PDefDict.TconInfo getTconInfo() { return null; }
+  public PDefDict.TconProps getTconProps() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
 

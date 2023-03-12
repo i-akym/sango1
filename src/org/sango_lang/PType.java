@@ -43,7 +43,7 @@ interface PType extends PProgObj {
   static final int COPY_CONCRETE_OFF = 0;
   static final int COPY_CONCRETE_ON = 1;
 
-  PDefDict.TconInfo getTconInfo();
+  PDefDict.TconProps getTconProps();
 
   void excludePrivateAcc() throws CompileException;
 
@@ -415,8 +415,8 @@ interface PType extends PProgObj {
       return t;
     }
 
-    public PDefDict.TconInfo getTconInfo() {
-      throw new RuntimeException("Undet#getTconInfo is called.");
+    public PDefDict.TconProps getTconProps() {
+      throw new RuntimeException("Undet#getTconProps is called.");
     }
 
     public void excludePrivateAcc() throws CompileException {
@@ -492,8 +492,8 @@ interface PType extends PProgObj {
       throw new RuntimeException("Bound#resolveId is called.");
     }
 
-    public PDefDict.TconInfo getTconInfo() {
-      throw new RuntimeException("Bound#getTconInfo is called.");
+    public PDefDict.TconProps getTconProps() {
+      throw new RuntimeException("Bound#getTconProps is called.");
     }
 
     public void excludePrivateAcc() throws CompileException {

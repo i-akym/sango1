@@ -88,12 +88,12 @@ class PTypeGraph {
       this.nodeList.get(i).check();
     }
     // collect tcon info including implicitly referred
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     for (int i = 0; i < this.nodeList.size(); i++) {
-      this.nodeList.get(i).collectTconInfo(tis);
+      this.nodeList.get(i).collectTconProps(tps);
     }
-    for (int i = 0; i < tis.size(); i++) {
-      this.theMod.addReferredTcon(tis.get(i));
+    for (int i = 0; i < tps.size(); i++) {
+      this.theMod.addReferredTcon(tps.get(i));
     }
   }
 
@@ -130,8 +130,8 @@ class PTypeGraph {
 
     void check() throws CompileException {}
 
-    void collectTconInfo(List<PDefDict.TconInfo> tis) throws CompileException {
-      this.type.collectTconInfo(tis);
+    void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
+      this.type.collectTconProps(tps);
     }
 
   }
@@ -495,15 +495,15 @@ class PTypeGraph {
       return rt.instanciate(ib);
     }
 
-    void collectTconInfo(List<PDefDict.TconInfo> tis) throws CompileException {
+    void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
 // /* DEBUG */ System.out.print("G "); System.out.println(this.funDef.getOfficialName());
-      super.collectTconInfo(tis);
+      super.collectTconProps(tps);
       PTypeSkel[] pts = this.funDef.getParamTypes();
       for (int i = 0; i < pts.length; i++) {
 // /* DEBUG */ System.out.print("p "); System.out.println(pts[i]);
-        pts[i].collectTconInfo(tis);
+        pts[i].collectTconProps(tps);
       }
-      this.funDef.getRetType().collectTconInfo(tis);
+      this.funDef.getRetType().collectTconProps(tps);
     }
   }
 
@@ -554,7 +554,7 @@ if (DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       PTypeRefSkel ctr = (PTypeRefSkel)ct;
-      if (ctr.tconInfo.key.modName.equals(Module.MOD_LANG) && ctr.tconInfo.key.idName.equals("fun")) {
+      if (ctr.tconProps.key.modName.equals(Module.MOD_LANG) && ctr.tconProps.key.idName.equals("fun")) {
         ;
       } else {
         emsg = new StringBuffer();

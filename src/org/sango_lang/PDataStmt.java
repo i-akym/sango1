@@ -544,15 +544,15 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  void collectTconInfo() throws CompileException {
+  void collectTconProps() throws CompileException {
     if (this.constrs != null) {
-      List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+      List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
       for (int i = 0; i < this.constrs.length; i++) {
         for (int j = 0; j < constrs[i].attrs.length; j++) {
-          constrs[i].attrs[j].getNormalizedType().collectTconInfo(tis);
+          constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
         }
       }
-      this.scope.addReferredTcons(tis);
+      this.scope.addReferredTcons(tps);
     }
   }
 

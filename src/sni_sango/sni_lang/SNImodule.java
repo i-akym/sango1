@@ -404,10 +404,9 @@ public class SNImodule {
     PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, tcon);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
+        tk, PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams);
+      helper.getCore().getDefDictGetter(), null, tp, false, dd.sigParams);
   }
 
   static PTypeRefSkel createTupleType(RNativeImplHelper helper, PTypeSkel[] elemTypes) {
@@ -419,28 +418,24 @@ public class SNImodule {
       dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), null, null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
-    // dd.baseTconKey = null;
     PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
+        tk, PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, elemTypes);
+      helper.getCore().getDefDictGetter(), null, tp, false, elemTypes);
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    // PAliasTypeDef aliasTypeDef;
 
-    DataDefGetter(PDataDef dataDef /* , PAliasTypeDef aliasTypeDef */) {
+    DataDefGetter(PDataDef dataDef) {
       this.dataDef = dataDef;
-      // this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasTypeDef getAliasTypeDef() { return null; /* this.aliasTypeDef; */ }
+    public PAliasTypeDef getAliasTypeDef() { return null; }
   }
 
   static class DataDef implements PDataDef {
@@ -477,13 +472,12 @@ public class SNImodule {
           PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
           for (int i = 0; i < this.sigParams.length; i++) {
             paramPropss[i] = PDefDict.TparamProps.create(this.getParamVarianceAt(i), this.sigParams[i].isConcrete());
-            // paramPropss[i] = PDefDict.TparamProps.create(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
           }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
-            (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
+            tk, (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
             paramPropss, this.acc, ddg);
           this.sig = PTypeRefSkel.create(
-            this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
+            this.defDictGetter, null, tp, false, this.sigParams);
         }
       }
       return this.sig;

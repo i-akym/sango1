@@ -285,17 +285,17 @@ class PScope {
     return this.theMod.resolveEid(id);
   }
 
-  PDefDict.TconInfo resolveTcon(String modId, String name) throws CompileException {
+  PDefDict.TconProps resolveTcon(String modId, String name) throws CompileException {
     return this.theMod.resolveTcon(modId, name);
   }
 
-  void addReferredTcons(List<PDefDict.TconInfo> tis) {
+  void addReferredTcons(List<PDefDict.TconProps> tis) {
     for (int i = 0; i < tis.size(); i++) {
       this.addReferredTcon(tis.get(i));
     }
   }
 
-  void addReferredTcon(PDefDict.TconInfo ti) {
+  void addReferredTcon(PDefDict.TconProps ti) {
     this.theMod.addReferredTcon(ti);
   }
 
@@ -344,11 +344,11 @@ class PScope {
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {
-    PDefDict.TconInfo tconInfo = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
-    if (tconInfo == null) {
+    PDefDict.TconProps tp = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
+    if (tp == null) {
       throw new RuntimeException("Internal error.");
     }
-    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels);
+    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tp, false, paramTypeSkels);
   }
 
   List<PTypeVarSlot> getGivenTVarList() throws CompileException {

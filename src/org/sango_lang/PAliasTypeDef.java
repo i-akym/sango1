@@ -35,7 +35,7 @@ public interface PAliasTypeDef {
 
   Module.Access getAcc();
 
-  void collectUnaliasTconInfo(List<PDefDict.TconInfo> list);
+  void collectUnaliasTconProps(List<PDefDict.TconProps> list);
 
   PTypeRefSkel getBody();
 
