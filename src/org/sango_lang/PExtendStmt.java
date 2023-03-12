@@ -38,7 +38,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   PDataStmt.Param[] tparams;
   PDataConstrDef[] constrs;
   PTypeRef sig;
-  PDefDict.TconInfo baseTconInfo;
+  PDefDict.TconProps baseTconProps;
 
   PExtendStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
@@ -382,31 +382,31 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.constrs[i].setDataType(this.sig);
     }
     // /* DEBUG */ System.out.println("resolve " + this.baseModId + "." + this.baseTcon);
-    if ((this.baseTconInfo = this.scope.resolveTcon(this.baseModId, this.baseTcon)) == null) {
+    if ((this.baseTconProps = this.scope.resolveTcon(this.baseModId, this.baseTcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Base type constructor not found at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
     }
-    // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconInfo);
-    if (this.baseTconInfo.props.acc == Module.ACC_OPAQUE) {
+    // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconProps);
+    if (this.baseTconProps.acc == Module.ACC_OPAQUE) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend opaque data at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
     }
-    if (this.baseTconInfo.props.paramCount() >= 0 && this.tparams.length != this.baseTconInfo.props.paramCount()) {
+    if (this.baseTconProps.paramCount() >= 0 && this.tparams.length != this.baseTconProps.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of 'extend' definition mismatch at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
     }
-    if (this.baseTconInfo.props.paramProps != null) {
+    if (this.baseTconProps.paramProps != null) {
       for (int i = 0; i < this.tparams.length; i++) {
-        if (this.tparams[i].variance != this.baseTconInfo.props.paramProps[i].variance) {
+        if (this.tparams[i].variance != this.baseTconProps.paramProps[i].variance) {
           emsg = new StringBuffer();
           emsg.append("Variance of *");
           emsg.append(this.tparams[i].varDef.name);
@@ -461,18 +461,18 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  void collectTconInfo() throws CompileException {
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+  void collectTconProps() throws CompileException {
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     for (int i = 0; i < this.constrs.length; i++) {
       for (int j = 0; j < constrs[i].attrs.length; j++) {
-        constrs[i].attrs[j].getNormalizedType().collectTconInfo(tis);
+        constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
       }
     }
-    this.scope.addReferredTcons(tis);
+    this.scope.addReferredTcons(tps);
   }
 
   public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
-    g.addExtension(this.baseTconInfo.key, PDefDict.IdKey.create(this.scope.myModName(), this.tcon));
+    g.addExtension(this.baseTconProps.key, PDefDict.IdKey.create(this.scope.myModName(), this.tcon));
   }
 
   public void checkConcreteness() throws CompileException {
@@ -481,7 +481,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  public PDefDict.IdKey getBaseTconKey() { return this.baseTconInfo.key; }
+  public PDefDict.IdKey getBaseTconKey() { return this.baseTconProps.key; }
 
   List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
     List<PEvalStmt> funs = new ArrayList<PEvalStmt>();

@@ -50,7 +50,7 @@ abstract class Parser {
   }
 
   void parse4() throws CompileException {
-    this.mod.collectTconInfo();
+    this.mod.collectTconProps();
     this.mod.setupExtensionGraph(this.theCompiler.extGraph);
     this.mod.checkConcreteness();
   }

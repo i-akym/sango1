@@ -78,7 +78,7 @@ class PCompiledModule implements PDefDict {
         } else {
           paramPropss = null;
         }
-        PDefDict.TconProps tp = PDefDict.TconProps.create(
+        PDefDict.TconProps tp = PDefDict.TconProps.create(ik,
           (dds[j].baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
           paramPropss, dds[j].acc, g);
         cm.foreignTconDict.put(ik, tp);
@@ -93,7 +93,7 @@ class PCompiledModule implements PDefDict {
           paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
+          ik, PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
         cm.foreignTconDict.put(ik, tp);
       }
     }
@@ -116,6 +116,7 @@ class PCompiledModule implements PDefDict {
         paramPropss = null;
       }
       PDefDict.TconProps tp = PDefDict.TconProps.create(
+        PDefDict.IdKey.create(mod.name, mdd.tcon),
         (mdd.baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
         paramPropss, mdd.acc, g);
       cm.tconDict.put(mdd.tcon, tp);
@@ -133,6 +134,7 @@ class PCompiledModule implements PDefDict {
         paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
       }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
+        PDefDict.IdKey.create(mod.name, matd.tcon),
         PTypeId.SUBCAT_ALIAS,
         paramPropss, matd.acc, createDataDefGetter(cm.convertAliasTypeDef(mod, matd, unresolvedTypeRefList))));
     }
@@ -177,13 +179,13 @@ class PCompiledModule implements PDefDict {
 
     for (int i = 0; i < unresolvedTypeRefList.size(); i++) {
       PTypeRefSkel tr = unresolvedTypeRefList.get(i);
-      if (cm.name.equals(tr.tconInfo.key.modName)) {
-        tr.tconInfo.props = cm.tconDict.get(tr.tconInfo.key.idName);
+      if (cm.name.equals(tr.tconProps.key.modName)) {
+        tr.tconProps= cm.tconDict.get(tr.tconProps.key.idName);
       } else {
-        tr.tconInfo.props = cm.foreignTconDict.get(tr.tconInfo.key);
+        tr.tconProps = cm.foreignTconDict.get(tr.tconProps.key);
       }
       // HERE: props may not be resolved?
-// /* DEBUG */ if (tr.tconInfo.props == null) { System.out.print("PN "); System.out.print(cm.name.toJavaString()); System.out.print(" "); System.out.println(tr); }
+// /* DEBUG */ if (tr.tconProps == null) { System.out.print("PN "); System.out.print(cm.name.toJavaString()); System.out.print(" "); System.out.println(tr); }
     }
 
     // /* DEBUG */ System.out.print("compiled "); System.out.print(mod.name.toJavaString()); System.out.print(" tcondict="); System.out.println(cm.tconDict);
@@ -223,20 +225,20 @@ class PCompiledModule implements PDefDict {
      props: null;
   }
 
-  public PDefDict.TconInfo resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
-    PDefDict.TconProps tp;
+  public PDefDict.TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
     // /* DEBUG */ System.out.print("compiled_module resolve tcon ");
     // /* DEBUG */ System.out.print(tcon);
     // /* DEBUG */ System.out.print(" -> ");
-    PDefDict.TconInfo ti =
+    PDefDict.TconProps tp =
       ((tp = this.tconDict.get(tcon)) != null
         && (tp.subcat & subcatOpts) > 0
         && accOpts.contains(tp.acc))?
-      PDefDict.TconInfo.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
+      tp: null;
+      // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
     // /* DEBUG */ System.out.println(ti);
-    return ti;
+    return tp;
     // return ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && (tp.acc & accOpts) > 0)?
-      // PDefDict.TconInfo.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
+      // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
   }
 
   DataDef convertDataDef(Module mod, MDataDef dataDef, List<PTypeRefSkel> unresolvedTypeRefList) {
@@ -293,13 +295,10 @@ class PCompiledModule implements PDefDict {
 
     public PTypeSkel getTypeSig() {
       if (this.sig == null) {
-        // if (this.sigTcon.equals(Module.TCON_BOTTOM)) {
-          // this.sig = PBottomSkel.create(null);
-        // } else {
-          PDefDict.IdKey ik = PDefDict.IdKey.create(PCompiledModule.this.name, this.sigTcon);
-          PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
-          this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconInfo.create(ik, tp), false, this.sigParams);
-        // }
+        // PDefDict.IdKey ik = PDefDict.IdKey.create(PCompiledModule.this.name, this.sigTcon);
+        PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
+        this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, tp, false, this.sigParams);
+        // this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconProps.create(ik, tp), false, this.sigParams);
       }
       return this.sig;
     }
@@ -335,9 +334,8 @@ class PCompiledModule implements PDefDict {
     for (int k = 0; k < paramPropss.length; k++) {
       paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
     }
-    PDefDict.TconProps tp = PDefDict.TconProps.create(
-      PTypeId.SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);
-    ad.tconInfo = PDefDict.TconInfo.create(ik, tp);
+    ad.tconProps = PDefDict.TconProps.create(
+      ik, PTypeId.SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.availability = aliasTypeDef.availability;
     ad.acc = aliasTypeDef.acc;
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
@@ -351,13 +349,13 @@ class PCompiledModule implements PDefDict {
   }
 
   static class AliasTypeDef implements PAliasTypeDef {
-    PDefDict.TconInfo tconInfo;
+    PDefDict.TconProps tconProps;
     Module.Availability availability;
     Module.Access acc;
     PTypeVarSkel[] tparams;
     PTypeRefSkel body;
 
-    public String getTcon() { return this.tconInfo.key.idName; }
+    public String getTcon() { return this.tconProps.key.idName; }
 
     public PTypeVarSlot[] getParamVarSlots() {
       PTypeVarSlot[] vs = new PTypeVarSlot[this.tparams.length];
@@ -371,8 +369,8 @@ class PCompiledModule implements PDefDict {
 
     public Module.Access getAcc() { return this.acc; }
 
-    public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.collectTconInfo(list); }
-    // public PDefDict.TconInfo unaliasTconInfo() { return this.body.tconInfo; }
+    public void collectUnaliasTconProps(List<PDefDict.TconProps> list) { this.body.collectTconProps(list); }
+    // public PDefDict.TconProps unaliasTconProps() { return this.body.tconProps; }
 
     public PTypeRefSkel getBody() { return this.body; }
 
@@ -387,7 +385,7 @@ class PCompiledModule implements PDefDict {
       PTypeRefSkel tr = (PTypeRefSkel)this.body.resolveBindings(bindings);
       // PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
       // /* DEBUG */ System.out.print("unalias ");
-      // /* DEBUG */ System.out.print(this.tconInfo.key);
+      // /* DEBUG */ System.out.print(this.tconProps.key);
       // /* DEBUG */ System.out.print(" -> ");
       // /* DEBUG */ System.out.println(tr);
       // HERE: chain unaliasing
@@ -596,7 +594,7 @@ class PCompiledModule implements PDefDict {
     Cstr n = mod.getModTab().get(tr.modIndex);
     // Cstr n = (tr.modName != null)? tr.modName: mod.name;
     PDefDict.IdKey ik = PDefDict.IdKey.create(n, tr.tcon);
-    t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconInfo.create(ik, null), tr.ext, params);
+    t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TconProps.createUnresolved(ik), tr.ext, params);
     unresolvedTypeRefList.add((PTypeRefSkel)t);
     return t;
   }

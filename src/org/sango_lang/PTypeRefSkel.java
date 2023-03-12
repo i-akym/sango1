@@ -29,20 +29,20 @@ import java.util.List;
 public class PTypeRefSkel implements PTypeSkel {
   PDefDict.DefDictGetter defDictGetter;
   Parser.SrcInfo srcInfo;
-  PDefDict.TconInfo tconInfo;
+  PDefDict.TconProps tconProps;
   boolean ext;
   PTypeSkel[] params;  // empty array if no params
 
   private PTypeRefSkel() {}
 
-  public static PTypeRefSkel create(PDefDict.DefDictGetter defDictGetter, Parser.SrcInfo srcInfo, PDefDict.TconInfo tconInfo, boolean ext, PTypeSkel[] params) {
+  public static PTypeRefSkel create(PDefDict.DefDictGetter defDictGetter, Parser.SrcInfo srcInfo, PDefDict.TconProps tconProps, boolean ext, PTypeSkel[] params) {
 /* DEBUG */ if (defDictGetter == null) {
-/* DEBUG */   throw new IllegalArgumentException("nulll defDictGetter " + tconInfo.key.repr());
+/* DEBUG */   throw new IllegalArgumentException("nulll defDictGetter " + tconProps.key.repr());
 /* DEBUG */ }
     PTypeRefSkel t = new PTypeRefSkel();
     t.defDictGetter = defDictGetter;
     t.srcInfo = srcInfo;
-    t.tconInfo = tconInfo;
+    t.tconProps = tconProps;
     t.ext = ext;
     t.params = params;
     return t;
@@ -55,7 +55,7 @@ public class PTypeRefSkel implements PTypeSkel {
     PTypeRefSkel t = new PTypeRefSkel();
     t.defDictGetter = this.defDictGetter;
     t.srcInfo = this.srcInfo;
-    t.tconInfo = this.tconInfo;
+    t.tconProps = this.tconProps;
     t.ext = this.ext;
     t.params = new PTypeSkel[this.params.length];
     for (int i = 0; i < t.params.length; i++) {
@@ -76,7 +76,7 @@ public class PTypeRefSkel implements PTypeSkel {
       b = false;
     } else {
       PTypeRefSkel t = (PTypeRefSkel)o;
-      b = t.tconInfo.equals(this.tconInfo) && t.ext == this.ext && t.params.length == this.params.length;
+      b = t.tconProps.equals(this.tconProps) && t.ext == this.ext && t.params.length == this.params.length;
       for (int i = 0; b && i < t.params.length; i++) {
         b = t.params[i].equals(this.params[i]);
       }
@@ -99,7 +99,7 @@ public class PTypeRefSkel implements PTypeSkel {
       sep = " ";
     }
     buf.append(sep);
-    buf.append(this.tconInfo.key.repr());
+    buf.append(this.tconProps.key.repr());
     if (this.ext) {
       buf.append("+");
     }
@@ -117,8 +117,8 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   public boolean isLiteralNaked() {
-    return this.tconInfo.key.modName.equals(Module.MOD_LANG) && 
-      this.tconInfo.key.idName.equals(Module.TCON_EXPOSED) ;
+    return this.tconProps.key.modName.equals(Module.MOD_LANG) && 
+      this.tconProps.key.idName.equals(Module.TCON_EXPOSED) ;
   }
 
   public boolean isConcrete() {
@@ -137,11 +137,11 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  public PDefDict.TconInfo getTconInfo() {
-    if (this.tconInfo == null) {
+  public PDefDict.TconProps getTconInfo() {
+    if (this.tconProps == null) {
       throw new IllegalStateException("Tcon info not set up.");
     }
-    return this.tconInfo;
+    return this.tconProps;
   }
 
   Module.Variance[] paramVariances() {
@@ -156,7 +156,7 @@ public class PTypeRefSkel implements PTypeSkel {
       }
       vv[this.params.length - 1] = Module.COVARIANT;
     } else {
-      PDataDef dd = this.tconInfo.props.defGetter.getDataDef();
+      PDataDef dd = this.tconProps.defGetter.getDataDef();
       // PTypeRefSkel tr = (PTypeRefSkel)dd.getTypeSig();
       for (int i = 0; i < this.params.length; i++) {
         vv[i] = dd.getParamVarianceAt(i);
@@ -192,8 +192,8 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].instanciate(iBindings);
     }
-    return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
-// /* DEBUG */ PTypeRefSkel t = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
+    return create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
+// /* DEBUG */ PTypeRefSkel t = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
 // /* DEBUG */ System.out.print("INSTANCIATE ! "); System.out.print(this); System.out.print(" => "); System.out.println(t);
 // /* DEBUG */ return t;
   }
@@ -203,7 +203,7 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].resolveBindings(bindings);
     }
-    return create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
+    return create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
   }
 
   // public void checkVariance(int width) throws CompileException {
@@ -304,7 +304,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
     boolean b;
 
-    if (this.tconInfo.key.equals(tr.tconInfo.key) && this.ext == tr.ext) {
+    if (this.tconProps.key.equals(tr.tconProps.key) && this.ext == tr.ext) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptEqualTypeRef 1 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -329,7 +329,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptNarrowerTypeRef "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (this.tconInfo.key.equals(tr.tconInfo.key)) {
+    if (this.tconProps.key.equals(tr.tconProps.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptNarrowerTypeRef 1 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -344,12 +344,12 @@ if (PTypeGraph.DEBUG > 1) {
 }
         b = false;  // stop
       }
-    } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconInfo.key, this.tconInfo.key)) {
+    } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconProps.key, this.tconProps.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptNarrowerTypeRef 2 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = true;  // continue
-    } else if (this.ext && this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconInfo.key, tr.tconInfo.key)) {
+    } else if (this.ext && this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconProps.key, tr.tconProps.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptNarrowerTypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -374,7 +374,7 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptWiderTypeRef "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (this.tconInfo.key.equals(tr.tconInfo.key)) {
+    if (this.tconProps.key.equals(tr.tconProps.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptWiderTypeRef 1 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -389,12 +389,12 @@ if (PTypeGraph.DEBUG > 1) {
 }
         b = false;  // stop
       }
-    } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconInfo.key, tr.tconInfo.key)) {
+    } else if (this.defDictGetter.getGlobalDefDict().isBaseOf(this.tconProps.key, tr.tconProps.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptWiderTypeRef 2 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = true;  // continue
-    } else if (tr.ext && this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconInfo.key, this.tconInfo.key)) {
+    } else if (tr.ext && this.defDictGetter.getGlobalDefDict().isBaseOf(tr.tconProps.key, this.tconProps.key)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#acceptWiderTypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -484,7 +484,7 @@ if (PTypeGraph.DEBUG > 1) {
     return b;
   }
 
-  static PDefDict.TconInfo resolveTcon(PDefDict.IdKey key, PDefDict.DefDictGetter defDictGetter) throws CompileException {
+  static PDefDict.TconProps resolveTcon(PDefDict.IdKey key, PDefDict.DefDictGetter defDictGetter) throws CompileException {
     Option.Set<Module.Access> as = (new Option.Set<Module.Access>())
       .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
       .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
@@ -621,8 +621,8 @@ if (PTypeGraph.DEBUG > 1) {
     boolean b;
     if (type instanceof PTypeRefSkel) {
       PTypeRefSkel tr = (PTypeRefSkel)type;
-      if (tr.tconInfo == null) { throw new IllegalArgumentException("Tcon not resolved."); }
-      b = tr.tconInfo.key.modName.equals(Module.MOD_LANG) && tr.tconInfo.key.idName.equals(tcon);
+      if (tr.tconProps == null) { throw new IllegalArgumentException("Tcon not resolved."); }
+      b = tr.tconProps.key.modName.equals(Module.MOD_LANG) && tr.tconProps.key.idName.equals(tcon);
     } else {
       b = false;
     }
@@ -634,10 +634,10 @@ if (PTypeGraph.DEBUG > 1) {
   public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
 // /* DEBUG */ System.out.println(this);
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
-    if (!this.tconInfo.key.modName.equals(mod.name)) {
-      b.setModIndex(mod.modNameToModRefIndex(this.tconInfo.key.modName));
+    if (!this.tconProps.key.modName.equals(mod.name)) {
+      b.setModIndex(mod.modNameToModRefIndex(this.tconProps.key.modName));
     }
-    b.setTcon(this.tconInfo.key.idName);
+    b.setTcon(this.tconProps.key.idName);
     b.setExt(this.ext);
     for (int i = 0; i < params.length; i++) {
       b.addParam(this.params[i].toMType(mod, slotList));
@@ -651,12 +651,12 @@ if (PTypeGraph.DEBUG > 1) {
     }
   }
 
-  public void collectTconInfo(List<PDefDict.TconInfo> list) {
+  public void collectTconProps(List<PDefDict.TconProps> list) {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i].collectTconInfo(list);
+      this.params[i].collectTconProps(list);
     }
-    if (!list.contains(this.tconInfo)) {
-      list.add(this.tconInfo);
+    if (!list.contains(this.tconProps)) {
+      list.add(this.tconProps);
     }
   }
 
@@ -667,10 +667,10 @@ if (PTypeGraph.DEBUG > 1) {
     }
     PTypeSkel tr;
     PAliasTypeDef ad;
-    if ((ad = this.tconInfo.props.defGetter.getAliasTypeDef()) != null) {
+    if ((ad = this.tconProps.defGetter.getAliasTypeDef()) != null) {
       tr = ad.unalias(ps);
     } else {
-      tr = create(this.defDictGetter, this.srcInfo, this.tconInfo, this.ext, ps);
+      tr = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
     }
     return tr;
   }
@@ -680,7 +680,7 @@ if (PTypeGraph.DEBUG > 1) {
     for (int i = 0; i < this.params.length; i++) {
       r.add(this.params[i].repr());
     }
-    r.add(this.tconInfo.key.repr() + ((this.ext)? "+": ""));
+    r.add(this.tconProps.key.repr() + ((this.ext)? "+": ""));
     return r;
   }
 }

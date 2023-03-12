@@ -35,7 +35,7 @@ public interface PDefDict {
 
   EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
-  TconInfo resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
+  TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
   interface GlobalDefDict {
 
@@ -155,54 +155,60 @@ public interface PDefDict {
     }
   }
 
-  static class TconInfo {
-    IdKey key;
-    TconProps props;
+  // static class TconInfo {
+    // IdKey key;
+    // TconProps props;
 
-    public static TconInfo create(IdKey key, TconProps props) {
-      return new TconInfo(key, props);
-    }
+    // public static TconInfo create(IdKey key, TconProps props) {
+      // return new TconInfo(key, props);
+    // }
 
-    TconInfo(IdKey key, TconProps props) {
-      this.key = key;
-      this.props = props;
-    }
+    // TconInfo(IdKey key, TconProps props) {
+      // this.key = key;
+      // this.props = props;
+    // }
 
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("tconinfo[tconkey=");
-      buf.append(this.key);
-      buf.append(",tconprops=");
-      buf.append(this.props);
-      buf.append("]");
-      return buf.toString();
-    }
+    // public String toString() {
+      // StringBuffer buf = new StringBuffer();
+      // buf.append("tconinfo[tconkey=");
+      // buf.append(this.key);
+      // buf.append(",tconprops=");
+      // buf.append(this.props);
+      // buf.append("]");
+      // return buf.toString();
+    // }
 
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof TconInfo)) {
-        b = false;
-      } else {
-        TconInfo ti = (TconInfo)o;
-        b = ti.key.equals(this.key);
-      }
-      return b;
-    }
-  }
+    // public boolean equals(Object o) {
+      // boolean b;
+      // if (o == this) {
+        // b = true;
+      // } else if (!(o instanceof TconInfo)) {
+        // b = false;
+      // } else {
+        // TconInfo ti = (TconInfo)o;
+        // b = ti.key.equals(this.key);
+      // }
+      // return b;
+    // }
+  // }
 
   static class TconProps {
+    IdKey key;
     int subcat;
     TparamProps[] paramProps;  // null means variable
     Module.Access acc;
     DataDefGetter defGetter;
 
-    public static TconProps create(int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
-      return new TconProps(subcat, paramProps, acc, getter);
+    public static TconProps create(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+      return new TconProps(key, subcat, paramProps, acc, getter);
     }
 
-    TconProps(int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+    public static TconProps createUnresolved(IdKey key) {
+      return create(key, 0, null, null, null);
+    }
+
+    TconProps(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+      this.key = key;
       this.subcat = subcat;
       this.paramProps = paramProps;
       this.acc = acc;
@@ -215,6 +221,8 @@ public interface PDefDict {
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
+      buf.append("tconprops[key=");
+      buf.append(this.key);
       buf.append("tconprops[subcat=");
       buf.append(this.subcat);
       buf.append(",paramcount=");

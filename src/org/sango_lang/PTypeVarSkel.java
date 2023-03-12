@@ -776,7 +776,7 @@ if (PTypeGraph.DEBUG > 1) {
     return tr.castFor(this, bindings);
   }
 
-  public void collectTconInfo(List<PDefDict.TconInfo> list) {}
+  public void collectTconProps(List<PDefDict.TconProps> list) {}
 
   public PTypeSkel unalias(PTypeSkelBindings bindings) {
     PTypeSkel t;
@@ -790,11 +790,6 @@ if (PTypeGraph.DEBUG > 1) {
       r.add("=");
     }
     StringBuffer buf = new StringBuffer();
-    // if (this.varSlot.variance == Module.COVARIANT) {
-      // buf.append("+");
-    // } else if(this.varSlot.variance == Module.CONTRAVARIANT) {
-      // buf.append("-");
-    // }
     buf.append(name);
     if (this.varSlot.requiresConcrete) {
       buf.append("!");

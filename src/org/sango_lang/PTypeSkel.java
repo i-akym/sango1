@@ -67,7 +67,7 @@ public interface PTypeSkel {
 
   void extractVars(List<PTypeVarSlot> extracted);
 
-  void collectTconInfo(List<PDefDict.TconInfo> list);
+  void collectTconProps(List<PDefDict.TconProps> list);
 
   PTypeSkel unalias(PTypeSkelBindings bindings);
 

@@ -170,12 +170,12 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   public void checkConcreteness() throws CompileException {
     if (this.nTypeSkel instanceof PTypeRefSkel) {
       PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
-      if (t.tconInfo.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_FUN))) {
+      if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_FUN))) {
         // formally OK...
-      } else if (t.tconInfo.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
+      } else if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
         // formally OK...
       } else {
-        PDefDict.TparamProps[] ps = t.tconInfo.props.paramProps;
+        PDefDict.TparamProps[] ps = t.tconProps.paramProps;
         for (int i = 0; i < ps.length; i++) {
           if (ps[i].concrete & !t.params[i].isConcrete()) {
             StringBuffer emsg = new StringBuffer();

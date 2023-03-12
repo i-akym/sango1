@@ -81,7 +81,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return this;
   }
 
-  public PDefDict.TconInfo getTconInfo() { return null; }
+  public PDefDict.TconProps getTconProps() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
 

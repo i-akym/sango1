@@ -608,6 +608,7 @@ class PModule implements PDefDict {
     this.tconDict.put(
       dat.tcon,
       PDefDict.TconProps.create(
+        PDefDict.IdKey.create(this.name, dat.tcon),
         PTypeId.SUBCAT_DATA,
         paramPropss,
         dat.acc,
@@ -663,6 +664,7 @@ class PModule implements PDefDict {
     this.tconDict.put(
       ext.tcon,
       PDefDict.TconProps.create(
+        PDefDict.IdKey.create(this.name, ext.tcon),
         PTypeId.SUBCAT_EXTEND,
         paramPropss,
         ext.acc,
@@ -713,6 +715,7 @@ class PModule implements PDefDict {
     this.tconDict.put(
       alias.tcon,
       PDefDict.TconProps.create(
+        PDefDict.IdKey.create(this.name, alias.tcon),
         PTypeId.SUBCAT_ALIAS,
         paramPropss,
         alias.acc,
@@ -1056,11 +1059,11 @@ class PModule implements PDefDict {
     return this.resolveEid(name, catOpts, as);
   }
 
-  PDefDict.TconInfo resolveTcon(String modId, String tcon) throws CompileException {
+  PDefDict.TconProps resolveTcon(String modId, String tcon) throws CompileException {
     return this.isLang()?  this.resolveTconInLang(modId, tcon): this.resolveTconInOther(modId, tcon);
   }
 
-  private PDefDict.TconInfo resolveTconInLang(String modId, String tcon) {
+  private PDefDict.TconProps resolveTconInLang(String modId, String tcon) {
     if (modId == null || modId.equals(this.myId) || modId.equals(MOD_ID_HERE) || modId.equals(MOD_ID_LANG)) {
       ;
     } else {
@@ -1075,23 +1078,23 @@ class PModule implements PDefDict {
       as);
   }
 
-  private PDefDict.TconInfo resolveTconInOther(String modId, String tcon) throws CompileException {
-    PDefDict.TconInfo ti = null;
+  private PDefDict.TconProps resolveTconInOther(String modId, String tcon) throws CompileException {
+    PDefDict.TconProps tp = null;
     if (modId == null) {
-      if ((ti = this.resolveTconLocal(tcon)) != null) {
+      if ((tp = this.resolveTconLocal(tcon)) != null) {
         ;
-      } else if ((ti = this.foreignIdResolver.resolveTcon(MOD_ID_LANG, tcon)) != null) {
+      } else if ((tp = this.foreignIdResolver.resolveTcon(MOD_ID_LANG, tcon)) != null) {
         ;
       }
     } else if (modId.equals(this.myId) || modId.equals(MOD_ID_HERE)) {
-      ti = this.resolveTconLocal(tcon);
+      tp = this.resolveTconLocal(tcon);
     } else {
-      ti = this.foreignIdResolver.resolveTcon(modId, tcon);
+      tp = this.foreignIdResolver.resolveTcon(modId, tcon);
     }
-    return ti;
+    return tp;
   }
 
-  private PDefDict.TconInfo resolveTconLocal(String tcon) {
+  private PDefDict.TconProps resolveTconLocal(String tcon) {
     Option.Set<Module.Access> as = new Option.Set<Module.Access>();
     as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE)
       .add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
@@ -1105,8 +1108,8 @@ class PModule implements PDefDict {
     throw new RuntimeException("PModule#resolveFeature not implemented.");
   }
 
-  void addReferredTcon(PDefDict.TconInfo ti) {
-    this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.idName, ti.props);
+  void addReferredTcon(PDefDict.TconProps tp) {
+    this.foreignIdResolver.referredTcon(tp.key.modName, tp.key.idName, tp);
   }
 
   public Module.Availability getModAvailability() { return this.availability; }
@@ -1132,11 +1135,12 @@ class PModule implements PDefDict {
       props: null;
   }
 
-  public PDefDict.TconInfo resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
+  public PDefDict.TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
     PDefDict.TconProps tp;
     return
       ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && accOpts.contains(tp.acc))?
-      PDefDict.TconInfo.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
+      tp: null;
+      // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
   }
 
   ExprDefGetter createExprDefGetter(PDataDef dataDef) {
@@ -1282,15 +1286,15 @@ class PModule implements PDefDict {
     }
   }
 
-  void collectTconInfo() throws CompileException {
+  void collectTconProps() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.get(i).collectTconInfo();
+      this.dataStmtList.get(i).collectTconProps();
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.get(i).collectTconInfo();
+      this.extendStmtList.get(i).collectTconProps();
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.get(i).collectTconInfo();
+      this.evalStmtList.get(i).collectTconProps();
     }
   }
 
@@ -1370,19 +1374,19 @@ class PModule implements PDefDict {
       return ep;
     }
 
-    PDefDict.TconInfo resolveTcon(String modId, String tcon) throws CompileException {
+    PDefDict.TconProps resolveTcon(String modId, String tcon) throws CompileException {
 // /* DEBUG */ System.out.print("resolveTcon "); System.out.print(PModule.this.name.repr()); System.out.print(" "); System.out.print(modId); System.out.print("."); System.out.println(tcon);
       Cstr modName = PModule.this.resolveModId(modId);
       Option.Set<Module.Access> as = new Option.Set<Module.Access>();
       as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
-      PDefDict.TconInfo ti = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
+      PDefDict.TconProps tp = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
         tcon,
         PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
         as);
-      if (ti != null) {
-        this.referredTcon(modName, tcon, ti.props);
+      if (tp != null) {
+        this.referredTcon(modName, tcon, tp);
       }
-      return ti;
+      return tp;
     }
 
     void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {

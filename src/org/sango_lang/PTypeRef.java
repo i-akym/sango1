@@ -30,7 +30,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
   String tcon;
   boolean ext;
   PType[] params;  // empty array if no params
-  PDefDict.TconInfo tconInfo;
+  PDefDict.TconProps tconProps;
 
   private PTypeRef(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -160,7 +160,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
         throw new CompileException(emsg.toString());
       }
     }
-    if ((this.tconInfo = this.scope.resolveTcon(this.modId, this.tcon)) == null) {
+    if ((this.tconProps = this.scope.resolveTcon(this.modId, this.tcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
       emsg.append(PTypeId.repr(this.modId, this.tcon, false));
@@ -169,7 +169,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (this.tconInfo.props.paramCount() >= 0 && this.params.length != this.tconInfo.props.paramCount()) {
+    if (this.tconProps.paramCount() >= 0 && this.params.length != this.tconProps.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
       emsg.append(PTypeId.repr(this.modId, this.tcon, false));
@@ -185,16 +185,16 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return this;
   }
 
-  public PDefDict.TconInfo getTconInfo() {
-    if (this.tconInfo == null) {
-      throw new IllegalStateException("Tcon info not set up.");
+  public PDefDict.TconProps getTconProps() {
+    if (this.tconProps == null) {
+      throw new IllegalStateException("Tcon props not set up.");
     }
-    return this.tconInfo;
+    return this.tconProps;
   }
 
   public void excludePrivateAcc() throws CompileException {
     StringBuffer emsg;
-    if (this.tconInfo.props.acc == Module.ACC_PRIVATE) {
+    if (this.tconProps.acc == Module.ACC_PRIVATE) {
       emsg = new StringBuffer();
       emsg.append("\"");
       emsg.append(PTypeId.repr(this.modId, this.tcon, false));
@@ -214,7 +214,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.ext, ps);
   }
 
   public PTypeSkel getNormalizedSkel() throws CompileException {
@@ -224,10 +224,10 @@ class PTypeRef extends PDefaultProgObj implements PType {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].getNormalizedSkel();
     }
-    if ((a = this.tconInfo.props.defGetter.getAliasTypeDef()) != null) {
+    if ((a = this.tconProps.defGetter.getAliasTypeDef()) != null) {
       t = a.unalias(ps);
     } else {
-      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconInfo, this.ext, ps);
+      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.ext, ps);
     }
     return t;
   }
