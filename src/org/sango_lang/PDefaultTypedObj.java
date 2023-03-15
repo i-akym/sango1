@@ -34,9 +34,14 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
 
   public PType getType() { return this.type; }
 
-  public PTypeSkel getNormalizedType() { return this.nTypeSkel; }
+  public PTypeSkel getNormalizedType() throws CompileException {
+    if (this.nTypeSkel == null && this.type != null) {
+      this.nTypeSkel = this.type.getNormalizedSkel();
+    }
+    return this.nTypeSkel;
+  }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     throw new RuntimeException("PTypedObj#setupTypeGraph called. - " + this.toString());
   }
 
@@ -46,6 +51,8 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
     this.typeGraphNode = node;
   }
 
-  public PTypeSkel getFixedType() { return this.typeGraphNode.getFixedType(); }
-
+  public PTypeSkel getFixedType() {
+// /* DEBUG */ System.out.print(this); System.out.print(this.nTypeSkel); System.out.println(this.typeGraphNode);
+    return (this.nTypeSkel != null)? this.nTypeSkel: this.typeGraphNode.getFixedType();
+  }
 }

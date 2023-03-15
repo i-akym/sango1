@@ -46,16 +46,4 @@ class PDynamicInv extends PDefaultProgElem {
     ParserA.Token token = ParserA.acceptToken(reader, LToken.AMP, spc);
     return (token != null)? create(token.getSrcInfo()): null;
   }
-
-  // public void collectModRefs() throws CompileException {
-    // throw new RuntimeException("PDynamicInv#collectModRefs() called. - " + this.toString());
-  // }
-
-  // public PDynamicInv resolve() throws CompileException {
-    // throw new RuntimeException("PDynamicInv#resolveId() called. - " + this.toString());
-  // }
-
-  // public void normalizeTypes() {
-    // throw new IllegalStateException("PDynamicInv#normalizeTypes should not called. ");
-  // }
 }

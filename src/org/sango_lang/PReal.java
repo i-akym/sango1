@@ -76,23 +76,14 @@ class PReal extends PDefaultExprObj {
     return create(elem.getSrcInfo(), outerScope, d);
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PReal resolve() throws CompileException {
-    // this.idResolved = true;
+    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "real").toSkel();
     return this;
   }
 
-  public void normalizeTypes() {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "real").getSkel();
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDetNode(this);
     return this.typeGraphNode;
   }

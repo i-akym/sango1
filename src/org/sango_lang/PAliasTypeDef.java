@@ -31,11 +31,11 @@ public interface PAliasTypeDef {
 
   PTypeVarSlot[] getParamVarSlots();
   
-  int getAvailability();
+  Module.Availability getAvailability();
 
-  int getAcc();
+  Module.Access getAcc();
 
-  void collectUnaliasTconInfo(List<PDefDict.TconInfo> list);
+  void collectUnaliasTconProps(List<PDefDict.TconProps> list);
 
   PTypeRefSkel getBody();
 

@@ -30,19 +30,6 @@ class PRetDef extends PDefaultExprObj {
     super(srcInfo, defScope.enterInner());
   }
 
-  // static PRetDef create(PType type) {
-    // if (type == null) {
-      // throw new IllegalArgumentException("Type is null.");
-    // }
-    // return create(type.getSrcInfo(), type. type.getScope());
-  // }
-
-  // static PRetDef create(Parser.SrcInfo srcInfo, PType type, PScope defScope) {
-    // PRetDef ret = new PRetDef(srcInfo, defScope);
-    // ret.type = type;
-    // return ret;
-  // }
-
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("ret[");
@@ -116,22 +103,12 @@ class PRetDef extends PDefaultExprObj {
     }
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.type.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PRetDef resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    // this.idResolved = true;
     return this;
   }
 
@@ -139,11 +116,7 @@ class PRetDef extends PDefaultExprObj {
     this.type.excludePrivateAcc();
   }
 
-  public void normalizeTypes() {
-    this.nTypeSkel = this.type.normalize();
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createRetNode(this);
     return this.typeGraphNode;
   }

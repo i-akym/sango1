@@ -108,16 +108,6 @@ class PDynamicInvEval extends PDefaultExprObj implements PEval {
     return create(elem.getSrcInfo(), outerScope, closure, ps.toArray(new PExprObj[ps.size()]));
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(scope);
-    // }
-    // this.funObj.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -126,23 +116,14 @@ class PDynamicInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PDynamicInvEval resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
     this.funObj = this.funObj.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].normalizeTypes();
-    }
-    this.funObj.normalizeTypes();
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDynamicInvNode(this, this.params.length);
     PTypeGraph.Node[] args = new PTypeGraph.Node[this.params.length];
     for (int i = 0; i < this.params.length; i++) {

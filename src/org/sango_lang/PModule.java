@@ -48,14 +48,28 @@ class PModule implements PDefDict {
   static final String ACC_WORDX_PROTECTED = "protected";
   static final String ACC_WORDX_OPAQUE = "opaque";
   static final String ACC_WORDX_PRIVATE = "private";
-  static final int ACC_OPTS_FOR_EVAL = Module.ACC_PUBLIC + Module.ACC_PRIVATE;
-  static final int ACC_OPTS_FOR_DATA = Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE;
-  static final int ACC_OPTS_FOR_EXTEND = Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE;
-  static final int ACC_OPTS_FOR_ALIAS = Module.ACC_PUBLIC + Module.ACC_PRIVATE;
-  static final int ACC_DEFAULT_FOR_EVAL = Module.ACC_PRIVATE;
-  static final int ACC_DEFAULT_FOR_DATA = Module.ACC_PRIVATE;
-  static final int ACC_DEFAULT_FOR_EXTEND = Module.ACC_PRIVATE;
-  static final int ACC_DEFAULT_FOR_ALIAS = Module.ACC_PRIVATE;
+  static final Option.Set<Module.Access> ACC_OPTS_FOR_EVAL
+    = (new Option.Set<Module.Access>())
+    .add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
+  static final Option.Set<Module.Access> ACC_OPTS_FOR_DATA
+    = (new Option.Set<Module.Access>())
+    .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
+    .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
+  static final Option.Set<Module.Access> ACC_OPTS_FOR_EXTEND
+    = (new Option.Set<Module.Access>())
+    .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
+    .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
+  static final Option.Set<Module.Access> ACC_OPTS_FOR_ALIAS
+    = (new Option.Set<Module.Access>())
+    .add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
+  static final Option.Set<Module.Access> ACC_OPTS_FOR_FEATURE
+    = (new Option.Set<Module.Access>())
+    .add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
+  static final Module.Access ACC_DEFAULT_FOR_EVAL = Module.ACC_PRIVATE;
+  static final Module.Access ACC_DEFAULT_FOR_DATA = Module.ACC_PRIVATE;
+  static final Module.Access ACC_DEFAULT_FOR_EXTEND = Module.ACC_PRIVATE;
+  static final Module.Access ACC_DEFAULT_FOR_ALIAS = Module.ACC_PRIVATE;
+  static final Module.Access ACC_DEFAULT_FOR_FEATURE = Module.ACC_PRIVATE;
 
   static final String AVAILABILITY_WORD_GENERAL = "@general";
   static final String AVAILABILITY_WORD_ALPHA = "@alpha";
@@ -72,7 +86,7 @@ class PModule implements PDefDict {
   Parser.SrcInfo srcInfo;
   PScope scope;
   Parser.SrcInfo modDefSrcInfo;
-  int availability;
+  Module.Availability availability;
   Cstr definedName;  // maybe null
   Cstr name;
   String myId;
@@ -80,6 +94,7 @@ class PModule implements PDefDict {
   List<PDataStmt> dataStmtList;
   List<PExtendStmt> extendStmtList;
   List<PAliasTypeStmt> aliasTypeStmtList;
+  List<PFeatureStmt> featureStmtList;
   List<PEvalStmt> evalStmtList;
   List<Cstr> farModList;  // foreign module other than "sango.lang"
   Map<String, Integer> modDict;
@@ -95,10 +110,12 @@ class PModule implements PDefDict {
     this.theCompiler = theCompiler;
     this.srcInfo = srcInfo;
     this.scope = PScope.create(this);  // hmmm, not elegant
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
     this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
+    this.featureStmtList = new ArrayList<PFeatureStmt>();
     this.evalStmtList = new ArrayList<PEvalStmt>();
     this.farModList = new ArrayList<Cstr>();
     this.modDict = new HashMap<String, Integer>();
@@ -164,6 +181,7 @@ class PModule implements PDefDict {
     List<PDataStmt> dataStmtList;
     List<PExtendStmt> extendStmtList;
     List<PAliasTypeStmt> aliasTypeStmtList;
+    List<PFeatureStmt> featureStmtList;
     List<PEvalStmt> evalStmtList;
 
     static Builder newInstance(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
@@ -177,12 +195,13 @@ class PModule implements PDefDict {
       this.dataStmtList = new ArrayList<PDataStmt>();
       this.extendStmtList = new ArrayList<PExtendStmt>();
       this.aliasTypeStmtList = new ArrayList<PAliasTypeStmt>();
+      this.featureStmtList = new ArrayList<PFeatureStmt>();
       this.evalStmtList = new ArrayList<PEvalStmt>();
     }
 
     PScope getScope() { return this.mod.scope; }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.mod.availability = availability;
     }
 
@@ -227,6 +246,10 @@ class PModule implements PDefDict {
       this.aliasTypeStmtList.add(alias);
     }
 
+    void addFeatureStmt(PFeatureStmt feat) throws CompileException {
+      this.featureStmtList.add(feat);
+    }
+
     void addEvalStmt(PEvalStmt eval) throws CompileException {
       this.evalStmtList.add(eval);
     }
@@ -256,6 +279,9 @@ class PModule implements PDefDict {
       for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
         this.mod.addAliasStmt(this.aliasTypeStmtList.get(i));
       }
+      for (int i = 0; i < this.featureStmtList.size(); i++) {
+        this.mod.addFeatureStmt(this.featureStmtList.get(i));
+      }
       for (int i = 0; i < this.evalStmtList.size(); i++) {
         this.mod.addEvalStmt(this.evalStmtList.get(i));
       }
@@ -277,6 +303,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
   }
@@ -309,6 +336,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
   }
@@ -355,7 +383,7 @@ class PModule implements PDefDict {
     builder.setDefinedName(t.value.cstrValue);
     if ((t = ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE)) != null) {
       PExprId id;
-      if ((id = PExprId.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      if ((id = PExprId.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
         emsg.append("My id missing at ");
         emsg.append(reader.getCurrentSrcInfo());
@@ -380,6 +408,7 @@ class PModule implements PDefDict {
     PDataStmt dat;
     PExtendStmt ext;
     PAliasTypeStmt alias;
+    PFeatureStmt feat;
     PEvalStmt eval;
     while (!t.isEOF()) {
       if ((imp = PImportStmt.accept(reader, builder.getScope())) != null) {
@@ -390,6 +419,8 @@ class PModule implements PDefDict {
         builder.addExtendStmt(ext);
       } else if ((alias = PAliasTypeStmt.accept(reader, builder.getScope())) != null) {
         builder.addAliasStmt(alias);
+      } else if ((feat = PFeatureStmt.accept(reader, builder.getScope())) != null) {
+        builder.addFeatureStmt(feat);
       } else if ((eval = PEvalStmt.accept(reader, builder.getScope())) != null) {
         builder.addEvalStmt(eval);
       } else {
@@ -404,20 +435,20 @@ class PModule implements PDefDict {
     }
   }
 
-  static int acceptAcc(ParserA.TokenReader reader, int options, int defaultValue) throws CompileException, IOException {
+  static Module.Access acceptAcc(ParserA.TokenReader reader, Option.Set<Module.Access> options, Module.Access defaultValue) throws CompileException, IOException {
     ParserA.Token a = ParserA.acceptSpecialWord(reader, ParserA.SPACE_NEEDED);
     if (a == null) {
       return defaultValue;
-    } else if (((options & Module.ACC_PUBLIC) > 0) && a.value.token.equals(ACC_WORD_PUBLIC)) {
+    } else if (options.contains(Module.ACC_PUBLIC) && a.value.token.equals(ACC_WORD_PUBLIC)) {
       reader.tokenConsumed();
       return Module.ACC_PUBLIC;
-    } else if (((options & Module.ACC_PROTECTED) > 0) && a.value.token.equals(ACC_WORD_PROTECTED)) {
+    } else if (options.contains(Module.ACC_PROTECTED) && a.value.token.equals(ACC_WORD_PROTECTED)) {
       reader.tokenConsumed();
       return Module.ACC_PROTECTED;
-    } else if (((options & Module.ACC_OPAQUE) > 0) && a.value.token.equals(ACC_WORD_OPAQUE)) {
+    } else if (options.contains(Module.ACC_OPAQUE) && a.value.token.equals(ACC_WORD_OPAQUE)) {
       reader.tokenConsumed();
       return Module.ACC_OPAQUE;
-    } else if (((options & Module.ACC_PRIVATE) > 0) && a.value.token.equals(ACC_WORD_PRIVATE)) {
+    } else if (options.contains(Module.ACC_PRIVATE) && a.value.token.equals(ACC_WORD_PRIVATE)) {
       reader.tokenConsumed();
       return Module.ACC_PRIVATE;
     } else {
@@ -430,18 +461,18 @@ class PModule implements PDefDict {
     }
   }
 
-  static int acceptXAccAttr(ParserB.Elem elem, int options, int defaultValue) throws CompileException {
-    int a;
+  static Module.Access acceptXAccAttr(ParserB.Elem elem, Option.Set<Module.Access> options, Module.Access defaultValue) throws CompileException {
+    Module.Access a;
     String acc = elem.getAttrValue("acc");
     if (acc == null) {
       a = defaultValue;
-    } else if (((options & Module.ACC_PUBLIC) > 0) && acc.equals(ACC_WORDX_PUBLIC)) {
+    } else if (options.contains(Module.ACC_PUBLIC) && acc.equals(ACC_WORDX_PUBLIC)) {
       a = Module.ACC_PUBLIC;
-    } else if (((options & Module.ACC_PROTECTED) > 0) && acc.equals(ACC_WORDX_PROTECTED)) {
+    } else if (options.contains(Module.ACC_PROTECTED) && acc.equals(ACC_WORDX_PROTECTED)) {
       a = Module.ACC_PROTECTED;
-    } else if (((options & Module.ACC_OPAQUE) > 0) && acc.equals(ACC_WORDX_OPAQUE)) {
+    } else if (options.contains(Module.ACC_OPAQUE) && acc.equals(ACC_WORDX_OPAQUE)) {
       a = Module.ACC_OPAQUE;
-    } else if (((options & Module.ACC_PRIVATE) > 0) && acc.equals(ACC_WORDX_PRIVATE)) {
+    } else if (options.contains(Module.ACC_PRIVATE) && acc.equals(ACC_WORDX_PRIVATE)) {
       a = Module.ACC_PRIVATE;
     } else {
       StringBuffer emsg = new StringBuffer();
@@ -454,9 +485,9 @@ class PModule implements PDefDict {
     return a;
   }
 
-  static int acceptAvailability(ParserA.TokenReader reader) throws CompileException, IOException {
+  static Module.Availability acceptAvailability(ParserA.TokenReader reader) throws CompileException, IOException {
     ParserA.Token a = ParserA.acceptSpecialWord(reader, ParserA.SPACE_NEEDED);
-    int av;
+    Module.Availability av;
     if (a == null) {
       av = Module.AVAILABILITY_GENERAL;
     } else if (a.value.token.equals(AVAILABILITY_WORD_GENERAL)) {
@@ -485,8 +516,8 @@ class PModule implements PDefDict {
     return av;
   }
 
-  static int acceptXAvailabilityAttr(ParserB.Elem elem) throws CompileException {
-    int av;
+  static Module.Availability acceptXAvailabilityAttr(ParserB.Elem elem) throws CompileException {
+    Module.Availability av;
     String avail = elem.getAttrValue("availability");
     if (avail == null) {
       av = Module.AVAILABILITY_GENERAL;
@@ -553,7 +584,6 @@ class PModule implements PDefDict {
 
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
-    // dat.setupScope(this.scope);
     dat.collectModRefs();
     if (this.tconDict.containsKey(dat.tcon)) {
       emsg = new StringBuffer();
@@ -570,7 +600,7 @@ class PModule implements PDefDict {
     if (dat.tparams != null) {
       paramPropss = new PDefDict.TparamProps[dat.tparams.length];
       for (int i = 0; i < dat.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(dat.tparams[i].variance, dat.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(dat.tparams[i].variance, dat.tparams[i].varDef.requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -578,6 +608,7 @@ class PModule implements PDefDict {
     this.tconDict.put(
       dat.tcon,
       PDefDict.TconProps.create(
+        PDefDict.IdKey.create(this.name, dat.tcon),
         PTypeId.SUBCAT_DATA,
         paramPropss,
         dat.acc,
@@ -605,13 +636,12 @@ class PModule implements PDefDict {
 
   void addExtendStmt(PExtendStmt ext) throws CompileException {
     StringBuffer emsg;
-    // ext.setupScope(this.scope);
     ext.collectModRefs();
     if (this.tconDict.containsKey(ext.tcon)) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
-      if (ext.baseMod != null) {
-        emsg.append(ext.baseMod);
+      if (ext.baseModId != null) {
+        emsg.append(ext.baseModId);
         emsg.append(".");
       }
       emsg.append(ext.tcon);
@@ -626,7 +656,7 @@ class PModule implements PDefDict {
     if (ext.tparams != null) {
       paramPropss = new PDefDict.TparamProps[ext.tparams.length];
       for (int i = 0; i < ext.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(ext.tparams[i].variance, ext.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(ext.tparams[i].variance, ext.tparams[i].varDef.requiresConcrete);
       }
     } else {
       paramPropss = null;
@@ -634,6 +664,7 @@ class PModule implements PDefDict {
     this.tconDict.put(
       ext.tcon,
       PDefDict.TconProps.create(
+        PDefDict.IdKey.create(this.name, ext.tcon),
         PTypeId.SUBCAT_EXTEND,
         paramPropss,
         ext.acc,
@@ -659,7 +690,6 @@ class PModule implements PDefDict {
 
   void addAliasStmt(PAliasTypeStmt alias) throws CompileException {
     StringBuffer emsg;
-    // alias.setupScope(this.scope);
     alias.collectModRefs();
     if (this.tconDict.containsKey(alias.tcon)) {
       emsg = new StringBuffer();
@@ -676,7 +706,7 @@ class PModule implements PDefDict {
     if (alias.tparams != null) {
       paramPropss = new PDefDict.TparamProps[alias.tparams.length];
       for (int i = 0; i < alias.tparams.length; i++) {
-        paramPropss[i] = new PDefDict.TparamProps(alias.tparams[i].variance, alias.tparams[i].requiresConcrete);
+        paramPropss[i] = PDefDict.TparamProps.create(Module.NO_VARIANCE /* old: alias.tparams[i].variance */ , alias.tparams[i].requiresConcrete);
           // actually (invariant, false)
       }
     } else {
@@ -685,6 +715,7 @@ class PModule implements PDefDict {
     this.tconDict.put(
       alias.tcon,
       PDefDict.TconProps.create(
+        PDefDict.IdKey.create(this.name, alias.tcon),
         PTypeId.SUBCAT_ALIAS,
         paramPropss,
         alias.acc,
@@ -693,9 +724,17 @@ class PModule implements PDefDict {
     // /* DEBUG */ System.out.println(alias);
   }
 
+  void addFeatureStmt(PFeatureStmt feat) throws CompileException {
+    StringBuffer emsg;
+    feat.collectModRefs();
+    this.featureStmtList.add(feat);
+// HERE
+    // /* DEBUG */ System.out.print("feature stmt added: ");
+    // /* DEBUG */ System.out.println(feature);
+  }
+
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
-    // eval.setupScope(this.scope);
     eval.collectModRefs();
     String official = eval.official;
     String[] aliases = eval.aliases;
@@ -759,10 +798,10 @@ class PModule implements PDefDict {
     // /* DEBUG */ System.out.println(eval);
   }
 
-  private void mergeFunToEidDict(String name, int cat, int acc) {
+  private void mergeFunToEidDict(String name, int cat, Module.Access acc) {
     PDefDict.EidProps p = this.eidDict.get(name);
     p.cat |= cat;
-    p.acc |= acc;
+    p.acc = Module.moreOpenAcc(acc, p.acc)? acc: p.acc;
   }
 
   private void generateNameFun() throws CompileException {
@@ -792,7 +831,7 @@ class PModule implements PDefDict {
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     retTypeBuilder.addItem(eval.retDef.type.deepCopy(
-      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_VARIANCE_INVARIANT, PType.COPY_CONCRETE_OFF));
+      si, retScope, PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
@@ -811,8 +850,111 @@ class PModule implements PDefDict {
     return this.getInitFunDef() != null;
   }
 
-  private void generateDataFuns() throws CompileException {
+  private void generateFeatureFuns() throws CompileException {
+    if (this.featureStmtList.size() > 0) {
+      this.generateFeatureDataDef();
+      this.generateFeatureGetterFun();
+      // List<PEvalStmt> es;
+      // for (int i = 0; i < this.featureStmtList.size(); i++) {
+        // es = this.featureStmtList.get(i).generateFuns(this);
+        // for (int j = 0; j < es.size(); j++) {
+          // this.addEvalStmt(es.get(j));
+        // }
+      // }
+    }
+  }
+
+  void generateFeatureDataDef() throws CompileException {
+    // data <_feature_> := <impl_type> _feature_name$ | ...
     StringBuffer emsg;
+    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
+    PDataStmt.Builder dataStmtBuilder = PDataStmt.Builder.newInstance(si, this.scope);
+    PScope defScope = dataStmtBuilder.getDefScope();
+    dataStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
+    // dataStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    dataStmtBuilder.setTcon(PTypeId.create(si, defScope, null, "_feature_", false));
+    // PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
+    // sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_", false));
+    // dataStmtBuilder.setSig(sigBuilder.create());
+
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      PFeatureStmt fs = this.featureStmtList.get(i);
+      PDataConstrDef.Builder constrBuilder = PDataConstrDef.Builder.newInstance(si, defScope);
+      PScope constrScope = constrBuilder.getScope();
+
+      // collect var names from obj type and feature sig
+      Set<String> vs = new HashSet<String>();
+      vs.add(fs.obj.name);
+      for (int j = 0; j < fs.sig.params.length; j++) {
+        vs.add(((PTypeVarDef)fs.sig.params[j]).name);
+      }
+
+      // convert impl type
+      PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, constrScope);
+      for (int j = 0; j < fs.impl.params.length; j++) {
+        PType p = null;
+        if (fs.impl.params[j] instanceof PType.Undet) {  // var ref or type ref w/o params
+          PType.Undet u = (PType.Undet)fs.impl.params[j];
+          if (vs.contains(u.id.name)) {
+            p = PTypeVarDef.create(si, constrScope, u.id.name, /* Module.NO_VARIANCE, */ false, null, null);  // ok?
+          } else {
+            emsg = new StringBuffer();
+            emsg.append("Invalid feature implementation type paramter at ");
+            emsg.append(fs.impl.params[j].getSrcInfo());
+            emsg.append(". parameter ");
+            emsg.append(j + 1);
+            throw new CompileException(emsg.toString());
+          }
+        } else if (fs.impl.params[j] instanceof PTypeVarDef) {
+          p = fs.impl.params[j];
+        } else {  // PTypeRef
+          emsg = new StringBuffer();
+          emsg.append("Invalid feature implementation type paramter at ");
+          emsg.append(fs.impl.params[j].getSrcInfo());
+          emsg.append(". parameter ");
+          emsg.append(j + 1);
+          throw new CompileException(emsg.toString());
+        }
+/* DEBUG */ System.out.println(p);
+        paramTypeBuilder.addItem(p);
+      }
+      paramTypeBuilder.addItem(PTypeId.create(si, constrScope, fs.impl.modId, fs.impl.tcon, false));
+
+      PDataAttrDef a = PDataAttrDef.create(si, constrScope, null, paramTypeBuilder.create());
+/* DEBUG */ System.out.println(a);
+
+      constrBuilder.addAttr(a);
+      constrBuilder.setDcon("_feature_" + fs.sig.fname.name + "$");
+      dataStmtBuilder.addConstr(constrBuilder.create());
+    }
+    this.addDataStmt(dataStmtBuilder.create());
+  }
+
+  void generateFeatureGetterFun() throws CompileException {
+    // eval <*T> *X <cstr> *F  _builtin_feature_get -> <_feature_ maybe> @native
+    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
+    evalStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
+    evalStmtBuilder.setOfficial("_builtin_feature_get");
+    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
+    PScope defScope = evalStmtBuilder.getDefScope();
+    PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
+    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", /* Module.NO_VARIANCE, */ false, null, null));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param1TypeBuilder.create(), "X"));
+    PType.Builder param2TypeBuilder = PType.Builder.newInstance(si, defScope);
+    param2TypeBuilder.addItem(PTypeId.create(si, defScope, MOD_ID_LANG, "cstr", false));
+    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param2TypeBuilder.create(), "F"));
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
+    PScope retScope = retDefBuilder.getScope();
+    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_HERE, "_feature_", false));
+    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_LANG, "maybe", false));
+    retDefBuilder.setType(retTypeBuilder.create());
+    evalStmtBuilder.setRetDef(retDefBuilder.create());
+    // this.addEvalStmt(evalStmtBuilder.create());  // HERE
+  }
+
+  private void generateDataFuns() throws CompileException {
     List<PEvalStmt> es;
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       es = this.dataStmtList.get(i).generateFuns(this);
@@ -866,6 +1008,9 @@ class PModule implements PDefDict {
     for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
       this.aliasTypeStmtList.set(i, this.aliasTypeStmtList.get(i).resolve());
     }
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      this.featureStmtList.set(i, this.featureStmtList.get(i).resolve());
+    }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
       this.evalStmtList.set(i, this.evalStmtList.get(i).resolve());
     }
@@ -881,7 +1026,7 @@ class PModule implements PDefDict {
   }
 
   PDefDict.EidProps resolveEidInLang(PExprId id) {
-    if (id.mod == null || id.mod.equals(this.myId) || id.mod.equals(MOD_ID_HERE) || id.mod.equals(MOD_ID_LANG)) {
+    if (id.modId == null || id.modId.equals(this.myId) || id.modId.equals(MOD_ID_HERE) || id.modId.equals(MOD_ID_LANG)) {
       ;
     } else {
       throw new IllegalArgumentException("mod invalid.");
@@ -891,72 +1036,83 @@ class PModule implements PDefDict {
 
   PDefDict.EidProps resolveEidInOther(PExprId id) throws CompileException {
     PDefDict.EidProps props;
-    if (id.mod == null) {
+    if (id.modId == null) {
       if ((props = this.resolveEidLocal(id.name, id.catOpt)) == null) {
         props = this.foreignIdResolver.resolveEid(MOD_ID_LANG, id.name, id.catOpt);
-      } else if (id.mod == null) {
+      } else if (id.modId == null) {
         props.defGetter.setSearchInLang();
       }
-    } else if (id.mod.equals(this.myId) || id.mod.equals(MOD_ID_HERE)) {
+    } else if (id.modId.equals(this.myId) || id.modId.equals(MOD_ID_HERE)) {
       props = this.resolveEidLocal(id.name, id.catOpt);
     } else {
-      props = this.foreignIdResolver.resolveEid(id.mod, id.name, id.catOpt);
+      props = this.foreignIdResolver.resolveEid(id.modId, id.name, id.catOpt);
     }
     return props;
   }
 
   PDefDict.EidProps resolveEidLocal(String name, int catOpts) {
-    return this.resolveEid(
-      name,
-      catOpts,
-      Module.ACC_PUBLIC + Module.ACC_PRIVATE
-        + (((catOpts & PExprId.CAT_DCON) > 0)? Module.ACC_PROTECTED + Module.ACC_OPAQUE: 0));
+    Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+    as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
+    if ((catOpts & PExprId.CAT_DCON) > 0) {
+      as = as.add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
+    }
+    return this.resolveEid(name, catOpts, as);
   }
 
-  PDefDict.TconInfo resolveTcon(String mod, String tcon) throws CompileException {
-    return this.isLang()?  this.resolveTconInLang(mod, tcon): this.resolveTconInOther(mod, tcon);
+  PDefDict.TconProps resolveTcon(String modId, String tcon) throws CompileException {
+    return this.isLang()?  this.resolveTconInLang(modId, tcon): this.resolveTconInOther(modId, tcon);
   }
 
-  private PDefDict.TconInfo resolveTconInLang(String mod, String tcon) {
-    if (mod == null || mod.equals(this.myId) || mod.equals(MOD_ID_HERE) || mod.equals(MOD_ID_LANG)) {
+  private PDefDict.TconProps resolveTconInLang(String modId, String tcon) {
+    if (modId == null || modId.equals(this.myId) || modId.equals(MOD_ID_HERE) || modId.equals(MOD_ID_LANG)) {
       ;
     } else {
       throw new IllegalArgumentException("mod invalid.");
     }
+    Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+    as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE)
+      .add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
     return this.resolveTcon(
       tcon,
       PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
-      Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
+      as);
   }
 
-  private PDefDict.TconInfo resolveTconInOther(String mod, String tcon) throws CompileException {
-    PDefDict.TconInfo ti = null;
-    if (mod == null) {
-      if ((ti = this.resolveTconLocal(tcon)) != null) {
+  private PDefDict.TconProps resolveTconInOther(String modId, String tcon) throws CompileException {
+    PDefDict.TconProps tp = null;
+    if (modId == null) {
+      if ((tp = this.resolveTconLocal(tcon)) != null) {
         ;
-      } else if ((ti = this.foreignIdResolver.resolveTcon(MOD_ID_LANG, tcon)) != null) {
+      } else if ((tp = this.foreignIdResolver.resolveTcon(MOD_ID_LANG, tcon)) != null) {
         ;
       }
-    } else if (mod.equals(this.myId) || mod.equals(MOD_ID_HERE)) {
-      ti = this.resolveTconLocal(tcon);
+    } else if (modId.equals(this.myId) || modId.equals(MOD_ID_HERE)) {
+      tp = this.resolveTconLocal(tcon);
     } else {
-      ti = this.foreignIdResolver.resolveTcon(mod, tcon);
+      tp = this.foreignIdResolver.resolveTcon(modId, tcon);
     }
-    return ti;
+    return tp;
   }
 
-  private PDefDict.TconInfo resolveTconLocal(String tcon) {
+  private PDefDict.TconProps resolveTconLocal(String tcon) {
+    Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+    as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE)
+      .add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
     return this.resolveTcon(
       tcon,
       PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
-      Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
+      as);
   }
 
-  void addReferredTcon(PDefDict.TconInfo ti) {
-    this.foreignIdResolver.referredTcon(ti.key.modName, ti.key.tcon, ti.props);
+  PDefDict.FeatureInfo resolveFeature(String modId, String fname) throws CompileException {
+    throw new RuntimeException("PModule#resolveFeature not implemented.");
   }
 
-  public int getModAvailability() { return this.availability; }
+  void addReferredTcon(PDefDict.TconProps tp) {
+    this.foreignIdResolver.referredTcon(tp.key.modName, tp.key.idName, tp);
+  }
+
+  public Module.Availability getModAvailability() { return this.availability; }
 
   public Cstr[] getForeignMods() {
     Cstr[] ms;
@@ -972,15 +1128,19 @@ class PModule implements PDefDict {
     return ms;
   }
 
-  public PDefDict.EidProps resolveEid(String id, int catOpts, int accOpts) {
+  public PDefDict.EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) {
     PDefDict.EidProps props = this.eidDict.get(id);
-    return (props != null && (props.cat & catOpts) > 0 && (props.acc & accOpts) > 0)? props: null;
+    return
+      (props != null && (props.cat & catOpts) > 0 && accOpts.contains(props.acc))?
+      props: null;
   }
 
-  public PDefDict.TconInfo resolveTcon(String tcon, int subcatOpts, int accOpts) {
+  public PDefDict.TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
     PDefDict.TconProps tp;
-    return ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && (tp.acc & accOpts) > 0)?
-      PDefDict.TconInfo.create(PDefDict.TconKey.create(this.name, tcon), tp): null;
+    return
+      ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && accOpts.contains(tp.acc))?
+      tp: null;
+      // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
   }
 
   ExprDefGetter createExprDefGetter(PDataDef dataDef) {
@@ -1014,8 +1174,11 @@ class PModule implements PDefDict {
       } else if ((r = PModule.this.selectFun(this.funName, paramTypes, givenTVarList)) != null) {
         ;
       } else if (this.searchInLang) {
-        PDefDict.EidProps p = PModule.this.theCompiler.getReferredDefDict(Module.MOD_LANG).resolveEid(
-          this.funName, PExprId.CAT_FUN, Module.ACC_PUBLIC);
+        PDefDict.EidProps p = PModule.this.theCompiler.getReferredDefDict(Module.MOD_LANG)
+          .resolveEid(
+            this.funName,
+            PExprId.CAT_FUN,
+            (new Option.Set<Module.Access>()).add(Module.ACC_PUBLIC));
         if (p != null) {
           r = p.defGetter.selectFunDef(paramTypes, givenTVarList);
         }
@@ -1038,7 +1201,7 @@ class PModule implements PDefDict {
         ;
       } else if (this.searchInLang) {
         PDefDict.EidProps p = PModule.this.theCompiler.getReferredDefDict(Module.MOD_LANG).resolveEid(
-          this.funName, PExprId.CAT_FUN_OFFICIAL, Module.ACC_PUBLIC);
+          this.funName, PExprId.CAT_FUN_OFFICIAL, (new Option.Set<Module.Access>()).add(Module.ACC_PUBLIC));
         if (p != null) {
           d = p.defGetter.getFunDef();
         }
@@ -1123,15 +1286,15 @@ class PModule implements PDefDict {
     }
   }
 
-  public void normalizeTypes() throws CompileException {
+  void collectTconProps() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.get(i).normalizeTypes();
+      this.dataStmtList.get(i).collectTconProps();
     }
     for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.get(i).normalizeTypes();
+      this.extendStmtList.get(i).collectTconProps();
     }
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.get(i).normalizeTypes();
+      this.evalStmtList.get(i).collectTconProps();
     }
   }
 
@@ -1197,29 +1360,33 @@ class PModule implements PDefDict {
       this.funDefDictDict = new HashMap<Cstr, Map<String, PFunDef>>();
     }
 
-    PDefDict.EidProps resolveEid(String mod, String name, int catOpts) throws CompileException {
-      PDefDict.EidProps ep = PModule.this.theCompiler.getReferredDefDict(PModule.this.resolveModId(mod)).resolveEid(
+    PDefDict.EidProps resolveEid(String modId, String name, int catOpts) throws CompileException {
+      Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+      as = as.add(Module.ACC_PUBLIC);
+      as = ((catOpts & PExprId.CAT_DCON_PTN) > 0)? as.add(Module.ACC_PROTECTED): as;
+      PDefDict.EidProps ep = PModule.this.theCompiler.getReferredDefDict(PModule.this.resolveModId(modId)).resolveEid(
         name,
         catOpts,
-        Module.ACC_PUBLIC
-          + (((catOpts & PExprId.CAT_DCON_PTN) > 0)? Module.ACC_PROTECTED: 0));
+        as);
       if (ep != null) {
         this.referredEid(ep.modName, name, catOpts, ep);
       }
       return ep;
     }
 
-    PDefDict.TconInfo resolveTcon(String mod, String tcon) throws CompileException {
-// /* DEBUG */ System.out.print("resolveTcon "); System.out.print(PModule.this.name.repr()); System.out.print(" "); System.out.print(mod); System.out.print("."); System.out.println(tcon);
-      Cstr modName = PModule.this.resolveModId(mod);
-      PDefDict.TconInfo ti = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
+    PDefDict.TconProps resolveTcon(String modId, String tcon) throws CompileException {
+// /* DEBUG */ System.out.print("resolveTcon "); System.out.print(PModule.this.name.repr()); System.out.print(" "); System.out.print(modId); System.out.print("."); System.out.println(tcon);
+      Cstr modName = PModule.this.resolveModId(modId);
+      Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+      as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
+      PDefDict.TconProps tp = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
         tcon,
         PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
-        Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE);
-      if (ti != null) {
-        this.referredTcon(modName, tcon, ti.props);
+        as);
+      if (tp != null) {
+        this.referredTcon(modName, tcon, tp);
       }
-      return ti;
+      return tp;
     }
 
     void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {
@@ -1420,48 +1587,49 @@ class PModule implements PDefDict {
 
   class ForeignTconRef {
     int paramCount;
-    int acc;
+    Module.Access acc;
     PDataDef dataDef;
 
 
-    ForeignTconRef(PDefDict.TconProps props, int acc) {
+    ForeignTconRef(PDefDict.TconProps props, Module.Access acc) {
       this.paramCount = props.paramCount();
       this.acc = acc;
       this.dataDef = props.defGetter.getDataDef();
     }
 
-    void mergeAcc(int acc) {
-      this.acc |= acc;
+    void mergeAcc(Module.Access acc) {
+      this.acc = Module.moreOpenAcc(acc, this.acc)? acc: this.acc;
     }
 
-    int getRequiredAcc() {
-      int a;
-      if ((this.acc & Module.ACC_PUBLIC) > 0) {
-        a = Module.ACC_PUBLIC;
-      } else if ((this.acc & Module.ACC_PROTECTED) > 0) {
-        a = Module.ACC_PROTECTED;
-      } else if ((this.acc & Module.ACC_OPAQUE) > 0) {
-        a = Module.ACC_OPAQUE;
-      } else {
-        throw new IllegalStateException("Invalid acc. - " + this.acc);
-      }
-      return a;
+    Module.Access getRequiredAcc() {
+      return this.acc;
+      // Module.Access a;
+      // if (this.acc.contains(Module.ACC_PUBLIC)) {
+        // a = Module.ACC_PUBLIC;
+      // } else if (this.acc.contains(Module.ACC_PROTECTED)) {
+        // a = Module.ACC_PROTECTED;
+      // } else if (this.acc.contains(Module.ACC_OPAQUE)) {
+        // a = Module.ACC_OPAQUE;
+      // } else {
+        // throw new IllegalStateException("Invalid acc. - " + this.acc);
+      // }
+      // return a;
     }
   }
 
   class ForeignDataDef implements PDataDef {
     PDataDef referredDataDef;
-    int requiredAcc;
+    Module.Access requiredAcc;
     List<String> referredDconList;
 
-    ForeignDataDef(PDataDef dd, int acc) {
+    ForeignDataDef(PDataDef dd, Module.Access acc) {
       this.referredDataDef = dd;
       this.requiredAcc = acc;
       this.referredDconList = new ArrayList<String>();
     }
 
-    void requireAcc(int acc) {
-      this.requiredAcc |= acc;
+    void requireAcc(Module.Access acc) {
+      this.requiredAcc = Module.moreOpenAcc(requiredAcc, this.requiredAcc)? requiredAcc: this.requiredAcc;
     }
 
     void referredDcon(String dcon) {
@@ -1474,22 +1642,23 @@ class PModule implements PDefDict {
 
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
-    // public PTypeVarSlot[] getParamVarSlots() { return this.referredDataDef.getParamVarSlots(); }
-
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
-    public int getAvailability() { return this.referredDataDef.getAvailability(); }
+    public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
 
-    public int getAcc() {
-      int acc;
-      if ((this.requiredAcc & Module.ACC_PUBLIC) > 0) {
-        acc = Module.ACC_PUBLIC;
-      } else if ((this.requiredAcc & Module.ACC_PROTECTED) > 0) {
-        acc = Module.ACC_PROTECTED;
-      } else {
-        acc = Module.ACC_OPAQUE;
-      }
-      return acc;
+    public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
+
+    public Module.Access getAcc() {
+      return this.requiredAcc;
+      // Module.Access acc;
+      // if (this.requiredAcc.contains(Module.ACC_PUBLIC)) {
+        // acc = Module.ACC_PUBLIC;
+      // } else if (this.requiredAcc.contains(Module.ACC_PROTECTED)) {
+        // acc = Module.ACC_PROTECTED;
+      // } else {
+        // acc = Module.ACC_OPAQUE;
+      // }
+      // return acc;
     }
 
     public int getConstrCount() { return this.referredDconList.size(); }
@@ -1502,6 +1671,6 @@ class PModule implements PDefDict {
       return this.referredDataDef.getConstr(this.referredDconList.get(index));
     }
 
-    public PDefDict.TconKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
+    public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
   }
 }

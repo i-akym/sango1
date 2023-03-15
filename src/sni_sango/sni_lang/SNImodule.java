@@ -171,7 +171,7 @@ public class SNImodule {
       TaoItem tv = as.get(i);
       // if (PTypeRefSkel.willNotReturn(tv.type)) { ... }  // HERE
       PDataDef.Attr a = c.getAttrAt(i);
-      PTypeSkel at = a.getNormalizedType();
+      PTypeSkel at = a.getFixedType();
       if (!at.accept(PTypeSkel.NARROWER, true, tv.type, bindings)) {
         StringBuffer emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
@@ -220,7 +220,7 @@ public class SNImodule {
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
       PDataDef.Attr a = c.getAttrAt(i);
-      PTypeSkel at = a.getNormalizedType().instanciate(ib);
+      PTypeSkel at = a.getFixedType().instanciate(ib);
       RListItem.Cell lc = helper.createListCellItem();
       lc.head = TaoItem.create(helper, at, s.getFieldAt(i));
       lc.tail = L;
@@ -401,13 +401,12 @@ public class SNImodule {
     dd.sigParams = new PTypeVarSkel[0];
     dd.acc = Module.ACC_PUBLIC;
     // dd.baseTconKey = null;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, tcon);
+    PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, tcon);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
+        tk, PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, dd.sigParams);
+      helper.getCore().getDefDictGetter(), null, tp, false, dd.sigParams);
   }
 
   static PTypeRefSkel createTupleType(RNativeImplHelper helper, PTypeSkel[] elemTypes) {
@@ -416,44 +415,40 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(Module.INVARIANT, false), null);  // HERE
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), null, null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
-    // dd.baseTconKey = null;
-    PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
+    PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
-    PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
+        tk, PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
     return PTypeRefSkel.create(
-      helper.getCore().getDefDictGetter(), null, ti, false, elemTypes);
+      helper.getCore().getDefDictGetter(), null, tp, false, elemTypes);
   }
 
   static class DataDefGetter implements PDefDict.DataDefGetter {
     PDataDef dataDef;
-    // PAliasTypeDef aliasTypeDef;
 
-    DataDefGetter(PDataDef dataDef /* , PAliasTypeDef aliasTypeDef */) {
+    DataDefGetter(PDataDef dataDef) {
       this.dataDef = dataDef;
-      // this.aliasTypeDef = aliasTypeDef;
     }
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PAliasTypeDef getAliasTypeDef() { return null; /* this.aliasTypeDef; */ }
+    public PAliasTypeDef getAliasTypeDef() { return null; }
   }
 
   static class DataDef implements PDataDef {
-    int availability;  // actually needed?
+    Module.Availability availability;  // actually needed?
     PDefDict.DefDictGetter defDictGetter;
     Cstr mod;
     PTypeSkel sig;  // lazy setup
     String sigTcon;
     PTypeVarSkel[] sigParams;
-    int acc;
+    Module.Access acc;
     List<String> constrList;
     Map<String, PDataDef.Constr> constrDict;
-    PDefDict.TconKey baseTconKey;
+    PDefDict.IdKey baseTconKey;
 
     DataDef(PDefDict.DefDictGetter defDictGetter) {
       this.defDictGetter = defDictGetter;
@@ -472,25 +467,29 @@ public class SNImodule {
         } else if (this.sigTcon.equals(Module.TCON_EXPOSED)) {  // needed?
           throw new RuntimeException("Attempted to make sig of EXPOSED.");
         } else {
-          PDefDict.TconKey tk = PDefDict.TconKey.create(this.mod, this.sigTcon);
+          PDefDict.IdKey tk = PDefDict.IdKey.create(this.mod, this.sigTcon);
           PDefDict.DataDefGetter ddg = new DataDefGetter(this);
           PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
           for (int i = 0; i < this.sigParams.length; i++) {
-            paramPropss[i] = PDefDict.createTparamProps(this.sigParams[i].getVariance(), this.sigParams[i].isConcrete());
+            paramPropss[i] = PDefDict.TparamProps.create(this.getParamVarianceAt(i), this.sigParams[i].isConcrete());
           }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
-            (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
+            tk, (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
             paramPropss, this.acc, ddg);
           this.sig = PTypeRefSkel.create(
-            this.defDictGetter, null, PDefDict.TconInfo.create(tk, tp), false, this.sigParams);
+            this.defDictGetter, null, tp, false, this.sigParams);
         }
       }
       return this.sig;
     }
 
-    public int getAvailability() { return this.availability; }
+    public Module.Variance getParamVarianceAt(int pos) {
+      throw new RuntimeException("getParamVariance not implemtented.");
+    }
 
-    public int getAcc() { return this.acc; }
+    public Module.Availability getAvailability() { return this.availability; }
+
+    public Module.Access getAcc() { return this.acc; }
 
     public int getConstrCount() { return this.constrDict.size(); }
 
@@ -498,7 +497,7 @@ public class SNImodule {
 
     public PDataDef.Constr getConstr(String dcon) { return this.constrDict.get(dcon); }
 
-    public PDefDict.TconKey getBaseTconKey() { return this.baseTconKey; }
+    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
     PDataDef.Constr addConstr(String dcon) {
       throw new RuntimeException("Not implemented");

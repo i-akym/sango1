@@ -285,17 +285,17 @@ class PScope {
     return this.theMod.resolveEid(id);
   }
 
-  PDefDict.TconInfo resolveTcon(String mod, String name) throws CompileException {
-    return this.theMod.resolveTcon(mod, name);
+  PDefDict.TconProps resolveTcon(String modId, String name) throws CompileException {
+    return this.theMod.resolveTcon(modId, name);
   }
 
-  void addReferredTcons(List<PDefDict.TconInfo> tis) {
+  void addReferredTcons(List<PDefDict.TconProps> tis) {
     for (int i = 0; i < tis.size(); i++) {
       this.addReferredTcon(tis.get(i));
     }
   }
 
-  void addReferredTcon(PDefDict.TconInfo ti) {
+  void addReferredTcon(PDefDict.TconProps ti) {
     this.theMod.addReferredTcon(ti);
   }
 
@@ -315,19 +315,19 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
-  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo, int variance) {
-    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), variance, false, null);
+  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo /* , Module.Variance variance */) {
+    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), /* variance, */ false, null, null);
     return v;
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
-    return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).getSkel();
+    PTypeVarDef nv = this.getNewTVar(srcInfo /* , Module.INVARIANT */ );
+    return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).toSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    PTypeVarDef nv = this.getNewTVar(srcInfo, Module.INVARIANT);
-    return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).getSkel();
+    PTypeVarDef nv = this.getNewTVar(srcInfo /* , Module.INVARIANT */);
+    return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).toSkel();
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
@@ -344,14 +344,14 @@ class PScope {
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {
-    PDefDict.TconInfo tconInfo = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
-    if (tconInfo == null) {
+    PDefDict.TconProps tp = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
+    if (tp == null) {
       throw new RuntimeException("Internal error.");
     }
-    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tconInfo, false, paramTypeSkels);
+    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tp, false, paramTypeSkels);
   }
 
-  List<PTypeVarSlot> getGivenTVarList() {
+  List<PTypeVarSlot> getGivenTVarList() throws CompileException {
     if (this.givenTVarList == null) {
       if (this.parent == null || this.parent.pos < 1) {  // function top pos
         this.setupGivenTVarListForFun();
@@ -364,38 +364,20 @@ class PScope {
     return this.givenTVarList;
   }
 
-  private void setupGivenTVarListForFun() {
+  private void setupGivenTVarListForFun() throws CompileException {
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.evalStmt.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
       pts[i].extractVars(this.givenTVarList);
     }
-    // this.givenTVarList = new ArrayList<PTypeVarSlot>();
-    // PTypeSkel[] pts = this.evalStmt.getParamTypes();
-    // for (int i = 0; i < pts.length; i++) {
-      // List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
-      // if (justExtracted != null) {
-        // this.givenTVarList.addAll(justExtracted);
-      // }
-    // }
   }
 
-  private void setupGivenTVarListForClosure() {
+  private void setupGivenTVarListForClosure() throws CompileException {
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
     for (int i = 0; i < pts.length; i++) {
       pts[i].extractVars(this.givenTVarList);
     }
-    // this.givenTVarList = new ArrayList<PTypeVarSlot>(this.parent.getGivenTVarList());
-    // PTypeSkel[] pts = this.closure.getParamDefinedTypes();
-    // for (int i = 0; i < pts.length; i++) {
-      // if (pts[i] != null) {
-        // List<PTypeVarSlot> justExtracted = pts[i].extractVars(this.givenTVarList);
-        // if (justExtracted != null) {
-          // this.givenTVarList.addAll(justExtracted);
-        // }
-      // }
-    // }
   }
 
   String getFunOfficial() {

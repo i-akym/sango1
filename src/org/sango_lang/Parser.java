@@ -50,7 +50,7 @@ abstract class Parser {
   }
 
   void parse4() throws CompileException {
-    this.mod.normalizeTypes();
+    this.mod.collectTconProps();
     this.mod.setupExtensionGraph(this.theCompiler.extGraph);
     this.mod.checkConcreteness();
   }
@@ -93,6 +93,20 @@ abstract class Parser {
       return si;
     }
   }
+
+  public static class QualState extends Option {
+    private static int nextSN = 0;
+    QualState() { super(); }
+    int nextSN() { return nextSN++; };
+  }
+  public static final QualState WITH_QUAL = new QualState();
+  public static final QualState WITHOUT_QUAL = new QualState();
+  public static final Option.Set<QualState> QUAL_NEEDED
+    = new Option.Set<QualState>().add(WITH_QUAL);
+  public static final Option.Set<QualState> QUAL_INHIBITED
+    = new Option.Set<QualState>().add(WITHOUT_QUAL);
+  public static final Option.Set<QualState> QUAL_MAYBE
+    = new Option.Set<QualState>().add(WITH_QUAL).add(WITHOUT_QUAL);
 
   static boolean isNormalId(String s) {
     if (s.length() == 0) {

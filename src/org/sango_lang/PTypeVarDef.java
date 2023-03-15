@@ -27,8 +27,9 @@ import java.io.IOException;
 
 class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
-  int variance;
   boolean requiresConcrete;
+  PFeature.List features;
+  PFeatureSkel.List nFeatures;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
   PTypeSkel nConstraint;
   PTypeVarSlot varSlot;  // setup later
@@ -37,11 +38,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     super(srcInfo, scope);
   }
 
-  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope, String name, int variance, boolean requiresConcrete, PTypeRef constraint) {
+  static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope,
+      String name, boolean requiresConcrete, PFeature.List features, PTypeRef constraint) {
     PTypeVarDef var = new PTypeVarDef(srcInfo, scope);
     var.name = name;
-    var.variance = variance;
     var.requiresConcrete = requiresConcrete;
+    var.features = features;
     var.constraint = constraint;
     return var;
   }
@@ -53,10 +55,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     buf.append(this.srcInfo);
     buf.append(",name=");
     buf.append(this.name);
-    buf.append(",variance=");
-    buf.append(this.variance);
     if (this.requiresConcrete) {
       buf.append("!");
+    }
+    if (this.features != null) {
+      buf.append(",features=");
+      buf.append(this.features);
     }
     if (this.constraint != null) {
       buf.append(",constraint=");
@@ -70,23 +74,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+  public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     PTypeVarDef v = new PTypeVarDef(srcInfo, scope);
     v.name = this.name;
-    // v.varSlot = this.varSlot;  // not copied
-    switch (varianceOpt) {
-    case PType.COPY_VARIANCE_INVARIANT:
-      v.variance = Module.INVARIANT;
-      break;
-    case PType.COPY_VARIANCE_COVARIANT:
-      v.variance = Module.COVARIANT;
-      break;
-    case PType.COPY_VARIANCE_CONTRAVARIANT:
-      v.variance = Module.CONTRAVARIANT;
-      break;
-    default:  // PType.COPY_VARIANCE_KEEP
-      v.variance = this.variance;
-    }
     switch (concreteOpt) {
     case PType.COPY_CONCRETE_OFF:
       v.requiresConcrete = false;;
@@ -97,11 +87,13 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     default:  // PType.COPY_CONCRETE_KEEP
       v.requiresConcrete = this.requiresConcrete;
     }
+    if (this.features != null) {
+      v.features = this.features.deepCopy(srcInfo, scope, extOpt, concreteOpt);
+    }
     if (this.constraint != null) {
       try {
         PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
-        // b.setSrcInfo(srcInfo);
-        b.addItem(this.constraint.deepCopy(srcInfo, scope, extOpt, varianceOpt, concreteOpt));
+        b.addItem(this.constraint.deepCopy(srcInfo, scope, extOpt, concreteOpt));
         v.constraint = b.create();
       } catch (Exception ex) {
         throw new RuntimeException("Internal error. " + ex.toString());
@@ -110,19 +102,11 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTypeVarDef acceptSimple(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+  static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (varSym == null) { return null; }
-    int variance;
-    if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-      variance = Module.COVARIANT;
-    } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-      variance = Module.CONTRAVARIANT;
-    } else {
-      variance = Module.INVARIANT;
-    }
     ParserA.Token varId;
     if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
@@ -132,7 +116,8 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, scope, varId.value.token, variance, requiresConcrete, null);
+    PFeature.List fs = PFeature.List.accept(reader, scope);
+    return create(si, scope, varId.value.token, /* variance, */ requiresConcrete, fs, null);
   }
 
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
@@ -146,20 +131,13 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), scope, id, Module.INVARIANT, false, null);  // HERE
+    return create(elem.getSrcInfo(), scope, id, /* Module.INVARIANT, */ false, null, null);  // HERE
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // if (this.constraint != null) {
-      // this.constraint.setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
+    if (this.features != null) {
+      this.features.collectModRefs();
+    }
     if (this.constraint != null) {
       this.constraint.collectModRefs();
     }
@@ -168,7 +146,6 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public PTypeVarDef resolve() throws CompileException {
     StringBuffer emsg;
     if (this.varSlot != null) { return this; }
-    // if (this.idResolved) { return this; }
     if (!this.scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -178,31 +155,34 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     this.varSlot = this.scope.defineTVar(this);
+    if (this.features != null) {
+      this.features = this.features.resolve();
+    }
     if (this.constraint != null) {
       this.constraint = this.constraint.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public PDefDict.TconInfo getTconInfo() { return null; }
+  public PDefDict.TconProps getTconProps() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
 
-  public void normalizeTypes() {
-    if (this.constraint != null) {
-      this.nConstraint = this.constraint.normalize();
-    }
-    this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint);
+  public PTypeVarSkel toSkel() {
+    PFeatureSkel.List fs = (this.features != null)? this.features.toSkel(): null;
+    PTypeRefSkel c = (this.constraint != null)? (PTypeRefSkel)this.constraint.toSkel(): null;
+    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, fs, c);
   }
 
-  public PTypeVarSkel normalize() {
-    return (PTypeVarSkel)this.getSkel();
-  }
-
-  public PTypeVarSkel getSkel() {
+  public PTypeVarSkel getNormalizedSkel() throws CompileException {
     if (this.nTypeSkel == null) {
-      this.normalizeTypes();
+      if (this.features != null) {
+        this.nFeatures = this.features.getNormalizedSkel();
+      }
+      if (this.constraint != null) {
+        this.nConstraint = this.constraint.getNormalizedSkel();
+      }
+      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nFeatures, this.nConstraint);
     }
     return (PTypeVarSkel)this.nTypeSkel;
   }

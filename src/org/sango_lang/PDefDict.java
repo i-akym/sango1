@@ -29,13 +29,19 @@ import java.util.List;
 import java.util.Map;
 
 public interface PDefDict {
-  int getModAvailability();
+  Module.Availability getModAvailability();
 
   Cstr[] getForeignMods();
 
-  EidProps resolveEid(String id, int catOpts, int accOpts) throws CompileException;
+  EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
-  TconInfo resolveTcon(String tcon, int subcatOpts, int accOpts) throws CompileException;
+  TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
+
+  interface GlobalDefDict {
+
+    boolean isBaseOf(IdKey b, IdKey e);
+
+  }
 
   interface DefDictGetter {
 
@@ -45,23 +51,93 @@ public interface PDefDict {
 
   }
 
-  interface GlobalDefDict {
+  interface ExprDefGetter {
 
-    boolean isBaseOf(TconKey b, TconKey e);
+    void setSearchInLang();
 
+    PDataDef getDataDef() throws CompileException;
+
+    FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException;
+
+    PFunDef getFunDef() throws CompileException;  // get by official name
+
+  }
+
+  interface DataDefGetter {
+
+    PDataDef getDataDef();
+
+    PAliasTypeDef getAliasTypeDef();
+
+  }
+
+  interface FeatureDefGetter {
+
+    PFeatureDef getFeatureDef();
+
+  }
+
+  static class IdKey {
+    Cstr modName;
+    String idName;
+
+    public static IdKey create(Cstr modName, String idName) {
+      return new IdKey(modName, idName);
+    }
+
+    IdKey(Cstr modName, String idName) {
+      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
+      this.modName = modName;
+      this.idName = idName;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("idkey[mod=");
+      buf.append(this.modName.repr());
+      buf.append(",id=");
+      buf.append(this.idName);
+      buf.append("]");
+      return buf.toString();
+    }
+
+    String repr() {
+      StringBuffer buf = new StringBuffer();
+      buf.append(this.modName.repr());
+      buf.append(".");
+      buf.append(this.idName);
+      return buf.toString();
+    }
+
+    public int hashCode() {
+      return this.modName.hashCode() ^ this.idName.hashCode();
+    }
+
+    public boolean equals(Object o) {
+      boolean b;
+      if (o == this) {
+        b = true;
+      } else if (!(o instanceof IdKey)) {
+        b = false;
+      } else {
+        IdKey ik = (IdKey)o;
+        b = ik.modName.equals(this.modName) && ik.idName.equals(this.idName); 
+      }
+      return b;
+    }
   }
 
   static class EidProps {
     Cstr modName;
     int cat;
-    int acc;
+    Module.Access acc;
     ExprDefGetter defGetter;
 
-    static EidProps create(Cstr modName, int cat, int acc, ExprDefGetter getter) {
+    static EidProps create(Cstr modName, int cat, Module.Access acc, ExprDefGetter getter) {
       return new EidProps(modName, cat, acc, getter);
     }
 
-    EidProps(Cstr modName, int cat, int acc, ExprDefGetter getter) {
+    EidProps(Cstr modName, int cat, Module.Access acc, ExprDefGetter getter) {
       this.modName = modName;
       this.cat = cat;
       this.acc = acc;
@@ -79,79 +155,60 @@ public interface PDefDict {
     }
   }
 
-  interface ExprDefGetter {
+  // static class TconInfo {
+    // IdKey key;
+    // TconProps props;
 
-    void setSearchInLang();
+    // public static TconInfo create(IdKey key, TconProps props) {
+      // return new TconInfo(key, props);
+    // }
 
-    PDataDef getDataDef() throws CompileException;
+    // TconInfo(IdKey key, TconProps props) {
+      // this.key = key;
+      // this.props = props;
+    // }
 
-    FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException;
+    // public String toString() {
+      // StringBuffer buf = new StringBuffer();
+      // buf.append("tconinfo[tconkey=");
+      // buf.append(this.key);
+      // buf.append(",tconprops=");
+      // buf.append(this.props);
+      // buf.append("]");
+      // return buf.toString();
+    // }
 
-    PFunDef getFunDef() throws CompileException;  // get by official name
-
-  }
-
-  static class TconKey {
-    Cstr modName;
-    String tcon;
-
-    public static TconKey create(Cstr modName, String tcon) {
-      return new TconKey(modName, tcon);
-    }
-
-    TconKey(Cstr modName, String tcon) {
-      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tcon key's mod name is null."); }
-      this.modName = modName;
-      this.tcon = tcon;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("tconkey[mod=");
-      buf.append(this.modName.repr());
-      buf.append(",tcon=");
-      buf.append(this.tcon);
-      buf.append("]");
-      return buf.toString();
-    }
-
-    String toRepr() {
-      StringBuffer buf = new StringBuffer();
-      buf.append(this.modName.repr());
-      buf.append(".");
-      buf.append(this.tcon);
-      return buf.toString();
-    }
-
-    public int hashCode() {
-      return this.modName.hashCode() ^ this.tcon.hashCode();
-    }
-
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof TconKey)) {
-        b = false;
-      } else {
-        TconKey tk = (TconKey)o;
-        b = tk.modName.equals(this.modName) && tk.tcon.equals(this.tcon); 
-      }
-      return b;
-    }
-  }
+    // public boolean equals(Object o) {
+      // boolean b;
+      // if (o == this) {
+        // b = true;
+      // } else if (!(o instanceof TconInfo)) {
+        // b = false;
+      // } else {
+        // TconInfo ti = (TconInfo)o;
+        // b = ti.key.equals(this.key);
+      // }
+      // return b;
+    // }
+  // }
 
   static class TconProps {
+    IdKey key;
     int subcat;
     TparamProps[] paramProps;  // null means variable
-    int acc;
+    Module.Access acc;
     DataDefGetter defGetter;
 
-    public static TconProps create(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
-      return new TconProps(subcat, paramProps, acc, getter);
+    public static TconProps create(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+      return new TconProps(key, subcat, paramProps, acc, getter);
     }
 
-    TconProps(int subcat, TparamProps[] paramProps, int acc, DataDefGetter getter) {
+    public static TconProps createUnresolved(IdKey key) {
+      return create(key, 0, null, null, null);
+    }
+
+    TconProps(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+      this.key = key;
       this.subcat = subcat;
       this.paramProps = paramProps;
       this.acc = acc;
@@ -164,6 +221,8 @@ public interface PDefDict {
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
+      buf.append("tconprops[key=");
+      buf.append(this.key);
       buf.append("tconprops[subcat=");
       buf.append(this.subcat);
       buf.append(",paramcount=");
@@ -175,24 +234,24 @@ public interface PDefDict {
     }
   }
 
-  static class TconInfo {
-    TconKey key;
-    TconProps props;
+  static class FeatureInfo {
+    IdKey key;
+    FeatureProps props;
 
-    public static TconInfo create(TconKey key, TconProps props) {
-      return new TconInfo(key, props);
+    public static FeatureInfo create(IdKey key, FeatureProps props) {
+      return new FeatureInfo(key, props);
     }
 
-    TconInfo(TconKey key, TconProps props) {
+    FeatureInfo(IdKey key, FeatureProps props) {
       this.key = key;
       this.props = props;
     }
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
-      buf.append("tconinfo[tconkey=");
+      buf.append("featureinfo[fname=");
       buf.append(this.key);
-      buf.append(",tconprops=");
+      buf.append(",featureprops=");
       buf.append(this.props);
       buf.append("]");
       return buf.toString();
@@ -202,25 +261,55 @@ public interface PDefDict {
       boolean b;
       if (o == this) {
         b = true;
-      } else if (!(o instanceof TconInfo)) {
+      } else if (!(o instanceof FeatureInfo)) {
         b = false;
       } else {
-        TconInfo ti = (TconInfo)o;
-        b = ti.key.equals(this.key);
+        FeatureInfo fi = (FeatureInfo)o;
+        b = fi.key.equals(this.key);
       }
       return b;
     }
   }
 
-  public static TparamProps createTparamProps(int variance, boolean concrete) {
-    return new TparamProps(variance, concrete);
+  static class FeatureProps {
+    int paramCount;
+    Module.Access acc;
+    FeatureDefGetter defGetter;
+
+    public static FeatureProps create(int paramCount, Module.Access acc, FeatureDefGetter getter) {
+      return new FeatureProps(paramCount, acc, getter);
+    }
+
+    FeatureProps(int paramCount, Module.Access acc, FeatureDefGetter getter) {
+      this.paramCount = paramCount;
+      this.acc = acc;
+      this.defGetter = getter;
+    }
+
+    int paramCount() {
+      return this.paramCount;
+    }
+
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("featueprops[paramcount=");
+      buf.append(this.paramCount());
+      buf.append(",acc=");
+      buf.append(this.acc);
+      buf.append("]");
+      return buf.toString();
+    }
   }
 
   static class TparamProps {
-    int variance;
+    Module.Variance variance;
     boolean concrete;
 
-    TparamProps(int variance, boolean concrete) {
+    public static TparamProps create(Module.Variance variance, boolean concrete) {
+      return new TparamProps(variance, concrete);
+    }
+
+    private TparamProps(Module.Variance variance, boolean concrete) {
       this.variance = variance;
       this.concrete = concrete;
     }
@@ -241,14 +330,13 @@ public interface PDefDict {
   }
 
   static class ExtGraph {
-    Map<PDefDict.TconKey, ExtNode> nodeMap;
+    Map<PDefDict.IdKey, ExtNode> nodeMap;
 
     ExtGraph() {
-      this.nodeMap = new HashMap<PDefDict.TconKey, ExtNode>();
+      this.nodeMap = new HashMap<PDefDict.IdKey, ExtNode>();
     }
 
-    void addExtension(PDefDict.TconKey base, PDefDict.TconKey ext) throws CompileException {
-// /* DEBUG */ System.out.print("ExtGraph "); System.out.print(base.toRepr()); System.out.print(" "); System.out.println(ext.toRepr());
+    void addExtension(PDefDict.IdKey base, PDefDict.IdKey ext) throws CompileException {
       ExtNode en;
       if ((en = this.nodeMap.get(ext)) == null) {
         en = this.createNode(ext);
@@ -270,30 +358,29 @@ public interface PDefDict {
       }
     }
 
-    private ExtNode createNode(PDefDict.TconKey tcon) {
+    private ExtNode createNode(PDefDict.IdKey tcon) {
       ExtNode n = new ExtNode(tcon);
       this.nodeMap.put(tcon, n);
       return n;
     }
 
-    boolean isBaseOf(PDefDict.TconKey b, PDefDict.TconKey e) {
-// /* DEBUG */ System.out.print("is base of "); System.out.print(b.toRepr()); System.out.print(" "); System.out.println(e.toRepr());
+    boolean isBaseOf(PDefDict.IdKey b, PDefDict.IdKey e) {
       ExtNode en = this.nodeMap.get(e);
       return (en != null)? en.includesInAncestor(b): false;
     }
 
     private class ExtNode {
-      PDefDict.TconKey tcon;
+      PDefDict.IdKey tcon;
       ExtNode base;  // maybe null
       List<ExtNode> exts;
 
-      ExtNode(PDefDict.TconKey tcon) {
+      ExtNode(PDefDict.IdKey tcon) {
         this.tcon = tcon;
         this.base = null;
         this.exts = new ArrayList<ExtNode>();
       }
 
-      boolean includesInDescendant(PDefDict.TconKey t) {
+      boolean includesInDescendant(PDefDict.IdKey t) {
         boolean b;
         if (this.tcon.equals(t)) {
           b = true;
@@ -306,7 +393,7 @@ public interface PDefDict {
         return b;
       }
 
-      boolean includesInAncestor(PDefDict.TconKey t) {
+      boolean includesInAncestor(PDefDict.IdKey t) {
         boolean b = false;
         ExtNode n = this;
         while (!b && n != null) {
@@ -318,14 +405,6 @@ public interface PDefDict {
         return b;
       }
     }
-  }
-
-  interface DataDefGetter {
-
-    PDataDef getDataDef();
-
-    PAliasTypeDef getAliasTypeDef();
-
   }
 
   static class FunSelRes {

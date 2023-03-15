@@ -70,7 +70,7 @@ class PFunRef extends PDefaultExprObj {
     } else if ((t = ParserA.acceptToken(reader, LToken.CARET, spc)) == null) {
       return null;
     }
-    if ((id = PExprId.accept(reader, outerScope, PExprId.ID_MAYBE_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function name missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -118,15 +118,6 @@ class PFunRef extends PDefaultExprObj {
     return f;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // if (this.official != null) {
-      // this.official.setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     if (this.official != null) {
       this.official.collectModRefs();
@@ -139,8 +130,6 @@ class PFunRef extends PDefaultExprObj {
     }
     return this;
   }
-
-  public void normalizeTypes() {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {

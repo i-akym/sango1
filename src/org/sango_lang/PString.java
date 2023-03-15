@@ -103,39 +103,25 @@ class PString extends PDefaultExprObj {
     List<PExpr> es = new ArrayList<PExpr>();
     for (int i = 0; i < cstr.getLength(); i++) {
       PEval.Builder eb = PEval.Builder.newInstance(si, outerScope);
-      // eb.setSrcInfo(si);
       eb.addItem(PEvalItem.ObjItem.create(si, outerScope, null, PChar.create(si, outerScope, cstr.getCharAt(i))));
       es.add(PExpr.create(eb.create()));
     }
     return create(si, outerScope, true, PExprList.Elems.create(si, outerScope, es));
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.elems.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.elems.collectModRefs();
   }
 
   public PString resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.elems = this.elems.resolve();
-    // this.idResolved = true;
+    if (this.isFromCstr) {
+      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).toSkel();
+    }
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.elems.normalizeTypes();
-    if (this.isFromCstr) {
-      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getSkel();
-    }
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.nTypeSkel != null) {
       this.typeGraphNode = graph.createDetNode(this);
     } else {  // one or more elements

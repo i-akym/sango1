@@ -47,7 +47,7 @@ public interface PTypeSkel {
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
-  void checkVariance(int width) throws CompileException;
+  // void checkVariance(int width) throws CompileException;
 
   boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
   // where, width is
@@ -67,7 +67,7 @@ public interface PTypeSkel {
 
   void extractVars(List<PTypeVarSlot> extracted);
 
-  void collectTconInfo(List<PDefDict.TconInfo> list);
+  void collectTconProps(List<PDefDict.TconProps> list);
 
   PTypeSkel unalias(PTypeSkelBindings bindings);
 

@@ -48,13 +48,6 @@ class PUndetPtn extends PDefaultExprObj {
     return p;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.anchor.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.anchor.collectModRefs();
   }
@@ -67,14 +60,7 @@ class PUndetPtn extends PDefaultExprObj {
       PExprId dcon = (PExprId)this.anchor;
       dcon.setCat(PExprId.CAT_DCON_PTN);
       p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
-      // p = PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, new PExprObj[0], new PPtnItem[0], false);
-      // p.setupScope(this.scope);
-      // p = p.resolve();
     }
     return p;
-  }
-
-  public void normalizeTypes() {
-    throw new IllegalStateException("PUndetPtn#normalizeTypes should not be called.");
   }
 }

@@ -36,19 +36,19 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   public static final int SUBCAT_ALIAS = 4;
 
   int catOpt;
-  String mod;
+  String modId;
   String name;
   boolean ext;
-  PDefDict.TconInfo tconInfo;
+  PDefDict.TconProps tconProps;
 
   private PTypeId(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
   }
 
-  static PTypeId create(Parser.SrcInfo srcInfo, PScope scope, String mod, String name, boolean ext) {
+  static PTypeId create(Parser.SrcInfo srcInfo, PScope scope, String modId, String name, boolean ext) {
     PTypeId id = new PTypeId(srcInfo, scope);
-    id.mod = mod;
-    if (mod == null) {
+    id.modId = modId;
+    if (modId == null) {
       id.catOpt = CAT_VAR + CAT_TCON;
     } else {
       id.catOpt = CAT_TCON;
@@ -120,7 +120,7 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   }
 
   boolean isSimple() {
-    return this.mod == null;
+    return this.modId == null;
   }
 
   public String toString() {
@@ -140,19 +140,19 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
       buf.append(",FX");
     }
     buf.append(",id=");
-    buf.append(this.toRepr());
+    buf.append(this.repr());
     buf.append("]");
     return buf.toString();
   }
 
-  String toRepr() {
-    return repr(this.mod, this.name, this.ext);
+  String repr() {
+    return repr(this.modId, this.name, this.ext);
   }
 
-  static String repr(String mod, String name, boolean ext) {
+  static String repr(String modId, String name, boolean ext) {
     StringBuffer buf = new StringBuffer();
-    if (mod != null) {
-      buf.append(mod);
+    if (modId != null) {
+      buf.append(modId);
       buf.append(".");
     }
     buf.append(name);
@@ -162,10 +162,10 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int varianceOpt, int concreteOpt) {
+  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
     PTypeId id = new PTypeId(srcInfo, scope);
     id.catOpt = this.catOpt;
-    id.mod = this.mod;
+    id.modId = this.modId;
     id.name = this.name;
     switch (extOpt) {
     case PType.COPY_EXT_OFF:
@@ -180,16 +180,16 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
     return id;
   }
 
-  static PTypeId accept(ParserA.TokenReader reader, PScope scope, int qual, int spc) throws CompileException, IOException {
+  static PTypeId accept(ParserA.TokenReader reader, PScope scope, Option.Set<Parser.QualState> qual, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token word;
     if ((word = ParserA.acceptNormalWord(reader, spc)) == null) {
       return null;
     }
     Parser.SrcInfo si = word.getSrcInfo();
-    String mod = null;
+    String modId = null;
     String name = null;
-    if (qual == PExprId.ID_NO_QUAL || ParserA.acceptToken(reader, LToken.DOT, ParserA.SPACE_DO_NOT_CARE) == null) {
+    if (!qual.contains(Parser.WITH_QUAL) || ParserA.acceptToken(reader, LToken.DOT, ParserA.SPACE_DO_NOT_CARE) == null) {
       name = word.value.token;
     } else {
       ParserA.Token word2;
@@ -200,42 +200,27 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      mod = word.value.token;
+      modId = word.value.token;
       name = word2.value.token;
     }
     boolean ext = ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, scope, mod, name, ext);
+    return create(si, scope, modId, name, ext);
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {
-    this.scope.referredModId(this.srcInfo, this.mod);
+    this.scope.referredModId(this.srcInfo, this.modId);
   }
 
   public PType resolve() throws CompileException {
     throw new RuntimeException("PTypeId#resolve is called.");
   }
 
-  public PDefDict.TconInfo getTconInfo() {
-    throw new IllegalStateException("PTypeId#getTconInfo should not called.");
+  public PDefDict.TconProps getTconProps() {
+    throw new IllegalStateException("PTypeId#getTconProps should not called.");
   }
 
   public void excludePrivateAcc() throws CompileException {
     throw new RuntimeException("PTypeId#excludePrivateAcc should not called.");
-  }
-
-  public void normalizeTypes() {
-    throw new RuntimeException("PTypeId#normalizeType is called.");
-  }
-
-  public PTypeSkel normalize() {
-    throw new IllegalStateException("PTypeId#normalize is called. " + this.toString());
   }
 
   public PTypeSkel getSkel() {

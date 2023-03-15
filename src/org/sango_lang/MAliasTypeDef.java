@@ -28,14 +28,15 @@ import org.w3c.dom.Element;
 
 public class MAliasTypeDef implements Module.Elem {
   String tcon;
-  int availability;
-  int acc;
+  Module.Availability availability;
+  Module.Access acc;
   int paramCount;
   MType body;
 
   private MAliasTypeDef() {}
 
-  static MAliasTypeDef create(String tcon, int availability, int acc, int paramCount) {
+  static MAliasTypeDef create(String tcon, Module.Availability availability, Module.Access acc, int paramCount) {
+/* DEBUG */ if (availability == null) { throw new IllegalArgumentException("Null availability. " + tcon); }
     MAliasTypeDef atd = new MAliasTypeDef();
     atd.tcon = tcon;
     atd.availability = availability;

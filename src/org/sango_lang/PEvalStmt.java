@@ -28,11 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PEvalStmt extends PDefaultProgObj implements PFunDef {
-  int availability;  // Module.AVAILABILITY_xxx
+  Module.Availability availability;
+  Module.Access acc;
   PExprVarDef[] params;
   String official;
   String[] aliases;
-  int acc;  // Module.ACC_xxx
   PScope bodyScope;
   PRetDef retDef;
   PExprList.Seq implExprs;  // null means native impl
@@ -40,6 +40,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   private PEvalStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.defineFun(this);
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -70,7 +72,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
   static class Builder {
     PEvalStmt eval;
-    // PScope retScope;
     PScope bodyScope;
     List<PExprVarDef> paramList;
     List<String> aliasList;
@@ -81,7 +82,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.eval = new PEvalStmt(srcInfo, outerScope);
-      // this.retScope = this.eval.scope.enterInner();
       this.bodyScope = this.eval.scope.enterInner();
       this.paramList = new ArrayList<PExprVarDef>();
       this.aliasList = new ArrayList<String>();
@@ -89,11 +89,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
     PScope getDefScope() { return this.eval.scope; }
 
-    // PScope getRetScope() { return this.retScope; }
-
     PScope getBodyScope() { return this.bodyScope; }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.eval.availability = availability;
     }
 
@@ -119,7 +117,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       this.aliasList.addAll(aliasList);
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.eval.acc = acc;
     }
 
@@ -146,11 +144,10 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
     PScope defScope = builder.getDefScope();
-    // PScope retScope = builder.getRetScope();
     PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader, defScope));
-    PExprId official = PExprId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_NEEDED);
+    PExprId official = PExprId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
     if (official == null) {
       emsg = new StringBuffer();
       emsg.append("Function official name missing at ");
@@ -207,7 +204,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     builder.setOfficial(official);
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EVAL, PModule.ACC_DEFAULT_FOR_EVAL);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EVAL, PModule.ACC_DEFAULT_FOR_EVAL);
     builder.setAcc(acc);
 
     ParserB.Elem e = elem.getFirstChild();
@@ -313,7 +310,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     while (state >= 0) {
       if (ParserA.acceptToken(reader, LToken.VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
         state = 1;
-      } else if (state == 1 && (a = PExprId.accept(reader, defScope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) != null) {
+      } else if (state == 1 && (a = PExprId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
         aliasList.add(a.name);
         state = 0;
       } else {
@@ -367,21 +364,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return seq;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (scope == this.scope) { return; }
-    // this.scope = scope.defineFun(this);
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(this.scope);
-    // }
-    // if (this.implExprs != null) {
-      // this.bodyScope = this.scope.enterInner();
-      // this.implExprs.setupScope(this.bodyScope);
-    // }
-    // this.retDef.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -393,7 +375,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   }
 
   public PEvalStmt resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
@@ -401,7 +382,6 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     if (this.implExprs != null) {
       this.implExprs = this.implExprs.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -413,23 +393,18 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     this.retDef.excludePrivateAcc();
   }
 
-  public void normalizeTypes() throws CompileException {
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+  public void collectTconProps() throws CompileException {
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     if (this.params != null) {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].normalizeTypes();
-        this.params[i].nTypeSkel.collectTconInfo(tis);
+        this.params[i].getNormalizedType().collectTconProps(tps);
       }
     }
-    this.retDef.normalizeTypes();
-    this.retDef.nTypeSkel.collectTconInfo(tis);
-    this.scope.addReferredTcons(tis);
-    if (this.implExprs != null) {
-      this.implExprs.normalizeTypes();
-    }
+    this.retDef.getNormalizedType().collectTconProps(tps);
+    this.scope.addReferredTcons(tps);
   }
 
-  void setupTypeGraph(PTypeGraph graph) {
+  void setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].setupTypeGraph(graph);
     }
@@ -447,9 +422,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return this.official;
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
-  public PTypeSkel[] getParamTypes() {
+  public PTypeSkel[] getParamTypes() throws CompileException {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
       pts[i] = this.params[i].getNormalizedType();
@@ -457,7 +432,19 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return pts;
   }
 
-  public PTypeSkel getRetType() {
+  public PTypeSkel[] getFixedParamTypes() {
+    PTypeSkel[] pts = new PTypeSkel[this.params.length];
+    for (int i = 0; i < pts.length; i++) {
+      pts[i] = this.params[i].getFixedType();
+    }
+    return pts;
+  }
+
+  public PTypeSkel getRetType() throws CompileException {
     return this.retDef.getNormalizedType();
+  }
+
+  public PTypeSkel getFixedRetType() {
+    return this.retDef.getFixedType();
   }
 }

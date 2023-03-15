@@ -46,20 +46,10 @@ class PEmptyListPtn extends PListPtn {
     return create(elem.getSrcInfo(), outerScope);
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-    // this.idResolved = false;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PEmptyListPtn resolve() throws CompileException {
-    // this.idResolved = true;
     return this;
-  }
-
-  public void normalizeTypes() {
-    // this.nTypeSkel = this.scope.getEmptyListType(this.srcInfo).getSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {

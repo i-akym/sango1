@@ -46,36 +46,26 @@ class PImpose extends PDefaultExprObj {
     return buf.toString();
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.type.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.type.collectModRefs();
   }
 
   public PImpose resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.type = (PType)this.type.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     StringBuffer emsg;
-    this.nTypeSkel = this.type.normalize();
-    if (!(this.nTypeSkel instanceof PTypeRefSkel)) {
+    PTypeSkel t = this.getNormalizedType();
+    if (!(t instanceof PTypeRefSkel)) {
       emsg = new StringBuffer();
       emsg.append("Non-concrete imposing at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeRefSkel tr = (PTypeRefSkel)this.nTypeSkel;
+    PTypeRefSkel tr = (PTypeRefSkel)t;
     if (tr.ext) {
       emsg = new StringBuffer();
       emsg.append("Extended type not allowed for imposing at ");
@@ -92,9 +82,6 @@ class PImpose extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
     }
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.typeGraphNode = graph.createDetNode(this);
     return this.typeGraphNode;
   }

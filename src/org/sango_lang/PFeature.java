@@ -27,167 +27,381 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract public class PFeature {
+public class PFeature extends PDefaultProgObj {
+  Cstr modName;
+  PTypeId fname;
+  PType[] params;
 
-  static class Id extends PDefaultProgObj {
-    String mod;
-    String name;
+  private PFeature(Parser.SrcInfo srcInfo, PScope scope) {
+    super(srcInfo, scope);
+  }
 
-    static Id accept(ParserA.TokenReader reader, PScope scope, int qual, int spc) throws CompileException, IOException {
-      StringBuffer emsg;
-      ParserA.Token word;
-      if ((word = ParserA.acceptNormalWord(reader, spc)) == null) {
-        return null;
-      }
-      Parser.SrcInfo si = word.getSrcInfo();
-      String mod = null;
-      String name = null;
-      if (qual == PExprId.ID_NO_QUAL || ParserA.acceptToken(reader, LToken.DOT, ParserA.SPACE_DO_NOT_CARE) == null) {
-        name = word.value.token;
-      } else {
-        ParserA.Token word2;
-        if ((word2 = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
-          emsg = new StringBuffer();
-          emsg.append("Name after \".\" missing at ");
-          emsg.append(reader.getCurrentSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-        mod = word.value.token;
-        name = word2.value.token;
-      }
-      return Id.create(si, scope, mod, name);
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("feature[");
+    if (this.srcInfo != null) {
+      buf.append("src=");
+      buf.append(this.srcInfo);
+      buf.append(",");
     }
+    buf.append("name=");
+    buf.append(PTypeId.repr(this.fname.modId, this.fname.name, false));
+    buf.append(",params=[");
+    String sep = "";
+    for (int i = 0; i < this.params.length; i++) {
+      buf.append(sep);
+      buf.append(this.params[i]);
+      sep = ",";
+    }
+    buf.append("]]");
+    return buf.toString();
+  }
 
-    private Id(Parser.SrcInfo srcInfo, PScope scope) {
+  static PFeature accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
+    PFeature f = acceptDesc(reader, scope);
+    if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("] missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return f;
+  }
+
+  static PFeature acceptDesc(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), scope);
+    int state = 0;
+    int spc = ParserA.SPACE_DO_NOT_CARE;
+    while (state >= 0) {
+      PProgObj item;
+      if ((item = PTypeId.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+        builder.addItem(item);
+        spc = ParserA.SPACE_NEEDED;
+      } else if ((item = PTypeVarDef.accept(reader, scope)) != null) {
+        builder.addItem(item);
+        spc = ParserA.SPACE_NEEDED;
+      } else if ((item = PType.accept(reader, scope, spc, true)) != null) {
+        builder.addItem(item);
+        spc = ParserA.SPACE_NEEDED;
+      } else {
+        state = -1;
+      }
+    }
+    return builder.create();
+  }
+
+  static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      return null;
+    }
+    SigBuilder builder = SigBuilder.newInstance(t.getSrcInfo(), scope);
+    int state = 0;
+    while (state >= 0) {
+      PTypeVarDef p;
+      PTypeId n;
+      if (state == 0 && (p = PTypeVarDef.accept(reader, scope)) != null) {
+        builder.addParam(p);
+      } else if (state == 0 && (n = PTypeId.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
+        builder.setName(n);
+        state = -1;
+      } else {
+        emsg = new StringBuffer();
+        emsg.append("Syntax error in feature signature at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+    if (ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
+      emsg = new StringBuffer();
+      emsg.append("] missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return builder.create();
+  }
+
+  public void collectModRefs() throws CompileException {
+    this.scope.referredModId(this.srcInfo, this.fname.modId);
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].collectModRefs();
+    }
+  }
+
+  public PFeature resolve() throws CompileException {
+    StringBuffer emsg;
+    if (this.fname.modId != null) {
+      this.modName = this.scope.resolveModId(this.fname.modId);
+      if (this.modName == null) {
+        emsg = new StringBuffer();
+        emsg.append("Module id \"");
+        emsg.append(this.fname.modId);
+        emsg.append("\" not defined at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+    for (int i = 0; i < this.params.length; i++) {
+      PType p = (PType)this.params[i].resolve();
+      this.params[i] = p;
+    }
+    return this;
+  }
+
+  PFeatureSkel toSkel() {
+    PTypeSkel ps[] = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].toSkel();
+    }
+    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+  }
+
+  PFeatureSkel getNormalizedSkel() throws CompileException {
+    PTypeSkel ps[] = new PTypeSkel[this.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = this.params[i].getNormalizedSkel();
+    }
+    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+  }
+
+  PFeature deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    Builder builder = Builder.newInstance(srcInfo, scope);
+    for (int i = 0; i < this.params.length; i++) {
+      builder.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+    }
+    builder.addItem(this.fname.deepCopy(srcInfo, scope, extOpt, concreteOpt));
+    PFeature f = null;
+    try {
+      f = builder.create();
+    } catch (Exception ex) {
+      throw new RuntimeException("Internal error. " + ex.toString());
+    }
+    return f;
+  }
+
+  static class List extends PDefaultProgObj {
+    PFeature[] features;  // at least one element
+
+    private List(Parser.SrcInfo srcInfo, PScope scope) {
       super(srcInfo, scope);
     }
 
-    static Id create(Parser.SrcInfo srcInfo, PScope scope, String mod, String name) {
-      Id id = new Id(srcInfo, scope);
-      id.mod = mod;
-      id.name = name;
-      return id;
-    }
-
-    boolean isSimple() {
-      return this.mod == null;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("featureid[");
-      if (this.srcInfo != null) {
-        buf.append("src=");
-        buf.append(this.srcInfo);
-      }
-      buf.append(",id=");
-      buf.append(this.toRepr());
-      buf.append("]");
-      return buf.toString();
-    }
-
-    String toRepr() {
-      return repr(this.mod, this.name);
-    }
-
-    static String repr(String mod, String name) {
-      StringBuffer buf = new StringBuffer();
-      if (mod != null) {
-        buf.append(mod);
-        buf.append(".");
-      }
-      buf.append(name);
-      return buf.toString();
-    }
-
-    public void collectModRefs() throws CompileException {
-      this.scope.referredModId(this.srcInfo, this.mod);
-    }
-
-    public PProgObj resolve() throws CompileException { throw new RuntimeException("PFeature.Id#resolve is called."); }
-
-    public void normalizeTypes() throws CompileException { throw new RuntimeException("PFeature.Id#normalizeTypes is called."); }
-  }
-
-  static class IdList extends PDefaultProgObj {
-    Id[] ids;
-
-    static IdList accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
-      // returns at least one id
+    static List accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
       StringBuffer emsg;
-      List<Id> ii = new ArrayList<Id>();
-      Parser.SrcInfo si = reader.getCurrentSrcInfo();
-      int state = 0;  // 0: requires id (first, after '+'), 1: id accepted
-      int sp = spc;
-      Id i;
+      ParserA.Token t;
+      if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
+      ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
+      PFeature f;
+      int state = 0;
       while (state >= 0) {
-        if (state == 0 && (i = Id.accept(reader, scope, PExprId.ID_MAYBE_QUAL, sp)) != null) {
-          ii.add(i);
-          sp = ParserA.SPACE_DO_NOT_CARE;
+        if (state == 0 && (f = acceptDesc(reader, scope)) != null) {
+          builder.addFeature(f);
           state = 1;
-        } else if (state == 0) {
-          emsg = new StringBuffer();
-          emsg.append("Feature id missing at ");
-          emsg.append(reader.getCurrentSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        } else if (state == 1 && ParserA.acceptToken(reader, LToken.PLUS, sp) != null) {
+        } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
           state = 0;
         } else {
           state = -1;
         }
       }
-      return IdList.create(si, scope, ii);
-      // return (ii.size() > 0)? IdList.create(si, scope, ii): null;
+      if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        emsg = new StringBuffer();
+        emsg.append("] missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      return builder.create();
     }
 
-    static IdList create(Parser.SrcInfo srcInfo, PScope scope, List<Id> idList) {
-      IdList ii = new IdList(srcInfo, scope);
-      ii.ids = idList.toArray(new Id[idList.size()]);
-      return ii;
-    }
-
-    private IdList(Parser.SrcInfo srcInfo, PScope scope) {
-      super(srcInfo, scope);
+    public String toString() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("feature.list[");
+      if (this.srcInfo != null) {
+        buf.append("src=");
+        buf.append(this.srcInfo);
+        buf.append(",");
+      }
+      buf.append("features=[");
+      String sep = "";
+      for (int i = 0; i < this.features.length; i++) {
+        buf.append(sep);
+        buf.append(this.features[i]);
+        sep = ",";
+      }
+      buf.append("]]");
+      return buf.toString();
     }
 
     public void collectModRefs() throws CompileException {
-      for (int i = 0; i < this.ids.length; i++) {
-        this.ids[i].collectModRefs();
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i].collectModRefs();
       }
     }
 
-    public PProgObj resolve() throws CompileException { throw new RuntimeException("PFeature.IdList#resolve is called."); }
+    public List resolve() throws CompileException {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i] = this.features[i].resolve();
+      }
+      return this;
+    }
 
-    public void normalizeTypes() throws CompileException { throw new RuntimeException("PFeature.IdList#normalizeTypes is called."); }
+    PFeatureSkel.List toSkel() {
+      PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
+      for (int i = 0; i < fss.length; i++) {
+        fss[i] = this.features[i].toSkel();
+      }
+      return PFeatureSkel.List.create(this.srcInfo, fss);
+    }
+
+    PFeatureSkel.List getNormalizedSkel() throws CompileException {
+      PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
+      for (int i = 0; i < fss.length; i++) {
+        fss[i] = this.features[i].getNormalizedSkel();
+      }
+      return PFeatureSkel.List.create(this.srcInfo, fss);
+    }
+
+    List deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+      ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
+      for (int i = 0; i < this.features.length; i++) {
+        builder.addFeature(this.features[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+      }
+      List L = null;
+      try {
+        L = builder.create();
+      } catch (Exception ex) {
+        throw new RuntimeException("Internal error. " + ex.toString());
+      }
+      return L;
+    }
   }
 
-  static Id acceptDef(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
-    StringBuffer emsg;
-    if (ParserA.acceptToken(reader, LToken.PLUS, spc) == null) { return null; }
-    Id id;
-    if ((id = Id.accept(reader, scope, PExprId.ID_NO_QUAL, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Feature id missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
+  static class SigBuilder {
+    PFeature feature;
+    java.util.List<PType> params;
+
+    static SigBuilder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new SigBuilder(srcInfo, scope);
     }
-    return id;
+
+    SigBuilder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.feature = new PFeature(srcInfo, scope);
+      this.params = new ArrayList<PType>();
+    }
+
+    void addParam(PTypeVarDef v) {
+      this.params.add(v);
+    }
+
+    void setName(PTypeId n) {
+      this.feature.fname = n;
+    }
+
+    PFeature create() {
+      this.feature.params = this.params.toArray(new PType[this.params.size()]);
+/* DEBUG */ System.out.println(this.feature);
+      return this.feature;
+    }
   }
 
-  static IdList acceptSpec(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
-    StringBuffer emsg;
-    if (ParserA.acceptToken(reader, LToken.TILD, spc) == null) { return null; }
-    IdList idList;
-    if ((idList = IdList.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Feature specification missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
+  static class Builder {
+    PFeature feature;
+    java.util.List<PProgObj> items;
+
+    static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new Builder(srcInfo, scope);
     }
-    return idList;
+
+    Builder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.feature = new PFeature(srcInfo, scope);
+      this.items = new ArrayList<PProgObj>();
+    }
+
+    void addItem(PProgObj item) {
+      this.items.add(item);
+    }
+
+    PFeature create() throws CompileException {
+      StringBuffer emsg;
+      if (this.items.size() == 0) {
+        emsg = new StringBuffer();
+        emsg.append("Feature description missing at ");
+        emsg.append(this.feature.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+
+      PProgObj a = this.items.get(this.items.size() - 1);  // anchor item
+      if (!(a instanceof PTypeId)) {
+        emsg = new StringBuffer();
+        emsg.append("Feature name missing at ");
+        emsg.append(this.feature.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      this.feature.fname = (PTypeId)a;
+
+      this.feature.params = new PType[this.items.size() - 1];
+      for (int i = 0; i < this.items.size() - 1; i++) {
+        PProgObj p = this.items.get(i);
+        PType t = null;
+        if (p instanceof PType) {
+          t = (PType)p;
+        } else if (p instanceof PTypeId) {
+          t = PType.Undet.create((PTypeId)p);
+        } else {
+          emsg = new StringBuffer();
+          emsg.append("Invalid feature parameter at ");
+          emsg.append(p.getSrcInfo());
+          emsg.append(". - ");
+          emsg.append(p);
+          throw new CompileException(emsg.toString());
+        }
+        this.feature.params[i] = t;
+      }
+
+      return this.feature;
+    }
+  }
+
+  static class ListBuilder {
+    List list;
+    java.util.List<PFeature> features;
+
+    static ListBuilder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
+      return new ListBuilder(srcInfo, scope);
+    }
+
+    ListBuilder(Parser.SrcInfo srcInfo, PScope scope) {
+      this.list = new List(srcInfo, scope);
+      this.features = new ArrayList<PFeature>();
+    }
+
+    void addFeature(PFeature feature) {
+      this.features.add(feature);
+    }
+
+    List create() throws CompileException {
+      StringBuffer emsg;
+      if (this.features.size() == 0) {
+        emsg = new StringBuffer();
+        emsg.append("Empty feature list at ");
+        emsg.append(this.list.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      this.list.features = this.features.toArray(new PFeature[this.features.size()]);
+      return this.list;
+    }
   }
 }

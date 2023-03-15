@@ -85,29 +85,16 @@ abstract class PEvalItem extends PDefaultExprObj {
       }
     }
 
-    // public void setupScope(PScope scope) {
-      // if (scope == this.scope) { return; }
-      // this.scope = scope;
-      // this.idResolved = false;
-      // this.obj.setupScope(scope);
-    // }
-
     public void collectModRefs() throws CompileException {
       this.obj.collectModRefs();
     }
 
     public ObjItem resolve() throws CompileException {
-      // if (this.idResolved) { return this; }
       this.obj = this.obj.resolve();
-      // this.idResolved = true;
       return this;
     }
 
-    public void normalizeTypes() throws CompileException {
-      this.obj.normalizeTypes();
-    }
-
-    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+    public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
       return this.obj.setupTypeGraph(graph);
     }
 
@@ -151,16 +138,11 @@ abstract class PEvalItem extends PDefaultExprObj {
 
     PProgElem getSym() { return this.sym; }
 
-
-    // public void setupScope(PScope scope) {}
-
     public void collectModRefs() {}
 
     public SymItem resolve() throws CompileException {
       return this;
     }
-
-    public void normalizeTypes() throws CompileException {}
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
@@ -214,7 +196,7 @@ abstract class PEvalItem extends PDefaultExprObj {
       ;
     } else if ((acceptables & PEval.ACCEPT_CASE_BLOCK) > 0 && (obj = PCaseBlock.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PExprId.accept(reader, outerScope, PExprId.ID_MAYBE_QUAL, space)) != null) {  // must be after 'if' 'case'
+    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, space)) != null) {  // must be after 'if' 'case'
       ;
     } else if ((acceptables & PEval.ACCEPT_DYNAMIC_INV) > 0 && (sym = PDynamicInv.accept(reader, space)) != null) {
       ;

@@ -460,14 +460,25 @@ public class RNativeImplHelper {
       return c;
     }
 
+    public RClosureItem getFeatureGetter(RObjItem obj, Cstr featureMod, String featureName) {
+      RClosureItem c = null;
+      RType.Sig s = obj.getTsig();
+      RModule m = RNativeImplHelper.this.theEngine.modMgr.getRMod(s.mod);
+      if (m != null) {  // always
+        c = m.getFeatureGetter(s.name.toJavaString(), featureMod, featureName);
+      }
+      return c;
+    }
+
     public PDataDef getDataDef(Cstr modName, String dcon) {
       PDataDef dd = null;
       try {
         PDefDict d = this.getDefDictGetter().getReferredDefDict(modName);
         if (d == null) { return null; }
-        PDefDict.EidProps ep = d.resolveEid(
-          dcon, PExprId.CAT_DCON,
-          Module.ACC_PUBLIC + Module.ACC_PROTECTED + Module.ACC_OPAQUE + Module.ACC_PRIVATE);
+        Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+        as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
+          .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
+        PDefDict.EidProps ep = d.resolveEid(dcon, PExprId.CAT_DCON, as);
         if (ep == null) { return null; }
         dd = ep.defGetter.getDataDef();
       } catch (CompileException ex) {}
@@ -479,8 +490,10 @@ public class RNativeImplHelper {
       try {
         PDefDict d = this.getDefDictGetter().getReferredDefDict(modName);
         if (d == null) { return null; }
+        Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+        as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
         PDefDict.EidProps ep = d.resolveEid(
-          official, PExprId.CAT_FUN_OFFICIAL, Module.ACC_PUBLIC + Module.ACC_PRIVATE);
+          official, PExprId.CAT_FUN_OFFICIAL, as);
         if (ep == null) { return null; }
         PFunDef fd = ep.defGetter.getFunDef();
         PTypeSkel.InstanciationBindings ibs = PTypeSkel.InstanciationBindings.create(PTypeSkelBindings.create());
@@ -490,15 +503,14 @@ public class RNativeImplHelper {
           tis[i] = pts[i].instanciate(ibs);
         }
         tis[pts.length] = fd.getRetType().instanciate(ibs);
-        PDefDict.TconKey tk = PDefDict.TconKey.create(Module.MOD_LANG, "fun");
+        PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, "fun");
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[pts.length];
         for (int i = 0; i < pts.length; i++) {
-          paramPropss[i] = new PDefDict.TparamProps(Module.INVARIANT, false);  // HERE
+          paramPropss[i] = PDefDict.TparamProps.create(Module.INVARIANT, false);  // HERE
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          PTypeId.SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
-        PDefDict.TconInfo ti = PDefDict.TconInfo.create(tk, tp);
-        t = PTypeRefSkel.create(this.getDefDictGetter(), null, ti, false, tis);
+          tk, PTypeId.SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
+        t = PTypeRefSkel.create(this.getDefDictGetter(), null, tp, false, tis);
       } catch (CompileException ex) {}
       return t;
     }

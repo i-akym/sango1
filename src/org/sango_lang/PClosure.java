@@ -267,19 +267,6 @@ class PClosure extends PDefaultExprObj {
     return exprList;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.outerScope) { return; }
-    // this.outerScope = scope;
-    // this.scope = scope.enterClosure(this);
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(this.scope);
-    // }
-    // this.bodyScope = this.scope.enterInner();
-    // this.implExprs.setupScope(this.bodyScope);
-    // retDef.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -289,25 +276,15 @@ class PClosure extends PDefaultExprObj {
   }
 
   public PClosure resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
     this.retDef = this.retDef.resolve();
     this.implExprs = this.implExprs.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].normalizeTypes();
-    }
-    this.retDef.normalizeTypes();
-    this.implExprs.normalizeTypes();
-  }
-
-  public PTypeSkel[] getParamDefinedTypes() {
+  public PTypeSkel[] getParamDefinedTypes() throws CompileException {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
       pts[i] = this.params[i].getNormalizedType();
@@ -315,7 +292,7 @@ class PClosure extends PDefaultExprObj {
     return pts;
   }
 
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createClosureNode(this, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));

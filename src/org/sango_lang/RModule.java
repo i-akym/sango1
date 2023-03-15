@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import sni_sango.SNIlang;
 
 public class RModule {
   RuntimeEngine theEngine;
@@ -39,6 +40,7 @@ public class RModule {
   Map<String, RClosureImpl> closureImplDict;
   RClosureImpl[] closureImpls;
   RObjItem[] consts;
+  Map<String, FeatureInfo[]> featureInfoTab;
   Class<?> nativeImplClass;
   Object nativeImplInstance;
   RClosureItem initClosure;
@@ -93,37 +95,7 @@ public class RModule {
           ci.srcInfoTab,
           ci.varCount);
       } else {
-        if (m.nativeImplClass == null) {
-          String nativeImplClassName = FileSystem.getInstance().moduleNameToNativeClass(m.name);
-          try {
-            m.nativeImplClass = Class.forName(nativeImplClassName);
-            Method instanceGetter = m.nativeImplClass.getMethod("getInstance", new Class[] { eng.getClass() });
-            m.nativeImplInstance = instanceGetter.invoke(null, new Object[] { eng } );
-          } catch (ClassNotFoundException ex) {
-            throw new IOException("Native implementation class not found - " + nativeImplClassName);
-          } catch (NoSuchMethodException ex) {
-            throw new IOException("Native implementation getter \"getInstance(RuntimeEngine)\" not found in " + nativeImplClassName);
-          } catch (Exception ex) {
-            throw new IOException("Native implementation get error in " + nativeImplClassName + " - " + ex.toString());
-	  }
-        }
-        Class[] paramTypes = new Class[ci.paramCount + 2];
-        paramTypes[0] = RNativeImplHelper.class;
-        paramTypes[1] = RClosureItem.class;  // self
-        for (int j = 2; j < paramTypes.length; j++) {
-          paramTypes[j] = RObjItem.class;
-        }
-        String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
-        try {
-          Method nm = m.nativeImplClass.getMethod(nativeMethod, paramTypes);
-          //  -- no check for return value type
-          // if (nm.getReturnType() != RResult.class) {  // even subclass ok
-            // throw new Exception("Invalid return type.");
-          // }
-          cir = RClosureImpl.createNative(m, ci.name, ci.paramCount, /* nativeMethod, */ m.nativeImplInstance, nm);
-        } catch (Exception ex) {
-          throw new IOException("Native implementation method link error for " + nativeMethod, ex);
-        }
+        cir = linkNativeMethod(ci, m);
       }
       m.closureImplDict.put(ci.name, cir);
       m.closureImpls[i] = cir;
@@ -134,7 +106,74 @@ public class RModule {
     for (int i = 0; i < consts.length; i++) {
       m.consts[i] = convertConst(eng, consts[i]);
     }
+
+    m.featureInfoTab = new HashMap<String, FeatureInfo[]>();
+
     return m;
+  }
+
+  private static RClosureImpl linkNativeMethod(MClosureImpl ci, RModule m) throws IOException, FormatException {
+    return ci.name.startsWith("_builtin_")?
+      linkNativeMethodBuiltin(ci, m):
+      linkNativeMethodGeneric(ci, m);
+  }
+
+  private static RClosureImpl linkNativeMethodBuiltin(MClosureImpl ci, RModule m) throws IOException, FormatException {
+    Class[] paramTypes = new Class[ci.paramCount + 2];
+    paramTypes[0] = RNativeImplHelper.class;
+    paramTypes[1] = RClosureItem.class;  // self
+    for (int i = 2; i < paramTypes.length; i++) {
+      paramTypes[i] = RObjItem.class;
+    }
+    RClosureImpl cir;
+    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
+    try {
+      Method nm = m.getClass().getMethod(nativeMethod, paramTypes);
+      //  -- no check for return value type
+      // if (nm.getReturnType() != RResult.class) {  // even subclass ok
+        // throw new Exception("Invalid return type.");
+      // }
+      cir = RClosureImpl.createNative(m, ci.name, ci.paramCount, m, nm);
+    } catch (Exception ex) {
+      throw new IOException("Native implementation method link error for " + nativeMethod, ex);
+    }
+    return cir;
+  }
+
+  private static RClosureImpl linkNativeMethodGeneric(MClosureImpl ci, RModule m) throws IOException, FormatException {
+    if (m.nativeImplClass == null) {
+      String nativeImplClassName = FileSystem.getInstance().moduleNameToNativeClass(m.name);
+      try {
+        m.nativeImplClass = Class.forName(nativeImplClassName);
+        Method instanceGetter = m.nativeImplClass.getMethod("getInstance", new Class[] { m.theEngine.getClass() });
+        m.nativeImplInstance = instanceGetter.invoke(null, new Object[] { m.theEngine } );
+      } catch (ClassNotFoundException ex) {
+        throw new IOException("Native implementation class not found - " + nativeImplClassName);
+      } catch (NoSuchMethodException ex) {
+        throw new IOException("Native implementation getter \"getInstance(RuntimeEngine)\" not found in " + nativeImplClassName);
+      } catch (Exception ex) {
+        throw new IOException("Native implementation get error in " + nativeImplClassName + " - " + ex.toString());
+      }
+    }
+    Class[] paramTypes = new Class[ci.paramCount + 2];
+    paramTypes[0] = RNativeImplHelper.class;
+    paramTypes[1] = RClosureItem.class;  // self
+    for (int i = 2; i < paramTypes.length; i++) {
+      paramTypes[i] = RObjItem.class;
+    }
+    RClosureImpl cir;
+    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
+    try {
+      Method nm = m.nativeImplClass.getMethod(nativeMethod, paramTypes);
+      //  -- no check for return value type
+      // if (nm.getReturnType() != RResult.class) {  // even subclass ok
+        // throw new Exception("Invalid return type.");
+      // }
+      cir = RClosureImpl.createNative(m, ci.name, ci.paramCount, m.nativeImplInstance, nm);
+    } catch (Exception ex) {
+      throw new IOException("Native implementation method link error for " + nativeMethod, ex);
+    }
+    return cir;
   }
 
   private static RObjItem convertConst(RuntimeEngine eng, Module.ConstElem c) {
@@ -172,7 +211,14 @@ public class RModule {
     if (mci != null) {
       this.mainClosure = RClosureItem.create(this.theEngine, mci, null);
     }
-    // HERE
+    // /* DEV */ if (this.name.toJavaString().equals("f")) {
+    // /* DEV */   RClosureItem g = this.getClosure("_bridge_bar_as_a'foo");
+    // /* DEV */   System.out.print("FEATURE put getter in table. "); System.out.println(g != null);
+    // /* DEV */   this.featureInfoTab.put(
+    // /* DEV */     "bar",
+    // /* DEV */     new FeatureInfo[] { new FeatureInfo(this.name, "a'foo", g)
+    // /* DEV */   });
+    // /* DEV */ }
   }
 
   void spawnInitTask() {
@@ -233,4 +279,49 @@ public class RModule {
   RClosureItem getInitClosure() { return this.initClosure; }
 
   RClosureItem getMainClosure() { return this.mainClosure; }
+
+  RClosureItem getFeatureGetter(String tcon, Cstr featureMod, String featureName) {
+    RClosureItem g = null;
+    FeatureInfo[] fis = this.featureInfoTab.get(tcon);
+    if (fis != null) {
+      for (int i = 0; g == null && i < fis.length; i++) {
+        FeatureInfo fi = fis[i];
+        if (fi.featureMod.equals(featureMod) && fi.featureName.equals(featureName)) {
+          g = fi.getter;
+        }
+      }
+    }
+    return g;
+  }
+
+
+// builtin-function implementations
+
+  public void sni__builtin_feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem obj, RObjItem feature) {
+    if (helper.getAndClearResumeInfo() == null) {
+      RClosureItem g = helper.getCore().getFeatureGetter(
+        obj,
+        this.name,
+        helper.arrayItemToCstr(((RArrayItem)feature)).toJavaString());
+      if (g == null) {
+        helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
+      } else {
+        helper.scheduleInvocation(g, new RObjItem[] { obj }, self);
+      }
+    } else {
+      helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
+    }
+  }
+
+  static class FeatureInfo {
+    Cstr featureMod;
+    String featureName;
+    RClosureItem getter;
+
+    FeatureInfo(Cstr featureMod, String featureName, RClosureItem getter) {
+      this.featureMod = featureMod;
+      this.featureName = featureName;
+      this.getter = getter;
+    }
+  }
 }

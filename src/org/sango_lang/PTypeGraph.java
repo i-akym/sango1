@@ -88,12 +88,12 @@ class PTypeGraph {
       this.nodeList.get(i).check();
     }
     // collect tcon info including implicitly referred
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     for (int i = 0; i < this.nodeList.size(); i++) {
-      this.nodeList.get(i).collectTconInfo(tis);
+      this.nodeList.get(i).collectTconProps(tps);
     }
-    for (int i = 0; i < tis.size(); i++) {
-      this.theMod.addReferredTcon(tis.get(i));
+    for (int i = 0; i < tps.size(); i++) {
+      this.theMod.addReferredTcon(tps.get(i));
     }
   }
 
@@ -122,19 +122,21 @@ class PTypeGraph {
 
     PTypeSkel getFixedType() { return this.type; }
 
-    List<PTypeVarSlot> getGivenTvarList() { return this.exprObj.getScope().getGivenTVarList(); }
+    List<PTypeVarSlot> getGivenTvarList() throws CompileException {
+      return this.exprObj.getScope().getGivenTVarList();
+    }
 
     abstract PTypeSkel infer() throws CompileException;
 
     void check() throws CompileException {}
 
-    void collectTconInfo(List<PDefDict.TconInfo> tis) {
-      this.type.collectTconInfo(tis);
+    void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
+      this.type.collectTconProps(tps);
     }
 
   }
 
-  DetNode createDetNode(PExprObj exprObj) {
+  DetNode createDetNode(PExprObj exprObj) throws CompileException {
       DetNode n = new DetNode(exprObj);
       // exprObj.setFixedType(exprObj.getNormalizedType());
       return n;
@@ -142,9 +144,10 @@ class PTypeGraph {
 
   class DetNode extends Node {
 
-    DetNode(PExprObj exprObj) {
+    DetNode(PExprObj exprObj) throws CompileException {
       super(exprObj);
       this.type = exprObj.getNormalizedType();
+      /* DEBUG */ if (this.type == null) { throw new IllegalArgumentException("Null type. " + exprObj); }
     }
 
     PTypeSkel infer() throws CompileException {
@@ -190,7 +193,7 @@ class PTypeGraph {
     }
   }
 
-  VarNode createVarNode(PExprObj exprObj, String name, int cat) {
+  VarNode createVarNode(PExprObj exprObj, String name, int cat) throws CompileException {
     return new VarNode(exprObj, name, cat);
   }
 
@@ -198,7 +201,7 @@ class PTypeGraph {
     String name;
     int cat;  // PExprVarDef.CAT_xx
 
-    VarNode(PExprObj exprObj, String name, int cat) {
+    VarNode(PExprObj exprObj, String name, int cat) throws CompileException {
       super(exprObj);
       this.name = name;
       this.cat = cat;
@@ -280,13 +283,13 @@ class PTypeGraph {
     }
   }
 
-  RetNode createRetNode(PExprObj exprObj) {
+  RetNode createRetNode(PExprObj exprObj) throws CompileException {
     return new RetNode(exprObj);
   }
 
   class RetNode extends Node {
 
-    RetNode(PExprObj exprObj) {
+    RetNode(PExprObj exprObj) throws CompileException {
       super(exprObj);
       this.type = exprObj.getNormalizedType();
     }
@@ -464,7 +467,7 @@ class PTypeGraph {
       if (sel == null) {
         emsg = new StringBuffer();
         emsg.append("Function ");
-        emsg.append(this.funId.toRepr());
+        emsg.append(this.funId.repr());
         emsg.append(" not found at ");
         emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
@@ -492,15 +495,15 @@ class PTypeGraph {
       return rt.instanciate(ib);
     }
 
-    void collectTconInfo(List<PDefDict.TconInfo> tis) {
+    void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
 // /* DEBUG */ System.out.print("G "); System.out.println(this.funDef.getOfficialName());
-      super.collectTconInfo(tis);
+      super.collectTconProps(tps);
       PTypeSkel[] pts = this.funDef.getParamTypes();
       for (int i = 0; i < pts.length; i++) {
 // /* DEBUG */ System.out.print("p "); System.out.println(pts[i]);
-        pts[i].collectTconInfo(tis);
+        pts[i].collectTconProps(tps);
       }
-      this.funDef.getRetType().collectTconInfo(tis);
+      this.funDef.getRetType().collectTconProps(tps);
     }
   }
 
@@ -551,7 +554,7 @@ if (DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       PTypeRefSkel ctr = (PTypeRefSkel)ct;
-      if (ctr.tconInfo.key.modName.equals(Module.MOD_LANG) && ctr.tconInfo.key.tcon.equals("fun")) {
+      if (ctr.tconProps.key.modName.equals(Module.MOD_LANG) && ctr.tconProps.key.idName.equals("fun")) {
         ;
       } else {
         emsg = new StringBuffer();

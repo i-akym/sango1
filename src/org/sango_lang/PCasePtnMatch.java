@@ -172,16 +172,6 @@ class PCasePtnMatch extends PDefaultExprObj {
     return builder.create();
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.ptnMatch.setupScope(scope);
-    // for (int i = 0; i < this.details.length; i++) {
-      // this.details[i].setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     this.ptnMatch.collectModRefs();
     for (int i = 0; i < this.details.length; i++) {
@@ -190,23 +180,14 @@ class PCasePtnMatch extends PDefaultExprObj {
   }
 
   public PCasePtnMatch resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.ptnMatch = (PPtnMatch)this.ptnMatch.resolve();
     for (int i = 0; i < this.details.length; i++) {
       this.details[i] = (PPtnDetail)this.details[i].resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.ptnMatch.normalizeTypes();
-    for (int i = 0; i < this.details.length; i++) {
-      this.details[i].normalizeTypes();
-    }
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.ptnMatch.setupTypeGraph(graph);
     for (int i = 0; i < this.details.length; i++) {
       this.details[i].setupTypeGraph(graph);

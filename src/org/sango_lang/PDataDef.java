@@ -29,13 +29,13 @@ public interface PDataDef {
 
   int getParamCount();  // -1 if variable count  // needed?
 
-  // PTypeVarSkel[] getParamVarSlots();  // null if variable count params
-
   PTypeSkel getTypeSig();
 
-  int getAvailability();  // Module.AVAILABILITY_xxx
+  Module.Variance getParamVarianceAt(int pos);
 
-  int getAcc();
+  Module.Availability getAvailability();
+
+  Module.Access getAcc();
 
   int getConstrCount();  // 0 if native impl
 
@@ -43,7 +43,7 @@ public interface PDataDef {
 
   Constr getConstrAt(int index);
 
-  PDefDict.TconKey getBaseTconKey();
+  PDefDict.IdKey getBaseTconKey();
 
   interface Constr {
 
@@ -63,7 +63,9 @@ public interface PDataDef {
   
     String getName();
 
-    PTypeSkel getNormalizedType();
+    PTypeSkel getNormalizedType() throws CompileException;
+
+    PTypeSkel getFixedType();
   
   }
 }

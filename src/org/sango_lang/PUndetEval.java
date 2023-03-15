@@ -56,17 +56,6 @@ class PUndetEval extends PDefaultExprObj implements PEval {
     return e;
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].setupScope(scope);
-    // }
-    // this.anchor.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
@@ -93,27 +82,10 @@ class PUndetEval extends PDefaultExprObj implements PEval {
       PExprId anc = (PExprId)a;
       if (anc.maybeDcon()) {
         e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, anc, this.params);
-        // e = PDataConstrEval.create(this.srcInfo, this.scope, anc, this.params, new PEvalItem.ObjItem[0], null);
       } else {
         e = PStaticInvEval.create(this.srcInfo, this.scope, anc, this.params);
       }
-      // this.anchor = (PExprId)a;
-      // e = this;
     }
-    // if (e == this) {
-      // if (this.anchor.maybeDcon()) {
-        // this.anchor.setCat(PExprId.CAT_DCON_EVAL);
-        // e = PDataConstrEval.create(this.srcInfo, this.scope, this.anchor, this.params, new PEvalItem.ObjItem[0], null);
-        // // e = e.resolve();
-      // } else {
-        // e = PStaticInvEval.create(this.srcInfo, this.scope, this.anchor, this.params);
-        // // e = e.resolve();
-      // }
-    // }
     return e;
-  }
-
-  public void normalizeTypes() {
-    throw new IllegalStateException("PUndetEval#normalizeTypes should not be called.");
   }
 }

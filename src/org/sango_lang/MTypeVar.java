@@ -30,17 +30,17 @@ import org.w3c.dom.Node;
 
 class MTypeVar implements MType {
   int slot;
-  int variance;
   boolean requiresConcrete;
+  MFeature.List features;
   MType constraint;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, int variance, boolean requiresConcrete, MType constraint) {
+  static MTypeVar create(int slot, boolean requiresConcrete, MFeature.List features, MType constraint) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
-    t.variance = variance;
     t.requiresConcrete = requiresConcrete;
+    t.features = features;
     t.constraint = constraint;
     return t;
   }
@@ -52,18 +52,13 @@ class MTypeVar implements MType {
       buf.append(this.constraint.toString());  // HERE: do not embrace by < >
       buf.append(" = ");
     }
-    switch (this.variance) {
-    case Module.COVARIANT:
-      buf.append("+");
-      break;
-    case Module.CONTRAVARIANT:
-      buf.append("-");
-      break;
-    }
     buf.append("_");
     buf.append(this.slot);
     if (this.requiresConcrete) {
       buf.append("!");
+    }
+    if (this.features != null) {
+      buf.append(this.features.toString());
     }
     buf.append(">");
     return buf.toString();
@@ -73,14 +68,6 @@ class MTypeVar implements MType {
 // /* DEBUG */ System.out.println(this);
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
     node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
-    switch (this.variance) {
-    case Module.COVARIANT:
-      node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
-      break;
-    case Module.CONTRAVARIANT:
-      node.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
-      break;
-    }
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
@@ -101,23 +88,6 @@ class MTypeVar implements MType {
       throw new FormatException("'slot' attribute not found.");
     }
     int slot = Module.parseInt(aSlot.getNodeValue()); 
-    // if (slot < 0 || slot > builder.typeVarCount) {
-      // throw new FormatException("Invalid slot: " + aSlot.getNodeValue());
-    // }
-    int variance = Module.INVARIANT;
-    Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
-    if (aVariance != null) {
-      String sVariance = aVariance.getNodeValue();
-      if (sVariance.equals(Module.REPR_INVARIANT)) {
-        ;
-      } else if (sVariance.equals(Module.REPR_COVARIANT)) {
-        variance = Module.COVARIANT;
-      } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
-        variance = Module.COVARIANT;
-      } else {
-        throw new FormatException("Invalid 'variance': " + sVariance);
-      }
-    }
     boolean requiresConcrete = false;
     Node aRequiresConcrete = attrs.getNamedItem(Module.ATTR_REQUIRES_CONCRETE);
     if (aRequiresConcrete != null) {
@@ -132,19 +102,22 @@ class MTypeVar implements MType {
     }
 
     Node n = node.getFirstChild();
+    MFeature.List features = null;
     MType constraint = null;
     int state = 0;
     while (n != null) {
       if (Module.isIgnorable(n)) {
         ;
-      } else if (state == 0 && (constraint = internalizeConstraint(n)) != null) {
+      } else if (state < 1 && (features = MFeature.List.internalize(n)) != null) {
         state = 1;
+      } else if (state < 2 && (constraint = internalizeConstraint(n)) != null) {
+        state = 2;
       } else {
         throw new FormatException("Unknown or extra element : " + n.getNodeName());
       }
       n = n.getNextSibling();
     }
-    return create(slot, variance, requiresConcrete, constraint);
+    return create(slot, requiresConcrete, features, constraint);
   }
 
   static MType internalizeConstraint(Node node) throws FormatException {

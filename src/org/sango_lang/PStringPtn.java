@@ -149,24 +149,13 @@ class PStringPtn extends PDefaultExprObj {
   }
 
   public PStringPtn resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     for (int i = 0; i < this.elems.length; i++) {
       this.elems[i] = this.elems[i].resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].normalizeTypes();
-    }
-    if (this.isFromCstr) {
-      this.nTypeSkel = this.scope.getCharStringType(this.srcInfo).getSkel();
-    }
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.nTypeSkel != null) {
       this.typeGraphNode = graph.createDetNode(this);
     } else {  // one or more elements

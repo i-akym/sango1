@@ -47,17 +47,9 @@ class PWildCards extends PDefaultExprObj {
     return (token != null)? create(token.getSrcInfo(), outerScope): null;
   }
 
-  // public void setupScope(PScope scope) {
-    // this.scope = scope;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PWildCards resolve() throws CompileException {
     throw new RuntimeException("PWildCards#resolveId() called. - " + this.toString());
-  }
-
-  public void normalizeTypes() {
-    throw new RuntimeException("PWildCards#normalizeTypes() called.");
   }
 }

@@ -23,37 +23,12 @@
  ***************************************************************************/
 package org.sango_lang;
 
-public class Version {
-  static final int MAJOR = 1;
-  static final int MINOR = 6;
-  static final int MICRO = 1;
-  static final String LEVEL = null;
-  static final int BUILD = 1;
+public interface PFeatureDef {
 
-  static final Version instance = new Version(MAJOR, MINOR, MICRO, LEVEL, BUILD);
+  int getParamCount();
 
-  public static Version getInstance() { return instance; }
+  Module.Availability getAvailability();
 
-  public int major;
-  public int minor;
-  public int micro;
-  public String level;
-  public int build;
-  public String full;
+  Module.Access getAcc();
 
-  private Version(int major, int minor, int micro, String level, int build) {
-    this.major = major;
-    this.minor = minor;
-    this.micro = micro;
-    this.level = (level == null || level.length() == 0)? null: level;
-    this.build = build;
-    String sMajor = Integer.toString(this.major);
-    String sMinor = Integer.toString(this.minor);
-    String sMicro = Integer.toString(this.micro);
-    String sLevel = (this.level != null)? "-" + this.level: "";
-    String sBuild = Integer.toString(this.build);
-    this.full = sMajor + "." + sMinor + "." + sMicro + sLevel + "_" + sBuild;
-  }
-
-  public String toString() { return this.full; }
 }

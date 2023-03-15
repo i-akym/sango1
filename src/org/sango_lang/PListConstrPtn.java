@@ -52,33 +52,18 @@ class PListConstrPtn extends PListPtn {
     return c;
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // this.elem.setupScope(scope);
-    // this.tail.setupScope(scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     this.elem.collectModRefs();
     this.tail.collectModRefs();
   }
 
   public PListConstrPtn resolve() throws CompileException {
-    // if (this.idResolved) { return this; }
     this.elem = this.elem.resolve();
     this.tail = this.tail.resolve();
-    // this.idResolved = true;
     return this;
   }
 
-  public void normalizeTypes() throws CompileException {
-    this.elem.normalizeTypes();
-    this.tail.normalizeTypes();
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createListPtnNode(this);
     PTypeGraph.Node e = this.elem.setupTypeGraph(graph);
     PTypeGraph.ListPtnElemNode en = graph.createListPtnElemNode(this);

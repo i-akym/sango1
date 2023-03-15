@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Map;
 
 class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
+  Module.Availability availability;
+  Module.Access acc;
   PType sig;
   String tcon;
-  int availability;
-  int acc;
   PTypeVarDef[] tparams;
   PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
@@ -40,6 +40,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PAliasTypeStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
     this.scope.startDef();
+    this.availability = Module.AVAILABILITY_GENERAL;  // default
+    this.acc = Module.ACC_PRIVATE;  // default
   }
 
   public String toString() {
@@ -73,11 +75,11 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       this.alias.sig = sig;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.alias.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.alias.acc = acc;
     }
 
@@ -87,8 +89,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
     PAliasTypeStmt create() throws CompileException {
       if (this.alias.sig instanceof PTypeId) {
-        PTypeId ti = (PTypeId)this.alias.sig;
-        this.alias.tcon = ti.name;
+        PTypeId tp = (PTypeId)this.alias.sig;
+        this.alias.tcon = tp.name;
         this.alias.tparams = new PTypeVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.alias.sig;
@@ -119,7 +121,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     PScope scope = builder.getScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
-    if ((tsig = PType.acceptSig2(reader, scope)) == null) {
+    if ((tsig = PType.acceptSig(reader, scope, /* false, */ Parser.QUAL_INHIBITED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -172,7 +174,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
-    int acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
+    Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
     builder.setAcc(acc);
 
     PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), scope);
@@ -233,16 +235,6 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     return PType.acceptRO(reader, scope, ParserA.SPACE_DO_NOT_CARE);
   }
 
-  // public void setupScope(PScope scope) {
-    // StringBuffer emsg;
-    // if (this.scope != null) { throw new RuntimeException("Scope is already set.");}
-    // // if (s == this.scope) { return; }
-    // this.scope = scope.start();
-    // this.idResolved = false;
-    // this.sig.setupScope(this.scope);
-    // this.body.setupScope(this.scope);
-  // }
-
   public void collectModRefs() throws CompileException {
     // sig has no mod refs
     this.body.collectModRefs();
@@ -250,11 +242,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public PAliasTypeStmt resolve() throws CompileException {
     StringBuffer emsg;
-    // if (this.idResolved) { return this; }
     this.sig = this.sig.resolve();
-    // for (int i = 0; i < this.tparams.length; i++) {
-      // this.tparams[i] = this.tparams[i].resolve();
-    // }
     this.body = this.body.resolve();
     if (!(this.body instanceof PTypeRef)) {
       emsg = new StringBuffer();
@@ -263,7 +251,6 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    // this.idResolved = true;
     return this;
   }
 
@@ -271,20 +258,20 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   void checkCyclicAlias() throws CompileException {
 // /* DEBUG */ System.out.println("unalias " + this.tcon);
-// /* DEBUG */ System.out.println(((PTypeRef)this.sig).tconInfo.toString());
-    AliasGraphNode n = AliasGraphNode.createRoot(((PTypeRef)this.sig).tconInfo);
+// /* DEBUG */ System.out.println(((PTypeRef)this.sig).tconProps.toString());
+    AliasGraphNode n = AliasGraphNode.createRoot(((PTypeRef)this.sig).tconProps);
     this.checkUnalias(n);
   }
 
   void checkUnalias(AliasGraphNode a) throws CompileException {
     StringBuffer emsg;
 // /* DEBUG */ System.out.println(this);
-    if (a.ti.props.subcat != PTypeId.SUBCAT_ALIAS) { return; }
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    a.ti.props.defGetter.getAliasTypeDef().collectUnaliasTconInfo(tis);
-// /* DEBUG */ System.out.println("unalias to " + tis.toString());
-    for (int i = 0; i < tis.size(); i++) {
-      AliasGraphNode c = a.addChild(tis.get(i));
+    if (a.tp.subcat != PTypeId.SUBCAT_ALIAS) { return; }
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
+    a.tp.defGetter.getAliasTypeDef().collectUnaliasTconProps(tps);
+// /* DEBUG */ System.out.println("unalias to " + tps.toString());
+    for (int i = 0; i < tps.size(); i++) {
+      AliasGraphNode c = a.addChild(tps.get(i));
       if (c == null) {
         emsg = new StringBuffer();
         emsg.append("Circular definition detected for \"");
@@ -303,10 +290,6 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     this.body.excludePrivateAcc();
   }
 
-  public void normalizeTypes() {
-    throw new RuntimeException("PAliasTypeStmt#normalizeTypes() should not be called. - " + this.toString());
-  }
-
   public String getTcon() { return this.tcon; }
 
   public PTypeVarSlot[] getParamVarSlots() {
@@ -317,11 +300,11 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     return vs;
   }
 
-  public int getAvailability() { return this.availability; }
+  public Module.Availability getAvailability() { return this.availability; }
 
-  public int getAcc() { return this.acc; }
+  public Module.Access getAcc() { return this.acc; }
 
-  public void collectUnaliasTconInfo(List<PDefDict.TconInfo> list) { this.body.getSkel().collectTconInfo(list); }
+  public void collectUnaliasTconProps(List<PDefDict.TconProps> list) { this.body.toSkel().collectTconProps(list); }
 
   public PTypeRefSkel getBody() {
     if (this.bodySkel == null) {
@@ -357,40 +340,40 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   }
 
   void setupBodySkel() {
-    this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.getSkel()).unalias(PTypeSkelBindings.create());
-    List<PDefDict.TconInfo> tis = new ArrayList<PDefDict.TconInfo>();
-    this.bodySkel.collectTconInfo(tis);
-    this.scope.addReferredTcons(tis);
+    this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.toSkel()).unalias(PTypeSkelBindings.create());
+    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
+    this.bodySkel.collectTconProps(tps);
+    this.scope.addReferredTcons(tps);
   }
 
   private static class AliasGraphNode {
-   PDefDict.TconInfo ti;
+   PDefDict.TconProps tp;
     AliasGraphNode parent;
     List<AliasGraphNode> children;
 
-    static AliasGraphNode createRoot(PDefDict.TconInfo ti) {
-      return new AliasGraphNode(ti);
+    static AliasGraphNode createRoot(PDefDict.TconProps tp) {
+      return new AliasGraphNode(tp);
     }
 
-    private AliasGraphNode(PDefDict.TconInfo ti) {
-// /* DEBUG */ System.out.println(ti);
-      this.ti = ti;
+    private AliasGraphNode(PDefDict.TconProps tp) {
+// /* DEBUG */ System.out.println(tp);
+      this.tp = tp;
       this.children = new ArrayList<AliasGraphNode>();
     }
 
-    AliasGraphNode addChild(PDefDict.TconInfo ti) {  // null if loop detected
+    AliasGraphNode addChild(PDefDict.TconProps tp) {  // null if loop detected
       AliasGraphNode p = this;
       boolean loopDetected = false;
       while (!loopDetected && (p != null)) {
-        loopDetected = ti.key.equals(p.ti.key);
+        loopDetected = tp.key.equals(p.tp.key);
         p = p.parent;
       }
       AliasGraphNode n = null;
       if (!loopDetected) {
-        n = new AliasGraphNode(ti);
+        n = new AliasGraphNode(tp);
 	this.children.add(n);
 	n.parent = this;
-// /* DEBUG */ System.out.println("new alias graph node " + ti.toString());
+// /* DEBUG */ System.out.println("new alias graph node " + tp.toString());
       }
       return n;
     }

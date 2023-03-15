@@ -132,15 +132,6 @@ class PExprVarDef extends PDefaultExprObj {
     return create(elem.getSrcInfo(), outerScope, cat, type, id);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-    // this.idResolved = false;
-    // if (this.type != null) {
-      // this.type.setupScope(scope);
-    // }
-  // }
-
   public void collectModRefs() throws CompileException {
     if (this.type != null) {
       this.type.collectModRefs();
@@ -150,7 +141,6 @@ class PExprVarDef extends PDefaultExprObj {
   public PExprVarDef resolve() throws CompileException {
     StringBuffer emsg;
     if (this.varSlot != null) { return this; }
-    // if (this.idResolved) { return this; }
     if (!this.scope.canDefineEVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -164,11 +154,10 @@ class PExprVarDef extends PDefaultExprObj {
     if (this.type != null) {
       this.type = (PType)this.type.resolve();
     }
-    // this.idResolved = true;
     return this;
   }
 
-  public PDefDict.TconInfo getTconInfo() { return null; }
+  public PDefDict.TconProps getTconProps() { return null; }
 
   public void excludePrivateAcc() throws CompileException {
     if (this.type != null) {
@@ -176,13 +165,7 @@ class PExprVarDef extends PDefaultExprObj {
     }
   }
 
-  public void normalizeTypes() {
-    if (this.type != null) {
-      this.nTypeSkel = this.type.normalize();
-    }
-  }
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
+  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createVarNode(this, this.name, this.cat);
     return this.typeGraphNode;
   }

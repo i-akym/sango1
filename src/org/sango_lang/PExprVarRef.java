@@ -75,26 +75,15 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return PTypeId.create(srcInfo, outerScope, null, this.name, false);
   }
 
-  // public void setupScope(PScope scope) {
-    // if (scope == this.scope) { return; }
-    // this.scope = scope;
-  // }
-
   public void collectModRefs() throws CompileException {}
 
   public PExprVarRef resolve() throws CompileException {
     return this;
   }
 
-  public PDefDict.TconInfo getTconInfo() { return null; }
+  public PDefDict.TconProps getTconProps() { return null; }
 
   public void excludePrivateAcc() throws CompileException {}
-
-  public void normalizeTypes() {
-    if (this.varSlot.varDef.nTypeSkel == null) {
-      this.varSlot.varDef.normalizeTypes();
-    }
-  }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
