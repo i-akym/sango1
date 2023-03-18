@@ -155,43 +155,6 @@ public interface PDefDict {
     }
   }
 
-  // static class TconInfo {
-    // IdKey key;
-    // TconProps props;
-
-    // public static TconInfo create(IdKey key, TconProps props) {
-      // return new TconInfo(key, props);
-    // }
-
-    // TconInfo(IdKey key, TconProps props) {
-      // this.key = key;
-      // this.props = props;
-    // }
-
-    // public String toString() {
-      // StringBuffer buf = new StringBuffer();
-      // buf.append("tconinfo[tconkey=");
-      // buf.append(this.key);
-      // buf.append(",tconprops=");
-      // buf.append(this.props);
-      // buf.append("]");
-      // return buf.toString();
-    // }
-
-    // public boolean equals(Object o) {
-      // boolean b;
-      // if (o == this) {
-        // b = true;
-      // } else if (!(o instanceof TconInfo)) {
-        // b = false;
-      // } else {
-        // TconInfo ti = (TconInfo)o;
-        // b = ti.key.equals(this.key);
-      // }
-      // return b;
-    // }
-  // }
-
   static class TconProps {
     IdKey key;
     int subcat;
@@ -234,53 +197,18 @@ public interface PDefDict {
     }
   }
 
-  static class FeatureInfo {
-    IdKey key;
-    FeatureProps props;
-
-    public static FeatureInfo create(IdKey key, FeatureProps props) {
-      return new FeatureInfo(key, props);
-    }
-
-    FeatureInfo(IdKey key, FeatureProps props) {
-      this.key = key;
-      this.props = props;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("featureinfo[fname=");
-      buf.append(this.key);
-      buf.append(",featureprops=");
-      buf.append(this.props);
-      buf.append("]");
-      return buf.toString();
-    }
-
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof FeatureInfo)) {
-        b = false;
-      } else {
-        FeatureInfo fi = (FeatureInfo)o;
-        b = fi.key.equals(this.key);
-      }
-      return b;
-    }
-  }
-
   static class FeatureProps {
+    IdKey key;
     int paramCount;
     Module.Access acc;
     FeatureDefGetter defGetter;
 
-    public static FeatureProps create(int paramCount, Module.Access acc, FeatureDefGetter getter) {
-      return new FeatureProps(paramCount, acc, getter);
+    public static FeatureProps create(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
+      return new FeatureProps(key, paramCount, acc, getter);
     }
 
-    FeatureProps(int paramCount, Module.Access acc, FeatureDefGetter getter) {
+    FeatureProps(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
+      this.key = key;
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;
@@ -292,8 +220,10 @@ public interface PDefDict {
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
+      buf.append("featueprops[key=");
+      buf.append(this.key);
       buf.append("featueprops[paramcount=");
-      buf.append(this.paramCount());
+      buf.append(this.paramCount);
       buf.append(",acc=");
       buf.append(this.acc);
       buf.append("]");
