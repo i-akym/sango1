@@ -1104,8 +1104,16 @@ class PModule implements PDefDict {
       as);
   }
 
-  PDefDict.FeatureInfo resolveFeature(String modId, String fname) throws CompileException {
-    throw new RuntimeException("PModule#resolveFeature not implemented.");
+  PDefDict.FeatureProps resolveFeature(String modId, String fname) throws CompileException {
+    return this.isLang()?  this.resolveFeatureInLang(modId, fname): this.resolveFeatureInOther(modId, fname);
+  }
+
+  PDefDict.FeatureProps resolveFeatureInLang(String modId, String fname) throws CompileException {
+    throw new RuntimeException("PModule#resolveFeatureInLang not implemented.");
+  }
+
+  PDefDict.FeatureProps resolveFeatureInOther(String modId, String fname) throws CompileException {
+    throw new RuntimeException("PModule#resolveFeatureInOther not implemented.");
   }
 
   void addReferredTcon(PDefDict.TconProps tp) {
