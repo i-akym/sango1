@@ -76,6 +76,9 @@ class MTypeVar implements MType {
       c.appendChild(this.constraint.externalize(doc));
       node.appendChild(c);
     }
+    if (this.features != null) {
+      node.appendChild(this.features.externalize(doc));
+    }
     return node;
   }
 
