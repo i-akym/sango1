@@ -939,7 +939,7 @@ class PModule implements PDefDict {
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PScope defScope = evalStmtBuilder.getDefScope();
     PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
-    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", /* Module.NO_VARIANCE, */ false, null, null));
+    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", false, null, null));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param1TypeBuilder.create(), "X"));
     PType.Builder param2TypeBuilder = PType.Builder.newInstance(si, defScope);
     param2TypeBuilder.addItem(PTypeId.create(si, defScope, MOD_ID_LANG, "cstr", false));
@@ -951,7 +951,8 @@ class PModule implements PDefDict {
     retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_LANG, "maybe", false));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
-    // this.addEvalStmt(evalStmtBuilder.create());  // HERE
+// /* DEBUG */ System.out.println(evalStmtBuilder.create());
+    this.addEvalStmt(evalStmtBuilder.create());
   }
 
   private void generateDataFuns() throws CompileException {
