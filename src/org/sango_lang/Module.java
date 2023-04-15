@@ -96,11 +96,13 @@ public class Module {
   static final String TAG_DATA_DEF = "data_def";
   static final String TAG_DATA_DEFS = "data_defs";
   static final String TAG_FEATURE = "feature";
+  static final String TAG_FEATURE_DEF = "feature_def";
   static final String TAG_FEATURES = "features";
   static final String TAG_FOREIGN = "foreign";
   static final String TAG_FUN_DEF = "fun_def";
   static final String TAG_FUN_DEFS = "fun_defs";
   static final String TAG_I = "i";
+  static final String TAG_IMPL = "impl";
   static final String TAG_INST_SEQ = "inst_seq";
   static final String TAG_INT = "int";
   static final String TAG_MOD_REF = "mod_ref";
@@ -108,6 +110,7 @@ public class Module {
   static final String TAG_MODULE = "module";
   static final String TAG_NATIVE = "native";
   static final String TAG_NIL = "nil";
+  static final String TAG_OBJ = "obj";
   static final String TAG_PARAM = "param";
   static final String TAG_PARAMS = "params";
   static final String TAG_REAL = "real";

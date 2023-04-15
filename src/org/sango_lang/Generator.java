@@ -56,6 +56,7 @@ class Generator {
     if (this.stop) { return; }
     this.generateDataDefs();
     this.generateAliasTypeDefs();
+    this.generateFeatureDefs();
     this.generateFunDefs();
     this.generateFunImpls();
 
@@ -219,13 +220,23 @@ class Generator {
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
     }
-    // PTypeVarSkel[] vs = new PTypeVarSkel[pvs.length];
-    // for (int i = 0; i < vs.length; i++) {
-      // vs[i] = PTypeVarSkel.create(null, null, pvs[i]);
-    // }
-    // atd.setBody(alias.unalias(vs).toMType(this.parser.mod, varSlotList));
     atd.setBody(alias.getBody().toMType(this.parser.mod, varSlotList));
     this.modBuilder.putAliasTypeDef(atd);
+  }
+
+  void generateFeatureDefs() {
+    for (int i = 0; i < this.parser.mod.featureStmtList.size(); i++) {
+      this.generateFeatureDef(this.parser.mod.featureStmtList.get(i)) ;
+    }
+  }
+
+  void generateFeatureDef(PFeatureStmt feature) {
+    MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
+    b.setName(feature.sig.fname.name);
+/* DEBUG */ if (feature.availability == null) { throw new RuntimeException("Null availability. " + feature.sig); }
+    b.setAvailability(feature.availability);
+    b.setAcc(feature.acc);
+    // HERE
   }
 
   void generateFunDefs() {

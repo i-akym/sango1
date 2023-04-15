@@ -30,8 +30,8 @@ import org.w3c.dom.Element;
 
 public class MFeatureDef implements Module.Elem {
   String name;
-  int availability;
-  int acc;
+  Module.Availability availability;
+  Module.Access acc;
   MTypeVar[] params;
   MTypeVar obj;
   MTypeRef impl;
@@ -55,11 +55,11 @@ public class MFeatureDef implements Module.Elem {
       this.featureDef.name = name;
     }
 
-    void setAvailability(int availability) {
+    void setAvailability(Module.Availability availability) {
       this.featureDef.availability = availability;
     }
 
-    void setAcc(int acc) {
+    void setAcc(Module.Access acc) {
       this.featureDef.acc = acc;
     }
 
@@ -114,7 +114,7 @@ public class MFeatureDef implements Module.Elem {
     } else {
       emsg = new StringBuffer();
       emsg.append("Incompatible access mode - type: ");
-      emsg.append(fd.tcon);
+      emsg.append(fd.name);
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
@@ -129,7 +129,7 @@ public class MFeatureDef implements Module.Elem {
     } else {
       emsg = new StringBuffer();
       emsg.append("Incompatible parameter count - type: ");
-      emsg.append(fd.tcon);
+      emsg.append(fd.name);
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
@@ -137,9 +137,6 @@ public class MFeatureDef implements Module.Elem {
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
-    for (int i = 0; i < this.constrs.length; i++) {
-      MConstrDef cd = this.constrs[i];
-      cd.checkCompat(modTab, fd, defModTab);
-    }
+    // HERE
   }
 }
