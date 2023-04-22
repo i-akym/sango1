@@ -90,6 +90,9 @@ public class MFeatureDef implements Module.Elem {
     if (this.acc != Module.ACC_PRIVATE) {
       featureDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
     }
+    Element objNode = doc.createElement(Module.TAG_OBJ);
+    objNode.appendChild(Module.externalizeType(doc, this.obj));
+    featureDefNode.appendChild(objNode);
     if (this.params.length > 0) {
       Element paramsNode = doc.createElement(Module.TAG_PARAMS);
       for (int i = 0; i < this.params.length; i++) {
@@ -97,13 +100,9 @@ public class MFeatureDef implements Module.Elem {
       }
       featureDefNode.appendChild(paramsNode);
     }
-
-    // HERE
-    Element objNode = doc.createElement(Module.TAG_OBJ);
-    featureDefNode.appendChild(objNode);
     Element implNode = doc.createElement(Module.TAG_IMPL);
+    implNode.appendChild(Module.externalizeType(doc, this.impl));
     featureDefNode.appendChild(implNode);
-
     return featureDefNode;
   }
 

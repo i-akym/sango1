@@ -231,12 +231,18 @@ class Generator {
   }
 
   void generateFeatureDef(PFeatureStmt feature) {
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
     b.setName(feature.sig.fname.name);
 /* DEBUG */ if (feature.availability == null) { throw new RuntimeException("Null availability. " + feature.sig); }
     b.setAvailability(feature.availability);
     b.setAcc(feature.acc);
-    // HERE
+    b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.parser.mod, varSlotList));
+    for (int i = 0; i < feature.sig.params.length; i++) {
+      b.addParam((MTypeVar)feature.sig.params[i].toSkel().toMType(this.parser.mod, varSlotList));
+    }
+    b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.parser.mod, varSlotList));
+    this.modBuilder.putFeatureDef(b.create());
   }
 
   void generateFunDefs() {
