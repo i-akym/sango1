@@ -27,6 +27,8 @@ public interface PDataDef {
 
   String getFormalTcon();
 
+  PDefDict.IdKey getBaseTconKey();
+
   int getParamCount();  // -1 if variable count  // needed?
 
   PTypeSkel getTypeSig();
@@ -43,7 +45,9 @@ public interface PDataDef {
 
   Constr getConstrAt(int index);
 
-  PDefDict.IdKey getBaseTconKey();
+  int getFeatureImplCount();
+
+  FeatureImpl getFeatureImplAt(int index);
 
   interface Constr {
 
@@ -67,5 +71,9 @@ public interface PDataDef {
 
     PTypeSkel getFixedType();
   
+  }
+
+  interface FeatureImpl {
+    // HERE
   }
 }

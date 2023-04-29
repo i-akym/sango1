@@ -422,6 +422,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
+  public PDefDict.IdKey getBaseTconKey() { return this.baseTconProps.key; }
+
   public int getParamCount() { return this.tparams.length; }
 
   public PTypeRefSkel getTypeSig() {
@@ -448,6 +450,14 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   }
 
   public PDataDef.Constr getConstrAt(int index) { return this.constrs[index]; }
+
+  public int getFeatureImplCount() {
+    throw new RuntimeException("PExtendStmt#getFeatureImplCount() not implemented.");
+  }
+
+  public PDataDef.FeatureImpl getFeatureImplAt(int index) {
+    throw new RuntimeException("PExtendStmt#getFeatureImplAt() not implemented.");
+  }
 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
@@ -480,8 +490,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.constrs[i].checkConcreteness();
     }
   }
-
-  public PDefDict.IdKey getBaseTconKey() { return this.baseTconProps.key; }
 
   List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
     List<PEvalStmt> funs = new ArrayList<PEvalStmt>();
