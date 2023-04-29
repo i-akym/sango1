@@ -458,6 +458,8 @@ public class SNImodule {
 
     public String getFormalTcon() { return this.sigTcon; }
 
+    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
+
     public int getParamCount() { return this.sigParams.length; }
 
     public PTypeSkel getTypeSig() {
@@ -493,11 +495,17 @@ public class SNImodule {
 
     public int getConstrCount() { return this.constrDict.size(); }
 
-    public PDataDef.Constr getConstrAt(int index) { return this.constrDict.get(this.constrList.get(index)); }
-
     public PDataDef.Constr getConstr(String dcon) { return this.constrDict.get(dcon); }
 
-    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
+    public PDataDef.Constr getConstrAt(int index) { return this.constrDict.get(this.constrList.get(index)); }
+
+    public int getFeatureImplCount() {
+      throw new RuntimeException("SNImodule.DataDef#getFeatureImplCount() not implemented.");
+    }
+
+    public PDataDef.FeatureImpl getFeatureImplAt(int index) {
+      throw new RuntimeException("SNImodule.DataDef#getFeatureImplAt() not implemented.");
+    }
 
     PDataDef.Constr addConstr(String dcon) {
       throw new RuntimeException("Not implemented");

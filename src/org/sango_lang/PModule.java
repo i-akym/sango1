@@ -1649,6 +1649,8 @@ class PModule implements PDefDict {
 
     public String getFormalTcon() { return this.referredDataDef.getFormalTcon(); }
 
+    public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
+
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
     public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
@@ -1659,15 +1661,6 @@ class PModule implements PDefDict {
 
     public Module.Access getAcc() {
       return this.requiredAcc;
-      // Module.Access acc;
-      // if (this.requiredAcc.contains(Module.ACC_PUBLIC)) {
-        // acc = Module.ACC_PUBLIC;
-      // } else if (this.requiredAcc.contains(Module.ACC_PROTECTED)) {
-        // acc = Module.ACC_PROTECTED;
-      // } else {
-        // acc = Module.ACC_OPAQUE;
-      // }
-      // return acc;
     }
 
     public int getConstrCount() { return this.referredDconList.size(); }
@@ -1680,6 +1673,12 @@ class PModule implements PDefDict {
       return this.referredDataDef.getConstr(this.referredDconList.get(index));
     }
 
-    public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
+    public int getFeatureImplCount() {
+      throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplCount() not implemented.");
+    }
+
+    public PDataDef.FeatureImpl getFeatureImplAt(int index) {
+      throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplAt() not implemented.");
+    }
   }
 }

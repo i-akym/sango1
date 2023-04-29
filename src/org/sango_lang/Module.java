@@ -237,6 +237,8 @@ public class Module {
 
   public MAliasTypeDef[] getAliasTypeDefs() { return this.aliasTypeDefs; }
 
+  public MFeatureDef[] getFeatureDefs() { return this.featureDefs; }
+
   public MFunDef[] getFunDefs() { return this.funDefs; }
 
   public ConstElem[] getConsts() { return this.consts; }

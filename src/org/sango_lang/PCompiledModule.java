@@ -291,14 +291,14 @@ class PCompiledModule implements PDefDict {
 
     public String getFormalTcon() { return this.sigTcon; }
 
+    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
+
     public int getParamCount() { return (this.sigParams != null)? this.sigParams.length: -1 ; }
 
     public PTypeSkel getTypeSig() {
       if (this.sig == null) {
-        // PDefDict.IdKey ik = PDefDict.IdKey.create(PCompiledModule.this.name, this.sigTcon);
         PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
         this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, tp, false, this.sigParams);
-        // this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, PDefDict.TconProps.create(ik, tp), false, this.sigParams);
       }
       return this.sig;
     }
@@ -311,11 +311,17 @@ class PCompiledModule implements PDefDict {
 
     public int getConstrCount() { return this.constrDict.size(); }
 
-    public PDataDef.Constr getConstrAt(int index) { return this.constrDict.get(this.constrList.get(index)); }
-
     public PDataDef.Constr getConstr(String dcon) { return this.constrDict.get(dcon); }
 
-    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
+    public PDataDef.Constr getConstrAt(int index) { return this.constrDict.get(this.constrList.get(index)); }
+
+    public int getFeatureImplCount() {
+      throw new RuntimeException("PCompiledModule.DataDef#getFeatureImplCount() not implemented.");
+    }
+
+    public PDataDef.FeatureImpl getFeatureImplAt(int index) {
+      throw new RuntimeException("PCompiledModule.DataDef#getFeatureImplAt() not implemented.");
+    }
 
     ConstrDef addConstr(String dcon) {
       ConstrDef cd = new ConstrDef(dcon);

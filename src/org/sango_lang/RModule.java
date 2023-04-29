@@ -36,11 +36,11 @@ public class RModule {
   RModule[] modTab;
   RDataConstr[] dataConstrs;
   Map<String, RDataConstr> dataConstrDict;
+  Map<String, FeatureImplInfo[]> featureImplDict;
   RClosureConstr[] closureConstrs;
   Map<String, RClosureImpl> closureImplDict;
   RClosureImpl[] closureImpls;
   RObjItem[] consts;
-  Map<String, FeatureInfo[]> featureInfoTab;
   Class<?> nativeImplClass;
   Object nativeImplInstance;
   RClosureItem initClosure;
@@ -63,8 +63,8 @@ public class RModule {
     m.slots[Module.MSLOT_INDEX_NAME] = eng.memMgr.cstrToArrayItem(m.name);
 
     MDataConstr[] dcs = mod.getDataConstrs();
-    m.dataConstrDict = new HashMap<String, RDataConstr>();
     m.dataConstrs = new RDataConstr[dcs.length] ;
+    m.dataConstrDict = new HashMap<String, RDataConstr>();
     for (int i = 0; i < dcs.length; i++) {
       MDataConstr dc = dcs[i];
       RDataConstr rdc = RDataConstr.create(mod.getModAt(dc.modIndex), dc.name, dc.attrCount, dc.tcon, dc.tparamCount);
@@ -107,7 +107,8 @@ public class RModule {
       m.consts[i] = convertConst(eng, consts[i]);
     }
 
-    m.featureInfoTab = new HashMap<String, FeatureInfo[]>();
+    m.featureImplDict = new HashMap<String, FeatureImplInfo[]>();
+// HERE
 
     return m;
   }
@@ -214,9 +215,9 @@ public class RModule {
     // /* DEV */ if (this.name.toJavaString().equals("f")) {
     // /* DEV */   RClosureItem g = this.getClosure("_bridge_bar_as_a'foo");
     // /* DEV */   System.out.print("FEATURE put getter in table. "); System.out.println(g != null);
-    // /* DEV */   this.featureInfoTab.put(
+    // /* DEV */   this.featureImplDict.put(
     // /* DEV */     "bar",
-    // /* DEV */     new FeatureInfo[] { new FeatureInfo(this.name, "a'foo", g)
+    // /* DEV */     new FeatureImplInfo[] { new FeatureImplInfo(this.name, "a'foo", g)
     // /* DEV */   });
     // /* DEV */ }
   }
@@ -282,10 +283,10 @@ public class RModule {
 
   RClosureItem getFeatureGetter(String tcon, Cstr featureMod, String featureName) {
     RClosureItem g = null;
-    FeatureInfo[] fis = this.featureInfoTab.get(tcon);
+    FeatureImplInfo[] fis = this.featureImplDict.get(tcon);
     if (fis != null) {
       for (int i = 0; g == null && i < fis.length; i++) {
-        FeatureInfo fi = fis[i];
+        FeatureImplInfo fi = fis[i];
         if (fi.featureMod.equals(featureMod) && fi.featureName.equals(featureName)) {
           g = fi.getter;
         }
@@ -313,12 +314,12 @@ public class RModule {
     }
   }
 
-  static class FeatureInfo {
+  static class FeatureImplInfo {
     Cstr featureMod;
     String featureName;
     RClosureItem getter;
 
-    FeatureInfo(Cstr featureMod, String featureName, RClosureItem getter) {
+    FeatureImplInfo(Cstr featureMod, String featureName, RClosureItem getter) {
       this.featureMod = featureMod;
       this.featureName = featureName;
       this.getter = getter;
