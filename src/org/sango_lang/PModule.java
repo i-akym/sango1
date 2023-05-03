@@ -1594,47 +1594,37 @@ class PModule implements PDefDict {
     }
   }
 
-  class ForeignTconRef {
-    int paramCount;
-    Module.Access acc;
-    PDataDef dataDef;
+  // class ForeignTconRef {
+    // int paramCount;
+    // Module.Access acc;
+    // PDataDef dataDef;
 
+    // ForeignTconRef(PDefDict.TconProps props, Module.Access acc) {
+      // this.paramCount = props.paramCount();
+      // this.acc = acc;
+      // this.dataDef = props.defGetter.getDataDef();
+    // }
 
-    ForeignTconRef(PDefDict.TconProps props, Module.Access acc) {
-      this.paramCount = props.paramCount();
-      this.acc = acc;
-      this.dataDef = props.defGetter.getDataDef();
-    }
+    // void mergeAcc(Module.Access acc) {
+      // this.acc = Module.moreOpenAcc(acc, this.acc)? acc: this.acc;
+    // }
 
-    void mergeAcc(Module.Access acc) {
-      this.acc = Module.moreOpenAcc(acc, this.acc)? acc: this.acc;
-    }
-
-    Module.Access getRequiredAcc() {
-      return this.acc;
-      // Module.Access a;
-      // if (this.acc.contains(Module.ACC_PUBLIC)) {
-        // a = Module.ACC_PUBLIC;
-      // } else if (this.acc.contains(Module.ACC_PROTECTED)) {
-        // a = Module.ACC_PROTECTED;
-      // } else if (this.acc.contains(Module.ACC_OPAQUE)) {
-        // a = Module.ACC_OPAQUE;
-      // } else {
-        // throw new IllegalStateException("Invalid acc. - " + this.acc);
-      // }
-      // return a;
-    }
-  }
+    // Module.Access getRequiredAcc() {
+      // return this.acc;
+    // }
+  // }
 
   class ForeignDataDef implements PDataDef {
     PDataDef referredDataDef;
     Module.Access requiredAcc;
     List<String> referredDconList;
+    List<String> referredFeatureList;
 
     ForeignDataDef(PDataDef dd, Module.Access acc) {
       this.referredDataDef = dd;
       this.requiredAcc = acc;
       this.referredDconList = new ArrayList<String>();
+      this.referredFeatureList = new ArrayList<String>();
     }
 
     void requireAcc(Module.Access acc) {
@@ -1644,6 +1634,12 @@ class PModule implements PDefDict {
     void referredDcon(String dcon) {
       if (!this.referredDconList.contains(dcon)) {
         this.referredDconList.add(dcon);
+      }
+    }
+
+    void referredFeature(String fname) {
+      if (!this.referredFeatureList.contains(fname)) {
+        this.referredFeatureList.add(fname);
       }
     }
 
@@ -1674,7 +1670,7 @@ class PModule implements PDefDict {
     }
 
     public int getFeatureImplCount() {
-      throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplCount() not implemented.");
+      return this.referredFeatureList.size();
     }
 
     public PDataDef.FeatureImpl getFeatureImplAt(int index) {

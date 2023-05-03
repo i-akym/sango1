@@ -37,6 +37,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   String tcon;
   PDataStmt.Param[] tparams;
   PDataConstrDef[] constrs;
+  PFeatureImplDef[] featureImpls;
   PTypeRef sig;
   PDefDict.TconProps baseTconProps;
 
@@ -74,6 +75,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PTypeId baseTcon;
     String rename;
     List<PDataConstrDef> constrList;
+    List<PFeatureImplDef> featureImplList;
     Set<String> nameSet;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -84,6 +86,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.ext = new PExtendStmt(srcInfo, outerScope);
       this.paramList = new ArrayList<PDataStmt.Param>();
       this.constrList = new ArrayList<PDataConstrDef>();
+      this.featureImplList = new ArrayList<PFeatureImplDef>();
       this.nameSet = new HashSet<String>();
     }
 
@@ -99,18 +102,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     void setBaseTcon(PTypeId baseTcon) {
       this.baseTcon = baseTcon;
-      // if (base instanceof PTypeRef) {
-        // PTypeRef trbase = (PTypeRef)base;
-        // for (int i = 0; i < trbase.params.length; i++) {
-          // PTypeVarDef v = (PTypeVarDef)trbase.params[i];
-          // if (v.variance == null) {
-            // v.variance = Module.INVARIANT;
-          // }
-        // }
-        // this.base = trbase;
-      // } else {
-        // this.base = base;
-      // }
     }
 
     void setRename(String rename) {
@@ -146,6 +137,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       }
     }
 
+    void addFeatureImpl(PFeatureImplDef f) throws CompileException {
+      this.featureImplList.add(f);
+    }
+
     PExtendStmt create() throws CompileException {
       StringBuffer emsg;
       this.ext.tparams = this.paramList.toArray(new PDataStmt.Param[this.paramList.size()]);
@@ -158,41 +153,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       }
       this.ext.sig = PTypeRef.create(this.ext.srcInfo, this.ext.scope,
         PTypeId.create(this.ext.srcInfo, this.ext.scope, null, this.ext.tcon, false), ps);
-
-      // if (this.base instanceof PType.Undet) {
-        // PType.Undet u = (PType.Undet)this.base;
-        // this.ext.baseModId = (u.id.modId != null)? u.id.modId: PModule.MOD_ID_LANG;
-        // this.ext.baseTcon = u.id.name;
-        // this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        // this.ext.tparams = new PTypeVarDef[0];
-        // PType.Builder sigBuilder = PType.Builder.newInstance(this.ext.srcInfo, this.ext.scope);
-        // sigBuilder.addItem(PTypeId.create(
-          // u.id.srcInfo, this.ext.scope,
-          // null, this.ext.tcon, false));
-        // this.ext.sig = sigBuilder.create();
-      // } else if (this.base instanceof PTypeRef) {
-        // PTypeRef tr = (PTypeRef)this.base;
-        // this.ext.baseModId = (tr.modId != null)? tr.modId: PModule.MOD_ID_LANG;
-        // this.ext.baseTcon = tr.tcon;
-        // this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
-        // this.ext.tparams = new PTypeVarDef[tr.params.length];
-        // for (int i = 0; i < tr.params.length; i++) {
-          // if (tr.params[i] instanceof PTypeVarDef) {
-            // this.ext.tparams[i] = (PTypeVarDef)tr.params[i];
-          // } else {
-            // throw new RuntimeException("Unexpected type.");
-          // }
-        // }
-        // this.ext.sig = PTypeRef.create(
-          // tr.srcInfo, tr.scope,
-          // PTypeId.create(tr.srcInfo, this.ext.scope, null, this.ext.tcon, false),
-          // tr.params);
-      // } else {
-        // throw new RuntimeException("Unexpected type.");
-      // }
-      // /* DEBUG */ System.out.print("extend sig init "); System.out.println(this.ext.sig);
-
       this.ext.constrs = this.constrList.toArray(new PDataConstrDef[this.constrList.size()]);
+      this.ext.featureImpls = this.featureImplList.toArray(new PFeatureImplDef[this.featureImplList.size()]);
       return this.ext;
     }
   }
@@ -452,11 +414,11 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   public PDataDef.Constr getConstrAt(int index) { return this.constrs[index]; }
 
   public int getFeatureImplCount() {
-    throw new RuntimeException("PExtendStmt#getFeatureImplCount() not implemented.");
+    return this.featureImpls.length;
   }
 
   public PDataDef.FeatureImpl getFeatureImplAt(int index) {
-    throw new RuntimeException("PExtendStmt#getFeatureImplAt() not implemented.");
+    return this.featureImpls[index];
   }
 
   void checkAcc() throws CompileException {
