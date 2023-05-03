@@ -181,6 +181,9 @@ class Generator {
     for (int i = 0; i < dd.getConstrCount(); i++) {
       this.generateConstrDef(dd.getConstrAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
     }
+    for (int i = 0; i < dd.getFeatureImplCount(); i++) {
+      this.generateFeatureImplDef(dd.getFeatureImplAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
+    }
     this.modBuilder.endDataDef();
 
   }
@@ -197,6 +200,10 @@ class Generator {
     this.modBuilder.startAttrDef(attrDef.getName());
     this.modBuilder.setAttrType(attrDef.getFixedType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.endAttrDef();
+  }
+
+  void generateFeatureImplDef(PDataDef.FeatureImpl featureImplDef, List<PTypeVarSlot> varSlotList) {
+// HERE
   }
 
   void generateDataConstrImpls(PDataDef dd) {

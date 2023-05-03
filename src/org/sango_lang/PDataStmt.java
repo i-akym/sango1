@@ -471,11 +471,11 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   public int getFeatureImplCount() {
-    throw new RuntimeException("PDataStmt#getFeatureImplCount() not implemented.");
+    return this.featureImpls.length;
   }
 
   public PDataDef.FeatureImpl getFeatureImplAt(int index) {
-    throw new RuntimeException("PDataStmt#getFeatureImplAt() not implemented.");
+    return this.featureImpls[index];
   }
 
   void checkAcc() throws CompileException {

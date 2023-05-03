@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PFeatureImplDef extends PDefaultProgObj {
+class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   PExprId provider;
   PFeature feature;
 
