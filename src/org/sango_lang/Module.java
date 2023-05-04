@@ -98,6 +98,7 @@ public class Module {
   static final String TAG_FEATURE = "feature";
   static final String TAG_FEATURE_DEF = "feature_def";
   static final String TAG_FEATURE_DEFS = "feature_defs";
+  static final String TAG_FEATURE_IMPL = "feature_impl";
   static final String TAG_FEATURES = "features";
   static final String TAG_FOREIGN = "foreign";
   static final String TAG_FUN_DEF = "fun_def";
