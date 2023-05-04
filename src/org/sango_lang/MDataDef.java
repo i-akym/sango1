@@ -36,6 +36,7 @@ public class MDataDef implements Module.Elem {
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
   String baseTcon;
   MConstrDef[] constrs;
+  MFeatureImplDef[] featureImpls;
 
   private MDataDef() {}
 
