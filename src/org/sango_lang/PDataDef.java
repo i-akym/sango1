@@ -74,6 +74,12 @@ public interface PDataDef {
   }
 
   interface FeatureImpl {
-    // HERE
+
+    Cstr getProviderModName();
+
+    String getProviderFunName();
+
+    PFeatureSkel getImpl();
+
   }
 }

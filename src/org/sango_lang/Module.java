@@ -1723,6 +1723,13 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
+    void addFeatureImplDef(int providerModIndex, String providerFun, MTypeRef impl) {
+      MFeatureImplDef.Builder featureImplDefBuilder = MFeatureImplDef.Builder.newInstance();
+      featureImplDefBuilder.setProvider(providerModIndex, providerFun);
+      featureImplDefBuilder.setImpl(impl);
+      this.dataDefBuilder.addFeatureImplDef(featureImplDefBuilder.create());
+    }
+
     void startAliasTypeDef(String tcon, Availability availability, Access acc, int paramCount) {
       this.currentAliasTypeDef = MAliasTypeDef.create(tcon, availability, acc, paramCount);
     }
