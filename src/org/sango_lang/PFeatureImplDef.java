@@ -171,4 +171,16 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   public void checkConcreteness() throws CompileException {
     // HERE
   }
+
+  public Cstr getProviderModName() {
+    return this.scope.resolveModId(this.provider.modId);
+  }
+
+  public String getProviderFunName() {
+    return this.provider.name;
+  }
+
+  public PFeatureSkel getImpl() {
+    return this.feature.toSkel();
+  }
 }

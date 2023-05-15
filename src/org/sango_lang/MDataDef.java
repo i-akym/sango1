@@ -44,6 +44,7 @@ public class MDataDef implements Module.Elem {
     MDataDef dataDef;
     List<Param> paramList;
     List<MConstrDef> constrList;
+    List<MFeatureImplDef> featureImplList;
 
     static Builder newInstance() {
       return new Builder();
@@ -53,6 +54,7 @@ public class MDataDef implements Module.Elem {
       this.dataDef = new MDataDef();
       this.dataDef.availability = Module.AVAILABILITY_GENERAL;
       this.constrList = new ArrayList<MConstrDef>();
+      this.featureImplList = new ArrayList<MFeatureImplDef>();
     }
 
     void prepareForParams() {
@@ -88,11 +90,17 @@ public class MDataDef implements Module.Elem {
       this.constrList.add(constrDef);
     }
 
+    void addFeatureImplDef(MFeatureImplDef featureImplDef) {
+      featureImplDef.setDataDef(this.dataDef);
+      this.featureImplList.add(featureImplDef);
+    }
+
     MDataDef create() {
       this.dataDef.params = (this.paramList != null)?
         this.paramList.toArray(new Param[this.paramList.size()]):
         null;
       this.dataDef.constrs = this.constrList.toArray(new MConstrDef[this.constrList.size()]);
+      this.dataDef.featureImpls = this.featureImplList.toArray(new MFeatureImplDef[this.featureImplList.size()]);
       return this.dataDef;
     }
   }
@@ -112,7 +120,6 @@ public class MDataDef implements Module.Elem {
   public Element externalize(Document doc) {
     Element dataDefNode = doc.createElement(Module.TAG_DATA_DEF);
     dataDefNode.setAttribute(Module.ATTR_TCON, this.tcon);
-    // dataDefNode.setAttribute(Module.ATTR_PARAM_COUNT, Integer.toString(this.paramCount));
     if (this.availability != Module.AVAILABILITY_GENERAL) {
       dataDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
     }
@@ -140,16 +147,23 @@ public class MDataDef implements Module.Elem {
       }
       dataDefNode.appendChild(paramsNode);
     }
-    if (this.constrs != null) {
+    if (this.constrs != null) {  // needed?
       for (int i = 0; i < this.constrs.length; i++) {
         dataDefNode.appendChild(this.externalizeConstrDef(doc, this.constrs[i]));
       }
+    }
+    for (int i = 0; i < this.featureImpls.length; i++) {
+      dataDefNode.appendChild(this.externalizeFeatureImplDef(doc, this.featureImpls[i]));
     }
     return dataDefNode;
   }
 
   Element externalizeConstrDef(Document doc, MConstrDef constrDef) {
     return constrDef.externalize(doc);
+  }
+
+  Element externalizeFeatureImplDef(Document doc, MFeatureImplDef featureImplDef) {
+    return featureImplDef.externalize(doc);
   }
 
   void checkCompat(Module.ModTab modTab, MDataDef dd, Module.ModTab defModTab) throws FormatException {
