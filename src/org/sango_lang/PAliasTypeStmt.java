@@ -232,7 +232,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   }
 
   private static PType acceptAliasBodyDef(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-    return PType.acceptRO(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+    return PType.accept(reader, scope.enterInner(), ParserA.SPACE_DO_NOT_CARE);  // normal var def will be guarded
+    // return PType.acceptRO(reader, scope, ParserA.SPACE_DO_NOT_CARE);
   }
 
   public void collectModRefs() throws CompileException {
