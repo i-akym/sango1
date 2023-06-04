@@ -130,6 +130,16 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
 
     PEvalStmt create() throws CompileException {
+      StringBuffer emsg;
+      if (this.eval.implExprs == null && this.eval.official.startsWith("_builtin_") && this.paramList.size() != 1) {
+        emsg = new StringBuffer();
+        emsg.append("Parameter count must be 1 for ");
+        emsg.append(this.eval.official);
+        emsg.append(" at ");
+        emsg.append(this.eval.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       this.eval.params = this.paramList.toArray(new PExprVarDef[this.paramList.size()]);
       this.eval.aliases = this.aliasList.toArray(new String[this.aliasList.size()]);
       return this.eval;

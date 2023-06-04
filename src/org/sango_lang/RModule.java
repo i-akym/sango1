@@ -120,14 +120,15 @@ public class RModule {
   }
 
   private static RClosureImpl linkNativeMethodBuiltin(MClosureImpl ci, RModule m) throws IOException, FormatException {
-    Class[] paramTypes = new Class[ci.paramCount + 2];
+    // all '_builtin_xxx' will be converted and forwarded to sni__builtin by runtime engine
+    if (ci.paramCount != 1) { throw new FormatException("Invalid parameter count for " + ci.name + "."); }
+    Class[] paramTypes = new Class[3];
     paramTypes[0] = RNativeImplHelper.class;
     paramTypes[1] = RClosureItem.class;  // self
-    for (int i = 2; i < paramTypes.length; i++) {
-      paramTypes[i] = RObjItem.class;
-    }
+    paramTypes[2] = RObjItem.class;  // param chunk
     RClosureImpl cir;
-    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
+    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod("_builtin");
+    // String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
     try {
       Method nm = m.getClass().getMethod(nativeMethod, paramTypes);
       //  -- no check for return value type
@@ -298,12 +299,22 @@ public class RModule {
 
 // builtin-function implementations
 
-  public void sni__builtin_feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem obj, RObjItem feature) {
+  public void sni__builtin(RNativeImplHelper helper, RClosureItem self, RObjItem generic) {
+    if (self.impl.name.startsWith("_builtin_feature_get_")) {
+      this.feature_get(helper, self, generic);
+    } else {
+      throw new RuntimeException("Invalid native implementation: " + self.impl.name);
+    }
+  }
+
+  // eval <*T> *X _builtin_feature_get_xxx -> <(impl type) maybe>
+  void feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem generic) {
     if (helper.getAndClearResumeInfo() == null) {
+      RObjItem obj = generic;
       RClosureItem g = helper.getCore().getFeatureGetter(
         obj,
         this.name,
-        helper.arrayItemToCstr(((RArrayItem)feature)).toJavaString());
+        self.impl.name.substring(21));  // feature name = after "_builtin_feature_get_"
       if (g == null) {
         helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
       } else {
