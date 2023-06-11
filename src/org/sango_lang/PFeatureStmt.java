@@ -283,26 +283,36 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
     List<PEvalStmt> funs = new ArrayList<PEvalStmt>();
+
+/* DEBUG */ System.out.println(this.generateFeatureFun(mod));
+    // funs.add(this.generateFeatureFun(mod));
+    // funs.add(this.generateFeatureBuiltinFun(mod));
     return funs;
   }
 
-  // PEvalStmt generateCallHashFun(PModule mod) throws CompileException {
-    // eval <*T0 *T1 .. TCON> *X _call_hash_TCON @private -> <int> {
-    //   X _hash_TCON
+  PEvalStmt generateFeatureFun(PModule mod) throws CompileException {
+    // eval <*T[ FEAT ]> *X _feature_FEAT @xxx -> < IMPL > {
+    //   X _builtin_feature_get_FEAT
     // }
+    Parser.SrcInfo si = this.srcInfo.appendPostfix("_feature");
+    PScope modScope = this.scope.theMod.scope;
+    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, modScope);
+    PScope defScope = evalStmtBuilder.getDefScope();
+    PScope bodyScope = evalStmtBuilder.getBodyScope();
+    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
+    evalStmtBuilder.setOfficial("_feature_" + this.sig.fname.name);
+    evalStmtBuilder.setAcc(this.acc);
+    PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
+    PFeature.ListBuilder paramFeaturesBuilder = PFeature.ListBuilder.newInstance(si, defScope);
+    paramFeaturesBuilder.addFeature(
+      this.sig.deepCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
+    paramTypeBuilder.addItem(
+      PTypeVarDef.create(si, defScope, "T", false, paramFeaturesBuilder.create(), null));
+    evalStmtBuilder.addParam(
+      PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
 
-    // if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
-    // Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
-    // PScope modScope = this.scope.theMod.scope;
-    // PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, modScope);
-    // PScope defScope = evalStmtBuilder.getDefScope();
-    // // PScope retScope = evalStmtBuilder.getRetScope();
-    // PScope bodyScope = evalStmtBuilder.getBodyScope();
-    // PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
-    // PScope retScope = retDefBuilder.getScope();
-    // evalStmtBuilder.setOfficial("_call_hash_" + this.tcon);
-    // evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    // PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
+// HERE
+
     // String[] paramNames = PModule.generateIds("T", this.tparams.length);
     // for (int i = 0; i < paramNames.length; i++) {
       // paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], Module.INVARIANT, false, null));
@@ -319,7 +329,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     // List<PExpr> ies = new ArrayList<PExpr>();
     // ies.add(PExpr.create(callEvalBuilder.create()));
     // evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
-    // return evalStmtBuilder.create();
-  // }
-
+    return evalStmtBuilder.create();
+  }
 }

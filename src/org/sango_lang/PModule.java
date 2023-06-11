@@ -851,19 +851,15 @@ class PModule implements PDefDict {
   }
 
   private void generateFeatureFuns() throws CompileException {
-    if (this.featureStmtList.size() > 0) {
-      this.generateFeatureDataDef();
-      this.generateFeatureGetterFun();
-      // List<PEvalStmt> es;
-      // for (int i = 0; i < this.featureStmtList.size(); i++) {
-        // es = this.featureStmtList.get(i).generateFuns(this);
-        // for (int j = 0; j < es.size(); j++) {
-          // this.addEvalStmt(es.get(j));
-        // }
-      // }
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      List<PEvalStmt> es = this.featureStmtList.get(i).generateFuns(this);
+      for (int j = 0; j < es.size(); j++) {
+        this.addEvalStmt(es.get(j));
+      }
     }
   }
 
+  // CUT
   void generateFeatureDataDef() throws CompileException {
     // data <_feature_> := <impl_type> _feature_name$ | ...
     StringBuffer emsg;
@@ -930,6 +926,7 @@ class PModule implements PDefDict {
     this.addDataStmt(dataStmtBuilder.create());
   }
 
+  // CUT
   void generateFeatureGetterFun() throws CompileException {
     // eval <*T> *X <cstr> *F  _builtin_feature_get -> <_feature_ maybe> @native
     Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");

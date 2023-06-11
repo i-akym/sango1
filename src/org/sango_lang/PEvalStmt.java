@@ -57,7 +57,12 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     buf.append("],acc=");
     buf.append(this.acc);
-    buf.append(",ret=");
+    buf.append(",params=[");
+    for (int i = 0; i < this.params.length; i++) {
+      buf.append(this.params[i]);
+      buf.append(",");
+    }
+    buf.append("],ret=");
     buf.append(this.retDef);
     if (this.implExprs != null) {
       buf.append(",exprs=[");
