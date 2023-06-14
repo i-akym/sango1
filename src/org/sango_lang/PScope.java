@@ -33,7 +33,7 @@ class PScope {
   PScope parent;
   int pos;
     // 0: module top
-    // -1: in data/extend/alias-type def
+    // -1: in data/extend/alias-type/feature def
     // 1..: fun/closure def depth
   PEvalStmt evalStmt;  // set if pos == 1
   PClosure closure;  // set if pos > 1
