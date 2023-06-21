@@ -290,6 +290,10 @@ class PScope {
     return this.theMod.resolveTcon(modId, name);
   }
 
+  PDefDict.FeatureProps resolveFeature(String modId, String name) throws CompileException {
+    return this.theMod.resolveFeature(modId, name);
+  }
+
   void addReferredTcons(List<PDefDict.TconProps> tis) {
     for (int i = 0; i < tis.size(); i++) {
       this.addReferredTcon(tis.get(i));

@@ -268,11 +268,47 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public void checkConcreteness() throws CompileException {}
 
+  List<PAliasTypeStmt> generateAliases(PModule mod) throws CompileException {
+    List<PAliasTypeStmt> aliases = new ArrayList<PAliasTypeStmt>();
+    aliases.add(this.generateFeatureAlias(mod));
+    return aliases;
+  }
+
   List<PEvalStmt> generateFuns(PModule mod) throws CompileException {
     List<PEvalStmt> funs = new ArrayList<PEvalStmt>();
     funs.add(this.generateFeatureFun(mod));
     funs.add(this.generateFeatureBuiltinFun(mod));
     return funs;
+  }
+
+  PAliasTypeStmt generateFeatureAlias(PModule mod) throws CompileException {
+    // alias type <*T *A .. _feature_impl_FEAT> @xxx := < IMPL >
+    Parser.SrcInfo si = this.srcInfo.appendPostfix("_feature");
+    PScope modScope = this.scope.theMod.scope;
+    PAliasTypeStmt.Builder aliasTypeStmtBuilder = PAliasTypeStmt.Builder.newInstance(si, modScope);
+    PScope defScope = aliasTypeStmtBuilder.getDefScope();
+    PScope bodyScope = aliasTypeStmtBuilder.getBodyScope();
+    PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
+    sigBuilder.addItem(this.obj.deepCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
+    for (int i = 0; i < this.sig.params.length; i++) {
+      sigBuilder.addItem(this.sig.params[i].deepCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
+    }
+    sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_impl_" + this.sig.fname.name, false));
+    aliasTypeStmtBuilder.setSig(sigBuilder.create());
+    aliasTypeStmtBuilder.setAcc(this.acc);
+    PProgObj i = this.impl.deepCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+    PType bt;
+    if (i instanceof PTypeRef) {  // hmmm...
+      bt = (PTypeRef)i;
+    } else {
+      PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, bodyScope);
+      bodyTypeBuilder.addItem(i);
+      bt = bodyTypeBuilder.create();
+    }
+    aliasTypeStmtBuilder.setBody(bt);
+    PAliasTypeStmt a = aliasTypeStmtBuilder.create();
+/* DEBUG */ System.out.println(a);
+    return a;
   }
 
   PEvalStmt generateFeatureFun(PModule mod) throws CompileException {

@@ -108,6 +108,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    builder.setFeature(f);
 
     PFeatureImplDef id = builder.create();
 /* DEBUG */ System.out.println(id);
