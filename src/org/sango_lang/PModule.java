@@ -303,6 +303,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureAliases();
     mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
@@ -336,6 +337,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureAliases();
     mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
@@ -848,6 +850,15 @@ class PModule implements PDefDict {
 
   boolean isInitFunDefined() {
     return this.getInitFunDef() != null;
+  }
+
+  private void generateFeatureAliases() throws CompileException {
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      List<PAliasTypeStmt> as = this.featureStmtList.get(i).generateAliases(this);
+      for (int j = 0; j < as.size(); j++) {
+        this.addAliasStmt(as.get(j));
+      }
+    }
   }
 
   private void generateFeatureFuns() throws CompileException {
