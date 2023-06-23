@@ -945,8 +945,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.featureImpls == null || this.featureImpls.length == 0) return null;
     List<PEvalStmt> es = new ArrayList<PEvalStmt>();
     for (int i = 0; i < this.featureImpls.length; i++) {
-/* DEBUG */ System.out.println(this.generateFeatureImplFun(mod, this.featureImpls[i], this.implGetters[i]));
-      // es.add(this.generateFeatureImplFun(mod, this.featureImpls[i], this.implGetters[i]));
+// /* DEBUG */ System.out.println(this.generateFeatureImplFun(mod, this.featureImpls[i], this.implGetters[i]));
+      es.add(this.generateFeatureImplFun(mod, this.featureImpls[i], this.implGetters[i]));
     }
     return es;
   }
@@ -973,10 +973,24 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-
-// HERE
-/* DEBUG */ System.out.println(impl);
-
+    retTypeBuilder.addItem(this.sig.deepCopy(si, retScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
+    for (int i = 0; i < impl.feature.params.length; i++) {
+      PProgObj p = impl.feature.params[i].deepCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+      PType t;
+      if (p instanceof PTypeRef) {  // hmmm...
+        t = (PTypeRef)p;
+      } else {
+        PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, retScope);
+        bodyTypeBuilder.addItem(p);
+        t = bodyTypeBuilder.create();
+      }
+      retTypeBuilder.addItem(t);
+    }
+    retTypeBuilder.addItem(
+      PTypeId.create(si, retScope, 
+        impl.feature.fname.modId, "_feature_impl_" + impl.feature.fname.name,
+        false));
+    retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
