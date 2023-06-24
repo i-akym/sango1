@@ -622,7 +622,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     Parser.SrcInfo si = srcInfo.appendPostfix("_in");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
-    // PScope retScope = evalStmtBuilder.getRetScope();
     PScope bodyScope = evalStmtBuilder.getBodyScope();
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
@@ -633,8 +632,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.deepCopy(
-        si, defScope, PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_KEEP);
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(
+        si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, true));
@@ -702,7 +701,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
-    // PScope retScope = evalStmtBuilder.getRetScope();
     PScope bodyScope = evalStmtBuilder.getBodyScope();
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
@@ -711,20 +709,17 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
-    // paramTypeBuilder.setSrcInfo(si);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.deepCopy(si, defScope,
-        PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_KEEP);
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
+        PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
       paramNames[i] = p.name;
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, true));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retMaybeTypeBuilder = PType.Builder.newInstance(si, retScope);
-    // retMaybeTypeBuilder.setSrcInfo(si);
     PType.Builder retDataTypeBuilder = PType.Builder.newInstance(si, retScope);
-    // retDataTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < paramNames.length; i++) {
       retDataTypeBuilder.addItem(PTypeId.createVar(si, retScope, paramNames[i]));
     }
@@ -734,7 +729,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     retDefBuilder.setType(retMaybeTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder caseEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    // caseEvalBuilder.setSrcInfo(si);
     caseEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
     PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance(si, bodyScope);
     for (int i = 0; i < this.constrs.length; i++) {
@@ -743,7 +737,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       PScope caseClauseScope = caseClauseBuilder.getScope();
       PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si, caseClauseScope);
       PPtn.Builder ptnBuilder = PPtn.Builder.newInstance(si, caseClauseScope);
-      // ptnBuilder.setSrcInfo(si);
       ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
       String[] attrs = PModule.generateIds("V", constr.getAttrCount());
       for (int j = 0; j < constr.getAttrCount(); j++) {
@@ -753,9 +746,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
       caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
       PEval.Builder narrowedResBuilder = PEval.Builder.newInstance(si, caseClauseScope);
-      // narrowedResBuilder.setSrcInfo(si);
       PEval.Builder narrowedValueBuilder = PEval.Builder.newInstance(si, caseClauseScope);
-      // narrowedValueBuilder.setSrcInfo(si);
       for (int j = 0; j < constr.getAttrCount(); j++) {
         narrowedValueBuilder.addItem(PEvalItem.create(PExprId.create(si, caseClauseScope, null, attrs[j])));
       }
@@ -771,13 +762,11 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PScope otherwiseScope = otherwiseCaseClauseBuilder.getScope();
     PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si, otherwiseScope);
     PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance(si, otherwiseScope);
-    // otherwisePtnBuilder.setSrcInfo(si);
     otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
     otherwisePtnBuilder.addItem(PPtnItem.create(si, otherwiseScope, PPtnMatch.CONTEXT_TRIAL, null, PWildCard.create(si, otherwiseScope)));
     otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, otherwiseScope, PPtnMatch.CONTEXT_TRIAL, null, otherwisePtnBuilder.create()));
     otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
     PEval.Builder noneTermEvalBuilder = PEval.Builder.newInstance(si, otherwiseScope);
-    // noneTermEvalBuilder.setSrcInfo(si);
     noneTermEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, otherwiseScope, PModule.MOD_ID_LANG, "none$")));
     List<PExpr> aes = new ArrayList<PExpr>();
     aes.add(PExpr.create(noneTermEvalBuilder.create()));
@@ -824,7 +813,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
-    // PScope retScope = evalStmtBuilder.getRetScope();
     PScope bodyScope = evalStmtBuilder.getBodyScope();
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
@@ -833,25 +821,21 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
-    // paramTypeBuilder.setSrcInfo(si);
     for (int i = 0; i < this.tparams.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.deepCopy(si, defScope,
-        PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_KEEP);
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
+        PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    // retTypeBuilder.setSrcInfo(si);
-    retTypeBuilder.addItem(attr.type.deepCopy(si, retScope,
-      PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_OFF));
+    retTypeBuilder.addItem(attr.type.unresolvedCopy(si, retScope,
+      PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder matchEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    // matchEvalBuilder.setSrcInfo(si);
     matchEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
     PPtn.Builder matchPtnBuilder = PPtn.Builder.newInstance(si, bodyScope);
-    // matchPtnBuilder.setSrcInfo(si);
     matchPtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
     matchPtnBuilder.addItem(PPtnItem.create(si, bodyScope, PPtnMatch.CONTEXT_FIXED, attr.name, PExprVarDef.create(si, bodyScope, PExprVarDef.CAT_LOCAL_VAR, null, "V")));
     matchPtnBuilder.addItem(PPtnItem.create(si, bodyScope, PPtnMatch.CONTEXT_FIXED, null, PWildCards.create(si, bodyScope)));
@@ -859,7 +843,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     List<PExpr> ies = new ArrayList<PExpr>();
     ies.add(PExpr.create(si, bodyScope, matchEvalBuilder.create(), PPtnMatch.create(si, bodyScope, PPtnMatch.CONTEXT_TRIAL, null, matchPtnBuilder.create())));
     PEval.Builder retEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    // retEvalBuilder.setSrcInfo(si);
     retEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "V")));
     ies.add(PExpr.create(retEvalBuilder.create()));
     evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
@@ -888,14 +871,14 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.deepCopy(si, defScope,
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
         PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(attr.type.deepCopy(si, retScope,
+    retTypeBuilder.addItem(attr.type.unresolvedCopy(si, retScope,
       PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
     retTypeBuilder.addItem(PTypeId.create(si, retScope, PModule.MOD_ID_LANG, "maybe", false));
     retDefBuilder.setType(retTypeBuilder.create());
@@ -966,25 +949,26 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.deepCopy(si, defScope,
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
         PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
       paramTypeBuilder.addItem(p);
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(this.sig.deepCopy(si, retScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
+    retTypeBuilder.addItem(this.sig.unresolvedCopy(si, retScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
     for (int i = 0; i < impl.feature.params.length; i++) {
-      PProgObj p = impl.feature.params[i].deepCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-      PType t;
-      if (p instanceof PTypeRef) {  // hmmm...
-        t = (PTypeRef)p;
-      } else {
-        PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, retScope);
-        bodyTypeBuilder.addItem(p);
-        t = bodyTypeBuilder.create();
-      }
-      retTypeBuilder.addItem(t);
+      retTypeBuilder.addItem(impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+      // PProgObj p = impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+      // PType t;
+      // if (p instanceof PTypeRef) {  // hmmm...
+        // t = (PTypeRef)p;
+      // } else {
+        // PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, retScope);
+        // bodyTypeBuilder.addItem(p);
+        // t = bodyTypeBuilder.create();
+      // }
+      // retTypeBuilder.addItem(t);
     }
     retTypeBuilder.addItem(
       PTypeId.create(si, retScope, 

@@ -74,7 +74,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  public PTypeVarDef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     PTypeVarDef v = new PTypeVarDef(srcInfo, scope);
     v.name = this.name;
     switch (concreteOpt) {
@@ -88,12 +88,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       v.requiresConcrete = this.requiresConcrete;
     }
     if (this.features != null) {
-      v.features = this.features.deepCopy(srcInfo, scope, extOpt, concreteOpt);
+      v.features = this.features.unresolvedCopy(srcInfo, scope, extOpt, concreteOpt);
     }
     if (this.constraint != null) {
       try {
         PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
-        b.addItem(this.constraint.deepCopy(srcInfo, scope, extOpt, concreteOpt));
+        b.addItem(this.constraint.unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
         v.constraint = b.create();
       } catch (Exception ex) {
         throw new RuntimeException("Internal error. " + ex.toString());

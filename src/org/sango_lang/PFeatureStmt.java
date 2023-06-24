@@ -289,23 +289,24 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PScope defScope = aliasTypeStmtBuilder.getDefScope();
     PScope bodyScope = aliasTypeStmtBuilder.getBodyScope();
     PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
-    sigBuilder.addItem(this.obj.deepCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
+    sigBuilder.addItem(this.obj.unresolvedCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
     for (int i = 0; i < this.sig.params.length; i++) {
-      sigBuilder.addItem(this.sig.params[i].deepCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
+      sigBuilder.addItem(this.sig.params[i].unresolvedCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
     }
     sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_impl_" + this.sig.fname.name, false));
     aliasTypeStmtBuilder.setSig(sigBuilder.create());
     aliasTypeStmtBuilder.setAcc(this.acc);
-    PProgObj i = this.impl.deepCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-    PType bt;
-    if (i instanceof PTypeRef) {  // hmmm...
-      bt = (PTypeRef)i;
-    } else {
-      PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, bodyScope);
-      bodyTypeBuilder.addItem(i);
-      bt = bodyTypeBuilder.create();
-    }
-    aliasTypeStmtBuilder.setBody(bt);
+    aliasTypeStmtBuilder.setBody(this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+    // PProgObj i = this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+    // PType bt;
+    // if (i instanceof PTypeRef) {  // hmmm...
+      // bt = (PTypeRef)i;
+    // } else {
+      // PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, bodyScope);
+      // bodyTypeBuilder.addItem(i);
+      // bt = bodyTypeBuilder.create();
+    // }
+    // aliasTypeStmtBuilder.setBody(bt);
     PAliasTypeStmt a = aliasTypeStmtBuilder.create();
 /* DEBUG */ System.out.println(a);
     return a;
@@ -327,21 +328,22 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     PFeature.ListBuilder paramFeaturesBuilder = PFeature.ListBuilder.newInstance(si, defScope);
     paramFeaturesBuilder.addFeature(
-      this.sig.deepCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
       PTypeVarDef.create(si, defScope, "T", false, paramFeaturesBuilder.create(), null));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
-    PProgObj ii = this.impl.deepCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-    PType it;
-    if (ii instanceof PTypeRef) {  // hmmm...
-      it = (PTypeRef)ii;
-    } else {
-      PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-      retTypeBuilder.addItem(ii);
-      it = retTypeBuilder.create();
-    }
-    retDefBuilder.setType(it);
+    retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+    // PProgObj ii = this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+    // PType it;
+    // if (ii instanceof PTypeRef) {  // hmmm...
+      // it = (PTypeRef)ii;
+    // } else {
+      // PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+      // retTypeBuilder.addItem(ii);
+      // it = retTypeBuilder.create();
+    // }
+    // retDefBuilder.setType(it);
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
@@ -366,21 +368,22 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     PFeature.ListBuilder paramFeaturesBuilder = PFeature.ListBuilder.newInstance(si, defScope);
     paramFeaturesBuilder.addFeature(
-      this.sig.deepCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
       PTypeVarDef.create(si, defScope, "T", false, paramFeaturesBuilder.create(), null));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
-    PProgObj ii = this.impl.deepCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-    PType it;
-    if (ii instanceof PTypeRef) {  // hmmm...
-      it = (PTypeRef)ii;
-    } else {
-      PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-      retTypeBuilder.addItem(ii);
-      it = retTypeBuilder.create();
-    }
-    retDefBuilder.setType(it);
+    retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+    // PProgObj ii = this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+    // PType it;
+    // if (ii instanceof PTypeRef) {  // hmmm...
+      // it = (PTypeRef)ii;
+    // } else {
+      // PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
+      // retTypeBuilder.addItem(ii);
+      // it = retTypeBuilder.create();
+    // }
+    // retDefBuilder.setType(it);
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     return evalStmtBuilder.create();
   }
