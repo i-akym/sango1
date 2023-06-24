@@ -30,7 +30,7 @@ import java.util.List;
 interface PType extends PProgObj {
   PType resolve() throws CompileException;
 
-  PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt);
+  PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt);
   static final int COPY_EXT_KEEP = -1;
   static final int COPY_EXT_OFF = 0;
   static final int COPY_EXT_ON = 1;
@@ -86,10 +86,6 @@ interface PType extends PProgObj {
       this.itemList = new ArrayList<PProgObj>();
     }
 
-    // void setSrcInfo(Parser.SrcInfo si) {
-      // this.srcInfo = si;
-    // }
-
     void addItem(PProgObj item) {
       this.itemList.add(item);
     }
@@ -109,6 +105,9 @@ interface PType extends PProgObj {
         throw new CompileException(emsg.toString());
       }
       PProgObj anchor = this.itemList.remove(this.itemList.size() - 1);
+      if (anchor instanceof PType.Undet) {
+        anchor = ((PType.Undet)anchor).id;
+      }
       if (anchor instanceof PTypeId) {
         PTypeId id = (PTypeId)anchor;
         if (!id.maybeVar() || this.itemList.size() > 0) {
@@ -139,7 +138,7 @@ interface PType extends PProgObj {
         }
         t = (PTypeRef)anchor;
       } else {
-        throw new IllegalArgumentException("Invalid item");
+        throw new IllegalArgumentException("Invalid item " + anchor.toString());
       }
       if (this.constrainedVar != null) {
         this.constrainedVar.constraint = t;
@@ -335,7 +334,6 @@ interface PType extends PProgObj {
 
   static PType voidType(Parser.SrcInfo srcInfo, PScope scope) {
     Builder builder = Builder.newInstance(srcInfo, scope);
-    // builder.setSrcInfo(srcInfo);
     builder.addItem(PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
     PType v = null;
     try {
@@ -431,7 +429,7 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#getNormalizedSkel is called.");
     }
 
-    public PProgObj deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
+    public PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
       boolean ext;
       if (extOpt == COPY_EXT_KEEP) {
         ext = this.id.ext;
@@ -442,7 +440,7 @@ interface PType extends PProgObj {
       } else {
         throw new IllegalArgumentException("Unknown extOpt.");
       }
-      return PTypeId.create(srcInfo, scope, this.id.modId, this.id.name, ext);  // rollback to PTypeId
+      return Undet.create(PTypeId.create(srcInfo, scope, this.id.modId, this.id.name, ext));
     }
 
     public String toString() {
@@ -480,8 +478,8 @@ interface PType extends PProgObj {
       return buf.toString();
     }
 
-    public PTypeVarDef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
-      throw new RuntimeException("Bound#deepCopy is called.");
+    public Bound unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+      throw new RuntimeException("Bound#unresolvedCopy is called.");
     }
 
     public void collectModRefs() throws CompileException {

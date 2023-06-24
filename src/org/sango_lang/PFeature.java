@@ -174,12 +174,12 @@ public class PFeature extends PDefaultProgObj {
     return PFeatureSkel.create(this.srcInfo, this.fname, ps);
   }
 
-  PFeature deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     Builder builder = Builder.newInstance(srcInfo, scope);
     for (int i = 0; i < this.params.length; i++) {
-      builder.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+      builder.addItem(this.params[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
     }
-    builder.addItem(this.fname.deepCopy(srcInfo, scope, extOpt, concreteOpt));
+    builder.addItem(this.fname.copy(srcInfo, scope, extOpt, concreteOpt));
     PFeature f = null;
     try {
       f = builder.create();
@@ -271,10 +271,10 @@ public class PFeature extends PDefaultProgObj {
       return PFeatureSkel.List.create(this.srcInfo, fss);
     }
 
-    List deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
       ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
       for (int i = 0; i < this.features.length; i++) {
-        builder.addFeature(this.features[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+        builder.addFeature(this.features[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
       }
       List L = null;
       try {

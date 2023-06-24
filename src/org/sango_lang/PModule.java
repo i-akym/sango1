@@ -832,8 +832,8 @@ class PModule implements PDefDict {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(eval.retDef.type.deepCopy(
-      si, retScope, PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_OFF));
+    retTypeBuilder.addItem(eval.retDef.type.unresolvedCopy(
+      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());

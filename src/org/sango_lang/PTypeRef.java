@@ -50,7 +50,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
     StringBuffer emsg;
     if (!elem.getName().equals("type")) { return null; }
     PType.Builder builder = PType.Builder.newInstance(elem.getSrcInfo(), scope);
-    // builder.setSrcInfo(elem.getSrcInfo());
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {
@@ -103,7 +102,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return buf.toString();
   }
 
-  public PTypeRef deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, /* int varianceOpt, */ int concreteOpt) {
+  public PTypeRef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
     t.modId = this.modId;
     t.modName = this.modName;
@@ -122,8 +121,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     for (int i = 0; i < this.params.length; i++) {
       try {
         PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
-        // b.setSrcInfo(srcInfo);
-        b.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, /* varianceOpt, */ concreteOpt));
+        b.addItem(this.params[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
         t.params[i] = b.create();
       } catch (Exception ex) {
         throw new RuntimeException("Internal error. " + ex.toString());
