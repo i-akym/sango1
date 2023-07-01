@@ -133,6 +133,7 @@ public class Module {
   static final String ATTR_ENV_COUNT = "env_count";
   static final String ATTR_EXT = "ext";
   static final String ATTR_FORMAT_VERSION = "format_version";
+  static final String ATTR_GETTER = "getter";
   static final String ATTR_MOD = "mod";
   static final String ATTR_MOD_INDEX = "mod_index";
   static final String ATTR_NAME = "name";
@@ -1723,10 +1724,10 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
-    void addFeatureImplDef(int providerModIndex, String providerFun, MTypeRef impl) {
+    void addFeatureImplDef(int providerModIndex, String providerFun, String getter, MFeature provided) {
       MFeatureImplDef.Builder featureImplDefBuilder = MFeatureImplDef.Builder.newInstance();
-      featureImplDefBuilder.setProvider(providerModIndex, providerFun);
-      featureImplDefBuilder.setImpl(impl);
+      featureImplDefBuilder.setProvider(providerModIndex, providerFun, getter);
+      featureImplDefBuilder.setProvided(provided);
       this.dataDefBuilder.addFeatureImplDef(featureImplDefBuilder.create());
     }
 

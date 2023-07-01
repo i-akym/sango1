@@ -30,6 +30,7 @@ import java.util.List;
 class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   PExprId provider;
   PFeature feature;
+  String getter;
 
   PFeatureImplDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.enterInner());
@@ -43,6 +44,8 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     buf.append(this.provider);
     buf.append(",feature=");
     buf.append(this.feature);
+    buf.append(",getter=");
+    buf.append(this.getter);
     buf.append("]");
     return buf.toString();
   }
@@ -50,6 +53,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   static class Builder {
     PFeatureImplDef implDef;
     PFeature feature;
+    String getter;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope defScope) {
       return new Builder(srcInfo, defScope);
@@ -57,12 +61,14 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
 
     Builder(Parser.SrcInfo srcInfo, PScope defScope) {
       this.implDef = new PFeatureImplDef(srcInfo, defScope);
+      this.implDef.getter = defScope.generateId();
     }
 
     PScope getScope() { return this.implDef.scope; }
 
     void setProvider(PExprId provider) {
       this.implDef.provider = provider;
+      this.implDef.provider.setFun();
     }
 
     void setFeature(PFeature feature) {
@@ -174,12 +180,13 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   }
 
   public Cstr getProviderModName() {
-    return this.scope.resolveModId(this.provider.modId);
+    return this.provider.props.modName;
+    // return this.scope.resolveModId(this.provider.modId);
   }
 
-  public String getProviderFunName() {
-    return this.provider.name;
-  }
+  public String getProviderFunName() { return this.provider.name; }
+
+  public String getGetter() { return this.getter; }
 
   public PFeatureSkel getImpl() {
     return this.feature.toSkel();

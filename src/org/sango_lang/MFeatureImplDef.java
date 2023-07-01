@@ -30,9 +30,10 @@ import org.w3c.dom.Element;
 
 public class MFeatureImplDef {
   MDataDef theDataDef;
-  int providerModIndex;
-  String providerFun;
-  MTypeRef impl;
+  int providerModIndex;  // needed?
+  String providerFun;  // needed?
+  String getter;
+  MFeature provided;
 
   private MFeatureImplDef() {}
 
@@ -51,13 +52,14 @@ public class MFeatureImplDef {
       this.featureImplDef = new MFeatureImplDef();
     }
 
-    void setProvider(int modIndex, String fun) {
+    void setProvider(int modIndex, String fun, String getter) {
       this.featureImplDef.providerModIndex = modIndex;
       this.featureImplDef.providerFun = fun;
+      this.featureImplDef.getter = getter;
     }
 
-    void setImpl(MTypeRef impl) {
-      this.featureImplDef.impl = impl;
+    void setProvided(MFeature provided) {
+      this.featureImplDef.provided = provided;
     }
 
     MFeatureImplDef create() {
@@ -69,16 +71,17 @@ public class MFeatureImplDef {
     Element featureImplDefNode = doc.createElement(Module.TAG_FEATURE_IMPL);
     featureImplDefNode.setAttribute(Module.ATTR_MOD_INDEX, Integer.toString(this.providerModIndex));
     featureImplDefNode.setAttribute(Module.ATTR_NAME, this.providerFun);
-    featureImplDefNode.appendChild(Module.externalizeType(doc, this.impl));
+    featureImplDefNode.setAttribute(Module.ATTR_GETTER, this.getter);
+    featureImplDefNode.appendChild(this.provided.externalize(doc));
     return featureImplDefNode;
   }
 
   void checkCompat(Module.ModTab modTab, MFeatureImplDef fid, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
-    if (!this.impl.isCompatible(modTab, fid.impl, defModTab)) {  // ok?
+    if (!this.provided.isCompatible(modTab, fid.provided, defModTab)) {  // ok?
       emsg = new StringBuffer();
       emsg.append("Feature implementation mismatch - type: ");
-      emsg.append(this.impl);  // temporal
+      emsg.append(this.provided);  // temporal
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
