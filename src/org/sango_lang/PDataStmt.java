@@ -36,7 +36,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   String tcon;
   PDataConstrDef[] constrs;  // null means native impl
   PFeatureImplDef[] featureImpls;
-  String[] implGetters;
+  // String[] implGetters;
   PTypeRef sig;  // null means variable params
 
   PDataStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -164,10 +164,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         throw new CompileException(emsg.toString());
       }
       this.dat.featureImpls = this.featureImplList.toArray(new PFeatureImplDef[this.featureImplList.size()]);
-      this.dat.implGetters = new String[this.dat.featureImpls.length];
-      for (int i = 0; i < this.dat.implGetters.length; i++) {
-        this.dat.implGetters[i] = this.dat.scope.generateId();
-      }
+      // this.dat.implGetters = new String[this.dat.featureImpls.length];
+      // for (int i = 0; i < this.dat.implGetters.length; i++) {
+        // this.dat.implGetters[i] = this.dat.scope.generateId();
+      // }
       return this.dat;
     }
   }
@@ -417,6 +417,11 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         this.constrs[i].collectModRefs();
       }
     }
+    if (this.featureImpls != null) {
+      for (int i = 0; i < this.featureImpls.length; i++) {
+        this.featureImpls[i].collectModRefs();
+      }
+    }
   }
 
   public PDataStmt resolve() throws CompileException {
@@ -432,6 +437,11 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i] = this.constrs[i].resolve();
         this.constrs[i].setDataType(this.sig);
+      }
+    }
+    if (this.featureImpls != null) {
+      for (int i = 0; i < this.featureImpls.length; i++) {
+        this.featureImpls[i] = this.featureImpls[i].resolve();
       }
     }
     return this;
@@ -929,12 +939,12 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     List<PEvalStmt> es = new ArrayList<PEvalStmt>();
     for (int i = 0; i < this.featureImpls.length; i++) {
 // /* DEBUG */ System.out.println(this.generateFeatureImplFun(mod, this.featureImpls[i], this.implGetters[i]));
-      es.add(this.generateFeatureImplFun(mod, this.featureImpls[i], this.implGetters[i]));
+      es.add(this.generateFeatureImplFun(mod, this.featureImpls[i] /* , this.implGetters[i] */));
     }
     return es;
   }
 
-  PEvalStmt generateFeatureImplFun(PModule mod, PFeatureImplDef impl, String implGetter) throws CompileException {
+  PEvalStmt generateFeatureImplFun(PModule mod, PFeatureImplDef impl /* , String implGetter*/ ) throws CompileException {
     // eval @availability <*T0 *T1 .. TCON> *X _feature_impl_get_GETTER | @private -> <feature impl type> {
     //   X impl_provider
     // }
@@ -945,7 +955,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     evalStmtBuilder.setAvailability(this.availability);
-    evalStmtBuilder.setOfficial("_feature_impl_get_" + implGetter);
+    evalStmtBuilder.setOfficial("_feature_impl_get_" + impl.getter);
+    // evalStmtBuilder.setOfficial("_feature_impl_get_" + implGetter);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {

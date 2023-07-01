@@ -203,11 +203,11 @@ class Generator {
   }
 
   void generateFeatureImplDef(PDataDef.FeatureImpl featureImplDef, List<PTypeVarSlot> varSlotList) {
-// HERE
-    // this.modBuilder.addFeatureImplDef(
-      // featureImplDef.getProviderModName(),
-      // featureImplDef.getProviderFunName(),
-      // ...);
+    this.modBuilder.addFeatureImplDef(
+      this.parser.mod.modNameToModRefIndex(featureImplDef.getProviderModName()),
+      featureImplDef.getProviderFunName(),
+      featureImplDef.getGetter(),
+      featureImplDef.getImpl().toMType(this.parser.mod, varSlotList));
   }
 
   void generateDataConstrImpls(PDataDef dd) {

@@ -79,6 +79,8 @@ public interface PDataDef {
 
     String getProviderFunName();
 
+    String getGetter();
+
     PFeatureSkel getImpl();
 
   }

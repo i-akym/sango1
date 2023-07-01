@@ -322,6 +322,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].collectModRefs();
     }
+    for (int i = 0; i < this.featureImpls.length; i++) {
+      this.featureImpls[i].collectModRefs();
+    }
   }
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
@@ -342,6 +345,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i] = this.constrs[i].resolve();
       this.constrs[i].setDataType(this.sig);
+    }
+    for (int i = 0; i < this.featureImpls.length; i++) {
+      this.featureImpls[i] = this.featureImpls[i].resolve();
     }
     // /* DEBUG */ System.out.println("resolve " + this.baseModId + "." + this.baseTcon);
     if ((this.baseTconProps = this.scope.resolveTcon(this.baseModId, this.baseTcon)) == null) {
