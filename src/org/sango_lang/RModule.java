@@ -282,13 +282,13 @@ public class RModule {
 
   RClosureItem getMainClosure() { return this.mainClosure; }
 
-  RClosureItem getFeatureGetter(String tcon, Cstr featureMod, String featureName) {
+  RClosureItem getFeatureGetter(String tcon, Cstr featureModName, String featureName) {
     RClosureItem g = null;
     FeatureImplInfo[] fis = this.featureImplDict.get(tcon);
     if (fis != null) {
       for (int i = 0; g == null && i < fis.length; i++) {
         FeatureImplInfo fi = fis[i];
-        if (fi.featureMod.equals(featureMod) && fi.featureName.equals(featureName)) {
+        if (fi.featureModName.equals(featureModName) && fi.featureName.equals(featureName)) {
           g = fi.getter;
         }
       }
@@ -307,31 +307,47 @@ public class RModule {
     }
   }
 
-  // eval <*T> *X _builtin_feature_get_xxx -> <(impl type) maybe>
+  // eval <*T> *X _builtin_feature_get_xxx -> <IMPL>
   void feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem generic) {
     if (helper.getAndClearResumeInfo() == null) {
       RObjItem obj = generic;
-      RClosureItem g = helper.getCore().getFeatureGetter(
+      RClosureItem g = helper.getCore().getFeatureImplGetter(
         obj,
         this.name,
         self.impl.name.substring(21));  // feature name = after "_builtin_feature_get_"
       if (g == null) {
-        helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
+        throw new RuntimeException("Feature impl not found. " + obj);
+        // helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
       } else {
         helper.scheduleInvocation(g, new RObjItem[] { obj }, self);
       }
     } else {
-      helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
+      helper.setReturnValue(helper.getInvocationResult().getReturnValue());
+      // helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
     }
   }
 
+  RClosureItem getFeatureImplGetter(String tcon, Cstr featureModName, String featureName) {
+    RClosureItem g = null;
+    FeatureImplInfo[] fis = this.featureImplDict.get(tcon);
+    if (fis != null) {
+      for (int i = 0; g == null && i < fis.length; i++) {  // sequential search
+        FeatureImplInfo fi = fis[i];
+        if (fi.featureModName.equals(featureModName) && fi.featureName.equals(featureName)) {
+          g = fi.getter;
+        }
+      }
+    }
+    return g;
+  }
+
   static class FeatureImplInfo {
-    Cstr featureMod;
+    Cstr featureModName;
     String featureName;
     RClosureItem getter;
 
-    FeatureImplInfo(Cstr featureMod, String featureName, RClosureItem getter) {
-      this.featureMod = featureMod;
+    FeatureImplInfo(Cstr featureModName, String featureName, RClosureItem getter) {
+      this.featureModName = featureModName;
       this.featureName = featureName;
       this.getter = getter;
     }
