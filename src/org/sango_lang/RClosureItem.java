@@ -33,7 +33,7 @@ public class RClosureItem extends RObjItem {
 /* DEBUG */ if (impl == null) { throw new IllegalArgumentException("null impl"); }
     RClosureItem c = new RClosureItem(e);
     c.impl = impl;
-    c.env = env;
+    c.env = (env != null)? env: new RObjItem[0];
     return c;
   }
 

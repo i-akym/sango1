@@ -945,7 +945,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   PEvalStmt generateFeatureImplFun(PModule mod, PFeatureImplDef impl /* , String implGetter*/ ) throws CompileException {
-    // eval @availability <*T0 *T1 .. TCON> *X _feature_impl_get_GETTER | @private -> <feature impl type> {
+    // eval @availability <*T0 *T1 .. TCON> *X GETTER | @private -> <feature impl type> {
     //   X impl_provider
     // }
     Parser.SrcInfo si = srcInfo.appendPostfix("_feature_impl");
@@ -955,7 +955,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     evalStmtBuilder.setAvailability(this.availability);
-    evalStmtBuilder.setOfficial("_feature_impl_get_" + impl.getter);
+    evalStmtBuilder.setOfficial(impl.getter);
     // evalStmtBuilder.setOfficial("_feature_impl_get_" + implGetter);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
