@@ -501,9 +501,12 @@ public class Module {
       } else if (state == 0 & n.getNodeName().equals(TAG_PARAMS)) {  // appears first if any
         internalizeDataDefParams(n, builder);
         state = 1;
-      } else if (n.getNodeName().equals(TAG_CONSTR)) {
+      } else if (state <= 1 && n.getNodeName().equals(TAG_CONSTR)) {
         internalizeDataDefConstr(n, builder);
         state = 1;
+      } else if (state <= 2 && n.getNodeName().equals(TAG_FEATURE_IMPL)) {
+        internalizeDataDefFeatureImpl(n, builder);
+        state = 2;
       } else {
         throw new FormatException("Unknown element under '" + TAG_DATA_DEF + "' element: " + n.getNodeName());
       }
@@ -565,6 +568,43 @@ public class Module {
       n = n.getNextSibling();
     }
     builder.endConstrDef();
+  }
+
+  static void internalizeDataDefFeatureImpl(Node node, Builder builder) throws FormatException {
+    NamedNodeMap attrs = node.getAttributes();
+
+    int modIndex = MOD_INDEX_SELF;  // default: self (= 0)
+    Node aModIndex = attrs.getNamedItem(ATTR_MOD_INDEX);
+    if (aModIndex != null) {
+      modIndex = parseInt(aModIndex.getNodeValue());
+    }
+    if (modIndex < 0) {
+      throw new FormatException("Invalid mod_index: " + modIndex);
+    }
+    Node aName = attrs.getNamedItem(ATTR_NAME);
+    if (aName == null) {
+      throw new FormatException("'" + ATTR_NAME + "' provider name not found.");
+    }
+    String name = aName.getNodeValue();
+    Node aGetter = attrs.getNamedItem(ATTR_GETTER);
+    if (aGetter == null) {
+      throw new FormatException("'" + ATTR_GETTER + "' getter not found.");
+    }
+    String getter = aGetter.getNodeValue();
+
+    Node n = node.getFirstChild();
+    MFeature f = null;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (f == null && n.getNodeName().equals(TAG_FEATURE)) {
+        f = MFeature.internalize(n);
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_FEATURE_IMPL + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    builder.addFeatureImplDef(modIndex, name, getter, f);
   }
 
   static void internalizeAttr(Node node, Builder builder) throws FormatException {

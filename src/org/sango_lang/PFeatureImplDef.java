@@ -61,7 +61,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
 
     Builder(Parser.SrcInfo srcInfo, PScope defScope) {
       this.implDef = new PFeatureImplDef(srcInfo, defScope);
-      this.implDef.getter = defScope.generateId();
+      this.implDef.getter = "_feature_impl_get_" + defScope.generateId();
     }
 
     PScope getScope() { return this.implDef.scope; }
