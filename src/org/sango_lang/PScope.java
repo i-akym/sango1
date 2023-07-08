@@ -286,8 +286,12 @@ class PScope {
     return this.theMod.resolveEid(id);
   }
 
-  PDefDict.TconProps resolveTcon(String modId, String name) throws CompileException {
-    return this.theMod.resolveTcon(modId, name);
+  PDefDict.TconProps resolveTcon(PTypeId tcon) throws CompileException {
+    return this.resolveTcon(tcon.modId, tcon.name);
+  }
+
+  PDefDict.TconProps resolveTcon(String tconModId, String tconName) throws CompileException {
+    return this.theMod.resolveTcon(tconModId, tconName);
   }
 
   PDefDict.FeatureProps resolveFeature(String modId, String name) throws CompileException {

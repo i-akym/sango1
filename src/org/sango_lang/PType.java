@@ -235,13 +235,12 @@ interface PType extends PProgObj {
     }
 
     Builder builder = Builder.newInstance(e.getSrcInfo(), scope);
-    // builder.setSrcInfo(e.getSrcInfo());
     builder.addItem(acceptXItem(e, scope, acceptables));
     return builder.create();
   }
 
   static PTypeRef acceptSig(ParserA.TokenReader reader, PScope scope,
-    /* boolean varianceAllowed, */ Option.Set<Parser.QualState> qual) throws CompileException, IOException {
+    Option.Set<Parser.QualState> qual) throws CompileException, IOException {
     StringBuffer emsg;
     PType t = accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
     if (t instanceof Undet) {
@@ -272,25 +271,18 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      // if (!varianceAllowed && v.variance != Module.NO_VARIANCE) {
-        // emsg = new StringBuffer();
-        // emsg.append("Variance not allowed at ");
-        // emsg.append(sig.params[i].getSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
     }
-    if (!qual.contains(Parser.WITH_QUAL) && sig.modId != null) {
+    if (!qual.contains(Parser.WITH_QUAL) && sig.tcon.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
-      emsg.append(sig.tconSrcInfo);
+      emsg.append(sig.tcon.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (sig.ext) {
+    if (sig.tcon.ext) {
       emsg = new StringBuffer();
       emsg.append("Extension not allowed at ");
-      emsg.append(sig.tconSrcInfo);
+      emsg.append(sig.tcon.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }

@@ -24,11 +24,8 @@
 package org.sango_lang;
 
 class PTypeRef extends PDefaultProgObj implements PType {
-  Parser.SrcInfo tconSrcInfo;
-  String modId;
-  Cstr modName;
-  String tcon;
-  boolean ext;
+  PTypeId tcon;
+  // Parser.SrcInfo tconSrcInfo;
   PType[] params;  // empty array if no params
   PDefDict.TconProps tconProps;
 
@@ -36,12 +33,10 @@ class PTypeRef extends PDefaultProgObj implements PType {
     super(srcInfo, scope);
   }
 
-  static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeId id, PType[] param) {
+  static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeId tcon, PType[] param) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
-    t.tconSrcInfo = id.srcInfo;
-    t.modId = id.modId;
-    t.tcon = id.name;
-    t.ext = id.ext;
+    t.tcon = tcon;
+    // t.tconSrcInfo = id.srcInfo;
     t.params = (param != null)? param: new PType[0];
     return t;
   }
@@ -94,7 +89,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       sep = " ";
     }
     buf.append(sep);
-    buf.append(PTypeId.repr(this.modId, this.tcon, this.ext));
+    buf.append(this.tcon.repr());
     buf.append(">");
     if (this.srcInfo != null) {
       buf.append("]");
@@ -104,19 +99,20 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   public PTypeRef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
-    t.modId = this.modId;
-    t.modName = this.modName;
-    t.tcon = this.tcon;
-    switch (extOpt) {
-    case PType.COPY_EXT_OFF:
-      t.ext = false;;
-      break;
-    case PType.COPY_EXT_ON:
-      t.ext = true;;
-      break;
-    default:  // PType.COPY_EXT_KEEP
-      t.ext = this.ext;
-    }
+    t.tcon = this.tcon.copy(srcInfo, scope, extOpt, concreteOpt);
+    // t.modId = this.modId;
+    // t.modName = this.modName;
+    // t.tcon = this.tcon;
+    // switch (extOpt) {
+    // case PType.COPY_EXT_OFF:
+      // t.ext = false;;
+      // break;
+    // case PType.COPY_EXT_ON:
+      // t.ext = true;;
+      // break;
+    // default:  // PType.COPY_EXT_KEEP
+      // t.ext = this.ext;
+    // }
     t.params = new PType[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       try {
@@ -137,7 +133,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
   }
 
   public void collectModRefs() throws CompileException {
-    this.scope.referredModId(this.srcInfo, this.modId);
+    this.scope.referredModId(this.srcInfo, this.tcon.modId);
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].collectModRefs();
     }
@@ -146,31 +142,34 @@ class PTypeRef extends PDefaultProgObj implements PType {
   public PTypeRef resolve() throws CompileException {
     StringBuffer emsg;
     /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
-    if (this.modId != null) {
-      this.modName = this.scope.resolveModId(this.modId);
-      if (this.modName == null) {
-        emsg = new StringBuffer();
-        emsg.append("Module id \"");
-        emsg.append(this.modId);
-        emsg.append("\" not defined at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    }
-    if ((this.tconProps = this.scope.resolveTcon(this.modId, this.tcon)) == null) {
+
+    // this.tcon.resolveModIdSimply();
+    // if (this.modId != null) {
+      // this.modName = this.scope.resolveModId(this.modId);
+      // if (this.modName == null) {
+        // emsg = new StringBuffer();
+        // emsg.append("Module id \"");
+        // emsg.append(this.modId);
+        // emsg.append("\" not defined at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+    // }
+
+    if ((this.tconProps = this.scope.resolveTcon(this.tcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
-      emsg.append(PTypeId.repr(this.modId, this.tcon, false));
+      emsg.append(this.tcon.repr());
       emsg.append("\" not defined at ");
-      emsg.append(this.tconSrcInfo);
+      emsg.append(this.tcon.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
     if (this.tconProps.paramCount() >= 0 && this.params.length != this.tconProps.paramCount()) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
-      emsg.append(PTypeId.repr(this.modId, this.tcon, false));
+      emsg.append(this.tcon.repr());
       emsg.append("\" mismatch at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
@@ -195,7 +194,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     if (this.tconProps.acc == Module.ACC_PRIVATE) {
       emsg = new StringBuffer();
       emsg.append("\"");
-      emsg.append(PTypeId.repr(this.modId, this.tcon, false));
+      emsg.append(this.tcon.repr());
       emsg.append("\" should not be private at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
@@ -212,7 +211,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.ext, ps);
+    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.tcon.ext, ps);
   }
 
   public PTypeSkel getNormalizedSkel() throws CompileException {
@@ -225,7 +224,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     if ((a = this.tconProps.defGetter.getAliasTypeDef()) != null) {
       t = a.unalias(ps);
     } else {
-      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.ext, ps);
+      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.tcon.ext, ps);
     }
     return t;
   }

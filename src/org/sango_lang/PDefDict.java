@@ -155,8 +155,17 @@ public interface PDefDict {
     }
   }
 
-  static class TconProps {
+  static class TidProps {
+    int cat;
     IdKey key;
+
+    TidProps(int cat, IdKey key) {
+      this.cat = cat;
+      this.key = key;
+    }
+  }
+
+  static class TconProps extends TidProps {
     int subcat;
     TparamProps[] paramProps;  // null means variable
     Module.Access acc;
@@ -171,7 +180,7 @@ public interface PDefDict {
     }
 
     TconProps(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
-      this.key = key;
+      super(PTypeId.CAT_TCON, key);
       this.subcat = subcat;
       this.paramProps = paramProps;
       this.acc = acc;
@@ -197,8 +206,7 @@ public interface PDefDict {
     }
   }
 
-  static class FeatureProps {
-    IdKey key;
+  static class FeatureProps extends TidProps {
     int paramCount;
     Module.Access acc;
     FeatureDefGetter defGetter;
@@ -208,7 +216,7 @@ public interface PDefDict {
     }
 
     FeatureProps(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
-      this.key = key;
+      super(PTypeId.CAT_FEATURE, key);
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;
