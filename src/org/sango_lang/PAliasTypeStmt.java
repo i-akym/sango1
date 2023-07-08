@@ -98,7 +98,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
         this.alias.tparams = new PTypeVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.alias.sig;
-        this.alias.tcon = tr.tcon;
+        this.alias.tcon = tr.tcon.name;
         this.alias.tparams = new PTypeVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
           this.alias.tparams[i] = (PTypeVarDef)tr.params[i];

@@ -25,7 +25,8 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
+public class PTypeId extends PDefaultProgObj {
+  static final int CAT_UNDET = 0;
   static final int CAT_VAR = 1;
   static final int CAT_TCON = 2;
   static final int CAT_FEATURE = 3;
@@ -39,7 +40,8 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   String modId;
   String name;
   boolean ext;
-  PDefDict.TconProps tconProps;
+  // Cstr resolvedModName;
+  // PDefDict.TconProps tconProps;
 
   private PTypeId(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -210,6 +212,22 @@ public class PTypeId extends PDefaultProgObj /* implements PTypeDesc */ {
   public void collectModRefs() throws CompileException {
     this.scope.referredModId(this.srcInfo, this.modId);
   }
+
+  // void resolveModIdSimply() throws CompileException {
+    // StringBuffer emsg;
+    // if (this.modId != null) {
+      // this.resolvedModName = this.scope.resolveModId(this.modId);
+      // if (this.resolvedModName == null) {
+        // emsg = new StringBuffer();
+        // emsg.append("Module id \"");
+        // emsg.append(this.modId);
+        // emsg.append("\" not defined at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+    // }
+  // }
 
   public PType resolve() throws CompileException {
     throw new RuntimeException("PTypeId#resolve is called.");

@@ -99,6 +99,7 @@ class PModule implements PDefDict {
   List<Cstr> farModList;  // foreign module other than "sango.lang"
   Map<String, Integer> modDict;
   Map<String, PDefDict.TconProps> tconDict;
+  Map<String, PDefDict.FeatureProps> fnameDict;
   Map<String, PDefDict.EidProps> eidDict;
   Map<String, PDataConstrDef> dconDict;
   Map<String, Integer> funOfficialDict;
@@ -120,6 +121,7 @@ class PModule implements PDefDict {
     this.farModList = new ArrayList<Cstr>();
     this.modDict = new HashMap<String, Integer>();
     this.tconDict = new HashMap<String, PDefDict.TconProps>();
+    this.fnameDict = new HashMap<String, PDefDict.FeatureProps>();
     this.eidDict = new HashMap<String, PDefDict.EidProps>();
     this.dconDict = new HashMap<String, PDataConstrDef>();
     this.funOfficialDict = new HashMap<String, Integer>();
@@ -160,11 +162,6 @@ class PModule implements PDefDict {
       if (i != null) {
         n = this.importStmtList.get(i).modName;
         this.maintainFarModRef(n);
-        // if (!n.equals(this.name)
-             // && !n.equals(Module.MOD_LANG)
-             // && !this.farModList.contains(n)) {
-          // this.farModList.add(n);
-        // }
       }
     }
     return n;
@@ -596,6 +593,15 @@ class PModule implements PDefDict {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    if (this.fnameDict.containsKey(dat.tcon)) {
+      emsg = new StringBuffer();
+      emsg.append("Type constructor \"");
+      emsg.append(dat.tcon);
+      emsg.append("\" collides with feature name at ");
+      emsg.append(dat.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     int datIndex = this.dataStmtList.size();
     this.dataStmtList.add(dat);
     PDefDict.TparamProps[] paramPropss;
@@ -729,8 +735,33 @@ class PModule implements PDefDict {
   void addFeatureStmt(PFeatureStmt feat) throws CompileException {
     StringBuffer emsg;
     feat.collectModRefs();
+    if (this.tconDict.containsKey(feat.sig.fname.name)) {
+      emsg = new StringBuffer();
+      emsg.append("Feature name \"");
+      emsg.append(feat.sig.fname.name);
+      emsg.append("\" collides with type constuctor at ");
+      emsg.append(feat.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (this.fnameDict.containsKey(feat.sig.fname.name)) {
+      emsg = new StringBuffer();
+      emsg.append("Feature name \"");
+      emsg.append(feat.sig.fname.name);
+      emsg.append("\" duplicate at ");
+      emsg.append(feat.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     this.featureStmtList.add(feat);
-// HERE
+    this.fnameDict.put(
+      feat.sig.fname.name,
+      PDefDict.FeatureProps.create(
+        PDefDict.IdKey.create(this.name, feat.sig.fname.name),
+        feat.sig.params.length,
+        feat.acc,
+        FeatureDefGetter.create(feat))
+    );
     // /* DEBUG */ System.out.print("feature stmt added: ");
     // /* DEBUG */ System.out.println(feature);
   }
@@ -1161,6 +1192,20 @@ class PModule implements PDefDict {
     public PDataDef getDataDef() { return this.dataDef; }
 
     public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
+  }
+
+  static class FeatureDefGetter implements PDefDict.FeatureDefGetter {
+    PFeatureDef featureDef;
+
+    static FeatureDefGetter create(PFeatureDef featureDef) {
+      return new FeatureDefGetter(featureDef);
+    }
+
+    private FeatureDefGetter(PFeatureDef featureDef) {
+      this.featureDef = featureDef;
+    }
+
+    public PFeatureDef getFeatureDef() { return this.featureDef; }
   }
 
   PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
