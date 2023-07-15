@@ -1056,11 +1056,26 @@ class PModule implements PDefDict {
   }
 
   PDefDict.FeatureProps resolveFeatureInLang(String modId, String fname) throws CompileException {
+    if (modId == null || modId.equals(this.myId) || modId.equals(MOD_ID_HERE) || modId.equals(MOD_ID_LANG)) {
+      ;
+    } else {
+      throw new IllegalArgumentException("mod invalid.");
+    }
+    Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+    as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
     throw new RuntimeException("PModule#resolveFeatureInLang not implemented.");
+    // return this.resolveFeature(
+      // tcon,
+      // PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
+      // as);
   }
 
   PDefDict.FeatureProps resolveFeatureInOther(String modId, String fname) throws CompileException {
     throw new RuntimeException("PModule#resolveFeatureInOther not implemented.");
+  }
+
+  PDefDict.FeatureProps resolveFeatureLocal(String modId, String fname) throws CompileException {
+    throw new RuntimeException("PModule#resolveFeatureLocal not implemented.");
   }
 
   void addReferredTcon(PDefDict.TconProps tp) {
@@ -1096,6 +1111,10 @@ class PModule implements PDefDict {
       ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && accOpts.contains(tp.acc))?
       tp: null;
       // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
+  }
+
+  public PDefDict.FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) {
+    throw new RuntimeException("PModule#resolveFeature not implemented.");
   }
 
   ExprDefGetter createExprDefGetter(PDataDef dataDef) {

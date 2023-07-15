@@ -31,6 +31,7 @@ public class PFeature extends PDefaultProgObj {
   Cstr modName;
   PTypeId fname;
   PType[] params;
+  PDefDict.FeatureProps featureProps;
 
   private PFeature(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -139,18 +140,39 @@ public class PFeature extends PDefaultProgObj {
 
   public PFeature resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.fname.modId != null) {
-      this.modName = this.scope.resolveModId(this.fname.modId);
-      if (this.modName == null) {
-        emsg = new StringBuffer();
-        emsg.append("Module id \"");
-        emsg.append(this.fname.modId);
-        emsg.append("\" not defined at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+
+    if ((this.featureProps = this.scope.resolveFeature(this.fname)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Feature name \"");
+      emsg.append(this.fname.repr());
+      emsg.append("\" not defined at ");
+      emsg.append(this.fname.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
     }
+    if (this.featureProps.paramCount() != this.params.length) {
+      emsg = new StringBuffer();
+      emsg.append("Parameter count of \"");
+      emsg.append(this.fname.repr());
+      emsg.append("\" mismatch at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
+
+    // if (this.fname.modId != null) {
+      // this.modName = this.scope.resolveModId(this.fname.modId);
+      // if (this.modName == null) {
+        // emsg = new StringBuffer();
+        // emsg.append("Module id \"");
+        // emsg.append(this.fname.modId);
+        // emsg.append("\" not defined at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+    // }
+
     for (int i = 0; i < this.params.length; i++) {
       PType p = (PType)this.params[i].resolve();
       this.params[i] = p;

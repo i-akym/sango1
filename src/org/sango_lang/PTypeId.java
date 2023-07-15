@@ -233,9 +233,9 @@ public class PTypeId extends PDefaultProgObj {
     throw new RuntimeException("PTypeId#resolve is called.");
   }
 
-  public PDefDict.TconProps getTconProps() {
-    throw new IllegalStateException("PTypeId#getTconProps should not called.");
-  }
+  // public PDefDict.TconProps getTconProps() {
+    // throw new IllegalStateException("PTypeId#getTconProps should not called.");
+  // }
 
   public void excludePrivateAcc() throws CompileException {
     throw new RuntimeException("PTypeId#excludePrivateAcc should not called.");

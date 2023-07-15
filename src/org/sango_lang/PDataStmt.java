@@ -425,6 +425,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   public PDataStmt resolve() throws CompileException {
+    StringBuffer emsg;
     if (this.sig != null) {
       this.sig = this.sig.resolve();
     }
@@ -442,6 +443,19 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.featureImpls != null) {
       for (int i = 0; i < this.featureImpls.length; i++) {
         this.featureImpls[i] = this.featureImpls[i].resolve();
+        for (int j = 0; j < i; j++) {
+          PTypeId ifn = this.featureImpls[i].feature.fname;
+          PTypeId jfn = this.featureImpls[j].feature.fname;
+// HERE
+          // if (ifn.tconProps.key.equals(jfn.tconProps.key)) {
+            // emsg = new StringBuffer();
+            // emsg.append("Feature name duplicated at ");
+            // emsg.append(ifn.srcInfo);
+            // emsg.append(". ");
+            // emsg.append(ifn.repr());
+            // throw new CompileException(emsg.toString());
+          // }
+        }
       }
     }
     return this;
