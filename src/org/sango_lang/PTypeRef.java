@@ -143,20 +143,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
     StringBuffer emsg;
     /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
 
-    // this.tcon.resolveModIdSimply();
-    // if (this.modId != null) {
-      // this.modName = this.scope.resolveModId(this.modId);
-      // if (this.modName == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("Module id \"");
-        // emsg.append(this.modId);
-        // emsg.append("\" not defined at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-    // }
-
     if ((this.tconProps = this.scope.resolveTcon(this.tcon)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");

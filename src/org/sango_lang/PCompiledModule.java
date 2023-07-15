@@ -241,6 +241,10 @@ class PCompiledModule implements PDefDict {
       // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
   }
 
+  public PDefDict.FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) {
+    throw new RuntimeException("PCompiledModule#resolveFeature not implemented.");
+  }
+
   DataDef convertDataDef(Module mod, MDataDef dataDef, List<PTypeRefSkel> unresolvedTypeRefList) {
     DataDef dd = new DataDef();
     dd.availability = dataDef.availability;

@@ -37,6 +37,8 @@ public interface PDefDict {
 
   TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
+  FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) throws CompileException;
+
   interface GlobalDefDict {
 
     boolean isBaseOf(IdKey b, IdKey e);
