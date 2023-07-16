@@ -116,10 +116,10 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     }
     builder.setFeature(f);
 
-    PFeatureImplDef id = builder.create();
-/* DEBUG */ System.out.println(id);
-    return id;
-    // return builder.create();
+    // PFeatureImplDef id = builder.create();
+// /* DEBUG */ System.out.println(id);
+    // return id;
+    return builder.create();
   }
 
   static PFeatureImplDef acceptX(ParserB.Elem elem, PScope defScope) throws CompileException {
