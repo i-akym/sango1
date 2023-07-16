@@ -160,19 +160,6 @@ public class PFeature extends PDefaultProgObj {
       throw new CompileException(emsg.toString()) ;
     }
 
-    // if (this.fname.modId != null) {
-      // this.modName = this.scope.resolveModId(this.fname.modId);
-      // if (this.modName == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("Module id \"");
-        // emsg.append(this.fname.modId);
-        // emsg.append("\" not defined at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-    // }
-
     for (int i = 0; i < this.params.length; i++) {
       PType p = (PType)this.params[i].resolve();
       this.params[i] = p;
@@ -331,7 +318,7 @@ public class PFeature extends PDefaultProgObj {
 
     PFeature create() {
       this.feature.params = this.params.toArray(new PType[this.params.size()]);
-/* DEBUG */ System.out.println(this.feature);
+// /* DEBUG */ System.out.println(this.feature);
       return this.feature;
     }
   }

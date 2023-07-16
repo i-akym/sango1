@@ -297,19 +297,9 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     aliasTypeStmtBuilder.setSig(sigBuilder.create());
     aliasTypeStmtBuilder.setAcc(this.acc);
     aliasTypeStmtBuilder.setBody(this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
-    // PProgObj i = this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-    // PType bt;
-    // if (i instanceof PTypeRef) {  // hmmm...
-      // bt = (PTypeRef)i;
-    // } else {
-      // PType.Builder bodyTypeBuilder = PType.Builder.newInstance(si, bodyScope);
-      // bodyTypeBuilder.addItem(i);
-      // bt = bodyTypeBuilder.create();
-    // }
-    // aliasTypeStmtBuilder.setBody(bt);
-    PAliasTypeStmt a = aliasTypeStmtBuilder.create();
-/* DEBUG */ System.out.println(a);
-    return a;
+    // PAliasTypeStmt a = aliasTypeStmtBuilder.create();
+// /* DEBUG */ System.out.println(a);
+    return aliasTypeStmtBuilder.create();
   }
 
   PEvalStmt generateFeatureFun(PModule mod) throws CompileException {
