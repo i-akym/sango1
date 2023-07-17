@@ -38,6 +38,7 @@ class PCompiledModule implements PDefDict {
   Cstr[] foreignMods;
   Map<PDefDict.IdKey, PDefDict.TconProps> foreignTconDict;
   Map<String, PDefDict.TconProps> tconDict;
+  Map<String, PDefDict.FeatureProps> fnameDict;
   Map<String, PDefDict.EidProps> eidDict;
   HashMap<String, FunDef> funOfficialDict;
   HashMap<String, List<FunDef>> funListDict;
@@ -99,6 +100,7 @@ class PCompiledModule implements PDefDict {
     }
 
     cm.tconDict = new HashMap<String, PDefDict.TconProps>();
+    cm.fnameDict = new HashMap<String, PDefDict.FeatureProps>();
     cm.eidDict = new HashMap<String, PDefDict.EidProps>();
 
     MDataDef[] mdds = mod.getDataDefs();
@@ -138,6 +140,15 @@ class PCompiledModule implements PDefDict {
         PTypeId.SUBCAT_ALIAS,
         paramPropss, matd.acc, createDataDefGetter(cm.convertAliasTypeDef(mod, matd, unresolvedTypeRefList))));
     }
+    MFeatureDef[] mftds = mod.getFeatureDefs();
+    for (int i = 0; i < mftds.length; i++) {
+      MFeatureDef mftd = mftds[i];
+      cm.fnameDict.put(mftd.fname, PDefDict.FeatureProps.create(
+        PDefDict.IdKey.create(mod.name, mftd.fname),
+        mftd.params.length,
+        mftd.acc, createFeatureDefGetter(cm.convertFeatureDef(mod, mftd, unresolvedTypeRefList))));
+    }
+
     cm.funOfficialDict = new HashMap<String, FunDef>();
     cm.funListDict = new HashMap<String, List<FunDef>>();
     MFunDef[] mfds = mod.getFunDefs();
@@ -242,7 +253,10 @@ class PCompiledModule implements PDefDict {
   }
 
   public PDefDict.FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) {
-    throw new RuntimeException("PCompiledModule#resolveFeature not implemented.");
+    PDefDict.FeatureProps fp =
+      ((fp = this.fnameDict.get(fname)) != null && accOpts.contains(fp.acc))?
+      fp: null;
+    return fp;
   }
 
   DataDef convertDataDef(Module mod, MDataDef dataDef, List<PTypeRefSkel> unresolvedTypeRefList) {
@@ -452,6 +466,26 @@ class PCompiledModule implements PDefDict {
     public PTypeSkel getFixedType() { return this.type; }
   }
 
+  FeatureDef convertFeatureDef(Module mod, MFeatureDef featureDef, List<PTypeRefSkel> unresolvedTypeRefList) {
+    FeatureDef fd = new FeatureDef();
+    fd.paramCount = featureDef.params.length;
+    fd.availability = featureDef.availability;
+    fd.acc = featureDef.acc;
+    return fd;
+  }
+
+  static class FeatureDef implements PFeatureDef {
+    int paramCount;
+    Module.Availability availability;
+    Module.Access acc;
+
+    public int getParamCount() { return this.paramCount; }
+
+    public Module.Availability getAvailability() { return this.availability; }
+
+    public Module.Access getAcc() { return this.acc; }
+  }
+
   FunDef convertFunDef(Module mod, MFunDef funDef, List<PTypeRefSkel> unresolvedTypeRefList) {
     FunDef fd = new FunDef();
     fd.modName = mod.name;
@@ -581,6 +615,20 @@ class PCompiledModule implements PDefDict {
     public PDataDef getDataDef() { return this.dataDef; }
 
     public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
+  }
+
+  static FeatureDefGetter createFeatureDefGetter(PFeatureDef def) {
+    return new FeatureDefGetter(def);
+  }
+
+  static class FeatureDefGetter implements PDefDict.FeatureDefGetter {
+    PFeatureDef featureDef;
+
+    FeatureDefGetter(PFeatureDef featueDef) {
+      this.featureDef = featureDef;
+    }
+
+    public PFeatureDef getFeatureDef() { return this.featureDef; }
   }
 
   PTypeSkel convertType(MType type, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {

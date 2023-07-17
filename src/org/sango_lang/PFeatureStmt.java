@@ -160,15 +160,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    // if (!(implType instanceof PTypeRef)) {
-      // emsg = new StringBuffer();
-      // emsg.append("Invalid implementation data type at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(". - ");
-      // emsg.append(implType.toString());
-      // throw new CompileException(emsg.toString());
-    // }
-    // PTypeRef itr = (PTypeRef)implType;
     builder.setImplType(implType);
 
     if (ParserA.acceptToken(reader, LToken.SEM_SEM, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -324,16 +315,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
-    // PProgObj ii = this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-    // PType it;
-    // if (ii instanceof PTypeRef) {  // hmmm...
-      // it = (PTypeRef)ii;
-    // } else {
-      // PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-      // retTypeBuilder.addItem(ii);
-      // it = retTypeBuilder.create();
-    // }
-    // retDefBuilder.setType(it);
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
     callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
@@ -364,16 +345,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
-    // PProgObj ii = this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-    // PType it;
-    // if (ii instanceof PTypeRef) {  // hmmm...
-      // it = (PTypeRef)ii;
-    // } else {
-      // PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-      // retTypeBuilder.addItem(ii);
-      // it = retTypeBuilder.create();
-    // }
-    // retDefBuilder.setType(it);
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     return evalStmtBuilder.create();
   }

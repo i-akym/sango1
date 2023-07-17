@@ -1789,7 +1789,7 @@ public class Module {
     }
 
     void putFeatureDef(MFeatureDef fd) {
-      this.mod.featureDefDict.put(fd.name, fd);
+      this.mod.featureDefDict.put(fd.fname, fd);
       this.featureDefList.add(fd);
     }
 
