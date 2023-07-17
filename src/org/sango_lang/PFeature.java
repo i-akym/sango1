@@ -172,7 +172,7 @@ public class PFeature extends PDefaultProgObj {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps, ps);
   }
 
   PFeatureSkel getNormalizedSkel() throws CompileException {
@@ -180,7 +180,7 @@ public class PFeature extends PDefaultProgObj {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].getNormalizedSkel();
     }
-    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps, ps);
   }
 
   PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {

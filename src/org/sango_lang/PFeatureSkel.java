@@ -27,16 +27,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PFeatureSkel {
+  PDefDict.DefDictGetter defDictGetter;
   Parser.SrcInfo srcInfo;
-  PTypeId fname;
+  PDefDict.FeatureProps featureProps;
+  // PTypeId fname;
   PTypeSkel[] params;  // empty array if no params
 
   private PFeatureSkel() {}
 
-  public static PFeatureSkel create(Parser.SrcInfo srcInfo, PTypeId fname, PTypeSkel[] params) {
+  public static PFeatureSkel create(PDefDict.DefDictGetter defDictGetter, Parser.SrcInfo srcInfo, PDefDict.FeatureProps featureProps, PTypeSkel[] params) {
     PFeatureSkel f = new PFeatureSkel();
+    f.defDictGetter = defDictGetter;
     f.srcInfo = srcInfo;
-    f.fname = fname;
+    f.featureProps = featureProps;
+    // f.fname = fname;
     f.params = params;
     return f;
   }
@@ -49,7 +53,7 @@ public class PFeatureSkel {
       b = false;
     } else {
       PFeatureSkel f = (PFeatureSkel)o;
-      b = f.fname.equals(this.fname) && f.params.length == this.params.length;
+      b = f.featureProps.key.equals(this.featureProps.key) && f.params.length == this.params.length;
       for (int i = 0; b && i < f.params.length; i++) {
         b = f.params[i].equals(this.params[i]);
       }
@@ -72,7 +76,7 @@ public class PFeatureSkel {
       sep = " ";
     }
     buf.append(sep);
-    buf.append(this.fname.repr());
+    buf.append(this.featureProps.key.repr());
     buf.append("]");
     if (this.srcInfo != null) {
       buf.append("]");
@@ -87,13 +91,13 @@ public class PFeatureSkel {
     for (int i = 0; i < this.params.length; i++) {
       ps[i] = this.params[i].instanciate(iBindings);
     }
-    return create(this.srcInfo, this.fname, ps);
+    return create(this.defDictGetter, this.srcInfo, this.featureProps, ps);
   }
 
   MFeature toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
     MFeature.Builder builder = MFeature.Builder.newInstance();
-    // builder.setModIndex(mod.modNameToModRefIndex(this.fname.modName));  HERE
-    builder.setName(this.fname.name);
+    builder.setModIndex(mod.modNameToModRefIndex(this.featureProps.key.modName));
+    builder.setName(this.featureProps.key.idName);
     for (int i = 0; i < this.params.length; i++) {
       builder.addParam(this.params[i].toMType(mod, slotList));
     }

@@ -333,6 +333,7 @@ public class RModule {
     if (fis != null) {
       for (int i = 0; g == null && i < fis.length; i++) {  // sequential search
         FeatureImplInfo fi = fis[i];
+// /* DEBUG */ System.out.println(fi.featureModIndex); System.out.println(this.modTab[fi.featureModIndex].name.repr());
         if (this.modTab[fi.featureModIndex].name.equals(featureModName) && fi.featureName.equals(featureName)) {
           g = RClosureItem.create(this.theEngine, this.closureImplDict.get(fi.getter), null);
         }

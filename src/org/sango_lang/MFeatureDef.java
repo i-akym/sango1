@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class MFeatureDef implements Module.Elem {
-  String name;
+  String fname;
   Module.Availability availability;
   Module.Access acc;
   MTypeVar[] params;
@@ -51,8 +51,8 @@ public class MFeatureDef implements Module.Elem {
       this.paramList = new ArrayList<MTypeVar>();
     }
 
-    void setName(String name) {
-      this.featureDef.name = name;
+    void setName(String fname) {
+      this.featureDef.fname = fname;
     }
 
     void setAvailability(Module.Availability availability) {
@@ -83,7 +83,7 @@ public class MFeatureDef implements Module.Elem {
 
   public Element externalize(Document doc) {
     Element featureDefNode = doc.createElement(Module.TAG_FEATURE_DEF);
-    featureDefNode.setAttribute(Module.ATTR_NAME, this.name);
+    featureDefNode.setAttribute(Module.ATTR_NAME, this.fname);
     if (this.availability != Module.AVAILABILITY_GENERAL) {
       featureDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
     }
@@ -113,7 +113,7 @@ public class MFeatureDef implements Module.Elem {
     } else {
       emsg = new StringBuffer();
       emsg.append("Incompatible access mode - type: ");
-      emsg.append(fd.name);
+      emsg.append(fd.fname);
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
@@ -128,7 +128,7 @@ public class MFeatureDef implements Module.Elem {
     } else {
       emsg = new StringBuffer();
       emsg.append("Incompatible parameter count - type: ");
-      emsg.append(fd.name);
+      emsg.append(fd.fname);
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
