@@ -32,6 +32,7 @@ public class PTypeRefSkel implements PTypeSkel {
   PDefDict.TconProps tconProps;
   boolean ext;
   PTypeSkel[] params;  // empty array if no params
+  PFeatureSkel.List features;
 
   private PTypeRefSkel() {}
 
@@ -68,6 +69,10 @@ public class PTypeRefSkel implements PTypeSkel {
     return t;
   }
 
+  static void calcFeatures(PTypeRefSkel t) {
+// HERE
+  }
+
   public boolean equals(Object o) {
     boolean b;
     if (o == this) {
@@ -102,6 +107,9 @@ public class PTypeRefSkel implements PTypeSkel {
     buf.append(this.tconProps.key.repr());
     if (this.ext) {
       buf.append("+");
+    }
+    if (this.features != null) {
+      buf.append(this.features.toString());
     }
     buf.append(">");
     if (this.srcInfo != null) {
@@ -157,10 +165,8 @@ public class PTypeRefSkel implements PTypeSkel {
       vv[this.params.length - 1] = Module.COVARIANT;
     } else {
       PDataDef dd = this.tconProps.defGetter.getDataDef();
-      // PTypeRefSkel tr = (PTypeRefSkel)dd.getTypeSig();
       for (int i = 0; i < this.params.length; i++) {
         vv[i] = dd.getParamVarianceAt(i);
-        // vv[i] = tr.params[i].getVarSlot().variance;
       }
     }
     return vv;
@@ -205,13 +211,6 @@ public class PTypeRefSkel implements PTypeSkel {
     }
     return create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
   }
-
-  // public void checkVariance(int width) throws CompileException {
-    // int[] ww = paramWidths(width, this.paramVariances());
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].checkVariance(ww[i]);
-    // }
-  // }
 
   public boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
     return (this.getCat() == PTypeSkel.CAT_BOTTOM)?
@@ -448,14 +447,6 @@ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptVarConstrained D "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.accept(width, bindsRef, tv.constraint, bindings);
-    // } else {
-      // b = this.accept(width, bindsRef, tv.castTo(this, bindings), bindings);
-    // } else if ((b = this.accept(width, bindsRef, tv.constraint, bindings)) == null) {
-      // b = null;
-    // } else if (this.includesVar(tv.varSlot, bindings)) {
-      // b = null;
-    // } else {
-      // b = this.accept(width, bindsRef, tv.castTo(this, bindings), bindings);
     }
     return b;
   }

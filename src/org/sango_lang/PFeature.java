@@ -167,6 +167,12 @@ public class PFeature extends PDefaultProgObj {
     return this;
   }
 
+  void excludePrivateAcc() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].excludePrivateAcc();
+    }
+  }
+
   PFeatureSkel toSkel() {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {

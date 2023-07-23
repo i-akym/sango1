@@ -153,12 +153,6 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     return null;
   }
 
-  public PTypeSkel getType(PTypeSkelBindings bindings) {
-    // PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-    // return this.dataType.getSkel().instanciate(ib);
-    return null;
-  }
-
   public void collectModRefs() throws CompileException {
     this.provider.collectModRefs();
     this.feature.collectModRefs();
@@ -171,17 +165,16 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   }
 
   void excludePrivateAcc() throws CompileException {
-    // this.provider.excludePrivateAcc();
-    // this.feature.excludePrivateAcc();
+    // this.provider
+    this.feature.excludePrivateAcc();
   }
 
-  public void checkConcreteness() throws CompileException {
-    // HERE
-  }
+  // public void checkConcreteness() throws CompileException {
+    // // HERE
+  // }
 
   public Cstr getProviderModName() {
     return this.provider.props.modName;
-    // return this.scope.resolveModId(this.provider.modId);
   }
 
   public String getProviderFunName() { return this.provider.name; }
