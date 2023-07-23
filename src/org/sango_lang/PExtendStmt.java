@@ -468,6 +468,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     if ((e = this.generateInFun(mod)) != null) { funs.add(e); }
     if ((e = this.generateNarrowFun(mod)) != null) { funs.add(e); }
     if ((es = this.generateAttrFuns(mod)) != null) { funs.addAll(es); }
+    // if ((es = this.generateFeatureImplFuns(mod)) != null) { funs.addAll(es); }  HERE
     return funs;
   }
 
