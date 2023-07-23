@@ -485,16 +485,22 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleGivenVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (tv.constraint != null) {
+    if (bindings.isGivenTVar(tv.varSlot)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#acceptSimpleGivenVar @ "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = false;
+    } else if (tv.constraint != null) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptSimpleGivenVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.acceptSimpleGivenVarConstrained(width, bindsRef, tv, bindings);
-    }
+    } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptSimpleGivenVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.acceptSimpleGivenVarSimple(width, bindsRef, tv, bindings);
+    }
     return b;
   }
 
