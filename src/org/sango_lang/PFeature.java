@@ -364,6 +364,7 @@ public class PFeature extends PDefaultProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
+      this.feature.modName = this.feature.scope.myModName();
       this.feature.fname = (PTypeId)a;
 
       this.feature.params = new PType[this.items.size() - 1];

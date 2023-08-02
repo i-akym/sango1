@@ -1644,7 +1644,7 @@ class PModule implements PDefDict {
 
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
-    public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
+    public PTypeRefSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
     public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
 
