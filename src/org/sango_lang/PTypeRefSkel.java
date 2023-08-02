@@ -32,7 +32,7 @@ public class PTypeRefSkel implements PTypeSkel {
   PDefDict.TconProps tconProps;
   boolean ext;
   PTypeSkel[] params;  // empty array if no params
-  PFeatureSkel.List features;
+  private PFeatureSkel.List features;
 
   private PTypeRefSkel() {}
 
@@ -69,8 +69,28 @@ public class PTypeRefSkel implements PTypeSkel {
     return t;
   }
 
-  static void calcFeatures(PTypeRefSkel t) {
+  PFeatureSkel.List getFeatures() {
+    if (this.features == null) {
+      this.calcFeatures();
+    }
+    return this.features;
+  }
+
+  private void calcFeatures() {
+    PDataDef dd = this.tconProps.defGetter.getDataDef();
+    PTypeRefSkel sig = dd.getTypeSig();
+    PFeatureSkel[] fs = new PFeatureSkel[dd.getFeatureImplCount()];
+    for (int i = 0; i < fs.length; i++) {
+      PTypeSkelBindings bindings = PTypeSkelBindings.create(new ArrayList<PTypeVarSlot>());
+      PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
+      for (int j = 0; j < sig.params.length; j++) {
+        bindings.bind(((PTypeVarSkel)sig.params[i]).varSlot, this.params[i]);
+      }
+      fs[i] = f.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+/* DEBUG */ System.out.println(fs[i]);
 // HERE
+    }
+    this.features = PFeatureSkel.List.create(this.srcInfo, fs);
   }
 
   public boolean equals(Object o) {

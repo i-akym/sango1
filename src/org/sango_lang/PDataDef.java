@@ -31,7 +31,7 @@ public interface PDataDef {
 
   int getParamCount();  // -1 if variable count  // needed?
 
-  PTypeSkel getTypeSig();
+  PTypeRefSkel getTypeSig();
 
   Module.Variance getParamVarianceAt(int pos);
 

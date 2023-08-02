@@ -35,6 +35,9 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   PTypeVarDef obj;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
+  PTypeVarSkel objSkel;
+  PTypeVarSkel[] paramSkels;
+  PTypeRefSkel implSkel;
 
   PFeatureStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
@@ -240,6 +243,13 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+
+    this.objSkel = this.obj.toSkel();
+    this.paramSkels = new PTypeVarSkel[this.sig.params.length];
+    for (int i = 0; i < this.paramSkels.length; i++) {
+      this.paramSkels[i] = (PTypeVarSkel)this.sig.params[i].toSkel();
+    }
+    this.implSkel = (PTypeRefSkel)this.impl.toSkel();
     return this;
   }
 
@@ -247,7 +257,29 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public Module.Access getAcc() { return this.acc; }
 
+  public PDefDict.IdKey getNameKey() {
+    return PDefDict.IdKey.create(this.sig.modName, this.sig.fname.name);
+  }
+
   public int getParamCount() { return this.sig.params.length; }
+
+  public PTypeVarSkel getObjType() { return this.objSkel; }
+
+  public PTypeVarSkel[] getParams() { return this.paramSkels; }
+
+  public PTypeRefSkel getImplType() { return this.implSkel; }
+
+  // public PTypeRefSkel getProvision() {
+    // PTypeRefSkel p = null;
+    // try {
+      // p = this.scope.getLangDefinedTypeSkel(this.srcInfo,
+        // "fun",
+        // new PTypeSkel[] { this.obj.toSkel(), this.impl.toSkel() });
+    // } catch (Exception ex) {
+      // throw new RuntimeException(ex.toString());
+    // }
+    // return p;
+  // }
 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }

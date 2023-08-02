@@ -30,7 +30,6 @@ public class PFeatureSkel {
   PDefDict.DefDictGetter defDictGetter;
   Parser.SrcInfo srcInfo;
   PDefDict.FeatureProps featureProps;
-  // PTypeId fname;
   PTypeSkel[] params;  // empty array if no params
 
   private PFeatureSkel() {}
@@ -40,7 +39,6 @@ public class PFeatureSkel {
     f.defDictGetter = defDictGetter;
     f.srcInfo = srcInfo;
     f.featureProps = featureProps;
-    // f.fname = fname;
     f.params = params;
     return f;
   }
@@ -94,6 +92,41 @@ public class PFeatureSkel {
     return create(this.defDictGetter, this.srcInfo, this.featureProps, ps);
   }
 
+  PTypeRefSkel calcFeatureImpl() {
+    PTypeSkelBindings bindings = PTypeSkelBindings.create(new ArrayList<PTypeVarSlot>());
+    // PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
+    for (int i = 0; i < this.params.length; i++) {
+// HERE
+      // bindings.bind(((PTypeVarSkel)this.params[i]).varSlot, this.params[i]);
+    }
+    // return f.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+    return null;
+  }
+
+  boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
+    boolean b = true;
+// HERE
+    return b;
+  }
+
+  // boolean acceptOneInList(int width, boolean bindsRef, List list, PTypeSkelBindings bindings) {
+    // boolean b = false;
+    // for (int i = 0; i < list.features.length; i++) {  // search target
+      // PFeatureSkel f = list.features[i];
+      // if (f.featureProps.key.equals(this.featureProps.key)) {
+        // b = this.accept(width, bindsRef, f, bindings);
+        // break;
+      // }
+    // }
+    // return b;
+  // }
+
+  // boolean accept(int width, boolean bindsRef, PFeatureSkel feature, PTypeSkelBindings bindings) {
+    // boolean b = false;
+    // // HERE
+    // return b;
+  // }
+
   MFeature toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
     MFeature.Builder builder = MFeature.Builder.newInstance();
     builder.setModIndex(mod.modNameToModRefIndex(this.featureProps.key.modName));
@@ -145,6 +178,22 @@ public class PFeatureSkel {
       }
       return create(this.srcInfo, fs);
     }
+
+    boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
+      boolean b = true;
+      for (int i = 0; b && i < this.features.length; i++) {
+        b = this.features[i].accept(width, bindsRef, type, bindings);
+      }
+      return b;
+    }
+
+    // boolean accept(int width, boolean bindsRef, List list, PTypeSkelBindings bindings) {
+      // boolean b = true;
+      // for (int i = 0; b && i < this.features.length; i++) {
+        // b = this.features[i].acceptOneInList(width, bindsRef, list, bindings);
+      // }
+      // return b;
+    // }
 
     MFeature.List toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
       java.util.List<MFeature> fs = new ArrayList<MFeature>();

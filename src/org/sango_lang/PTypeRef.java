@@ -191,7 +191,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     }
   }
 
-  public PTypeSkel toSkel() {
+  public PTypeRefSkel toSkel() {
     PTypeSkel t;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {

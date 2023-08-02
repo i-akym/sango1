@@ -293,7 +293,7 @@ class PCompiledModule implements PDefDict {
 
   class DataDef implements PDataDef {
     Module.Availability availability;
-    PTypeSkel sig;  // lazy setup
+    PTypeRefSkel sig;  // lazy setup
     String sigTcon;
     Module.Variance[] paramVariances;
     PTypeVarSkel[] sigParams;
@@ -313,7 +313,7 @@ class PCompiledModule implements PDefDict {
 
     public int getParamCount() { return (this.sigParams != null)? this.sigParams.length: -1 ; }
 
-    public PTypeSkel getTypeSig() {
+    public PTypeRefSkel getTypeSig() {
       if (this.sig == null) {
         PDefDict.TconProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
         this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, tp, false, this.sigParams);
@@ -467,23 +467,54 @@ class PCompiledModule implements PDefDict {
   }
 
   FeatureDef convertFeatureDef(Module mod, MFeatureDef featureDef, List<PTypeRefSkel> unresolvedTypeRefList) {
+    List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     FeatureDef fd = new FeatureDef();
-    fd.paramCount = featureDef.params.length;
     fd.availability = featureDef.availability;
     fd.acc = featureDef.acc;
+    fd.nameKey = PDefDict.IdKey.create(mod.name, featureDef.fname);
+    fd.obj = convertTypeVar(featureDef.obj, mod, varList, unresolvedTypeRefList);
+    fd.params = new PTypeVarSkel[featureDef.params.length];
+    for (int i = 0; i < fd.params.length; i++) {
+      fd.params[i] = convertTypeVar(featureDef.params[i], mod, varList, unresolvedTypeRefList);
+    }
+    fd.impl = convertTypeRef(featureDef.impl, mod, varList, unresolvedTypeRefList);
     return fd;
   }
 
   static class FeatureDef implements PFeatureDef {
-    int paramCount;
     Module.Availability availability;
     Module.Access acc;
-
-    public int getParamCount() { return this.paramCount; }
+    PDefDict.IdKey nameKey;
+    PTypeVarSkel obj;
+    PTypeVarSkel[] params;
+    PTypeRefSkel impl;
+    // PTypeRefSkel prov;
 
     public Module.Availability getAvailability() { return this.availability; }
 
     public Module.Access getAcc() { return this.acc; }
+
+    public PDefDict.IdKey getNameKey() { return this.nameKey; }
+
+    public int getParamCount() { return this.params.length; }
+
+    public PTypeVarSkel getObjType() { return this.obj; }
+
+    public PTypeVarSkel[] getParams() { return this.params; }
+
+    public PTypeRefSkel getImplType() { return this.impl; }
+
+    // public PTypeRefSkel getProvision() {
+      // PTypeRefSkel p = null;
+      // try {
+        // p = this.scope.getLangDefinedTypeSkel(this.srcInfo,
+          // "fun",
+          // new PTypeSkel[] { this.obj.toSkel(), this.impl.toSkel() });
+      // } catch (Exception ex) {
+        // throw new RuntimeException(ex.toString());
+      // }
+      // return p;
+    // }
   }
 
   FunDef convertFunDef(Module mod, MFunDef funDef, List<PTypeRefSkel> unresolvedTypeRefList) {
@@ -643,12 +674,12 @@ class PCompiledModule implements PDefDict {
     return t;
   }
 
-  PTypeSkel convertTypeRef(MTypeRef tr, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
+  PTypeRefSkel convertTypeRef(MTypeRef tr, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
     PTypeSkel[] params = new PTypeSkel[tr.params.length];
     for (int i = 0; i < params.length; i++) {
       params[i] = this.convertType(tr.params[i], mod, varList, unresolvedTypeRefList);
     }
-    PTypeSkel t;
+    PTypeRefSkel t;
     Cstr n = mod.getModTab().get(tr.modIndex);
     // Cstr n = (tr.modName != null)? tr.modName: mod.name;
     PDefDict.IdKey ik = PDefDict.IdKey.create(n, tr.tcon);
@@ -657,7 +688,7 @@ class PCompiledModule implements PDefDict {
     return t;
   }
 
-  PTypeSkel convertTypeVar(MTypeVar tv, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
+  PTypeVarSkel convertTypeVar(MTypeVar tv, Module mod, List<PTypeVarSkel> varList, List<PTypeRefSkel> unresolvedTypeRefList) {
     PTypeVarSkel v;
     if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
