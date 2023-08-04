@@ -217,6 +217,10 @@ public interface PDefDict {
       return new FeatureProps(key, paramCount, acc, getter);
     }
 
+    public static FeatureProps createUnresolved(IdKey key) {
+      return create(key, -1, null, null);
+    }
+
     FeatureProps(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
       super(PTypeId.CAT_FEATURE, key);
       this.paramCount = paramCount;
