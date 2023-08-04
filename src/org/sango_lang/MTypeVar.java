@@ -31,7 +31,7 @@ import org.w3c.dom.Node;
 class MTypeVar implements MType {
   int slot;
   boolean requiresConcrete;
-  MFeature.List features;
+  MFeature.List features;  // maybe null
   MType constraint;  // maybe null
 
   private MTypeVar() {}
@@ -76,7 +76,7 @@ class MTypeVar implements MType {
       c.appendChild(this.constraint.externalize(doc));
       node.appendChild(c);
     }
-    if (this.features != null) {
+    if (this.features != null && this.features.features.length > 0) {
       node.appendChild(this.features.externalize(doc));
     }
     return node;

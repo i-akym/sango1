@@ -169,8 +169,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public void excludePrivateAcc() throws CompileException {}
 
   public PTypeVarSkel toSkel() {
-    PFeatureSkel.List fs = (this.features != null)? this.features.toSkel(): null;
-    PTypeRefSkel c = (this.constraint != null)? (PTypeRefSkel)this.constraint.toSkel(): null;
+    PFeatureSkel.List fs = (this.features != null)?
+      this.features.toSkel():
+      PFeatureSkel.List.create(this.srcInfo, new PFeatureSkel[0]);
+    PTypeRefSkel c = (this.constraint != null)?
+      (PTypeRefSkel)this.constraint.toSkel():
+      null;
     return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, fs, c);
   }
 

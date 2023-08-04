@@ -214,6 +214,7 @@ public class Module {
   ModTab modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
   Map<Cstr, MAliasTypeDef[]> foreignAliasTypeDefsDict;
+  Map<Cstr, MFeatureDef[]> foreignFeatureDefsDict;
   Map<Cstr, MFunDef[]> foreignFunDefsDict;
   MDataDef[] dataDefs;
   Map<String, MDataDef> dataDefDict;
@@ -260,6 +261,8 @@ public class Module {
   MDataDef[] getForeignDataDefs(Cstr modName) { return this.foreignDataDefsDict.get(modName); }
 
   MAliasTypeDef[] getForeignAliasTypeDefs(Cstr modName) { return this.foreignAliasTypeDefsDict.get(modName); }
+
+  MFeatureDef[] getForeignFeatureDefs(Cstr modName) { return this.foreignFeatureDefsDict.get(modName); }
 
   public static Module internalize(Document doc, Cstr name) throws FormatException {
     Builder builder = newBuilder();
@@ -1624,6 +1627,7 @@ public class Module {
     List<Cstr> foreignModList;
     Map<Cstr, List<MDataDef>> foreignDataDefListDict;
     Map<Cstr, List<MAliasTypeDef>> foreignAliasTypeDefListDict;
+    Map<Cstr, List<MFeatureDef>> foreignFeatureDefListDict;
     Map<Cstr, List<MFunDef>> foreignFunDefListDict;
     MDataDef.Builder dataDefBuilder;
     MConstrDef.Builder constrDefBuilder;
@@ -1649,6 +1653,7 @@ public class Module {
       this.mod = new Module();
       this.foreignDataDefListDict = new HashMap<Cstr, List<MDataDef>>();
       this.foreignAliasTypeDefListDict = new HashMap<Cstr, List<MAliasTypeDef>>();
+      this.foreignFeatureDefListDict = new HashMap<Cstr, List<MFeatureDef>>();
       this.foreignFunDefListDict = new HashMap<Cstr, List<MFunDef>>();
       this.mod.dataDefDict = new HashMap<String, MDataDef>();
       this.mod.constrDefDict = new HashMap<String, MConstrDef>();
@@ -1693,6 +1698,7 @@ public class Module {
 // /* DEBUG */ System.out.println("foreign data_def " + this.currentForeignModName.toJavaString() + " " + this.dataDefList);
       this.foreignDataDefListDict.put(this.currentForeignModName, this.dataDefList);
       this.foreignAliasTypeDefListDict.put(this.currentForeignModName, this.aliasTypeDefList);
+      this.foreignFeatureDefListDict.put(this.currentForeignModName, this.featureDefList);
       this.foreignFunDefListDict.put(this.currentForeignModName, this.funDefList);
       this.currentForeignModName = null;
       this.dataDefList = new ArrayList<MDataDef>();
@@ -1949,6 +1955,7 @@ public class Module {
       }
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();
       this.mod.foreignAliasTypeDefsDict = new HashMap<Cstr, MAliasTypeDef[]>();
+      this.mod.foreignFeatureDefsDict = new HashMap<Cstr, MFeatureDef[]>();
       this.mod.foreignFunDefsDict = new HashMap<Cstr, MFunDef[]>();
       Cstr[] foreignMods = this.mod.modTab.getForeignMods();
       for (int i = 0; i < foreignMods.length; i++) {
@@ -1956,6 +1963,8 @@ public class Module {
         this.mod.foreignDataDefsDict.put(foreignMods[i], dl.toArray(new MDataDef[dl.size()]));
         List<MAliasTypeDef> al = this.foreignAliasTypeDefListDict.get(foreignMods[i]);
         this.mod.foreignAliasTypeDefsDict.put(foreignMods[i], al.toArray(new MAliasTypeDef[al.size()]));
+        List<MFeatureDef> ftl = this.foreignFeatureDefListDict.get(foreignMods[i]);
+        this.mod.foreignFeatureDefsDict.put(foreignMods[i], ftl.toArray(new MFeatureDef[ftl.size()]));
         List<MFunDef> fl = this.foreignFunDefListDict.get(foreignMods[i]);
         this.mod.foreignFunDefsDict.put(foreignMods[i], fl.toArray(new MFunDef[fl.size()]));
       }
