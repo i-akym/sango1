@@ -1546,7 +1546,7 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print("FIR feature "); 
 // /* DEBUG */ System.out.print(modName.repr()); 
 // /* DEBUG */ System.out.print(" "); 
-// /* DEBUG */ System.out.print(feature); 
+// /* DEBUG */ System.out.print(fd.getNameKey()); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(fd); 
       Map<String, PFeatureDef> m;
@@ -1589,6 +1589,22 @@ class PModule implements PDefDict {
         ads = new PAliasTypeDef[0];
       }
       return ads;
+    }
+
+    PFeatureDef[] getReferredFeatureDefsIn(Cstr modName) {
+      PFeatureDef[] fds;
+      if (this.featureDefDictDict.containsKey(modName)) {
+        Map<String, PFeatureDef> m = this.featureDefDictDict.get(modName);
+        Set<String> s = m.keySet();
+        fds = new PFeatureDef[s.size()];
+        Iterator<String> iter = s.iterator();
+        for (int i = 0; iter.hasNext(); i++) {
+          fds[i] = m.get(iter.next());
+        }
+      } else {
+        fds = new PFeatureDef[0];
+      }
+      return fds;
     }
 
     PFunDef[] getReferredFunDefsIn(Cstr modName) {

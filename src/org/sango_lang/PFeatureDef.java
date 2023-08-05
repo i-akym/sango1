@@ -39,6 +39,4 @@ public interface PFeatureDef {
 
   PTypeRefSkel getImplType();
 
-  // PTypeRefSkel getProvision();  // <*OBJ <IMPL> fun>
-
 }

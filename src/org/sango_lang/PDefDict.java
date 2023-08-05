@@ -89,6 +89,7 @@ public interface PDefDict {
 
     IdKey(Cstr modName, String idName) {
       /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
+      /* DEBUG */ if (idName == null) { throw new IllegalArgumentException("Tid key's id name is null."); }
       this.modName = modName;
       this.idName = idName;
     }
@@ -226,6 +227,7 @@ public interface PDefDict {
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;
+/* DEBUG */ if (getter != null && getter.getFeatureDef() == null) { throw new IllegalArgumentException("Invalid feature getter. " + key.repr()); }
     }
 
     int paramCount() {
