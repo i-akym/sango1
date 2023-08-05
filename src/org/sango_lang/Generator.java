@@ -127,6 +127,17 @@ class Generator {
         this.stop = true;
       }
     }
+    PFeatureDef[] ftds = this.parser.mod.foreignIdResolver.getReferredFeatureDefsIn(modName);
+    for (int i = 0; i < ftds.length; i++) {
+      PFeatureDef ftd = ftds[i];
+      try {
+        this.theCompiler.handleTypeAvailability(
+          this.modName, modName, ftd.getNameKey().idName, ftd.getAvailability());
+        this.generateFeatureDef(ftd);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
+    }
     PFunDef[] fds = this.parser.mod.foreignIdResolver.getReferredFunDefsIn(modName);
     for (int i = 0; i < fds.length; i++) {
       PFunDef fd = fds[i];
@@ -253,6 +264,21 @@ class Generator {
       b.addParam((MTypeVar)feature.sig.params[i].toSkel().toMType(this.parser.mod, varSlotList));
     }
     b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.parser.mod, varSlotList));
+    this.modBuilder.putFeatureDef(b.create());
+  }
+
+  void generateFeatureDef(PFeatureDef fd) {  // foreign
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
+    MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
+    b.setName(fd.getNameKey().idName);
+    b.setAvailability(fd.getAvailability());
+    b.setAcc(fd.getAcc());
+    b.setObjType((MTypeVar)fd.getObjType().toMType(this.parser.mod, varSlotList));
+    PTypeVarSkel[] ps = fd.getParams();
+    for (int i = 0; i < ps.length; i++) {
+      b.addParam((MTypeVar)ps[i].toMType(this.parser.mod, varSlotList));
+    }
+    b.setImplType((MTypeRef)fd.getImplType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.putFeatureDef(b.create());
   }
 

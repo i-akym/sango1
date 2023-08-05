@@ -648,14 +648,16 @@ class PCompiledModule implements PDefDict {
   }
 
   static FeatureDefGetter createFeatureDefGetter(PFeatureDef def) {
+/* DEBUG */ if (def == null) { throw new IllegalArgumentException("Null feature def passed."); }
     return new FeatureDefGetter(def);
   }
 
   static class FeatureDefGetter implements PDefDict.FeatureDefGetter {
     PFeatureDef featureDef;
 
-    FeatureDefGetter(PFeatureDef featueDef) {
-      this.featureDef = featureDef;
+    FeatureDefGetter(PFeatureDef fd) {
+/* DEBUG */ if (fd == null) { throw new IllegalArgumentException("Null feature def."); }
+      this.featureDef = fd;
     }
 
     public PFeatureDef getFeatureDef() { return this.featureDef; }

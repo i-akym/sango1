@@ -1502,6 +1502,10 @@ public class Module {
     if (ads.length > 0) {
       modRefNode.appendChild(this.externalizeAliasTypeDefs(doc, ads));
     }
+    MFeatureDef[] ftds = this.foreignFeatureDefsDict.get(modName);
+    if (ftds.length > 0) {
+      modRefNode.appendChild(this.externalizeFeatureDefs(doc, ftds));
+    }
     MFunDef[] fds = this.foreignFunDefsDict.get(modName);
     if (fds.length > 0) {
       modRefNode.appendChild(this.externalizeFunDefs(doc, fds));
@@ -1703,6 +1707,7 @@ public class Module {
       this.currentForeignModName = null;
       this.dataDefList = new ArrayList<MDataDef>();
       this.aliasTypeDefList = new ArrayList<MAliasTypeDef>();
+      this.featureDefList = new ArrayList<MFeatureDef>();
       this.funDefList = new ArrayList<MFunDef>();
     }
 
