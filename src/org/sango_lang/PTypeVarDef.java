@@ -180,9 +180,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 
   public PTypeVarSkel getNormalizedSkel() throws CompileException {
     if (this.nTypeSkel == null) {
-      if (this.features != null) {
-        this.nFeatures = this.features.getNormalizedSkel();
-      }
+      this.nFeatures = (this.features != null)?
+        this.features.getNormalizedSkel():
+        PFeatureSkel.List.create(this.srcInfo, new PFeatureSkel[0]);
       if (this.constraint != null) {
         this.nConstraint = this.constraint.getNormalizedSkel();
       }

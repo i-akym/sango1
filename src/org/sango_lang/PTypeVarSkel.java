@@ -40,7 +40,7 @@ public class PTypeVarSkel implements PTypeSkel {
     var.srcInfo = srcInfo;
     var.name = ((name != null)? name + ".": "$") + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
-    var.features = features;
+    var.features = features;  // temporally maybe null, set later
     var.constraint = constraint;
     return var;
   }
