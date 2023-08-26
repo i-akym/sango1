@@ -28,10 +28,10 @@ import java.io.IOException;
 class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
   boolean requiresConcrete;
-  PFeature.List features;
-  PFeatureSkel.List nFeatures;
   PType constraint;  // maybe null, guaranteed to be PTypeRef later
   PTypeSkel nConstraint;
+  PFeature.List features;
+  PFeatureSkel.List nFeatures;
   PTypeVarSlot varSlot;  // setup later
 
   private PTypeVarDef(Parser.SrcInfo srcInfo, PScope scope) {
@@ -39,12 +39,12 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   }
 
   static PTypeVarDef create(Parser.SrcInfo srcInfo, PScope scope,
-      String name, boolean requiresConcrete, PFeature.List features, PTypeRef constraint) {
+      String name, boolean requiresConcrete, PTypeRef constraint, PFeature.List features) {
     PTypeVarDef var = new PTypeVarDef(srcInfo, scope);
     var.name = name;
     var.requiresConcrete = requiresConcrete;
-    var.features = features;
     var.constraint = constraint;
+    var.features = features;
     return var;
   }
 
@@ -58,13 +58,13 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     if (this.requiresConcrete) {
       buf.append("!");
     }
-    if (this.features != null) {
-      buf.append(",features=");
-      buf.append(this.features);
-    }
     if (this.constraint != null) {
       buf.append(",constraint=");
       buf.append(this.constraint);
+    }
+    if (this.features != null) {
+      buf.append(",features=");
+      buf.append(this.features);
     }
     if (this.varSlot != null) {
       buf.append(",slot=");
@@ -117,7 +117,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     }
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
     PFeature.List fs = PFeature.List.accept(reader, scope);
-    return create(si, scope, varId.value.token, /* variance, */ requiresConcrete, fs, null);
+    return create(si, scope, varId.value.token, requiresConcrete, null, fs);
   }
 
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
@@ -131,15 +131,15 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return create(elem.getSrcInfo(), scope, id, /* Module.INVARIANT, */ false, null, null);  // HERE
+    return create(elem.getSrcInfo(), scope, id, false, null, null);  // HERE
   }
 
   public void collectModRefs() throws CompileException {
-    if (this.features != null) {
-      this.features.collectModRefs();
-    }
     if (this.constraint != null) {
       this.constraint.collectModRefs();
+    }
+    if (this.features != null) {
+      this.features.collectModRefs();
     }
   }
 
@@ -155,11 +155,11 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     this.varSlot = this.scope.defineTVar(this);
-    if (this.features != null) {
-      this.features = this.features.resolve();
-    }
     if (this.constraint != null) {
       this.constraint = this.constraint.resolve();
+    }
+    if (this.features != null) {
+      this.features = this.features.resolve();
     }
     return this;
   }
@@ -169,24 +169,24 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public void excludePrivateAcc() throws CompileException {}
 
   public PTypeVarSkel toSkel() {
-    PFeatureSkel.List fs = (this.features != null)?
-      this.features.toSkel():
-      PFeatureSkel.List.create(this.srcInfo, new PFeatureSkel[0]);
     PTypeRefSkel c = (this.constraint != null)?
       (PTypeRefSkel)this.constraint.toSkel():
       null;
-    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, fs, c);
+    PFeatureSkel.List fs = (this.features != null)?
+      this.features.toSkel():
+      PFeatureSkel.List.create(this.srcInfo, new PFeatureSkel[0]);
+    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, c, fs);
   }
 
   public PTypeVarSkel getNormalizedSkel() throws CompileException {
     if (this.nTypeSkel == null) {
-      this.nFeatures = (this.features != null)?
-        this.features.getNormalizedSkel():
-        PFeatureSkel.List.create(this.srcInfo, new PFeatureSkel[0]);
       if (this.constraint != null) {
         this.nConstraint = this.constraint.getNormalizedSkel();
       }
-      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nFeatures, this.nConstraint);
+      this.nFeatures = (this.features != null)?
+        this.features.getNormalizedSkel():
+        PFeatureSkel.List.create(this.srcInfo, new PFeatureSkel[0]);
+      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nConstraint, this.nFeatures);
     }
     return (PTypeVarSkel)this.nTypeSkel;
   }

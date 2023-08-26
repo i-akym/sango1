@@ -84,6 +84,12 @@ public class PFeatureSkel {
 
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
 
+  void extractVars(java.util.List<PTypeVarSlot> extracted) {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].extractVars(extracted);
+    }
+  }
+
   PFeatureSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
@@ -118,8 +124,15 @@ public class PFeatureSkel {
   }
 
   boolean acceptVarOneTypeRefOne(int width, boolean bindsRef, PTypeVarSkel theVar, PTypeRefSkel tr, PFeatureSkel feature, PTypeSkelBindings bindings) {
-    return this.calcVarFeatureImpl(theVar, bindings).
-      accept(width, bindsRef, feature.calcTypeRefFeatureImpl(tr, bindings), bindings);
+    PTypeRefSkel vi = this.calcVarFeatureImpl(theVar, bindings);
+/* DEBUG */ System.out.print("var impl "); System.out.println(vi);
+    PTypeRefSkel ti = feature.calcTypeRefFeatureImpl(tr, bindings);
+/* DEBUG */ System.out.print("tr impl "); System.out.println(ti);
+    PTypeSkelBindings b = bindings.copy();
+    b.givenTVarList.add(theVar.varSlot);
+    return vi.accept(width, bindsRef, ti, b);
+    // return this.calcVarFeatureImpl(theVar, bindings).
+      // accept(width, bindsRef, feature.calcTypeRefFeatureImpl(tr, bindings), bindings);
   }
 
   boolean acceptVarOneVar(int width, boolean bindsRef, PTypeVarSkel theVar, PTypeVarSkel tv, PTypeSkelBindings bindings) {
@@ -127,27 +140,36 @@ public class PFeatureSkel {
   }
 
   PTypeRefSkel calcTypeRefFeatureImpl(PTypeRefSkel tr, PTypeSkelBindings bindings) {
+/* DEBUG */ System.out.print("calc tr fxi "); System.out.print(this); System.out.print(tr); System.out.println(bindings);
+    PTypeSkelBindings b = bindings.copy();
     PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
     PTypeVarSkel obj = fd.getObjType();
+/* DEBUG */ System.out.print("obj "); System.out.println(obj);
     PTypeVarSkel[] ps = fd.getParams();
+/* DEBUG */ System.out.print("params "); System.out.println(ps);
     PTypeRefSkel impl = fd.getImplType();
-    bindings.bind(obj.varSlot, tr);
+/* DEBUG */ System.out.print("impl "); System.out.println(impl);
+    b.bind(obj.varSlot, tr);
     for (int i = 0; i < this.params.length; i++) {
-      bindings.bind(ps[i].varSlot, this.params[i]);
+      b.bind(ps[i].varSlot, this.params[i]);
     }
-    return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+    return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(b));
+    // return (PTypeRefSkel)impl.resolveBindings(b);
   }
 
   PTypeRefSkel calcVarFeatureImpl(PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    PTypeSkelBindings b = bindings.copy();
     PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
     PTypeVarSkel obj = fd.getObjType();
     PTypeVarSkel[] ps = fd.getParams();
     PTypeRefSkel impl = fd.getImplType();
-    bindings.bind(obj.varSlot, tv);
+    b.bind(obj.varSlot, tv);
+    b.givenTVarList.add(tv.varSlot);
     for (int i = 0; i < this.params.length; i++) {
-      bindings.bind(ps[i].varSlot, this.params[i]);
+      b.bind(ps[i].varSlot, this.params[i]);
     }
-    return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+    return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(b));
+    // return (PTypeRefSkel)impl.resolveBindings(b);
   }
 
   MFeature toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
@@ -173,6 +195,10 @@ public class PFeatureSkel {
       return L;
     }
 
+    static List createEmpty(Parser.SrcInfo srcInfo) {
+      return create(srcInfo, new PFeatureSkel[0]);
+    }
+
     public String toString() {
       StringBuffer buf = new StringBuffer();
       if (this.srcInfo != null) {
@@ -192,6 +218,12 @@ public class PFeatureSkel {
         buf.append("]");
       }
       return buf.toString();
+    }
+
+    void extractVars(java.util.List<PTypeVarSlot> extracted) {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i].extractVars(extracted);
+      }
     }
 
     List instanciate(PTypeSkel.InstanciationBindings iBindings) {
