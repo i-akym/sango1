@@ -45,6 +45,15 @@ public class PTypeSkelBindings {
     return b;
   }
 
+  PTypeSkelBindings copy() {  // shallow copy
+    PTypeSkelBindings b = new PTypeSkelBindings();
+    b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
+    b.bindingDict.putAll(this.bindingDict);
+    b.givenTVarList = new ArrayList<PTypeVarSlot>();
+    b.givenTVarList.addAll(this.givenTVarList);
+    return b;
+  }
+
   public String toString() {
     return this.bindingDict.toString()
       + " G" + this.givenTVarList.toString();

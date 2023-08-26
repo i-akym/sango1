@@ -343,7 +343,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     paramFeaturesBuilder.addFeature(
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
-      PTypeVarDef.create(si, defScope, "T", false, paramFeaturesBuilder.create(), null));
+      PTypeVarDef.create(si, defScope, "T", false, null, paramFeaturesBuilder.create()));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
@@ -373,7 +373,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     paramFeaturesBuilder.addFeature(
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
-      PTypeVarDef.create(si, defScope, "T", false, paramFeaturesBuilder.create(), null));
+      PTypeVarDef.create(si, defScope, "T", false, null, paramFeaturesBuilder.create()));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));

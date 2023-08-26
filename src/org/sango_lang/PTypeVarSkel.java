@@ -30,18 +30,18 @@ public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
   String name;
   PTypeVarSlot varSlot;
-  PFeatureSkel.List features;
   PTypeSkel constraint;  // maybe null
+  PFeatureSkel.List features;
 
   private PTypeVarSkel() {}
 
-  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTypeVarSlot varSlot, PFeatureSkel.List features, PTypeSkel constraint) {
+  public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTypeVarSlot varSlot, PTypeSkel constraint, PFeatureSkel.List features) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
     var.name = ((name != null)? name + ".": "$") + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
-    var.features = features;  // temporally maybe null, set later
-    var.constraint = constraint;
+    var.constraint = constraint;  // maybe null
+    var.features = features;  // maybe null temprally, set later
     return var;
   }
 
@@ -94,6 +94,7 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
+/* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
     PTypeSkel t;
 // /* DEBUG */ System.out.print("INSTANCIATE V "); System.out.print(this); System.out.print(" "); System.out.print(iBindings.applBindings); System.out.print(" "); System.out.println(iBindings.bindingDict);
     if (iBindings.isBound(this.varSlot)) {
@@ -109,10 +110,10 @@ public class PTypeVarSkel implements PTypeSkel {
 // /* DEBUG */ System.out.print("INSTANCIATE 4 "); System.out.println(this);
       PTypeVarSkel v = new PTypeVarSkel();
       v.srcInfo = this.srcInfo;
-      v.varSlot = PTypeVarSlot.createInternal(/* this.varSlot.variance, */ this.varSlot.requiresConcrete);
+      v.varSlot = PTypeVarSlot.createInternal(this.varSlot.requiresConcrete);
       v.name = this.name + "." + v.varSlot.id;
-      v.features = (this.features != null)? this.features.instanciate(iBindings): null;
       v.constraint = (this.constraint != null)? this.constraint.instanciate(iBindings): null;
+      v.features = this.features.instanciate(iBindings);
       iBindings.bind(this.varSlot, v);
       t = v;
     }
@@ -121,12 +122,14 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   public PTypeSkel resolveBindings(PTypeSkelBindings bindings) {
+/* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
     return (bindings.isBound(this.varSlot))?
       bindings.lookup(this.varSlot).resolveBindings(bindings):
       this;
   }
 
   public boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
+/* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -258,7 +261,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptConstrainedGivenVarConstrained B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       PTypeVarSkel var = create(this.srcInfo, null,
-        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
       bindings.bind(tv.varSlot, var);
       b = true;
     }
@@ -270,7 +273,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptConstrainedGivenVarSimple "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     PTypeVarSkel var = create(this.srcInfo, null,
-      PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+      PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
     bindings.bind(tv.varSlot, var);
     return true;
   }
@@ -360,7 +363,7 @@ public class PTypeVarSkel implements PTypeSkel {
         b = false;
       } else {
         PTypeVarSkel var = create(this.srcInfo, null,
-          PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+          PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
         bindings.bind(tv.varSlot, var);
         b = true;
       }
@@ -393,7 +396,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptConstrainedFreeVarConstrained B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(b);
 }
       PTypeVarSkel var = create(this.srcInfo, null,
-        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
       bindings.bind(tv.varSlot, var);
       b = true;
     }
@@ -415,7 +418,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptConstrainedFreeVarSimple B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       PTypeVarSkel var = create(this.srcInfo, null,
-        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
       bindings.bind(tv.varSlot, var);
       b = true;
     }
@@ -509,7 +512,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleGivenVarConstrained "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     PTypeVarSkel var = create(this.srcInfo, null,
-      PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+      PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
     bindings.bind(tv.varSlot, var);
     return true;
   }
@@ -519,7 +522,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleGivenVarSimple "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     PTypeVarSkel var = create(this.srcInfo, null,
-      PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+      PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
     bindings.bind(tv.varSlot, var);
     return true;
   }
@@ -580,6 +583,11 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleFreeTyperef B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
+    } else if (!this.features.acceptVar(width, bindsRef, this, tr, bindings)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#acceptSimpleFreeTyperef BB "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+}
+      b = false;
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptSimpleFreeTyperef C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
@@ -606,7 +614,7 @@ public class PTypeVarSkel implements PTypeSkel {
         b = false;
       } else {
         PTypeVarSkel var = create(this.srcInfo, null,
-          PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+          PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
         bindings.bind(tv.varSlot, var);
         b = true;
       }
@@ -640,7 +648,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleFreeVarConstrained B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       PTypeVarSkel var = create(this.srcInfo, null,
-        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
       bindings.bind(tv.varSlot, var);
       b = true;
     }
@@ -668,7 +676,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleFreeVarSimple C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       PTypeVarSkel var = create(this.srcInfo, null,
-        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.features, this.constraint);  // ok?
+        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
       bindings.bind(tv.varSlot, var);
       b = true;
     }
@@ -803,9 +811,9 @@ if (PTypeGraph.DEBUG > 1) {
     if (index < 0) {  // definition
       index = slotList.size();
       slotList.add(this.varSlot);
-      MFeature.List fs = (this.features != null)? this.features.toMType(mod, slotList): null;
       MType c = (this.constraint != null)? this.constraint.toMType(mod, slotList): null;
-      tv = MTypeVar.create(index, this.varSlot.requiresConcrete, fs, c);
+      MFeature.List fs = (this.features != null)? this.features.toMType(mod, slotList): null;
+      tv = MTypeVar.create(index, this.varSlot.requiresConcrete, c, fs);
     } else {  // reference
       tv = MTypeVar.create(index, false, null, null);  // do not care attributes
     }
@@ -819,6 +827,7 @@ if (PTypeGraph.DEBUG > 1) {
     if (this.constraint != null) {
       this.constraint.extractVars(extracted);
     }
+    this.features.extractVars(extracted);
   }
 
   PTypeRefSkel castTo(PTypeRefSkel tr, PTypeSkelBindings bindings) {
