@@ -106,6 +106,9 @@ public class PTypeVarSkel implements PTypeSkel {
     } else if (iBindings.isGivenTVar(this.varSlot)) {
 // /* DEBUG */ System.out.print("INSTANCIATE 3 "); System.out.println(this);
       t = this;
+    } else if (iBindings.isInFeatureImpl(this.varSlot)) {
+// /* DEBUG */ System.out.print("INSTANCIATE 3a "); System.out.println(this);
+      t = this;
     } else {  // create new var for free
 // /* DEBUG */ System.out.print("INSTANCIATE 4 "); System.out.println(this);
       PTypeVarSkel v = new PTypeVarSkel();
@@ -583,7 +586,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#acceptSimpleFreeTyperef B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (!this.features.acceptVar(width, bindsRef, this, tr, bindings)) {
+    } else if (!bindings.isInFeatureImpl(this.varSlot) && !this.features.acceptVar(/* width, */ bindsRef, this, tr, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#acceptSimpleFreeTyperef BB "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -687,6 +690,8 @@ public class PTypeVarSkel implements PTypeSkel {
     boolean b = false;
     if (this.varSlot == varSlot) {
       b = true;
+    } else if (b = this.features.includesVar(varSlot, bindings)) {
+      ;
     } else if (bindings.isBound(this.varSlot)) {
       b = bindings.lookup(this.varSlot).includesVar(varSlot, bindings);
     }
