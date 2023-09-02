@@ -31,6 +31,7 @@ import java.util.Map;
 public class PTypeSkelBindings {
   Map<PTypeVarSlot, PTypeSkel> bindingDict;
   List<PTypeVarSlot> givenTVarList;
+  List<PTypeVarSlot> featureTVarList;
 
   private PTypeSkelBindings() {}
 
@@ -42,6 +43,7 @@ public class PTypeSkelBindings {
     PTypeSkelBindings b = new PTypeSkelBindings();
     b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
     b.givenTVarList = givenTVarList;
+    b.featureTVarList = new ArrayList<PTypeVarSlot>();
     return b;
   }
 
@@ -51,12 +53,15 @@ public class PTypeSkelBindings {
     b.bindingDict.putAll(this.bindingDict);
     b.givenTVarList = new ArrayList<PTypeVarSlot>();
     b.givenTVarList.addAll(this.givenTVarList);
+    b.featureTVarList = new ArrayList<PTypeVarSlot>();
+    b.featureTVarList.addAll(this.featureTVarList);
     return b;
   }
 
   public String toString() {
     return this.bindingDict.toString()
-      + " G" + this.givenTVarList.toString();
+      + " G" + this.givenTVarList.toString()
+      + " F" + this.featureTVarList.toString();
   }
 
   boolean isBound(PTypeVarSlot var) {
@@ -88,4 +93,12 @@ public class PTypeSkelBindings {
   }
 
   boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
+
+  PTypeSkelBindings copyForFeatureImpl(PTypeVarSlot var) {
+    PTypeSkelBindings b = this.copy();
+    b.featureTVarList.add(var);
+    return b;
+  }
+
+  boolean isInFeatureImpl(PTypeVarSlot var) { return this.featureTVarList.contains(var); }
 }

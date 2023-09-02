@@ -90,6 +90,8 @@ public interface PTypeSkel {
 
     boolean isGivenTVar(PTypeVarSlot var) { return this.applBindings.givenTVarList.contains(var); }
 
+    boolean isInFeatureImpl(PTypeVarSlot var) { return this.applBindings.isInFeatureImpl(var); }
+
     boolean isBound(PTypeVarSlot var) {
       return this.bindingDict.containsKey(var);
     }
