@@ -300,6 +300,16 @@ class PCompiledModule implements PDefDict {
     if (dataDef.baseModIndex > 0) {
       dd.baseTconKey = PDefDict.IdKey.create(mod.getModAt(dataDef.baseModIndex), dataDef.baseTcon);
     }
+    dd.featureImpls = new FeatureImpl[dataDef.featureImpls.length];
+    for (int i = 0; i < dataDef.featureImpls.length; i++) {
+      MFeatureImplDef mfi = dataDef.featureImpls[i];
+      FeatureImpl fi = new FeatureImpl();
+      fi.providerModName = mod.getModTab().get(mfi.providerModIndex);
+      fi.providerFunName = mfi.providerFun;
+      fi.getter = mfi.getter;
+      fi.impl = convertFeature(mfi.provided, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      dd.featureImpls[i] = fi;
+    }
     return dd;
   }
 
@@ -313,6 +323,7 @@ class PCompiledModule implements PDefDict {
     List<String> constrList;
     Map<String, ConstrDef> constrDict;
     PDefDict.IdKey baseTconKey;
+    PDataDef.FeatureImpl[] featureImpls;
 
     DataDef() {
       this.constrList = new ArrayList<String>();
@@ -345,13 +356,9 @@ class PCompiledModule implements PDefDict {
 
     public PDataDef.Constr getConstrAt(int index) { return this.constrDict.get(this.constrList.get(index)); }
 
-    public int getFeatureImplCount() {
-      throw new RuntimeException("PCompiledModule.DataDef#getFeatureImplCount() not implemented.");
-    }
+    public int getFeatureImplCount() { return this.featureImpls.length; }
 
-    public PDataDef.FeatureImpl getFeatureImplAt(int index) {
-      throw new RuntimeException("PCompiledModule.DataDef#getFeatureImplAt() not implemented.");
-    }
+    public PDataDef.FeatureImpl getFeatureImplAt(int index) { return this.featureImpls[index] ; }
 
     ConstrDef addConstr(String dcon) {
       ConstrDef cd = new ConstrDef(dcon);
@@ -476,6 +483,21 @@ class PCompiledModule implements PDefDict {
     public PTypeSkel getNormalizedType() { return this.type; }
 
     public PTypeSkel getFixedType() { return this.type; }
+  }
+
+  static class FeatureImpl implements PDataDef.FeatureImpl {
+    Cstr providerModName;
+    String providerFunName;
+    String getter;
+    PFeatureSkel impl;
+
+    public Cstr getProviderModName() { return this.providerModName; }
+
+    public String getProviderFunName() { return this.providerFunName; }
+
+    public String getGetter() { return this.getter; }
+
+    public PFeatureSkel getImpl() { return this.impl; }
   }
 
   FeatureDef convertFeatureDef(Module mod, MFeatureDef featureDef, List<PTypeRefSkel> unresolvedTypeRefList, List<PFeatureSkel> unresolvedFeatureList) {

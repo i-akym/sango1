@@ -133,6 +133,9 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
 /* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
+    if (this.features.features.length > 0 && this.constraint != null) {
+      throw new RuntimeException("Sorry, type var with both constraint and feature is not supported yet. " + this.toString());
+    }
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
