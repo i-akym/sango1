@@ -884,7 +884,13 @@ if (DEBUG > 1) {
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
       if (constr.getAttrCount() != this.attrNodes.length) {
-        throw new RuntimeException("Attribute count mismatch.");
+        emsg = new StringBuffer();
+        emsg.append("Attribute count mismatch on ");
+        emsg.append(this.dcon.name);
+        emsg.append(" at ");
+        emsg.append(this.dcon.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
       }
       PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
       for (int i = 0; i < constr.getAttrCount(); i++) {
