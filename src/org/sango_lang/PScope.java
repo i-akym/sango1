@@ -33,7 +33,7 @@ class PScope {
   PScope parent;
   int pos;
     // 0: module top
-    // -1: in data/extend/alias-type def
+    // -1: in data/extend/alias-type/feature def
     // 1..: fun/closure def depth
   PEvalStmt evalStmt;  // set if pos == 1
   PClosure closure;  // set if pos > 1
@@ -149,7 +149,8 @@ class PScope {
       && !this.tvarDict.containsKey(varDef.name)
       && !this.evarDict.containsKey(varDef.name)
       && !this.outerTVarDict.containsKey(varDef.name)
-      && !this.outerEVarDict.containsKey(varDef.name);
+      && !this.outerEVarDict.containsKey(varDef.name)
+      && !(this.parent != null && this.parent.pos < 0 && varDef.constraint == null);  // inhibit normal var in data constr
   }
 
   boolean canDefineEVar(PExprVarDef varDef) {
@@ -285,8 +286,20 @@ class PScope {
     return this.theMod.resolveEid(id);
   }
 
-  PDefDict.TconProps resolveTcon(String modId, String name) throws CompileException {
-    return this.theMod.resolveTcon(modId, name);
+  PDefDict.TconProps resolveTcon(PTypeId tcon) throws CompileException {
+    return this.resolveTcon(tcon.modId, tcon.name);
+  }
+
+  PDefDict.TconProps resolveTcon(String tconModId, String tconName) throws CompileException {
+    return this.theMod.resolveTcon(tconModId, tconName);
+  }
+
+  PDefDict.FeatureProps resolveFeature(PTypeId fname) throws CompileException {
+    return this.theMod.resolveFeature(fname.modId, fname.name);
+  }
+
+  PDefDict.FeatureProps resolveFeature(String modId, String name) throws CompileException {
+    return this.theMod.resolveFeature(modId, name);
   }
 
   void addReferredTcons(List<PDefDict.TconProps> tis) {

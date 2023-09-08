@@ -99,6 +99,7 @@ class PModule implements PDefDict {
   List<Cstr> farModList;  // foreign module other than "sango.lang"
   Map<String, Integer> modDict;
   Map<String, PDefDict.TconProps> tconDict;
+  Map<String, PDefDict.FeatureProps> fnameDict;
   Map<String, PDefDict.EidProps> eidDict;
   Map<String, PDataConstrDef> dconDict;
   Map<String, Integer> funOfficialDict;
@@ -120,6 +121,7 @@ class PModule implements PDefDict {
     this.farModList = new ArrayList<Cstr>();
     this.modDict = new HashMap<String, Integer>();
     this.tconDict = new HashMap<String, PDefDict.TconProps>();
+    this.fnameDict = new HashMap<String, PDefDict.FeatureProps>();
     this.eidDict = new HashMap<String, PDefDict.EidProps>();
     this.dconDict = new HashMap<String, PDataConstrDef>();
     this.funOfficialDict = new HashMap<String, Integer>();
@@ -160,11 +162,6 @@ class PModule implements PDefDict {
       if (i != null) {
         n = this.importStmtList.get(i).modName;
         this.maintainFarModRef(n);
-        // if (!n.equals(this.name)
-             // && !n.equals(Module.MOD_LANG)
-             // && !this.farModList.contains(n)) {
-          // this.farModList.add(n);
-        // }
       }
     }
     return n;
@@ -303,6 +300,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureAliases();
     mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
@@ -336,6 +334,7 @@ class PModule implements PDefDict {
     PModule mod = builder.create();
     mod.generateNameFun();
     mod.generateInitdFun();
+    mod.generateFeatureAliases();
     mod.generateFeatureFuns();
     mod.generateDataFuns();
     return mod;
@@ -594,6 +593,15 @@ class PModule implements PDefDict {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    if (this.fnameDict.containsKey(dat.tcon)) {
+      emsg = new StringBuffer();
+      emsg.append("Type constructor \"");
+      emsg.append(dat.tcon);
+      emsg.append("\" collides with feature name at ");
+      emsg.append(dat.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     int datIndex = this.dataStmtList.size();
     this.dataStmtList.add(dat);
     PDefDict.TparamProps[] paramPropss;
@@ -727,8 +735,33 @@ class PModule implements PDefDict {
   void addFeatureStmt(PFeatureStmt feat) throws CompileException {
     StringBuffer emsg;
     feat.collectModRefs();
+    if (this.tconDict.containsKey(feat.sig.fname.name)) {
+      emsg = new StringBuffer();
+      emsg.append("Feature name \"");
+      emsg.append(feat.sig.fname.name);
+      emsg.append("\" collides with type constuctor at ");
+      emsg.append(feat.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (this.fnameDict.containsKey(feat.sig.fname.name)) {
+      emsg = new StringBuffer();
+      emsg.append("Feature name \"");
+      emsg.append(feat.sig.fname.name);
+      emsg.append("\" duplicate at ");
+      emsg.append(feat.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     this.featureStmtList.add(feat);
-// HERE
+    this.fnameDict.put(
+      feat.sig.fname.name,
+      PDefDict.FeatureProps.create(
+        PDefDict.IdKey.create(this.name, feat.sig.fname.name),
+        feat.sig.params.length,
+        feat.acc,
+        FeatureDefGetter.create(feat))
+    );
     // /* DEBUG */ System.out.print("feature stmt added: ");
     // /* DEBUG */ System.out.println(feature);
   }
@@ -830,8 +863,8 @@ class PModule implements PDefDict {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(eval.retDef.type.deepCopy(
-      si, retScope, PType.COPY_EXT_KEEP, /* PType.COPY_VARIANCE_CUT, */ PType.COPY_CONCRETE_OFF));
+    retTypeBuilder.addItem(eval.retDef.type.unresolvedCopy(
+      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
@@ -850,108 +883,22 @@ class PModule implements PDefDict {
     return this.getInitFunDef() != null;
   }
 
-  private void generateFeatureFuns() throws CompileException {
-    if (this.featureStmtList.size() > 0) {
-      this.generateFeatureDataDef();
-      this.generateFeatureGetterFun();
-      // List<PEvalStmt> es;
-      // for (int i = 0; i < this.featureStmtList.size(); i++) {
-        // es = this.featureStmtList.get(i).generateFuns(this);
-        // for (int j = 0; j < es.size(); j++) {
-          // this.addEvalStmt(es.get(j));
-        // }
-      // }
-    }
-  }
-
-  void generateFeatureDataDef() throws CompileException {
-    // data <_feature_> := <impl_type> _feature_name$ | ...
-    StringBuffer emsg;
-    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
-    PDataStmt.Builder dataStmtBuilder = PDataStmt.Builder.newInstance(si, this.scope);
-    PScope defScope = dataStmtBuilder.getDefScope();
-    dataStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
-    // dataStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    dataStmtBuilder.setTcon(PTypeId.create(si, defScope, null, "_feature_", false));
-    // PType.Builder sigBuilder = PType.Builder.newInstance(si, defScope);
-    // sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_", false));
-    // dataStmtBuilder.setSig(sigBuilder.create());
-
+  private void generateFeatureAliases() throws CompileException {
     for (int i = 0; i < this.featureStmtList.size(); i++) {
-      PFeatureStmt fs = this.featureStmtList.get(i);
-      PDataConstrDef.Builder constrBuilder = PDataConstrDef.Builder.newInstance(si, defScope);
-      PScope constrScope = constrBuilder.getScope();
-
-      // collect var names from obj type and feature sig
-      Set<String> vs = new HashSet<String>();
-      vs.add(fs.obj.name);
-      for (int j = 0; j < fs.sig.params.length; j++) {
-        vs.add(((PTypeVarDef)fs.sig.params[j]).name);
+      List<PAliasTypeStmt> as = this.featureStmtList.get(i).generateAliases(this);
+      for (int j = 0; j < as.size(); j++) {
+        this.addAliasStmt(as.get(j));
       }
-
-      // convert impl type
-      PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, constrScope);
-      for (int j = 0; j < fs.impl.params.length; j++) {
-        PType p = null;
-        if (fs.impl.params[j] instanceof PType.Undet) {  // var ref or type ref w/o params
-          PType.Undet u = (PType.Undet)fs.impl.params[j];
-          if (vs.contains(u.id.name)) {
-            p = PTypeVarDef.create(si, constrScope, u.id.name, /* Module.NO_VARIANCE, */ false, null, null);  // ok?
-          } else {
-            emsg = new StringBuffer();
-            emsg.append("Invalid feature implementation type paramter at ");
-            emsg.append(fs.impl.params[j].getSrcInfo());
-            emsg.append(". parameter ");
-            emsg.append(j + 1);
-            throw new CompileException(emsg.toString());
-          }
-        } else if (fs.impl.params[j] instanceof PTypeVarDef) {
-          p = fs.impl.params[j];
-        } else {  // PTypeRef
-          emsg = new StringBuffer();
-          emsg.append("Invalid feature implementation type paramter at ");
-          emsg.append(fs.impl.params[j].getSrcInfo());
-          emsg.append(". parameter ");
-          emsg.append(j + 1);
-          throw new CompileException(emsg.toString());
-        }
-/* DEBUG */ System.out.println(p);
-        paramTypeBuilder.addItem(p);
-      }
-      paramTypeBuilder.addItem(PTypeId.create(si, constrScope, fs.impl.modId, fs.impl.tcon, false));
-
-      PDataAttrDef a = PDataAttrDef.create(si, constrScope, null, paramTypeBuilder.create());
-/* DEBUG */ System.out.println(a);
-
-      constrBuilder.addAttr(a);
-      constrBuilder.setDcon("_feature_" + fs.sig.fname.name + "$");
-      dataStmtBuilder.addConstr(constrBuilder.create());
     }
-    this.addDataStmt(dataStmtBuilder.create());
   }
 
-  void generateFeatureGetterFun() throws CompileException {
-    // eval <*T> *X <cstr> *F  _builtin_feature_get -> <_feature_ maybe> @native
-    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":feature");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
-    evalStmtBuilder.setAvailability(Module.AVAILABILITY_ALPHA);  // HERE
-    evalStmtBuilder.setOfficial("_builtin_feature_get");
-    evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    PScope defScope = evalStmtBuilder.getDefScope();
-    PType.Builder param1TypeBuilder = PType.Builder.newInstance(si, defScope);
-    param1TypeBuilder.addItem(PTypeVarDef.create(si, defScope, "T", /* Module.NO_VARIANCE, */ false, null, null));
-    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param1TypeBuilder.create(), "X"));
-    PType.Builder param2TypeBuilder = PType.Builder.newInstance(si, defScope);
-    param2TypeBuilder.addItem(PTypeId.create(si, defScope, MOD_ID_LANG, "cstr", false));
-    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, param2TypeBuilder.create(), "F"));
-    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
-    PScope retScope = retDefBuilder.getScope();
-    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_HERE, "_feature_", false));
-    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_LANG, "maybe", false));
-    retDefBuilder.setType(retTypeBuilder.create());
-    evalStmtBuilder.setRetDef(retDefBuilder.create());
-    // this.addEvalStmt(evalStmtBuilder.create());  // HERE
+  private void generateFeatureFuns() throws CompileException {
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      List<PEvalStmt> es = this.featureStmtList.get(i).generateFuns(this);
+      for (int j = 0; j < es.size(); j++) {
+        this.addEvalStmt(es.get(j));
+      }
+    }
   }
 
   private void generateDataFuns() throws CompileException {
@@ -1069,13 +1016,7 @@ class PModule implements PDefDict {
     } else {
       throw new IllegalArgumentException("mod invalid.");
     }
-    Option.Set<Module.Access> as = new Option.Set<Module.Access>();
-    as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE)
-      .add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
-    return this.resolveTcon(
-      tcon,
-      PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
-      as);
+    return this.resolveTconLocal(tcon);
   }
 
   private PDefDict.TconProps resolveTconInOther(String modId, String tcon) throws CompileException {
@@ -1104,8 +1045,39 @@ class PModule implements PDefDict {
       as);
   }
 
-  PDefDict.FeatureInfo resolveFeature(String modId, String fname) throws CompileException {
-    throw new RuntimeException("PModule#resolveFeature not implemented.");
+  PDefDict.FeatureProps resolveFeature(String modId, String fname) throws CompileException {
+    return this.isLang()?  this.resolveFeatureInLang(modId, fname): this.resolveFeatureInOther(modId, fname);
+  }
+
+  PDefDict.FeatureProps resolveFeatureInLang(String modId, String fname) throws CompileException {
+    if (modId == null || modId.equals(this.myId) || modId.equals(MOD_ID_HERE) || modId.equals(MOD_ID_LANG)) {
+      ;
+    } else {
+      throw new IllegalArgumentException("mod invalid.");
+    }
+    return this.resolveFeatureLocal(fname);
+  }
+
+  PDefDict.FeatureProps resolveFeatureInOther(String modId, String fname) throws CompileException {
+    PDefDict.FeatureProps fp = null;
+    if (modId == null) {
+      if ((fp = this.resolveFeatureLocal(fname)) != null) {
+        ;
+      } else if ((fp = this.foreignIdResolver.resolveFeature(MOD_ID_LANG, fname)) != null) {
+        ;
+      }
+    } else if (modId.equals(this.myId) || modId.equals(MOD_ID_HERE)) {
+      fp = this.resolveFeatureLocal(fname);
+    } else {
+      fp = this.foreignIdResolver.resolveFeature(modId, fname);
+    }
+    return fp;
+  }
+
+  PDefDict.FeatureProps resolveFeatureLocal(String fname) throws CompileException {
+    Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+    as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
+    return this.resolveFeature(fname, as);
   }
 
   void addReferredTcon(PDefDict.TconProps tp) {
@@ -1140,7 +1112,13 @@ class PModule implements PDefDict {
     return
       ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && accOpts.contains(tp.acc))?
       tp: null;
-      // PDefDict.TconProps.create(PDefDict.IdKey.create(this.name, tcon), tp): null;
+  }
+
+  public PDefDict.FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) {
+    PDefDict.FeatureProps fp;
+    return
+      ((fp = this.fnameDict.get(fname)) != null && accOpts.contains(fp.acc))?
+      fp: null;
   }
 
   ExprDefGetter createExprDefGetter(PDataDef dataDef) {
@@ -1237,6 +1215,20 @@ class PModule implements PDefDict {
     public PDataDef getDataDef() { return this.dataDef; }
 
     public PAliasTypeDef getAliasTypeDef() { return this.aliasTypeDef; }
+  }
+
+  static class FeatureDefGetter implements PDefDict.FeatureDefGetter {
+    PFeatureDef featureDef;
+
+    static FeatureDefGetter create(PFeatureDef featureDef) {
+      return new FeatureDefGetter(featureDef);
+    }
+
+    private FeatureDefGetter(PFeatureDef featureDef) {
+      this.featureDef = featureDef;
+    }
+
+    public PFeatureDef getFeatureDef() { return this.featureDef; }
   }
 
   PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
@@ -1352,11 +1344,13 @@ class PModule implements PDefDict {
   class ForeignIdResolver {
     Map<Cstr, Map<String, ForeignDataDef>> dataDefDictDict;
     Map<Cstr, Map<String, PAliasTypeDef>> aliasDefDictDict;
+    Map<Cstr, Map<String, PFeatureDef>> featureDefDictDict;
     Map<Cstr, Map<String, PFunDef>> funDefDictDict;
 
     ForeignIdResolver() {
       this.dataDefDictDict = new HashMap<Cstr, Map<String, ForeignDataDef>>();
       this.aliasDefDictDict = new HashMap<Cstr, Map<String, PAliasTypeDef>>();
+      this.featureDefDictDict = new HashMap<Cstr, Map<String, PFeatureDef>>();
       this.funDefDictDict = new HashMap<Cstr, Map<String, PFunDef>>();
     }
 
@@ -1389,57 +1383,17 @@ class PModule implements PDefDict {
       return tp;
     }
 
-    void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {
-// /* DEBUG */ System.out.print("FIR tcon "); 
-// /* DEBUG */ System.out.print(modName.repr()); 
-// /* DEBUG */ System.out.print(" "); 
-// /* DEBUG */ System.out.print(tcon); 
-// /* DEBUG */ System.out.print(" "); 
-// /* DEBUG */ System.out.println(tp); 
-      switch (tp.subcat) {
-      case PTypeId.SUBCAT_ALIAS:
-      // /* DEBUG */ System.out.println(" >> ALIAS");
-        PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
-        if (this.aliasDefDictDict.containsKey(modName)) {
-          Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
-          if (m.containsKey(ad.getTcon())) {
-      // /* DEBUG */ System.out.println(" >> ALIAS >> already registered " + ad.getTcon());
-          } else {
-      // /* DEBUG */ System.out.println(" >> ALIAS >> new alias_def " + ad.getTcon());
-            m.put(ad.getTcon(), ad);
-          }
-        } else {
-      // /* DEBUG */ System.out.println(" >> ALIAS >> new module " + ad.getTcon());
-          Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
-          m.put(ad.getTcon(), ad);
-          this.aliasDefDictDict.put(modName, m);
-          PModule.this.maintainFarModRef(modName);
-        }
-        break;
-      default:
-      // /* DEBUG */ System.out.println(" >> DATA");
-        PDataDef dd = tp.defGetter.getDataDef();
-        if (this.dataDefDictDict.containsKey(modName)) {
-          Map<String, ForeignDataDef> m = this.dataDefDictDict.get(modName);
-          if (m.containsKey(dd.getFormalTcon())) {
-      // /* DEBUG */ System.out.println(" >> DATA >> ++ " + dd.getFormalTcon());
-            ForeignDataDef fdd = m.get(dd.getFormalTcon());
-            fdd.requireAcc(Module.ACC_OPAQUE);
-          } else {
-      // /* DEBUG */ System.out.println(" >> DATA >> new data_def " + dd.getFormalTcon());
-            ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
-            m.put(dd.getFormalTcon(), fdd);
-          }
-        } else {
-      // /* DEBUG */ System.out.println(" >> DATA >> new module " + dd.getFormalTcon());
-          Map<String, ForeignDataDef> m = new HashMap<String, ForeignDataDef>();
-          ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
-          m.put(dd.getFormalTcon(), fdd);
-          this.dataDefDictDict.put(modName, m);
-          PModule.this.maintainFarModRef(modName);
-        }
-        break;
+    PDefDict.FeatureProps resolveFeature(String modId, String fname) throws CompileException {
+// /* DEBUG */ System.out.print("resolveFeature "); System.out.print(PModule.this.name.repr()); System.out.print(" "); System.out.print(modId); System.out.print("."); System.out.println(fname);
+      Cstr modName = PModule.this.resolveModId(modId);
+      Option.Set<Module.Access> as = new Option.Set<Module.Access>();
+      as = as.add(Module.ACC_PUBLIC);
+      PDefDict.FeatureProps fp = PModule.this.theCompiler.getReferredDefDict(modName).resolveFeature(
+        fname, as);
+      if (fp != null) {
+        this.referredFeature(modName, fname, fp.defGetter.getFeatureDef());
       }
+      return fp;
     }
 
     void referredEid(Cstr modName, String id, int catOpts, PDefDict.EidProps ep) throws CompileException {
@@ -1531,7 +1485,77 @@ class PModule implements PDefDict {
         m.put(official, fd);
         this.funDefDictDict.put(modName, m);
       } else if (!m.containsKey(official)) {
-      m.put(official, fd);
+        m.put(official, fd);
+      }
+    }
+
+    void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {
+// /* DEBUG */ System.out.print("FIR tcon "); 
+// /* DEBUG */ System.out.print(modName.repr()); 
+// /* DEBUG */ System.out.print(" "); 
+// /* DEBUG */ System.out.print(tcon); 
+// /* DEBUG */ System.out.print(" "); 
+// /* DEBUG */ System.out.println(tp); 
+      switch (tp.subcat) {
+      case PTypeId.SUBCAT_ALIAS:
+      // /* DEBUG */ System.out.println(" >> ALIAS");
+        PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
+        if (this.aliasDefDictDict.containsKey(modName)) {
+          Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
+          if (m.containsKey(ad.getTcon())) {
+      // /* DEBUG */ System.out.println(" >> ALIAS >> already registered " + ad.getTcon());
+          } else {
+      // /* DEBUG */ System.out.println(" >> ALIAS >> new alias_def " + ad.getTcon());
+            m.put(ad.getTcon(), ad);
+          }
+        } else {
+      // /* DEBUG */ System.out.println(" >> ALIAS >> new module " + ad.getTcon());
+          Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
+          m.put(ad.getTcon(), ad);
+          this.aliasDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
+        }
+        break;
+      default:
+      // /* DEBUG */ System.out.println(" >> DATA");
+        PDataDef dd = tp.defGetter.getDataDef();
+        if (this.dataDefDictDict.containsKey(modName)) {
+          Map<String, ForeignDataDef> m = this.dataDefDictDict.get(modName);
+          if (m.containsKey(dd.getFormalTcon())) {
+      // /* DEBUG */ System.out.println(" >> DATA >> ++ " + dd.getFormalTcon());
+            ForeignDataDef fdd = m.get(dd.getFormalTcon());
+            fdd.requireAcc(Module.ACC_OPAQUE);
+          } else {
+      // /* DEBUG */ System.out.println(" >> DATA >> new data_def " + dd.getFormalTcon());
+            ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
+            m.put(dd.getFormalTcon(), fdd);
+          }
+        } else {
+      // /* DEBUG */ System.out.println(" >> DATA >> new module " + dd.getFormalTcon());
+          Map<String, ForeignDataDef> m = new HashMap<String, ForeignDataDef>();
+          ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
+          m.put(dd.getFormalTcon(), fdd);
+          this.dataDefDictDict.put(modName, m);
+          PModule.this.maintainFarModRef(modName);
+        }
+        break;
+      }
+    }
+
+    void referredFeature(Cstr modName, String fname, PFeatureDef fd) {
+// /* DEBUG */ System.out.print("FIR feature "); 
+// /* DEBUG */ System.out.print(modName.repr()); 
+// /* DEBUG */ System.out.print(" "); 
+// /* DEBUG */ System.out.print(fd.getNameKey()); 
+// /* DEBUG */ System.out.print(" "); 
+// /* DEBUG */ System.out.println(fd); 
+      Map<String, PFeatureDef> m;
+      if ((m = this.featureDefDictDict.get(modName)) == null) {
+        m = new HashMap<String, PFeatureDef>();
+        m.put(fname, fd);
+        this.featureDefDictDict.put(modName, m);
+      } else if (!m.containsKey(fname)) {
+        m.put(fname, fd);
       }
     }
 
@@ -1567,6 +1591,22 @@ class PModule implements PDefDict {
       return ads;
     }
 
+    PFeatureDef[] getReferredFeatureDefsIn(Cstr modName) {
+      PFeatureDef[] fds;
+      if (this.featureDefDictDict.containsKey(modName)) {
+        Map<String, PFeatureDef> m = this.featureDefDictDict.get(modName);
+        Set<String> s = m.keySet();
+        fds = new PFeatureDef[s.size()];
+        Iterator<String> iter = s.iterator();
+        for (int i = 0; iter.hasNext(); i++) {
+          fds[i] = m.get(iter.next());
+        }
+      } else {
+        fds = new PFeatureDef[0];
+      }
+      return fds;
+    }
+
     PFunDef[] getReferredFunDefsIn(Cstr modName) {
 // /* DEBUG */ System.out.println("getReferredFunDefsIn");
       PFunDef[] fds;
@@ -1585,47 +1625,17 @@ class PModule implements PDefDict {
     }
   }
 
-  class ForeignTconRef {
-    int paramCount;
-    Module.Access acc;
-    PDataDef dataDef;
-
-
-    ForeignTconRef(PDefDict.TconProps props, Module.Access acc) {
-      this.paramCount = props.paramCount();
-      this.acc = acc;
-      this.dataDef = props.defGetter.getDataDef();
-    }
-
-    void mergeAcc(Module.Access acc) {
-      this.acc = Module.moreOpenAcc(acc, this.acc)? acc: this.acc;
-    }
-
-    Module.Access getRequiredAcc() {
-      return this.acc;
-      // Module.Access a;
-      // if (this.acc.contains(Module.ACC_PUBLIC)) {
-        // a = Module.ACC_PUBLIC;
-      // } else if (this.acc.contains(Module.ACC_PROTECTED)) {
-        // a = Module.ACC_PROTECTED;
-      // } else if (this.acc.contains(Module.ACC_OPAQUE)) {
-        // a = Module.ACC_OPAQUE;
-      // } else {
-        // throw new IllegalStateException("Invalid acc. - " + this.acc);
-      // }
-      // return a;
-    }
-  }
-
   class ForeignDataDef implements PDataDef {
     PDataDef referredDataDef;
     Module.Access requiredAcc;
     List<String> referredDconList;
+    List<String> referredFeatureList;
 
     ForeignDataDef(PDataDef dd, Module.Access acc) {
       this.referredDataDef = dd;
       this.requiredAcc = acc;
       this.referredDconList = new ArrayList<String>();
+      this.referredFeatureList = new ArrayList<String>();
     }
 
     void requireAcc(Module.Access acc) {
@@ -1638,11 +1648,19 @@ class PModule implements PDefDict {
       }
     }
 
+    void referredFeature(String fname) {
+      if (!this.referredFeatureList.contains(fname)) {
+        this.referredFeatureList.add(fname);
+      }
+    }
+
     public String getFormalTcon() { return this.referredDataDef.getFormalTcon(); }
+
+    public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
 
     public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
-    public PTypeSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
+    public PTypeRefSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
     public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
 
@@ -1650,15 +1668,6 @@ class PModule implements PDefDict {
 
     public Module.Access getAcc() {
       return this.requiredAcc;
-      // Module.Access acc;
-      // if (this.requiredAcc.contains(Module.ACC_PUBLIC)) {
-        // acc = Module.ACC_PUBLIC;
-      // } else if (this.requiredAcc.contains(Module.ACC_PROTECTED)) {
-        // acc = Module.ACC_PROTECTED;
-      // } else {
-        // acc = Module.ACC_OPAQUE;
-      // }
-      // return acc;
     }
 
     public int getConstrCount() { return this.referredDconList.size(); }
@@ -1671,6 +1680,12 @@ class PModule implements PDefDict {
       return this.referredDataDef.getConstr(this.referredDconList.get(index));
     }
 
-    public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
+    public int getFeatureImplCount() {
+      return this.referredFeatureList.size();
+    }
+
+    public PDataDef.FeatureImpl getFeatureImplAt(int index) {
+      throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplAt() not implemented.");
+    }
   }
 }

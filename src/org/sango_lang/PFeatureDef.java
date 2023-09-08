@@ -25,10 +25,18 @@ package org.sango_lang;
 
 public interface PFeatureDef {
 
-  int getParamCount();
-
   Module.Availability getAvailability();
 
   Module.Access getAcc();
+
+  PDefDict.IdKey getNameKey();
+
+  int getParamCount();
+
+  PTypeVarSkel getObjType();
+
+  PTypeVarSkel[] getParams();
+
+  PTypeRefSkel getImplType();
 
 }

@@ -60,6 +60,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   static class Builder {
     PAliasTypeStmt alias;
+    PScope bodyScope;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
       return new Builder(srcInfo, outerScope);
@@ -67,9 +68,12 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.alias = new PAliasTypeStmt(srcInfo, outerScope);
+      this.bodyScope = this.alias.scope.enterInner();
     }
 
-    PScope getScope() { return this.alias.scope; }
+    PScope getDefScope() { return this.alias.scope; }
+
+    PScope getBodyScope() { return this.bodyScope; }
 
     void setSig(PType sig) {
       this.alias.sig = sig;
@@ -94,7 +98,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
         this.alias.tparams = new PTypeVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
         PTypeRef tr = (PTypeRef)this.alias.sig;
-        this.alias.tcon = tr.tcon;
+        this.alias.tcon = tr.tcon.name;
         this.alias.tparams = new PTypeVarDef[tr.params.length];
         for (int i = 0; i < tr.params.length; i++) {
           this.alias.tparams[i] = (PTypeVarDef)tr.params[i];
@@ -118,10 +122,11 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     }
     ParserA.acceptSpecifiedWord(reader, "type", ParserA.SPACE_NEEDED);
     Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
-    PScope scope = builder.getScope();
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
-    if ((tsig = PType.acceptSig(reader, scope, /* false, */ Parser.QUAL_INHIBITED)) == null) {
+    if ((tsig = PType.acceptSig(reader, defScope, /* false, */ Parser.QUAL_INHIBITED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -138,7 +143,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       throw new CompileException(emsg.toString());
     }
     PType body;
-    if ((body = acceptAliasBodyDef(reader, scope)) == null) {
+    if ((body = acceptAliasBodyDef(reader, bodyScope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Alias definition missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -160,7 +165,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     StringBuffer emsg;
     if (!elem.getName().equals("alias-type-def")) { return null; }
     Builder builder = Builder.newInstance(elem.getSrcInfo(), outerScope);
-    PScope scope = builder.getScope();
+    PScope defScope = builder.getDefScope();
+    PScope bodyScope = builder.getBodyScope();
 
     String tcon = elem.getAttrValueAsId("tcon");
     if (tcon == null) {
@@ -170,19 +176,19 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), scope, null, tcon, false);
+    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), defScope, null, tcon, false);
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
     Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_ALIAS, PModule.ACC_DEFAULT_FOR_ALIAS);
     builder.setAcc(acc);
 
-    PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), scope);
+    PType.Builder tb = PType.Builder.newInstance(elem.getSrcInfo(), defScope);
     ParserB.Elem e = elem.getFirstChild();
     if (e != null && e.getName().equals("params")) {
       ParserB.Elem ee = e.getFirstChild();
       while (ee != null) {
-        PTypeVarDef var = PTypeVarDef.acceptX(ee, scope);
+        PTypeVarDef var = PTypeVarDef.acceptX(ee, defScope);
         if (var == null) {
           emsg = new StringBuffer();
           emsg.append("Unexpected XML node. - ");
@@ -219,7 +225,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType body = PType.acceptXRO(d, scope);
+    PType body = PType.acceptXRO(d, bodyScope);
     if (body == null) {
       emsg = new StringBuffer();
       emsg.append("Alias definition missing at ");
@@ -231,8 +237,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     return builder.create();
   }
 
-  private static PType acceptAliasBodyDef(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-    return PType.acceptRO(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+  private static PType acceptAliasBodyDef(ParserA.TokenReader reader, PScope bodyScope) throws CompileException, IOException {
+    return PType.accept(reader, bodyScope, ParserA.SPACE_DO_NOT_CARE);  // normal var def will be guarded
   }
 
   public void collectModRefs() throws CompileException {

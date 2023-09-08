@@ -56,6 +56,7 @@ class Generator {
     if (this.stop) { return; }
     this.generateDataDefs();
     this.generateAliasTypeDefs();
+    this.generateFeatureDefs();
     this.generateFunDefs();
     this.generateFunImpls();
 
@@ -126,6 +127,17 @@ class Generator {
         this.stop = true;
       }
     }
+    PFeatureDef[] ftds = this.parser.mod.foreignIdResolver.getReferredFeatureDefsIn(modName);
+    for (int i = 0; i < ftds.length; i++) {
+      PFeatureDef ftd = ftds[i];
+      try {
+        this.theCompiler.handleTypeAvailability(
+          this.modName, modName, ftd.getNameKey().idName, ftd.getAvailability());
+        this.generateFeatureDef(ftd);
+      } catch (CompileException ex) {
+        this.stop = true;
+      }
+    }
     PFunDef[] fds = this.parser.mod.foreignIdResolver.getReferredFunDefsIn(modName);
     for (int i = 0; i < fds.length; i++) {
       PFunDef fd = fds[i];
@@ -180,6 +192,9 @@ class Generator {
     for (int i = 0; i < dd.getConstrCount(); i++) {
       this.generateConstrDef(dd.getConstrAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
     }
+    for (int i = 0; i < dd.getFeatureImplCount(); i++) {
+      this.generateFeatureImplDef(dd.getFeatureImplAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
+    }
     this.modBuilder.endDataDef();
 
   }
@@ -196,6 +211,14 @@ class Generator {
     this.modBuilder.startAttrDef(attrDef.getName());
     this.modBuilder.setAttrType(attrDef.getFixedType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.endAttrDef();
+  }
+
+  void generateFeatureImplDef(PDataDef.FeatureImpl featureImplDef, List<PTypeVarSlot> varSlotList) {
+    this.modBuilder.addFeatureImplDef(
+      this.parser.mod.modNameToModRefIndex(featureImplDef.getProviderModName()),
+      featureImplDef.getProviderFunName(),
+      featureImplDef.getGetter(),
+      featureImplDef.getImpl().toMType(this.parser.mod, varSlotList));
   }
 
   void generateDataConstrImpls(PDataDef dd) {
@@ -219,13 +242,44 @@ class Generator {
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
     }
-    // PTypeVarSkel[] vs = new PTypeVarSkel[pvs.length];
-    // for (int i = 0; i < vs.length; i++) {
-      // vs[i] = PTypeVarSkel.create(null, null, pvs[i]);
-    // }
-    // atd.setBody(alias.unalias(vs).toMType(this.parser.mod, varSlotList));
     atd.setBody(alias.getBody().toMType(this.parser.mod, varSlotList));
     this.modBuilder.putAliasTypeDef(atd);
+  }
+
+  void generateFeatureDefs() {
+    for (int i = 0; i < this.parser.mod.featureStmtList.size(); i++) {
+      this.generateFeatureDef(this.parser.mod.featureStmtList.get(i)) ;
+    }
+  }
+
+  void generateFeatureDef(PFeatureStmt feature) {
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
+    MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
+    b.setName(feature.sig.fname.name);
+/* DEBUG */ if (feature.availability == null) { throw new RuntimeException("Null availability. " + feature.sig); }
+    b.setAvailability(feature.availability);
+    b.setAcc(feature.acc);
+    b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.parser.mod, varSlotList));
+    for (int i = 0; i < feature.sig.params.length; i++) {
+      b.addParam((MTypeVar)feature.sig.params[i].toSkel().toMType(this.parser.mod, varSlotList));
+    }
+    b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.parser.mod, varSlotList));
+    this.modBuilder.putFeatureDef(b.create());
+  }
+
+  void generateFeatureDef(PFeatureDef fd) {  // foreign
+    List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
+    MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
+    b.setName(fd.getNameKey().idName);
+    b.setAvailability(fd.getAvailability());
+    b.setAcc(fd.getAcc());
+    b.setObjType((MTypeVar)fd.getObjType().toMType(this.parser.mod, varSlotList));
+    PTypeVarSkel[] ps = fd.getParams();
+    for (int i = 0; i < ps.length; i++) {
+      b.addParam((MTypeVar)ps[i].toMType(this.parser.mod, varSlotList));
+    }
+    b.setImplType((MTypeRef)fd.getImplType().toMType(this.parser.mod, varSlotList));
+    this.modBuilder.putFeatureDef(b.create());
   }
 
   void generateFunDefs() {

@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2022 AKIYAMA Isao                                         *
+ * Copyright (c) 2023 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -27,54 +27,60 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
+class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   PExprId provider;
   PFeature feature;
+  String getter;
 
-  PDataFeatureDef(Parser.SrcInfo srcInfo, PScope defScope) {
+  PFeatureImplDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.enterInner());
   }
 
   public String toString() {
     StringBuffer buf = new StringBuffer();
-    buf.append("feature[src=");
+    buf.append("feature_impl[src=");
     buf.append(this.srcInfo);
     buf.append(",provider=");
     buf.append(this.provider);
     buf.append(",feature=");
     buf.append(this.feature);
+    buf.append(",getter=");
+    buf.append(this.getter);
     buf.append("]");
     return buf.toString();
   }
 
   static class Builder {
-    PDataFeatureDef featureDef;
+    PFeatureImplDef implDef;
     PFeature feature;
+    String getter;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope defScope) {
       return new Builder(srcInfo, defScope);
     }
 
     Builder(Parser.SrcInfo srcInfo, PScope defScope) {
-      this.featureDef = new PDataFeatureDef(srcInfo, defScope);
+      this.implDef = new PFeatureImplDef(srcInfo, defScope);
+      this.implDef.getter = "_feature_impl_get_" + defScope.generateId();
     }
 
-    PScope getScope() { return this.featureDef.scope; }
+    PScope getScope() { return this.implDef.scope; }
 
     void setProvider(PExprId provider) {
-      this.featureDef.provider = provider;
+      this.implDef.provider = provider;
+      this.implDef.provider.setFun();
     }
 
     void setFeature(PFeature feature) {
-      this.featureDef.feature = feature;
+      this.implDef.feature = feature;
     }
 
-    PDataFeatureDef create() {
-      return this.featureDef;
+    PFeatureImplDef create() {
+      return this.implDef;
     }
   }
 
-  static PDataFeatureDef accept(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
+  static PFeatureImplDef accept(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
     StringBuffer emsg;
     Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), defScope);
     PScope scope = builder.getScope();
@@ -108,14 +114,15 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    builder.setFeature(f);
 
-    PDataFeatureDef fd = builder.create();
-/* DEBUG */ System.out.println(fd);
-    return fd;
-    // return builder.create();
+    // PFeatureImplDef id = builder.create();
+// /* DEBUG */ System.out.println(id);
+    // return id;
+    return builder.create();
   }
 
-  static PDataFeatureDef acceptX(ParserB.Elem elem, PScope defScope) throws CompileException {
+  static PFeatureImplDef acceptX(ParserB.Elem elem, PScope defScope) throws CompileException {
     // StringBuffer emsg;
     // if (!elem.getName().equals("constr")) { return null; }
     // Builder builder = Builder.newInstance(elem.getSrcInfo(), defScope);
@@ -146,29 +153,35 @@ class PDataFeatureDef extends PDefaultProgObj /* implements PDataDef.Constr */ {
     return null;
   }
 
-  public PTypeSkel getType(PTypeSkelBindings bindings) {
-    // PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-    // return this.dataType.getSkel().instanciate(ib);
-    return null;
-  }
-
   public void collectModRefs() throws CompileException {
     this.provider.collectModRefs();
     this.feature.collectModRefs();
   }
 
-  public PDataFeatureDef resolve() throws CompileException {
+  public PFeatureImplDef resolve() throws CompileException {
     this.provider = (PExprId)this.provider.resolve();
     this.feature = this.feature.resolve();
     return this;
   }
 
   void excludePrivateAcc() throws CompileException {
-    // this.provider.excludePrivateAcc();
-    // this.feature.excludePrivateAcc();
+    // this.provider
+    this.feature.excludePrivateAcc();
   }
 
-  public void checkConcreteness() throws CompileException {
-    // HERE
+  // public void checkConcreteness() throws CompileException {
+    // // HERE
+  // }
+
+  public Cstr getProviderModName() {
+    return this.provider.props.modName;
+  }
+
+  public String getProviderFunName() { return this.provider.name; }
+
+  public String getGetter() { return this.getter; }
+
+  public PFeatureSkel getImpl() {
+    return this.feature.toSkel();
   }
 }

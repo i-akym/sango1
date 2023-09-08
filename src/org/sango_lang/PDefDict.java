@@ -37,6 +37,8 @@ public interface PDefDict {
 
   TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
+  FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) throws CompileException;
+
   interface GlobalDefDict {
 
     boolean isBaseOf(IdKey b, IdKey e);
@@ -87,6 +89,7 @@ public interface PDefDict {
 
     IdKey(Cstr modName, String idName) {
       /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
+      /* DEBUG */ if (idName == null) { throw new IllegalArgumentException("Tid key's id name is null."); }
       this.modName = modName;
       this.idName = idName;
     }
@@ -155,45 +158,17 @@ public interface PDefDict {
     }
   }
 
-  // static class TconInfo {
-    // IdKey key;
-    // TconProps props;
-
-    // public static TconInfo create(IdKey key, TconProps props) {
-      // return new TconInfo(key, props);
-    // }
-
-    // TconInfo(IdKey key, TconProps props) {
-      // this.key = key;
-      // this.props = props;
-    // }
-
-    // public String toString() {
-      // StringBuffer buf = new StringBuffer();
-      // buf.append("tconinfo[tconkey=");
-      // buf.append(this.key);
-      // buf.append(",tconprops=");
-      // buf.append(this.props);
-      // buf.append("]");
-      // return buf.toString();
-    // }
-
-    // public boolean equals(Object o) {
-      // boolean b;
-      // if (o == this) {
-        // b = true;
-      // } else if (!(o instanceof TconInfo)) {
-        // b = false;
-      // } else {
-        // TconInfo ti = (TconInfo)o;
-        // b = ti.key.equals(this.key);
-      // }
-      // return b;
-    // }
-  // }
-
-  static class TconProps {
+  static class TidProps {
+    int cat;
     IdKey key;
+
+    TidProps(int cat, IdKey key) {
+      this.cat = cat;
+      this.key = key;
+    }
+  }
+
+  static class TconProps extends TidProps {
     int subcat;
     TparamProps[] paramProps;  // null means variable
     Module.Access acc;
@@ -208,7 +183,7 @@ public interface PDefDict {
     }
 
     TconProps(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
-      this.key = key;
+      super(PTypeId.CAT_TCON, key);
       this.subcat = subcat;
       this.paramProps = paramProps;
       this.acc = acc;
@@ -234,56 +209,25 @@ public interface PDefDict {
     }
   }
 
-  static class FeatureInfo {
-    IdKey key;
-    FeatureProps props;
-
-    public static FeatureInfo create(IdKey key, FeatureProps props) {
-      return new FeatureInfo(key, props);
-    }
-
-    FeatureInfo(IdKey key, FeatureProps props) {
-      this.key = key;
-      this.props = props;
-    }
-
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("featureinfo[fname=");
-      buf.append(this.key);
-      buf.append(",featureprops=");
-      buf.append(this.props);
-      buf.append("]");
-      return buf.toString();
-    }
-
-    public boolean equals(Object o) {
-      boolean b;
-      if (o == this) {
-        b = true;
-      } else if (!(o instanceof FeatureInfo)) {
-        b = false;
-      } else {
-        FeatureInfo fi = (FeatureInfo)o;
-        b = fi.key.equals(this.key);
-      }
-      return b;
-    }
-  }
-
-  static class FeatureProps {
+  static class FeatureProps extends TidProps {
     int paramCount;
     Module.Access acc;
     FeatureDefGetter defGetter;
 
-    public static FeatureProps create(int paramCount, Module.Access acc, FeatureDefGetter getter) {
-      return new FeatureProps(paramCount, acc, getter);
+    public static FeatureProps create(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
+      return new FeatureProps(key, paramCount, acc, getter);
     }
 
-    FeatureProps(int paramCount, Module.Access acc, FeatureDefGetter getter) {
+    public static FeatureProps createUnresolved(IdKey key) {
+      return create(key, -1, null, null);
+    }
+
+    FeatureProps(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
+      super(PTypeId.CAT_FEATURE, key);
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;
+/* DEBUG */ if (getter != null && getter.getFeatureDef() == null) { throw new IllegalArgumentException("Invalid feature getter. " + key.repr()); }
     }
 
     int paramCount() {
@@ -292,8 +236,10 @@ public interface PDefDict {
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
+      buf.append("featueprops[key=");
+      buf.append(this.key);
       buf.append("featueprops[paramcount=");
-      buf.append(this.paramCount());
+      buf.append(this.paramCount);
       buf.append(",acc=");
       buf.append(this.acc);
       buf.append("]");

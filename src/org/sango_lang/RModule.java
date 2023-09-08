@@ -36,11 +36,11 @@ public class RModule {
   RModule[] modTab;
   RDataConstr[] dataConstrs;
   Map<String, RDataConstr> dataConstrDict;
+  Map<String, FeatureImplInfo[]> featureImplDict;
   RClosureConstr[] closureConstrs;
   Map<String, RClosureImpl> closureImplDict;
   RClosureImpl[] closureImpls;
   RObjItem[] consts;
-  Map<String, FeatureInfo[]> featureInfoTab;
   Class<?> nativeImplClass;
   Object nativeImplInstance;
   RClosureItem initClosure;
@@ -63,8 +63,8 @@ public class RModule {
     m.slots[Module.MSLOT_INDEX_NAME] = eng.memMgr.cstrToArrayItem(m.name);
 
     MDataConstr[] dcs = mod.getDataConstrs();
-    m.dataConstrDict = new HashMap<String, RDataConstr>();
     m.dataConstrs = new RDataConstr[dcs.length] ;
+    m.dataConstrDict = new HashMap<String, RDataConstr>();
     for (int i = 0; i < dcs.length; i++) {
       MDataConstr dc = dcs[i];
       RDataConstr rdc = RDataConstr.create(mod.getModAt(dc.modIndex), dc.name, dc.attrCount, dc.tcon, dc.tparamCount);
@@ -107,7 +107,21 @@ public class RModule {
       m.consts[i] = convertConst(eng, consts[i]);
     }
 
-    m.featureInfoTab = new HashMap<String, FeatureInfo[]>();
+    m.featureImplDict = new HashMap<String, FeatureImplInfo[]>();
+    MDataDef[] dds = mod.getDataDefs();
+    for (int i = 0; i < dds.length; i++) {
+      MDataDef dd = dds[i];
+      if (dd.featureImpls.length > 0) {
+        FeatureImplInfo[] fis = new FeatureImplInfo[dd.featureImpls.length];
+        for (int j = 0; j < fis.length; j++) {
+          MFeatureImplDef fi = dd.featureImpls[j];
+          MFeature f = fi.provided;
+          fis[j] = new FeatureImplInfo(f.modIndex, f.name, fi.getter);
+// /* DEBUG */ System.out.print(dd.tcon); System.out.print(f.modIndex); System.out.print(f.name); System.out.println(fi.getter);
+        }
+        m.featureImplDict.put(dd.tcon, fis);
+      }
+    }
 
     return m;
   }
@@ -119,14 +133,15 @@ public class RModule {
   }
 
   private static RClosureImpl linkNativeMethodBuiltin(MClosureImpl ci, RModule m) throws IOException, FormatException {
-    Class[] paramTypes = new Class[ci.paramCount + 2];
+    // all '_builtin_xxx' will be converted and forwarded to sni__builtin by runtime engine
+    if (ci.paramCount != 1) { throw new FormatException("Invalid parameter count for " + ci.name + "."); }
+    Class[] paramTypes = new Class[3];
     paramTypes[0] = RNativeImplHelper.class;
     paramTypes[1] = RClosureItem.class;  // self
-    for (int i = 2; i < paramTypes.length; i++) {
-      paramTypes[i] = RObjItem.class;
-    }
+    paramTypes[2] = RObjItem.class;  // param chunk
     RClosureImpl cir;
-    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
+    String nativeMethod = FileSystem.getInstance().funNameToNativeMethod("_builtin");
+    // String nativeMethod = FileSystem.getInstance().funNameToNativeMethod(ci.name);
     try {
       Method nm = m.getClass().getMethod(nativeMethod, paramTypes);
       //  -- no check for return value type
@@ -214,9 +229,9 @@ public class RModule {
     // /* DEV */ if (this.name.toJavaString().equals("f")) {
     // /* DEV */   RClosureItem g = this.getClosure("_bridge_bar_as_a'foo");
     // /* DEV */   System.out.print("FEATURE put getter in table. "); System.out.println(g != null);
-    // /* DEV */   this.featureInfoTab.put(
+    // /* DEV */   this.featureImplDict.put(
     // /* DEV */     "bar",
-    // /* DEV */     new FeatureInfo[] { new FeatureInfo(this.name, "a'foo", g)
+    // /* DEV */     new FeatureImplInfo[] { new FeatureImplInfo(this.name, "a'foo", g)
     // /* DEV */   });
     // /* DEV */ }
   }
@@ -280,46 +295,60 @@ public class RModule {
 
   RClosureItem getMainClosure() { return this.mainClosure; }
 
-  RClosureItem getFeatureGetter(String tcon, Cstr featureMod, String featureName) {
+
+// builtin-function implementations
+
+  public void sni__builtin(RNativeImplHelper helper, RClosureItem self, RObjItem generic) {
+    if (self.impl.name.startsWith("_builtin_feature_get_")) {
+      this.feature_get(helper, self, generic);
+    } else {
+      throw new RuntimeException("Invalid native implementation: " + self.impl.name);
+    }
+  }
+
+  // eval <*T> *X _builtin_feature_get_xxx -> <IMPL>
+  void feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem generic) {
+    if (helper.getAndClearResumeInfo() == null) {
+      RObjItem obj = generic;
+      RClosureItem g = helper.getCore().getFeatureImplGetter(
+        obj,
+        this.name,
+        self.impl.name.substring(21));  // feature name = after "_builtin_feature_get_"
+      if (g == null) {
+        throw new RuntimeException("Feature impl not found. " + obj.dump().toJavaString());
+        // helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
+      } else {
+        helper.scheduleInvocation(g, new RObjItem[] { obj }, self);
+      }
+    } else {
+      helper.setReturnValue(helper.getInvocationResult().getReturnValue());
+      // helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
+    }
+  }
+
+  RClosureItem getFeatureImplGetter(String tcon, Cstr featureModName, String featureName) {
+// /* DEBUG */ System.out.print(tcon); System.out.print(featureModName.repr()); System.out.println(featureName);
     RClosureItem g = null;
-    FeatureInfo[] fis = this.featureInfoTab.get(tcon);
+    FeatureImplInfo[] fis = this.featureImplDict.get(tcon);
     if (fis != null) {
-      for (int i = 0; g == null && i < fis.length; i++) {
-        FeatureInfo fi = fis[i];
-        if (fi.featureMod.equals(featureMod) && fi.featureName.equals(featureName)) {
-          g = fi.getter;
+      for (int i = 0; g == null && i < fis.length; i++) {  // sequential search
+        FeatureImplInfo fi = fis[i];
+// /* DEBUG */ System.out.println(fi.featureModIndex); System.out.println(this.modTab[fi.featureModIndex].name.repr());
+        if (this.modTab[fi.featureModIndex].name.equals(featureModName) && fi.featureName.equals(featureName)) {
+          g = RClosureItem.create(this.theEngine, this.closureImplDict.get(fi.getter), null);
         }
       }
     }
     return g;
   }
 
-
-// builtin-function implementations
-
-  public void sni__builtin_feature_get(RNativeImplHelper helper, RClosureItem self, RObjItem obj, RObjItem feature) {
-    if (helper.getAndClearResumeInfo() == null) {
-      RClosureItem g = helper.getCore().getFeatureGetter(
-        obj,
-        this.name,
-        helper.arrayItemToCstr(((RArrayItem)feature)).toJavaString());
-      if (g == null) {
-        helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
-      } else {
-        helper.scheduleInvocation(g, new RObjItem[] { obj }, self);
-      }
-    } else {
-      helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
-    }
-  }
-
-  static class FeatureInfo {
-    Cstr featureMod;
+  static class FeatureImplInfo {
+    int featureModIndex;
     String featureName;
-    RClosureItem getter;
+    String getter;
 
-    FeatureInfo(Cstr featureMod, String featureName, RClosureItem getter) {
-      this.featureMod = featureMod;
+    FeatureImplInfo(int featureModIndex, String featureName, String getter) {
+      this.featureModIndex = featureModIndex;
       this.featureName = featureName;
       this.getter = getter;
     }

@@ -31,17 +31,17 @@ import org.w3c.dom.Node;
 class MTypeVar implements MType {
   int slot;
   boolean requiresConcrete;
-  MFeature.List features;
   MType constraint;  // maybe null
+  MFeature.List features;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, boolean requiresConcrete, MFeature.List features, MType constraint) {
+  static MTypeVar create(int slot, boolean requiresConcrete, MType constraint, MFeature.List features) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
     t.requiresConcrete = requiresConcrete;
-    t.features = features;
     t.constraint = constraint;
+    t.features = features;
     return t;
   }
 
@@ -76,6 +76,9 @@ class MTypeVar implements MType {
       c.appendChild(this.constraint.externalize(doc));
       node.appendChild(c);
     }
+    if (this.features != null && this.features.features.length > 0) {
+      node.appendChild(this.features.externalize(doc));
+    }
     return node;
   }
 
@@ -108,16 +111,16 @@ class MTypeVar implements MType {
     while (n != null) {
       if (Module.isIgnorable(n)) {
         ;
-      } else if (state < 1 && (features = MFeature.List.internalize(n)) != null) {
+      } else if (state < 1 && (constraint = internalizeConstraint(n)) != null) {
         state = 1;
-      } else if (state < 2 && (constraint = internalizeConstraint(n)) != null) {
+      } else if (state < 2 && (features = MFeature.List.internalize(n)) != null) {
         state = 2;
       } else {
         throw new FormatException("Unknown or extra element : " + n.getNodeName());
       }
       n = n.getNextSibling();
     }
-    return create(slot, requiresConcrete, features, constraint);
+    return create(slot, requiresConcrete, constraint, features);
   }
 
   static MType internalizeConstraint(Node node) throws FormatException {

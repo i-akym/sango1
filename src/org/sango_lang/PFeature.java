@@ -31,6 +31,7 @@ public class PFeature extends PDefaultProgObj {
   Cstr modName;
   PTypeId fname;
   PType[] params;
+  PDefDict.FeatureProps featureProps;
 
   private PFeature(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -139,18 +140,26 @@ public class PFeature extends PDefaultProgObj {
 
   public PFeature resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.fname.modId != null) {
-      this.modName = this.scope.resolveModId(this.fname.modId);
-      if (this.modName == null) {
-        emsg = new StringBuffer();
-        emsg.append("Module id \"");
-        emsg.append(this.fname.modId);
-        emsg.append("\" not defined at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+
+    if ((this.featureProps = this.scope.resolveFeature(this.fname)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Feature name \"");
+      emsg.append(this.fname.repr());
+      emsg.append("\" not defined at ");
+      emsg.append(this.fname.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
     }
+    if (this.featureProps.paramCount() != this.params.length) {
+      emsg = new StringBuffer();
+      emsg.append("Parameter count of \"");
+      emsg.append(this.fname.repr());
+      emsg.append("\" mismatch at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
+
     for (int i = 0; i < this.params.length; i++) {
       PType p = (PType)this.params[i].resolve();
       this.params[i] = p;
@@ -158,12 +167,18 @@ public class PFeature extends PDefaultProgObj {
     return this;
   }
 
+  void excludePrivateAcc() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].excludePrivateAcc();
+    }
+  }
+
   PFeatureSkel toSkel() {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps, ps);
   }
 
   PFeatureSkel getNormalizedSkel() throws CompileException {
@@ -171,15 +186,15 @@ public class PFeature extends PDefaultProgObj {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].getNormalizedSkel();
     }
-    return PFeatureSkel.create(this.srcInfo, this.fname, ps);
+    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps, ps);
   }
 
-  PFeature deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     Builder builder = Builder.newInstance(srcInfo, scope);
     for (int i = 0; i < this.params.length; i++) {
-      builder.addItem(this.params[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+      builder.addItem(this.params[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
     }
-    builder.addItem(this.fname.deepCopy(srcInfo, scope, extOpt, concreteOpt));
+    builder.addItem(this.fname.copy(srcInfo, scope, extOpt, concreteOpt));
     PFeature f = null;
     try {
       f = builder.create();
@@ -271,10 +286,10 @@ public class PFeature extends PDefaultProgObj {
       return PFeatureSkel.List.create(this.srcInfo, fss);
     }
 
-    List deepCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
       ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
       for (int i = 0; i < this.features.length; i++) {
-        builder.addFeature(this.features[i].deepCopy(srcInfo, scope, extOpt, concreteOpt));
+        builder.addFeature(this.features[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
       }
       List L = null;
       try {
@@ -309,7 +324,7 @@ public class PFeature extends PDefaultProgObj {
 
     PFeature create() {
       this.feature.params = this.params.toArray(new PType[this.params.size()]);
-/* DEBUG */ System.out.println(this.feature);
+// /* DEBUG */ System.out.println(this.feature);
       return this.feature;
     }
   }
@@ -349,6 +364,7 @@ public class PFeature extends PDefaultProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
+      this.feature.modName = this.feature.scope.myModName();
       this.feature.fname = (PTypeId)a;
 
       this.feature.params = new PType[this.items.size() - 1];

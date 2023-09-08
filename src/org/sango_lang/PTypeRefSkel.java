@@ -32,6 +32,7 @@ public class PTypeRefSkel implements PTypeSkel {
   PDefDict.TconProps tconProps;
   boolean ext;
   PTypeSkel[] params;  // empty array if no params
+  private PFeatureSkel.List features;
 
   private PTypeRefSkel() {}
 
@@ -61,11 +62,36 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
         PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s, null, null);  // features, constraint == null ok?
+        v = PTypeVarSkel.create(this.srcInfo, null, s, null, PFeatureSkel.List.createEmpty(this.srcInfo));  // constraint, features == null ok?
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);
     return t;
+  }
+
+  PFeatureSkel.List getFeatures() {
+    if (this.features == null) {
+      this.calcFeatures();
+    }
+    return this.features;
+  }
+
+  private void calcFeatures() {
+    PDataDef dd = this.tconProps.defGetter.getDataDef();
+    PTypeRefSkel sig = dd.getTypeSig();
+// /* DEBUG */ System.out.print("sig "); System.out.println(sig);
+    PFeatureSkel[] fs = new PFeatureSkel[dd.getFeatureImplCount()];
+    for (int i = 0; i < fs.length; i++) {
+      PTypeSkelBindings bindings = PTypeSkelBindings.create(new ArrayList<PTypeVarSlot>());
+      PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
+// /* DEBUG */ System.out.print("feature skel "); System.out.println(f);
+      for (int j = 0; j < sig.params.length; j++) {
+        bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
+      }
+      fs[i] = f.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+// /* DEBUG */ System.out.println(fs[i]);
+    }
+    this.features = PFeatureSkel.List.create(this.srcInfo, fs);
   }
 
   public boolean equals(Object o) {
@@ -102,6 +128,9 @@ public class PTypeRefSkel implements PTypeSkel {
     buf.append(this.tconProps.key.repr());
     if (this.ext) {
       buf.append("+");
+    }
+    if (this.features != null) {
+      buf.append(this.features.toString());
     }
     buf.append(">");
     if (this.srcInfo != null) {
@@ -157,10 +186,8 @@ public class PTypeRefSkel implements PTypeSkel {
       vv[this.params.length - 1] = Module.COVARIANT;
     } else {
       PDataDef dd = this.tconProps.defGetter.getDataDef();
-      // PTypeRefSkel tr = (PTypeRefSkel)dd.getTypeSig();
       for (int i = 0; i < this.params.length; i++) {
         vv[i] = dd.getParamVarianceAt(i);
-        // vv[i] = tr.params[i].getVarSlot().variance;
       }
     }
     return vv;
@@ -205,13 +232,6 @@ public class PTypeRefSkel implements PTypeSkel {
     }
     return create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
   }
-
-  // public void checkVariance(int width) throws CompileException {
-    // int[] ww = paramWidths(width, this.paramVariances());
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].checkVariance(ww[i]);
-    // }
-  // }
 
   public boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
     return (this.getCat() == PTypeSkel.CAT_BOTTOM)?
@@ -448,14 +468,6 @@ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptVarConstrained D "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.accept(width, bindsRef, tv.constraint, bindings);
-    // } else {
-      // b = this.accept(width, bindsRef, tv.castTo(this, bindings), bindings);
-    // } else if ((b = this.accept(width, bindsRef, tv.constraint, bindings)) == null) {
-      // b = null;
-    // } else if (this.includesVar(tv.varSlot, bindings)) {
-      // b = null;
-    // } else {
-      // b = this.accept(width, bindsRef, tv.castTo(this, bindings), bindings);
     }
     return b;
   }

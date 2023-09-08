@@ -207,10 +207,12 @@ class MFeature {
       return (fs.size() > 0)? create(fs): null;
     }
 
-    public void externalizeAsChildren(Document doc, Element parent) {
+    public Element externalize(Document doc) {
+      Element e = doc.createElement(Module.TAG_FEATURES);
       for (int i = 0; i < this.features.length; i++) {
-        parent.appendChild(this.features[i].externalize(doc));
+        e.appendChild(this.features[i].externalize(doc));
       }
+      return e;
     }
   }
 }

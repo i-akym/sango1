@@ -96,11 +96,15 @@ public class Module {
   static final String TAG_DATA_DEF = "data_def";
   static final String TAG_DATA_DEFS = "data_defs";
   static final String TAG_FEATURE = "feature";
+  static final String TAG_FEATURE_DEF = "feature_def";
+  static final String TAG_FEATURE_DEFS = "feature_defs";
+  static final String TAG_FEATURE_IMPL = "feature_impl";
   static final String TAG_FEATURES = "features";
   static final String TAG_FOREIGN = "foreign";
   static final String TAG_FUN_DEF = "fun_def";
   static final String TAG_FUN_DEFS = "fun_defs";
   static final String TAG_I = "i";
+  static final String TAG_IMPL = "impl";
   static final String TAG_INST_SEQ = "inst_seq";
   static final String TAG_INT = "int";
   static final String TAG_MOD_REF = "mod_ref";
@@ -108,6 +112,7 @@ public class Module {
   static final String TAG_MODULE = "module";
   static final String TAG_NATIVE = "native";
   static final String TAG_NIL = "nil";
+  static final String TAG_OBJ = "obj";
   static final String TAG_PARAM = "param";
   static final String TAG_PARAMS = "params";
   static final String TAG_REAL = "real";
@@ -128,6 +133,7 @@ public class Module {
   static final String ATTR_ENV_COUNT = "env_count";
   static final String ATTR_EXT = "ext";
   static final String ATTR_FORMAT_VERSION = "format_version";
+  static final String ATTR_GETTER = "getter";
   static final String ATTR_MOD = "mod";
   static final String ATTR_MOD_INDEX = "mod_index";
   static final String ATTR_NAME = "name";
@@ -208,11 +214,14 @@ public class Module {
   ModTab modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
   Map<Cstr, MAliasTypeDef[]> foreignAliasTypeDefsDict;
+  Map<Cstr, MFeatureDef[]> foreignFeatureDefsDict;
   Map<Cstr, MFunDef[]> foreignFunDefsDict;
   MDataDef[] dataDefs;
   Map<String, MDataDef> dataDefDict;
   Map<String, MConstrDef> constrDefDict;
   MAliasTypeDef[] aliasTypeDefs;
+  MFeatureDef[] featureDefs;
+  Map<String, MFeatureDef> featureDefDict;
   MFunDef[] funDefs;
   Map<String, MFunDef> funDefDict;
   MClosureConstr[] closureConstrs;
@@ -230,6 +239,8 @@ public class Module {
   public MDataDef[] getDataDefs() { return this.dataDefs; }
 
   public MAliasTypeDef[] getAliasTypeDefs() { return this.aliasTypeDefs; }
+
+  public MFeatureDef[] getFeatureDefs() { return this.featureDefs; }
 
   public MFunDef[] getFunDefs() { return this.funDefs; }
 
@@ -251,6 +262,8 @@ public class Module {
 
   MAliasTypeDef[] getForeignAliasTypeDefs(Cstr modName) { return this.foreignAliasTypeDefsDict.get(modName); }
 
+  MFeatureDef[] getForeignFeatureDefs(Cstr modName) { return this.foreignFeatureDefsDict.get(modName); }
+
   public static Module internalize(Document doc, Cstr name) throws FormatException {
     Builder builder = newBuilder();
     builder.setName(name);
@@ -268,6 +281,9 @@ public class Module {
       node = skipIgnorableNodes(node.getNextSibling());
     }
     if (internalizeAliasTypeDefs(node, builder)) {
+      node = skipIgnorableNodes(node.getNextSibling());
+    }
+    if (internalizeFeatureDefs(node, builder)) {
       node = skipIgnorableNodes(node.getNextSibling());
     }
     if (internalizeFunDefs(node, builder)) {
@@ -390,6 +406,9 @@ public class Module {
       if (internalizeAliasTypeDefs(n, builder)) {
         n = skipIgnorableNodes(n.getNextSibling());
       }
+      if (internalizeFeatureDefs(n, builder)) {
+        n = skipIgnorableNodes(n.getNextSibling());
+      }
       if (internalizeFunDefs(n, builder)) {
         n = skipIgnorableNodes(n.getNextSibling());
       }
@@ -485,9 +504,12 @@ public class Module {
       } else if (state == 0 & n.getNodeName().equals(TAG_PARAMS)) {  // appears first if any
         internalizeDataDefParams(n, builder);
         state = 1;
-      } else if (n.getNodeName().equals(TAG_CONSTR)) {
+      } else if (state <= 1 && n.getNodeName().equals(TAG_CONSTR)) {
         internalizeDataDefConstr(n, builder);
         state = 1;
+      } else if (state <= 2 && n.getNodeName().equals(TAG_FEATURE_IMPL)) {
+        internalizeDataDefFeatureImpl(n, builder);
+        state = 2;
       } else {
         throw new FormatException("Unknown element under '" + TAG_DATA_DEF + "' element: " + n.getNodeName());
       }
@@ -549,6 +571,43 @@ public class Module {
       n = n.getNextSibling();
     }
     builder.endConstrDef();
+  }
+
+  static void internalizeDataDefFeatureImpl(Node node, Builder builder) throws FormatException {
+    NamedNodeMap attrs = node.getAttributes();
+
+    int modIndex = MOD_INDEX_SELF;  // default: self (= 0)
+    Node aModIndex = attrs.getNamedItem(ATTR_MOD_INDEX);
+    if (aModIndex != null) {
+      modIndex = parseInt(aModIndex.getNodeValue());
+    }
+    if (modIndex < 0) {
+      throw new FormatException("Invalid mod_index: " + modIndex);
+    }
+    Node aName = attrs.getNamedItem(ATTR_NAME);
+    if (aName == null) {
+      throw new FormatException("'" + ATTR_NAME + "' provider name not found.");
+    }
+    String name = aName.getNodeValue();
+    Node aGetter = attrs.getNamedItem(ATTR_GETTER);
+    if (aGetter == null) {
+      throw new FormatException("'" + ATTR_GETTER + "' getter not found.");
+    }
+    String getter = aGetter.getNodeValue();
+
+    Node n = node.getFirstChild();
+    MFeature f = null;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (f == null && n.getNodeName().equals(TAG_FEATURE)) {
+        f = MFeature.internalize(n);
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_FEATURE_IMPL + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    builder.addFeatureImplDef(modIndex, name, getter, f);
   }
 
   static void internalizeAttr(Node node, Builder builder) throws FormatException {
@@ -655,6 +714,154 @@ public class Module {
     }
     builder.setAliasBody(type);
     builder.endAliasTypeDef();
+  }
+
+  static boolean internalizeFeatureDefs(Node node, Builder builder) throws FormatException {
+    if ((node != null) && node.getNodeName().equals(TAG_FEATURE_DEFS)) {
+      ;
+    } else {
+      return false;
+    }
+    // /* DEBUG */ System.out.println("internalizing feature_defs node...");
+    Node n = node.getFirstChild();
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (n.getNodeName().equals(TAG_FEATURE_DEF)) {
+        internalizeFeatureDef(n, builder);
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_FEATURE_DEFS + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    return true;
+  }
+
+  static void internalizeFeatureDef(Node node, Builder builder) throws FormatException {
+    MFeatureDef.Builder featureDefBuilder = MFeatureDef.Builder.newInstance();
+
+    NamedNodeMap attrs = node.getAttributes();
+    Node aName = attrs.getNamedItem(ATTR_NAME);
+    if (aName == null) {
+      throw new FormatException("Feature name not found.");
+    }
+    String featureName = aName.getNodeValue();
+    // /* DEBUG */ System.out.print("name = ");
+    // /* DEBUG */ System.out.println(featureName);
+    featureDefBuilder.setName(featureName);
+
+    Availability av = AVAILABILITY_GENERAL;
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+    // /* DEBUG */ System.out.print("avilability = ");
+    // /* DEBUG */ System.out.println(av);
+    featureDefBuilder.setAvailability(av);
+
+    Access acc = ACC_PRIVATE;  // default
+    Node aAcc = attrs.getNamedItem(ATTR_ACC);
+    if (aAcc != null) {
+      String sAcc = aAcc.getNodeValue();
+      if (sAcc.equals(REPR_PUBLIC)) {
+        acc = ACC_PUBLIC;
+      } else if (sAcc.equals(REPR_PRIVATE)) {
+        acc = ACC_PRIVATE;
+      } else {
+        throw new FormatException("Invalid '" + ATTR_ACC + "' attribute: " + sAcc);
+      }
+    }
+    // /* DEBUG */ System.out.print("acc = ");
+    // /* DEBUG */ System.out.println(acc);
+    featureDefBuilder.setAcc(acc);
+
+    Node n = skipIgnorableNodes(node.getFirstChild());
+
+    MTypeVar objType;
+    if (n == null || !n.getNodeName().equals(TAG_OBJ)) {
+      throw new FormatException("Obj type not found.");
+    } else if ((objType = internalizeFeatureObj(n)) == null) {
+      throw new FormatException("Obj type not found.");
+    }
+    featureDefBuilder.setObjType(objType);
+    n = skipIgnorableNodes(n.getNextSibling());
+
+    if (internalizeFeatureParams(n, builder, featureDefBuilder)) {
+      n = skipIgnorableNodes(n.getNextSibling());
+    }
+
+    MTypeRef implType;
+    if (n == null || !n.getNodeName().equals(TAG_IMPL)) {
+      throw new FormatException("Feature impl not found.");
+    } else if ((implType = internalizeFeatureImpl(n)) == null) {
+      throw new FormatException("Obj type not found.");
+    }
+    featureDefBuilder.setImplType(implType);
+    n = skipIgnorableNodes(n.getNextSibling());
+
+    if (n != null) {
+      throw new FormatException("Unknown element under feature_def: " + n.getNodeName());
+    }
+    builder.putFeatureDef(featureDefBuilder.create());
+  }
+
+  static MTypeVar internalizeFeatureObj(Node node) throws FormatException {
+    Node n = node.getFirstChild();
+    MType type = null;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (type == null && (type = internalizeType(n)) != null) {
+        ;
+      } else {
+        throw new FormatException("Unknown or extra element under " + TAG_ATTR + " element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    if (type == null) {
+      throw new FormatException("Obj type not found.");
+    } else if (!(type instanceof MTypeVar)) {
+      throw new FormatException("Obj type invalid. " + type);
+    }
+    return (MTypeVar)type;
+  }
+
+  static boolean internalizeFeatureParams(Node node, Builder builder, MFeatureDef.Builder featureDefBuilder) throws FormatException {
+    if (node == null || !node.getNodeName().equals(TAG_PARAMS)) { return false; }
+    Node n = node.getFirstChild();
+    MTypeVar v;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if ((v = MTypeVar.internalize(n)) != null) {
+        featureDefBuilder.addParam(v);
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    return true;
+  }
+
+  static MTypeRef internalizeFeatureImpl(Node node) throws FormatException {
+    Node n = node.getFirstChild();
+    MType type = null;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (type == null && (type = internalizeType(n)) != null) {
+        ;
+      } else {
+        throw new FormatException("Unknown or extra element under " + TAG_ATTR + " element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    if (type == null) {
+      throw new FormatException("Impl type not found.");
+    } else if (!(type instanceof MTypeRef)) {
+      throw new FormatException("Impl type invalid. " + type);
+    }
+    return (MTypeRef)type;
   }
 
   static boolean internalizeFunDefs(Node node, Builder builder) throws FormatException {
@@ -1254,6 +1461,9 @@ public class Module {
     if (this.aliasTypeDefs.length > 0) {
       moduleNode.appendChild(this.externalizeAliasTypeDefs(doc, this.aliasTypeDefs));
     }
+    if (this.featureDefs.length > 0) {
+      moduleNode.appendChild(this.externalizeFeatureDefs(doc, this.featureDefs));
+    }
     if (this.funDefs.length > 0) {
       moduleNode.appendChild(this.externalizeFunDefs(doc, this.funDefs));
     }
@@ -1292,6 +1502,10 @@ public class Module {
     if (ads.length > 0) {
       modRefNode.appendChild(this.externalizeAliasTypeDefs(doc, ads));
     }
+    MFeatureDef[] ftds = this.foreignFeatureDefsDict.get(modName);
+    if (ftds.length > 0) {
+      modRefNode.appendChild(this.externalizeFeatureDefs(doc, ftds));
+    }
     MFunDef[] fds = this.foreignFunDefsDict.get(modName);
     if (fds.length > 0) {
       modRefNode.appendChild(this.externalizeFunDefs(doc, fds));
@@ -1323,6 +1537,18 @@ public class Module {
 
   Element externalizeAliasTypeDef(Document doc, MAliasTypeDef aliasTypeDef) {
     return aliasTypeDef.externalize(doc);
+  }
+
+  Element externalizeFeatureDefs(Document doc, MFeatureDef[] fds) {
+    Element featureDefsNode = doc.createElement(TAG_FEATURE_DEFS);
+    for (int i = 0; i < fds.length; i++) {
+      featureDefsNode.appendChild(this.externalizeFeatureDef(doc, fds[i]));
+    }
+    return featureDefsNode;
+  }
+
+  Element externalizeFeatureDef(Document doc, MFeatureDef featureDef) {
+    return featureDef.externalize(doc);
   }
 
   Element externalizeFunDefs(Document doc, MFunDef[] fds) {
@@ -1405,6 +1631,7 @@ public class Module {
     List<Cstr> foreignModList;
     Map<Cstr, List<MDataDef>> foreignDataDefListDict;
     Map<Cstr, List<MAliasTypeDef>> foreignAliasTypeDefListDict;
+    Map<Cstr, List<MFeatureDef>> foreignFeatureDefListDict;
     Map<Cstr, List<MFunDef>> foreignFunDefListDict;
     MDataDef.Builder dataDefBuilder;
     MConstrDef.Builder constrDefBuilder;
@@ -1412,6 +1639,8 @@ public class Module {
     List<MDataDef> dataDefList;
     MAliasTypeDef currentAliasTypeDef;
     List<MAliasTypeDef> aliasTypeDefList;
+    Map<String, MFeatureDef> featureDefDict;
+    List<MFeatureDef> featureDefList;
     Map<String, MFunDef> funDefDict;
     List<MFunDef> funDefList;
     MClosureImpl curClosureImpl;
@@ -1428,13 +1657,16 @@ public class Module {
       this.mod = new Module();
       this.foreignDataDefListDict = new HashMap<Cstr, List<MDataDef>>();
       this.foreignAliasTypeDefListDict = new HashMap<Cstr, List<MAliasTypeDef>>();
+      this.foreignFeatureDefListDict = new HashMap<Cstr, List<MFeatureDef>>();
       this.foreignFunDefListDict = new HashMap<Cstr, List<MFunDef>>();
       this.mod.dataDefDict = new HashMap<String, MDataDef>();
       this.mod.constrDefDict = new HashMap<String, MConstrDef>();
+      this.mod.featureDefDict = new HashMap<String, MFeatureDef>();
       this.mod.funDefDict = new HashMap<String, MFunDef>();
       this.foreignModList = new ArrayList<Cstr>();
       this.dataDefList = new ArrayList<MDataDef>();
       this.aliasTypeDefList = new ArrayList<MAliasTypeDef>();
+      this.featureDefList = new ArrayList<MFeatureDef>();
       this.funDefList = new ArrayList<MFunDef>();
       this.closureImplList = new ArrayList<MClosureImpl>();
       this.dataConstrList = new ArrayList<MDataConstr>();
@@ -1470,10 +1702,12 @@ public class Module {
 // /* DEBUG */ System.out.println("foreign data_def " + this.currentForeignModName.toJavaString() + " " + this.dataDefList);
       this.foreignDataDefListDict.put(this.currentForeignModName, this.dataDefList);
       this.foreignAliasTypeDefListDict.put(this.currentForeignModName, this.aliasTypeDefList);
+      this.foreignFeatureDefListDict.put(this.currentForeignModName, this.featureDefList);
       this.foreignFunDefListDict.put(this.currentForeignModName, this.funDefList);
       this.currentForeignModName = null;
       this.dataDefList = new ArrayList<MDataDef>();
       this.aliasTypeDefList = new ArrayList<MAliasTypeDef>();
+      this.featureDefList = new ArrayList<MFeatureDef>();
       this.funDefList = new ArrayList<MFunDef>();
     }
 
@@ -1541,6 +1775,13 @@ public class Module {
       this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
     }
 
+    void addFeatureImplDef(int providerModIndex, String providerFun, String getter, MFeature provided) {
+      MFeatureImplDef.Builder featureImplDefBuilder = MFeatureImplDef.Builder.newInstance();
+      featureImplDefBuilder.setProvider(providerModIndex, providerFun, getter);
+      featureImplDefBuilder.setProvided(provided);
+      this.dataDefBuilder.addFeatureImplDef(featureImplDefBuilder.create());
+    }
+
     void startAliasTypeDef(String tcon, Availability availability, Access acc, int paramCount) {
       this.currentAliasTypeDef = MAliasTypeDef.create(tcon, availability, acc, paramCount);
     }
@@ -1556,6 +1797,11 @@ public class Module {
 
     void putAliasTypeDef(MAliasTypeDef atd) {
       this.aliasTypeDefList.add(atd);
+    }
+
+    void putFeatureDef(MFeatureDef fd) {
+      this.mod.featureDefDict.put(fd.fname, fd);
+      this.featureDefList.add(fd);
     }
 
     void putFunDef(MFunDef fd) {
@@ -1714,6 +1960,7 @@ public class Module {
       }
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();
       this.mod.foreignAliasTypeDefsDict = new HashMap<Cstr, MAliasTypeDef[]>();
+      this.mod.foreignFeatureDefsDict = new HashMap<Cstr, MFeatureDef[]>();
       this.mod.foreignFunDefsDict = new HashMap<Cstr, MFunDef[]>();
       Cstr[] foreignMods = this.mod.modTab.getForeignMods();
       for (int i = 0; i < foreignMods.length; i++) {
@@ -1721,11 +1968,14 @@ public class Module {
         this.mod.foreignDataDefsDict.put(foreignMods[i], dl.toArray(new MDataDef[dl.size()]));
         List<MAliasTypeDef> al = this.foreignAliasTypeDefListDict.get(foreignMods[i]);
         this.mod.foreignAliasTypeDefsDict.put(foreignMods[i], al.toArray(new MAliasTypeDef[al.size()]));
+        List<MFeatureDef> ftl = this.foreignFeatureDefListDict.get(foreignMods[i]);
+        this.mod.foreignFeatureDefsDict.put(foreignMods[i], ftl.toArray(new MFeatureDef[ftl.size()]));
         List<MFunDef> fl = this.foreignFunDefListDict.get(foreignMods[i]);
         this.mod.foreignFunDefsDict.put(foreignMods[i], fl.toArray(new MFunDef[fl.size()]));
       }
       this.mod.dataDefs = this.dataDefList.toArray(new MDataDef[this.dataDefList.size()]);
       this.mod.aliasTypeDefs = this.aliasTypeDefList.toArray(new MAliasTypeDef[this.aliasTypeDefList.size()]);
+      this.mod.featureDefs = this.featureDefList.toArray(new MFeatureDef[this.featureDefList.size()]);
       this.mod.funDefs = this.funDefList.toArray(new MFunDef[this.funDefList.size()]);
       this.mod.closureImpls = this.closureImplList.toArray(new MClosureImpl[this.closureImplList.size()]);
       this.mod.dataConstrs = this.dataConstrList.toArray(new MDataConstr[this.dataConstrList.size()]);
