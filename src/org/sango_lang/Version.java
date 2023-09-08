@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2022 AKIYAMA Isao                                         *
+ * Copyright (c) 2023 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -28,7 +28,7 @@ public class Version {
   static final int MINOR = 6;
   static final int MICRO = 1;
   static final String LEVEL = null;
-  static final int BUILD = 1;
+  static final int BUILD = 2;
 
   static final Version instance = new Version(MAJOR, MINOR, MICRO, LEVEL, BUILD);
 
