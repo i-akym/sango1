@@ -380,7 +380,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
           emsg.append(this.tparams[i].varDef.name);
           emsg.append(" mismatch with that of base definition at ");
           emsg.append(this.srcInfo);
-          emsg.append(".");
+          emsg.append(". ");
+          emsg.append(this.tparams[i].variance);
+          emsg.append(" ");
+          emsg.append(this.baseTconProps.paramProps[i].variance);
           throw new CompileException(emsg.toString()) ;
         }
       }
