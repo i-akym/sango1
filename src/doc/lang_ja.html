@@ -2185,17 +2185,17 @@ data &lt;+*<var>T<sub>1</sub></var> +*<var>T<sub>2</sub></var> ... +*<var>T<sub>
 <p>次の全ての条件が満たされる場合，<code>&lt;<var>T<sub>1</sub> T<sub>2</sub> ... T<sub>n</sub> t</var>&gt;</code> ⊆ <code>&lt;<var>U<sub>1</sub> U<sub>2</sub> ... U<sub>n</sub> u</var>&gt;</code> とします。
 <ul>
 <li>型構築子<code><var>u</var></code>が<code><var>t</var></code>と同じか<code><var>t</var></code>を拡張したもの</li>
-<li>全てのパラメタにおいて：共変の場合 &lt;<var>T<sub>i</sub></var>&gt; ⊆ &lt;<var>U<sub>i</sub></var>&gt;，反変の場合 <code>&lt;<var>T<sub>i</sub></var>&gt;</code> ⊇ <code>&lt;<var>U<sub>i</sub></var>&gt;</code>，非変の場合 <code>&lt;<var>T<sub>i</sub><var>&gt;</code> ＝ <code>&lt;<var>U<sub>i</sub></var>&gt;</code></li>
+<li>全てのパラメタにおいて：共変の場合 <var>T<sub>i</sub></var> ⊆ <var>U<sub>i</sub></var>，反変の場合 <var>T<sub>i</sub></var> ⊇ <var>U<sub>i</sub></var>，非変の場合 <var>T<sub>i</sub><var>＝ <var>U<sub>i</sub></var></li>
 </ul></p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.5">B.5. narrowとcast</h2>
 <p>オブジェクト指向言語には「narrow」や「cast」があります。Sangoにもこれらの用語がありますが，以下の意味です。</p>
 <p>「narrow」は，拡張型として扱われているオブジェクトを基底型に落とし込むことです。
-これは，コンパイラが生成する<code>_narrow_<var>T</var></code>関数（<code><var>T</var></code>は型構築子名。関数の別名は型に共通で<code>narrow</code>）によって行います。
-落とし込めれば<code>&lt;<var>T</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
+これは，コンパイラが生成する<code>_narrow_<var>t</var></code>関数（<code><var>t</var></code>は型構築子名。関数の別名は型に共通で<code>narrow</code>）によって行います。
+落とし込めれば<code>&lt;... <var>t</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
 <blockquote class="def">疑似定義<code>
-eval &lt;<var>T</var>+&gt; *X _narrow_<var>T</var> | narrow @public -&gt; &lt;<var>T</var> maybe&gt; ;;</code></blockquote>
+eval &lt;... <var>t</var>+&gt; *X _narrow_<var>t</var> | narrow @public -&gt; &lt;&lt;... <var>t</var>&gt; maybe&gt; ;;</code></blockquote>
 
 <p>「cast」は，型を指定することで，未束縛の型パラメタを具体的な型に束縛すること，拡張型を指定することができます。
 <blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にcastが必要になることはあまりありません。</blockquote>

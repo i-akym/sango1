@@ -720,97 +720,151 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
     PTypeSkel t;
-    int cat = type.getCat();
-    if (cat == PTypeSkel.CAT_BOTTOM) {
-      t = type.join(this, givenTVarList);  // forward to PTypeRefSkel
-    } else if (cat == PTypeSkel.CAT_SOME) {
-      t = type.join(this, givenTVarList);  // forward to PTypeRefSkel
+    PTypeSkel.JoinResult r;
+    if ((r = this.join2(PTypeSkel.WIDER, true, type, PTypeSkelBindings.create(givenTVarList))) != null) {
+      t = r.joined.instanciate(PTypeSkel.InstanciationBindings.create(r.bindings));
     } else {
-      t = this.join2(type, givenTVarList);
+      t = null;
     }
     return t;
   }
 
-  public PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+  public PTypeSkel.JoinResult join2(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join2 "); System.out.print(this); System.out.print(" "); System.out.print(type);
 }
-    PTypeSkel t;
-    PTypeVarSkel tv = (PTypeVarSkel)type;  // other types do not reach here
-    if (tv.varSlot == this.varSlot) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 1 "); System.out.print(this); System.out.print(" "); System.out.print(type);
-}
-      t = this;
-    } else if (givenTVarList.contains(this.varSlot)) {
-      if (givenTVarList.contains(tv.varSlot)) {
-        t = this.join2GivenGiven(tv, givenTVarList);
+    PTypeSkel.JoinResult r;
+    PTypeSkel t = this.resolveBindings(bindings);
+    if (t != this) {
+      r = t.join2(width, bindsRef, type, bindings);
+    } else if (type.getCat() == PTypeSkel.CAT_BOTTOM) {
+      r = PTypeSkel.JoinResult.create(this, bindings);
+    } else if (bindings.isGivenTVar(this.varSlot)) {
+      r = this.join2Given(width, bindsRef, type, bindings);
+    } else {
+      r = this.join2Free(width, bindsRef, type, bindings);
+    }
+    return r;
+  }
+
+  PTypeSkel.JoinResult join2Given(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
+    PTypeSkel.JoinResult r;
+    if (type instanceof PTypeRefSkel) {
+      r = null;
+    } else if (type instanceof PTypeVarSkel) {
+      PTypeVarSkel tv = (PTypeVarSkel)type;
+      PTypeSkel t = tv.resolveBindings(bindings);
+      if (t != tv) {
+        r = this.join2Given(width, bindsRef, t, bindings);
+      } else if (this.varSlot == tv.varSlot)  {
+        r = PTypeSkel.JoinResult.create(this, bindings);
+      } else if (bindings.isGivenTVar(tv.varSlot))  {
+        r = null;
       } else {
-        t = this.join2GivenFree(tv, givenTVarList);
+        r = this.join2GivenFree(width, bindsRef, tv, bindings);
       }
     } else {
-      if (givenTVarList.contains(tv.varSlot)) {
-        t = tv.join2GivenFree(this, givenTVarList);  // swap
+      throw new IllegalArgumentException("Unknown type. " + type.toString());
+    }
+    return r;
+  }
+
+  PTypeSkel.JoinResult join2GivenFree(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    PTypeSkel.JoinResult r;
+    r = tv.join2FreeGiven(width, bindsRef, this, bindings);
+    return r;
+  }
+
+  PTypeSkel.JoinResult join2Free(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
+    PTypeSkel.JoinResult r;
+    if (type instanceof PTypeRefSkel) {
+      r = this.join2FreeTypeRef(width, bindsRef, (PTypeRefSkel)type, bindings);
+    } else if (type instanceof PTypeVarSkel) {
+      PTypeVarSkel tv = (PTypeVarSkel)type;
+      PTypeSkel t = tv.resolveBindings(bindings);
+      if (t != tv) {
+        r = this.join2Free(width, bindsRef, t, bindings);
+      } else if (this.varSlot == tv.varSlot)  {
+        r = PTypeSkel.JoinResult.create(this, bindings);
+      } else if (bindings.isGivenTVar(tv.varSlot))  {
+        r = this.join2FreeGiven(width, bindsRef, tv, bindings);
       } else {
-        t = this.join2FreeFree(tv, givenTVarList);
+        r = this.join2FreeFree(width, bindsRef, tv, bindings);
       }
-    }
-    return t;
-  }
-
-  PTypeSkel join2GivenGiven(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenGiven "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-    return null;
-  }
-
-  PTypeSkel join2GivenFree(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenFree "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-    PTypeSkel t;
-    if (this.varSlot.requiresConcrete) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenFree 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-      t = tv;
-    } else if (tv.varSlot.requiresConcrete) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenFree 2 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-      t = null;
     } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2GivenFree 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-      t = this;
+      throw new IllegalArgumentException("Unknown type. " + type.toString());
     }
-    return t;
+    return r;
   }
 
-  PTypeSkel join2FreeFree(PTypeVarSkel tv, List<PTypeVarSlot> givenTVarList) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2FreeFree "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-    PTypeSkel t;
-    if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2FreeFree 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-      t = tv;
-    } else if (this.varSlot.requiresConcrete) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2FreeFree 2 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-      t = tv;
+  PTypeSkel.JoinResult join2FreeGiven(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    // this.varSlot != tv.varSlot
+    PTypeSkel.JoinResult r;
+    if (!bindsRef) {
+      r = null;
     } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2FreeFree 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv);
-}
-      t = this;
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(this.varSlot, tv);
+      r = PTypeSkel.JoinResult.create(this, b);
     }
-    return t;
+    return r;
+  }
+
+  PTypeSkel.JoinResult join2FreeTypeRef(int width, boolean bindsRef, PTypeRefSkel tr, PTypeSkelBindings bindings) {
+    PTypeSkel.JoinResult r;
+    if (!bindsRef) {
+      r = null;
+    } else if (this.constraint != null) {
+      throw new RuntimeException("Sorry, joining var with constraint is not supported. " + this.toString());  // HERE
+    } else if (this.features.features.length > 0) {
+      throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
+    } else if (tr.includesVar(this.varSlot, bindings)) {
+      r = null;
+    } else {
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(this.varSlot, tr);
+      r = PTypeSkel.JoinResult.create(tr, b);
+    }
+    return r;
+  }
+
+  PTypeSkel.JoinResult join2FreeFree(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    // this.varSlot != tv.varSlot
+    PTypeSkel.JoinResult r;
+    if (!bindsRef) {
+      r = null;
+    } else if (this.constraint != null) {
+      throw new RuntimeException("Sorry, joining var with constraint is not supported. " + this.toString());  // HERE
+    } else if (tv.constraint != null) {
+      throw new RuntimeException("Sorry, joining var with constraint is not supported. " + tv.toString());  // HERE
+    } else if (this.features.features.length > 0) {
+      throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
+    } else if (tv.features.features.length > 0) {
+      throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + tv.toString());  // HERE
+    } else if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete) {
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(this.varSlot, tv);
+      r = PTypeSkel.JoinResult.create(tv, b);
+    } else if ((width == PTypeSkel.WIDER) && this.varSlot.requiresConcrete) {
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(this.varSlot, tv);
+      r = PTypeSkel.JoinResult.create(tv, b);
+    } else if ((width == PTypeSkel.WIDER) && tv.varSlot.requiresConcrete) {
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(tv.varSlot, this);
+      r = PTypeSkel.JoinResult.create(this, b);
+    } else if ((width == PTypeSkel.NARROWER) && this.varSlot.requiresConcrete) {
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(tv.varSlot, this);
+      r = PTypeSkel.JoinResult.create(this, b);
+    } else if ((width == PTypeSkel.NARROWER) && tv.varSlot.requiresConcrete) {
+      PTypeSkelBindings b = bindings.copy();
+      b.bind(this.varSlot, tv);
+      r = PTypeSkel.JoinResult.create(tv, b);
+    } else {
+      r = null;
+    }
+    return r;
   }
 
   public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
