@@ -47,8 +47,6 @@ public interface PTypeSkel {
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
-  // void checkVariance(int width) throws CompileException;
-
   boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
   // where, width is
   static final int EQUAL = 0;
@@ -60,8 +58,8 @@ public interface PTypeSkel {
   PTypeVarSlot getVarSlot();
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
-    // foward to following method by combination of target and param
-  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
+    // foward to following method internally
+  JoinResult join2(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
@@ -73,16 +71,28 @@ public interface PTypeSkel {
 
   Repr repr();
 
+  public static class JoinResult {
+    PTypeSkel joined;
+    PTypeSkelBindings bindings;
+
+    public static JoinResult create(PTypeSkel joined, PTypeSkelBindings bindings) {
+      JoinResult r = new JoinResult();
+      r.joined = joined;
+      r.bindings = bindings;
+      return r;
+    }
+
+    private JoinResult() {}
+  }
+
   public static class InstanciationBindings {
     PTypeSkelBindings applBindings;
     Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
-    // List<PTypeVarSlot> varSlotList;
 
     public static InstanciationBindings create(PTypeSkelBindings applBindings) {
       InstanciationBindings ib = new InstanciationBindings();
       ib.applBindings = applBindings;
       ib.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
-      // ib.varSlotList = new ArrayList<PTypeVarSlot>();
       return ib;
     }
 
@@ -102,7 +112,6 @@ public interface PTypeSkel {
         throw new IllegalArgumentException("Already added. " + var);
       }
       this.bindingDict.put(var, vs);
-      // this.varSlotList.add(s);
     }
 
     PTypeVarSkel lookup(PTypeVarSlot var) {
