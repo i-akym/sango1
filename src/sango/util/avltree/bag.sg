@@ -29,7 +29,7 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.bag" -> bag ;;
 
-extend <*A _1> :=
+extend <*A _1> -> my1 :=
   ord: <A ord_fs>
   body: <<A list> avl.tree>
   d$ ;;

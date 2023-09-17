@@ -28,7 +28,7 @@ import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.simplemap" -> smap ;;
 
-extend <*A *B _2> :=
+extend <*A *B _2> -> my2 :=
   eq_fs: <A eq_fs>
   tab: <int <A B map.map> map.map>
   count: <int>

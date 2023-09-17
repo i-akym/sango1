@@ -27,7 +27,7 @@ import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.map" -> map ;;
 
-extend <*A *B _2> :=
+extend <*A *B _2> -> my2 :=
   eq_fs: <A eq_fs>
   tab: <<A B tuple> list>
   simple_map_d$ ;;

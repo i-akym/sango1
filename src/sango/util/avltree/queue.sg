@@ -26,7 +26,7 @@ module "sango.util.avltree.queue" ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.queue" -> queue ;;
 
-extend <*A _1> :=
+extend <*A _1> -> my1 :=
   body: <A avl.tree>
   d$ ;;
 

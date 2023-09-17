@@ -27,7 +27,7 @@ import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.set" -> set ;;
 
-extend <*A _1> := eq_fs: <A eq_fs> col: <A list> simple_set_d$ ;;
+extend <*A _1> -> my1 := eq_fs: <A eq_fs> col: <A list> simple_set_d$ ;;
 
 eval new_set @public -> <*A set.set> {
   hard_eq_fs new_set

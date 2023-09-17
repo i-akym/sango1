@@ -27,7 +27,7 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.set" -> set ;;
 
-extend <*A _1> :=
+extend <*A _1> -> my1 :=
   ord: <A ord_fs>
   body: <A avl.tree>
   d$ ;;
