@@ -153,7 +153,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#B.2">B.2. 型と型との関係</a>
   <a href="#B.3">B.3. 拡張による型の大小</a>
   <a href="#B.4">B.4. パラメタを持った型の大小</a>
-  <a href="#B.5">B.5. narrowとcast</a>
+  <a href="#B.5">B.5. 型の変換</a>
   <a href="#B.6">B.6. 具象型</a>
 <a href="#C">C. アベイラビリティ</a>
 <a href="#D">D. 主な変更点</a>
@@ -2189,21 +2189,22 @@ data &lt;+*<var>T<sub>1</sub></var> +*<var>T<sub>2</sub></var> ... +*<var>T<sub>
 </ul></p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="B.5">B.5. narrowとcast</h2>
-<p>オブジェクト指向言語には「narrow」や「cast」があります。Sangoにもこれらの用語がありますが，以下の意味です。</p>
-<p>「narrow」は，拡張型として扱われているオブジェクトを基底型に落とし込むことです。
+<h2 id="B.5">B.5. 型の変換</h2>
+<p>型の変換には、コンパイラに対して型を指定する方法（キャスト）と、実行時に型を変える方法（ナローイング）があります。</p>
+<p>■キャスト</p>
+<p>(i)未束縛の型パラメタをより具体的な型に束縛すること，(ii)明示的に拡張型を指定すること（ワイドニング）ができます。
+<blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にキャストが必要になることはあまりありません。</blockquote>
+関数の戻り値の実際の型は，宣言した型に暗黙的にキャストされます。
+また，変数束縛の際にキャスト先の型を指定することができます。</p>
+<blockquote class="code-sample"><code>&lt;A list&gt;</code> を <code>&lt;int list&gt;</code> にキャストするコード例<code>
+[] = &lt;int list&gt; *X
+&amp;\\ &lt;int list&gt; { [] }</code></blockquote>
+<p>■ナローイング</p>
+<p>拡張型として扱われているオブジェクトを基底型に落とし込みます。
 これは，コンパイラが生成する<code>_narrow_<var>t</var></code>関数（<code><var>t</var></code>は型構築子名。関数の別名は型に共通で<code>narrow</code>）によって行います。
 落とし込めれば<code>&lt;... <var>t</var>&gt;</code>のオブジェクトとして扱えるようになります。</p>
 <blockquote class="def">疑似定義<code>
 eval &lt;... <var>t</var>+&gt; *X _narrow_<var>t</var> | narrow @public -&gt; &lt;&lt;... <var>t</var>&gt; maybe&gt; ;;</code></blockquote>
-
-<p>「cast」は，型を指定することで，未束縛の型パラメタを具体的な型に束縛すること，拡張型を指定することができます。
-<blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にcastが必要になることはあまりありません。</blockquote>
-関数の戻り値の実際の型は，宣言した型に暗黙的にcastされます。
-また，変数束縛の際にcast先の型を指定することができます。</p>
-<blockquote class="code-sample"><code>&lt;A list&gt;</code> を <code>&lt;int list&gt;</code> にcastするコード例<code>
-[] = &lt;int list&gt; *X
-&amp;\\ &lt;int list&gt; { [] }</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.6">B.6. 具象型</h2>
