@@ -28,7 +28,7 @@ import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.enum" -> enum ;;
 import "sango.util.map" -> map ;;
 
-extend <*A *B _2> :=
+extend <*A *B _2> -> my2 :=
   map: <A B map.map>
   compact_: <<B <B bool fun> tuple> maybe>
   array_d$ ;;

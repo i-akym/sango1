@@ -28,7 +28,7 @@ import "sango.util.map" -> map ;;
 import "sango.util.set" -> set ;;
 import "sango.util.set.simpleset" -> sset ;;
 
-extend <*A _1> :=
+extend <*A _1> -> my1 :=
   eq_fs: <A eq_fs>
   col: <int <A set.set> map.map>
   count: <int>

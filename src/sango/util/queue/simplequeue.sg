@@ -27,7 +27,7 @@ import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.queue" -> queue ;;
 
-extend <*A _1> :=
+extend <*A _1> -> my1 :=
   in: <A list>
   out: <A list>
   simple_queue_d$ ;;
