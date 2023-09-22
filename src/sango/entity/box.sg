@@ -75,8 +75,7 @@ eval <*A! wbox_h> *W clear @public -> <void> {
 
 # -- undress/redress --
 
-# must cast to handle concrete type
-eval dress_fs @public -> <<*A box_h> ex.dress_fs> {
+eval dress_fs @public -> <<*A! box_h> ex.dress_fs> {
   undress_f: ^undress ex.dress_fs$
 } ;;
 

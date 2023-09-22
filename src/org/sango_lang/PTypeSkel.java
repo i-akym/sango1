@@ -34,8 +34,9 @@ public interface PTypeSkel {
 
   int getCat();
   static final int CAT_BOTTOM = 1;
-  static final int CAT_SOME = 2;
-  static final int CAT_VAR = 3;
+  static final int CAT_ANY = 2;
+  static final int CAT_SOME = 3;
+  static final int CAT_VAR = 4;
 
   boolean isLiteralNaked();
 
