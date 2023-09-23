@@ -44,9 +44,9 @@ public interface PTypeSkel {
 
   boolean isConcrete(PTypeSkelBindings bindings);
 
-  PTypeSkel instanciate(InstanciationBindings iBindings);
-
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
+
+  PTypeSkel instanciate(InstanciationContext context);
 
   boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
   // where, width is
@@ -86,22 +86,30 @@ public interface PTypeSkel {
     private JoinResult() {}
   }
 
-  public static class InstanciationBindings {
-    PTypeSkelBindings applBindings;
+  public static class InstanciationContext {
+    List<PTypeVarSlot> givenTVarList;
     Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
 
-    public static InstanciationBindings create(PTypeSkelBindings applBindings) {
-      InstanciationBindings ib = new InstanciationBindings();
-      ib.applBindings = applBindings;
-      ib.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
-      return ib;
+    public static InstanciationContext create() {
+      return create(new ArrayList<PTypeVarSlot>());
     }
 
-    private InstanciationBindings() {}
+    public static InstanciationContext create(PTypeSkelBindings bindings) {
+      return create(bindings.givenTVarList);
+    }
 
-    boolean isGivenTVar(PTypeVarSlot var) { return this.applBindings.givenTVarList.contains(var); }
+    public static InstanciationContext create(List<PTypeVarSlot> givenTVarList) {
+      InstanciationContext ic = new InstanciationContext();
+      ic.givenTVarList = givenTVarList;
+      ic.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
+      return ic;
+    }
 
-    boolean isInFeatureImpl(PTypeVarSlot var) { return this.applBindings.isInFeatureImpl(var); }
+    private InstanciationContext() {}
+
+    boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
+
+    // boolean isInFeatureImpl(PTypeVarSlot var) { return this.applBindings.isInFeatureImpl(var); }
 
     boolean isBound(PTypeVarSlot var) {
       return this.bindingDict.containsKey(var);
@@ -119,13 +127,13 @@ public interface PTypeSkel {
       return this.bindingDict.get(var);
     }
 
-    boolean isBoundAppl(PTypeVarSlot var) {
-      return this.applBindings.isBound(var);
-    }
+    // boolean isBoundAppl(PTypeVarSlot var) {
+      // return this.applBindings.isBound(var);
+    // }
 
-    PTypeSkel lookupAppl(PTypeVarSlot var) {
-      return this.applBindings.lookup(var);
-    }
+    // PTypeSkel lookupAppl(PTypeVarSlot var) {
+      // return this.applBindings.lookup(var);
+    // }
   }
 
   public static class Repr {

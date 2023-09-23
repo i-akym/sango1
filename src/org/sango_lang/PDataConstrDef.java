@@ -183,8 +183,8 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   }
 
   public PTypeSkel getType(PTypeSkelBindings bindings) {
-    PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-    return this.dataType.toSkel().instanciate(ib);
+    PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
+    return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
   }
 
   public void collectModRefs() throws CompileException {

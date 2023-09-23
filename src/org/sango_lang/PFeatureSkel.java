@@ -98,10 +98,18 @@ public class PFeatureSkel {
     return b;
   }
 
-  PFeatureSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
+  PFeatureSkel resolveBindings(PTypeSkelBindings bindings) {
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
-      ps[i] = this.params[i].instanciate(iBindings);
+      ps[i] = this.params[i].resolveBindings(bindings);
+    }
+    return create(this.defDictGetter, this.srcInfo, this.featureProps, ps);
+  }
+
+  PFeatureSkel instanciate(PTypeSkel.InstanciationContext context) {
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < this.params.length; i++) {
+      ps[i] = this.params[i].instanciate(context);
     }
     return create(this.defDictGetter, this.srcInfo, this.featureProps, ps);
   }
@@ -183,7 +191,7 @@ public class PFeatureSkel {
     // for (int i = 0; i < this.params.length; i++) {
       // b.bind(ps[i].varSlot, this.params[i]);
     // }
-    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(b));
+    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationContext.create(b));
   // }
 
   // PTypeRefSkel calcVarFeatureImpl(PTypeVarSkel tv, PTypeSkelBindings bindings) {
@@ -197,7 +205,7 @@ public class PFeatureSkel {
     // for (int i = 0; i < this.params.length; i++) {
       // b.bind(ps[i].varSlot, this.params[i]);
     // }
-    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(b));
+    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationContext.create(b));
   // }
 
   MFeature toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
@@ -262,10 +270,10 @@ public class PFeatureSkel {
       return b;
     }
 
-    List instanciate(PTypeSkel.InstanciationBindings iBindings) {
+    List instanciate(PTypeSkel.InstanciationContext context) {
       PFeatureSkel[] fs = new PFeatureSkel[this.features.length];
       for (int i = 0; i < this.features.length; i++) {
-        fs[i] = this.features[i].instanciate(iBindings);
+        fs[i] = this.features[i].instanciate(context);
       }
       return create(this.srcInfo, fs);
     }
