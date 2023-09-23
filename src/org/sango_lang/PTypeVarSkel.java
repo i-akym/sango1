@@ -93,43 +93,36 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
-/* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
-    PTypeSkel t;
-// /* DEBUG */ System.out.print("INSTANCIATE V "); System.out.print(this); System.out.print(" "); System.out.print(iBindings.applBindings); System.out.print(" "); System.out.println(iBindings.bindingDict);
-    if (iBindings.isBound(this.varSlot)) {
-// /* DEBUG */ System.out.print("INSTANCIATE 1 "); System.out.println(this);
-      t = iBindings.lookup(this.varSlot);  // created before
-    } else if (iBindings.isBoundAppl(this.varSlot)) {
-// /* DEBUG */ System.out.print("INSTANCIATE 2 "); System.out.println(this);
-      t = iBindings.lookupAppl(this.varSlot).instanciate(iBindings);  // forward
-    } else if (iBindings.isGivenTVar(this.varSlot)) {
-// /* DEBUG */ System.out.print("INSTANCIATE 3 "); System.out.println(this);
-      t = this;
-    } else if (iBindings.isInFeatureImpl(this.varSlot)) {
-// /* DEBUG */ System.out.print("INSTANCIATE 3a "); System.out.println(this);
-      t = this;
-    } else {  // create new var for free
-// /* DEBUG */ System.out.print("INSTANCIATE 4 "); System.out.println(this);
-      PTypeVarSkel v = new PTypeVarSkel();
-      v.srcInfo = this.srcInfo;
-      v.varSlot = PTypeVarSlot.createInternal(this.varSlot.requiresConcrete);
-      v.name = this.name + "." + v.varSlot.id;
-      v.constraint = this.constraint.instanciate(iBindings);
-      // v.constraint = (this.constraint != null)? this.constraint.instanciate(iBindings): null;
-      v.features = this.features.instanciate(iBindings);
-      iBindings.bind(this.varSlot, v);
-      t = v;
-    }
-// /* DEBUG */ System.out.print("INSTANCIATE ! "); System.out.print(this); System.out.print(" => "); System.out.println(t);
-    return t;
-  }
-
   public PTypeSkel resolveBindings(PTypeSkelBindings bindings) {
 /* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
     return (bindings.isBound(this.varSlot))?
       bindings.lookup(this.varSlot).resolveBindings(bindings):
       this;
+  }
+
+  public PTypeSkel instanciate(PTypeSkel.InstanciationContext context) {
+/* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }
+    PTypeSkel t;
+    if (context.isGivenTVar(this.varSlot)) {
+      t = this;
+    } else if (context.isBound(this.varSlot)) {
+      t = context.lookup(this.varSlot);  // created before
+    // } else if (context.isBoundAppl(this.varSlot)) {
+      // t = context.lookupAppl(this.varSlot).instanciate(context);  // forward
+    // } else if (context.isInFeatureImpl(this.varSlot)) {  // needed?
+      // t = this;
+    } else {  // create new var for free
+      PTypeVarSkel v = new PTypeVarSkel();
+      v.srcInfo = this.srcInfo;
+      v.varSlot = PTypeVarSlot.createInternal(this.varSlot.requiresConcrete);
+      v.name = this.name + "." + v.varSlot.id;
+      v.constraint = this.constraint.instanciate(context);
+      v.features = this.features.instanciate(context);
+      context.bind(this.varSlot, v);
+      t = v;
+    }
+// /* DEBUG */ System.out.print("INSTANCIATE ! "); System.out.print(this); System.out.print(" => "); System.out.println(t);
+    return t;
   }
 
   public boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
@@ -414,7 +407,7 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel t;
     PTypeSkel.JoinResult r;
     if ((r = this.join2(PTypeSkel.WIDER, true, type, PTypeSkelBindings.create(givenTVarList))) != null) {
-      t = r.joined.instanciate(PTypeSkel.InstanciationBindings.create(r.bindings));
+      t = r.joined.instanciate(PTypeSkel.InstanciationContext.create(r.bindings));
     } else {
       t = null;
     }

@@ -102,7 +102,7 @@ public class PTypeRefSkel implements PTypeSkel {
       for (int j = 0; j < sig.params.length; j++) {
         bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
       }
-      fs[i] = f.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+      fs[i] = f.resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
 // /* DEBUG */ System.out.println(fs[i]);
     }
     this.features = PFeatureSkel.List.create(this.srcInfo, fs);
@@ -235,21 +235,6 @@ public class PTypeRefSkel implements PTypeSkel {
     return ww;
   }
 
-  public PTypeSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
-// /* DEBUG */ System.out.print("INSTANCIATE R "); System.out.print(this); System.out.print(" "); System.out.print(iBindings.applBindings); System.out.print(" "); System.out.println(iBindings.bindingDict);
-    PTypeRefSkel tr;
-    if (isAny(this)) {
-      tr = this;
-    } else {
-      PTypeSkel[] ps = new PTypeSkel[this.params.length];
-      for (int i = 0; i < ps.length; i++) {
-        ps[i] = this.params[i].instanciate(iBindings);
-      }
-      tr = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
-    }
-    return tr;
-  }
-
   public PTypeRefSkel resolveBindings(PTypeSkelBindings bindings) {
     PTypeRefSkel tr;
     if (isAny(this)) {
@@ -258,6 +243,21 @@ public class PTypeRefSkel implements PTypeSkel {
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
       for (int i = 0; i < ps.length; i++) {
         ps[i] = this.params[i].resolveBindings(bindings);
+      }
+      tr = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
+    }
+    return tr;
+  }
+
+  public PTypeSkel instanciate(PTypeSkel.InstanciationContext context) {
+// /* DEBUG */ System.out.print("INSTANCIATE R "); System.out.print(this); System.out.print(" "); System.out.print(context.applBindings); System.out.print(" "); System.out.println(context.bindingDict);
+    PTypeRefSkel tr;
+    if (isAny(this)) {
+      tr = this;
+    } else {
+      PTypeSkel[] ps = new PTypeSkel[this.params.length];
+      for (int i = 0; i < ps.length; i++) {
+        ps[i] = this.params[i].instanciate(context);
       }
       tr = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
     }
@@ -581,7 +581,7 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel t;
     PTypeSkel.JoinResult r;
     if ((r = this.join2(PTypeSkel.WIDER, true, type, PTypeSkelBindings.create(givenTVarList))) != null) {
-      t = r.joined.instanciate(PTypeSkel.InstanciationBindings.create(r.bindings));
+      t = r.joined.instanciate(PTypeSkel.InstanciationContext.create(r.bindings));
     } else {
       t = null;
     }

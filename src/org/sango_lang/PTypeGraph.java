@@ -358,16 +358,16 @@ class PTypeGraph {
       }
       PTypeSkel rt = def.getRetType();
       PTypeSkel[] ts = new PTypeSkel[pts.length + 1];
-      PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
-      PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(b);
+      // PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
+      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(this.getGivenTvarList());
       for (int i = 0; i < pts.length; i++) {
-        ts[i] = pts[i].instanciate(ib);
+        ts[i] = pts[i].instanciate(ic);  // resolving is not needed
       }
-      ts[ts.length - 1] = rt.instanciate(ib);
-      if (DEBUG > 1) {
-      /* DEBUG */ System.out.print("bindings: ");
-      /* DEBUG */ System.out.println(b);
-      }
+      ts[ts.length - 1] = rt.instanciate(ic);  // resolving is not needed
+      // if (DEBUG > 1) {
+      // /* DEBUG */ System.out.print("bindings: ");
+      // /* DEBUG */ System.out.println(b);
+      // }
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "fun", ts);
     }
   }
@@ -491,8 +491,8 @@ class PTypeGraph {
       /* DEBUG */ System.out.print("bindings: ");
       /* DEBUG */ System.out.println(sel.bindings);
       }
-      PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(this.bindings);
-      return rt.instanciate(ib);
+      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(this.bindings);
+      return rt.resolveBindings(this.bindings).instanciate(ic);
     }
 
     void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
@@ -596,8 +596,8 @@ if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
       /* DEBUG */ System.out.println(this.bindings);
 }
-      PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(this.bindings);
-      return ctr.params[ctr.params.length - 1].instanciate(ib);
+      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(this.bindings);
+      return ctr.params[ctr.params.length - 1].resolveBindings(this.bindings).instanciate(ic);
     }
   }
 
@@ -1187,8 +1187,8 @@ if (DEBUG > 1) {
       PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
       PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
 // /* DEBUG */ System.out.println(attr.getNormalizedType());
-      PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(b);
-      return attr.getNormalizedType().instanciate(ib);
+      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(b);
+      return attr.getNormalizedType().resolveBindings(b).instanciate(ic);
     }
   }
 

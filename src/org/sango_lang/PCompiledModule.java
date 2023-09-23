@@ -461,8 +461,8 @@ class PCompiledModule implements PDefDict {
     }
 
     public PTypeSkel getType(PTypeSkelBindings bindings) {
-      PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
-      return this.dataDef.getTypeSig().instanciate(ib);
+      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
+      return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
     }
 
     AttrDef addAttr(String name, PTypeSkel type) {
