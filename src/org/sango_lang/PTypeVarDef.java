@@ -58,17 +58,15 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     if (this.requiresConcrete) {
       buf.append("!");
     }
-    if (this.constraint != null) {
-      buf.append(",constraint=");
-      buf.append(this.constraint);
-    }
-    if (this.features != null) {
-      buf.append(",features=");
-      buf.append(this.features);
-    }
     if (this.varSlot != null) {
       buf.append(",slot=");
       buf.append(this.varSlot);
+    }
+    buf.append(",constraint=");
+    buf.append(this.constraint);
+    if (this.features != null) {
+      buf.append(",features=");
+      buf.append(this.features);
     }
     buf.append("]");
     return buf.toString();
