@@ -63,25 +63,25 @@ public class PTypeRefSkel implements PTypeSkel {
     return PDefDict.TconProps.createUnresolved(idKey);
   }
 
-  PTypeRefSkel castFor(PTypeVarSkel var, PTypeSkelBindings bindings) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#castFor "); System.out.print(this); System.out.print(" "); System.out.print(var); System.out.print(" "); System.out.println(bindings);
-}
-    PTypeRefSkel t = new PTypeRefSkel();
-    t.defDictGetter = this.defDictGetter;
-    t.srcInfo = this.srcInfo;
-    t.tconProps = this.tconProps;
-    t.ext = this.ext;
-    t.params = new PTypeSkel[this.params.length];
-    for (int i = 0; i < t.params.length; i++) {
-      PTypeVarSkel v;
-        PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s, null, PFeatureSkel.List.createEmpty(this.srcInfo));  // constraint, features == null ok?
-      t.params[i] = v;
-    }
-    bindings.bind(var.varSlot, t);
-    return t;
-  }
+  // PTypeRefSkel castFor(PTypeVarSkel var, PTypeSkelBindings bindings) {
+// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  // System.out.print("PTypeRefSkel#castFor "); System.out.print(this); System.out.print(" "); System.out.print(var); System.out.print(" "); System.out.println(bindings);
+// }
+    // PTypeRefSkel t = new PTypeRefSkel();
+    // t.defDictGetter = this.defDictGetter;
+    // t.srcInfo = this.srcInfo;
+    // t.tconProps = this.tconProps;
+    // t.ext = this.ext;
+    // t.params = new PTypeSkel[this.params.length];
+    // for (int i = 0; i < t.params.length; i++) {
+      // PTypeVarSkel v;
+        // PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
+        // v = PTypeVarSkel.create(this.srcInfo, null, s, null, PFeatureSkel.List.createEmpty(this.srcInfo));  // constraint, features == null ok?
+      // t.params[i] = v;
+    // }
+    // bindings.bind(var.varSlot, t);
+    // return t;
+  // }
 
   PFeatureSkel.List getFeatures() {
     if (this.features == null) {

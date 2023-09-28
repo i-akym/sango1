@@ -62,12 +62,12 @@ public class PTypeVarSkel implements PTypeSkel {
     StringBuffer buf = new StringBuffer();
     buf.append("tvarskel[src=");
     buf.append(this.srcInfo);
-    buf.append(",features=");
-    buf.append(this.features);
-    buf.append(",constraint=");
-    buf.append(this.constraint);
     buf.append(",name=");
     buf.append(this.name);
+    buf.append(",constraint=");
+    buf.append(this.constraint);
+    buf.append(",features=");
+    buf.append(this.features);
     buf.append("]");
     return buf.toString();
   }
@@ -107,8 +107,6 @@ public class PTypeVarSkel implements PTypeSkel {
       t = this;
     } else if (context.isBound(this.varSlot)) {
       t = context.lookup(this.varSlot);  // created before
-    // } else if (context.isBoundAppl(this.varSlot)) {
-      // t = context.lookupAppl(this.varSlot).instanciate(context);  // forward
     // } else if (context.isInFeatureImpl(this.varSlot)) {  // needed?
       // t = this;
     } else {  // create new var for free
@@ -237,20 +235,26 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1GivenFree "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (!PTypeRefSkel.isAny(this.constraint)) {
-      throw new RuntimeException("Oops, constrained var is not supported. " + this.toString());
-    }
-    if (!PTypeRefSkel.isAny(tv.constraint)) {
-      throw new RuntimeException("Oops, constrained var is not supported. " + tv.toString());
-    }
+    PTypeVarSkel gg;
     if (this.features.features.length > 0) {
       throw new RuntimeException("Oops, var with feature(s) is not supported. " + this.toString());
     }
     if (tv.features.features.length > 0) {
       throw new RuntimeException("Oops, var with feature(s) is not supported. " + tv.toString());
     }
-    bindings.bind(tv.varSlot, this);  // HERE: casting needed
-    b = true;
+    if (!this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
+      gg = null;
+    } else if (this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
+      gg = create(this.srcInfo, null, this.varSlot, tv.constraint, tv.features);
+    } else {
+      gg = null;
+    }
+    if (gg == null) {
+      b = false;
+    } else {
+      bindings.bind(tv.varSlot, gg);
+      b = true;
+    }
     return b;
   }
 
@@ -575,13 +579,6 @@ if (PTypeGraph.DEBUG > 1) {
       this.constraint.extractVars(extracted);
     }
     this.features.extractVars(extracted);
-  }
-
-  PTypeRefSkel castTo(PTypeRefSkel tr, PTypeSkelBindings bindings) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#castTo "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
-}
-    return tr.castFor(this, bindings);
   }
 
   public void collectTconProps(List<PDefDict.TconProps> list) {}

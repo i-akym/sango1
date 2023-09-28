@@ -94,6 +94,12 @@ public class PTypeSkelBindings {
 
   boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
 
+  void addGivenTVar(PTypeVarSlot var) {
+/* DEBUG */ if (this.isGivenTVar(var) ) { throw new IllegalArgumentException("Already listed as given. " + var.toString() + " " + this.toString()); }
+/* DEBUG */ if (this.isBound(var)) { throw new IllegalArgumentException("Not free. " + var.toString() + " " + this.toString()); }
+    this.givenTVarList.add(var);
+  }
+
   PTypeSkelBindings copyForFeatureImpl(PTypeVarSlot var) {
     PTypeSkelBindings b = this.copy();
     b.featureTVarList.add(var);
