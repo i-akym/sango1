@@ -167,6 +167,19 @@ public class PTypeRefSkel implements PTypeSkel {
     return c;
   }
 
+  public void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException {
+    if (isFun(this)) {
+      for (int i = 0; i < this.params.length - 1; i++) {
+        this.params[i].checkConstraint(true, checked);
+      }
+      this.params[this.params.length - 1].checkConstraint(false, checked);
+    } else {
+      for (int i = 0; i < this.params.length; i++) {
+        this.params[i].checkConstraint(isArg, checked);
+      }
+    }
+  }
+
   public boolean isLiteralNaked() {
     return this.tconProps.key.modName.equals(Module.MOD_LANG) && 
       this.tconProps.key.idName.equals(Module.TCON_EXPOSED) ;
