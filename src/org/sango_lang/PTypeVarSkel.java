@@ -338,17 +338,17 @@ public class PTypeVarSkel implements PTypeSkel {
 }
     boolean b;
     if (!bindsRef) {
-      if (bindings.isBound(tv.varSlot)) {
+      if (bindings.isGivenTVar(tv.varSlot)) {
         b = false;
-      } else if (bindings.isGivenTVar(tv.varSlot)) {
+      } else if (!this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
         b = false;
       } else if (this.varSlot.requiresConcrete != tv.varSlot.requiresConcrete) {
         b = false;
-// HERE: check constraint
       } else {  // a kind of casting...
-        PTypeVarSkel var = create(this.srcInfo, null,
-          PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
-        bindings.bind(tv.varSlot, var);
+        bindings.bind(tv.varSlot, this);
+        // PTypeVarSkel var = create(this.srcInfo, null,
+          // PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
+        // bindings.bind(tv.varSlot, var);
         b = true;
       }
     } else if (!this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
@@ -371,9 +371,10 @@ public class PTypeVarSkel implements PTypeSkel {
       bindings.bind(this.varSlot, tv);
       b = true;
     } else {
-      PTypeVarSkel var = create(this.srcInfo, null,
-        PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
-      bindings.bind(tv.varSlot, var);
+      bindings.bind(tv.varSlot, this);
+      // PTypeVarSkel var = create(this.srcInfo, null,
+        // PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
+      // bindings.bind(tv.varSlot, var);
       b = true;
     }
     return b;
