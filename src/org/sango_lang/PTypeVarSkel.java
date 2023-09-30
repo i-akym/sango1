@@ -78,6 +78,25 @@ public class PTypeVarSkel implements PTypeSkel {
     return PTypeSkel.CAT_VAR;
   }
 
+  public void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException {
+    StringBuffer emsg;
+    if (checked.contains(this.varSlot)) { return; }
+    if (PTypeRefSkel.isAny(this.constraint)) {
+      checked.add(this.varSlot);
+    } else if (!isArg) {
+      emsg = new StringBuffer();
+      emsg.append("Constraint not allowed for ");
+      emsg.append(this.name);
+      emsg.append(" at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    } else {
+      this.constraint.checkConstraint(false, checked);
+      checked.add(this.varSlot);
+    }
+  }
+
   public boolean isLiteralNaked() { return false; }
 
   public boolean isConcrete() { return this.varSlot.requiresConcrete; }

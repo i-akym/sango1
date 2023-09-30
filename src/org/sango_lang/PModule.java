@@ -1308,7 +1308,11 @@ class PModule implements PDefDict {
   void makeSureTypeConsistency() throws CompileException {
     PTypeGraph g = PTypeGraph.create(this.theCompiler, this);
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.get(i).setupTypeGraph(g);
+      PEvalStmt e = this.evalStmtList.get(i);
+
+      // check constraint
+
+      e.setupTypeGraph(g);
     }
     g.inferAll();
   }

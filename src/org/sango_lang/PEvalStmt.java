@@ -443,6 +443,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
       pts[i] = this.params[i].getNormalizedType();
+      // pts[i].checkConstraint(true);
     }
     return pts;
   }
@@ -456,7 +457,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   }
 
   public PTypeSkel getRetType() throws CompileException {
-    return this.retDef.getNormalizedType();
+    PTypeSkel r = this.retDef.getNormalizedType();
+    // r.checkConstraint(false);
+    return r;
   }
 
   public PTypeSkel getFixedRetType() {
