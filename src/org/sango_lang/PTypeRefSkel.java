@@ -438,7 +438,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#acceptGenericVar 5 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       this.castVarToMe(tv, bindings);
-      b = true;
+      b = this.accept(width, bindsRef, tv, bindings);
     }
     return b;
   }
