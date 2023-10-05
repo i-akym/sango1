@@ -357,19 +357,23 @@ public class PTypeVarSkel implements PTypeSkel {
 }
     boolean b;
     if (!bindsRef) {
-      if (bindings.isGivenTVar(tv.varSlot)) {
-        b = false;
-      } else if (!this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
-        b = false;
-      } else if (this.varSlot.requiresConcrete != tv.varSlot.requiresConcrete) {
-        b = false;
-      } else {  // a kind of casting...
-        bindings.bind(tv.varSlot, this);
-        // PTypeVarSkel var = create(this.srcInfo, null,
-          // PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
-        // bindings.bind(tv.varSlot, var);
-        b = true;
-      }
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = this.accept1GivenVar(width, bindsRef, tv, bindings);  // same meaning
+      // if (bindings.isGivenTVar(tv.varSlot)) {
+        // b = false;
+      // } else if (!this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
+        // b = false;
+      // } else if (this.varSlot.requiresConcrete != tv.varSlot.requiresConcrete) {
+        // b = false;
+      // } else {  // a kind of casting...
+        // bindings.bind(tv.varSlot, this);
+        // // PTypeVarSkel var = create(this.srcInfo, null,
+          // // PTypeVarSlot.createInternal(this.varSlot.requiresConcrete), this.constraint, this.features);  // ok?
+        // // bindings.bind(tv.varSlot, var);
+        // b = true;
+      // }
     } else if (!this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
