@@ -206,10 +206,10 @@ class PTypeGraph {
       this.name = name;
       this.cat = cat;
       this.type = exprObj.getNormalizedType(); 
-      if (this.type != null && this.cat != PExprVarDef.CAT_FUN_PARAM) {
-        // already checked when fun param
-        this.type.checkConstraint(false, new ArrayList<PTypeVarSlot>());
-      }
+      // if (this.type != null && this.cat != PExprVarDef.CAT_FUN_PARAM) {
+        // // already checked when fun param
+        // this.type.checkConstraint(false, new ArrayList<PTypeVarSlot>());
+      // }
     }
 
     PTypeSkel infer() throws CompileException {

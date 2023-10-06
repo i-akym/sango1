@@ -67,14 +67,14 @@ interface PType extends PProgObj {
       /* 0 */ ACCEPTABLE_NONE,  // no more
       /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
       /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
-      /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE + ACCEPTABLE_BOUND,  // -> 3; 4 if constrained var
-      /* 4 */ ACCEPTABLE_VARDEF  // -> 0
+      /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE /* + ACCEPTABLE_BOUND, */  // -> 3; 4 if constrained var
+      // /* 4 */ ACCEPTABLE_VARDEF  // -> 0
     };
 
     Parser.SrcInfo srcInfo;
     PScope scope;
     List<PProgObj> itemList;
-    PTypeVarDef constrainedVar;
+    // PTypeVarDef constrainedVar;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
       return new Builder(srcInfo, scope);
@@ -90,9 +90,9 @@ interface PType extends PProgObj {
       this.itemList.add(item);
     }
 
-    void setConstrainedVar(PTypeVarDef var) {
-      this.constrainedVar = var;
-    }
+    // void setConstrainedVar(PTypeVarDef var) {
+      // this.constrainedVar = var;
+    // }
 
     PType create() throws CompileException {
       StringBuffer emsg;
@@ -140,10 +140,10 @@ interface PType extends PProgObj {
       } else {
         throw new IllegalArgumentException("Invalid item " + anchor.toString());
       }
-      if (this.constrainedVar != null) {
-        this.constrainedVar.constraint = t;
-        t = this.constrainedVar;
-      }
+      // if (this.constrainedVar != null) {
+        // this.constrainedVar.constraint = t;
+        // t = this.constrainedVar;
+      // }
       return t;
     }
   }
@@ -163,7 +163,6 @@ interface PType extends PProgObj {
       return null;
     }
     Builder builder = Builder.newInstance(t.getSrcInfo(), scope);
-    // builder.setSrcInfo(t.getSrcInfo());
     PProgObj item;
     int state = acceptsVarDef? 1: 2;
     int sp = ParserA.SPACE_DO_NOT_CARE;
@@ -180,18 +179,18 @@ interface PType extends PProgObj {
           sp = ParserA.SPACE_NEEDED;
           break;
         case 3:
-          if (item instanceof Bound) {
-            sp = ParserA.SPACE_DO_NOT_CARE;;
-            state = 4;
-          } else {
+          // if (item instanceof Bound) {
+            // sp = ParserA.SPACE_DO_NOT_CARE;;
+            // state = 4;
+          // } else {
             builder.addItem(item);
             sp = ParserA.SPACE_NEEDED;
-          }
+          // }
           break;
-        case 4:
-          builder.setConstrainedVar((PTypeVarDef)item);
-          state = 0;
-          break;
+        // case 4:
+          // builder.setConstrainedVar((PTypeVarDef)item);
+          // state = 0;
+          // break;
         default:
           throw new RuntimeException("Should not reach here.");
         }
@@ -264,13 +263,13 @@ interface PType extends PProgObj {
         throw new CompileException(emsg.toString());
       }
       PTypeVarDef v = (PTypeVarDef)sig.params[i];
-      if (v.constraint != null) {
-        emsg = new StringBuffer();
-        emsg.append("Constrained type parameter not allowed at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      // if (v.constraint != null) {
+        // emsg = new StringBuffer();
+        // emsg.append("Constrained type parameter not allowed at ");
+        // emsg.append(sig.params[i].getSrcInfo());
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
     }
     if (!qual.contains(Parser.WITH_QUAL) && sig.tcon.modId != null) {
       emsg = new StringBuffer();
@@ -300,9 +299,9 @@ interface PType extends PProgObj {
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
         && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
       ;
-    } else if ((acceptables & ACCEPTABLE_BOUND) > 0
-        && (item = Bound.accept(reader, scope)) != null) {
-      ;
+    // } else if ((acceptables & ACCEPTABLE_BOUND) > 0
+        // && (item = Bound.accept(reader, scope)) != null) {
+      // ;
     } else {
       item = null;
     }
@@ -450,48 +449,48 @@ interface PType extends PProgObj {
     }
   }
 
-  // pseudo object
-  static class Bound extends PDefaultProgObj {
-    private Bound(Parser.SrcInfo srcInfo, PScope scope) {
-      super(srcInfo, scope);
-    }
+  // // pseudo object
+  // static class Bound extends PDefaultProgObj {
+    // private Bound(Parser.SrcInfo srcInfo, PScope scope) {
+      // super(srcInfo, scope);
+    // }
 
-    static Bound accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      ParserA.Token t;
-      if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
-        return null;
-      }
-      return new Bound(t.getSrcInfo(), scope);
-    }
+    // static Bound accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+      // ParserA.Token t;
+      // if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        // return null;
+      // }
+      // return new Bound(t.getSrcInfo(), scope);
+    // }
 
-    public String toString() {
-      StringBuffer buf = new StringBuffer();
-      buf.append("bound");
-      return buf.toString();
-    }
+    // public String toString() {
+      // StringBuffer buf = new StringBuffer();
+      // buf.append("bound");
+      // return buf.toString();
+    // }
 
-    public Bound unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-      throw new RuntimeException("Bound#unresolvedCopy is called.");
-    }
+    // public Bound unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+      // throw new RuntimeException("Bound#unresolvedCopy is called.");
+    // }
 
-    public void collectModRefs() throws CompileException {
-      throw new RuntimeException("Bound#collectModRefs is called.");
-    }
+    // public void collectModRefs() throws CompileException {
+      // throw new RuntimeException("Bound#collectModRefs is called.");
+    // }
 
-    public PTypeId resolve() throws CompileException {
-      throw new RuntimeException("Bound#resolveId is called.");
-    }
+    // public PTypeId resolve() throws CompileException {
+      // throw new RuntimeException("Bound#resolveId is called.");
+    // }
 
-    public PDefDict.TconProps getTconProps() {
-      throw new RuntimeException("Bound#getTconProps is called.");
-    }
+    // public PDefDict.TconProps getTconProps() {
+      // throw new RuntimeException("Bound#getTconProps is called.");
+    // }
 
-    public void excludePrivateAcc() throws CompileException {
-      throw new RuntimeException("Bound#excludePrivateAcc is called.");
-    }
+    // public void excludePrivateAcc() throws CompileException {
+      // throw new RuntimeException("Bound#excludePrivateAcc is called.");
+    // }
 
-    public PTypeSkel getSkel() {
-      throw new RuntimeException("Bound#getSkel is called.");
-    }
-  }
+    // public PTypeSkel getSkel() {
+      // throw new RuntimeException("Bound#getSkel is called.");
+    // }
+  // }
 }

@@ -38,8 +38,8 @@ public interface PTypeSkel {
   static final int CAT_SOME = 3;
   static final int CAT_VAR = 4;
 
-  void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException;
-  // caution: to be used to normalized skel
+  // void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException;
+  // // caution: to be used to normalized skel
 
   boolean isLiteralNaked();
 

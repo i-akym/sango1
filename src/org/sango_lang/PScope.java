@@ -150,7 +150,7 @@ class PScope {
       && !this.evarDict.containsKey(varDef.name)
       && !this.outerTVarDict.containsKey(varDef.name)
       && !this.outerEVarDict.containsKey(varDef.name)
-      && !(this.parent != null && this.parent.pos < 0 && varDef.constraint == null);  // inhibit normal var in data constr
+      && !(this.parent != null && this.parent.pos < 0 /* && varDef.constraint == null*/);  // inhibit normal var in data constr
   }
 
   boolean canDefineEVar(PExprVarDef varDef) {
@@ -328,18 +328,18 @@ class PScope {
     return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
-  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo /* , Module.Variance variance */) {
-    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), /* variance, */ false, null, null);
+  PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo) {
+    PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), false, /* null, */ null);
     return v;
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    PTypeVarDef nv = this.getNewTVar(srcInfo /* , Module.INVARIANT */ );
+    PTypeVarDef nv = this.getNewTVar(srcInfo);
     return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).toSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    PTypeVarDef nv = this.getNewTVar(srcInfo /* , Module.INVARIANT */);
+    PTypeVarDef nv = this.getNewTVar(srcInfo);
     return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).toSkel();
   }
 

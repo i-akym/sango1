@@ -384,7 +384,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), null, PFeatureSkel.List.createEmpty(null));
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), /* null, */ PFeatureSkel.List.createEmpty(null));
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
@@ -718,16 +718,15 @@ class PCompiledModule implements PDefDict {
 // /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
       v = PTypeVarSkel.create(null, null,
-        PTypeVarSlot.createInternal(tv.requiresConcrete), null, null);
+        PTypeVarSlot.createInternal(tv.requiresConcrete), /* null, */ null);
       varList.add(v);
-      if (tv.constraint != null) {
-        v.constraint = (PTypeRefSkel)this.convertType(tv.constraint, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
-      }
+      // if (tv.constraint != null) {
+        // v.constraint = (PTypeRefSkel)this.convertType(tv.constraint, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      // }
       v.features = this.convertFeatures(tv.features, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
     } else {
       throw new RuntimeException("Slot number is not sequential. " + mod.name.toJavaString() + " " + tv.toString() + " " + varList.size());
     }
-// /* DEBUG */ if (v.constraint != null) { System.out.print("CONVERT "); System.out.print(tv); System.out.print(" -> "); System.out.println(v); }
     return v;
   }
 
