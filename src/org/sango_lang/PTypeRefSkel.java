@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PTypeRefSkel implements PTypeSkel {
-  static final PTypeRefSkel ANY = createAny();
+  // static final PTypeRefSkel ANY = createAny();
 
   PDefDict.DefDictGetter defDictGetter;
   Parser.SrcInfo srcInfo;
@@ -51,17 +51,17 @@ public class PTypeRefSkel implements PTypeSkel {
     return t;
   }
 
-  private static PTypeRefSkel createAny() {
-    PTypeRefSkel t = new PTypeRefSkel();
-    t.tconProps = createTconPropsOfAny();
-    t.params = new PTypeSkel[0];
-    return t;
-  }
+  // private static PTypeRefSkel createAny() {
+    // PTypeRefSkel t = new PTypeRefSkel();
+    // t.tconProps = createTconPropsOfAny();
+    // t.params = new PTypeSkel[0];
+    // return t;
+  // }
 
-  private static PDefDict.TconProps createTconPropsOfAny() {
-    PDefDict.IdKey idKey = PDefDict.IdKey.create(Module.MOD_LANG, "@ANY");
-    return PDefDict.TconProps.createUnresolved(idKey);
-  }
+  // private static PDefDict.TconProps createTconPropsOfAny() {
+    // PDefDict.IdKey idKey = PDefDict.IdKey.create(Module.MOD_LANG, "@ANY");
+    // return PDefDict.TconProps.createUnresolved(idKey);
+  // }
 
   // PTypeRefSkel castFor(PTypeVarSkel var, PTypeSkelBindings bindings) {
 // /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
@@ -159,26 +159,26 @@ public class PTypeRefSkel implements PTypeSkel {
     int c;
     if (isBottom(this)) {
       c = PTypeSkel.CAT_BOTTOM;
-    } else if (isAny(this)) {
-      c = PTypeSkel.CAT_ANY;
+    // } else if (isAny(this)) {
+      // c = PTypeSkel.CAT_ANY;
     } else {
       c = PTypeSkel.CAT_SOME;
     }
     return c;
   }
 
-  public void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException {
-    if (isFun(this)) {
-      for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].checkConstraint(true, checked);
-      }
-      this.params[this.params.length - 1].checkConstraint(false, checked);
-    } else {
-      for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkConstraint(isArg, checked);
-      }
-    }
-  }
+  // public void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException {
+    // if (isFun(this)) {
+      // for (int i = 0; i < this.params.length - 1; i++) {
+        // this.params[i].checkConstraint(true, checked);
+      // }
+      // this.params[this.params.length - 1].checkConstraint(false, checked);
+    // } else {
+      // for (int i = 0; i < this.params.length; i++) {
+        // this.params[i].checkConstraint(isArg, checked);
+      // }
+    // }
+  // }
 
   public boolean isLiteralNaked() {
     return this.tconProps.key.modName.equals(Module.MOD_LANG) && 
@@ -250,30 +250,30 @@ public class PTypeRefSkel implements PTypeSkel {
 
   public PTypeRefSkel resolveBindings(PTypeSkelBindings bindings) {
     PTypeRefSkel tr;
-    if (isAny(this)) {
-      tr = this;
-    } else {
+    // if (isAny(this)) {
+      // tr = this;
+    // } else {
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
       for (int i = 0; i < ps.length; i++) {
         ps[i] = this.params[i].resolveBindings(bindings);
       }
       tr = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
-    }
+    // }
     return tr;
   }
 
   public PTypeSkel instanciate(PTypeSkel.InstanciationContext context) {
 // /* DEBUG */ System.out.print("INSTANCIATE R "); System.out.print(this); System.out.print(" "); System.out.print(context.applBindings); System.out.print(" "); System.out.println(context.bindingDict);
     PTypeRefSkel tr;
-    if (isAny(this)) {
-      tr = this;
-    } else {
+    // if (isAny(this)) {
+      // tr = this;
+    // } else {
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
       for (int i = 0; i < ps.length; i++) {
         ps[i] = this.params[i].instanciate(context);
       }
       tr = create(this.defDictGetter, this.srcInfo, this.tconProps, this.ext, ps);
-    }
+    // }
     return tr;
   }
 
@@ -426,11 +426,11 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#acceptGenericVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (!this.accept(width, bindsRef, tv.constraint, bindings)) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptGenericVar 4 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      b = false;
+    // } else if (!this.accept(width, bindsRef, tv.constraint, bindings)) {
+// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  // System.out.print("PTypeRefSkel#acceptGenericVar 4 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+// }
+      // b = false;
     } else if (tv.features.features.length > 0) {
       throw new RuntimeException("Oops, var with features not supported for casting. " + tv.toString());  // HERE
     } else {
@@ -559,7 +559,7 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
         PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s, null, PFeatureSkel.List.createEmpty(this.srcInfo));  // constraint, features == null ok?
+        v = PTypeVarSkel.create(this.srcInfo, null, s, /* null, */ PFeatureSkel.List.createEmpty(this.srcInfo));  // features empty ok?
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);
@@ -682,9 +682,9 @@ if (PTypeGraph.DEBUG > 1) {
     return isLangType(type, Module.TCON_BOTTOM);
   }
 
-  static boolean isAny(PTypeSkel type) {
-    return isLangType(type, "@ANY");
-  }
+  // static boolean isAny(PTypeSkel type) {
+    // return isLangType(type, "@ANY");
+  // }
 
   static boolean willNotReturn(PTypeSkel type) {
     return isLangType(type, Module.TCON_BOTTOM);

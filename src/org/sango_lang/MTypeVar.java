@@ -31,16 +31,16 @@ import org.w3c.dom.Node;
 class MTypeVar implements MType {
   int slot;
   boolean requiresConcrete;
-  MType constraint;  // maybe null
+  // MType constraint;  // maybe null
   MFeature.List features;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, boolean requiresConcrete, MType constraint, MFeature.List features) {
+  static MTypeVar create(int slot, boolean requiresConcrete, /* MType constraint, */ MFeature.List features) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
     t.requiresConcrete = requiresConcrete;
-    t.constraint = constraint;
+    // t.constraint = constraint;
     t.features = features;
     return t;
   }
@@ -48,10 +48,10 @@ class MTypeVar implements MType {
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("<");
-    if (this.constraint != null) {
-      buf.append(this.constraint.toString());  // HERE: do not embrace by < >
-      buf.append(" = ");
-    }
+    // if (this.constraint != null) {
+      // buf.append(this.constraint.toString());  // HERE: do not embrace by < >
+      // buf.append(" = ");
+    // }
     buf.append("_");
     buf.append(this.slot);
     if (this.requiresConcrete) {
@@ -71,11 +71,11 @@ class MTypeVar implements MType {
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
-    if (this.constraint != null) {
-      Element c = doc.createElement(Module.TAG_CONSTRAINT);
-      c.appendChild(this.constraint.externalize(doc));
-      node.appendChild(c);
-    }
+    // if (this.constraint != null) {
+      // Element c = doc.createElement(Module.TAG_CONSTRAINT);
+      // c.appendChild(this.constraint.externalize(doc));
+      // node.appendChild(c);
+    // }
     if (this.features != null && this.features.features.length > 0) {
       node.appendChild(this.features.externalize(doc));
     }
@@ -106,13 +106,13 @@ class MTypeVar implements MType {
 
     Node n = node.getFirstChild();
     MFeature.List features = null;
-    MType constraint = null;
+    // MType constraint = null;
     int state = 0;
     while (n != null) {
       if (Module.isIgnorable(n)) {
         ;
-      } else if (state < 1 && (constraint = internalizeConstraint(n)) != null) {
-        state = 1;
+      // } else if (state < 1 && (constraint = internalizeConstraint(n)) != null) {
+        // state = 1;
       } else if (state < 2 && (features = MFeature.List.internalize(n)) != null) {
         state = 2;
       } else {
@@ -120,27 +120,27 @@ class MTypeVar implements MType {
       }
       n = n.getNextSibling();
     }
-    return create(slot, requiresConcrete, constraint, features);
+    return create(slot, requiresConcrete, /* constraint, */ features);
   }
 
-  static MType internalizeConstraint(Node node) throws FormatException {
-    if (!node.getNodeName().equals(Module.TAG_CONSTRAINT)) { return null; }
+  // static MType internalizeConstraint(Node node) throws FormatException {
+    // if (!node.getNodeName().equals(Module.TAG_CONSTRAINT)) { return null; }
 
-    Node n = node.getFirstChild();
-    MType constraint = null;
-    int state = 0;
-    while (n != null) {
-      if (Module.isIgnorable(n)) {
-        ;
-      } else if (state == 0 && (constraint = MType.Envelope.internalizeDesc(n)) != null) {
-        state = 1;
-      } else {
-        throw new FormatException("Unknown or extra element : " + n.getNodeName());
-      }
-      n = n.getNextSibling();
-    }
-    return constraint;
-  }
+    // Node n = node.getFirstChild();
+    // MType constraint = null;
+    // int state = 0;
+    // while (n != null) {
+      // if (Module.isIgnorable(n)) {
+        // ;
+      // } else if (state == 0 && (constraint = MType.Envelope.internalizeDesc(n)) != null) {
+        // state = 1;
+      // } else {
+        // throw new FormatException("Unknown or extra element : " + n.getNodeName());
+      // }
+      // n = n.getNextSibling();
+    // }
+    // return constraint;
+  // }
 
   public boolean isCompatible(Module.ModTab modTab, MType type, Module.ModTab defModTab) {
     boolean b;
