@@ -45,6 +45,14 @@ public class PTypeVarSkel implements PTypeSkel {
     return var;
   }
 
+  void castRequiresConcrete(PTypeSkelBindings bindings) {
+    if (this.varSlot.requiresConcrete) { throw new RuntimeException("Already concreate. " + this.toString()); }
+    PTypeVarSlot s = PTypeVarSlot.createInternal(true);
+    String n = this.name + "." + s.id;
+    PTypeVarSkel v = create(this.srcInfo, n, s, this.features);
+    bindings.bind(this.varSlot, v);
+  }
+
   public boolean equals(Object o) {
     boolean b;
     if (o == this) {
@@ -204,11 +212,11 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1Given A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (cat == PTypeSkel.CAT_ANY) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1Given A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      throw new RuntimeException("Attempt to accept ANY by var. " + this.toString());
+    // } else if (cat == PTypeSkel.CAT_ANY) {
+// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  // System.out.print("PTypeVarSkel#accept1Given A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+// }
+      // throw new RuntimeException("Attempt to accept ANY by var. " + this.toString());
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Given B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
@@ -284,11 +292,11 @@ public class PTypeVarSkel implements PTypeSkel {
 }
       bindings.bind(this.varSlot, type);
       b = true;
-    } else if (cat == PTypeSkel.CAT_ANY) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1Free B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      throw new RuntimeException("Attempt to accept ANY by var. " + this.toString());
+    // } else if (cat == PTypeSkel.CAT_ANY) {
+// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  // System.out.print("PTypeVarSkel#accept1Free B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+// }
+      // throw new RuntimeException("Attempt to accept ANY by var. " + this.toString());
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
@@ -368,14 +376,18 @@ public class PTypeVarSkel implements PTypeSkel {
 /// features
 
 
-    } else if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete) {
+    } else if (this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
       bindings.bind(this.varSlot, tv);
       b = true;
-    } else if (tv.varSlot.requiresConcrete) {
+    } else if (this.varSlot.requiresConcrete && !tv.varSlot.requiresConcrete) {
+      tv.castRequiresConcrete(bindings);
+      bindings.bind(this.varSlot, tv);
+      b = true;
+    } else if (!this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
       bindings.bind(this.varSlot, tv);
       b = true;
     } else {
-      bindings.bind(tv.varSlot, this);
+      bindings.bind(this.varSlot, tv);
       b = true;
     }
     return b;
