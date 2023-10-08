@@ -74,8 +74,10 @@ public class PTypeVarSkel implements PTypeSkel {
     buf.append(this.name);
     // buf.append(",constraint=");
     // buf.append(this.constraint);
-    buf.append(",features=");
-    buf.append(this.features);
+    if (this.features.features.length > 0) {
+      buf.append(",features=");
+      buf.append(this.features);
+    }
     buf.append("]");
     return buf.toString();
   }
@@ -186,7 +188,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(this.varSlot)) {
+    if (bindings.isGivenTVar(this.varSlot) || bindings.getGivenBound(this.varSlot) != null) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1 A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -239,9 +241,20 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1GivenVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot)) {
+    if (this.equals(bindings.getGivenBound(tv.varSlot))) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1GivenVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = true;
+    } else if (bindings.isGivenTVar(tv.varSlot) || bindings.getGivenBound(tv.varSlot) != null) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1GivenVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
       b = this.accept1GivenGiven(width, bindsRef, tv, bindings);
     } else {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1GivenVar C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
       b = this.accept1GivenFree(width, bindsRef, tv, bindings);
     }
     return b;
@@ -273,7 +286,8 @@ public class PTypeVarSkel implements PTypeSkel {
     // } else if (this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
       // gg = create(this.srcInfo, null, this.varSlot, tv.constraint, tv.features);
     } else {
-      bindings.bind(tv.varSlot, this);
+      bindings.bindGiven(tv.varSlot, this);
+      // bindings.bind(tv.varSlot, this);
       b = true;
     }
     return b;
@@ -358,7 +372,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (!bindsRef) {
+    if (!bindsRef || bindings.getGivenBound(this.varSlot) != null) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -368,9 +382,6 @@ public class PTypeVarSkel implements PTypeSkel {
   // System.out.print("PTypeVarSkel#accept1FreeVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 // }
       // b = false;
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
 
     // } else if () {
 /// features
