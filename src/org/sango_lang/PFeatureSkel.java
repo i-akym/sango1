@@ -126,45 +126,39 @@ public class PFeatureSkel {
     return b;
   }
 
-  boolean acceptVarOne(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeSkel obj, PTypeSkelBindings bindings) {
+  boolean acceptOne(/* int width, */ boolean bindsRef, PTypeSkel obj, PTypeSkelBindings bindings) {
     boolean b = false;
     if (obj instanceof PTypeRefSkel) {
-      b = this.acceptVarOneTypeRef(/* width, */ bindsRef, theVar, (PTypeRefSkel)obj, bindings);
+      b = this.acceptOneTypeRef(/* width, */ bindsRef, (PTypeRefSkel)obj, bindings);
     } else if (obj instanceof PTypeVarSkel) {
-      b = this.acceptVarOneVar(/* width, */ bindsRef, theVar, (PTypeVarSkel)obj, bindings);
+      b = this.acceptOneVar(/* width, */ bindsRef, (PTypeVarSkel)obj, bindings);
     } else {
       throw new IllegalArgumentException("Unexpected type. " + obj);
     }
     return b;
   }
 
-  boolean acceptVarOneTypeRef(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeRefSkel tr, PTypeSkelBindings bindings) {
+  boolean acceptOneTypeRef(/* int width, */ boolean bindsRef, PTypeRefSkel tr, PTypeSkelBindings bindings) {
     List features = tr.getFeatures();
     boolean b = false;
     for (int i = 0; i < features.features.length; i++) {  // search target
       PFeatureSkel f = features.features[i];
       if (f.featureProps.key.equals(this.featureProps.key)) {
-        b = this.acceptVarOneTypeRefOne(/* width, */ bindsRef, theVar, tr, f, bindings);
+        b = this.acceptOneTypeRefOne(/* width, */ bindsRef, f, bindings);
         break;
       }
     }
     return b;
   }
 
-  boolean acceptVarOneTypeRefOne(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeRefSkel tr, PFeatureSkel feature, PTypeSkelBindings bindings) {
+  boolean acceptOneTypeRefOne(/* int width, */ boolean bindsRef, PFeatureSkel feature, PTypeSkelBindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel#acceptVarOneTypeRefOne 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(theVar); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.print(feature); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel#acceptOneTypeRefOne 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(feature); System.out.print(" "); System.out.println(bindings);
 }
     return this.accept(bindsRef, feature, bindings);
-    // PTypeRefSkel vi = this.calcVarFeatureImpl(theVar, bindings);
-// /* DEBUG */ System.out.print("var impl "); System.out.println(vi);
-    // PTypeRefSkel ti = feature.calcTypeRefFeatureImpl(tr, bindings);
-// /* DEBUG */ System.out.print("tr impl "); System.out.println(ti);
-    // PTypeSkelBindings b = bindings.copyForFeatureImpl(theVar.varSlot);
-    // return vi.accept(PTypeSkel.EQUAL, bindsRef, ti, b);
   }
 
-  boolean acceptVarOneVar(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+  boolean acceptOneVar(/* int width, */ boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
     PFeatureSkel[] features = tv.features.features;
     boolean b = false;
     for (int i = 0; i < features.length; i++) {  // search target
@@ -294,13 +288,13 @@ public class PFeatureSkel {
       return create(this.srcInfo, fs);
     }
 
-    boolean acceptVar(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeSkel obj, PTypeSkelBindings bindings) {
+    boolean accept(/* int width, */ boolean bindsRef, PTypeSkel obj, PTypeSkelBindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel.List#acceptVar 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(theVar); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel.List#accept 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
 }
       boolean b = true;
       for (int i = 0; b && i < this.features.length; i++) {
-        b = this.features[i].acceptVarOne(/* width, */ bindsRef, theVar, obj, bindings);
+        b = this.features[i].acceptOne(/* width, */ bindsRef, obj, bindings);
       }
       return b;
     }
