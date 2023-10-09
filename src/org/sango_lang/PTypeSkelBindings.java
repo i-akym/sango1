@@ -32,7 +32,7 @@ public class PTypeSkelBindings {
   Map<PTypeVarSlot, PTypeSkel> bindingDict;
   Map<PTypeVarSlot, PTypeVarSkel> givenBindingDict;
   List<PTypeVarSlot> givenTVarList;
-  List<PTypeVarSlot> featureTVarList;
+  // List<PTypeVarSlot> featureTVarList;
 
   private PTypeSkelBindings() {}
 
@@ -45,7 +45,7 @@ public class PTypeSkelBindings {
     b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
     b.givenBindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
     b.givenTVarList = givenTVarList;
-    b.featureTVarList = new ArrayList<PTypeVarSlot>();
+    // b.featureTVarList = new ArrayList<PTypeVarSlot>();
     return b;
   }
 
@@ -57,16 +57,16 @@ public class PTypeSkelBindings {
     b.givenBindingDict.putAll(this.givenBindingDict);
     b.givenTVarList = new ArrayList<PTypeVarSlot>();
     b.givenTVarList.addAll(this.givenTVarList);
-    b.featureTVarList = new ArrayList<PTypeVarSlot>();
-    b.featureTVarList.addAll(this.featureTVarList);
+    // b.featureTVarList = new ArrayList<PTypeVarSlot>();
+    // b.featureTVarList.addAll(this.featureTVarList);
     return b;
   }
 
   public String toString() {
     return this.bindingDict.toString()
       + " G" + this.givenTVarList.toString()
-      + " GB" + this.givenBindingDict.toString()
-      + " F" + this.featureTVarList.toString();
+      + " GB" + this.givenBindingDict.toString();
+      // + " F" + this.featureTVarList.toString();
   }
 
   boolean isBound(PTypeVarSlot var) {
@@ -118,11 +118,11 @@ public class PTypeSkelBindings {
     // this.givenTVarList.add(var);
   // }
 
-  PTypeSkelBindings copyForFeatureImpl(PTypeVarSlot var) {
-    PTypeSkelBindings b = this.copy();
-    b.featureTVarList.add(var);
-    return b;
-  }
+  // PTypeSkelBindings copyForFeatureImpl(PTypeVarSlot var) {
+    // PTypeSkelBindings b = this.copy();
+    // b.featureTVarList.add(var);
+    // return b;
+  // }
 
-  boolean isInFeatureImpl(PTypeVarSlot var) { return this.featureTVarList.contains(var); }
+  // boolean isInFeatureImpl(PTypeVarSlot var) { return this.featureTVarList.contains(var); }
 }
