@@ -383,21 +383,34 @@ public class PTypeVarSkel implements PTypeSkel {
 // }
       // b = false;
 
-    // } else if () {
-/// features
-
-
+    } else if (!this.features.acceptVar(bindsRef, this, tv, bindings)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeVar C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = false;
     } else if (this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeVar D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
       bindings.bind(this.varSlot, tv);
       b = true;
     } else if (this.varSlot.requiresConcrete && !tv.varSlot.requiresConcrete) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeVar E "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
       tv.castRequiresConcrete(bindings);
       bindings.bind(this.varSlot, tv);
       b = true;
     } else if (!this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeVar F "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
       bindings.bind(this.varSlot, tv);
       b = true;
     } else {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
       bindings.bind(this.varSlot, tv);
       b = true;
     }
