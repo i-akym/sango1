@@ -515,11 +515,9 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel.JoinResult r;
     if (!bindsRef) {
       r = null;
-    // } else if (!PTypeRefSkel.isAny(this.constraint)) {
-      // throw new RuntimeException("Sorry, joining var with constraint is not supported. " + this.toString());  // HERE
-    } else if (this.features.features.length > 0) {
-      throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
     } else if (tr.includesVar(this.varSlot, bindings)) {
+      r = null;
+    } else if (!this.features.accept(bindsRef, tr, bindings)) {
       r = null;
     } else {
       PTypeSkelBindings b = bindings.copy();
@@ -534,10 +532,6 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel.JoinResult r;
     if (!bindsRef) {
       r = null;
-    // } else if (!PTypeRefSkel.isAny(this.constraint)) {
-      // throw new RuntimeException("Sorry, joining var with constraint is not supported. " + this.toString());  // HERE
-    // } else if (!PTypeRefSkel.isAny(tv.constraint)) {
-      // throw new RuntimeException("Sorry, joining var with constraint is not supported. " + tv.toString());  // HERE
     } else if (this.features.features.length > 0) {
       throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
     } else if (tv.features.features.length > 0) {
@@ -546,19 +540,19 @@ if (PTypeGraph.DEBUG > 1) {
       PTypeSkelBindings b = bindings.copy();
       b.bind(this.varSlot, tv);
       r = PTypeSkel.JoinResult.create(tv, b);
-    } else if ((width == PTypeSkel.WIDER) && this.varSlot.requiresConcrete) {
-      PTypeSkelBindings b = bindings.copy();
-      b.bind(this.varSlot, tv);
-      r = PTypeSkel.JoinResult.create(tv, b);
-    } else if ((width == PTypeSkel.WIDER) && tv.varSlot.requiresConcrete) {
+    // } else if ((width == PTypeSkel.WIDER) && this.varSlot.requiresConcrete) {
+      // PTypeSkelBindings b = bindings.copy();
+      // b.bind(this.varSlot, tv);
+      // r = PTypeSkel.JoinResult.create(tv, b);
+    // } else if ((width == PTypeSkel.WIDER) && tv.varSlot.requiresConcrete) {
+      // PTypeSkelBindings b = bindings.copy();
+      // b.bind(tv.varSlot, this);
+      // r = PTypeSkel.JoinResult.create(this, b);
+    } else if (/* (width == PTypeSkel.NARROWER) && */ this.varSlot.requiresConcrete) {
       PTypeSkelBindings b = bindings.copy();
       b.bind(tv.varSlot, this);
       r = PTypeSkel.JoinResult.create(this, b);
-    } else if ((width == PTypeSkel.NARROWER) && this.varSlot.requiresConcrete) {
-      PTypeSkelBindings b = bindings.copy();
-      b.bind(tv.varSlot, this);
-      r = PTypeSkel.JoinResult.create(this, b);
-    } else if ((width == PTypeSkel.NARROWER) && tv.varSlot.requiresConcrete) {
+    } else if (/* (width == PTypeSkel.NARROWER) && */ tv.varSlot.requiresConcrete) {
       PTypeSkelBindings b = bindings.copy();
       b.bind(this.varSlot, tv);
       r = PTypeSkel.JoinResult.create(tv, b);
