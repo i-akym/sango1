@@ -418,7 +418,7 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(givenTVarList);
 }
     PTypeSkel t;
     PTypeSkel.JoinResult r;
@@ -432,7 +432,7 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTypeSkel.JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 "); System.out.print(this); System.out.print(" "); System.out.print(type);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     PTypeSkel.JoinResult r;
     PTypeSkel t = this.resolveBindings(bindings);
@@ -449,6 +449,9 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   PTypeSkel.JoinResult join2Given(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+}
     PTypeSkel.JoinResult r;
     if (type instanceof PTypeRefSkel) {
       r = null;
@@ -477,6 +480,9 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   PTypeSkel.JoinResult join2Free(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+}
     PTypeSkel.JoinResult r;
     if (type instanceof PTypeRefSkel) {
       r = this.join2FreeTypeRef(width, /* bindsRef, */ (PTypeRefSkel)type, bindings);
@@ -531,20 +537,25 @@ if (PTypeGraph.DEBUG > 1) {
   PTypeSkel.JoinResult join2FreeFree(int width, /* boolean bindsRef, */ PTypeVarSkel tv, PTypeSkelBindings bindings) {
     // this.varSlot != tv.varSlot
     PTypeSkel.JoinResult r;
+    PFeatureSkel.JoinResult fr;
     // if (!bindsRef) {
       // r = null;
-    /* } else */ if (this.features.features.length > 0) {
-      throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
-    } else if (tv.features.features.length > 0) {
-      throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + tv.toString());  // HERE
+    // /* } else */ if (this.features.features.length > 0) {
+      // throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
+    // } else if (tv.features.features.length > 0) {
+      // throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + tv.toString());  // HERE
+    // } else {
+    PTypeSkelBindings b = bindings.copy();
+    if ((fr = this.features.joinList(tv.features, b)) == null) {
+      r = null;
     } else {
       PTypeVarSlot s = PTypeVarSlot.createInternal(this.varSlot.requiresConcrete | tv.varSlot.requiresConcrete);
       String n = this.name /* + "." + s.id */;
-      PTypeVarSkel v = create(this.srcInfo, n, s, this.features /* HERE */);
-      PTypeSkelBindings b = bindings.copy();
-      b.bind(this.varSlot, v);
-      b.bind(tv.varSlot, v);
-      r = PTypeSkel.JoinResult.create(v, b);
+      PTypeVarSkel v = create(fr.srcInfo, n, s, fr.pack());
+      PTypeSkelBindings bb = fr.bindings.copy();
+      bb.bind(this.varSlot, v);
+      bb.bind(tv.varSlot, v);
+      r = PTypeSkel.JoinResult.create(v, bb);
     // } else if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete) {
       // PTypeSkelBindings b = bindings.copy();
       // b.bind(this.varSlot, tv);
@@ -605,6 +616,9 @@ if (PTypeGraph.DEBUG > 1) {
     buf.append(name);
     if (this.varSlot.requiresConcrete) {
       buf.append("!");
+    }
+    if (!this.features.isEmpty()) {
+      buf.append(this.features.repr());
     }
     r.add(buf.toString());
     return r;

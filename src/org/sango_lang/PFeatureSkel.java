@@ -82,6 +82,19 @@ public class PFeatureSkel {
     return buf.toString();
   }
 
+  String repr() {
+    StringBuffer buf = new StringBuffer();
+    String sep = "";
+    for (int i = 0; i < this.params.length; i++) {
+      buf.append(sep);
+      buf.append(this.params[i].repr());
+      sep = " ";
+    }
+    buf.append(sep);
+    buf.append(this.featureProps.key.repr());
+    return buf.toString();
+  }
+
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
 
   void extractVars(java.util.List<PTypeVarSlot> extracted) {
@@ -245,6 +258,8 @@ public class PFeatureSkel {
       return create(srcInfo, new PFeatureSkel[0]);
     }
 
+    boolean isEmpty() { return this.features.length == 0; }
+
     public String toString() {
       StringBuffer buf = new StringBuffer();
       if (this.srcInfo != null) {
@@ -264,6 +279,21 @@ public class PFeatureSkel {
         buf.append("]");
       }
       return buf.toString();
+    }
+
+    PTypeSkel.Repr repr() {
+      PTypeSkel.Repr r = PTypeSkel.Repr.create();
+      StringBuffer buf = new StringBuffer();
+      String sep = "";
+      buf.append("[ ");
+      for (int i = 0; i < this.features.length; i++) {
+        buf.append(sep);
+        buf.append(this.features[i].repr());
+        sep = ", ";
+      }
+      buf.append(" ]");
+      r.add(buf.toString());
+      return r;
     }
 
     void extractVars(java.util.List<PTypeVarSlot> extracted) {
