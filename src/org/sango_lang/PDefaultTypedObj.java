@@ -32,7 +32,7 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
     super(srcInfo, scope);
   }
 
-  public PType getType() { return this.type; }
+  // public PType getType() { return this.type; }
 
   public PTypeSkel getNormalizedType() throws CompileException {
     if (this.nTypeSkel == null && this.type != null) {
