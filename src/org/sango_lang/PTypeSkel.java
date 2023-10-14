@@ -63,7 +63,7 @@ public interface PTypeSkel {
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
     // foward to following method internally
-  JoinResult join2(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
+  JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings);
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 

@@ -593,7 +593,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
     PTypeSkel t;
     PTypeSkel.JoinResult r;
-    if ((r = this.join2(PTypeSkel.WIDER, true, type, PTypeSkelBindings.create(givenTVarList))) != null) {
+    if ((r = this.join2(PTypeSkel.WIDER, /* true, */ type, PTypeSkelBindings.create(givenTVarList))) != null) {
       t = r.joined.instanciate(PTypeSkel.InstanciationContext.create(r.bindings));
     } else {
       t = null;
@@ -601,7 +601,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public PTypeSkel.JoinResult join2(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings) {
+  public PTypeSkel.JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#join2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -611,16 +611,16 @@ if (PTypeGraph.DEBUG > 1) {
     } else if (type.getCat() == PTypeSkel.CAT_BOTTOM) {
       r = PTypeSkel.JoinResult.create(this, bindings);
     } else if (type instanceof PTypeVarSkel) {
-      r = ((PTypeVarSkel)type).join2(width, bindsRef, this, bindings);  // forward
+      r = ((PTypeVarSkel)type).join2(width, /* bindsRef, */ this, bindings);  // forward
     } else if (type instanceof PTypeRefSkel) {
-      r = this.join2TypeRef(width, bindsRef, (PTypeRefSkel)type, bindings);
+      r = this.join2TypeRef(width, /* bindsRef, */ (PTypeRefSkel)type, bindings);
     } else {
       throw new IllegalArgumentException("Unknown type. " + type.toString());
     }
     return r;
   }
 
-  PTypeSkel.JoinResult join2TypeRef(int width, boolean bindsRef, PTypeRefSkel tr, PTypeSkelBindings bindings) {
+  PTypeSkel.JoinResult join2TypeRef(int width, /* boolean bindsRef, */ PTypeRefSkel tr, PTypeSkelBindings bindings) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 0 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
@@ -652,10 +652,10 @@ if (PTypeGraph.DEBUG > 1) {
       boolean c = true;
       for (int i = 0; c && i < this.params.length; i++) {
         PTypeSkel.JoinResult r2;
-        if ((r2 = this.params[i].join2(ww[i], bindsRef, tr.params[i], b.copy())) != null) {
+        if ((r2 = this.params[i].join2(ww[i], /* bindsRef, */ tr.params[i], b.copy())) != null) {
           ps[i] = r2.joined;
           b = r2.bindings;
-        } else if ((r2 = tr.params[i].join2(ww[i], bindsRef, this.params[i], b.copy())) != null) {
+        } else if ((r2 = tr.params[i].join2(ww[i], /* bindsRef, */ this.params[i], b.copy())) != null) {
           ps[i] = r2.joined;
           b = r2.bindings;
         } else {
@@ -678,16 +678,16 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  static boolean isBottom(PTypeSkel type) {
-    return isLangType(type, Module.TCON_BOTTOM);
-  }
-
   // static boolean isAny(PTypeSkel type) {
     // return isLangType(type, "@ANY");
   // }
 
-  static boolean willNotReturn(PTypeSkel type) {
+  static boolean isBottom(PTypeSkel type) {
     return isLangType(type, Module.TCON_BOTTOM);
+  }
+
+  static boolean willNotReturn(PTypeSkel type) {
+    return isBottom(type);
   }
 
   static boolean isTuple(PTypeSkel type) {

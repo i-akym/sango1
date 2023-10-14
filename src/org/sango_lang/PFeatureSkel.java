@@ -202,12 +202,12 @@ public class PFeatureSkel {
     // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationContext.create(b));
   // }
 
-  JoinResult join(/* int width, */ boolean bindsRef, PFeatureSkel f2, JoinResult res) {
+  JoinResult join(/* int width, boolean bindsRef, */ PFeatureSkel f2, JoinResult res) {
     PTypeSkelBindings b = res.bindings;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     boolean cont = true;
     for (int i = 0; cont && i < this.params.length; i++) {
-      PTypeSkel.JoinResult sr = this.params[i].join2(PTypeSkel.EQUAL, bindsRef, f2.params[i], b);
+      PTypeSkel.JoinResult sr = this.params[i].join2(PTypeSkel.EQUAL, /* bindsRef, */ f2.params[i], b);
       if (sr != null) {
         ps[i] = sr.joined;
         b = sr.bindings;
@@ -299,7 +299,7 @@ public class PFeatureSkel {
       return b;
     }
 
-    JoinResult joinList(/* int width, */ boolean bindsRef, List fs2, PTypeSkelBindings bindings) {
+    JoinResult joinList(/* int width, boolean bindsRef, */ List fs2, PTypeSkelBindings bindings) {
       JoinResult r = JoinResult.create(this.srcInfo, bindings);
       for (int i = 0; r != null && i < this.features.length; i++) {
         PFeatureSkel f = this.features[i];
@@ -307,7 +307,7 @@ public class PFeatureSkel {
         for (int j = 0; !found && j < fs2.features.length; j++) {  // search target
           PFeatureSkel f2 = fs2.features[j];
           if (f.featureProps.key.equals(f2.featureProps.key)) {
-            r = f.join(/* width, */ bindsRef, f2, r);
+            r = f.join(/* width, bindsRef, */ f2, r);
             found = true;
           }
         }
