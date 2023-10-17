@@ -88,7 +88,7 @@ public interface PDefDict {
     }
 
     IdKey(Cstr modName, String idName) {
-      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null."); }
+      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Tid key's mod name is null. " + idName); }
       /* DEBUG */ if (idName == null) { throw new IllegalArgumentException("Tid key's id name is null."); }
       this.modName = modName;
       this.idName = idName;
