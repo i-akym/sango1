@@ -1553,6 +1553,7 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print(fd.getNameKey()); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(fd); 
+      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Null module name. " + fname); }
       Map<String, PFeatureDef> m;
       if ((m = this.featureDefDictDict.get(modName)) == null) {
         m = new HashMap<String, PFeatureDef>();

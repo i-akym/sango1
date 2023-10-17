@@ -209,7 +209,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   }
 
   public void collectModRefs() throws CompileException {
-    this.sig.collectModRefs();
+    // this.sig.collectModRefs();
     this.impl.collectModRefs();
   }
 
@@ -258,7 +258,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   public Module.Access getAcc() { return this.acc; }
 
   public PDefDict.IdKey getNameKey() {
-    return PDefDict.IdKey.create(this.sig.modName, this.sig.fname.name);
+    return PDefDict.IdKey.create(this.scope.myModName(), this.sig.fname.name);
   }
 
   public int getParamCount() { return this.sig.params.length; }

@@ -1,0 +1,52 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2023 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module "feature.map" ;;
+
+feature <*T> [ *A *B a'map ] @public -> <T A B map> ;;
+
+data <*T *A *B map> @public :=
+  obj: <T>
+  fs: <T A B map_fs>
+  map$ ;;
+
+data <*T *A *B map_fs> @public :=
+  size_f: <T int fun>
+  assoc_f: <T A <B maybe> fun>
+  add_f: <T A B T fun>
+  map_fs$ ;;
+
+eval <*T[ *A *B a'map ]> *M size @public -> <int> {
+  M _feature_a'map = *MO,
+  (MO obj) &(MO fs >> size_f)
+} ;;
+
+eval <*T[ *A *B a'map ]> *M <A> *K assoc @public -> <B maybe> {
+  M _feature_a'map = *MO,
+  (MO obj) K &(MO fs >> assoc_f)
+} ;;
+
+eval <*T[ *A *B a'map ]> *M <A> *K <B> *V add @public -> <T> {
+  M _feature_a'map = *MO,
+  (MO obj) K V &(MO fs >> add_f)
+} ;;
