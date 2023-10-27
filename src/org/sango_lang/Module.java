@@ -83,7 +83,7 @@ public class Module {
   static final String TAG_ALIASES = "aliases";
   static final String TAG_ALIAS = "alias";
   static final String TAG_ATTR = "attr";
-  static final String TAG_CONSTRAINT = "constraint";
+  // static final String TAG_CONSTRAINT = "constraint";
   static final String TAG_CLOSURE_CONSTR = "closure_constr";
   static final String TAG_CLOSURE_CONSTRS = "closure_constrs";
   static final String TAG_CLOSURE_IMPL = "closure_impl";
@@ -526,21 +526,21 @@ public class Module {
         ;
       } else if ((v = MTypeVar.internalize(n)) != null) {
         NamedNodeMap attrs = n.getAttributes();
-        Module.Variance variance = Module.NO_VARIANCE;
+        Variance variance = NO_VARIANCE;
         Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
         if (aVariance != null) {
           String sVariance = aVariance.getNodeValue();
-          if (sVariance.equals(Module.REPR_INVARIANT)) {
-            variance = Module.INVARIANT;
-          } else if (sVariance.equals(Module.REPR_COVARIANT)) {
-            variance = Module.COVARIANT;
-          } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
-            variance = Module.COVARIANT;
+          if (sVariance.equals(REPR_INVARIANT)) {
+            variance = INVARIANT;
+          } else if (sVariance.equals(REPR_COVARIANT)) {
+            variance = COVARIANT;
+          } else if (sVariance.equals(REPR_CONTRAVARIANT)) {
+            variance = CONTRAVARIANT;
           } else {
             throw new FormatException("Invalid 'variance': " + sVariance);
           }
         }
-        builder.putDataDefParam(MDataDef.Param.create(variance, v));
+        builder.putDataDefParam(MDataDef.Param.create((variance == NO_VARIANCE)? INVARIANT: variance, v));
       } else {
         throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
       }

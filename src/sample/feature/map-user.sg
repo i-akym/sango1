@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2023 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,54 +21,24 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.avltree.array" ;;
+import "feature.map" -> map ;;
+import "feature.map-impl" -> map_impl ;;
 
-import "sango.util.array" -> array ;;
-import "sango.util.avltree.map" -> avlmap ;;
-import "sango.util.enum" -> enum ;;
-import "sango.util.map" -> map ;;
-
-extend <*A *B _2> -> my2 :=
-  map: <A B map.map>
-  compact_: <<B <B bool fun> tuple> maybe>
-  array_d$ ;;
-
-eval <*A enum.enum> *Enum <A *B fun> *Supplier <<B <B bool fun> tuple> maybe> *Compact_ 
-    new_array @public -> <A B array.array> {
-  Compact_ case {
-  ; none$ ->
-  ; (| *C, *C?_f |) value$ || C &C?_f ->
-  ; ** -> bad_arg$ "Invalid compaction spec." new_exception >> throw
-  },
-  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avlmap.new_map)
-      &\ <A iter> *I <A B map.map> *M -> <A B map.map> {
-    I next >> case {
-    ; (| *Idx, *I' |) value$ ->
-      Idx &Supplier = *Val,
-      Compact_ case {
-      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' M &&
-      ; ** -> I' (M Idx Val map.add) &&
-      }
-    ; ** -> M
-    }
-  } = *Map,
-  map: Map compact_: Compact_ array_d$ = *D,
-  get_f: ^get set_f: ^set array.array_fs$ = *Fs,
-  d: D ix: Enum fs: Fs array.array$
+eval _main_ -> <void> {
+  map_impl.new_map >> f
 } ;;
 
-eval <*A *B _2+> *D <A> *Idx get -> <B> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Map Idx map.assoc >> case {
-  ; *V value$ -> V
-  ; ** -> Compact_ = (| *C, ** |) value$, C
-  }
-} ;;
-
-eval <*A *B _2+> *D <A> *Idx <B> *Val set -> <A B _2+> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Compact_ case {
-  ; (| **, *C?_f |) value$ || Val &C?_f -> map: (Map Idx map.delete) :: D array_d$
-  ; ** -> map: (Map Idx Val map.add) :: D array_d$
-  }
+eval <*T[ int cstr map.a'map ]> *M f -> <void> {
+  # M = {}
+  M map.size = 0,
+  M 2 "two" map.add = *M1,  # M1 = { (2,"two") }
+  M1 map.size = 1,
+  M1 2 map.assoc = "two" value$,
+  M1 3 map.assoc = none$,
+  M1 3 "three" map.add = *M2,  # M2 = { (2,"two"), (3,"three") }
+  M2 map.size = 2,
+  M2 2 "zwei" map.add = *M3,  # M3 = { (2,"zwei"), (3,"three") }
+  M3 map.size = 2,
+  M3 2 map.assoc = "zwei" value$,
+  void$
 } ;;

@@ -380,7 +380,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
           emsg.append(this.tparams[i].varDef.name);
           emsg.append(" mismatch with that of base definition at ");
           emsg.append(this.srcInfo);
-          emsg.append(".");
+          emsg.append(". ");
+          emsg.append(this.tparams[i].variance);
+          emsg.append(" ");
+          emsg.append(this.baseTconProps.paramProps[i].variance);
           throw new CompileException(emsg.toString()) ;
         }
       }
@@ -490,7 +493,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], /* Module.NO_VARIANCE, */ false, null, null));
+      paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], false, /* null, */ null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
@@ -523,7 +526,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     String[] paramNames = PModule.generateIds("T", this.tparams.length);
     for (int i = 0; i < paramNames.length; i++) {
-      paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], /* Module.NO_VARIANCE, */ false, null, null));
+      paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], false, /* null, */ null));
     }
     paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));

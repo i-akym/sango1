@@ -1308,7 +1308,11 @@ class PModule implements PDefDict {
   void makeSureTypeConsistency() throws CompileException {
     PTypeGraph g = PTypeGraph.create(this.theCompiler, this);
     for (int i = 0; i < this.evalStmtList.size(); i++) {
-      this.evalStmtList.get(i).setupTypeGraph(g);
+      PEvalStmt e = this.evalStmtList.get(i);
+
+      // check constraint
+
+      e.setupTypeGraph(g);
     }
     g.inferAll();
   }
@@ -1549,6 +1553,7 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print(fd.getNameKey()); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(fd); 
+      /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Null module name. " + fname); }
       Map<String, PFeatureDef> m;
       if ((m = this.featureDefDictDict.get(modName)) == null) {
         m = new HashMap<String, PFeatureDef>();

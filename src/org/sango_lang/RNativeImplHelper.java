@@ -496,13 +496,13 @@ public class RNativeImplHelper {
           official, PExprId.CAT_FUN_OFFICIAL, as);
         if (ep == null) { return null; }
         PFunDef fd = ep.defGetter.getFunDef();
-        PTypeSkel.InstanciationBindings ibs = PTypeSkel.InstanciationBindings.create(PTypeSkelBindings.create());
+        PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
         PTypeSkel[] pts = fd.getParamTypes();
         PTypeSkel[] tis = new PTypeSkel[pts.length + 1];
         for (int i = 0; i < pts.length; i++) {
-          tis[i] = pts[i].instanciate(ibs);
+          tis[i] = pts[i].instanciate(ic);  // resolving is not needed
         }
-        tis[pts.length] = fd.getRetType().instanciate(ibs);
+        tis[pts.length] = fd.getRetType().instanciate(ic);  // resolving is not needed
         PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, "fun");
         PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[pts.length];
         for (int i = 0; i < pts.length; i++) {

@@ -209,7 +209,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   }
 
   public void collectModRefs() throws CompileException {
-    this.sig.collectModRefs();
+    // this.sig.collectModRefs();
     this.impl.collectModRefs();
   }
 
@@ -258,7 +258,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   public Module.Access getAcc() { return this.acc; }
 
   public PDefDict.IdKey getNameKey() {
-    return PDefDict.IdKey.create(this.sig.modName, this.sig.fname.name);
+    return PDefDict.IdKey.create(this.scope.myModName(), this.sig.fname.name);
   }
 
   public int getParamCount() { return this.sig.params.length; }
@@ -343,7 +343,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     paramFeaturesBuilder.addFeature(
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
-      PTypeVarDef.create(si, defScope, "T", false, null, paramFeaturesBuilder.create()));
+      PTypeVarDef.create(si, defScope, "T", false, /* null, */ paramFeaturesBuilder.create()));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
@@ -373,7 +373,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     paramFeaturesBuilder.addFeature(
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
-      PTypeVarDef.create(si, defScope, "T", false, null, paramFeaturesBuilder.create()));
+      PTypeVarDef.create(si, defScope, "T", false, /* null, */ paramFeaturesBuilder.create()));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));

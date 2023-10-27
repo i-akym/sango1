@@ -82,6 +82,19 @@ public class PFeatureSkel {
     return buf.toString();
   }
 
+  String repr() {
+    StringBuffer buf = new StringBuffer();
+    String sep = "";
+    for (int i = 0; i < this.params.length; i++) {
+      buf.append(sep);
+      buf.append(this.params[i].repr());
+      sep = " ";
+    }
+    buf.append(sep);
+    buf.append(this.featureProps.key.repr());
+    return buf.toString();
+  }
+
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
 
   void extractVars(java.util.List<PTypeVarSlot> extracted) {
@@ -98,10 +111,18 @@ public class PFeatureSkel {
     return b;
   }
 
-  PFeatureSkel instanciate(PTypeSkel.InstanciationBindings iBindings) {
+  PFeatureSkel resolveBindings(PTypeSkelBindings bindings) {
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
-      ps[i] = this.params[i].instanciate(iBindings);
+      ps[i] = this.params[i].resolveBindings(bindings);
+    }
+    return create(this.defDictGetter, this.srcInfo, this.featureProps, ps);
+  }
+
+  PFeatureSkel instanciate(PTypeSkel.InstanciationContext context) {
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    for (int i = 0; i < this.params.length; i++) {
+      ps[i] = this.params[i].instanciate(context);
     }
     return create(this.defDictGetter, this.srcInfo, this.featureProps, ps);
   }
@@ -118,45 +139,39 @@ public class PFeatureSkel {
     return b;
   }
 
-  boolean acceptVarOne(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeSkel obj, PTypeSkelBindings bindings) {
+  boolean acceptOne(/* int width, */ boolean bindsRef, PTypeSkel obj, PTypeSkelBindings bindings) {
     boolean b = false;
     if (obj instanceof PTypeRefSkel) {
-      b = this.acceptVarOneTypeRef(/* width, */ bindsRef, theVar, (PTypeRefSkel)obj, bindings);
+      b = this.acceptOneTypeRef(/* width, */ bindsRef, (PTypeRefSkel)obj, bindings);
     } else if (obj instanceof PTypeVarSkel) {
-      b = this.acceptVarOneVar(/* width, */ bindsRef, theVar, (PTypeVarSkel)obj, bindings);
+      b = this.acceptOneVar(/* width, */ bindsRef, (PTypeVarSkel)obj, bindings);
     } else {
       throw new IllegalArgumentException("Unexpected type. " + obj);
     }
     return b;
   }
 
-  boolean acceptVarOneTypeRef(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeRefSkel tr, PTypeSkelBindings bindings) {
+  boolean acceptOneTypeRef(/* int width, */ boolean bindsRef, PTypeRefSkel tr, PTypeSkelBindings bindings) {
     List features = tr.getFeatures();
     boolean b = false;
     for (int i = 0; i < features.features.length; i++) {  // search target
       PFeatureSkel f = features.features[i];
       if (f.featureProps.key.equals(this.featureProps.key)) {
-        b = this.acceptVarOneTypeRefOne(/* width, */ bindsRef, theVar, tr, f, bindings);
+        b = this.acceptOneTypeRefOne(/* width, */ bindsRef, f, bindings);
         break;
       }
     }
     return b;
   }
 
-  boolean acceptVarOneTypeRefOne(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeRefSkel tr, PFeatureSkel feature, PTypeSkelBindings bindings) {
+  boolean acceptOneTypeRefOne(/* int width, */ boolean bindsRef, PFeatureSkel feature, PTypeSkelBindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel#acceptVarOneTypeRefOne 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(theVar); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.print(feature); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel#acceptOneTypeRefOne 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(feature); System.out.print(" "); System.out.println(bindings);
 }
     return this.accept(bindsRef, feature, bindings);
-    // PTypeRefSkel vi = this.calcVarFeatureImpl(theVar, bindings);
-// /* DEBUG */ System.out.print("var impl "); System.out.println(vi);
-    // PTypeRefSkel ti = feature.calcTypeRefFeatureImpl(tr, bindings);
-// /* DEBUG */ System.out.print("tr impl "); System.out.println(ti);
-    // PTypeSkelBindings b = bindings.copyForFeatureImpl(theVar.varSlot);
-    // return vi.accept(PTypeSkel.EQUAL, bindsRef, ti, b);
   }
 
-  boolean acceptVarOneVar(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+  boolean acceptOneVar(/* int width, */ boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
     PFeatureSkel[] features = tv.features.features;
     boolean b = false;
     for (int i = 0; i < features.length; i++) {  // search target
@@ -183,7 +198,7 @@ public class PFeatureSkel {
     // for (int i = 0; i < this.params.length; i++) {
       // b.bind(ps[i].varSlot, this.params[i]);
     // }
-    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(b));
+    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationContext.create(b));
   // }
 
   // PTypeRefSkel calcVarFeatureImpl(PTypeVarSkel tv, PTypeSkelBindings bindings) {
@@ -197,8 +212,24 @@ public class PFeatureSkel {
     // for (int i = 0; i < this.params.length; i++) {
       // b.bind(ps[i].varSlot, this.params[i]);
     // }
-    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationBindings.create(b));
+    // return (PTypeRefSkel)impl.instanciate(PTypeSkel.InstanciationContext.create(b));
   // }
+
+  JoinResult join(/* int width, boolean bindsRef, */ PFeatureSkel f2, JoinResult res) {
+    PTypeSkelBindings b = res.bindings;
+    PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    boolean cont = true;
+    for (int i = 0; cont && i < this.params.length; i++) {
+      PTypeSkel.JoinResult sr = this.params[i].join2(PTypeSkel.EQUAL, /* bindsRef, */ f2.params[i], b);
+      if (sr != null) {
+        ps[i] = sr.joined;
+        b = sr.bindings;
+      } else {
+        cont = false;
+      }
+    }
+    return cont? res.add(create(this.defDictGetter, this.srcInfo, this.featureProps, ps), b): null;
+  }
 
   MFeature toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
     MFeature.Builder builder = MFeature.Builder.newInstance();
@@ -227,6 +258,8 @@ public class PFeatureSkel {
       return create(srcInfo, new PFeatureSkel[0]);
     }
 
+    boolean isEmpty() { return this.features.length == 0; }
+
     public String toString() {
       StringBuffer buf = new StringBuffer();
       if (this.srcInfo != null) {
@@ -248,6 +281,21 @@ public class PFeatureSkel {
       return buf.toString();
     }
 
+    PTypeSkel.Repr repr() {
+      PTypeSkel.Repr r = PTypeSkel.Repr.create();
+      StringBuffer buf = new StringBuffer();
+      String sep = "";
+      buf.append("[ ");
+      for (int i = 0; i < this.features.length; i++) {
+        buf.append(sep);
+        buf.append(this.features[i].repr());
+        sep = ", ";
+      }
+      buf.append(" ]");
+      r.add(buf.toString());
+      return r;
+    }
+
     void extractVars(java.util.List<PTypeVarSlot> extracted) {
       for (int i = 0; i < this.features.length; i++) {
         this.features[i].extractVars(extracted);
@@ -262,23 +310,39 @@ public class PFeatureSkel {
       return b;
     }
 
-    List instanciate(PTypeSkel.InstanciationBindings iBindings) {
+    List instanciate(PTypeSkel.InstanciationContext context) {
       PFeatureSkel[] fs = new PFeatureSkel[this.features.length];
       for (int i = 0; i < this.features.length; i++) {
-        fs[i] = this.features[i].instanciate(iBindings);
+        fs[i] = this.features[i].instanciate(context);
       }
       return create(this.srcInfo, fs);
     }
 
-    boolean acceptVar(/* int width, */ boolean bindsRef, PTypeVarSkel theVar, PTypeSkel obj, PTypeSkelBindings bindings) {
+    boolean accept(/* int width, */ boolean bindsRef, PTypeSkel obj, PTypeSkelBindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel.List#acceptVar 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(theVar); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel.List#accept 1 "); /* System.out.print(width); System.out.print(" "); */ System.out.print(this); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
 }
       boolean b = true;
       for (int i = 0; b && i < this.features.length; i++) {
-        b = this.features[i].acceptVarOne(/* width, */ bindsRef, theVar, obj, bindings);
+        b = this.features[i].acceptOne(/* width, */ bindsRef, obj, bindings);
       }
       return b;
+    }
+
+    JoinResult joinList(/* int width, boolean bindsRef, */ List fs2, PTypeSkelBindings bindings) {
+      JoinResult r = JoinResult.create(this.srcInfo, bindings);
+      for (int i = 0; r != null && i < this.features.length; i++) {
+        PFeatureSkel f = this.features[i];
+        boolean found = false;
+        for (int j = 0; !found && j < fs2.features.length; j++) {  // search target
+          PFeatureSkel f2 = fs2.features[j];
+          if (f.featureProps.key.equals(f2.featureProps.key)) {
+            r = f.join(/* width, bindsRef, */ f2, r);
+            found = true;
+          }
+        }
+      }
+      return r;
     }
 
     MFeature.List toMType(PModule mod, java.util.List<PTypeVarSlot> slotList) {
@@ -287,6 +351,32 @@ public class PFeatureSkel {
         fs.add(this.features[i].toMType(mod, slotList));
       }
       return MFeature.List.create(fs);
+    }
+  }
+
+  static class JoinResult {
+    Parser.SrcInfo srcInfo;
+    java.util.List<PFeatureSkel> staged;
+    PTypeSkelBindings bindings;
+
+    static JoinResult create(Parser.SrcInfo srcInfo, PTypeSkelBindings bindings) {
+      JoinResult r = new JoinResult();
+      r.srcInfo = srcInfo;
+      r.staged = new java.util.ArrayList<PFeatureSkel>();
+      r.bindings = bindings;
+      return r;
+    }
+
+    private JoinResult() {}
+
+    JoinResult add(PFeatureSkel f, PTypeSkelBindings bindings) {
+      this.staged.add(f);
+      this.bindings = bindings;
+      return this;
+    }
+
+    List pack() {
+      return List.create(this.srcInfo, this.staged.toArray(new PFeatureSkel[this.staged.size()]));
     }
   }
 }

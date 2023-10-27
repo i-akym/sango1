@@ -27,7 +27,8 @@ import java.io.IOException;
 
 class PRetDef extends PDefaultExprObj {
   private PRetDef(Parser.SrcInfo srcInfo, PScope defScope) {
-    super(srcInfo, defScope.enterInner());
+    super(srcInfo, defScope);
+    // super(srcInfo, defScope.enterInner());
   }
 
   public String toString() {

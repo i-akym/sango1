@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2023 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,54 +21,32 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.avltree.array" ;;
+module "feature.map" ;;
 
-import "sango.util.array" -> array ;;
-import "sango.util.avltree.map" -> avlmap ;;
-import "sango.util.enum" -> enum ;;
-import "sango.util.map" -> map ;;
+feature <*T> [ *A *B a'map ] @public -> <T A B map> ;;
 
-extend <*A *B _2> -> my2 :=
-  map: <A B map.map>
-  compact_: <<B <B bool fun> tuple> maybe>
-  array_d$ ;;
+data <*T *A *B map> @public :=
+  obj: <T>
+  fs: <T A B map_fs>
+  map$ ;;
 
-eval <*A enum.enum> *Enum <A *B fun> *Supplier <<B <B bool fun> tuple> maybe> *Compact_ 
-    new_array @public -> <A B array.array> {
-  Compact_ case {
-  ; none$ ->
-  ; (| *C, *C?_f |) value$ || C &C?_f ->
-  ; ** -> bad_arg$ "Invalid compaction spec." new_exception >> throw
-  },
-  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avlmap.new_map)
-      &\ <A iter> *I <A B map.map> *M -> <A B map.map> {
-    I next >> case {
-    ; (| *Idx, *I' |) value$ ->
-      Idx &Supplier = *Val,
-      Compact_ case {
-      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' M &&
-      ; ** -> I' (M Idx Val map.add) &&
-      }
-    ; ** -> M
-    }
-  } = *Map,
-  map: Map compact_: Compact_ array_d$ = *D,
-  get_f: ^get set_f: ^set array.array_fs$ = *Fs,
-  d: D ix: Enum fs: Fs array.array$
+data <*T *A *B map_fs> @public :=
+  size_f: <T int fun>
+  assoc_f: <T A <B maybe> fun>
+  add_f: <T A B T fun>
+  map_fs$ ;;
+
+eval <*T[ *A *B a'map ]> *M size @public -> <int> {
+  M _feature_a'map = *MO,
+  (MO obj) &(MO fs >> size_f)
 } ;;
 
-eval <*A *B _2+> *D <A> *Idx get -> <B> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Map Idx map.assoc >> case {
-  ; *V value$ -> V
-  ; ** -> Compact_ = (| *C, ** |) value$, C
-  }
+eval <*T[ *A *B a'map ]> *M <A> *K assoc @public -> <B maybe> {
+  M _feature_a'map = *MO,
+  (MO obj) K &(MO fs >> assoc_f)
 } ;;
 
-eval <*A *B _2+> *D <A> *Idx <B> *Val set -> <A B _2+> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Compact_ case {
-  ; (| **, *C?_f |) value$ || Val &C?_f -> map: (Map Idx map.delete) :: D array_d$
-  ; ** -> map: (Map Idx Val map.add) :: D array_d$
-  }
+eval <*T[ *A *B a'map ]> *M <A> *K <B> *V add @public -> <T> {
+  M _feature_a'map = *MO,
+  (MO obj) K V &(MO fs >> add_f)
 } ;;

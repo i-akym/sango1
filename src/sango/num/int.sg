@@ -66,7 +66,7 @@ eval <cstr> *Str parse @public -> <int> {
 
 # -- enum --
 
-extend <*A _1> := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
+extend <*A _1> -> my1 := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
 
 eval @alpha <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> {
   if {

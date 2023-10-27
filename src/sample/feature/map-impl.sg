@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2023 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,54 +21,59 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.avltree.array" ;;
+import "feature.map" -> map ;;
+import "sango.list" -> list ;;
 
-import "sango.util.array" -> array ;;
-import "sango.util.avltree.map" -> avlmap ;;
-import "sango.util.enum" -> enum ;;
-import "sango.util.map" -> map ;;
+data <*A *B map_impl> @opaque :=
+  tab: <<A B tuple> list>
+  map_impl$
+++ as_a'map -> [ A B map.a'map ] ;;
 
-extend <*A *B _2> -> my2 :=
-  map: <A B map.map>
-  compact_: <<B <B bool fun> tuple> maybe>
-  array_d$ ;;
-
-eval <*A enum.enum> *Enum <A *B fun> *Supplier <<B <B bool fun> tuple> maybe> *Compact_ 
-    new_array @public -> <A B array.array> {
-  Compact_ case {
-  ; none$ ->
-  ; (| *C, *C?_f |) value$ || C &C?_f ->
-  ; ** -> bad_arg$ "Invalid compaction spec." new_exception >> throw
-  },
-  (Enum enum.iter) (Enum enum.context >> enum.fs >> enum.ord_fs >> avlmap.new_map)
-      &\ <A iter> *I <A B map.map> *M -> <A B map.map> {
-    I next >> case {
-    ; (| *Idx, *I' |) value$ ->
-      Idx &Supplier = *Val,
-      Compact_ case {
-      ; (| *C, *C?_f |) value$ || Val &C?_f -> I' M &&
-      ; ** -> I' (M Idx Val map.add) &&
-      }
-    ; ** -> M
-    }
-  } = *Map,
-  map: Map compact_: Compact_ array_d$ = *D,
-  get_f: ^get set_f: ^set array.array_fs$ = *Fs,
-  d: D ix: Enum fs: Fs array.array$
+eval new_map @public -> <*A *B map_impl> {
+  tab:[] map_impl$
 } ;;
 
-eval <*A *B _2+> *D <A> *Idx get -> <B> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Map Idx map.assoc >> case {
-  ; *V value$ -> V
-  ; ** -> Compact_ = (| *C, ** |) value$, C
+eval map_fs -> <<*A *B map_impl> A B map.map_fs> {
+  size_f: ^size
+  assoc_f: ^assoc
+  add_f: ^add
+  map.map_fs$
+} ;;
+
+eval <*A *B map_impl> *MI as_a'map -> <<A B map_impl> A B map.map> {
+  obj: MI fs: map_fs map.map$
+} ;;
+
+eval <*A *B map_impl> *MI size -> <int> {
+  MI = tab: *Tab *** map_impl$,
+  Tab list.length
+} ;;
+
+eval <*A *B map_impl> *MI <A> *K assoc -> <B maybe> {
+  MI = tab: *Tab *** map_impl$,
+  Tab &\
+      <<A B tuple> list> *KVs
+      -> <B maybe> {
+    KVs case {
+    ; [ (| K, *V |) ; *KVs' ] -> V value$
+    ; [ ** ; *KVs' ] -> KVs' &&
+    ; [] -> none$
+    }
   }
 } ;;
 
-eval <*A *B _2+> *D <A> *Idx <B> *Val set -> <A B _2+> {
-  D = map: *Map compact_: *Compact_ array_d$,
-  Compact_ case {
-  ; (| **, *C?_f |) value$ || Val &C?_f -> map: (Map Idx map.delete) :: D array_d$
-  ; ** -> map: (Map Idx Val map.add) :: D array_d$
+eval <*A *B map_impl> *MI <A> *K <B> *V add -> <A B map_impl> {
+  MI = tab: *Tab *** map_impl$,
+  Tab [] &\
+      <<A B tuple> list> *KVs <<A B tuple> list> *Scanned
+      -> <A B map_impl> {
+    KVs case {
+    ; [ (| K, ** |) ; *KVs' ] ->  # if already contained, replace it and return result
+      tab: ([ (| K, V |) ; KVs' ] Scanned list.append) :: MI map_impl$
+    ; [ *KV ; *KVs' ] ->  # if key does not match, skip it and check next
+      KVs' [ KV ; Scanned ] &&
+    ; [] ->  # if not contained, add as new and return result
+      tab: [ (| K, V |) ; Scanned ] :: MI map_impl$
+    }
   }
 } ;;

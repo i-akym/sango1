@@ -216,11 +216,11 @@ public class SNImodule {
     PDataDef.Constr c = dd.getConstr(dconName);
     PTypeSkelBindings bindings = PTypeSkelBindings.create();
     ts.accept(PTypeSkel.NARROWER, true, constrTao.type, bindings);
-    PTypeSkel.InstanciationBindings ib = PTypeSkel.InstanciationBindings.create(bindings);
+    PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
       PDataDef.Attr a = c.getAttrAt(i);
-      PTypeSkel at = a.getFixedType().instanciate(ib);
+      PTypeSkel at = a.getFixedType().resolveBindings(bindings).instanciate(ic);
       RListItem.Cell lc = helper.createListCellItem();
       lc.head = TaoItem.create(helper, at, s.getFieldAt(i));
       lc.tail = L;
@@ -277,7 +277,7 @@ public class SNImodule {
       return;
     }
     PTypeSkel rt = pts[pts.length - 1]
-      .instanciate(PTypeSkel.InstanciationBindings.create(bindings));
+      .resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
     helper.setReturnValue(RunObj.create(helper, rt, (RClosureItem)closureTao.value, ps));
 /* DEBUG */ } catch (Exception ex) {
   /* DEBUG */ ex.printStackTrace(System.out);
@@ -415,7 +415,7 @@ public class SNImodule {
     dd.sigTcon = Module.TCON_TUPLE;
     dd.sigParams = new PTypeVarSkel[elemTypes.length];
     for (int i = 0; i < elemTypes.length; i++) {
-      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), null, null);  // HERE
+      dd.sigParams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), /* null, */ null);  // HERE
     };
     dd.acc = Module.ACC_PUBLIC;
     PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, Module.TCON_TUPLE);

@@ -28,7 +28,7 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.bag" -> bag ;;
 import "sango.util.iter" -> iter ;;
 
-extend <*A _1> := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
+extend <*A _1> -> my1 := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
 
 eval new_bag @public -> <*A bag.bag> {
   hard_eq_fs new_bag

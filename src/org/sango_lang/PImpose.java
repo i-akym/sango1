@@ -23,6 +23,9 @@
  ***************************************************************************/
 package org.sango_lang;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class PImpose extends PDefaultExprObj {
 
   private PImpose(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -58,6 +61,7 @@ class PImpose extends PDefaultExprObj {
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     StringBuffer emsg;
     PTypeSkel t = this.getNormalizedType();
+    // t.checkConstraint(false, new ArrayList<PTypeVarSlot>());
     if (!(t instanceof PTypeRefSkel)) {
       emsg = new StringBuffer();
       emsg.append("Non-concrete imposing at ");

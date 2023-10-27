@@ -34,8 +34,12 @@ public interface PTypeSkel {
 
   int getCat();
   static final int CAT_BOTTOM = 1;
+  // static final int CAT_ANY = 2;
   static final int CAT_SOME = 2;
   static final int CAT_VAR = 3;
+
+  // void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException;
+  // // caution: to be used to normalized skel
 
   boolean isLiteralNaked();
 
@@ -43,11 +47,9 @@ public interface PTypeSkel {
 
   boolean isConcrete(PTypeSkelBindings bindings);
 
-  PTypeSkel instanciate(InstanciationBindings iBindings);
-
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
-  // void checkVariance(int width) throws CompileException;
+  PTypeSkel instanciate(InstanciationContext context);
 
   boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
   // where, width is
@@ -60,8 +62,8 @@ public interface PTypeSkel {
   PTypeVarSlot getVarSlot();
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
-    // foward to following method by combination of target and param
-  PTypeSkel join2(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
+    // foward to following method internally
+  JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings);
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
@@ -73,24 +75,44 @@ public interface PTypeSkel {
 
   Repr repr();
 
-  public static class InstanciationBindings {
-    PTypeSkelBindings applBindings;
-    Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
-    // List<PTypeVarSlot> varSlotList;
+  public static class JoinResult {
+    PTypeSkel joined;
+    PTypeSkelBindings bindings;
 
-    public static InstanciationBindings create(PTypeSkelBindings applBindings) {
-      InstanciationBindings ib = new InstanciationBindings();
-      ib.applBindings = applBindings;
-      ib.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
-      // ib.varSlotList = new ArrayList<PTypeVarSlot>();
-      return ib;
+    public static JoinResult create(PTypeSkel joined, PTypeSkelBindings bindings) {
+      JoinResult r = new JoinResult();
+      r.joined = joined;
+      r.bindings = bindings;
+      return r;
     }
 
-    private InstanciationBindings() {}
+    private JoinResult() {}
+  }
 
-    boolean isGivenTVar(PTypeVarSlot var) { return this.applBindings.givenTVarList.contains(var); }
+  public static class InstanciationContext {
+    List<PTypeVarSlot> givenTVarList;
+    Map<PTypeVarSlot, PTypeVarSkel> bindingDict;
 
-    boolean isInFeatureImpl(PTypeVarSlot var) { return this.applBindings.isInFeatureImpl(var); }
+    public static InstanciationContext create() {
+      return create(new ArrayList<PTypeVarSlot>());
+    }
+
+    public static InstanciationContext create(PTypeSkelBindings bindings) {
+      return create(bindings.givenTVarList);
+    }
+
+    public static InstanciationContext create(List<PTypeVarSlot> givenTVarList) {
+      InstanciationContext ic = new InstanciationContext();
+      ic.givenTVarList = givenTVarList;
+      ic.bindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
+      return ic;
+    }
+
+    private InstanciationContext() {}
+
+    boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
+
+    // boolean isInFeatureImpl(PTypeVarSlot var) { return this.applBindings.isInFeatureImpl(var); }
 
     boolean isBound(PTypeVarSlot var) {
       return this.bindingDict.containsKey(var);
@@ -102,20 +124,19 @@ public interface PTypeSkel {
         throw new IllegalArgumentException("Already added. " + var);
       }
       this.bindingDict.put(var, vs);
-      // this.varSlotList.add(s);
     }
 
     PTypeVarSkel lookup(PTypeVarSlot var) {
       return this.bindingDict.get(var);
     }
 
-    boolean isBoundAppl(PTypeVarSlot var) {
-      return this.applBindings.isBound(var);
-    }
+    // boolean isBoundAppl(PTypeVarSlot var) {
+      // return this.applBindings.isBound(var);
+    // }
 
-    PTypeSkel lookupAppl(PTypeVarSlot var) {
-      return this.applBindings.lookup(var);
-    }
+    // PTypeSkel lookupAppl(PTypeVarSlot var) {
+      // return this.applBindings.lookup(var);
+    // }
   }
 
   public static class Repr {

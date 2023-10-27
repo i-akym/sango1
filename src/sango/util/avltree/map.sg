@@ -28,7 +28,7 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.map" -> map ;;
 
-extend <*A *B _2> :=
+extend <*A *B _2> -> my2 :=
   ord: <A ord_fs>
   body: <<A B tuple> avl.tree>
   d$ ;;
