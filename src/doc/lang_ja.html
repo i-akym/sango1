@@ -1566,7 +1566,7 @@ Box act.wait_forever$ act.listen</code></blockquote>
 次からの各節にて，マップの宣言，実行，実装，使用について見ていきます<sup>*1</sup>。</p>
 
 <blockquote class="note">*1：Sangoの標準ライブラリで提供されていますが，ここでは簡略化したもので説明します。
-際のコードは，インストールディレクトリの<code>sample/feature</code>に格納されています。 </blockquote>
+実際のコードは，インストールディレクトリの<code>sample/feature</code>に格納されています。 </blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.1">20.1. 宣言・実行</h2>
@@ -1621,9 +1621,10 @@ data &lt;*A *B map_impl&gt; @opaque :=
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.3">20.3. 使用</h2>
-<p>フィーチャを実装したオブジェクトを受け取る型は，定義・実行の節で説明したように，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*1</sup>。</p>
+<p>フィーチャを実装したオブジェクトを受け取る型<sup>*1</sup>は，定義・実行の節で説明したように，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*2</sup>。</p>
 
-<blockquote class="note">*1：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
+<blockquote class="note">*1：データ構築定義の中の型として宣言することもできます。</blockquote>
+<blockquote class="note">*2：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
 
 <blockquote class="code-sample"><code>import &quot;feature.map&quot; -&gt; map ;;
 import &quot;feature.map-impl&quot; -&gt; map_impl ;;
