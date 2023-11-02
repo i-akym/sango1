@@ -421,11 +421,12 @@ class PCompiledModule implements PDefDict {
       if (params.length != this.tparams.length) {
         throw new IllegalArgumentException("Length of unaliasing params mismatch.");
       }
+      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
       PTypeSkelBindings bindings = PTypeSkelBindings.create();
       for (int i = 0; i < params.length; i++) {
-        bindings.bind(this.tparams[i].varSlot, params[i]);
+        bindings.bind(((PTypeVarSkel)this.tparams[i].instanciate(ic)).varSlot, params[i]);
       }
-      PTypeRefSkel tr = (PTypeRefSkel)this.body.resolveBindings(bindings);
+      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(ic).resolveBindings(bindings);
       // PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(PTypeSkel.InstanciationBindings.create(bindings));
       // /* DEBUG */ System.out.print("unalias ");
       // /* DEBUG */ System.out.print(this.tconProps.key);

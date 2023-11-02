@@ -31,7 +31,8 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   String name;
 
   private PDataAttrDef(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
+    super(srcInfo, outerScope);
+    // super(srcInfo, outerScope.enterInner());
   }
 
   static PDataAttrDef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PType type) {
