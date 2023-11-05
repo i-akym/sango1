@@ -40,17 +40,16 @@ public class PTypeVarSkel implements PTypeSkel {
     var.srcInfo = srcInfo;
     var.name = ((name != null)? name + ".": "$") + Integer.toString(varSlot.id);
     var.varSlot = varSlot;
-    // var.constraint = (constraint != null)? constraint: PTypeRefSkel.ANY;
     var.features = features;  // maybe null temprally, set later
     return var;
   }
 
-  void castRequiresConcrete(PTypeSkelBindings bindings) {
-    if (this.varSlot.requiresConcrete) { throw new RuntimeException("Already concreate. " + this.toString()); }
-    PTypeVarSlot s = PTypeVarSlot.createInternal(true);
+  PTypeVarSkel cast(boolean newRequiresConcrete, PFeatureSkel.List newFeatures, PTypeSkelBindings bindings) {
+    PTypeVarSlot s = PTypeVarSlot.createInternal(newRequiresConcrete);
     String n = this.name /* + "." + s.id */ ;
-    PTypeVarSkel v = create(this.srcInfo, n, s, this.features);
+    PTypeVarSkel v = create(this.srcInfo, n, s, newFeatures);
     bindings.bind(this.varSlot, v);
+    return v;
   }
 
   public boolean equals(Object o) {
@@ -72,9 +71,7 @@ public class PTypeVarSkel implements PTypeSkel {
     buf.append(this.srcInfo);
     buf.append(",name=");
     buf.append(this.name);
-    // buf.append(",constraint=");
-    // buf.append(this.constraint);
-    if (this.features.features.length > 0) {
+    if (!this.features.isEmpty()) {
       buf.append(",features=");
       buf.append(this.features);
     }
@@ -267,12 +264,13 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1GivenFree "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (!this.features.accept(false, tv, bindings)) {
+    PFeatureSkel.List ff;
+    if ((ff = tv.features.merge(bindsRef, this.features, bindings)) == null) {
       b = false;
     } else if (!this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
       b = false;
     } else {
-      bindings.bindGiven(tv.varSlot, this);
+      tv.cast(this.varSlot.requiresConcrete | tv.varSlot.requiresConcrete, ff, bindings);
       b = true;
     }
     return b;
@@ -327,17 +325,12 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeSome B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    // } else if (!this.constraint.accept(width, bindsRef, tr, bindings)) {
-// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  // System.out.print("PTypeVarSkel#accept1FreeSome C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
-// }
-      // b = false;
     } else if (tr.includesVar(this.varSlot, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeSome D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (/* !bindings.isInFeatureImpl(this.varSlot) && */ !this.features.accept(bindsRef, tr, bindings)) {
+    } else if (!this.features.accept(bindsRef, tr, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeSome E "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -357,45 +350,42 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (!bindsRef || bindings.getGivenBound(this.varSlot) != null) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
+    if (!bindsRef /* || bindings.getGivenBound(this.varSlot) != null */) {
       b = this.accept1GivenVar(width, bindsRef, tv, bindings);  // same meaning
-    // } else if (!this.constraint.accept(width, bindsRef, tv.constraint, bindings)) {
-// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  // System.out.print("PTypeVarSkel#accept1FreeVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-// }
-      // b = false;
-
-    } else if (!this.features.accept(bindsRef, tv, bindings)) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      b = false;
-    } else if (this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      bindings.bind(this.varSlot, tv);
-      b = true;
-    } else if (this.varSlot.requiresConcrete && !tv.varSlot.requiresConcrete) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar E "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      tv.castRequiresConcrete(bindings);
-      bindings.bind(this.varSlot, tv);
-      b = true;
-    } else if (!this.varSlot.requiresConcrete && tv.varSlot.requiresConcrete) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar F "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      bindings.bind(this.varSlot, tv);
-      b = true;
+    } else if (bindings.isGivenTVar(tv.varSlot)) {
+      b = this.accept1FreeGiven(width, bindsRef, tv, bindings);
     } else {
+      b = this.accept1FreeFree(width, bindsRef, tv, bindings);
+    }
+    return b;
+  }
+
+  boolean accept1FreeGiven(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#accept1FreeGiven "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
+    boolean b;
+    if (!this.features.accept(bindsRef, tv, bindings)) {
+      b = false;
+    } else if (this.varSlot.requiresConcrete && !tv.varSlot.requiresConcrete) {
+      b = false;
+    } else {
+      bindings.bind(this.varSlot, tv);
+      b = true;
+    }
+    return b;
+  }
+
+  boolean accept1FreeFree(int width, boolean bindsRef, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeFree "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+    boolean b;
+    PFeatureSkel.List ff;
+    if ((ff = this.features.merge(bindsRef, tv.features, bindings)) == null) {
+      b = false;
+    } else {
+      tv.cast(this.varSlot.requiresConcrete | tv.varSlot.requiresConcrete, ff, bindings);
       bindings.bind(this.varSlot, tv);
       b = true;
     }
@@ -519,12 +509,9 @@ if (PTypeGraph.DEBUG > 1) {
 
   PTypeSkel.JoinResult join2FreeTypeRef(int width, /* boolean bindsRef, */ PTypeRefSkel tr, PTypeSkelBindings bindings) {
     PTypeSkel.JoinResult r;
-    // if (!bindsRef) {
-      // r = null;
-    /* } else */ if (tr.includesVar(this.varSlot, bindings)) {
+    if (tr.includesVar(this.varSlot, bindings)) {
       r = null;
     } else if (!this.features.accept(true, tr, bindings)) {
-    // } else if (!this.features.accept(bindsRef, tr, bindings)) {
       r = null;
     } else {
       PTypeSkelBindings b = bindings.copy();
@@ -534,17 +521,9 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  PTypeSkel.JoinResult join2FreeFree(int width, /* boolean bindsRef, */ PTypeVarSkel tv, PTypeSkelBindings bindings) {
-    // this.varSlot != tv.varSlot
+  PTypeSkel.JoinResult join2FreeFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
     PTypeSkel.JoinResult r;
     PFeatureSkel.JoinResult fr;
-    // if (!bindsRef) {
-      // r = null;
-    // /* } else */ if (this.features.features.length > 0) {
-      // throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + this.toString());  // HERE
-    // } else if (tv.features.features.length > 0) {
-      // throw new RuntimeException("Sorry, joining var with feature(s) is not supported. " + tv.toString());  // HERE
-    // } else {
     PTypeSkelBindings b = bindings.copy();
     if ((fr = this.features.joinList(tv.features, b)) == null) {
       r = null;
@@ -556,20 +535,6 @@ if (PTypeGraph.DEBUG > 1) {
       bb.bind(this.varSlot, v);
       bb.bind(tv.varSlot, v);
       r = PTypeSkel.JoinResult.create(v, bb);
-    // } else if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete) {
-      // PTypeSkelBindings b = bindings.copy();
-      // b.bind(this.varSlot, tv);
-      // r = PTypeSkel.JoinResult.create(tv, b);
-    // } else if (this.varSlot.requiresConcrete) {
-      // PTypeSkelBindings b = bindings.copy();
-      // b.bind(tv.varSlot, this);
-      // r = PTypeSkel.JoinResult.create(this, b);
-    // } else if (tv.varSlot.requiresConcrete) {
-      // PTypeSkelBindings b = bindings.copy();
-      // b.bind(this.varSlot, tv);
-      // r = PTypeSkel.JoinResult.create(tv, b);
-    // } else {
-      // r = null;
     }
     return r;
   }
