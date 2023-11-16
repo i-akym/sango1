@@ -26,27 +26,30 @@ module "feature.map" ;;
 feature <*T> [ *A *B a'map ] @public -> <T A B map> ;;
 
 data <*T *A *B map> @public :=
-  obj: <T>
+  d: <T A B map_d+>
   fs: <T A B map_fs>
   map$ ;;
 
+data <*T *A *B map_d> @public := map_d_dummy$ ;;
+
 data <*T *A *B map_fs> @public :=
-  size_f: <T int fun>
-  assoc_f: <T A <B maybe> fun>
-  add_f: <T A B T fun>
+  size_f: <<T A B map_d+> int fun>
+  assoc_f: <<T A B map_d+> A <B maybe> fun>
+  add_f: <<T A B map_d+> A B <T A B map_d+> fun>
   map_fs$ ;;
 
-eval <*T[ *A *B a'map ]> *M size @public -> <int> {
-  M _feature_a'map = *MO,
-  (MO obj) &(MO fs >> size_f)
+eval <*T *A *B map> *M size @public -> <int> {
+  M = d: *D fs: *Fs map$,
+  D &(Fs size_f)
 } ;;
 
-eval <*T[ *A *B a'map ]> *M <A> *K assoc @public -> <B maybe> {
-  M _feature_a'map = *MO,
-  (MO obj) K &(MO fs >> assoc_f)
+eval <*T *A *B map> *M <A> *K assoc @public -> <B maybe> {
+  M = d: *D fs: *Fs map$,
+  D K &(Fs assoc_f)
 } ;;
 
-eval <*T[ *A *B a'map ]> *M <A> *K <B> *V add @public -> <T> {
-  M _feature_a'map = *MO,
-  (MO obj) K V &(MO fs >> add_f)
+eval <*T *A *B map> *M <A> *K <B> *V add @public -> <T A B map> {
+  M = d: *D fs: *Fs map$,
+  D K V &(Fs add_f) = *D',
+  d: D' :: M map$
 } ;;
