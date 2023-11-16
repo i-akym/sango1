@@ -29,9 +29,10 @@ eval _main_ -> <void> {
 } ;;
 
 eval <*T[ int cstr map.a'map ]> *M f -> <void> {
-  # M = {}
-  M map.size = 0,
-  M 2 "two" map.add = *M1,  # M1 = { (2,"two") }
+  M map._feature_a'map = *M0,
+  # M0 = {}
+  M0 map.size = 0,
+  M0 2 "two" map.add = *M1,  # M1 = { (2,"two") }
   M1 map.size = 1,
   M1 2 map.assoc = "two" value$,
   M1 3 map.assoc = none$,
