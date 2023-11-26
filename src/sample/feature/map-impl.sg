@@ -36,16 +36,20 @@ eval new_map @public -> <*A *B map_impl> {
   tab:[] map_impl$
 } ;;
 
-eval <*A *B map_impl> *MI as_a'map -> <<A B map_impl> A B map.map> {
-  MI = *Tab map_impl$,
-  d: (MI map_impl_d$) fs: map_fs map.map$
+eval <*A *B map_impl> *MI as_a'map -> <<A B map_impl> A B map.map_fo> {
+  d: (MI map_impl_d$) fs: map_fs rev_f: ^rev_f map.map_fo$
 } ;;
 
-eval map_fs -> <*T *A *B map.map_fs> {
+eval map_fs -> <<*T *A *B map.map_d+> A B map.map_fs> {
   size_f: ^size
   assoc_f: ^assoc
   add_f: ^add
   map.map_fs$
+} ;;
+
+eval <<*A *B map_impl> A B map.map_d+> *D rev_f -> <A B map_impl> {
+  D = *DD map_impl_d$,
+  DD
 } ;;
 
 eval <*T *A *B map.map_d+> *MD size -> <int> {

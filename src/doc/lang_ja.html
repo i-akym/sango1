@@ -1573,16 +1573,18 @@ Box act.wait_forever$ act.listen</code></blockquote>
 <p>まず，フィーチャの定義と，フィーチャを実行するためのオブジェクト（フィーチャ・オブジェクト）の型を宣言します。
 フィーチャ・オブジェクトの型は，フィーチャの実装に使用するものであり，フィーチャの使用者が意識する必要はありません。 </p>
 <blockquote class="code-sample"><code>module &quot;feature.map&quot; ;;
-feature &lt;*T&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map&gt; ;;
-data &lt;*T *A *B map&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
+feature &lt;*T!&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fo&gt; ;;
+data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
 
 <p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map&gt;</code>のフィーチャ・オブジェクトを供給できること』を意味します。
+この例では，<code>&lt;T&gt;</code>が具象型であることを要求しています<sup>*1</sup>。
 <code>[ ]</code>内がフィーチャを表し，「<code>a'map</code>」がフィーチャ名です。
 「<code>a'</code>」はフィーチャ名に慣習的に付けるもので，「abstract」を意味します。
-文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*1</sup>。
-マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています<sup>*2</sup>。</p>
-<blockquote class="note">*1：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
-<blockquote class="note">*2：モジュール・オブジェクトの型のパラメタは，オブジェクトの型変数あるいはフィーチャのパラメタを指定します。
+文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*2</sup>。
+マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています<sup>*3</sup>。</p>
+<blockquote class="note">*1：オブジェクトが変更されて返される場合には，型を具象型にします。</blockquote>
+<blockquote class="note">*2：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
+<blockquote class="note">*3：モジュール・オブジェクトの型のパラメタは，オブジェクトの型変数あるいはフィーチャのパラメタを指定します。
 フィーチャのパラメタと順序が異なっていても構いません。</blockquote>
 
 <p>フィーチャの実行は，フィーチャ・オブジェクトを用いて処理を行います。</p>
@@ -1612,7 +1614,7 @@ data &lt;*A *B map_impl&gt; @opaque :=
 
 <p>供給コードの実装は以下のように定義します。</p>
 
-<blockquote class="code-sample"><code>eval &lt;*A *B map_impl&gt; *MI as_a'map -&gt; &lt;&lt;A B map_impl&gt; A B map.map&gt; {
+<blockquote class="code-sample"><code>eval &lt;*A *B map_impl&gt; *MI as_a'map -&gt; &lt;&lt;A B map_impl&gt; A B map.map_fo&gt; {
   #</code> MIからフィーチャ・オブジェクトを生成<code>
 } ;;</code></blockquote>
 
@@ -1631,14 +1633,14 @@ data &lt;*A *B map_impl&gt; @opaque :=
 import &quot;feature.map-impl&quot; -&gt; map_impl ;;
 
 eval _main_ -&gt; &lt;void&gt; {
-  map_impl.new_map &gt;&gt; f
+  map_impl.new_map = &lt;int cstr map_impl.map_impl&gt; *MI,
+  MI f
 } ;;
 
-eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
-  M map._feature_a'map = *M0,
-  # M0 = {}
-  M0 map.size = 0,
-  M0 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
+eval &lt;*T![ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
+  # M = {}
+  M map.size = 0,
+  M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
   M1 map.size = 1,
   M1 2 map.assoc = &quot;two&quot; value$,
   M1 3 map.assoc = none$,
@@ -1650,10 +1652,10 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   void$
 } ;;</code></blockquote>
 
-<p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって，<code>A</code>と<code>B</code>が未束縛の<code>&lt;A B map_impl&gt;</code>のオブジェクトを生成します。
-このオブジェクトは<code>[ A B map.a'map ]</code>を実装しているので，関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取ることができます。</p>
+<p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって<code>A</code>と<code>B</code>が未束縛の<code>&lt;A B map_impl.map_impl&gt;</code>のオブジェクトを生成し，それを<code>&lt;int cstr map_impl.map_impl&gt;</code>として変数<code>MI</code>で受け取ります。
+<code>MI</code>は<code>[ int cstr map.a'map ]</code>を実装しているので，関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取ることができます。</p>
 <p>関数<code>f</code>は，<code>map</code>モジュールの関数を使って，オブジェクトを処理していきます。
-<code>map.add</code>では，キーと値の組が追加されたフィーチャ・オブジェクトが返されています。</p>
+<code>map.add</code>では，キーと値の組が追加されたオブジェクトが返されています。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="21">21. コレクションを使う</h1>
