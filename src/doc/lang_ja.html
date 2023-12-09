@@ -1596,7 +1596,7 @@ data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省�
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.2">20.2. 実装</h2>
 <p>フィーチャの実装宣言と，フィーチャ・オブジェクトの供給コードを定義します。
-実装宣言は以下のように，<code>data</code>文，<code>extend</code>文にて行います。<sup>*1</sup></p>
+実装宣言は以下のように，<code>data</code>文にて行います。<sup>*1</sup></p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map-impl&quot; ;;
 import &quot;feature.map&quot; -&gt; map ;;
@@ -1609,8 +1609,7 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
 供給関数の名前は自由に付けることができます。
 実装するフィーチャが複数ある場合には「<code>++</code>」からフィーチャの記述までを必要な分だけ繰り返して指定します。</p>
-<blockquote class="note">*1：現バージョンでは，フィーチャを実装した型を拡張（<code>extend</code>）しないでください。
-また，拡張定義においてフィーチャの実装宣言をしないでください。（制限事項）</blockquote>
+<blockquote class="note">*1：現バージョンでは，データの拡張定義（<code>extend</code>文）では実装宣言はできません。</blockquote>
 
 <p>供給コードの実装は以下のように定義します。</p>
 
