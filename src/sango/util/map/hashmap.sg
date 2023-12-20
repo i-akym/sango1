@@ -44,7 +44,7 @@ eval <*A eq_fs> *Eq new_map_eq | new_map @public -> <A *B map.map> {
     map.map$
 } ;;
 
-eval map_fs -> <*A *B map.map_fs> {
+eval map_fs -> <<*A *B _2+> A B map.map_fs> {
   empty?_f: ^empty?
     size_f: ^size
     get_f: ^get
