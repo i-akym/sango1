@@ -4067,113 +4067,113 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*D *A set&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*A set&gt; @public :=
   d: &lt;A _1+&gt;
-  fs: &lt;A set_fs&gt;
+  fs: &lt;&lt;A _1+&gt; A set_fs&gt;
   set$ ;;</code></td></tr></table>
 <p>カプセル化されたセットオブジェクトを表します。
   <code>&lt;A&gt;</code>は要素の型です。
   セットを使用するには属性を意識する必要はありません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>セットの大きさ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem get @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_get | get @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>セットに登録されている等価な値を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_contain? | contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>値がセットに登録されているかどうか判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem put @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_put | put @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>値をセットに登録します。
   処理後のセットと，登録されていた値が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem put_new @public -&gt; &lt;&lt;A set&gt; bool tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_put_new | put_new @public -&gt; &lt;&lt;A set&gt; bool tuple&gt; ;;</code></td></tr></table>
 <p>新しい値をセットに登録します。
   すでに値が登録されている場合，セットは変化しません。
   処理後のセットとセットの更新有無が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem add @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_add | add @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>値をセットに登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Eelm remove @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Eelm c_remove | remove @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>値をセットから削除します。
   処理後のセットと，実際に削除された（事前に含まれていた）値が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem delete @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_delete | delete @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>値をセットから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set take @public -&gt; &lt;&lt;A &lt;A set&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_take | take @public -&gt; &lt;&lt;A &lt;A set&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>値をセットから一個取り出します。
   取り出された値と，残りのセットが返されます。
   セットが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set clear @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_clear | clear @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>セットを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems contain_just_list? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems c_contain_just_list? | contain_just_list? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットの要素がリストに含まれる値と同一か判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter contain_just_iter? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter c_contain_just_iter? | contain_just_iter? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットの要素がイテレータの供給する値と同一か判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems add_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems c_add_list | add_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter c_add_iter | add_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems delete_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems c_delete_list | delete_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter c_delete_iter | delete_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A bool fun&gt; *Filter filter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A bool fun&gt; *Filter c_filter | filter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p><code>Filter</code>の条件を満たす要素の集合を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 intersection @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 c_intersection | intersection @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p><code>Set1</code>に含まれる<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の積集合）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 difference @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 c_difference | difference @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p><code>Set1</code>に含まれない<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の差集合）を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.set.2"><code>sango.util.set</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A set_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  size_f: &lt;&lt;A _1+&gt; int fun&gt;
-  get_f: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
-  contain?_f_: &lt;&lt;&lt;A _1+&gt; A bool fun&gt; maybe&gt;
-  put_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  put_new_f_: &lt;&lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; bool tuple&gt; fun&gt; maybe&gt;
-  add_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;  maybe&gt;
-  remove_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A set_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  size_f: &lt;D int fun&gt;
+  get_f: &lt;D A &lt;A maybe&gt; fun&gt;
+  contain?_f_: &lt;&lt;D A bool fun&gt; maybe&gt;
+  put_f: &lt;D A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt;
+  put_new_f_: &lt;&lt;D A &lt;D bool tuple&gt; fun&gt; maybe&gt;
+  add_f_: &lt;&lt;D A D fun&gt;  maybe&gt;
+  remove_f: &lt;D A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;D A D fun&gt; maybe&gt;
+  take_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;D D fun&gt;
   set_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs
-  set_fs_contain?_f | contain?_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;bool&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs
+  set_fs_contain?_f | contain?_f @public -&gt; &lt;D A &lt;bool&gt; fun&gt; ;;</code></td></tr></table>
 <p>値がセットに登録されているかどうか判定する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_add_f | add_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs set_fs_add_f | add_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>値をセットに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs
-  set_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs
+  set_fs_put_new_f | put_new_f @public -&gt; &lt;D A &lt;D bool tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>新しい値をセットに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_delete_f | delete_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs set_fs_delete_f | delete_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>値をセットから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

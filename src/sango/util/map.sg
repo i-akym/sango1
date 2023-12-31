@@ -27,7 +27,34 @@ import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.iter" -> iter ;;
 
-### feature
+### definition of common-behavior object
+
+data <*A *B map> @public :=
+  d: <A B _2+>
+  fs: <<A B _2+> A B map_fs>
+  map$
+++ as_a'map -> [ A B a'map ] ;;
+
+
+### definition of function set
+
+data <*D *A *B map_fs> @public :=
+  empty?_f: <D bool fun>
+  size_f: <D int fun>
+  get_f: <D A <<A B tuple> maybe> fun>
+  assoc_f_: <<D A <B maybe> fun> maybe>
+  contain_key?_f_: <<D A bool fun> maybe>
+  put_f: <D A B <D <<A B tuple> maybe> tuple> fun>
+  put_new_f_: <<D A B <D bool tuple> fun> maybe>
+  add_f_: <<D A B D fun> maybe>
+  remove_f: <D A <D <<A B tuple> maybe> tuple> fun>
+  delete_f_: <<D A D fun> maybe>
+  take_f: <D <<<A B tuple> D tuple> maybe> fun>
+  clear_f: <D D fun>
+  map_fs$ ;;
+
+
+### definition of feature
 
 feature <*T!> [ *A *B a'map ] @public -> <T A B map_fo> ;;
 
@@ -39,6 +66,123 @@ data <*T *A *B map_fo> @public :=
 
 data <*T *A *B map_fo_d> @public :=
   <A B map> cmap_fo_d$ ;;  # local dcon
+
+
+### implementation of common-behavior object
+
+eval <*A *B map> *Map c_empty? | empty? @public -> <bool> {
+  Map = d: *D fs: *Fs map$,
+  D Fs _empty?
+} ;;
+
+eval <*A *B map> *Map c_size | size @public -> <int> {
+  Map = d: *D fs: *Fs map$,
+  D Fs _size
+} ;;
+
+eval <*A *B map> *Map <A> *Key c_get | get @public -> <<A B tuple> maybe> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key _get
+} ;;
+
+eval <*A *B map> *Map <A> *Key c_assoc | assoc @public -> <B maybe> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key _assoc
+} ;;
+
+eval <*A *B map> *Map <A> *Key c_contain_key? | contain_key? @public -> <bool> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key _contain_key?
+} ;;
+
+eval <*A *B map> *Map <A> *Key <B> *Value c_put | put @public -> <<A B map> <<A B tuple> maybe> tuple> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key Value _put = (| *D', *Replaced_kv_ |),
+  (| d: D' fs: Fs map$, Replaced_kv_ |)
+} ;;
+
+eval <*A *B map> *Map <A> *Key <B> *Value c_put_new | put_new @public -> <<A B map> bool tuple> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key Value _put_new = (| *D', *Succeeded? |),
+  (| d: D' fs: Fs map$, Succeeded? |)
+} ;;
+
+eval <*A *B map> *Map <A> *Key <B> *Value c_add | add @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key Value _add = *D',
+  D' fs: Fs map$
+} ;;
+
+eval <*A *B map> *Map <A> *Key c_remove | remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key _remove = (| *D', *Removed_kv_ |),
+  (| D' fs: Fs map$, Removed_kv_ |)
+} ;;
+
+eval <*A *B map> *Map <A> *Key c_delete | delete @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  D Fs Key _delete = *D',
+  D' fs: Fs map$
+} ;;
+
+eval <*A *B map> *Map c_take | take @public -> <<<A B tuple> <A B map> tuple> maybe> {
+  Map = d: *D fs: *Fs map$,
+  D Fs _take >> case {
+  ; (| *KV, *D' |) value$ -> (| KV, D' Fs map$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A *B map> *Map c_clear | clear @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  D Fs _clear = *D',
+  D' Fs map$
+} ;;
+
+eval <*A *B map> *Map <<A B tuple> list> *KVs c_add_list | add_list @public -> <A B map> {
+  Map (KVs list.iter) c_add_iter
+} ;;
+
+eval <*A *B map> *Map <<A B tuple> iter> *Iter c_add_iter | add_iter @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  D Iter &\ <A B _2+> *MD <<A B tuple> iter> *I -> <A B _2+> {
+    I next >> case {
+    ; (| (| *K, *V |), *I' |) value$ -> (MD Fs K V _add) I' &&
+    ; ** -> MD
+    }
+  } = *D',
+  D' Fs map$
+} ;;
+
+eval <*A *B map> *Map <A list> *Ks c_delete_list | delete_list @public -> <A B map> {
+  Map (Ks list.iter) c_delete_iter
+} ;;
+
+eval <*A *B map> *Map <A iter> *Iter c_delete_iter | delete_iter @public -> <A B map> {
+  Map = d: *D fs: *Fs map$,
+  D Iter &\ <A B _2+> *MD <A iter> *I -> <A B _2+> {
+    I next >> case {
+    ; (| *K, *I' |) value$ -> (MD Fs K _delete) I' &&
+    ; ** -> MD
+    }
+  } = *D',
+  D' Fs map$
+} ;;
+
+eval <*A *B map> *Map c_iter | iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Map c_iter_next } iter$
+} ;;
+
+eval <*A *B map> *Map c_iter_next -> <<A B tuple> iter_res> {
+  Map take >> case {
+  ; (| *KV, *Map' |) value$ ->
+    (| KV, \\ <<A B tuple> iter_res> { Map' c_iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+
+### framework of faeture
 
 eval <*T![ *A *B a'map ]> *FMap f_empty? | empty? @public -> <bool> {
   FMap _feature_a'map = *Map_fo,
@@ -228,10 +372,6 @@ eval <*T! *A *B map_fo> *Map_fo <A iter> *Iter fo_delete_iter | delete_iter @pub
   }
 } ;;
 
-eval <*T! *A *B map_fo> *Map_fo fo_iter | iter @public -> <<A B tuple> iter> {
-  \\ <<A B tuple> iter_res> { Map_fo fo_iter_next } iter$
-} ;;
-
 eval <*T![ *A *B a'map ]> *FMap f_iter | iter @public -> <<A B tuple> iter> {
   \\ <<A B tuple> iter_res> { FMap f_iter_next } iter$
 } ;;
@@ -244,6 +384,10 @@ eval <*T![ *A *B a'map ]> *FMap f_iter_next -> <<A B tuple> iter_res> {
   }
 } ;;
 
+eval <*T! *A *B map_fo> *Map_fo fo_iter | iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Map_fo fo_iter_next } iter$
+} ;;
+
 eval <*T! *A *B map_fo> *Map_fo fo_iter_next -> <<A B tuple> iter_res> {
   Map_fo take >> case {
   ; (| *KV, *Map_fo' |) value$ ->
@@ -252,126 +396,8 @@ eval <*T! *A *B map_fo> *Map_fo fo_iter_next -> <<A B tuple> iter_res> {
   }
 } ;;
 
-### object for common behavior
 
-data <*A *B map> @public :=
-  d: <A B _2+>
-  fs: <<A B _2+> A B map_fs>
-  map$
-++ as_a'map -> [ A B a'map ] ;;
-
-eval <*A *B map> *Map c_empty? | empty? @public -> <bool> {
-  Map = d: *D fs: *Fs map$,
-  D Fs _empty?
-} ;;
-
-eval <*A *B map> *Map c_size | size @public -> <int> {
-  Map = d: *D fs: *Fs map$,
-  D Fs _size
-} ;;
-
-eval <*A *B map> *Map <A> *Key c_get | get @public -> <<A B tuple> maybe> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key _get
-} ;;
-
-eval <*A *B map> *Map <A> *Key c_assoc | assoc @public -> <B maybe> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key _assoc
-} ;;
-
-eval <*A *B map> *Map <A> *Key c_contain_key? | contain_key? @public -> <bool> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key _contain_key?
-} ;;
-
-eval <*A *B map> *Map <A> *Key <B> *Value c_put | put @public -> <<A B map> <<A B tuple> maybe> tuple> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key Value _put = (| *D', *Replaced_kv_ |),
-  (| d: D' fs: Fs map$, Replaced_kv_ |)
-} ;;
-
-eval <*A *B map> *Map <A> *Key <B> *Value c_put_new | put_new @public -> <<A B map> bool tuple> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key Value _put_new = (| *D', *Succeeded? |),
-  (| d: D' fs: Fs map$, Succeeded? |)
-} ;;
-
-eval <*A *B map> *Map <A> *Key <B> *Value c_add | add @public -> <A B map> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key Value _add = *D',
-  D' fs: Fs map$
-} ;;
-
-eval <*A *B map> *Map <A> *Key c_remove | remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key _remove = (| *D', *Removed_kv_ |),
-  (| D' fs: Fs map$, Removed_kv_ |)
-} ;;
-
-eval <*A *B map> *Map <A> *Key c_delete | delete @public -> <A B map> {
-  Map = d: *D fs: *Fs map$,
-  D Fs Key _delete = *D',
-  D' fs: Fs map$
-} ;;
-
-eval <*A *B map> *Map c_take | take @public -> <<<A B tuple> <A B map> tuple> maybe> {
-  Map = d: *D fs: *Fs map$,
-  D Fs _take >> case {
-  ; (| *KV, *D' |) value$ -> (| KV, D' Fs map$ |) value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <*A *B map> *Map c_clear | clear @public -> <A B map> {
-  Map = d: *D fs: *Fs map$,
-  D Fs _clear = *D',
-  D' Fs map$
-} ;;
-
-eval <*A *B map> *Map <<A B tuple> list> *KVs c_add_list | add_list @public -> <A B map> {
-  Map (KVs list.iter) c_add_iter
-} ;;
-
-eval <*A *B map> *Map <<A B tuple> iter> *Iter c_add_iter | add_iter @public -> <A B map> {
-  Map = d: *D fs: *Fs map$,
-  D Iter &\ <A B _2+> *MD <<A B tuple> iter> *I -> <A B _2+> {
-    I next >> case {
-    ; (| (| *K, *V |), *I' |) value$ -> (MD Fs K V _add) I' &&
-    ; ** -> MD
-    }
-  } = *D',
-  D' Fs map$
-} ;;
-
-eval <*A *B map> *Map <A list> *Ks c_delete_list | delete_list @public -> <A B map> {
-  Map (Ks list.iter) c_delete_iter
-} ;;
-
-eval <*A *B map> *Map <A iter> *Iter c_delete_iter | delete_iter @public -> <A B map> {
-  Map = d: *D fs: *Fs map$,
-  D Iter &\ <A B _2+> *MD <A iter> *I -> <A B _2+> {
-    I next >> case {
-    ; (| *K, *I' |) value$ -> (MD Fs K _delete) I' &&
-    ; ** -> MD
-    }
-  } = *D',
-  D' Fs map$
-} ;;
-
-eval <*A *B map> *Map c_iter | iter @public -> <<A B tuple> iter> {
-  \\ <<A B tuple> iter_res> { Map c_iter_next } iter$
-} ;;
-
-eval <*A *B map> *Map c_iter_next -> <<A B tuple> iter_res> {
-  Map take >> case {
-  ; (| *KV, *Map' |) value$ ->
-    (| KV, \\ <<A B tuple> iter_res> { Map' c_iter_next } iter$ |) value$
-  ; ** -> none$
-  }
-} ;;
-
-#-- feature implementation
+### feature implementation of common-behavior object
 
 eval <*A *B map> *Map as_a'map -> <<A B map> A B map_fo> {
   d: (Map cmap_fo_d$) fs: cmap_fo_fs rev_f: ^cmap_rev_f map_fo$
@@ -467,22 +493,8 @@ eval <*T *A *B map_fo_d+> *Map_fo_d cfo_clear -> <T A B map_fo_d> {
   Map' cmap_fo_d$
 } ;;
 
-### common function set
 
-data <*D *A *B map_fs> @public :=
-  empty?_f: <D bool fun>
-  size_f: <D int fun>
-  get_f: <D A <<A B tuple> maybe> fun>
-  assoc_f_: <<D A <B maybe> fun> maybe>
-  contain_key?_f_: <<D A bool fun> maybe>
-  put_f: <D A B <D <<A B tuple> maybe> tuple> fun>
-  put_new_f_: <<D A B <D bool tuple> fun> maybe>
-  add_f_: <<D A B D fun> maybe>
-  remove_f: <D A <D <<A B tuple> maybe> tuple> fun>
-  delete_f_: <<D A D fun> maybe>
-  take_f: <D <<<A B tuple> D tuple> maybe> fun>
-  clear_f: <D D fun>
-  map_fs$ ;;
+### subroutines
 
 eval <*D *A *B map_fs> *Fs map_fs_assoc_f | assoc_f @public -> <D A <B maybe> fun> {
   Fs assoc_f_ >> case {
