@@ -42,7 +42,7 @@ data <*A box_fs> @public :=
   clear_f:    <<<A _1+> box.box_h> void fun>
   box_fs$ ;;
 
-eval <*A! set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
+eval <<*A! _1+> A set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
   empty?_f:
     \ <<A _1+> box.box_h> *Box -> <bool> {
       (Box box.read) &(Set_fs set.empty?_f)
@@ -106,7 +106,7 @@ eval <*A! set.set_fs> *Set_fs set_fs_to_box_fs | box_fs @public -> <A box_fs> {
 
 data <*A! set_h> @opaque :=
   mon: <<A _1+> actu.box_monitor_h>
-  set_fs: <A set.set_fs>
+  set_fs: <<A _1+> A set.set_fs>
   box_fs: <A box_fs>
   set_h$ ;;
 

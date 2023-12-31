@@ -44,7 +44,7 @@ eval <*A eq_fs> *Eq new_set_eq | new_set @public -> <A set.set> {
     set.set$
 } ;;
 
-eval set_fs -> <*A set.set_fs> {
+eval set_fs -> <<*A _1+> A set.set_fs> {
   empty?_f: ^empty?
     size_f: ^size
     get_f: ^get
