@@ -28,9 +28,11 @@ import "sango.util.iter" -> iter ;;
 
 ### definition of common-behavior object
 
+alias type <*A d> @public := <A _1+> ;;
+
 data <*A set> @public :=
-  d: <A _1+>
-  fs: <<A _1+> A set_fs>
+  d: <A d>
+  fs: <<A d> A set_fs>
   set$
 ++ as_a'set -> [ A a'set ]
 ;;
@@ -57,14 +59,15 @@ data <*D *A set_fs> @public :=
 
 feature <*T!> [ *A a'set ] @public -> <T A set_fo> ;;
 
-data <*T *A set_fo> @public :=
-  d: <T A set_fo_d+>
-  fs: <<T A set_fo_d+> A set_fs>
-  rev_f: <<T A set_fo_d+> T fun>
-  set_fo$ ;;
+alias type <*A fd> @public := <A _1+> ;;
+alias type <*T *A fr> @public := <<A fd> T fun> ;;
+alias type <*T *A fx> @public := <<A fd> <<A fd> T fun> tuple> ;;
 
-data <*T *A set_fo_d> @public :=
-  <A set> cset_fo_d$ ;;  # local dcon
+data <*T *A set_fo> @public :=
+  fd: <A fd>
+  fr: <T A fr>
+  fs: <<T A fx> A set_fs>
+  set_fo$ ;;
 
 
 ### implementation of common-behavior object
@@ -209,8 +212,8 @@ eval <*T![ *A a'set ]> *FSet f_empty? | empty? @public -> <bool> {
 } ;;
 
 eval <*T! *A set_fo> *Set_fo fo_empty? | empty? @public -> <bool> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs _empty?
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs _empty?
 } ;;
 
 eval <*T![ *A a'set ]> *FSet f_size | size @public -> <int> {
@@ -219,8 +222,8 @@ eval <*T![ *A a'set ]> *FSet f_size | size @public -> <int> {
 } ;;
 
 eval <*T! *A set_fo> *Set_fo fo_size | size @public -> <int> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs _size
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs _size
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_get | get @public -> <A maybe> {
@@ -229,8 +232,8 @@ eval <*T![ *A a'set ]> *FSet <A> *Elem f_get | get @public -> <A maybe> {
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_get | get @public -> <A maybe> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _get
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _get
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_contain? | contain? @public -> <bool> {
@@ -239,87 +242,87 @@ eval <*T![ *A a'set ]> *FSet <A> *Elem f_contain? | contain? @public -> <bool> {
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_contain? | contain? @public -> <bool> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _contain?
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _contain?
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_put | put @public -> <T <A maybe> tuple> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Elem fo_put = (| *Set_fo', *Replaced_ |),
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  (| D' &Rev_f', Replaced_ |)
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  (| D' &R', Replaced_ |)
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_put | put @public -> <<T A set_fo> <A maybe> tuple> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _put = (| *D', *Replaced_ |),
-  (| d: D' fs: Fs rev_f: Rev_f set_fo$, Replaced_ |)
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _put = (| (| *D', *R' |), *Replaced_ |),
+  (| fd: D' fr: R' fs: Fs set_fo$, Replaced_ |)
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_put_new | put_new @public -> <T bool tuple> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Elem fo_put_new = (| *Set_fo', *Succeeded? |),
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  (| D' &Rev_f', Succeeded? |)
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  (| D' &R', Succeeded? |)
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_put_new | put_new @public -> <<T A set_fo> bool tuple> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _put_new = (| *D', *Succeeded? |),
-  (| d: D' fs: Fs rev_f: Rev_f set_fo$, Succeeded? |)
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _put_new = (| (| *D', *R' |), *Succeeded? |),
+  (| fd: D' fr: R' fs: Fs set_fo$, Succeeded? |)
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_add | add @public -> <T> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Elem fo_add = *Set_fo',
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  D' &Rev_f'
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_add | add @public -> <T A set_fo> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _add = *D',
-  d: D' fs: Fs rev_f: Rev_f set_fo$
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _add = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs set_fo$
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_remove | remove @public -> <T <A maybe> tuple> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Elem fo_remove = (| *Set_fo', *Removed_ |),
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  (| D' &Rev_f', Removed_ |)
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  (| D' &R', Removed_ |)
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_remove | remove @public -> <<T A set_fo> <A maybe> tuple> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _remove = (| *D', *Removed_ |),
-  (| d: D' fs: Fs rev_f: Rev_f set_fo$, Removed_ |)
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _remove = (| (| *D', *R' |), *Removed_ |),
+  (| fd: D' fr: R' fs: Fs set_fo$, Removed_ |)
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A> *Elem f_delete | delete @public -> <T> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Elem fo_delete = *Set_fo',
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  D' &Rev_f'
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A> *Elem fo_delete | delete @public -> <T A set_fo> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs Elem _delete = *D',
-  d: D' fs: Fs rev_f: Rev_f set_fo$
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs Elem _delete = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs set_fo$
 } ;;
 
 eval <*T![ *A a'set ]> *FSet f_take | take @public -> <<A T tuple> maybe> {
   FSet _feature_a'set = *Set_fo,
   Set_fo fo_take >> case {
-  ; (| *Elem, d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$ |) value$ -> (| Elem, D' &Rev_f' |) value$
+  ; (| *Elem, fd: *D' fr: *R' fs: *Fs' set_fo$ |) value$ -> (| Elem, D' &R' |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*T! *A set_fo> *Set_fo fo_take | take @public -> <<A <T A set_fo> tuple> maybe> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs _take >> case {
-  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs rev_f: Rev_f set_fo$ |) value$
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs _take >> case {
+  ; (| *Elem, (| *D', *R' |) |) value$ -> (| Elem, fd: D' fr: R' fs: Fs set_fo$ |) value$
   ; ** -> none$
   }
 } ;;
@@ -327,14 +330,14 @@ eval <*T! *A set_fo> *Set_fo fo_take | take @public -> <<A <T A set_fo> tuple> m
 eval <*T![ *A a'set ]> *FSet f_clear | clear @public -> <T> {
   FSet _feature_a'set = *Set_fo,
   Set_fo fo_clear = *Set_fo',
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  D' &Rev_f'
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A set_fo> *Set_fo fo_clear | clear @public -> <T A set_fo> {
-  Set_fo = d: *D fs: *Fs rev_f: *Rev_f set_fo$,
-  D Fs _clear = *D',
-  d: D' fs: Fs rev_f: Rev_f set_fo$
+  Set_fo = fd: *D fr: *R fs: *Fs set_fo$,
+  (| D, R |) Fs _clear = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs set_fo$
 } ;;
 
 eval <*T![ *A a'set ]> *FSet <A list> *Elems f_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
@@ -374,13 +377,13 @@ eval <*T! *A set_fo> *Set_fo <A list> *Elems fo_add_list | add_list @public -> <
 eval <*T![ *A a'set ]> *FSet <A iter> *Iter f_add_iter | add_iter @public -> <T> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Iter fo_add_iter = *Set_fo',
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  D' &Rev_f'
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A iter> *Iter fo_add_iter | add_iter @public -> <T A set_fo> {
   Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Set_fo Elem add) Iter' &&
+  ; (| *Elem, *Iter' |) value$ -> (Set_fo Elem fo_add) Iter' &&
   ; ** -> Set_fo
   }
 } ;;
@@ -396,13 +399,13 @@ eval <*T! *A set_fo> *Set_fo <A list> *Elems fo_delete_list | delete_list @publi
 eval <*T![ *A a'set ]> *FSet <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
   FSet _feature_a'set = *Set_fo,
   Set_fo Iter fo_delete_iter = *Set_fo',
-  Set_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' set_fo$,
-  D' &Rev_f'
+  Set_fo' = fd: *D' fr: *R' fs: *Fs' set_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A set_fo> *Set_fo <A iter> *Iter fo_delete_iter | delete_iter @public -> <T A set_fo> {
   Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Set_fo Elem delete) Iter' &&
+  ; (| *Elem, *Iter' |) value$ -> (Set_fo Elem fo_delete) Iter' &&
   ; ** -> Set_fo
   }
 } ;;
@@ -435,10 +438,16 @@ eval <*T! *A set_fo> *Set_fo fo_iter_next -> <A iter_res> {
 ### feature implementation of common-behavior object
 
 eval <*A set> *Set as_a'set -> <<A set> A set_fo> {
-  d: (Set cset_fo_d$) fs: cset_fo_fs rev_f: ^cset_rev_f set_fo$
+  Set cfd$ = *FD,
+  \ <A fd> *X -> <A set> {
+    X = *S cfd$, S
+  } = *FR,
+  fd: FD fr: FR fs: cset_fo_fs set_fo$
 } ;;
 
-eval cset_fo_fs -> <<*T *A set_fo_d+> A set_fs> {
+extend <*A _1+> -> cfd := <A set> cfd$ ;;
+
+eval cset_fo_fs -> <<<*A set> A fx> A set_fs> {
   empty?_f: ^cfo_empty?
   size_f: ^cfo_size
   get_f: ^cfo_get
@@ -453,73 +462,73 @@ eval cset_fo_fs -> <<*T *A set_fo_d+> A set_fs> {
   set_fs$
 } ;;
 
-eval <<*A set> A set_fo_d+> *Set_fo_d cset_rev_f -> <A set> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <<*A set> A fx> *Fx cset_rev_f -> <A set> {
+  Fx = (| *Set cfd$, *R |),
   Set
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d cfo_empty? -> <bool> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx cfo_empty? -> <bool> {
+  Fx = (| *Set cfd$, *R |),
   Set c_empty?
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d cfo_size -> <int> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx cfo_size -> <int> {
+  Fx = (| *Set cfd$, *R |),
   Set c_size
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_get -> <A maybe> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_get -> <A maybe> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_get
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_contain? -> <bool> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_contain? -> <bool> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_contain?
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_put -> <<T A set_fo_d> <A maybe> tuple> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_put -> <<T A fx> <A maybe> tuple> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_put = (| *Set', *Replaced_ |),
-  (| Set' cset_fo_d$, Replaced_ |)
+  (| (| Set' cfd$, R |), Replaced_ |)
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_put_new -> <<T A set_fo_d> bool tuple> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_put_new -> <<T A fx> bool tuple> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_put_new = (| *Set', *Succeeded? |),
-  (| Set' cset_fo_d$, Succeeded? |)
+  (| (| Set' cfd$, R |), Succeeded? |)
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_add -> <T A set_fo_d> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_add -> <T A fx> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_add = *Set',
-  Set' cset_fo_d$
+  (| Set' cfd$, R |)
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_remove -> <<T A set_fo_d> <A maybe> tuple> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_remove -> <<T A fx> <A maybe> tuple> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_remove = (| *Set', *Removed_ |),
-  (| Set' cset_fo_d$, Removed_ |)
+  (| (| Set' cfd$, R |), Removed_ |)
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d <A> *Elem cfo_delete -> <T A set_fo_d> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx <A> *Elem cfo_delete -> <T A fx> {
+  Fx = (| *Set cfd$, *R |),
   Set Elem c_delete = *Set',
-  Set' cset_fo_d$
+  (| Set' cfd$, R |)
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d cfo_take -> <<A <T A set_fo_d> tuple> maybe> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx cfo_take -> <<A <T A fx> tuple> maybe> {
+  Fx = (| *Set cfd$, *R |),
   Set c_take >> case {
-  ; (| *Elem, *Set' |) value$ -> (| Elem, Set' cset_fo_d$ |) value$
+  ; (| *Elem, *Set' |) value$ -> (| Elem, (| Set' cfd$, R |) |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*T *A set_fo_d+> *Set_fo_d cfo_clear -> <T A set_fo_d> {
-  Set_fo_d = *Set cset_fo_d$,
+eval <*T *A fx> *Fx cfo_clear -> <T A fx> {
+  Fx = (| *Set cfd$, *R |),
   Set c_clear = *Set',
-  Set' cset_fo_d$
+  (| Set' cfd$, R |)
 } ;;
 
 

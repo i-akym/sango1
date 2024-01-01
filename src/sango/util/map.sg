@@ -29,9 +29,11 @@ import "sango.util.iter" -> iter ;;
 
 ### definition of common-behavior object
 
+alias type <*A *B d> @public := <A B _2+> ;;
+
 data <*A *B map> @public :=
-  d: <A B _2+>
-  fs: <<A B _2+> A B map_fs>
+  d: <A B d>
+  fs: <<A B d> A B map_fs>
   map$
 ++ as_a'map -> [ A B a'map ] ;;
 
@@ -58,14 +60,15 @@ data <*D *A *B map_fs> @public :=
 
 feature <*T!> [ *A *B a'map ] @public -> <T A B map_fo> ;;
 
-data <*T *A *B map_fo> @public :=
-  d: <T A B map_fo_d+>
-  fs: <<T A B map_fo_d+> A B map_fs>
-  rev_f: <<T A B map_fo_d+> T fun>
-  map_fo$ ;;
+alias type <*A *B fd> @public := <A B _2+> ;;
+alias type <*T *A *B fr> @public := <<A B fd> T fun> ;;
+alias type <*T *A *B fx> @public := <<A B fd> <<A B fd> T fun> tuple> ;;
 
-data <*T *A *B map_fo_d> @public :=
-  <A B map> cmap_fo_d$ ;;  # local dcon
+data <*T *A *B map_fo> @public :=
+  fd: <A B fd>
+  fr: <T A B fr>
+  fs: <<T A B fx> A B map_fs>
+  map_fo$ ;;
 
 
 ### implementation of common-behavior object
@@ -190,8 +193,8 @@ eval <*T![ *A *B a'map ]> *FMap f_empty? | empty? @public -> <bool> {
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo fo_empty? | empty? @public -> <bool> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs _empty?
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs _empty?
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap f_size | size @public -> <int> {
@@ -200,8 +203,8 @@ eval <*T![ *A *B a'map ]> *FMap f_size | size @public -> <int> {
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo fo_size | size @public -> <int> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs _size
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs _size
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key f_get | get @public -> <<A B tuple> maybe> {
@@ -210,8 +213,8 @@ eval <*T![ *A *B a'map ]> *FMap <A> *Key f_get | get @public -> <<A B tuple> may
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key fo_get | get @public -> <<A B tuple> maybe> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key _get
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key _get
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
@@ -220,8 +223,8 @@ eval <*T![ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key fo_assoc | assoc @public -> <B maybe> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key _assoc
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key _assoc
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key f_contain_key? | contain_key? @public -> <bool> {
@@ -230,87 +233,87 @@ eval <*T![ *A *B a'map ]> *FMap <A> *Key f_contain_key? | contain_key? @public -
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key fo_contain_key? | contain_key? @public -> <bool> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key _contain_key?
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key _contain_key?
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put | put @public -> <T <<A B tuple> maybe> tuple> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Key Value fo_put = (| *Map_fo', *Replaced_kv_ |),
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  (| D' &Rev_f', Replaced_kv_ |)
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  (| D' &R', Replaced_kv_ |)
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key <B> *Value fo_put | put @public -> <<T A B map_fo> <<A B tuple> maybe> tuple> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key Value _put = (| *D', *Replaced_kv_ |),
-  (| d: D' fs: Fs rev_f: Rev_f map_fo$, Replaced_kv_ |)
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key Value _put = (| (| *D', *R' |), *Replaced_kv_ |),
+  (| fd: D' fr: R' fs: Fs map_fo$, Replaced_kv_ |)
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put_new | put_new @public -> <T bool tuple> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Key Value fo_put_new = (| *Map_fo', *Succeeded? |),
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  (| D' &Rev_f', Succeeded? |)
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  (| D' &R', Succeeded? |)
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key <B> *Value fo_put_new | put_new @public -> <<T A B map_fo> bool tuple> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key Value _put_new = (| *D', *Succeeded? |),
-  (| d: D' fs: Fs rev_f: Rev_f map_fo$, Succeeded? |)
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key Value _put_new = (| (| *D', *R' |), *Succeeded? |),
+  (| fd: D' fr: R' fs: Fs map_fo$, Succeeded? |)
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Key Value fo_add = *Map_fo',
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  D' &Rev_f'
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key <B> *Value fo_add | add @public -> <T A B map_fo> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key Value _add = *D',
-  d: D' fs: Fs rev_f: Rev_f map_fo$
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key Value _add = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs map_fo$
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key f_remove | remove @public -> <T <<A B tuple> maybe> tuple> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Key fo_remove = (| *Map_fo', *Removed_kv_ |),
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  (| D' &Rev_f', Removed_kv_ |)
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  (| D' &R', Removed_kv_ |)
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key fo_remove | remove @public -> <<T A B map_fo> <<A B tuple> maybe> tuple> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key _remove = (| *D', *Removed_kv_ |),
-  (| d: D' fs: Fs rev_f: Rev_f map_fo$, Removed_kv_ |)
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key _remove = (| (| *D', *R' |), *Removed_kv_ |),
+  (| fd: D' fr: R' fs: Fs map_fo$, Removed_kv_ |)
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <A> *Key f_delete | delete @public -> <T> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Key fo_delete = *Map_fo',
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  D' &Rev_f'
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A> *Key fo_delete | delete @public -> <T A B map_fo> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs Key _delete = *D',
-  d: D' fs: Fs rev_f: Rev_f map_fo$
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs Key _delete = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs map_fo$
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap f_take | take @public -> <<<A B tuple> T tuple> maybe> {
   FMap _feature_a'map = *Map_fo,
   Map_fo fo_take >> case {
-  ; (| *KV, d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$ |) value$ -> (| KV, D' &Rev_f' |) value$
+  ; (| *KV, fd: *D' fr: *R' fs: *Fs' map_fo$ |) value$ -> (| KV, D' &R' |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo fo_take | take @public -> <<<A B tuple> <T A B map_fo> tuple> maybe> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs _take >> case {
-  ; (| *KV, *D' |) value$ -> (| KV, d: D' fs: Fs rev_f: Rev_f map_fo$ |) value$
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs _take >> case {
+  ; (| *KV, (| *D', *R' |) |) value$ -> (| KV, fd: D' fr: R' fs: Fs map_fo$ |) value$
   ; ** -> none$
   }
 } ;;
@@ -318,14 +321,14 @@ eval <*T! *A *B map_fo> *Map_fo fo_take | take @public -> <<<A B tuple> <T A B m
 eval <*T![ *A *B a'map ]> *FMap f_clear | clear @public -> <T> {
   FMap _feature_a'map = *Map_fo,
   Map_fo fo_clear = *Map_fo',
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  D' &Rev_f'
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo fo_clear | clear @public -> <T A B map_fo> {
-  Map_fo = d: *D fs: *Fs rev_f: *Rev_f map_fo$,
-  D Fs _clear = *D',
-  d: D' fs: Fs rev_f: Rev_f map_fo$
+  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
+  (| D, R |) Fs _clear = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs map_fo$
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap <<A B tuple> list> *KVs f_add_list | add_list @public -> <T> {
@@ -339,8 +342,8 @@ eval <*T! *A *B map_fo> *Map_fo <<A B tuple> list> *KVs fo_add_list | add_list @
 eval <*T![ *A *B a'map ]> *FMap <<A B tuple> iter> *Iter f_add_iter | add_iter @public -> <T> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Iter fo_add_iter = *Map_fo',
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  D' &Rev_f'
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <<A B tuple> iter> *Iter fo_add_iter | add_iter @public -> <T A B map_fo> {
@@ -361,8 +364,8 @@ eval <*T! *A *B map_fo> *Map_fo <A list> *Ks fo_delete_list | delete_list @publi
 eval <*T![ *A *B a'map ]> *FMap <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
   FMap _feature_a'map = *Map_fo,
   Map_fo Iter fo_delete_iter = *Map_fo',
-  Map_fo' = d: *D' fs: *Fs' rev_f: *Rev_f' map_fo$,
-  D' &Rev_f'
+  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo <A iter> *Iter fo_delete_iter | delete_iter @public -> <T A B map_fo> {
@@ -400,10 +403,16 @@ eval <*T! *A *B map_fo> *Map_fo fo_iter_next -> <<A B tuple> iter_res> {
 ### feature implementation of common-behavior object
 
 eval <*A *B map> *Map as_a'map -> <<A B map> A B map_fo> {
-  d: (Map cmap_fo_d$) fs: cmap_fo_fs rev_f: ^cmap_rev_f map_fo$
+  Map cfd$ = *FD,
+  \ <A B fd> *X -> <A B map> {
+    X = *M cfd$, M
+  } = *FR,
+  fd: FD fr: FR fs: cmap_fo_fs map_fo$
 } ;;
 
-eval cmap_fo_fs -> <<*T *A *B map_fo_d+> A B map_fs> {
+extend <*A *B _2+> -> cfd := <A B map> cfd$ ;;
+
+eval cmap_fo_fs -> <<<*A *B map> A B fx> A B map_fs> {
   empty?_f: ^cfo_empty?
   size_f: ^cfo_size
   get_f: ^cfo_get
@@ -419,78 +428,73 @@ eval cmap_fo_fs -> <<*T *A *B map_fo_d+> A B map_fs> {
   map_fs$
 } ;;
 
-eval <<*A *B map> A B map_fo_d+> *Map_fo_d cmap_rev_f -> <A B map> {
-  Map_fo_d = *Map cmap_fo_d$,
-  Map
-} ;;
-
-eval <*T *A *B map_fo_d+> *Map_fo_d cfo_empty? -> <bool> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx cfo_empty? -> <bool> {
+  Fx = (| *Map cfd$, *R |),
   Map c_empty?
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d cfo_size -> <int> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx cfo_size -> <int> {
+  Fx = (| *Map cfd$, *R |),
   Map c_size
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key cfo_get -> <<A B tuple> maybe> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key cfo_get -> <<A B tuple> maybe> {
+  Fx = (| *Map cfd$, *R |),
   Map Key c_get
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key cfo_assoc -> <B maybe> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key cfo_assoc -> <B maybe> {
+  Fx = (| *Map cfd$, *R |),
   Map Key c_assoc
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key cfo_contain_key? -> <bool> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key cfo_contain_key? -> <bool> {
+  Fx = (| *Map cfd$, *R |),
   Map Key c_contain_key?
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key <B> *Value cfo_put -> <<T A B map_fo_d> <<A B tuple> maybe> tuple> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key <B> *Value cfo_put -> <<T A B fx> <<A B tuple> maybe> tuple> {
+  Fx = (| *Map cfd$, *R |),
   Map Key Value c_put = (| *Map', *Replaced_kv_ |),
-  (| Map' cmap_fo_d$, Replaced_kv_ |)
+  (| (| Map' cfd$, R |), Replaced_kv_ |)
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key <B> *Value cfo_put_new -> <<T A B map_fo_d> bool tuple> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key <B> *Value cfo_put_new -> <<T A B fx> bool tuple> {
+  Fx = (| *Map cfd$, *R |),
   Map Key Value c_put_new = (| *Map', *Succeeded? |),
-  (| Map' cmap_fo_d$, Succeeded? |)
+  (| (| Map' cfd$, R |), Succeeded? |)
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key <B> *Value cfo_add -> <T A B map_fo_d> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key <B> *Value cfo_add -> <T A B fx> {
+  Fx = (| *Map cfd$, *R |),
   Map Key Value c_add = *Map',
-  Map' cmap_fo_d$
+  (| Map' cfd$, R |)
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key cfo_remove -> <<T A B map_fo_d> <<A B tuple> maybe> tuple> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key cfo_remove -> <<T A B fx> <<A B tuple> maybe> tuple> {
+  Fx = (| *Map cfd$, *R |),
   Map Key c_remove = (| *Map', *Removed_kv_ |),
-  (| Map' cmap_fo_d$, Removed_kv_ |)
+  (| (| Map' cfd$, R |), Removed_kv_ |)
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d <A> *Key cfo_delete -> <T A B map_fo_d> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx <A> *Key cfo_delete -> <T A B fx> {
+  Fx = (| *Map cfd$, *R |),
   Map Key c_delete = *Map',
-  Map' cmap_fo_d$
+  (| Map' cfd$, R |)
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d cfo_take -> <<<A B tuple> <T A B map_fo_d> tuple> maybe> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx cfo_take -> <<<A B tuple> <T A B fx> tuple> maybe> {
+  Fx = (| *Map cfd$, *R |),
   Map c_take >> case {
-  ; (| *KV, *Map' |) value$ -> (| KV, Map' cmap_fo_d$ |) value$
+  ; (| *KV, *Map' |) value$ -> (| KV, (| Map' cfd$, R |) |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*T *A *B map_fo_d+> *Map_fo_d cfo_clear -> <T A B map_fo_d> {
-  Map_fo_d = *Map cmap_fo_d$,
+eval <*T *A *B fx> *Fx cfo_clear -> <T A B fx> {
+  Fx = (| *Map cfd$, *R |),
   Map c_clear = *Map',
-  Map' cmap_fo_d$
+  (| Map' cfd$, R |)
 } ;;
 
 
