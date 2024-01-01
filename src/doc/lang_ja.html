@@ -1576,7 +1576,7 @@ Box act.wait_forever$ act.listen</code></blockquote>
 feature &lt;*T!&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fo&gt; ;;
 data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
 
-<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map&gt;</code>のフィーチャ・オブジェクトを供給できること』を意味します。
+<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map_fo&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します。
 この例では，<code>&lt;T&gt;</code>が具象型であることを要求しています<sup>*1</sup>。
 <code>[ ]</code>内がフィーチャを表し，「<code>a'map</code>」がフィーチャ名です。
 「<code>a'</code>」はフィーチャ名に慣習的に付けるもので，「abstract」を意味します。
@@ -1589,7 +1589,7 @@ data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省�
 
 <p>フィーチャの実行は，フィーチャ・オブジェクトを用いて処理を行います。</p>
 
-<blockquote class="code-sample"><code>eval &lt;*T *A *B map&gt; *M size @public -&gt; &lt;int&gt; {
+<blockquote class="code-sample"><code>eval &lt;*T *A *B map_fo&gt; *M size @public -&gt; &lt;int&gt; {
   #</code> Mからマップのサイズを計算する<code>
 } ;;</code></blockquote>
 
