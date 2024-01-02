@@ -219,6 +219,14 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     this.sig = this.sig.resolve();
     this.impl = this.impl.resolve();
 
+    if (this.sig.params.length > 0 && !this.obj.requiresConcrete) {
+      emsg = new StringBuffer();
+      emsg.append("The object should be concrete when feature has one or more parameters at ");
+      emsg.append(this.obj.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+
     PTypeRef itr = (PTypeRef)this.impl;
     Set<String> ivs = new HashSet<String>();  // var refs in impl
     for (int i = 0; i < itr.params.length; i++) {
