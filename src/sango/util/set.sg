@@ -61,7 +61,7 @@ feature <*T!> [ *A a'set ] @public -> <T A set_fo> ;;
 
 alias type <*A fd> @public := <A _1+> ;;
 alias type <*T *A fr> @public := <<A fd> T fun> ;;
-alias type <*T *A fx> @public := <<A fd> <<A fd> T fun> tuple> ;;
+alias type <*T *A fx> @public := <<A fd> <T A fr> tuple> ;;
 
 data <*T *A set_fo> @public :=
   fd: <A fd>

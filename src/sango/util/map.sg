@@ -62,7 +62,7 @@ feature <*T!> [ *A *B a'map ] @public -> <T A B map_fo> ;;
 
 alias type <*A *B fd> @public := <A B _2+> ;;
 alias type <*T *A *B fr> @public := <<A B fd> T fun> ;;
-alias type <*T *A *B fx> @public := <<A B fd> <<A B fd> T fun> tuple> ;;
+alias type <*T *A *B fx> @public := <<A B fd> <T A B fr> tuple> ;;
 
 data <*T *A *B map_fo> @public :=
   fd: <A B fd>
