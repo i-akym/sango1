@@ -69,7 +69,7 @@ eval <*A list> *Assoc <<<A list> avl.node> maybe> *Left_ <<<A list> avl.node> ma
   count: Count mins: Mins aux$
 } ;;
 
-eval bag_fs @public -> <*A bag.bag_fs> {
+eval bag_fs @public -> <<*A _1+> A bag.bag_fs> {
   empty?_f: ^empty?
     size_f: ^size
     contain?_f: ^contain?

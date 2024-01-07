@@ -38,7 +38,7 @@ eval <*A eq_fs> *Eq new_bag_eq | new_bag @public -> <A bag.bag> {
   d: (Eq [] simple_bag_d$) fs: bag_fs bag.bag$
 } ;;
 
-eval bag_fs -> <*A bag.bag_fs> {
+eval bag_fs -> <<*A _1+> A bag.bag_fs> {
   empty?_f: ^empty?
     size_f: ^size
     contain?_f: ^contain?
