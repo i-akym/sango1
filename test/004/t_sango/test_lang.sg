@@ -22,7 +22,7 @@ eval <d003> *X fun002 -> <void> {} ;;
 alias type <*A d004> := <A list> ;;
 eval <cs d004> *II fun003 -> <void> {} ;;
 
-feature <*T> [ *A *B a'feat ] -> <T B A feat> ;;
+feature <*T!> [ *A *B a'feat ] -> <T B A feat> ;;
 data <*T *B *A feat> := <T> <B A tuple> feat$ ;;
 data <*P *Q feat_impl> := <P Q tuple> feat_impl$
 ++ as_a'feat -> [ <P P tuple> <Q Q tuple> a'feat ] ;;

@@ -415,7 +415,7 @@ eval <*T![ *A a'set ]> *FSet f_iter | iter @public -> <A iter> {
 } ;;
 
 eval <*T![ *A a'set ]> *FSet f_iter_next -> <A iter_res> {
-  FSet take >> case {
+  FSet f_take >> case {
   ; (| *Elem, *FSet' |) value$ ->
     (| Elem, \\ <A iter_res> { FSet' f_iter_next } iter$ |) value$
   ; ** -> none$
@@ -427,7 +427,7 @@ eval <*T! *A set_fo> *Set_fo fo_iter | iter @public -> <A iter> {
 } ;;
 
 eval <*T! *A set_fo> *Set_fo fo_iter_next -> <A iter_res> {
-  Set_fo take >> case {
+  Set_fo fo_take >> case {
   ; (| *Elem, *Set_fo' |) value$ ->
     (| Elem, \\ <A iter_res> { Set_fo' fo_iter_next } iter$ |) value$
   ; ** -> none$
@@ -460,11 +460,6 @@ eval cset_fo_fs -> <<<*A set> A fx> A set_fs> {
   take_f: ^cfo_take
   clear_f: ^cfo_clear
   set_fs$
-} ;;
-
-eval <<*A set> A fx> *Fx cset_rev_f -> <A set> {
-  Fx = (| *Set cfd$, *R |),
-  Set
 } ;;
 
 eval <*T *A fx> *Fx cfo_empty? -> <bool> {
