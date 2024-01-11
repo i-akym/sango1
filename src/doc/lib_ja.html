@@ -3836,9 +3836,10 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A queue_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A queue&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A queue_fs&gt;
   queue$ ;;</code></td></tr></table>
 <p>カプセル化されたキューオブジェクトを表します。
   <code>&lt;A&gt;</code>は値の型です。
@@ -3877,13 +3878,13 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.queue.2"><code>sango.util.queue</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A queue_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  length_f: &lt;&lt;A _1+&gt; int fun&gt;
-  enqueue_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
-  head_f: &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt;
-  dequeue_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A queue_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  length_f: &lt;D int fun&gt;
+  enqueue_f: &lt;D A D fun&gt;
+  head_f: &lt;D &lt;A maybe&gt; fun&gt;
+  dequeue_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;D D fun&gt;
   queue_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
