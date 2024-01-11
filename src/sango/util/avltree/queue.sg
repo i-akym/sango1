@@ -46,7 +46,7 @@ eval new_queue @public -> <*A queue.queue> {
   d: D fs: queue_fs queue.queue$
 } ;;
 
-eval queue_fs -> <*A queue.queue_fs> {
+eval queue_fs -> <<*A _1+> A queue.queue_fs> {
   empty?_f: ^empty?
     length_f: ^length
     enqueue_f: ^enqueue
