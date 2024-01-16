@@ -4583,61 +4583,62 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A stack&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A stack_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A stack&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A stack_fs&gt;
   stack$ ;;</code></td></tr></table>
 <p>カプセル化されたスタックオブジェクトを表します。
   &lt;A&gt;は値の型です。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>スタックが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_depth | depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>スタックの深さ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem c_push | push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>値をスタックに登録します。
   登録された値はスタックの一番上に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_top | top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を返します。
   スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_pop | pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を取り出し，残りのスタックと共に返します。
   スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_to_list | to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>スタックをリストに変換します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_clear | clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>スタックを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素をスタックの上から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems c_push_list | push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter c_push_iter | push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.stack.2"><code>sango.util.stack</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A stack_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  depth_f: &lt;&lt;A _1+&gt; int fun&gt;
-  push_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
-  top_f: &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt;
-  pop_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  to_list_f_: &lt;&lt;&lt;A _1+&gt; &lt;A list&gt; fun&gt; maybe&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A stack_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  depth_f: &lt;D int fun&gt;
+  push_f: &lt;D A D fun&gt;
+  top_f: &lt;D &lt;A maybe&gt; fun&gt;
+  pop_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  to_list_f_: &lt;&lt;D &lt;A list&gt; fun&gt; maybe&gt;
+  clear_f: &lt;D D fun&gt;
   stack_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;D &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストに変換する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

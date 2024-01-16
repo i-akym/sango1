@@ -411,15 +411,8 @@ eval <*T! *A set_fo> *Set_fo <A iter> *Iter fo_delete_iter | delete_iter @public
 } ;;
 
 eval <*T![ *A a'set ]> *FSet f_iter | iter @public -> <A iter> {
-  \\ <A iter_res> { FSet f_iter_next } iter$
-} ;;
-
-eval <*T![ *A a'set ]> *FSet f_iter_next -> <A iter_res> {
-  FSet f_take >> case {
-  ; (| *Elem, *FSet' |) value$ ->
-    (| Elem, \\ <A iter_res> { FSet' f_iter_next } iter$ |) value$
-  ; ** -> none$
-  }
+  FSet _feature_a'set = *Set_fo,
+  Set_fo fo_iter
 } ;;
 
 eval <*T! *A set_fo> *Set_fo fo_iter | iter @public -> <A iter> {

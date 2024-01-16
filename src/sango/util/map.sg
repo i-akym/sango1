@@ -376,15 +376,8 @@ eval <*T! *A *B map_fo> *Map_fo <A iter> *Iter fo_delete_iter | delete_iter @pub
 } ;;
 
 eval <*T![ *A *B a'map ]> *FMap f_iter | iter @public -> <<A B tuple> iter> {
-  \\ <<A B tuple> iter_res> { FMap f_iter_next } iter$
-} ;;
-
-eval <*T![ *A *B a'map ]> *FMap f_iter_next -> <<A B tuple> iter_res> {
-  FMap take >> case {
-  ; (| *KV, *FMap' |) value$ ->
-    (| KV, \\ <<A B tuple> iter_res> { FMap' f_iter_next } iter$ |) value$
-  ; ** -> none$
-  }
+  FMap _feature_a'map = *Map_fo,
+  Map_fo fo_iter
 } ;;
 
 eval <*T! *A *B map_fo> *Map_fo fo_iter | iter @public -> <<A B tuple> iter> {
