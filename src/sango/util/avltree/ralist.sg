@@ -56,7 +56,7 @@ eval new_ralist @public -> <*A ral.ralist> {
   d: D fs: ralist_fs ral.ralist$
 } ;;
 
-eval ralist_fs -> <*A ral.ralist_fs> {
+eval ralist_fs -> <<*A ral.d> A ral.ralist_fs> {
   empty?_f_: (^empty? value$)
     length_f: ^length
     elem_f: ^elem
@@ -73,16 +73,16 @@ eval ralist_fs -> <*A ral.ralist_fs> {
     ral.ralist_fs$
 } ;;
 
-eval <*A _1+> *D empty? -> <bool> {
+eval <*A ral.d> *D empty? -> <bool> {
   D length >> zero?
 } ;;
 
-eval <*A _1+> *D length -> <int> {
+eval <*A ral.d> *D length -> <int> {
   D = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A _1+> *D <int> *Index elem -> <A maybe> {
+eval <*A ral.d> *D <int> *Index elem -> <A maybe> {
   D = body: *Body *** d$,
   Body (Index find_locator) avl.get >> case {
   ; *Y avl.get_done$ -> Y value$
@@ -90,13 +90,13 @@ eval <*A _1+> *D <int> *Index elem -> <A maybe> {
   }
 } ;;
 
-eval <*A _1+> *D <int> *Index <A> *X insert_at -> <A _1+> {
+eval <*A ral.d> *D <int> *Index <A> *X insert_at -> <A ral.d> {
   D = body: *Body *** d$,
   Body (Index insert_locator) X avl.put = *Body' avl.put_new_done$,
   body: Body' :: D d$
 } ;;
 
-eval <*A _1+> *D <int> *Index remove_at -> <<A _1+> <A maybe> tuple> {
+eval <*A ral.d> *D <int> *Index remove_at -> <<A ral.d> <A maybe> tuple> {
   D = body: *Body *** d$,
   Body (Index find_locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: D d$, Removed value$ |)
@@ -104,6 +104,6 @@ eval <*A _1+> *D <int> *Index remove_at -> <<A _1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A _1+> *D clear -> <A _1+> {
+eval <*A ral.d> *D clear -> <A ral.d> {
   body: avl.new_tree d$
 } ;;
