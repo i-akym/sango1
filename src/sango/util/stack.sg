@@ -307,9 +307,9 @@ eval <*D *A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <D <A list> 
   ; *F value$ -> F
   ; ** ->
     \ <D> *Stack_d -> <A list> {
-      Stack_d [] &\ <D> *SD <A list> *L_r -> <A list> {
-        SD &(Fs pop_f) >> case {
-        ; (| *Elem, *SD' |) value$ -> SD' [ Elem ; L_r ] &&
+      Stack_d [] &\ <D> *DD <A list> *L_r -> <A list> {
+        DD &(Fs pop_f) >> case {
+        ; (| *Elem, *DD' |) value$ -> DD' [ Elem ; L_r ] &&
         ; ** -> L_r list.reverse
         }
       }
@@ -317,26 +317,26 @@ eval <*D *A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <D <A list> 
   }
 } ;;
 
-eval <*D> *SD <D *A stack_fs> *Fs _empty? -> <bool> {
-  SD &(Fs empty?_f)
+eval <*D> *DD <D *A stack_fs> *Fs _empty? -> <bool> {
+  DD &(Fs empty?_f)
 } ;;
 
-eval <*D> *SD <D *A stack_fs> *Fs _depth -> <int> {
-  SD &(Fs depth_f)
+eval <*D> *DD <D *A stack_fs> *Fs _depth -> <int> {
+  DD &(Fs depth_f)
 } ;;
 
-eval <*D> *SD <D *A stack_fs> *Fs <A> *Elem _push -> <D> {
-  SD Elem &(Fs push_f)
+eval <*D> *DD <D *A stack_fs> *Fs <A> *Elem _push -> <D> {
+  DD Elem &(Fs push_f)
 } ;;
 
-eval <*D> *SD <D *A stack_fs> *Fs _top -> <A maybe> {
-  SD &(Fs top_f)
+eval <*D> *DD <D *A stack_fs> *Fs _top -> <A maybe> {
+  DD &(Fs top_f)
 } ;;
 
-eval <*D> *SD <D *A stack_fs> *Fs _pop -> <<A D tuple> maybe> {
-  SD &(Fs pop_f)
+eval <*D> *DD <D *A stack_fs> *Fs _pop -> <<A D tuple> maybe> {
+  DD &(Fs pop_f)
 } ;;
 
-eval <*D> *SD <D *A stack_fs> *Fs _clear -> <D> {
-  SD &(Fs clear_f)
+eval <*D> *DD <D *A stack_fs> *Fs _clear -> <D> {
+  DD &(Fs clear_f)
 } ;;

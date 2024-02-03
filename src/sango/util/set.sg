@@ -526,8 +526,8 @@ eval <*D *A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <D A bool fun>
   Fs contain?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <D> *SD <A> *Elem -> <bool> {
-      SD Elem &(Fs get_f) >> something? 
+    \ <D> *DD <A> *Elem -> <bool> {
+      DD Elem &(Fs get_f) >> something? 
     }
   }
 } ;;
@@ -536,10 +536,10 @@ eval <*D *A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <D A <D bool tup
   Fs put_new_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <D> *SD <A> *Elem -> <D bool tuple> {
-      SD Elem &(Fs contain?_f) >> case {
-      ; true$ -> (| SD, false$ |)
-      ; ** -> (| SD Elem &(Fs add_f), true$ |)
+    \ <D> *DD <A> *Elem -> <D bool tuple> {
+      DD Elem &(Fs contain?_f) >> case {
+      ; true$ -> (| DD, false$ |)
+      ; ** -> (| DD Elem &(Fs add_f), true$ |)
       }
     }
   }
@@ -549,9 +549,9 @@ eval <*D *A set_fs> *Fs set_fs_add_f | add_f @public -> <D A D fun> {
   Fs add_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <D> *SD <A> *Elem -> <D> {
-      SD Elem &(Fs put_f) = (| *SD', ** |),
-      SD'
+    \ <D> *DD <A> *Elem -> <D> {
+      DD Elem &(Fs put_f) = (| *DD', ** |),
+      DD'
     }
   }
 } ;;
@@ -560,53 +560,53 @@ eval <*D *A set_fs> *Fs set_fs_delete_f | delete_f @public -> <D A D fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <D> *SD <A> *Elem -> <D> {
-      SD Elem &(Fs remove_f) = (| *SD', ** |),
-      SD'
+    \ <D> *DD <A> *Elem -> <D> {
+      DD Elem &(Fs remove_f) = (| *DD', ** |),
+      DD'
     }
   }
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs _empty? -> <bool> {
-  SD &(Fs empty?_f)
+eval <*D> *DD <D *A set_fs> *Fs _empty? -> <bool> {
+  DD &(Fs empty?_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs _size -> <int> {
-  SD &(Fs size_f)
+eval <*D> *DD <D *A set_fs> *Fs _size -> <int> {
+  DD &(Fs size_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _get -> <A maybe> {
-  SD Elem &(Fs get_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _get -> <A maybe> {
+  DD Elem &(Fs get_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _contain? -> <bool> {
-  SD Elem &(Fs contain?_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _contain? -> <bool> {
+  DD Elem &(Fs contain?_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _put -> <D <A maybe> tuple> {
-  SD Elem &(Fs put_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _put -> <D <A maybe> tuple> {
+  DD Elem &(Fs put_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _put_new -> <D bool tuple> {
-  SD Elem &(Fs put_new_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _put_new -> <D bool tuple> {
+  DD Elem &(Fs put_new_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _add -> <D> {
-  SD Elem &(Fs add_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _add -> <D> {
+  DD Elem &(Fs add_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _remove -> <D <A maybe> tuple> {
-  SD Elem &(Fs remove_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _remove -> <D <A maybe> tuple> {
+  DD Elem &(Fs remove_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs <A> *Elem _delete -> <D> {
-  SD Elem &(Fs delete_f)
+eval <*D> *DD <D *A set_fs> *Fs <A> *Elem _delete -> <D> {
+  DD Elem &(Fs delete_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs _take -> <<A D tuple> maybe> {
-  SD &(Fs take_f)
+eval <*D> *DD <D *A set_fs> *Fs _take -> <<A D tuple> maybe> {
+  DD &(Fs take_f)
 } ;;
 
-eval <*D> *SD <D *A set_fs> *Fs _clear -> <D> {
-  SD &(Fs clear_f)
+eval <*D> *DD <D *A set_fs> *Fs _clear -> <D> {
+  DD &(Fs clear_f)
 } ;;

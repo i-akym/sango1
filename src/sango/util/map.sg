@@ -148,10 +148,10 @@ eval <*A *B map> *Map <<A B tuple> list> *KVs c_add_list | add_list @public -> <
 
 eval <*A *B map> *Map <<A B tuple> iter> *Iter c_add_iter | add_iter @public -> <A B map> {
   Map = d: *D fs: *Fs map$,
-  D Iter &\ <A B _2+> *MD <<A B tuple> iter> *I -> <A B _2+> {
+  D Iter &\ <A B d> *DD <<A B tuple> iter> *I -> <A B d> {
     I next >> case {
-    ; (| (| *K, *V |), *I' |) value$ -> (MD Fs K V _add) I' &&
-    ; ** -> MD
+    ; (| (| *K, *V |), *I' |) value$ -> (DD Fs K V _add) I' &&
+    ; ** -> DD
     }
   } = *D',
   D' Fs map$
@@ -163,10 +163,10 @@ eval <*A *B map> *Map <A list> *Ks c_delete_list | delete_list @public -> <A B m
 
 eval <*A *B map> *Map <A iter> *Iter c_delete_iter | delete_iter @public -> <A B map> {
   Map = d: *D fs: *Fs map$,
-  D Iter &\ <A B _2+> *MD <A iter> *I -> <A B _2+> {
+  D Iter &\ <A B d> *DD <A iter> *I -> <A B d> {
     I next >> case {
-    ; (| *K, *I' |) value$ -> (MD Fs K _delete) I' &&
-    ; ** -> MD
+    ; (| *K, *I' |) value$ -> (DD Fs K _delete) I' &&
+    ; ** -> DD
     }
   } = *D',
   D' Fs map$
@@ -403,7 +403,7 @@ eval <*A *B map> *Map as_a'map -> <<A B map> A B map_fo> {
   fd: FD fr: FR fs: cmap_fo_fs map_fo$
 } ;;
 
-extend <*A *B _2+> -> cfd := <A B map> cfd$ ;;
+extend <*A *B _2> -> cfd := <A B map> cfd$ ;;
 
 eval cmap_fo_fs -> <<<*A *B map> A B fx> A B map_fs> {
   empty?_f: ^cfo_empty?
@@ -546,50 +546,50 @@ eval <*D *A *B map_fs> *Fs map_fs_delete_f | delete_f @public -> <D A D fun> {
   }
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs _empty? -> <bool> {
-  MD &(Fs empty?_f)
+eval <*D> *DD <D *A *B map_fs> *Fs _empty? -> <bool> {
+  DD &(Fs empty?_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs _size -> <int> {
-  MD &(Fs size_f)
+eval <*D> *DD <D *A *B map_fs> *Fs _size -> <int> {
+  DD &(Fs size_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key _get -> <<A B tuple> maybe> {
-  MD Key &(Fs get_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key _get -> <<A B tuple> maybe> {
+  DD Key &(Fs get_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key _assoc -> <B maybe> {
-  MD Key &(Fs assoc_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key _assoc -> <B maybe> {
+  DD Key &(Fs assoc_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key _contain_key? -> <bool> {
-  MD Key &(Fs contain_key?_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key _contain_key? -> <bool> {
+  DD Key &(Fs contain_key?_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key <B> *Value _put -> <D <<A B tuple> maybe> tuple>  {
-  MD Key Value &(Fs put_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key <B> *Value _put -> <D <<A B tuple> maybe> tuple>  {
+  DD Key Value &(Fs put_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key <B> *Value _put_new -> <D bool tuple>  {
-  MD Key Value &(Fs put_new_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key <B> *Value _put_new -> <D bool tuple>  {
+  DD Key Value &(Fs put_new_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key <B> *Value _add -> <D>  {
-  MD Key Value &(Fs add_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key <B> *Value _add -> <D>  {
+  DD Key Value &(Fs add_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key _remove -> <D <<A B tuple> maybe> tuple>  {
-  MD Key &(Fs remove_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key _remove -> <D <<A B tuple> maybe> tuple>  {
+  DD Key &(Fs remove_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs <A> *Key _delete -> <D>  {
-  MD Key &(Fs delete_f)
+eval <*D> *DD <D *A *B map_fs> *Fs <A> *Key _delete -> <D>  {
+  DD Key &(Fs delete_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs _take -> <<<A B tuple> D tuple> maybe> {
-  MD &(Fs take_f)
+eval <*D> *DD <D *A *B map_fs> *Fs _take -> <<<A B tuple> D tuple> maybe> {
+  DD &(Fs take_f)
 } ;;
 
-eval <*D> *MD <D *A *B map_fs> *Fs _clear -> <D> {
-  MD &(Fs clear_f)
+eval <*D> *DD <D *A *B map_fs> *Fs _clear -> <D> {
+  DD &(Fs clear_f)
 } ;;
