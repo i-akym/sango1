@@ -296,26 +296,26 @@ eval <*T *A fx> *Fx cfo_clear -> <T A fx> {
 
 ### subroutines
 
-eval <*D> *QD <D *A queue_fs> *Fs _empty? -> <bool> {
-  QD &(Fs empty?_f)
+eval <*D> *DD <D *A queue_fs> *Fs _empty? -> <bool> {
+  DD &(Fs empty?_f)
 } ;;
 
-eval <*D> *QD <D *A queue_fs> *Fs _length -> <int> {
-  QD &(Fs length_f)
+eval <*D> *DD <D *A queue_fs> *Fs _length -> <int> {
+  DD &(Fs length_f)
 } ;;
 
-eval <*D> *QD <D *A queue_fs> *Fs <A> *Elem _enqueue -> <D> {
-  QD Elem &(Fs enqueue_f)
+eval <*D> *DD <D *A queue_fs> *Fs <A> *Elem _enqueue -> <D> {
+  DD Elem &(Fs enqueue_f)
 } ;;
 
-eval <*D> *QD <D *A queue_fs> *Fs _head -> <A maybe> {
-  QD &(Fs head_f)
+eval <*D> *DD <D *A queue_fs> *Fs _head -> <A maybe> {
+  DD &(Fs head_f)
 } ;;
 
-eval <*D> *QD <D *A queue_fs> *Fs _dequeue -> <<A D tuple> maybe> {
-  QD &(Fs dequeue_f)
+eval <*D> *DD <D *A queue_fs> *Fs _dequeue -> <<A D tuple> maybe> {
+  DD &(Fs dequeue_f)
 } ;;
 
-eval <*D> *QD <D *A queue_fs> *Fs _clear -> <D> {
-  QD &(Fs clear_f)
+eval <*D> *DD <D *A queue_fs> *Fs _clear -> <D> {
+  DD &(Fs clear_f)
 } ;;

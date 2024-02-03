@@ -415,7 +415,7 @@ eval <*A bag> *Bag as_a'bag -> <<A bag> A bag_fo> {
   fd: FD fr: FR fs: cbag_fo_fs bag_fo$
 } ;;
 
-extend <*A _1+> -> cfd := <A bag> cfd$ ;;
+extend <*A _1> -> cfd := <A bag> cfd$ ;;
 
 eval cbag_fo_fs -> <<<*A bag> A fx> A bag_fs> {
   empty?_f: ^cfo_empty?
@@ -503,9 +503,9 @@ eval <*D *A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <D A D fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <D> *BD <A> *Elem -> <D> {
-      BD Elem &(Fs remove_f) = (| *BD', ** |),
-      BD'
+    \ <D> *DD <A> *Elem -> <D> {
+      DD Elem &(Fs remove_f) = (| *DD', ** |),
+      DD'
     }
   }
 } ;;
@@ -514,53 +514,53 @@ eval <*D *A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <D A D fun
   Fs delete_all_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
-    \ <D> *BD <A> *Elem -> <D> {
-      BD Elem &(Fs remove_all_f) = (| *BD', ** |),
-      BD'
+    \ <D> *DD <A> *Elem -> <D> {
+      DD Elem &(Fs remove_all_f) = (| *DD', ** |),
+      DD'
     }
   }
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs _empty? -> <bool> {
-  BD &(Fs empty?_f)
+eval <*D> *DD <D *A bag_fs> *Fs _empty? -> <bool> {
+  DD &(Fs empty?_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs _size -> <int> {
-  BD &(Fs size_f)
+eval <*D> *DD <D *A bag_fs> *Fs _size -> <int> {
+  DD &(Fs size_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _contain? -> <bool> {
-  BD Elem &(Fs contain?_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _contain? -> <bool> {
+  DD Elem &(Fs contain?_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _get_all -> <A list> {
-  BD Elem &(Fs get_all_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _get_all -> <A list> {
+  DD Elem &(Fs get_all_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _add -> <D> {
-  BD Elem &(Fs add_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _add -> <D> {
+  DD Elem &(Fs add_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _remove -> <D <A maybe> tuple> {
-  BD Elem &(Fs remove_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _remove -> <D <A maybe> tuple> {
+  DD Elem &(Fs remove_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _remove_all -> <D <A list> tuple> {
-  BD Elem &(Fs remove_all_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _remove_all -> <D <A list> tuple> {
+  DD Elem &(Fs remove_all_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _delete -> <D> {
-  BD Elem &(Fs delete_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _delete -> <D> {
+  DD Elem &(Fs delete_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs <A> *Elem _delete_all -> <D> {
-  BD Elem &(Fs delete_all_f)
+eval <*D> *DD <D *A bag_fs> *Fs <A> *Elem _delete_all -> <D> {
+  DD Elem &(Fs delete_all_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs _take -> <<A D tuple> maybe> {
-  BD &(Fs take_f)
+eval <*D> *DD <D *A bag_fs> *Fs _take -> <<A D tuple> maybe> {
+  DD &(Fs take_f)
 } ;;
 
-eval <*D> *BD <D *A bag_fs> *Fs _clear -> <D> {
-  BD &(Fs clear_f)
+eval <*D> *DD <D *A bag_fs> *Fs _clear -> <D> {
+  DD &(Fs clear_f)
 } ;;
