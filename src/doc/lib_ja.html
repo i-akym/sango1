@@ -172,7 +172,6 @@ kbd {
 <a href="#sango.util.array"><code>sango.util.array</code></a> 【Alpha】
   <a href="#sango.util.array.1">フレームワーク</a>
   <a href="#sango.util.array.2">実装者向け情報</a>
-<a href="#sango.util.avltree"><code>sango.util.avltree</code></a> 【Deprecated】
 <a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a> 【Alpha】
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
@@ -3077,63 +3076,6 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
   set_f: &lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt;
   array_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree"><code>sango.util.avltree</code> 【Deprecated】</h1>
-
-<p>AVL木の構造をしたマップを提供します。
-  キーは順序付け可能でなければなりません。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B tree&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;A&gt;</code>のキーに対する<code>&lt;B&gt;</code>の値を持つマップを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_tree @public -&gt; &lt;A *B tree&gt; ;;</code></td></tr></table>
-<p>空のマップを生成します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
-<p>マップが空かどうか判定します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>マップの大きさ（キーと値のペアの数）を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
-<p>キーに対する値を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
-<p>キーが登録されているかどうか判定します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K &lt;B&gt; *V
-  put @public -&gt; &lt;&lt;A B tree&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを登録します。
-  キーがすでに登録されている場合は置き換えられた値が共に返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K &lt;B&gt; *V put_new @public -&gt; &lt;&lt;A B tree&gt; bool tuple&gt; ;;</code></td></tr></table>
-<p>新しいキーと値のペアを登録します。
-  すでにキーが登録されている場合は，マップは変更されずfalse$と共に返されます。
-  キーが登録されていない場合は，更新されたマップと<code>true$</code>が返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K &lt;B&gt; *V add @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを登録します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K remove @public -&gt; &lt;&lt;A B tree&gt; &lt;B maybe&gt; tuple&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを削除します。
-  削除された値が共に返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K delete @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを削除します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B tree&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
-<p>登録されている最も小さいキーと値のペアを削除し，削除されたキーと値のペア，および更新されたマップを返します。
-  マップが空だった場合は<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree clear @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>マップを空にします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>リストに含まれるキーと値のペアを全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code> 【Alpha】</h1>
