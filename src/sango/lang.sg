@@ -97,15 +97,6 @@ data <arith_failure> @public :=
 
 data <exc_info> @opaque := @native ;;
 
-# 'independent' type
-
-data @deprecated <independent> @public := <_?_> exposed$ ;;
-
-data @deprecated <*A seal_fs> @public :=
-  seal_f: <A independent+ fun>
-  unseal_f: <independent+ <A maybe> fun>
-  seal_fs$ ;;
-
 # base types -- for extension
 
 data <_0> @public := _0$ ;;
