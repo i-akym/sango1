@@ -295,16 +295,6 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>alias type &lt;cstr&gt; @public := &lt;char string&gt; ;;</code></td></tr></table>
 <p>文字のストリングの別名で，文字列のことです。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;independent&gt; @public := &lt;_?_&gt; exposed$ ;;</code></td></tr></table>
-<p>文脈から独立している型を表します。
-  必要に応じて拡張して使用します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A seal_fs&gt; @public :=
-  seal_f: &lt;A independent+ fun&gt;
-  unseal_f: &lt;independent+ &lt;A maybe&gt; fun&gt;
-  seal_fs$ ;;</code></td></tr></table>
-<p>オブジェクトを<code>&lt;independent+&gt;</code>に変換する関数，その逆の関数を表します。</p>
-
 <table border width="100%"><tr><td class="def"><code>data &lt;+*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
@@ -852,7 +842,7 @@ eval &lt;*A async_result_h&gt; *Result
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.actor.2"><code>sango.actor</code> - メッセージ交換</h2>
 
-<table border width="100%"><tr><td class="def"><code>extend &lt;independent&gt; -&gt; msg @public :=
+<table border width="100%"><tr><td class="def"><code>extend &lt;_0&gt; -&gt; msg @public :=
 | signal$
 | no_post$
 | &lt;sys_msg&gt; sys_msg$
@@ -1479,7 +1469,7 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.1"></code>sango.entity</code> - 実体</h2>
 
-<table border width="100%"><tr><td class="def"><code>extend &lt;independent&gt; -&gt; ent_d @public :=
+<table border width="100%"><tr><td class="def"><code>extend &lt;_0&gt; -&gt; ent_d @public :=
 | existence$ ;;</code></td></tr></table>
 <p>実体に紐づけられるデータを示します。
   必要に応じて拡張して使用します。
