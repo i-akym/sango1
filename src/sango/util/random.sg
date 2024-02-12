@@ -112,36 +112,34 @@ eval <bi.bigint> *B <int> *I u64_shift_right -> <bi.bigint> {
 # -- service --
 
 import "sango.actor.util" -> actu ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.util.iter" -> iter ;;
 
-extend <ent.ent_d> :=
-  gen: <real iter>
-  ent_d$ ;;
+alias type <gen> @public := <real iter> ;;
 
 data <svc_h> @opaque :=
-  mon: <actu.monitor_h>
+  mon: <gen actu.box_monitor_h>
   svc_h$ ;;
 
-eval <real iter> *Gen start_service @public -> <svc_h> {
-  (Gen ent_d$) none$ ent.create_entity >> actu.create_monitor = *M,
+eval <gen> *Gen start_service @public -> <svc_h> {
+  Gen none$ box.create_box >> actu.create_monitor = *M,
   mon: M svc_h$
 } ;;
 
-eval <svc_h> *Svc <real iter> *New_gen svc_set_generator | set_generator @public -> <void> {
+eval <svc_h> *Svc <gen> *New_gen svc_set_generator | set_generator @public -> <void> {
   (Svc mon)
-    \ <ent.eref> *Ent -> <void> {
-      Ent (New_gen ent_d$) ent.write >> ignore
+    \ <gen box.box_h> *Box -> <void> {
+      Box New_gen box.write >> ignore
     }
     actu.run
 } ;;
 
 eval <svc_h> *Svc svc_generate | generate @public -> <real> {
   (Svc mon)
-    \ <ent.eref> *Ent -> <real> {
-      Ent ent.read = gen: *Gen *** ent_d$,
+    \ <gen box.box_h> *Box -> <real> {
+      Box box.read = *Gen,
       Gen next >> value = (| *R, *Gen' |),
-      Ent (Gen' ent_d$) ent.write,
+      Box Gen' box.write,
       R
     }
     actu.run
@@ -150,7 +148,7 @@ eval <svc_h> *Svc svc_generate | generate @public -> <real> {
 
 # -- built-in service --
 
-eval <real iter> *Gen builtin_set_generator | set_generator @public -> <void> {
+eval <gen> *Gen builtin_set_generator | set_generator @public -> <void> {
   (_initd_ >> svc) Gen set_generator
 } ;;
 

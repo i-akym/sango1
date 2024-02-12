@@ -26,14 +26,9 @@ module "sango.io.util" ;;
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
 import "sango.cstr" -> cstr ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.io" -> io ;;
 import "sango.string" -> str ;;
-
-extend <ent.ent_d> :=
-| <io.instream_status> instream_status$
-| <io.outstream_status> outstream_status$
-| <int> string_instream_d$ ;;  # next read position, -1 means closed
 
 extend <act.msg> :=
 | <act.post_h> started$
@@ -49,7 +44,7 @@ extend <act.msg> :=
 | <<char str.string_buf> result> char_appended$ ;;
 
 eval open_null_byte_instream @public -> <byte io.instream_h> {
-  (io.instream_eof$ instream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  io.instream_eof$ none$ box.create_box >> actu.create_box_monitor = *M,
 
   \\ <byte io.instream_read_res> { M null_read } = *Read_f,
   \ <int> *Len -> <bstr io.instream_read_res> { M null_read_string } = *Read_string_f,
@@ -68,7 +63,7 @@ eval open_null_byte_instream @public -> <byte io.instream_h> {
 } ;;
 
 eval open_null_char_instream @public -> <char io.instream_h> {
-  (io.instream_eof$ instream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  io.instream_eof$ none$ box.create_box >> actu.create_box_monitor = *M,
 
   \\ <char io.instream_read_res> { M null_read } = *Read_f,
   \ <int> *Len -> <cstr io.instream_read_res> { M null_read_string } = *Read_string_f,
@@ -87,7 +82,7 @@ eval open_null_char_instream @public -> <char io.instream_h> {
 } ;;
 
 eval open_null_line_instream @public -> <io.line_instream_h> {
-  (io.instream_eof$ instream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  io.instream_eof$ none$ box.create_box >> actu.create_box_monitor = *M,
 
   \\ <cstr.line io.instream_read_res> { M null_read_line } = *Read_line_f,
   \\ <void> { M null_iclose } = *Close_f,
@@ -100,7 +95,7 @@ eval open_null_line_instream @public -> <io.line_instream_h> {
 } ;;
 
 eval open_null_byte_outstream @public -> <byte io.outstream_h> {
-  (io.outstream_open$ outstream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  io.outstream_open$ none$ box.create_box >> actu.create_box_monitor = *M,
   
   \ <byte> *Data -> <void> { M Data null_write } = *Write_f,
   \ <bstr> *Str <int> *Start <int> *Len -> <void> { M Str Start Len null_write_string_part } = *Write_string_part_f,
@@ -117,7 +112,7 @@ eval open_null_byte_outstream @public -> <byte io.outstream_h> {
 } ;;
 
 eval open_null_char_outstream @public -> <char io.outstream_h> {
-  (io.outstream_open$ outstream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  io.outstream_open$ none$ box.create_box >> actu.create_box_monitor = *M,
   
   \ <char> *Data -> <void> { M Data null_write } = *Write_f,
   \ <cstr> *Str <int> *Start <int> *Len -> <void> { M Str Start Len null_write_string_part } = *Write_string_part_f,
@@ -134,7 +129,7 @@ eval open_null_char_outstream @public -> <char io.outstream_h> {
 } ;;
 
 eval open_null_print_stream @public -> <io.print_stream_h> {
-  (io.outstream_open$ outstream_status$) none$ ent.create_entity >> actu.create_monitor = *M,
+  io.outstream_open$ none$ box.create_box >> actu.create_box_monitor = *M,
   
   \ <char> *Data -> <void> { M Data null_write } = *Write_f,
   \ <cstr> *Str <int> *Start <int> *Len -> <void> { M Str Start Len null_write_string_part } = *Write_string_part_f,
@@ -152,101 +147,99 @@ eval open_null_print_stream @public -> <io.print_stream_h> {
     io.print_stream_h$
 } ;;
 
-eval <actu.monitor_h> *Mon null_read -> <*A io.instream_read_res> {
+eval <io.instream_status actu.box_monitor_h> *Mon null_read -> <*A io.instream_read_res> {
   Mon
-  \ <ent.eref> *E -> <*B io.instream_read_res> {
-    E ent.read >> case {
-    ; io.instream_eof$ instream_status$ -> io.instream_at_end$
+  \ <io.instream_status box.box_h> *Box -> <*B io.instream_read_res> {
+    Box box.read >> case {
+    ; io.instream_eof$-> io.instream_at_end$
     ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_read_string -> <<*A string> io.instream_read_res> {
+eval <io.instream_status actu.box_monitor_h> *Mon null_read_string -> <<*A string> io.instream_read_res> {
   Mon
-  \ <ent.eref> *E -> <<*B string> io.instream_read_res> {
-    E ent.read >> case {
-    ; io.instream_eof$ instream_status$ -> io.instream_at_end$
+  \ <io.instream_status box.box_h> *Box -> <<*B string> io.instream_read_res> {
+    Box box.read >> case {
+    ; io.instream_eof$ -> io.instream_at_end$
     ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_read_line -> <cstr.line io.instream_read_res> {
+eval <io.instream_status actu.box_monitor_h> *Mon null_read_line -> <cstr.line io.instream_read_res> {
   Mon
-  \ <ent.eref> *E -> <cstr.line io.instream_read_res> {
-    E ent.read >> case {
-    ; io.instream_eof$ instream_status$ -> io.instream_at_end$
+  \ <io.instream_status box.box_h> *Box -> <cstr.line io.instream_read_res> {
+    Box box.read >> case {
+    ; io.instream_eof$ -> io.instream_at_end$
     ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_iclose -> <void> {
+eval <io.instream_status actu.box_monitor_h> *Mon null_iclose -> <void> {
   Mon
-  \ <ent.eref> *E -> <void> {
-    E (io.instream_closed$ instream_status$) ent.write >> case {
-    ; io.instream_eof$ instream_status$ ->
+  \ <io.instream_status box.box_h> *Box -> <void> {
+    Box io.instream_closed$ box.write >> case {
+    ; io.instream_eof$ ->
     ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_istatus -> <io.instream_status> {
+eval <io.instream_status actu.box_monitor_h> *Mon null_istatus -> <io.instream_status> {
   Mon
-  \ <ent.eref> *E -> <io.instream_status> {
-    E ent.read = *S instream_status$,
-    S
+  \ <io.instream_status box.box_h> *Box -> <io.instream_status> {
+    Box box.read
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon <*A> *Data null_write -> <void> {} ;;
+eval <io.outstream_status actu.box_monitor_h> *Mon <*A> *Data null_write -> <void> {} ;;
 
-eval <actu.monitor_h> *Mon <*A> *Str <int> *Start <int> *Len  null_write_string_part -> <void> {} ;;
+eval <io.outstream_status actu.box_monitor_h> *Mon <*A> *Str <int> *Start <int> *Len  null_write_string_part -> <void> {} ;;
 
-eval <actu.monitor_h> *Mon null_flush -> <void> {
+eval <io.outstream_status actu.box_monitor_h> *Mon null_flush -> <void> {
   Mon
-  \ <ent.eref> *E -> <void> {
-    E ent.read >> case {
-    ; io.outstream_open$ outstream_status$ ->
+  \ <io.outstream_status box.box_h> *Box -> <void> {
+    Box box.read >> case {
+    ; io.outstream_open$ ->
     ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_oclose -> <void> {
+eval <io.outstream_status actu.box_monitor_h> *Mon null_oclose -> <void> {
   Mon
-  \ <ent.eref> *E -> <void> {
-    E (io.outstream_closed$ outstream_status$) ent.write >> case {
-    ; io.outstream_open$ outstream_status$ ->
+  \ <io.outstream_status box.box_h> *Box -> <void> {
+    Box io.outstream_closed$ box.write >> case {
+    ; io.outstream_open$ ->
     ; ** -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_ostatus -> <io.outstream_status> {
+eval <io.outstream_status actu.box_monitor_h> *Mon null_ostatus -> <io.outstream_status> {
   Mon
-  \ <ent.eref> *E -> <io.outstream_status> {
-    E ent.read = *S outstream_status$,
-    S
+  \ <io.outstream_status box.box_h> *Box -> <io.outstream_status> {
+    Box box.read
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon null_newline -> <void> {} ;;
+eval <io.outstream_status actu.box_monitor_h> *Mon null_newline -> <void> {} ;;
 
 
 # -- instream from string --
 
 eval <*A string> *Data open_string_instream @public -> <A io.instream_h> {
-  (0 string_instream_d$) none$ ent.create_entity >> actu.create_monitor = *M,
+  0 none$ box.create_box >> actu.create_box_monitor = *M,
 
   \\ <A io.instream_read_res> { M Data string_instream_read } = *Read_f,
   \ <int> *Len -> <<A string> io.instream_read_res> { M Data Len string_instream_read_string } = *Read_string_f,
@@ -264,23 +257,23 @@ eval <*A string> *Data open_string_instream @public -> <A io.instream_h> {
     io.instream_h$
 } ;;
 
-eval <actu.monitor_h> *Mon <*A string> *Data string_instream_read -> <A io.instream_read_res> {
+eval <int actu.box_monitor_h> *Mon <*A string> *Data string_instream_read -> <A io.instream_read_res> {
   Mon
-  \ <ent.eref> *E -> <A io.instream_read_res> {
-    E ent.read = *Index string_instream_d$,
+  \ <int box.box_h> *Box -> <A io.instream_read_res> {
+    Box box.read = *Index,
     if {
     ; Index lt0? -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     ; Index (Data str.length) ge? -> io.instream_at_end$
-    ; otherwise -> E ((Index inc) string_instream_d$) ent.write, (Data Index str.elem) io.instream_data$
+    ; otherwise -> Box (Index inc) box.write, (Data Index str.elem) io.instream_data$
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon <*A string> *Data <int> *Len string_instream_read_string -> <<A string> io.instream_read_res> {
+eval <int actu.box_monitor_h> *Mon <*A string> *Data <int> *Len string_instream_read_string -> <<A string> io.instream_read_res> {
   Mon
-  \ <ent.eref> *E -> <<A string> io.instream_read_res> {
-    E ent.read = *Index string_instream_d$,
+  \ <int box.box_h> *Box -> <<A string> io.instream_read_res> {
+    Box box.read = *Index,
     if {
     ; Index lt0? -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     ; Index (Data str.length) ge? -> io.instream_at_end$
@@ -288,10 +281,10 @@ eval <actu.monitor_h> *Mon <*A string> *Data <int> *Len string_instream_read_str
       (Data str.length) Index diff = *Remain,
       if {
       ; Len Remain le? ->
-        E ((Index Len sum) string_instream_d$) ent.write,
+        Box (Index Len sum) box.write,
         (Data Index Len str.slice) io.instream_data$
       ; otherwise ->
-        E ((Data str.length) string_instream_d$) ent.write,
+        Box (Data str.length) box.write,
         (Data Index Remain str.slice) io.instream_data$
       }
     }
@@ -299,21 +292,21 @@ eval <actu.monitor_h> *Mon <*A string> *Data <int> *Len string_instream_read_str
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon <*A string> *Data string_instream_close -> <void> {
+eval <int actu.box_monitor_h> *Mon <*A string> *Data string_instream_close -> <void> {
   Mon
-  \ <ent.eref> *E -> <void> {
-    E (-1 string_instream_d$) ent.write >> case {
-    ; -1 string_instream_d$ -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
+  \ <int box.box_h> *Box -> <void> {
+    Box -1 box.write >> case {
+    ; -1 -> (io.not_available$ io.io_failure$) "Closed." new_exception >> throw
     ; ** ->
     }
   }
   actu.run
 } ;;
 
-eval <actu.monitor_h> *Mon <*A string> *Data string_instream_status -> <io.instream_status> {
+eval <int actu.box_monitor_h> *Mon <*A string> *Data string_instream_status -> <io.instream_status> {
   Mon
-  \ <ent.eref> *E -> <io.instream_status> {
-    E ent.read = *Index string_instream_d$,
+  \ <int box.box_h> *Box -> <io.instream_status> {
+    Box box.read = *Index,
     if {
     ; Index lt0? -> io.instream_closed$
     ; Index (Data str.length) ge? -> io.instream_eof$

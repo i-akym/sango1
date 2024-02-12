@@ -1315,25 +1315,18 @@ eval _initd_ -&gt; &lt;t&gt; ;;</code></blockquote>
 <p>「実体」はオブジェクトを入れておく箱のようなもので，スコープを超えてプログラムメモリ上に存続します。
   「実体」は，「<a href="#B.4">具象型</a>」のオブジェクトに対して生成します。
   生成については，次節を参照してください。</p>
-<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>，<code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>を使います<span class="note-ref">*1</span>。
-  「実体」を作成すると参照が返されますので，それを使います。
+<p>「実体」を扱うには「参照」<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>を使います<span class="note-ref">*1</span>。
+  「参照」は「実体」を作成すると返されます。
   「実体」に紐づいたオブジェクトの取得，紐づけ直しは，以下の関数で入出力のように行います。</p>
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;eref&gt; *Entity read @public -&gt; &lt;ent_d+&gt; ;;
-eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d+&gt; ;;</code>
-  # それまで紐づけられていたオブジェクトが返される</blockquote>
 <blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A box_h&gt; *Box read @public -&gt; &lt;A&gt; ;;
-eval &lt;*A box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;*A entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;
-eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></blockquote>
+eval &lt;*A box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code>
+  # それまで紐づけられていたオブジェクトが返される</blockquote>
+</blockquote>
 <p>入出力処理は「実体」をロックして行われますので，<code>read</code>と<code>write</code>が交錯しても整合性が保たれます<span class="note-ref">*2</span>。</p>
 
-<blockquote class="note">*1：<code>&quot;sango.entity&quot;</code>はSango初期から提供されている「実体」の基本機能ライブラリ，<code>&quot;sango.entity.box&quot;</code>は，これを拡張した「ボックス」を提供するライブラリ，<code>&quot;sango.entity.domain&quot;</code>はボックスを拡張したライブラリです。なお，<code>&quot;sango.entity&quot;.eref</code>の実装はボックスに統合され，<code>&lt;&quot;sango.entity&quot;.ent_d+ &quot;sango.entity.box&quot;.box_h&gt;</code>の別名になっています。ボックスは，紐づけたいデータを<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>にラップする必要がないため，手続き型言語の変数のように使用することができます。</blockquote>
+<blockquote class="note">*1：<code>&quot;sango.entity.box&quot;</code>は「ボックス」を提供するライブラリです。</blockquote>
 <blockquote class="note">*2：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
 
  
@@ -1345,17 +1338,9 @@ eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&g
   例えば，ファイルやネットワークセッションをクローズしてリソースを解放するといったことです。
   「実体」の生成時に後処理関数（invalidator）を指定することができます。</p>
 <blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;eref&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
   create_box @public -&gt; &lt;A box_h&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;A entity_h&gt; ;;</code></blockquote>
 <p>後処理関数は<code>&lt;void fun&gt;</code>で，「実体」が回収され消滅した後に，新たなスレッドとして起動されます<span class="note-ref">*2</span>。</p>
 
 <blockquote class="note">*1：どこからも参照されなくなった場合。</blockquote>
@@ -1363,35 +1348,21 @@ eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Inv
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.3">17.3. 弱参照</h2>
-<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>，<code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
+<p><code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
   その際，弱参照が無効化された（弱参照が切れた）ときに通知を受け取る関数を指定することができます。
   この関数は，後処理関数と同様に，弱参照が無効化された後に，新たなスレッドとして起動されます。</p>
 
 <blockquote class="note">*1：弱参照は他のプログラミング言語の弱参照と同じです。説明は割愛します。</blockquote>
  
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;wref&gt; ;;
 </code></blockquote>
 <blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;A wbox_h&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;domain_h&gt; *Domain &lt;*A entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;A weak_holder_h&gt; ;;</code></blockquote>
 <p>弱参照が指し示す（かもしれない）「実体」にアクセスするには，まず弱参照から強参照を取得し，強参照が存在すればそれを使って「実体」にアクセスします。</p>
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></blockquote>
 <blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A wbox_h&gt; *W get @public -&gt; &lt;&lt;A box_h&gt; maybe&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;*A weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;A entity_h maybe&gt; ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="18">18. 並行プログラミング ― アクタにタスクを実行させる</h1>
@@ -2286,7 +2257,7 @@ data &lt;+*<var>T<sub>1</sub></var> +*<var>T<sub>2</sub></var> ... +*<var>T<sub>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.5">B.5. 型の変換</h2>
-<p>型の変換には、コンパイラに対して型を指定する方法（キャスト）と、実行時に型を変える方法（ナローイング）があります。</p>
+<p>型の変換には，コンパイラに対して型を指定する方法（キャスト）と，実行時に型を変える方法（ナローイング）があります。</p>
 <p>■キャスト</p>
 <p>(i)未束縛の型パラメタをより具体的な型に束縛すること，(ii)明示的に拡張型を指定すること（ワイドニング）ができます。
 <blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にキャストが必要になることはあまりありません。</blockquote>
@@ -2453,12 +2424,14 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【Deprecated→Obsolete】<code>&quot;sango.lang&quot;.independent</code>，<code>&quot;sango.lang&quot;.seal_fs</code></li>
 <li>【Deprecated→Obsolete，非互換】<code>&quot;sango.list&quot;.remove_at</code>を削除。<code>&quot;sango.list&quot;.remove_at2</code>を<code>remove_at</code>に名前変更し<code>remove_at2</code>を別名に追加</li>
 <li>【Deprecated→Obsolete，非互換】<code>&quot;sango.list&quot;.replace_at</code>を削除。<code>&quot;sango.list&quot;.replace_at2</code>を<code>replace_at</code>に名前変更し<code>replace_at2</code>を別名に追加</li>
-<li>【非互換】<code>&quot;sango.util.set&quot;</code>において、セットのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>set_fs</code>の定義を変更。</li>
-<li>【非互換】<code>&quot;sango.util.bag&quot;</code>において、バッグのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>bag_fs</code>の定義を変更。</li>
-<li>【非互換】<code>&quot;sango.util.map&quot;</code>において、マップのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>map_fs</code>の定義を変更。</li>
-<li>【非互換】<code>&quot;sango.util.queue&quot;</code>において、キューのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>queue_fs</code>の定義を変更。</li>
-<li>【非互換】<code>&quot;sango.util.stack&quot;</code>において、スタックのAPIの関数名を変更（例：公式名 <code>depth</code>，別名 なし → 公式名 <code>c_depth</code>，別名 <code>depth</code>）。<code>stack_fs</code>の定義を変更。</li>
-<li>【非互換】<code>&quot;sango.util.ralist&quot;</code>において、ランダム・アクセス・リストのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>ralist_fs</code>の定義を変更。</li>
+<li>【Deprecated】<code>&quot;sango.entity&quot;</code>および<code>&quot;sango.actor.util&quot;</code>の関連定義</li>
+<li>【Deprecated】<code>&quot;sango.entity.domain&quot;</code>および<code>&quot;sango.actor.util&quot;</code>の関連定義</li>
+<li>【非互換】<code>&quot;sango.util.set&quot;</code>において，セットのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>set_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.bag&quot;</code>において，バッグのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>bag_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.map&quot;</code>において，マップのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>map_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.queue&quot;</code>において，キューのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>queue_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.stack&quot;</code>において，スタックのAPIの関数名を変更（例：公式名 <code>depth</code>，別名 なし → 公式名 <code>c_depth</code>，別名 <code>depth</code>）。<code>stack_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.ralist&quot;</code>において，ランダム・アクセス・リストのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>ralist_fs</code>の定義を変更。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

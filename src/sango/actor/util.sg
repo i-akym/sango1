@@ -139,28 +139,28 @@ eval <serialize_svr_d> *SD <act.post_h maybe> *Ret_ <act.actor_h> *Actor seriali
 eval <serialize_svr_d> *SD serialize_svr_end -> <void> {} ;;
 
 
-# -- entity monitor for sango.entity.eref --
+# -- [Deprecated] entity monitor for sango.entity.eref --
 
-data <monitor_h> @opaque := <ent.eref> <serializer_h> monitor_h$ ;;
+data @deprecated <monitor_h> @opaque := <ent.eref> <serializer_h> monitor_h$ ;;
 
-eval <ent.eref> *E create_monitor @public -> <monitor_h> {
+eval @deprecated <ent.eref> *E create_monitor @public -> <monitor_h> {
   E start_serializer monitor_h$
 } ;;
 
-eval <monitor_h> *M <ent.eref *A fun> *F run_monitor | run @public -> <A> {
+eval @deprecated <monitor_h> *M <ent.eref *A fun> *F run_monitor | run @public -> <A> {
   M = *Entity *Serializer monitor_h$,
   Serializer \\ <A> { Entity &F } run_serialized
 } ;;
 
-# -- entity monitor for sango.entity.domain.entity_h --
+# -- [Deprecated] entity monitor for sango.entity.domain.entity_h --
 
-data <*A! monitor2_h> @opaque := <A ed.entity_h> <serializer_h> monitor2_h$ ;;
+data @deprecated <*A! monitor2_h> @opaque := <A ed.entity_h> <serializer_h> monitor2_h$ ;;
 
-eval <*A! ed.entity_h> *E create_monitor2 | create_monitor @public -> <A monitor2_h> {
+eval @deprecated <*A! ed.entity_h> *E create_monitor2 | create_monitor @public -> <A monitor2_h> {
   E start_serializer monitor2_h$
 } ;;
 
-eval <*A! monitor2_h> *M <<A ed.entity_h> *B fun> *F run_monitor2 | run @public -> <B> {
+eval @deprecated <*A! monitor2_h> *M <<A ed.entity_h> *B fun> *F run_monitor2 | run @public -> <B> {
   M = *Entity *Serializer monitor2_h$,
   Serializer \\ <B> { Entity &F } run_serialized
 } ;;

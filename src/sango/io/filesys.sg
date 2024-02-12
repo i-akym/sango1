@@ -26,7 +26,7 @@ module @beta "sango.io.filesys" ;;
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
 import "sango.cstr" -> cstr ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.io" -> io ;;
 import "sango.list" -> list ;;
 import "sango.lang.module" -> mod ;;
@@ -57,32 +57,31 @@ data <filesys_fs> @public :=
   create_byte_outstream_impl_f: <cstr bool <byte io.outstream_h> fun>
   filesys_fs$ ;;
 
-extend <ent.ent_d> := filesys_fs_: <filesys_fs maybe> filesys_fs__d$ ;;
-
-data <d> := impl_holder: <ent.eref> d$ ;;
+data <d> := impl_holder: <<filesys_fs maybe> box.box_h> d$ ;;
 
 eval _init_ -> <d> {
-  (filesys_fs_: none$ filesys_fs__d$) none$ ent.create_entity = *IH,
+  none$ = <filesys_fs maybe> *No_filesys_fs,
+  No_filesys_fs none$ box.create_box = *IH,
   impl_holder: IH d$
 } ;;
 
 eval <cstr> *Os_type <filesys_fs> *Fs install_impl @public -> <void> {
   sys.os_type case {
   ; Os_type ->
-    (_initd_ >> impl_holder) (filesys_fs_: (Fs value$) filesys_fs__d$) ent.write >> ignore
+    (_initd_ >> impl_holder) (Fs value$) box.write >> ignore
   ; ** ->
   }
 } ;;
 
 eval filesys_fs -> <filesys_fs> {
   _initd_ >> impl_holder = *IH,
-  IH >> ent.read >> case {
-  ; (*Fs value$) filesys_fs__d$ -> Fs
+  IH >> box.read >> case {
+  ; *Fs value$ -> Fs
   ; ** ->
     [ "sango.io.filesys.", sys.os_type ] cstr.concat = *M,
     M mod.require_module,
     M mod.wait_module_initialized,
-    IH >> ent.read = (*Fs' value$) filesys_fs__d$,
+    IH >> box.read = *Fs' value$,
     Fs'
   }
 } ;;

@@ -25,7 +25,7 @@ module "sango.system" ;;
 
 import "sango.actor.util" -> actu ;;
 import "sango.cstr" -> cstr ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.list" -> list ;;
 import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
@@ -33,11 +33,9 @@ import "sango.util.prop" -> prop ;;
 
 alias type <prop_tab> := <cstr prop+ map.map> ;;
 
-extend <ent.ent_d> := <prop_tab> prop_tab$ ;;
-
 data <d> :=
-  prop_tab_ent: <ent.eref>
-  prop_tab_monitor: <actu.monitor_h>
+  prop_tab_box: <prop_tab box.box_h>
+  prop_tab_monitor: <prop_tab actu.box_monitor_h>
   worker: <actu.serializer_h>
   d$ ;;
 
@@ -55,8 +53,8 @@ data <byte_order> @public :=
 | little_endian$ ;;
 
 eval <cstr> *Key property @public -> <prop+ maybe> {
-  _initd_ = prop_tab_ent: *Ent *** d$,
-  Ent ent.read = *Tab prop_tab$,
+  _initd_ = prop_tab_box: *Box *** d$,
+  Box box.read = *Tab,
   Tab Key map.assoc
 } ;;
 
@@ -120,9 +118,9 @@ eval byte_order @public -> <byte_order> {
 eval <cstr> *Key <prop+> *Value add_property @public -> <void> {
   _initd_ = prop_tab_monitor: *Mon *** d$,
   Mon
-    \ <ent.eref> *Prop_tab_ent -> <void> {
-      Prop_tab_ent ent.read = *Prop_tab prop_tab$,
-      Prop_tab_ent ((Prop_tab Key Value map.add) prop_tab$) ent.write >> ignore
+    \ <prop_tab box.box_h> *Prop_tab_box -> <void> {
+      Prop_tab_box box.read = *Prop_tab,
+      Prop_tab_box (Prop_tab Key Value map.add) box.write >> ignore
     }
     actu.run
 } ;;
@@ -130,11 +128,11 @@ eval <cstr> *Key <prop+> *Value add_property @public -> <void> {
 eval <cstr> *Key <prop+ prop+ fun> *Upd update_property @public -> <prop+> {
   _initd_ = prop_tab_monitor: *Mon *** d$,
   Mon
-    \ <ent.eref> *Prop_tab_ent -> <prop+> {
-      Prop_tab_ent ent.read = *Prop_tab prop_tab$,
+    \ <prop_tab box.box_h> *Prop_tab_box -> <prop+> {
+      Prop_tab_box box.read = *Prop_tab,
       Prop_tab Key map.assoc = *Old value$,
       Old &Upd = *New,
-      Prop_tab_ent ((Prop_tab Key New map.add) prop_tab$) ent.write,
+      Prop_tab_box (Prop_tab Key New map.add) box.write,
       New
     }
     actu.run
@@ -150,10 +148,10 @@ eval _init_ -> <d> {
     ; ** -> M
     }
   } = *Ptab,
-  (Ptab prop_tab$) none$ ent.create_entity = *Ptab_ent,
+  Ptab none$ box.create_box = *Ptab_box,
 
-  prop_tab_ent: Ptab_ent
-    prop_tab_monitor: (Ptab_ent actu.create_monitor)
+  prop_tab_box: Ptab_box
+    prop_tab_monitor: (Ptab_box actu.create_box_monitor)
     worker: actu.start_serializer
     d$
 } ;;
