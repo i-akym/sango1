@@ -26,15 +26,10 @@ module "sango.char.encoding.utf" ;;
 import "sango.actor.util" -> actu ;;
 import "sango.char.encoding" -> enc ;;
 import "sango.cstr" -> cstr ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.string" -> str ;;
 import "sango.system" -> sys ;;
 import "sango.tuple" -> tuple ;;
-
-extend <ent.ent_d> :=
-| <utf8_decode_d> utf8_decode_d_ent_d$
-| <utf16_encode_d> utf16_encode_d_ent_d$
-| <utf16_decode_d> utf16_decode_d_ent_d$ ;;
 
 eval _init_ -> <void> {
   start_f: ^start_encoder enc.encoder_impl_fs$ = *E,
@@ -114,28 +109,27 @@ eval <utf16_encode_props> *Ps start_utf16_encoder @public -> <enc.encoder_h> {
   ; (| true$, ** |) -> (| [| %xFF~, %xFE~ |], actu.start_serializer  value$ |)
   ; ** -> (| [||], none$ |)
   } = (| *BOM, *Serializer_ |),
-  ((byte_order: Byte_order
+  (byte_order: Byte_order
     serializer_: Serializer_
     leading_bom: BOM utf16_encode_d$)
-   utf16_encode_d_ent_d$)
-  none$ ent.create_entity = *DE,
-  encode_f: \ <char> *C -> <bstr> { DE C utf16_encode }
-  end_f: \\ <bstr> { DE utf16_end_encoding }
+  none$ box.create_box = *DB,
+  encode_f: \ <char> *C -> <bstr> { DB C utf16_encode }
+  end_f: \\ <bstr> { DB utf16_end_encoding }
   enc.encoder_h$
 } ;;
 
-eval <ent.eref> *DE <char> *C utf16_encode -> <bstr> {
-  DE ent.read = *D utf16_encode_d_ent_d$,
+eval <utf16_encode_d box.box_h> *DB <char> *C utf16_encode -> <bstr> {
+  DB box.read = *D,
   D = byte_order: *Byte_order serializer_: *Serializer_ leading_bom: *Leading_BOM *** utf16_encode_d$,
   Leading_BOM >> case {
   ; [||] -> [||]  # no more updation of control data
   ; *BB ->  # get latest data and update
     (Serializer_ value)
     \\ <bstr> {
-      DE ent.read = *DD utf16_encode_d_ent_d$,
+      DB box.read = *DD,
       DD leading_bom >> case {
       ; [||] -> [||]  # already updated
-      ; *BB -> DE ((serializer_: none$ leading_bom: [||] :: D utf16_encode_d$) utf16_encode_d_ent_d$) ent.write, BB
+      ; *BB -> DB (serializer_: none$ leading_bom: [||] :: D utf16_encode_d$) box.write, BB
       }
     }
     actu.run_serialized
@@ -162,18 +156,18 @@ eval <ent.eref> *DE <char> *C utf16_encode -> <bstr> {
   }
 } ;;
 
-eval <ent.eref> *DE utf16_end_encoding -> <bstr> {
-  DE ent.read = *D utf16_encode_d_ent_d$,
+eval <utf16_encode_d box.box_h> *DB utf16_end_encoding -> <bstr> {
+  DB box.read = *D,
   D = serializer_: *Serializer_ leading_bom: *Leading_BOM *** utf16_encode_d$,
   Leading_BOM >> case {
   ; [||] -> [||]  # no more updation of control data
   ; *BB ->  # get latest data and update
     (Serializer_ value)
     \\ <bstr> {
-      DE ent.read = *DD utf16_encode_d_ent_d$,
+      DB box.read = *DD,
       DD leading_bom >> case {
       ; [||] -> [||]  # already updated
-      ; *BB -> DE ((serializer_: none$ leading_bom: [||] :: D utf16_encode_d$) utf16_encode_d_ent_d$) ent.write, BB
+      ; *BB -> DB (serializer_: none$ leading_bom: [||] :: D utf16_encode_d$) box.write, BB
       }
     }
     actu.run_serialized
@@ -201,23 +195,22 @@ data <utf8_decode_d> :=
   utf8_decode_d$ ;;
 
 eval <enc.decode_props> *Ps start_utf8_decoder @public -> <enc.decoder_h> {
-  ((props: Ps
+  (props: Ps
     serializer: actu.start_serializer
     state: 0
     acc: 0
     utf8_decode_d$)
-   utf8_decode_d_ent_d$)
-  none$ ent.create_entity = *DE,
-  decode_f: \ <byte> *B -> <cstr> { DE B utf8_decode }
-  end_f: \\ <cstr> { DE utf8_end_decoding }
+  none$ box.create_box = *DB,
+  decode_f: \ <byte> *B -> <cstr> { DB B utf8_decode }
+  end_f: \\ <cstr> { DB utf8_end_decoding }
   enc.decoder_h$
 } ;;
 
-eval <ent.eref> *DE <byte> *B utf8_decode -> <cstr> {
-  DE ent.read = *D utf8_decode_d_ent_d$,
+eval <utf8_decode_d box.box_h> *DB <byte> *B utf8_decode -> <cstr> {
+  DB box.read = *D,
   (D serializer)
   \\ <cstr> {
-    DE ent.read = *DD utf8_decode_d_ent_d$,
+    DB box.read = *DD,
     DD state = *S,
     S case {
     ; 0 ->
@@ -240,17 +233,17 @@ eval <ent.eref> *DE <byte> *B utf8_decode -> <cstr> {
       ; otherwise -> (| DD props >> enc._recover_decode_seq_err, state: 0 acc: 0 :: DD utf8_decode_d$ |)
       }
     } = (| *Cz, *DD' |),
-    DE (DD' utf8_decode_d_ent_d$) ent.write,
+    DB DD' box.write,
     Cz
   }
   actu.run_serialized
 } ;;
 
-eval <ent.eref> *DE utf8_end_decoding -> <cstr> {
-  DE ent.read = *D utf8_decode_d_ent_d$,
+eval <utf8_decode_d box.box_h> *DB utf8_end_decoding -> <cstr> {
+  DB box.read = *D,
   (D serializer)
   \\ <cstr> {
-    DE ent.read = *DD utf8_decode_d_ent_d$,
+    DB box.read = *DD,
     DD state >> case {
     ; 0 -> ""
     ; ** -> DD props >> enc._recover_decode_seq_err
@@ -289,24 +282,23 @@ eval <enc.decode_props> *Ps <utf16_decode_byte_order> *BO start_utf16_decoder @p
   ; utf16_little_endian$ -> (| sys.little_endian$, utf16_decode_expect_code_1L$ |)
   } = (| *ByteOrder, *State |),
   actu.start_serializer = *Serializer,
-  ((serializer: Serializer
+  (serializer: Serializer
     props: Ps
     bo: ByteOrder
     state: State
     code: 0
     utf16_decode_d$)
-   utf16_decode_d_ent_d$)
-  none$ ent.create_entity = *DE,
-  decode_f: \ <byte> *B -> <cstr> { DE B utf16_decode }
-  end_f: \\ <cstr> { DE utf16_end_decoding }
+  none$ box.create_box = *DB,
+  decode_f: \ <byte> *B -> <cstr> { DB B utf16_decode }
+  end_f: \\ <cstr> { DB utf16_end_decoding }
   enc.decoder_h$
 } ;;
 
-eval <ent.eref> *DE <byte> *B utf16_decode -> <cstr> {
-  DE ent.read = *D utf16_decode_d_ent_d$,
+eval <utf16_decode_d box.box_h> *DB <byte> *B utf16_decode -> <cstr> {
+  DB box.read = *D,
   (D serializer)
   \\ <cstr> {
-    DE ent.read = *DD utf16_decode_d_ent_d$,
+    DB box.read = *DD,
     DD state = *S,
     (| S, DD bo |) case {
     ; (| utf16_decode_expect_code_1U$, sys.big_endian$ |) ->
@@ -387,17 +379,17 @@ eval <ent.eref> *DE <byte> *B utf16_decode -> <cstr> {
       ; *Z -> (| "", state: (Z utf16_decode_skip$) :: DD utf16_decode_d$ |)
       }
     } = (| *Cz, *DD' |),
-    DE (DD' utf16_decode_d_ent_d$) ent.write,
+    DB DD' box.write,
     Cz
   }
   actu.run_serialized
 } ;;
 
-eval <ent.eref> *DE utf16_end_decoding -> <cstr> {
-  DE ent.read = *D utf16_decode_d_ent_d$,
+eval <utf16_decode_d box.box_h> *DB utf16_end_decoding -> <cstr> {
+  DB box.read = *D,
   (D serializer)
   \\ <cstr> {
-    DE ent.read = *DD utf16_decode_d_ent_d$,
+    DB box.read = *DD,
     (| DD state, DD bo |) case {
     ; (| utf16_decode_expect_bom_1$, ** |) ->
       ""

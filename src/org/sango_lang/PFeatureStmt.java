@@ -224,7 +224,15 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     for (int i = 0; i < itr.params.length; i++) {
       if (itr.params[i] instanceof PTypeVarRef) {
         PTypeVarRef r = (PTypeVarRef)itr.params[i];
-        if (!r.def.name.equals(this.obj.name)) {
+        if (r.def.name.equals(this.obj.name)) {
+          if (this.sig.params.length > 0 && !this.obj.requiresConcrete) {
+            emsg = new StringBuffer();
+            emsg.append("The object should be concrete at ");
+            emsg.append(this.obj.getSrcInfo());
+            emsg.append(".");
+            throw new CompileException(emsg.toString());
+          }
+        } else {
           ivs.add(r.def.name);  // collect refs of feature sig param
         }
       } else {
@@ -326,7 +334,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   }
 
   PEvalStmt generateFeatureFun(PModule mod) throws CompileException {
-    // eval <*T[ FEAT ]> *X _feature_FEAT @xxx -> < IMPL > {
+    // eval <*T(!)[ FEAT ]> *X _feature_FEAT @xxx -> < IMPL > {
     //   X _builtin_feature_get_FEAT
     // }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_feature");
@@ -343,7 +351,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     paramFeaturesBuilder.addFeature(
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));  // HERE
     paramTypeBuilder.addItem(
-      PTypeVarDef.create(si, defScope, "T", false, /* null, */ paramFeaturesBuilder.create()));
+      PTypeVarDef.create(si, defScope, "T", this.obj.requiresConcrete, /* null, */ paramFeaturesBuilder.create()));
     evalStmtBuilder.addParam(
       PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));

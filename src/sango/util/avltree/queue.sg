@@ -46,7 +46,7 @@ eval new_queue @public -> <*A queue.queue> {
   d: D fs: queue_fs queue.queue$
 } ;;
 
-eval queue_fs -> <*A queue.queue_fs> {
+eval queue_fs -> <<*A queue.d> A queue.queue_fs> {
   empty?_f: ^empty?
     length_f: ^length
     enqueue_f: ^enqueue
@@ -56,22 +56,22 @@ eval queue_fs -> <*A queue.queue_fs> {
     queue.queue_fs$
 } ;;
 
-eval <*A _1+> *Queue_d empty? -> <bool> {
+eval <*A queue.d> *Queue_d empty? -> <bool> {
   Queue_d length >> zero?
 } ;;
 
-eval <*A _1+> *Queue_d length -> <int> {
+eval <*A queue.d> *Queue_d length -> <int> {
   Queue_d = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A _1+> *Queue_d <A> *Elem enqueue -> <A _1+> {
+eval <*A queue.d> *Queue_d <A> *Elem enqueue -> <A queue.d> {
   Queue_d = body: *Body *** d$,
   Body ^locate_enqueue Elem avl.put = *Body' avl.put_new_done$,
   body: Body' :: Queue_d d$
 } ;;
 
-eval <*A _1+> *Queue_d head -> <A maybe> {
+eval <*A queue.d> *Queue_d head -> <A maybe> {
   Queue_d = body: *Body *** d$,
   Body ^locate_head avl.get >> case {
   ; *E avl.get_done$ -> E value$
@@ -79,7 +79,7 @@ eval <*A _1+> *Queue_d head -> <A maybe> {
   }
 } ;;
 
-eval <*A _1+> *Queue_d dequeue -> <<A <A _1+> tuple> maybe> {
+eval <*A queue.d> *Queue_d dequeue -> <<A <A queue.d> tuple> maybe> {
   Queue_d = body: *Body *** d$,
   Body avl.take >> case {
   ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue_d d$ |) value$
@@ -87,6 +87,6 @@ eval <*A _1+> *Queue_d dequeue -> <<A <A _1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A _1+> *Queue_d clear -> <A _1+> {
+eval <*A queue.d> *Queue_d clear -> <A queue.d> {
   body: avl.new_tree d$
 } ;;

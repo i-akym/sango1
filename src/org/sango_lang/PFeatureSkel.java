@@ -329,6 +329,39 @@ public class PFeatureSkel {
       return b;
     }
 
+    List merge(boolean bindsRef, List fs2, PTypeSkelBindings bindings) {
+      java.util.List<PFeatureSkel> ff = new ArrayList<PFeatureSkel>();
+      for (int i = 0; i < fs2.features.length; i++) {
+        ff.add(fs2.features[i]);
+      }
+      ListBuilder builder = ListBuilder.newInstance(this.srcInfo);
+      for (int i = 0; bindings != null && i < this.features.length; i++) {
+        PFeatureSkel f = this.features[i];
+        boolean stop = false;
+        for (int j = 0; !stop && j < ff.size(); j++) {  // search target
+          PFeatureSkel f2 = ff.get(j);
+          if (f.featureProps.key.equals(f2.featureProps.key)) {
+            if (f.accept(bindsRef, f2, bindings)) {
+              builder.add(f);
+              ff.remove(j);
+            } else {
+              bindings = null;
+            }
+            stop = true;
+          }
+        }
+        if (bindings != null && !stop) {
+          builder.add(f);
+        }
+      }
+      if (bindings != null) {
+        for (int j = 0; j < ff.size(); j++) {
+          builder.add(ff.get(j));
+        }
+      }
+      return (bindings != null)? builder.create(): null;
+    }
+
     JoinResult joinList(/* int width, boolean bindsRef, */ List fs2, PTypeSkelBindings bindings) {
       JoinResult r = JoinResult.create(this.srcInfo, bindings);
       for (int i = 0; r != null && i < this.features.length; i++) {
@@ -376,6 +409,26 @@ public class PFeatureSkel {
     }
 
     List pack() {
+      return List.create(this.srcInfo, this.staged.toArray(new PFeatureSkel[this.staged.size()]));
+    }
+  }
+
+  static class ListBuilder {
+    Parser.SrcInfo srcInfo;
+    java.util.List<PFeatureSkel> staged;
+
+    static ListBuilder newInstance(Parser.SrcInfo srcInfo) {
+      ListBuilder b = new ListBuilder();
+      b.srcInfo = srcInfo;
+      b.staged = new ArrayList<PFeatureSkel>();
+      return b;
+    }
+
+    void add(PFeatureSkel feature) {
+      this.staged.add(feature);
+    }
+
+    List create() {
       return List.create(this.srcInfo, this.staged.toArray(new PFeatureSkel[this.staged.size()]));
     }
   }

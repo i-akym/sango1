@@ -36,7 +36,7 @@ eval <*A list> *Elems to_stack @public -> <A stack.stack> {
   d: (Elems list_stack_d$) fs: stack_fs stack.stack$
 } ;;
 
-eval stack_fs @public -> <*A stack.stack_fs> {
+eval stack_fs @public -> <<*A stack.d> A stack.stack_fs> {
   empty?_f: ^empty?
   depth_f: ^depth
   push_f: ^push
@@ -47,27 +47,27 @@ eval stack_fs @public -> <*A stack.stack_fs> {
   stack.stack_fs$
 } ;;
 
-eval <*A _1+> *Stack_d empty? -> <bool> {
+eval <*A stack.d> *Stack_d empty? -> <bool> {
   Stack_d = *Elems list_stack_d$,
   Elems list.empty?
 } ;;
 
-eval <*A _1+> *Stack_d depth -> <int> {
+eval <*A stack.d> *Stack_d depth -> <int> {
   Stack_d = *Elems list_stack_d$,
   Elems list.length
 } ;;
 
-eval <*A _1+> *Stack_d <A> *Elem push -> <A _1+> {
+eval <*A stack.d> *Stack_d <A> *Elem push -> <A stack.d> {
   Stack_d = *Elems list_stack_d$,
   [ Elem ; Elems ] list_stack_d$
 } ;;
 
-eval <*A _1+> *Stack_d top -> <A maybe> {
+eval <*A stack.d> *Stack_d top -> <A maybe> {
   Stack_d = *Elems list_stack_d$,
   Elems list.head
 } ;;
 
-eval <*A _1+> *Stack_d pop -> <<A <A _1+> tuple> maybe> {
+eval <*A stack.d> *Stack_d pop -> <<A <A stack.d> tuple> maybe> {
   Stack_d = *Elems list_stack_d$,
   Elems case {
   ; [ *Top ; *Others ] -> (| Top, Others list_stack_d$ |) value$
@@ -75,11 +75,11 @@ eval <*A _1+> *Stack_d pop -> <<A <A _1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A _1+> *Stack_d to_list -> <A list> {
+eval <*A stack.d> *Stack_d to_list -> <A list> {
   Stack_d = *Elems list_stack_d$,
   Elems
 } ;;
 
-eval <*A _1+> *Stack_d clear -> <A _1+> {
+eval <*A stack.d> *Stack_d clear -> <A stack.d> {
   [] list_stack_d$
 } ;;

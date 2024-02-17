@@ -162,21 +162,7 @@ eval <*A list> *Xs <int> *Index <A> *Y insert_at @public -> <A list> {
   }
 } ;;
 
-eval @deprecated <*A list> *Xs <int> *Index remove_at @public -> <<<A list> A tuple> maybe> {
-  if {
-  ; Index lt0? -> none$
-  ; otherwise ->
-    Index [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <<<A list> A tuple> maybe> {
-      (| I, Following |) case {
-      ; (| 0, [ *E ; *T ] |) -> (| Leading_r T cons_each, E |) value$
-      ; (| **, []  |) -> none$
-      ; (| **, [ *E ; *T ] |) -> (I dec) [ E ; Leading_r ] T &&
-      }
-    }
-  }
-} ;;
-
-eval <*A list> *Xs <int> *Index remove_at2 @public -> <<A list> <A maybe> tuple> {
+eval <*A list> *Xs <int> *Index remove_at | remove_at2 @public -> <<A list> <A maybe> tuple> {
   if {
   ; Index lt0? -> (| Xs, none$ |)
   ; otherwise ->
@@ -190,21 +176,7 @@ eval <*A list> *Xs <int> *Index remove_at2 @public -> <<A list> <A maybe> tuple>
   }
 } ;;
 
-eval @deprecated <*A list> *Xs <int> *Index <A> *Y replace_at @public -> <<<A list> A tuple> maybe> {
-  if {
-  ; Index lt0? -> none$
-  ; otherwise ->
-    Index [] Xs &\ <int> *I <A list> *Leading_r <A list> *Following -> <<<A list> A tuple> maybe> {
-      (| I, Following |) case {
-      ; (| 0, [ *E ; *T ] |) -> (| Leading_r [ Y ; T ] cons_each, E |) value$
-      ; (| **, []  |) -> none$
-      ; (| **, [ *E ; *T ] |) -> (I dec) [ E ; Leading_r ] T &&
-      }
-    }
-  }
-} ;;
-
-eval <*A list> *Xs <int> *Index <A> *Y replace_at2 @public -> <<A list> <A maybe> tuple> {
+eval <*A list> *Xs <int> *Index <A> *Y replace_at | replace_at2 @public -> <<A list> <A maybe> tuple> {
   if {
   ; Index lt0? -> (| Xs, none$ |)
   ; otherwise ->

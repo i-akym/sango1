@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.1　ライブラリ解説</title>
+<title>Sango 1.7.2　ライブラリ解説</title>
 </head>
 
 <body>
@@ -95,18 +95,10 @@ kbd {
   <a href="#sango.debug.1">オブジェクト情報</a>
   <a href="#sango.debug.2">アサーション</a>
   <a href="#sango.debug.3">例外情報</a>
-<a href="#sango.entity"><code>sango.entity</code></a>
-  <a href="#sango.entity.1">実体</a>
-  <a href="#sango.entity.2">弱参照</a>
 <a href="#sango.entity.box"><code>sango.entity.box</code></a>
   <a href="#sango.entity.box.1">ボックス</a>
   <a href="#sango.entity.box.2">弱参照</a>
-<a href="#sango.entity.domain"><code>sango.entity.domain</code></a>
-  <a href="#sango.entity.domain.1">ドメイン</a>
-  <a href="#sango.entity.domain.2">実体</a>
-  <a href="#sango.entity.domain.3">弱参照</a>
-  <a href="#sango.entity.domain.4">固有番号，大小比較</a>
-<a href="#sango.entity.existence"><code>sango.entity.existence</code></a> 【Beta】
+<a href="#sango.entity.existence"><code>sango.entity.existence</code></a>
   <a href="#sango.entity.existence.1">存在</a>
   <a href="#sango.entity.existence.2">弱参照</a>
   <a href="#sango.entity.existence.3">undress・redress</a>
@@ -172,7 +164,6 @@ kbd {
 <a href="#sango.util.array"><code>sango.util.array</code></a> 【Alpha】
   <a href="#sango.util.array.1">フレームワーク</a>
   <a href="#sango.util.array.2">実装者向け情報</a>
-<a href="#sango.util.avltree"><code>sango.util.avltree</code></a> 【Deprecated】
 <a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a> 【Alpha】
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
@@ -295,16 +286,6 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;cstr&gt; @public := &lt;char string&gt; ;;</code></td></tr></table>
 <p>文字のストリングの別名で，文字列のことです。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;independent&gt; @public := &lt;_?_&gt; exposed$ ;;</code></td></tr></table>
-<p>文脈から独立している型を表します。
-  必要に応じて拡張して使用します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A seal_fs&gt; @public :=
-  seal_f: &lt;A independent+ fun&gt;
-  unseal_f: &lt;independent+ &lt;A maybe&gt; fun&gt;
-  seal_fs$ ;;</code></td></tr></table>
-<p>オブジェクトを<code>&lt;independent+&gt;</code>に変換する関数，その逆の関数を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;+*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
@@ -471,10 +452,11 @@ eval &lt;*A&gt; *X0 &lt;A&gt; *X1 &lt;A eq_fs&gt; *Funs eqcmp_ne? | ne? @public 
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X hash @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>ハッシュ値を返します。
-  ハッシュ値は，主にコレクションの中から等価なオブジェクトを探索するために使われます。
-  「XとYが等価ならばXのハッシュ値とYのハッシュ値が等しい」「Xのハッシュ値とYのハッシュ値が異なればXとYは等価ではない」（＝先の命題の待遇）が成り立ちます。
-  被構築データのハッシュ値はランタイムエンジンの内部アルゴリズムにより算出しますが，使用者が定義した型は算出アルゴリズムを変更することができます。
-  そのためには，データ定義しているモジュールの中で上記制約条件を満たすように「<code>eval &lt;t&gt; *X _hash_T -&gt; &lt;int&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。</p>
+ハッシュ値は，主にコレクションの中から等価なオブジェクトを探索するために使われます。
+「XとYが等価ならばXのハッシュ値とYのハッシュ値が等しい」「Xのハッシュ値とYのハッシュ値が異なればXとYは等価ではない」（＝先の命題の待遇）が成り立ちます。
+被構築データのハッシュ値はランタイムエンジンの内部アルゴリズムにより算出しますが，使用者が定義した型は算出アルゴリズムを変更することができます。
+そのためには，データ構築定義しているモジュールの中で上記制約条件を満たすように「<code>eval &lt;<var>t</var>&gt; *X _hash_<var>T</var> -&gt; &lt;int&gt;</code>」（<code>&lt;<var>t</var>&gt;</code>は型定義のシグネチャ，<code><var>T</var></code>は型構築子）という関数を定義します。
+<code>hash</code>関数を呼び出すと，引数の（文脈上の）型が定義されたモジュールではなく，実行時に渡されたオブジェクトの型構築子（あるいはネイティブ実装）が定義されたモジュールの<code>_hash_<var>T</var></code>が呼び出されます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.4"><code>sango.lang</code> - 論理演算</h2>
@@ -852,7 +834,7 @@ eval &lt;*A async_result_h&gt; *Result
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.actor.2"><code>sango.actor</code> - メッセージ交換</h2>
 
-<table border width="100%"><tr><td class="def"><code>extend &lt;independent&gt; -&gt; msg @public :=
+<table border width="100%"><tr><td class="def"><code>extend &lt;_0&gt; -&gt; msg @public :=
 | signal$
 | no_post$
 | &lt;sys_msg&gt; sys_msg$
@@ -996,28 +978,17 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.actor.util.3"><code>sango.actor.util</code> - entity monitor</h2>
 
-<p>「実体」（entity）の読み書き（<code>&quot;sango.entity&quot;</code>，<code>&quot;sango.entity.domain&quot;</code>あるいは<code>&quot;sango.entity.box&quot;</code>の<code>read</code>，<code>write</code>）は原子的に行われますが，読み出しと書き込みの間には他の処理が割り込むことがあります。
+<p>「実体」（entity）の読み書き（<code>&quot;sango.entity.box&quot;</code>の<code>read</code>，<code>write</code>）は原子的に行われますが，読み出しと書き込みの間には他の処理が割り込むことがあります。
   「実体」に対する一連の処理に原子性を持たせるために，entity monitorが提供されています。
   「実体」単位にentity monitorを生成し，それ経由でタスクを実行します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;monitor_h&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>に対するentity monitorのハンドルを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! monitor2_h&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;A! &quot;sango.entity.domain&quot;.entity_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A! box_monitor_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;A! &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.entity&quot;.eref&gt; *E create_monitor @public -&gt; &lt;monitor_h&gt; ;;
-eval &lt;*A! &quot;sango.entity.domain&quot;.entity_h&gt; *E create_monitor2 | create_monitor @public -&gt; &lt;A monitor2_h&gt; ;;
-eval &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;
-</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;</code></td></tr></table>
 <p>entity monitorを生成します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;monitor_h&gt; *M &lt;&quot;sango.entity&quot;.eref *A fun&gt; *F run_monitor | run @public -&gt; &lt;A&gt; ;;
-eval &lt;*A! monitor2_h&gt; *M &lt;&quot;sango.entity.doinain&quot;.entity_h *B fun&gt; *F run_monitor2 | run @public -&gt; &lt;B&gt; ;;
-eval &lt;*A! box_monitor_h&gt; *M &lt;&lt;A &quot;sango.entity.box&quot;.box_h&gt; *B fun&gt; *F run_box_monitor | run @public -&gt; &lt;B&gt; ;; </code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! box_monitor_h&gt; *M &lt;&lt;A &quot;sango.entity.box&quot;.box_h&gt; *B fun&gt; *F run_box_monitor | run @public -&gt; &lt;B&gt; ;; </code></td></tr></table>
 <p>タスク<code>F</code>を実行します。
   タスクは実体への参照を受け取り，処理を行い結果を返します。
   タスクから返された値が，この関数の結果となります。
@@ -1434,9 +1405,9 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X repr @public -&gt; &lt;cstr&gt; ;;</code></td></tr></table>
 <p>オブジェクトのデバッグ用表現（型，構成情報）を返します。
-  使用者が定義した型は表現を変更することができます。
-  そのためには，定義しているモジュールの中で「<code>eval &lt;t&gt; *X _debug_repr_T -&gt; &lt;cstr&gt;</code>」（<code>&lt;t&gt;</code>は型定義のシグネチャ，<code>T</code>は型構築子）という関数を定義します。
-</p>
+使用者が定義した型は表現を変更することができます。
+そのためには，定義しているモジュールの中で「<code>eval &lt;<var>t</var>&gt; *X _debug_repr_<var>T</var> -&gt; &lt;cstr&gt;</code>」（<code>&lt;<var>t</var>&gt;</code>は型定義のシグネチャ，<code><var>T</var></code>は型構築子）という関数を定義します。
+<code>repr</code>関数を呼び出すと，引数の（文脈上の）型が定義されたモジュールではなく，実行時に渡されたオブジェクトの型構築子（あるいはネイティブ実装）が定義されたモジュールの<code>_debug_repr_<var>T</var></code>が呼び出されます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.debug.2"></code>sango.debug</code> - アサーション</h2>
@@ -1470,56 +1441,6 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <table border width="100%"><tr><td class="def"><code>eval &lt;exception&gt; *Exc &lt;&quot;sango.io&quot;.print_stream_h&gt; *Out
   dump_exception_to | dump_to @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>例外情報をダンプします。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.entity"><code>sango.entity</code></h1>
-
-<p>「実体」（entity）を提供します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.1"></code>sango.entity</code> - 実体</h2>
-
-<table border width="100%"><tr><td class="def"><code>extend &lt;independent&gt; -&gt; ent_d @public :=
-| existence$ ;;</code></td></tr></table>
-<p>実体に紐づけられるデータを示します。
-  必要に応じて拡張して使用します。
-  <code>existence$</code>は，実体としての存在のみに意味がありデータが不要な場合に使用します。</p>
-
-<table border width="100%"><tr><td class="def"><code>alias type &lt;eref&gt; @public := &lt;ent_d+ &quot;sango.entity.box&quot;.box_h&gt; ;;</code></td></tr></table>
-<p>実体への参照を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;eref&gt; ;;</code></td></tr></table></p>
-<p><code>X</code>を初期値として実体を生成します。
-  実体がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *Entity read @public -&gt; &lt;ent_d+&gt; ;;</code></td></tr></table>
-<p>実体から値を読み出します。
-  この処理は原子的に実行されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d+&gt; ;;</code></td></tr></table>
-<p>実体に値を書き込み，以前の値を返します。
-  この処理は原子的に実行されます。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.2"></code>sango.entity</code> - 弱参照</h2>
-
-<table border width="100%"><tr><td class="def"><code>alias type &lt;wref&gt; @public := &lt;ent_d+ &quot;sango.entity.box&quot;.wbox_h&gt; ;;</code></td></tr></table>
-<p>実体への弱参照を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;wref&gt; ;;</code></td></tr></table>
-<p>実体への弱参照を生成します。
-  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
-  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
-  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></td></tr></table>
-<p>弱参照から参照（強参照）を取得します。
-  弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;wref&gt; *W clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.entity.box"><code>sango.entity.box</code></h1>
@@ -1567,107 +1488,7 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.entity.domain"><code>sango.entity.domain</code></h1>
-
-<p>「実体」（entity）に対し，ドメイン（領域）の中で固有番号を付与した参照を作成します。
-  参照を固有番号で扱ったり，大小比較することが可能になります。
-  固有番号は，参照が生存している間，有効です。
-  参照オブジェクトが回収されると，固有番号は再利用されます。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.domain.1"></code>sango.entity.domain</code> - ドメイン</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;domain_h&gt; @opaque ;;</code></td></tr></table>
-<p>ドメインへのハンドルを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval default_domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
-<p>デフォルト・ドメイン（あらかじめ用意されているドメイン）を取得します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval create_domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
-<p>ドメインを作成します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.domain.2"></code>sango.entity.domain</code> - 実体</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! entity_h&gt; @opaque ;;</code></td></tr></table>
-<p>実体への参照を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;A entity_h&gt; ;;</code></td></tr></table></p>
-<p>ドメイン内に，<code>X</code>を初期値として実体を生成します。
-  実体がガーベジコレクトされた際に制御を受け取る関数（invalidator）を指定することができます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box contain_box @public -&gt; &lt;A entity_h&gt; ;;</code></td></tr></table>
-<p><code>ボックスをドメインに取り込み，参照を作成します。
-  一つの参照を複数の異なったドメインに取り込むことは可能ですが，作成される参照は異なります。
-  同一のドメイン内に複数回取り込んだ場合も，そのたびに作成される参照は異なります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity entity_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
-<p>参照が属するドメインを取得します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
-<p>実体から値を読み出します。
-  この処理は原子的に実行されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
-<p>実体に値を書き込み，以前の値を返します。
-  この処理は原子的に実行されます。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.domain.3"></code>sango.entity.domain</code> - 弱参照</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! weak_holder_h&gt; @opaque ;;</code></td></tr></table>
-<p>実体への弱参照を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;domain_h&gt; *Domain &lt;*A! entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;A weak_holder_h&gt; ;;</code></td></tr></table>
-<p>ドメイン内に，実体への弱参照を生成します。
-  付与される固有番号は，<code>Entity</code>のそれとは無関係，別系列です。
-  ドメインは<code>Entity</code>の属するドメインとは異なっていても構いません。
-  弱参照が無効になった際に制御を受け取る関数（リスナ）を指定することができます。
-  リスナは，新しいアクタとして起動され，本関数で生成された弱参照オブジェクトが渡されます。
-  なお，本関数で生成されたオブジェクトが存在しないとき（ガーベジコレクトされたとき）には，リスナは呼び出されません。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! weak_holder_h&gt; *Weak_holder weak_holder_domain | domain @public -&gt; &lt;domain_h&gt; ;;</code></td></tr></table>
-<p>弱参照が属するドメインを取得します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;&lt;A entity_h&gt; maybe&gt; ;;</code></td></tr></table>
-<p>弱参照から参照（強参照）を取得します。
-  弱参照が無効になっている場合には<code>none$</code>が返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! weak_holder_h&gt; *Weak_holder clear @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>弱参照を無効にします。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.domain.4"></code>sango.entity.domain</code> - 固有番号，大小比較</h2>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity entity_unique_num | unique_num @public -&gt; &lt;int&gt; ;;
-eval &lt;*A! weak_holder_h&gt; *Weak_holder weak_holder_unique_num | unique_num @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>固有番号を取得します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *E0 &lt;*B! entity_h&gt; *E1 entity_compare | compare @public -&gt; &lt;ordering&gt; ;;
-eval &lt;*A! weak_holder_h&gt; *W0 &lt;*B! weak_holder_h&gt; *W1 weak_holder_compare | compare @public -&gt; &lt;ordering&gt; ;; </code></td></tr></table>
-<p>固有番号に基づき，前者の後者に対する大小関係を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval entity_ord_fs @public -&gt; &lt;*A! entity_h ord_fs&gt; ;;
-eval weak_holder_ord_fs @public -&gt; &lt;*A! weak_holder_h ord_fs&gt; ;;</code></td></tr></table>
-<p>大小比較の機能群を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>alias type &lt;unique_num_invalidator&gt; @public := &lt;int void fun&gt; ;;</code></td></tr></table>
-<p>固有番号の無効化処理関数を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! entity_h&gt; *Entity &lt;unique_num_invalidator&gt; *Invalidator
-  entity_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! weak_holder_h&gt; *Weak_holder &lt;unique_num_invalidator&gt; *Invalidator
-  weak_holder_add_unique_num_invalidator | add_unique_num_invalidator @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>固有番号の無効化処理関数を登録します。
-  無効化処理関数は，参照あるいは弱参照オブジェクトの消滅（回収）後に，それぞれ別のアクタとして起動されます。
-  また，実体の後処理関数の起動タイミングとも非同期です。
-  正常終了，例外による終了にかかわらず，登録された関数がすべて終了した後で，当該固有番号は再使用の対象になります。
-  この機能を使用する場合は，無効化処理関数が確実に成功するか，成功しなくても矛盾が発生しないようにしてください。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.entity.existence"><code>sango.entity.existence</code> 【Beta】</h1>
+<h1 id="sango.entity.existence"><code>sango.entity.existence</code></h1>
 
 <p>「存在」は「実体」の中核になるもので，一つの「実体」は必ず一つの「存在」を持ちます。
   「存在」の一つ一つは，お互いに異なるものです。</p>
@@ -2451,21 +2272,13 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
  <code>Index</code>が負の場合は先頭に挿入します。
  <code>Index</code>が要素の個数以上の場合は末尾に挿入します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index remove_at2 @public -&gt; &lt;&lt;A list&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index remove_at | remove_at2 @public -&gt; &lt;&lt;A list&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
  該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index remove_at @public -&gt; &lt;&lt;&lt;A list&gt; A tuple&gt; maybe&gt; ;;</code></td></tr></table>
-<p>【Deprecated】リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
- 該当する要素が無い場合は<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index &lt;A&gt; *Y replace_at2 @public -&gt; &lt;&lt;A list&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index &lt;A&gt; *Y replace_at | replace_at2 @public -&gt; &lt;&lt;A list&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を<code>Y</code>で置換し，結果のリストと置換された要素の組を返します。
  該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs &lt;int&gt; *Index &lt;A&gt; *Y replace_at @public -&gt; &lt;&lt;&lt;A list&gt; A tuple&gt; maybe&gt; ;;</code></td></tr></table>
-<p>【Deprecated】リストの<code>Index</code>番目の要素を<code>Y</code>で置換し，結果のリストと置換された要素の組を返します。
- 該当する要素が無い場合は<code>none$</code>が返ります。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs reverse @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>リストの順序を反転させます。</p>
@@ -3086,63 +2899,6 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>機能関数群を表します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree"><code>sango.util.avltree</code> 【Deprecated】</h1>
-
-<p>AVL木の構造をしたマップを提供します。
-  キーは順序付け可能でなければなりません。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B tree&gt; @opaque ;;</code></td></tr></table>
-<p><code>&lt;A&gt;</code>のキーに対する<code>&lt;B&gt;</code>の値を持つマップを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_tree @public -&gt; &lt;A *B tree&gt; ;;</code></td></tr></table>
-<p>空のマップを生成します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
-<p>マップが空かどうか判定します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>マップの大きさ（キーと値のペアの数）を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
-<p>キーに対する値を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
-<p>キーが登録されているかどうか判定します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K &lt;B&gt; *V
-  put @public -&gt; &lt;&lt;A B tree&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを登録します。
-  キーがすでに登録されている場合は置き換えられた値が共に返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K &lt;B&gt; *V put_new @public -&gt; &lt;&lt;A B tree&gt; bool tuple&gt; ;;</code></td></tr></table>
-<p>新しいキーと値のペアを登録します。
-  すでにキーが登録されている場合は，マップは変更されずfalse$と共に返されます。
-  キーが登録されていない場合は，更新されたマップと<code>true$</code>が返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K &lt;B&gt; *V add @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを登録します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K remove @public -&gt; &lt;&lt;A B tree&gt; &lt;B maybe&gt; tuple&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを削除します。
-  削除された値が共に返されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;A&gt; *K delete @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>キーと値のペアを削除します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B tree&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
-<p>登録されている最も小さいキーと値のペアを削除し，削除されたキーと値のペア，および更新されたマップを返します。
-  マップが空だった場合は<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree clear @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>マップを空にします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B tree&gt; *Tree &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;A B tree&gt; ;;</code></td></tr></table>
-<p>リストに含まれるキーと値のペアを全て登録します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code> 【Alpha】</h1>
 
 <p>AVL木による配列の実装です。</p>
@@ -3215,97 +2971,98 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A bag&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A bag_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A bag&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A bag_fs&gt;
   bag$ ;;</code></td></tr></table>
 <p>カプセル化されたバッグオブジェクトを表します。
   <code>&lt;A&gt;</code>は要素の型です。
   バッグを使用するには属性を意識する必要はありません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>バッグが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag c_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>バッグの大きさ（要素の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem c_contain? | contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>値がバッグに登録されているかどうか判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem get_all @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem c_get_all | get_all @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>バッグに登録されている等価な要素を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem add @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem c_add | add @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>値をバッグに追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem remove @public -&gt; &lt;&lt;A bag&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem c_remove | remove @public -&gt; &lt;&lt;A bag&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な一つの要素をバッグから削除します。
   処理後のバッグと，実際に削除された（事前に含まれていた）要素が返されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem
-remove_all @public -&gt; &lt;&lt;A bag&gt; &lt;A list&gt; tuple&gt; ;;</code></td></tr></table>
+c_remove_all | remove_all @public -&gt; &lt;&lt;A bag&gt; &lt;A list&gt; tuple&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な全ての要素をバッグから削除します。
   処理後のバッグと，実際に削除された（事前に含まれていた）要素が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem delete @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem c_delete | delete @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な一つの要素をバッグから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem delete_all @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem c_delete_all | delete_all @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な全ての要素をバッグから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag take @public -&gt; &lt;&lt;A &lt;A bag&gt; tuple&gt; maybe&gt; ;;
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag c_take | take @public -&gt; &lt;&lt;A &lt;A bag&gt; tuple&gt; maybe&gt; ;;
 </code></td></tr></table>
 <p>要素をバッグから一個取り出します。
   取り出された要素と，残りのバッグが返されます。
   バッグが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag clear @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag c_clear | clear @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>バッグを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems add_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems c_add_list | add_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter c_add_iter | add_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems delete_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems c_delete_list | delete_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値をそれぞれ削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter c_delete_iter | delete_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値をそれぞれ削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems delete_all_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems c_delete_all_list | delete_all_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter delete_all_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter c_delete_all_iter | delete_all_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て削除します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.bag.2"><code>sango.util.bag</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A bag_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  size_f: &lt;&lt;A _1+&gt; int fun&gt;
-  contain?_f: &lt;&lt;A _1+&gt; A bool fun&gt;
-  get_all_f: &lt;&lt;A _1+&gt; A &lt;A list&gt; fun&gt;
-  add_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
-  remove_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  remove_all_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A list&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
-  delete_all_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A bag_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  size_f: &lt;D int fun&gt;
+  contain?_f: &lt;D A bool fun&gt;
+  get_all_f: &lt;D A &lt;A list&gt; fun&gt;
+  add_f: &lt;D A D fun&gt;
+  remove_f: &lt;D A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt;
+  remove_all_f: &lt;D A &lt;D &lt;A list&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;D A D fun&gt; maybe&gt;
+  delete_all_f_: &lt;&lt;D A D fun&gt; maybe&gt;
+  take_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;D D fun&gt;
   bag_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag_fs&gt; *Fs bag_fs_delete_f | delete_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A bag_fs&gt; *Fs bag_fs_delete_f | delete_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>指定された値に等価な一つの要素をバッグから削除する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag_fs&gt; *Fs
-  bag_fs_delete_all_f | delete_all_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A bag_fs&gt; *Fs
+  bag_fs_delete_all_f | delete_all_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>指定された値に等価な全ての要素をバッグから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3578,38 +3335,39 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @public :=
-  d: &lt;A B _2+&gt;
-  fs: &lt;A B map_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A *B d&gt; @public := &lt;A B _2+&gt; ;;
+data &lt;*A *B map&gt; @public :=
+  d: &lt;A B d&gt;
+  fs: &lt;&lt;A B d&gt; A B map_fs&gt;
   map$ ;;</code></td></tr></table>
 <p>カプセル化されたマップオブジェクトを表します。
   <code>&lt;A&gt;</code>はキー，<code>&lt;B&gt;</code>は値の型です。
   マップを使用するには属性を意識する必要はありません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>マップが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>マップの大きさ（キーと値のペアの数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key c_get | get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キーと値のペアを返します。
   登録されていない場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key c_assoc | assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
 <p>キーに対する値を返します。
   登録されていない場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key c_contain_key? | contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キーがマップに登録されているかどうか判定します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value
-  put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
+  c_put | put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録します。
   処理後のマップとすでに登録されていた値が返されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value
-  put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;</code></td></tr></table>
+  c_put_new | put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;</code></td></tr></table>
 <p>新しいキーと値のペアをマップに登録します。
   すでにキーが登録されている場合，マップは変化しません。
   処理後のマップとマップの更新有無が返されます。</p>
@@ -3618,75 +3376,75 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <p>キーと値のペアをマップに登録します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key
-  remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
+  c_remove | remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除します。
   処理後のマップと登録されていたペアが返されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_take | take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから一組取り出します。
   取り出されたペアと，残りのマップが返されます。
   マップが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_clear | clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>マップを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_iter | iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
 <p>キーと値のペアを供給するイテレータを返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; list&gt; *KVs
-  add_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+  c_add_list | add_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>リストに含まれるキーと値のペアを全て登録します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; iter&gt; *Iter
-  add_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+  c_add_iter | add_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>イテレータが供給するキーと値のペアを全て登録します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A list&gt; *Ks
-  delete_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+  c_delete_list | delete_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>リストに含まれるキーを全て削除します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A iter&gt; *Iter
-  delete_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+  c_delete_iter | delete_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>イテレータが供給するキーを全て削除します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.map.2"><code>sango.util.map</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map_fs&gt; @public :=
-  empty?_f: &lt;&lt;A B _2+&gt; bool fun&gt;
-  size_f: &lt;&lt;A B _2+&gt; int fun&gt;
-  get_f: &lt;&lt;A B _2+&gt; A &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
-  assoc_f_: &lt;&lt;&lt;A B _2+&gt; A &lt;B maybe&gt; fun&gt; maybe&gt;
-  contain_key?_f_: &lt;&lt;&lt;A B _2+&gt; A bool fun&gt; maybe&gt;
-  put_f: &lt;&lt;A B _2+&gt; A B &lt;&lt;A B _2+&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
-  put_new_f_: &lt;&lt;&lt;A B _2+&gt; A B &lt;&lt;A B _2+&gt; bool tuple&gt; fun&gt; maybe&gt;
-  add_f_: &lt;&lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt; maybe&gt;
-  remove_f: &lt;&lt;A B _2+&gt; A &lt;&lt;A B _2+&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A B _2+&gt; A &lt;A B _2+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A B _2+&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B _2+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A B _2+&gt; &lt;A B _2+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A *B map_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  size_f: &lt;D int fun&gt;
+  get_f: &lt;D A &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
+  assoc_f_: &lt;&lt;D A &lt;B maybe&gt; fun&gt; maybe&gt;
+  contain_key?_f_: &lt;&lt;D A bool fun&gt; maybe&gt;
+  put_f: &lt;D A B &lt;D &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
+  put_new_f_: &lt;&lt;D A B &lt;D bool tuple&gt; fun&gt; maybe&gt;
+  add_f_: &lt;&lt;D A B D fun&gt; maybe&gt;
+  remove_f: &lt;D A &lt;D &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;D A D fun&gt; maybe&gt;
+  take_f: &lt;D &lt;&lt;&lt;A B tuple&gt; D tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;D D fun&gt;
   map_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs
-  map_fs_assoc_f | assoc_f @public -&gt; &lt;&lt;A B _2+&gt; A &lt;B maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B map_fs&gt; *Fs
+  map_fs_assoc_f | assoc_f @public -&gt; &lt;D A &lt;B maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>キーに対する値を返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs
-  map_fs_contain_key?_f | contain_key?_f @public -&gt; &lt;&lt;A B _2+&gt; A bool fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B map_fs&gt; *Fs
+  map_fs_contain_key?_f | contain_key?_f @public -&gt; &lt;D A bool fun&gt; ;;</code></td></tr></table>
 <p>キーがマップに登録されているかどうか判定する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs
-  map_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A B _2+&gt; A B &lt;&lt;A B _2+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B map_fs&gt; *Fs
+  map_fs_put_new_f | put_new_f @public -&gt; &lt;D A B &lt;D bool tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>新しいキーと値のペアをマップに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_add_f | add_f @public -&gt; &lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B map_fs&gt; *Fs map_fs_add_f | add_f @public -&gt; &lt;D A B D fun&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map_fs&gt; *Fs map_fs_delete_f | delete_f @public -&gt; &lt;&lt;A B _2+&gt; A &lt;A B _2+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B map_fs&gt; *Fs map_fs_delete_f | delete_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3833,9 +3591,10 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A queue_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A queue&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A queue_fs&gt;
   queue$ ;;</code></td></tr></table>
 <p>カプセル化されたキューオブジェクトを表します。
   <code>&lt;A&gt;</code>は値の型です。
@@ -3874,13 +3633,13 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.queue.2"><code>sango.util.queue</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A queue_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  length_f: &lt;&lt;A _1+&gt; int fun&gt;
-  enqueue_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
-  head_f: &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt;
-  dequeue_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A queue_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  length_f: &lt;D int fun&gt;
+  enqueue_f: &lt;D A D fun&gt;
+  head_f: &lt;D &lt;A maybe&gt; fun&gt;
+  dequeue_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;D D fun&gt;
   queue_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
@@ -3926,132 +3685,133 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A ralist&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A ralist_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A ralist&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A ralist_fs&gt;
   ralist$ ;;</code></td></tr></table>
 <p>カプセル化されたランダム・アクセス・リストのオブジェクトを表します。
   <code>&lt;A&gt;</code>は要素の型です。
   ランダム・アクセス・リストを使用するには属性を意識する必要はありません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>リストが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List non_empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_non_empty? | non_empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>リストが要素をもつかどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>リストの長さ（要素の個数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index elem @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index c_elem | elem @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を返します。
   先頭は0番目です。
   該当する要素が無い場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List first | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_first | first | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの先頭要素を返します。
   空リストの場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List last @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_last | last @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの末尾要素を返します。
   空リストの場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List tail @public -&gt; &lt;&lt;A ralist&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_tail | tail @public -&gt; &lt;&lt;A ralist&gt; maybe&gt; ;;</code></td></tr></table>
 <p>リストから先頭要素を取り除いた残りを返します。
   空リストの場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X insert_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X c_insert_at | insert_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素として<code>X</code>を挿入します。
   <code>Index</code>が負の場合は先頭に挿入します。
   <code>Index</code>が要素の個数以上の場合は末尾に挿入します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A&gt; *X append @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A&gt; *X c_append | append @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの末尾に<code>X</code>を挿入します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index remove_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index c_remove_at | remove_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
   該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index delete_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index c_delete_at | delete_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を削除します。
   該当する要素が無い場合は，リストは変化しません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X replace_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X c_replace_at | replace_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を<code>X</code>で置換し，結果のリストと置換された要素の組を返します。
   該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X update_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X c_update_at | update_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を<code>X</code>で置換します。
   該当する要素が無い場合は，リストは変化しません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count take @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count c_take | take @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの先頭から<code>Count</code>個の要素をリストとして返します。
   要素の個数が<code>Count</code>個に満たない場合は，リストの全体が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count drop @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count c_drop | drop @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの先頭から<code>Count</code>個の要素を取り除いたリストを返します。
   要素の個数が<code>Count</code>個に満たない場合は，空リストが返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List clear @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_clear | clear @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A list&gt; *Xs append_list @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A list&gt; *Xs c_append_list | append_list @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p><code>Xs</code>の要素を順に末尾に追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A iter&gt; *Iter append_iter @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A iter&gt; *Iter c_append_iter | append_iter @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を順に末尾に追加します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.ralist.2"><code>sango.util.ralist</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A ralist_fs&gt; @public :=
-  empty?_f_: &lt;&lt;&lt;A _1+&gt; bool fun&gt; maybe&gt;
-  length_f: &lt;&lt;A _1+&gt; int fun&gt;
-  elem_f: &lt;&lt;A _1+&gt; int &lt;A maybe&gt; fun&gt;
-  first_f_: &lt;&lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
-  last_f_: &lt;&lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; maybe&gt;
-  tail_f_: &lt;&lt;&lt;A _1+&gt; &lt;&lt;A _1+&gt; maybe&gt; fun&gt; maybe&gt;
-  insert_at_f: &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt;
-  append_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
-  remove_at_f: &lt;&lt;A _1+&gt; int &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  replace_at_f_: &lt;&lt;&lt;A _1+&gt; int A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; maybe&gt;
-  take_f_: &lt;&lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; maybe&gt;
-  drop_f_: &lt;&lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; maybe&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A ralist_fs&gt; @public :=
+  empty?_f_: &lt;&lt;D bool fun&gt; maybe&gt;
+  length_f: &lt;D int fun&gt;
+  elem_f: &lt;D int &lt;A maybe&gt; fun&gt;
+  first_f_: &lt;&lt;D &lt;A maybe&gt; fun&gt; maybe&gt;
+  last_f_: &lt;&lt;D &lt;A maybe&gt; fun&gt; maybe&gt;
+  tail_f_: &lt;&lt;D &lt;D maybe&gt; fun&gt; maybe&gt;
+  insert_at_f: &lt;D int A D fun&gt;
+  append_f_: &lt;&lt;D A D fun&gt; maybe&gt;
+  remove_at_f: &lt;D int &lt;D &lt;A maybe&gt; tuple&gt; fun&gt;
+  replace_at_f_: &lt;&lt;D int A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt; maybe&gt;
+  take_f_: &lt;&lt;D int D fun&gt; maybe&gt;
+  drop_f_: &lt;&lt;D int D fun&gt; maybe&gt;
+  clear_f: &lt;D D fun&gt;
   ralist_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_empty?_f | empty?_f @public -&gt; &lt;&lt;A _1+&gt; bool fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_empty?_f | empty?_f @public -&gt; &lt;D bool fun&gt; ;;</code></td></tr></table>
 <p>リストが空かどうかを判定する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_first_f | first_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_first_f | first_f @public -&gt; &lt;D &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭要素を返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_last_f | last_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_last_f | last_f @public -&gt; &lt;D &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの末尾要素を返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_tail_f | tail_f @public -&gt; &lt;&lt;A _1+&gt; &lt;&lt;A _1+&gt; maybe&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_tail_f | tail_f @public -&gt; &lt;D &lt;D maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>先頭要素を除いたリストを返す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_append_f | append_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_append_f | append_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>値をリストの末尾に追加する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_delete_at_f | delete_at_f @public -&gt; &lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_delete_at_f | delete_at_f @public -&gt; &lt;D int D fun&gt; ;;</code></td></tr></table>
 <p>リストの指標の位置の要素を削除する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_replace_at_f | replace_at_f @public -&gt; &lt;&lt;A _1+&gt; int A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_replace_at_f | replace_at_f @public -&gt; &lt;D int A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの指標の位置の要素を置換する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_update_at_f | update_at_f @public -&gt; &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_update_at_f | update_at_f @public -&gt; &lt;D int A D fun&gt; ;;</code></td></tr></table>
 <p>リストの指標の位置の要素を置換する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_take_f | take_f @public -&gt; &lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_take_f | take_f @public -&gt; &lt;D int D fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭から指定された個数の要素を取り出す関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist_fs&gt; *Fs ralist_fs_drop_f | drop_f @public -&gt; &lt;&lt;A _1+&gt; int &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_drop_f | drop_f @public -&gt; &lt;D int D fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭から指定された個数の要素を除く関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4066,113 +3826,114 @@ eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt;
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*D *A set&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A set_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A set&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A set_fs&gt;
   set$ ;;</code></td></tr></table>
 <p>カプセル化されたセットオブジェクトを表します。
   <code>&lt;A&gt;</code>は要素の型です。
   セットを使用するには属性を意識する必要はありません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>セットの大きさ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem get @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_get | get @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>セットに登録されている等価な値を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_contain? | contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>値がセットに登録されているかどうか判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem put @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_put | put @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>値をセットに登録します。
   処理後のセットと，登録されていた値が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem put_new @public -&gt; &lt;&lt;A set&gt; bool tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_put_new | put_new @public -&gt; &lt;&lt;A set&gt; bool tuple&gt; ;;</code></td></tr></table>
 <p>新しい値をセットに登録します。
   すでに値が登録されている場合，セットは変化しません。
   処理後のセットとセットの更新有無が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem add @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_add | add @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>値をセットに登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Eelm remove @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Eelm c_remove | remove @public -&gt; &lt;&lt;A set&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>値をセットから削除します。
   処理後のセットと，実際に削除された（事前に含まれていた）値が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem delete @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A&gt; *Elem c_delete | delete @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>値をセットから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set take @public -&gt; &lt;&lt;A &lt;A set&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_take | take @public -&gt; &lt;&lt;A &lt;A set&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>値をセットから一個取り出します。
   取り出された値と，残りのセットが返されます。
   セットが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set clear @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_clear | clear @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>セットを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems contain_just_list? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems c_contain_just_list? | contain_just_list? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットの要素がリストに含まれる値と同一か判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter contain_just_iter? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter c_contain_just_iter? | contain_just_iter? | contain_just? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットの要素がイテレータの供給する値と同一か判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems add_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems c_add_list | add_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter c_add_iter | add_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems delete_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A list&gt; *Elems c_delete_list | delete_list @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A iter&gt; *Iter c_delete_iter | delete_iter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A bool fun&gt; *Filter filter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set &lt;A bool fun&gt; *Filter c_filter | filter @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p><code>Filter</code>の条件を満たす要素の集合を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 intersection @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 c_intersection | intersection @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p><code>Set1</code>に含まれる<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の積集合）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 difference @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 c_difference | difference @public -&gt; &lt;A set&gt; ;;</code></td></tr></table>
 <p><code>Set1</code>に含まれない<code>Set0</code>の要素の集合（<code>Set0</code>と<code>Set1</code>の差集合）を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.set.2"><code>sango.util.set</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A set_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  size_f: &lt;&lt;A _1+&gt; int fun&gt;
-  get_f: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
-  contain?_f_: &lt;&lt;&lt;A _1+&gt; A bool fun&gt; maybe&gt;
-  put_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  put_new_f_: &lt;&lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; bool tuple&gt; fun&gt; maybe&gt;
-  add_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;  maybe&gt;
-  remove_f: &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; &lt;A maybe&gt; tuple&gt; fun&gt;
-  delete_f_: &lt;&lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; maybe&gt;
-  take_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A set_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  size_f: &lt;D int fun&gt;
+  get_f: &lt;D A &lt;A maybe&gt; fun&gt;
+  contain?_f_: &lt;&lt;D A bool fun&gt; maybe&gt;
+  put_f: &lt;D A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt;
+  put_new_f_: &lt;&lt;D A &lt;D bool tuple&gt; fun&gt; maybe&gt;
+  add_f_: &lt;&lt;D A D fun&gt;  maybe&gt;
+  remove_f: &lt;D A &lt;D &lt;A maybe&gt; tuple&gt; fun&gt;
+  delete_f_: &lt;&lt;D A D fun&gt; maybe&gt;
+  take_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;D D fun&gt;
   set_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs
-  set_fs_contain?_f | contain?_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;bool&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs
+  set_fs_contain?_f | contain?_f @public -&gt; &lt;D A &lt;bool&gt; fun&gt; ;;</code></td></tr></table>
 <p>値がセットに登録されているかどうか判定する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_add_f | add_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs set_fs_add_f | add_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>値をセットに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs
-  set_fs_put_new_f | put_new_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;&lt;A _1+&gt; bool tuple&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs
+  set_fs_put_new_f | put_new_f @public -&gt; &lt;D A &lt;D bool tuple&gt; fun&gt; ;;</code></td></tr></table>
 <p>新しい値をセットに登録する関数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A set_fs&gt; *Fs set_fs_delete_f | delete_f @public -&gt; &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A set_fs&gt; *Fs set_fs_delete_f | delete_f @public -&gt; &lt;D A D fun&gt; ;;</code></td></tr></table>
 <p>値をセットから削除する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4578,61 +4339,62 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A stack&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A stack_fs&gt;
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+data &lt;*A stack&gt; @public :=
+  d: &lt;A d&gt;
+  fs: &lt;&lt;A d&gt; A stack_fs&gt;
   stack$ ;;</code></td></tr></table>
 <p>カプセル化されたスタックオブジェクトを表します。
   &lt;A&gt;は値の型です。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>スタックが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_depth | depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>スタックの深さ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem c_push | push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>値をスタックに登録します。
   登録された値はスタックの一番上に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_top | top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を返します。
   スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_pop | pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を取り出し，残りのスタックと共に返します。
   スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_to_list | to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>スタックをリストに変換します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_clear | clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>スタックを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素をスタックの上から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems c_push_list | push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter c_push_iter | push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.stack.2"><code>sango.util.stack</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A stack_fs&gt; @public :=
-  empty?_f: &lt;&lt;A _1+&gt; bool fun&gt;
-  depth_f: &lt;&lt;A _1+&gt; int fun&gt;
-  push_f: &lt;&lt;A _1+&gt; A &lt;A _1+&gt; fun&gt;
-  top_f: &lt;&lt;A _1+&gt; &lt;A maybe&gt; fun&gt;
-  pop_f: &lt;&lt;A _1+&gt; &lt;&lt;A &lt;A _1+&gt; tuple&gt; maybe&gt; fun&gt;
-  to_list_f_: &lt;&lt;&lt;A _1+&gt; &lt;A list&gt; fun&gt; maybe&gt;
-  clear_f: &lt;&lt;A _1+&gt; &lt;A _1+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A stack_fs&gt; @public :=
+  empty?_f: &lt;D bool fun&gt;
+  depth_f: &lt;D int fun&gt;
+  push_f: &lt;D A D fun&gt;
+  top_f: &lt;D &lt;A maybe&gt; fun&gt;
+  pop_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
+  to_list_f_: &lt;&lt;D &lt;A list&gt; fun&gt; maybe&gt;
+  clear_f: &lt;D D fun&gt;
   stack_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;&lt;A _1+&gt; &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;D &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストに変換する関数を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

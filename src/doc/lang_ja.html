@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.1言語解説</title>
+<title>Sango 1.7.2言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -1315,25 +1315,18 @@ eval _initd_ -&gt; &lt;t&gt; ;;</code></blockquote>
 <p>「実体」はオブジェクトを入れておく箱のようなもので，スコープを超えてプログラムメモリ上に存続します。
   「実体」は，「<a href="#B.4">具象型</a>」のオブジェクトに対して生成します。
   生成については，次節を参照してください。</p>
-<p>「実体」を扱うには「参照」<code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>，<code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>を使います<span class="note-ref">*1</span>。
-  「実体」を作成すると参照が返されますので，それを使います。
+<p>「実体」を扱うには「参照」<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>を使います<span class="note-ref">*1</span>。
+  「参照」は「実体」を作成すると返されます。
   「実体」に紐づいたオブジェクトの取得，紐づけ直しは，以下の関数で入出力のように行います。</p>
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;eref&gt; *Entity read @public -&gt; &lt;ent_d+&gt; ;;
-eval &lt;eref&gt; *Entity &lt;ent_d+&gt; *X write | swap @public -&gt; &lt;ent_d+&gt; ;;</code>
-  # それまで紐づけられていたオブジェクトが返される</blockquote>
 <blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A box_h&gt; *Box read @public -&gt; &lt;A&gt; ;;
-eval &lt;*A box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;*A entity_h&gt; *Entity read @public -&gt; &lt;A&gt; ;;
-eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code></blockquote>
+eval &lt;*A box_h&gt; *Box &lt;A&gt; *X write | swap @public -&gt; &lt;A&gt; ;;</code>
+  # それまで紐づけられていたオブジェクトが返される</blockquote>
+</blockquote>
 <p>入出力処理は「実体」をロックして行われますので，<code>read</code>と<code>write</code>が交錯しても整合性が保たれます<span class="note-ref">*2</span>。</p>
 
-<blockquote class="note">*1：<code>&quot;sango.entity&quot;</code>はSango初期から提供されている「実体」の基本機能ライブラリ，<code>&quot;sango.entity.box&quot;</code>は，これを拡張した「ボックス」を提供するライブラリ，<code>&quot;sango.entity.domain&quot;</code>はボックスを拡張したライブラリです。なお，<code>&quot;sango.entity&quot;.eref</code>の実装はボックスに統合され，<code>&lt;&quot;sango.entity&quot;.ent_d+ &quot;sango.entity.box&quot;.box_h&gt;</code>の別名になっています。ボックスは，紐づけたいデータを<code>&lt;&quot;sango.entity&quot;.ent_d+&gt;</code>にラップする必要がないため，手続き型言語の変数のように使用することができます。</blockquote>
+<blockquote class="note">*1：<code>&quot;sango.entity.box&quot;</code>は「ボックス」を提供するライブラリです。</blockquote>
 <blockquote class="note">*2：ロック期間は<code>read</code>と<code>write</code>の内部です。読み出してから書き込むまでの間には，他の処理に割り込まれることがあります。</blockquote>
 
  
@@ -1345,17 +1338,9 @@ eval &lt;*A entity_h&gt; *Entity &lt;A&gt; *X write | swap @public -&gt; &lt;A&g
   例えば，ファイルやネットワークセッションをクローズしてリソースを解放するといったことです。
   「実体」の生成時に後処理関数（invalidator）を指定することができます。</p>
 <blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;ent_d+&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;eref&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
   create_box @public -&gt; &lt;A box_h&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
-  create_entity @public -&gt; &lt;A entity_h&gt; ;;</code></blockquote>
 <p>後処理関数は<code>&lt;void fun&gt;</code>で，「実体」が回収され消滅した後に，新たなスレッドとして起動されます<span class="note-ref">*2</span>。</p>
 
 <blockquote class="note">*1：どこからも参照されなくなった場合。</blockquote>
@@ -1363,35 +1348,21 @@ eval &lt;domain_h&gt; *Domain &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Inv
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="17.3">17.3. 弱参照</h2>
-<p><code>&lt;&quot;sango.entity&quot;.eref&gt;</code>，<code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>，<code>&lt;A &quot;sango.entity.domain&quot;.entity_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
+<p><code>&lt;A &quot;sango.entity.box&quot;.box_h&gt;</code>は通常の参照（強参照）であり，これから弱参照<span class="note-ref">*1</span>を作ることができます。
   その際，弱参照が無効化された（弱参照が切れた）ときに通知を受け取る関数を指定することができます。
   この関数は，後処理関数と同様に，弱参照が無効化された後に，新たなスレッドとして起動されます。</p>
 
 <blockquote class="note">*1：弱参照は他のプログラミング言語の弱参照と同じです。説明は割愛します。</blockquote>
  
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;eref&gt; *Entity &lt;&lt;wref void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;wref&gt; ;;
 </code></blockquote>
 <blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
   create_weak_holder @public -&gt; &lt;A wbox_h&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;domain_h&gt; *Domain &lt;*A entity_h&gt; *Entity &lt;&lt;A weak_holder_h void fun&gt; maybe&gt; *Listener_
-  create_weak_holder @public -&gt; &lt;A weak_holder_h&gt; ;;</code></blockquote>
 <p>弱参照が指し示す（かもしれない）「実体」にアクセスするには，まず弱参照から強参照を取得し，強参照が存在すればそれを使って「実体」にアクセスします。</p>
-<blockquote class="def">定義<code>
-module &quot;sango.entity&quot; ;;
-eval &lt;wref&gt; *W get @public -&gt; &lt;eref maybe&gt; ;;</code></blockquote>
 <blockquote class="def">定義<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A wbox_h&gt; *W get @public -&gt; &lt;&lt;A box_h&gt; maybe&gt; ;;</code></blockquote>
-<blockquote class="def">定義<code>
-module &quot;sango.entity.domain&quot; ;;
-eval &lt;*A weak_holder_h&gt; *Weak_holder get @public -&gt; &lt;A entity_h maybe&gt; ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="18">18. 並行プログラミング ― アクタにタスクを実行させる</h1>
@@ -1566,40 +1537,36 @@ Box act.wait_forever$ act.listen</code></blockquote>
 次からの各節にて，マップの宣言，実行，実装，使用について見ていきます<sup>*1</sup>。</p>
 
 <blockquote class="note">*1：Sangoの標準ライブラリで提供されていますが，ここでは簡略化したもので説明します。
-際のコードは，インストールディレクトリの<code>sample/feature</code>に格納されています。 </blockquote>
+実際のコードは，インストールディレクトリの<code>sample/feature</code>に格納されています。 </blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.1">20.1. 宣言・実行</h2>
 <p>まず，フィーチャの定義と，フィーチャを実行するためのオブジェクト（フィーチャ・オブジェクト）の型を宣言します。
 フィーチャ・オブジェクトの型は，フィーチャの実装に使用するものであり，フィーチャの使用者が意識する必要はありません。 </p>
 <blockquote class="code-sample"><code>module &quot;feature.map&quot; ;;
-feature &lt;*T&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map&gt; ;;
-data &lt;*T *A *B map&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
+feature &lt;*T!&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fo&gt; ;;
+data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
 
-<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map&gt;</code>のフィーチャ・オブジェクトを供給できること』を意味します。
+<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map_fo&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します<sup>*1</sup>。
 <code>[ ]</code>内がフィーチャを表し，「<code>a'map</code>」がフィーチャ名です。
 「<code>a'</code>」はフィーチャ名に慣習的に付けるもので，「abstract」を意味します。
-文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*1</sup>。
-マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています<sup>*2</sup>。</p>
-<blockquote class="note">*1：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
-<blockquote class="note">*2：モジュール・オブジェクトの型のパラメタは，オブジェクトの型変数あるいはフィーチャのパラメタを指定します。
+文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*2</sup>。
+マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています<sup>*3</sup>。</p>
+<blockquote class="note">*1：フィーチャがパラメタを持ち，かつ，オブジェクトの型がフィーチャ・オブジェクトの型に含まれる場合には，オブジェクトの型を具象型にします。</blockquote>
+<blockquote class="note">*2：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
+<blockquote class="note">*3：フィーチャ・オブジェクトの型のパラメタには，オブジェクトの型変数あるいはフィーチャのパラメタを指定します。
 フィーチャのパラメタと順序が異なっていても構いません。</blockquote>
 
-<p>フィーチャの実行は，フィーチャを実装したオブジェクトからフィーチャ・オブジェクトを取得し，それを用いて処理を行います。
-<code>[ A B a'map ]</code>を実装したオブジェクトの型を宣言は，例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*3</sup>。
-フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します。
-この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されます。</p>
-<blockquote class="note">*3：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
+<p>フィーチャの実行は，フィーチャ・オブジェクトを用いて処理を行います。</p>
 
-<blockquote class="code-sample"><code>eval &lt;*T[ *A *B a'map ]&gt; *M size @public -&gt; &lt;int&gt; {
-  M _feature_a'map = *MO,
-  #</code> MOからマップのサイズを計算する<code>
+<blockquote class="code-sample"><code>eval &lt;*T! *A *B map_fo&gt; *FMap f_size | size @public -&gt; &lt;int&gt; {
+  #</code> FMapからマップのサイズを計算する<code>
 } ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.2">20.2. 実装</h2>
 <p>フィーチャの実装宣言と，フィーチャ・オブジェクトの供給コードを定義します。
-実装宣言は以下のように，<code>data</code>文，<code>extend</code>文にて行います。</p>
+実装宣言は以下のように，<code>data</code>文にて行います。<sup>*1</sup></p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map-impl&quot; ;;
 import &quot;feature.map&quot; -&gt; map ;;
@@ -1612,27 +1579,34 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
 供給関数の名前は自由に付けることができます。
 実装するフィーチャが複数ある場合には「<code>++</code>」からフィーチャの記述までを必要な分だけ繰り返して指定します。</p>
+<blockquote class="note">*1：現バージョンでは，データの拡張定義（<code>extend</code>文）では実装宣言はできません。</blockquote>
 
 <p>供給コードの実装は以下のように定義します。</p>
 
-<blockquote class="code-sample"><code>eval &lt;*A *B map_impl&gt; *MI as_a'map -&gt; &lt;&lt;A B map_impl&gt; A B map.map&gt; {
+<blockquote class="code-sample"><code>eval &lt;*A *B map_impl&gt; *MI as_a'map -&gt; &lt;&lt;A B map_impl&gt; A B map.map_fo&gt; {
   #</code> MIからフィーチャ・オブジェクトを生成<code>
 } ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.3">20.3. 使用</h2>
-<p>フィーチャを実装したオブジェクトを受け取る型は，定義・実行の節で説明したように，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*1</sup>。</p>
+<p>フィーチャを実装したオブジェクトを受け取る型<sup>*1</sup>は，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*2</sup>。
+例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*3</sup>。
+フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します。<sup>*4</sup></p>
 
-<blockquote class="note">*1：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
+<blockquote class="note">*1：データ構築定義の中の型として宣言することもできます。</blockquote>
+<blockquote class="note">*2：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
+<blockquote class="note">*3：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
+<blockquote class="note">*4：この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されています。</blockquote>
 
 <blockquote class="code-sample"><code>import &quot;feature.map&quot; -&gt; map ;;
 import &quot;feature.map-impl&quot; -&gt; map_impl ;;
 
 eval _main_ -&gt; &lt;void&gt; {
-  map_impl.new_map &gt;&gt; f
+  map_impl.new_map = &lt;int cstr map_impl.map_impl&gt; *MI,
+  MI f
 } ;;
 
-eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
+eval &lt;*T![ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
   M map.size = 0,
   M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
@@ -1647,8 +1621,8 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   void$
 } ;;</code></blockquote>
 
-<p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって，<code>A</code>と<code>B</code>が未束縛の<code>&lt;A B map_impl&gt;</code>のオブジェクトを生成します。
-このオブジェクトは<code>[ A B map.a'map ]</code>を実装しているので，関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取ることができます。</p>
+<p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって<code>A</code>と<code>B</code>が未束縛の<code>&lt;A B map_impl.map_impl&gt;</code>のオブジェクトを生成し，それを<code>&lt;int cstr map_impl.map_impl&gt;</code>として変数<code>MI</code>で受け取ります。
+<code>MI</code>は<code>[ int cstr map.a'map ]</code>を実装しているので，関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取ることができます。</p>
 <p>関数<code>f</code>は，<code>map</code>モジュールの関数を使って，オブジェクトを処理していきます。
 <code>map.add</code>では，キーと値の組が追加されたオブジェクトが返されています。</p>
 
@@ -2283,7 +2257,7 @@ data &lt;+*<var>T<sub>1</sub></var> +*<var>T<sub>2</sub></var> ... +*<var>T<sub>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.5">B.5. 型の変換</h2>
-<p>型の変換には、コンパイラに対して型を指定する方法（キャスト）と、実行時に型を変える方法（ナローイング）があります。</p>
+<p>型の変換には，コンパイラに対して型を指定する方法（キャスト）と，実行時に型を変える方法（ナローイング）があります。</p>
 <p>■キャスト</p>
 <p>(i)未束縛の型パラメタをより具体的な型に束縛すること，(ii)明示的に拡張型を指定すること（ワイドニング）ができます。
 <blockquote class="note">型は自動的にその拡張型としても扱われるため，実際にキャストが必要になることはあまりありません。</blockquote>
@@ -2442,6 +2416,23 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <ul>
 <li>【Alpha→Obsolete】制約付き型パラメタの開発を凍結</li>
 <li>【Alpha】「<a href="#20">フィーチャ</a>」を導入</li>
+</ul>
+
+<p>■　1.7.2</p>
+<ul>
+<li>【Beta→General】<code>&quot;sango.entity.existence&quot;</code></li>
+<li>【Deprecated→Obsolete】<code>&quot;sango.util.avltree&quot;</code></li>
+<li>【Deprecated→Obsolete】<code>&quot;sango.lang&quot;.independent</code>，<code>&quot;sango.lang&quot;.seal_fs</code></li>
+<li>【Deprecated→Obsolete，非互換】<code>&quot;sango.list&quot;.remove_at</code>を削除。<code>&quot;sango.list&quot;.remove_at2</code>を<code>remove_at</code>に名前変更し<code>remove_at2</code>を別名に追加</li>
+<li>【Deprecated→Obsolete，非互換】<code>&quot;sango.list&quot;.replace_at</code>を削除。<code>&quot;sango.list&quot;.replace_at2</code>を<code>replace_at</code>に名前変更し<code>replace_at2</code>を別名に追加</li>
+<li>【Deprecated】<code>&quot;sango.entity&quot;</code>および<code>&quot;sango.actor.util&quot;</code>の関連定義</li>
+<li>【Deprecated】<code>&quot;sango.entity.domain&quot;</code>および<code>&quot;sango.actor.util&quot;</code>の関連定義</li>
+<li>【非互換】<code>&quot;sango.util.set&quot;</code>において，セットのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>set_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.bag&quot;</code>において，バッグのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>bag_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.map&quot;</code>において，マップのAPIの関数名を変更（例：公式名 <code>size</code>，別名 なし → 公式名 <code>c_size</code>，別名 <code>size</code>）。<code>map_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.queue&quot;</code>において，キューのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>queue_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.stack&quot;</code>において，スタックのAPIの関数名を変更（例：公式名 <code>depth</code>，別名 なし → 公式名 <code>c_depth</code>，別名 <code>depth</code>）。<code>stack_fs</code>の定義を変更。</li>
+<li>【非互換】<code>&quot;sango.util.ralist&quot;</code>において，ランダム・アクセス・リストのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>ralist_fs</code>の定義を変更。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

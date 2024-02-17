@@ -34,6 +34,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PType sig;
   String tcon;
   PTypeVarDef[] tparams;
+  PTypeVarSkel[] tparamSkels;
   PType body;  // is PTypeRef after circular def check
   PTypeRefSkel bodySkel;
 
@@ -326,25 +327,28 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     if (this.bodySkel == null) {
       this.setupBodySkel();
     }
-// /* DEBUG */ System.out.print("unalias");
+
+    PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
     PTypeSkelBindings bindings = PTypeSkelBindings.create();
-    for (int i = 0; i < this.tparams.length; i++) {
-// /* DEBUG */ System.out.print(" ");
-// /* DEBUG */ System.out.print(this.tparams[i]);
-    /* DEBUG */ if (this.tparams[i].varSlot == params[i].getVarSlot()) { throw new RuntimeException("Attempt to bind itself."); }
-      bindings.bind(this.tparams[i].varSlot, params[i]);  // param is normalized in advance
+    for (int i = 0; i < this.tparamSkels.length; i++) {
+       bindings.bind(((PTypeVarSkel)this.tparamSkels[i].instanciate(ic)).varSlot, params[i]);
     }
-    // /* DEBUG */ System.out.print(" ");
-    // /* DEBUG */ System.out.print(this.tcon);
-    // /* DEBUG */ System.out.print(this.bodySkel.toString());
-    // /* DEBUG */ System.out.print(" ...start instanciation... ");
-    // /* DEBUG */ System.out.print(bindings.toString());
-    PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.resolveBindings(bindings);
-// /* DEBUG */ System.out.print(" -> "); System.out.println(tr);
+    PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.instanciate(ic).resolveBindings(bindings);
+
+    // for (int i = 0; i < this.tparams.length; i++) {
+    // /* DEBUG */ if (this.tparams[i].varSlot == params[i].getVarSlot()) { throw new RuntimeException("Attempt to bind itself."); }
+      // bindings.bind(this.tparams[i].varSlot, params[i]);  // param is normalized in advance
+    // }
+    // PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.resolveBindings(bindings);
+
     return tr;
   }
 
   void setupBodySkel() {
+    this.tparamSkels = new PTypeVarSkel[this.tparams.length];
+    for (int i = 0; i < this.tparams.length; i++) {
+      this.tparamSkels[i] = this.tparams[i].toSkel();
+    }
     this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.toSkel()).unalias(PTypeSkelBindings.create());
     List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     this.bodySkel.collectTconProps(tps);

@@ -150,7 +150,7 @@ class PScope {
       && !this.evarDict.containsKey(varDef.name)
       && !this.outerTVarDict.containsKey(varDef.name)
       && !this.outerEVarDict.containsKey(varDef.name)
-      && !(this.parent != null && this.parent.pos < 0 /* && varDef.constraint == null*/);  // inhibit normal var in data constr
+      && !(this.parent != null && this.parent.pos < 0 && (varDef.features == null || varDef.features.features.length == 0));  // inhibit normal var in data constr
   }
 
   boolean canDefineEVar(PExprVarDef varDef) {

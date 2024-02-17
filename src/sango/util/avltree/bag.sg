@@ -69,7 +69,7 @@ eval <*A list> *Assoc <<<A list> avl.node> maybe> *Left_ <<<A list> avl.node> ma
   count: Count mins: Mins aux$
 } ;;
 
-eval bag_fs @public -> <*A bag.bag_fs> {
+eval bag_fs @public -> <<*A bag.d> A bag.bag_fs> {
   empty?_f: ^empty?
     size_f: ^size
     contain?_f: ^contain?
@@ -96,11 +96,11 @@ eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
   d: D fs: bag_fs bag.bag$
 } ;;
 
-eval <*A _1+> *Bag_d empty? -> <bool> {
+eval <*A bag.d> *Bag_d empty? -> <bool> {
   Bag_d size >> zero?
 } ;;
 
-eval <*A _1+> *Bag_d size -> <int> {
+eval <*A bag.d> *Bag_d size -> <int> {
   Bag_d = body: *Body *** d$,
   Body avl.node_ >> case {
   ; *Node value$ -> Node avl.aux = count: *Count *** aux$, Count
@@ -108,11 +108,11 @@ eval <*A _1+> *Bag_d size -> <int> {
   }
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem contain? -> <bool> {
+eval <*A bag.d> *Bag_d <A> *Elem contain? -> <bool> {
   Bag_d Elem get_all >> list.non_empty?
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem get_all -> <A list> {
+eval <*A bag.d> *Bag_d <A> *Elem get_all -> <A list> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
   ; *Elems avl.get_done$ -> Elems
@@ -120,7 +120,7 @@ eval <*A _1+> *Bag_d <A> *Elem get_all -> <A list> {
   }
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem add -> <A _1+> {
+eval <*A bag.d> *Bag_d <A> *Elem add -> <A bag.d> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put >> case {
   ; *Body' avl.put_new_done$ -> body: Body' :: Bag_d d$
@@ -128,7 +128,7 @@ eval <*A _1+> *Bag_d <A> *Elem add -> <A _1+> {
   }
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
+eval <*A bag.d> *Bag_d <A> *Elem remove -> <<A bag.d> <A maybe> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Bag_d Elem get_all >> case {
   ; [] ->
@@ -142,7 +142,7 @@ eval <*A _1+> *Bag_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem remove_all -> <<A _1+> <A list> tuple> {
+eval <*A bag.d> *Bag_d <A> *Elem remove_all -> <<A bag.d> <A list> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Bag_d d$, Removed |)
@@ -150,15 +150,15 @@ eval <*A _1+> *Bag_d <A> *Elem remove_all -> <<A _1+> <A list> tuple> {
   }
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem delete -> <A _1+> {
+eval <*A bag.d> *Bag_d <A> *Elem delete -> <A bag.d> {
   Bag_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A _1+> *Bag_d <A> *Elem delete_all -> <A _1+> {
+eval <*A bag.d> *Bag_d <A> *Elem delete_all -> <A bag.d> {
   Bag_d Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A _1+> *Bag_d take -> <<A <A _1+> tuple> maybe> {
+eval <*A bag.d> *Bag_d take -> <<A <A bag.d> tuple> maybe> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body avl.node_ >> case {
   ; *Node value$ ->
@@ -169,6 +169,6 @@ eval <*A _1+> *Bag_d take -> <<A <A _1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A _1+> *Bag_d clear -> <A _1+> {
+eval <*A bag.d> *Bag_d clear -> <A bag.d> {
   body: (^build_aux avl.new_tree) :: Bag_d d$
 } ;;

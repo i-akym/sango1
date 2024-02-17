@@ -23,38 +23,9 @@
 ###########################################################################
 module @alpha "sango.net.inet" ;;
 
-import "sango.entity" -> ent ;;
+import "sango.entity.box" -> box ;;
 import "sango.net.socket" -> soc ;;
 import "sango.io" -> io ;;
-
-# data extentions
-
-extend <ent.ent_d> :=
-| <connection_socket_impl_p> csi$
-| <server_socket_impl_p> ssi$
-| <datagram_socket_impl_p> dsi$ ;;
-
-eval <ent.eref> *Ent connection_socket_impl -> <connection_socket_impl_p maybe> {
-  Ent ent.read >> case {
-  ; *CSI csi$ -> CSI value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <ent.eref> *Ent server_socket_impl -> <server_socket_impl_p maybe> {
-  Ent ent.read >> case {
-  ; *SSI ssi$ -> SSI value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <ent.eref> *Ent datagram_socket_impl -> <datagram_socket_impl_p maybe> {
-  Ent ent.read >> case {
-  ; *DSI dsi$ -> DSI value$
-  ; ** -> none$
-  }
-} ;;
-
 
 # -- node address --
 
@@ -87,7 +58,7 @@ eval <connection_socket_impl_p> *CSI <cstr> *Key <soc.socket_opt_value+> *Value 
 eval <connection_socket_impl_p> *CSI csi_opt_keys -> <cstr list> @native ;;
 
 data <connection_socket_h> @opaque :=
-  ent: <ent.eref>  # connection_socket_impl_p
+  impl: <connection_socket_impl_p box.box_h>
   connection_socket_h$ ;;
 
 eval create_connection_socket @public -> <connection_socket_h> {
@@ -96,28 +67,27 @@ eval create_connection_socket @public -> <connection_socket_h> {
 
 eval <connection_socket_impl_p> *CSI csi_socket_h -> <connection_socket_h> {
   \\ <void> { \\ <void> { CSI csi_close } try >> ignore } = *Inv,
-  (CSI csi$) (Inv value$) ent.create_entity = *E,
-  E connection_socket_h$
+  impl: (CSI (Inv value$) box.create_box) connection_socket_h$
 } ;;
 
 eval <connection_socket_h> *CS <addr> *Addr <int> *Port <int> *Timeout cs_connect | connect @public -> <void> {
-  (CS ent >> connection_socket_impl >> value) Addr Port Timeout csi_connect
+  (CS impl >> box.read) Addr Port Timeout csi_connect
 } ;;
 
 eval <connection_socket_h> *CS cs_instream | instream @public -> <byte io.instream_h> {
-  (CS ent >> connection_socket_impl >> value) csi_instream
+  (CS impl >> box.read) csi_instream
 } ;;
 
 eval <connection_socket_h> *CS cs_outstream | outstream @public -> <byte io.outstream_h> {
-  (CS ent >> connection_socket_impl >> value) csi_outstream
+  (CS impl >> box.read) csi_outstream
 } ;;
 
 eval <connection_socket_h> *CS cs_close | close @public -> <void> {
-  (CS ent >> connection_socket_impl >> value) csi_close
+  (CS impl >> box.read) csi_close
 } ;;
 
 eval <connection_socket_h> *CS cs_abstract_socket | abstract_socket @public -> <byte soc.socket_h> {
-  CS ent >> connection_socket_impl >> value = *CSI,
+  CS impl >> box.read = *CSI,
   instream_f: \\ <byte io.instream_h> { CSI csi_instream }
     outstream_f: \\ <byte io.outstream_h> { CSI csi_outstream }
     close_f: \\ <void> { CSI csi_close }
@@ -139,28 +109,27 @@ eval <server_socket_impl_p> *SSI <cstr> *Key <soc.socket_opt_value+> *Value ssi_
 eval <server_socket_impl_p> *SSI ssi_opt_keys -> <cstr list> @native ;;
 
 data <server_socket_h> @opaque :=
-  ent: <ent.eref>  # server_socket_impl_p
+  impl: <server_socket_impl_p box.box_h>
   server_socket_h$ ;;
 
 eval <int> *Port create_server_socket @public -> <server_socket_h> {
   Port create_server_socket_impl = *SSI,
   \\ <void> { \\ <void> { SSI ssi_close } try >> ignore } = *Inv,
-  (SSI ssi$) (Inv value$) ent.create_entity = *E,
-  E server_socket_h$
+  impl: (SSI (Inv value$) box.create_box) server_socket_h$
 } ;;
 
 eval <server_socket_h> *SS server_socket_accept | accept @public -> <connection_socket_h> {
-  (SS ent >> server_socket_impl >> value) ssi_accept >> csi_socket_h
+  (SS impl >> box.read) ssi_accept >> csi_socket_h
 } ;;
 
 eval <server_socket_h> *SS server_socket_close | close @public -> <void> {
-  (SS ent >> server_socket_impl >> value) ssi_close
+  (SS impl >> box.read) ssi_close
 } ;;
 
 # datagram socket (send/receive UDP message)
 
 data <datagram_socket_h> @opaque :=
-  ent: <ent.eref>  # datagram_socket_impl_p
+  impl: <datagram_socket_impl_p box.box_h>
   datagram_socket_h$ ;;
 
 eval <int> *Port create_datagram_socket_impl -> <datagram_socket_impl_p> @native ;;
@@ -171,18 +140,17 @@ eval <datagram_socket_impl_p> *DSI dsi_close -> <void> @native ;;
 eval <int> *Port create_datagram_socket @public -> <datagram_socket_h> {
   Port create_datagram_socket_impl = *DSI,
   \\ <void> { \\ <void> { DSI dsi_close } try >> ignore } = *Inv,
-  (DSI dsi$) (Inv value$) ent.create_entity = *E,
-  E datagram_socket_h$
+  impl: (DSI (Inv value$) box.create_box) datagram_socket_h$
 } ;;
 
 eval <datagram_socket_h> *DS <int> *Len datagram_socket_receive | receive @public -> <<addr int bstr tuple> maybe> {
-  (DS ent >> datagram_socket_impl >> value) Len dsi_receive
+  (DS impl >> box.read) Len dsi_receive
 } ;;
 
 eval <datagram_socket_h> *DS <addr> *Addr <int> *Port <bstr> *Data datagram_socket_send | send @public -> <void> {
-  (DS ent >> datagram_socket_impl >> value) Addr Port Data dsi_send
+  (DS impl >> box.read) Addr Port Data dsi_send
 } ;;
 
 eval <datagram_socket_h> *DS datagram_close | close @public -> <void> {
-  (DS ent >> datagram_socket_impl >> value) dsi_close
+  (DS impl >> box.read) dsi_close
 } ;;

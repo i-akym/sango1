@@ -57,31 +57,31 @@ eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
   d: D fs: set_fs set.set$
 } ;;
 
-eval set_fs -> <*A set.set_fs> {
+eval set_fs -> <<*A set.d> A set.set_fs> {
   empty?_f: ^empty?
-    size_f: ^size
-    get_f: ^get
-    contain?_f_: (^contain? value$)
-    put_f: ^put
-    put_new_f_: (^put_new value$)
-    add_f_: (^add value$)
-    remove_f: ^remove
-    delete_f_: (^delete value$)
-    take_f: ^take
-    clear_f: ^clear
-    set.set_fs$
+  size_f: ^size
+  get_f: ^get
+  contain?_f_: (^contain? value$)
+  put_f: ^put
+  put_new_f_: (^put_new value$)
+  add_f_: (^add value$)
+  remove_f: ^remove
+  delete_f_: (^delete value$)
+  take_f: ^take
+  clear_f: ^clear
+  set.set_fs$
 } ;;
 
-eval <*A _1+> *Set_d empty? -> <bool> {
+eval <*A set.d> *Set_d empty? -> <bool> {
   Set_d size >> zero?
 } ;;
 
-eval <*A _1+> *Set_d size -> <int> {
+eval <*A set.d> *Set_d size -> <int> {
   Set_d = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem get -> <A maybe> {
+eval <*A set.d> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
   ; *E avl.get_done$ -> E value$
@@ -89,11 +89,11 @@ eval <*A _1+> *Set_d <A> *Elem get -> <A maybe> {
   }
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem contain? -> <bool> {
+eval <*A set.d> *Set_d <A> *Elem contain? -> <bool> {
   Set_d Elem get >> something?
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem put -> <<A _1+> <A maybe> tuple> {
+eval <*A set.d> *Set_d <A> *Elem put -> <<A set.d> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) Elem avl.put >> case {
   ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, none$ |)
@@ -101,7 +101,7 @@ eval <*A _1+> *Set_d <A> *Elem put -> <<A _1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem put_new -> <<A _1+> bool tuple> {
+eval <*A set.d> *Set_d <A> *Elem put_new -> <<A set.d> bool tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem put_new_locator) Elem avl.put >> case {
   ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, true$ |)
@@ -109,11 +109,11 @@ eval <*A _1+> *Set_d <A> *Elem put_new -> <<A _1+> bool tuple> {
   }
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem add -> <A _1+> {
+eval <*A set.d> *Set_d <A> *Elem add -> <A set.d> {
   Set_d Elem put >> tuple.pair_first
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
+eval <*A set.d> *Set_d <A> *Elem remove -> <<A set.d> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Set_d d$, Removed value$ |)
@@ -121,11 +121,11 @@ eval <*A _1+> *Set_d <A> *Elem remove -> <<A _1+> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A _1+> *Set_d <A> *Elem delete -> <A _1+> {
+eval <*A set.d> *Set_d <A> *Elem delete -> <A set.d> {
   Set_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A _1+> *Set_d take -> <<A <A _1+> tuple> maybe> {
+eval <*A set.d> *Set_d take -> <<A <A set.d> tuple> maybe> {
   Set_d = body: *Body *** d$,
   Body avl.take >> case {
   ; (| *E, *Body' |) value$ -> (| E, body: Body' :: Set_d d$ |) value$
@@ -133,6 +133,6 @@ eval <*A _1+> *Set_d take -> <<A <A _1+> tuple> maybe> {
   }
 } ;;
 
-eval <*A _1+> *Set_d clear -> <A _1+> {
+eval <*A set.d> *Set_d clear -> <A set.d> {
   body: avl.new_tree :: Set_d d$
 } ;;
