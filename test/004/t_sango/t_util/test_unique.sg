@@ -1,0 +1,27 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.unique" -> uniq ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test001,
+  void$
+} ;;
+
+eval test001 -> <void> {
+  uniq.new_unique = *U0, U0 debug.repr >> stdio.print_and_newline,
+  uniq.new_unique = *U1, U1 debug.repr >> stdio.print_and_newline,
+  uniq.new_unique = *U2, U2 debug.repr >> stdio.print_and_newline,
+  uniq.new_unique = *U3, U3 debug.repr >> stdio.print_and_newline,
+  uniq.new_unique = *U4, U4 debug.repr >> stdio.print_and_newline,
+  U0 case {
+  ; U1 -> assertion_error$ "Not unique." new_exception >> throw
+  ; U2 -> assertion_error$ "Not unique." new_exception >> throw
+  ; U3 -> assertion_error$ "Not unique." new_exception >> throw
+  ; U4 -> assertion_error$ "Not unique." new_exception >> throw
+  ; ** ->
+  }
+} ;;
