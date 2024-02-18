@@ -575,6 +575,9 @@ eval &lt;byte&gt; *B &lt;int&gt; *Count byte_shift_left | shift_left @public -&g
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord ord_fs_inverse | inverse @public -&gt; &lt;A ord_fs&gt; ;;</code></td></tr></table>
 <p><code>Ord</code>から，大小判定を逆に行う機能群を作成します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord ord_fs_to_eq_fs | to_eq_fs @public -&gt; &lt;A eq_fs&gt; ;;</code></td></tr></table>
+<p><code>Ord</code>から，等価判定を行う機能群を作成します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval byte_ord_fs @public -&gt; &lt;byte ord_fs&gt; ;;
 eval int_ord_fs @public -&gt; &lt;int ord_fs&gt; ;;
 eval real_ord_fs @public -&gt; &lt;real ord_fs&gt; ;;
