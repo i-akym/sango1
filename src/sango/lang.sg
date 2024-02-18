@@ -545,6 +545,13 @@ eval <*A ord_fs> *Ord ord_fs_inverse | inverse @public -> <A ord_fs> {
     ord_fs$
 } ;;
 
+eval <*A ord_fs> *Ord ord_fs_to_eq_fs | to_eq_fs @public -> <A eq_fs> {
+  eq?_f: (Ord eq?_f)
+  ne?_f_: none$
+  hash_f: (Ord hash_f)
+  eq_fs$
+} ;;
+
 eval int_ord_fs @public -> <int ord_fs> {
   compare_f: ^int_compare
     eq?_f_: (^int_eq? value$)
