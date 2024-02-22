@@ -44,13 +44,19 @@ eval otherwise @public -> <bool> { true$ } ;;  # alias for conditional branch
 
 # arithmetic types
 
-data <int> @opaque := @native ;;  # 4 byte signed integer
-data <real> @opaque := @native ;;  # 8 byte floating point
-data <byte> @opaque := @native ;;  # 1 byte unsigned integer
+data <int> @opaque := @native  # 4 byte signed integer
+++ int_as_a'ord -> [ a'ord ] ;;
+
+data <real> @opaque := @native  # 8 byte floating point
+++ real_as_a'ord -> [ a'ord ] ;;
+
+data <byte> @opaque := @native  # 1 byte unsigned integer
+++ byte_as_a'ord -> [ a'ord ] ;;
 
 # character type
 
-data <char> @opaque := @native ;;  # charset is unicode
+data <char> @opaque := @native  # charset is unicode
+++ char_as_a'ord -> [ a'ord ] ;;
 
 # list type
 
@@ -146,6 +152,13 @@ alias type <*A iter_res> @public := <<A <A iter> tuple> maybe> ;;
 data @beta <*A dummy> @public :=
 | <A> dummy_obj$
 | <A void fun> dummy_fun$ ;;
+
+
+# -- features --
+
+feature @alpha <*T> [ a'eq ] @public -> <T eq_fs> ;;
+
+feature @alpha <*T> [ a'ord ] @public -> <T ord_fs> ;;
 
 
 # -- functions --
@@ -552,6 +565,10 @@ eval <*A ord_fs> *Ord ord_fs_to_eq_fs | to_eq_fs @public -> <A eq_fs> {
   eq_fs$
 } ;;
 
+eval @alpha <int> *I int_as_a'ord @public -> <int ord_fs> {
+  int_ord_fs
+} ;;
+
 eval int_ord_fs @public -> <int ord_fs> {
   compare_f: ^int_compare
     eq?_f_: (^int_eq? value$)
@@ -562,6 +579,11 @@ eval int_ord_fs @public -> <int ord_fs> {
     hash_f: ^hash
     ord_fs$
 } ;;
+
+eval @alpha <real> *R real_as_a'ord @public -> <real ord_fs> {
+  real_ord_fs
+} ;;
+
 eval real_ord_fs @public -> <real ord_fs> {
   compare_f: ^real_compare
     eq?_f_: (^real_eq? value$)
@@ -572,6 +594,11 @@ eval real_ord_fs @public -> <real ord_fs> {
     hash_f: ^hash
     ord_fs$
 } ;;
+
+eval @alpha <byte> *B byte_as_a'ord @public -> <byte ord_fs> {
+  byte_ord_fs
+} ;;
+
 eval byte_ord_fs @public -> <byte ord_fs> {
   compare_f: ^byte_compare
     eq?_f_: (^byte_eq? value$)
@@ -612,6 +639,10 @@ eval char_eq_fs @public -> <char eq_fs> {
     ne?_f_: none$
     hash_f: ^hash
     eq_fs$
+} ;;
+
+eval @alpha <char> *C char_as_a'ord @public -> <char ord_fs> {
+  char_ord_fs
 } ;;
 
 eval char_ord_fs @public -> <char ord_fs> {
