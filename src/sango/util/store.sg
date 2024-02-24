@@ -1,0 +1,95 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2024 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.store" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.hashmap" -> hmap ;;
+import "sango.util.unique" -> uniq ;;
+
+alias type <*A tab> := <uniq.u A map.map> ;;
+
+data <*A! store_h> @opaque :=
+  <<A tab> actu.box_monitor_h>
+  store_h$ ;;
+
+data <ref> @opaque :=
+  uniq: <uniq.u>
+  ex: <ex.existence>
+  ref$ ;;
+
+eval <*A! dummy> *Content create_store @public -> <A store_h> {
+  hmap.new_map = <uniq.u A map.map> *Tab,
+  Tab none$ box.create_box = *Tab_box,
+  (Tab_box actu.create_box_monitor) store_h$
+} ;;
+
+eval <*A! store_h> *Store_h <A> *X put @public -> <ref> {
+  uniq.new_unique = *U,
+  \\ <void> { Store_h U _delete } = *Inv,
+  none$ (Inv value$) ex.create_immutable_existence = (| *Ex, ** |),
+  Store_h U X _put,
+  U Ex ref$
+} ;;
+
+eval <*A! store_h> *Store_h <uniq.u> *U <A> *X _put -> <void> {
+  Store_h = *Mon store_h$,
+  Mon
+  \ <<A tab> box.box_h> *B -> <void> {
+    B box.read = *T,
+    T U X map.add = *T',
+    B T' box.write >> ignore
+  } actu.run
+} ;;
+
+eval <*A! store_h> *Store_h <ref> *Ref get @public -> <A maybe> {
+  Ref = *U *Ex ref$,
+  Store_h U _get
+} ;;
+
+eval <*A! store_h> *Store_h <uniq.u> *U _get -> <A maybe> {
+  Store_h = *Mon store_h$,
+  Mon
+  \ <<A tab> box.box_h> *B -> <A maybe> {
+    B box.read = *T,
+    T U map.assoc
+  } actu.run
+} ;;
+
+eval <*A! store_h> *Store_h <ref> *Ref delete @public -> <void> {
+  Ref = *U *Ex ref$,
+  Store_h U _delete
+} ;;
+
+eval <*A! store_h> *Store_h <uniq.u> *U _delete -> <void> {
+  Store_h = *Mon store_h$,
+  Mon
+  \ <<A tab> box.box_h> *B -> <void> {
+    B box.read = *T,
+    T U map.delete = *T',
+    B T' box.write >> ignore
+  } actu.run
+} ;;
