@@ -246,7 +246,7 @@ eval <*A queue> *Queue as_a'queue -> <<A queue> A queue_fo> {
   fd: FD fr: FR fs: cqueue_fo_fs queue_fo$
 } ;;
 
-extend <*A _1+> -> cfd := <A queue> cfd$ ;;
+extend <*A _1> -> cfd := <A queue> cfd$ ;;
 
 eval cqueue_fo_fs -> <<<*A queue> A fx> A queue_fs> {
   empty?_f: ^cfo_empty?

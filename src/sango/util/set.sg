@@ -438,7 +438,7 @@ eval <*A set> *Set as_a'set -> <<A set> A set_fo> {
   fd: FD fr: FR fs: cset_fo_fs set_fo$
 } ;;
 
-extend <*A _1+> -> cfd := <A set> cfd$ ;;
+extend <*A _1> -> cfd := <A set> cfd$ ;;
 
 eval cset_fo_fs -> <<<*A set> A fx> A set_fs> {
   empty?_f: ^cfo_empty?

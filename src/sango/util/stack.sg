@@ -246,7 +246,7 @@ eval <*A stack> *Stack as_a'stack -> <<A stack> A stack_fo> {
   fd: FD fr: FR fs: cstack_fo_fs stack_fo$
 } ;;
 
-extend <*A _1+> -> cfd := <A stack> cfd$ ;;
+extend <*A _1> -> cfd := <A stack> cfd$ ;;
 
 eval cstack_fo_fs -> <<<*A stack> A fx> A stack_fs> {
   empty?_f: ^cfo_empty?
