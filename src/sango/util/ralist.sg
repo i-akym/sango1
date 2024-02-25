@@ -429,7 +429,7 @@ eval <*A ralist> *Ralist as_a'ralist -> <<A ralist> A ralist_fo> {
   fd: FD fr: FR fs: cralist_fo_fs ralist_fo$
 } ;;
 
-extend <*A _1+> -> cfd := <A ralist> cfd$ ;;
+extend <*A _1> -> cfd := <A ralist> cfd$ ;;
 
 eval cralist_fo_fs -> <<<*A ralist> A fx> A ralist_fs> {
   empty?_f_: (^cfo_empty? value$)
