@@ -226,6 +226,7 @@ kbd {
   <a href="#sango.util.stack.1">フレームワーク</a>
   <a href="#sango.util.stack.2">実装者向け情報</a>
 <a href="#sango.util.stack.liststack"><code>sango.util.stack.liststack</code></a>
+<a href="#sango.util.unique"><code>sango.util.unique</code></a> 【Beta】
 </div>
 
 <hr/>
@@ -4411,6 +4412,18 @@ data &lt;*A stack&gt; @public :=
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *L to_stack @public -&gt; &lt;A &quot;sango.util.stack&quot;.stack&gt; ;;</code></td></tr></table>
 <p>リストをスタックに変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.unique"><code>sango.util.unique</code> 【Beta】</h1>
+
+<p>プログラム内で唯一となるオブジェクトを供給します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;u&gt; @opaque ;;</code></td></tr></table>
+<p>プログラム内で唯一となるオブジェクトを表します。
+プログラム実行中，この型の全てのオブジェクトは互いに異なります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_unique @public -&gt; &lt;u&gt; ;;</code></td></tr></table>
+<p><code>&lt;u&gt;</code>のオブジェクトを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 
