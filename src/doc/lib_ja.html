@@ -184,7 +184,8 @@ kbd {
   <a href="#sango.util.enum.2">実装者向け情報</a>
 <a href="#sango.util.iter"><code>sango.util.iter</code></a>
   <a href="#sango.util.iter.1">定数の供給</a>
-  <a href="#sango.util.iter.2">変形</a>
+  <a href="#sango.util.iter.2">連結</a>
+  <a href="#sango.util.iter.3">変形</a>
 <a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
@@ -3287,16 +3288,23 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *K const_iter @public -&gt; &lt;A iter&gt; ;;
 </code></td></tr></table>
-<p>定数Xを供給し続けるイテレータを返します。
-  限りなく値を生成しますので，生成関数を呼び出す側で停止する場合のみに使用してください 。</p>
+<p>定数<code>X</code>を供給し続けるイテレータを返します。
+限りなく値を生成しますので，生成関数を呼び出す側で停止する場合のみに使用してください 。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.2"><code>sango.util.iter</code> - 変形</h2>
+<h2 id="sango.util.iter.2"><code>sango.util.iter</code> - 連結</h2>
+
+<p>複数のイテレータを連結します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;&lt;*A iter&gt; list&gt; *Is concat @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>リストに含まれる順にイテレータを連結して，一つのイテレータを生成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.iter.3"><code>sango.util.iter</code> - 変形</h2>
 
 <p>イテレータを変形します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *F add_filter @public -&gt; &lt;A iter&gt; ;;
-</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *F add_filter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>値をフィルタする関数を追加します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A *B fun&gt; *M add_modifier @public -&gt; &lt;B iter&gt; ;; </code></td></tr></table>
@@ -3304,8 +3312,8 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *W add_while @public -&gt; &lt;A iter&gt; ;;
 </code></td></tr></table>
-<p>【Alpha】生成の継続条件を付加します。
-  <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
+<p>生成の継続条件を付加します。
+<code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>

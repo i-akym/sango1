@@ -32,6 +32,23 @@ eval <*A> *K const_next -> <A iter_res> {
     \\ <A iter_res> { K const_next } iter$ |) value$
 } ;;
 
+eval <<*A iter> list> *Is concat @public -> <A iter> {
+  \\ <A iter_res> { Is seq_next } iter$
+} ;;
+
+eval <<*A iter> list> *Is seq_next -> <A iter_res> {
+  Is case {
+  ; [ *I ; *Is' ] ->
+    I next >> case {
+    ; (| *V, *I' |) value$ ->
+      (| V,
+        \\ <A iter_res> { [ I' ; Is' ] seq_next } iter$ |) value$
+    ; ** -> Is' seq_next
+    }
+  ; ** -> none$
+  }
+} ;;
+
 eval <*A iter> *I <A bool fun> *W add_while @public -> <A iter> {
   \\ <A iter_res> { I W while_next } iter$
 } ;;
