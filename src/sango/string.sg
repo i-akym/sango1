@@ -27,10 +27,12 @@ import "sango.list" -> list ;;
 
 # -- string --
 
+eval <*A string> *Xz length @public -> <int> { Xz string_length } ;;  # forward to sango.lang
+eval <*A string> *Xz <int> *Pos elem @public -> <A> { Xz Pos string_elem } ;;  # forward to sango.lang
+
 eval <int> *Count <*A iter> *Iter new_string @public -> <A string> @native ;;
 eval <int> *Count <*A iter> *Iter new_reverse_string @public -> <A string> @native ;;
-eval <*A string> *Xz length @public -> <int> @native ;;
-eval <*A string> *Xz <int> *Pos elem @public -> <A> @native ;;
+
 eval <*A string> *Xz <int> *Start <int> *Count slice @public -> <A string> @native ;;
 eval <<*A string> list> *Xzs concat @public -> <A string> @native ;;
 
@@ -43,15 +45,7 @@ eval <*A list> *Xs list_to_string | to_string @public -> <A string> {
 } ;;
 
 eval <*A string> *Xz iter @public -> <A iter> {
-  \\ <<A <A iter> tuple> maybe> { Xz 0 iter_next } iter$
-} ;;
-
-eval <*A string> *Xz <int> *Index iter_next -> <<A <A iter> tuple> maybe> {
-  if {
-  ; Index (Xz length) lt? ->
-    (| Xz Index elem, \\ <<A <A iter> tuple> maybe> { Xz (Index inc) iter_next } iter$ |) value$
-  ; otherwise -> none$
-  }
+  Xz string_iter  # forward to sango.lang
 } ;;
 
 eval <*A string> *Xz <int> *Start <int> *Count elems @public -> <A list> {

@@ -24,6 +24,7 @@
  package sni_sango;
  
  import org.sango_lang.Cstr;
+ import org.sango_lang.RArrayItem;
  import org.sango_lang.RClosureItem;
  import org.sango_lang.RDataConstr;
  import org.sango_lang.RIntItem;
@@ -312,6 +313,17 @@
 
   static boolean inIntConvertibleRange(double d) {
     return -2147483649.0 < d && d < 2147483648.0;
+  }
+
+  public void sni_string_length(RNativeImplHelper helper, RClosureItem self, RObjItem xz) {
+    RArrayItem a = (RArrayItem)xz;
+    helper.setReturnValue(helper.getIntItem(a.getElemCount()));
+  }
+
+  public void sni_string_elem(RNativeImplHelper helper, RClosureItem self, RObjItem xz, RObjItem pos) {
+    RArrayItem a = (RArrayItem)xz;
+    RIntItem i = (RIntItem)pos;
+    helper.setReturnValue(a.getElemAt(i.getValue()));
   }
 
   public static RObjItem createBadArgException(RNativeImplHelper helper, Cstr msg, RObjItem org) {
