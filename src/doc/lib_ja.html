@@ -711,6 +711,12 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.9"><code>sango.lang</code> - その他</h2>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz string_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>ストリングの要素の個数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz &lt;int&gt; *Pos string_elem | elem @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>ストリングの指標<code>Pos</code>の要素を返します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X itself | id @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p><code>X</code>をそのまま返します。</p>
 
@@ -735,6 +741,12 @@ eval &lt;*A maybe&gt; *X_ nothing? @public -&gt; &lt;bool&gt; ;;</code></td></tr
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A maybe&gt; *X_ &lt;A *B fun&gt; *F
   apply_to_something | ats @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
 <p><code>X_</code>が値をもっている場合にFを適用させます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs list_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>リストの要素を順に供給するイテレータを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz string_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>ストリングの要素を順に供給するイテレータを返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I iter_next | next @public -&gt; &lt;A iter_res&gt; ;;</code></td></tr></table>
 <p>イテレータから値を供給します。
@@ -2238,7 +2250,7 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <h2 id="sango.list.3"><code>sango.list</code> - データ供給</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>要素を順に供給するイテレータを返します。</p>
+<p>（<code>&quot;sango.lang&quot;.list_iter</code>と同じ）</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.list.4"><code>sango.list</code> - 要素処理</h2>
@@ -2496,16 +2508,16 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
 <h2 id="sango.string.2"><code>sango.string</code> - データ供給</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>要素を順に供給するイテレータを返します。</p>
+<p>（<code>&quot;sango.lang&quot;.string_iter</code>と同じ）</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.string.3"><code>sango.string</code> - 要素処理</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>要素の個数を返します。</p>
+<p>（<code>&quot;sango.lang&quot;.string_length</code>と同じ）</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz &lt;int&gt; *Pos elem @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
-<p>指標<code>Pos</code>の要素を返します。</p>
+<p>（<code>&quot;sango.lang&quot;.string_elem</code>と同じ）</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz &lt;int&gt; *Start &lt;int&gt; *Count slice @public -&gt; &lt;A string&gt; ;;</code></td></tr></table>
 <p>指標<code>Start</code>から<code>Count</code>個の要素を取り出します。

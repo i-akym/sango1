@@ -95,17 +95,6 @@ public class SNIstring {
     }
   }
 
-  public void sni_length(RNativeImplHelper helper, RClosureItem self, RObjItem xz) {
-    RArrayItem a = (RArrayItem)xz;
-    helper.setReturnValue(helper.getIntItem(a.getElemCount()));
-  }
-
-  public void sni_elem(RNativeImplHelper helper, RClosureItem self, RObjItem xz, RObjItem pos) {
-    RArrayItem a = (RArrayItem)xz;
-    RIntItem i = (RIntItem)pos;
-    helper.setReturnValue(a.getElemAt(i.getValue()));
-  }
-
   public void sni_slice(RNativeImplHelper helper, RClosureItem self, RObjItem xz, RObjItem start, RObjItem count) {
     RArrayItem a = (RArrayItem)xz;
     int aL = a.getElemCount();

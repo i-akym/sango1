@@ -43,15 +43,7 @@ eval <*A iter> *Iter new_reverse_list @public -> <A list> {
 } ;;
 
 eval <*A list> *Xs iter @public -> <A iter> {
-  \\ <<A <A iter> tuple> maybe> { Xs iter_next } iter$
-} ;;
-
-eval <*A list> *Xs iter_next -> <<A <A iter> tuple> maybe> {
-  Xs case {
-  ; [ *X ; *Xs' ] ->
-    (| X, \\ <<A <A iter> tuple> maybe> { Xs' iter_next } iter$ |) value$
-  ; ** -> none$
-  }
+  Xs list_iter  # forward to sango.lang
 } ;;
 
 eval <*A list> *Xs empty? @public -> <bool> {
