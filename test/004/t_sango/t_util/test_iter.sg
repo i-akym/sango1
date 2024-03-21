@@ -12,6 +12,7 @@ eval test -> <void> {
   test100,
   test110,
   test120,
+  test130,
   void$
 } ;;
 eval test000 -> <void> {
@@ -61,5 +62,14 @@ eval test120 -> <void> {
   I3 next = (| 8, *I4 |) value$,
   I4 next = (| 10, *I5 |) value$,
   I5 next = none$,
+  void$
+} ;;
+eval test130 -> <void> {
+  [ 1, 2, 3, 4, 5 ] iter = *J,
+  J 3 iter.add_max_count = *I0,
+  I0 next = (| 1, *I1 |) value$,
+  I1 next = (| 2, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  I3 next = none$,
   void$
 } ;;
