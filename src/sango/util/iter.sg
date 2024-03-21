@@ -49,6 +49,23 @@ eval <<*A iter> list> *Is seq_next -> <A iter_res> {
   }
 } ;;
 
+eval <*A iter> *I <int> *C add_max_count @public -> <A iter> {
+  \\ <A iter_res> { I C count_next } iter$
+} ;;
+
+eval <*A iter> *I <int> *C count_next -> <A iter_res> {
+  if {
+  ; C gt0? ->
+    I next >> case {
+    ; (| *V, *I' |) value$ ->
+      (| V,
+        \\ <A iter_res> { I' (C dec) count_next } iter$ |) value$
+    ; ** -> none$
+    }
+  ; otherwise -> none$
+  }
+} ;;
+
 eval <*A iter> *I <A bool fun> *W add_while @public -> <A iter> {
   \\ <A iter_res> { I W while_next } iter$
 } ;;
