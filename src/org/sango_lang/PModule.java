@@ -1305,13 +1305,16 @@ class PModule implements PDefDict {
     }
   }
 
+  void checkFeatureImplOnExtension() throws CompileException {
+    for (int i = 0; i < this.extendStmtList.size(); i++) {
+      this.extendStmtList.get(i).checkFeatureImpl();
+    }
+  }
+
   void makeSureTypeConsistency() throws CompileException {
     PTypeGraph g = PTypeGraph.create(this.theCompiler, this);
     for (int i = 0; i < this.evalStmtList.size(); i++) {
       PEvalStmt e = this.evalStmtList.get(i);
-
-      // check constraint
-
       e.setupTypeGraph(g);
     }
     g.inferAll();

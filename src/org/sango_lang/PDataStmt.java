@@ -163,10 +163,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         throw new CompileException(emsg.toString());
       }
       this.dat.featureImpls = this.featureImplList.toArray(new PFeatureImplDef[this.featureImplList.size()]);
-      // this.dat.implGetters = new String[this.dat.featureImpls.length];
-      // for (int i = 0; i < this.dat.implGetters.length; i++) {
-        // this.dat.implGetters[i] = this.dat.scope.generateId();
-      // }
       return this.dat;
     }
   }

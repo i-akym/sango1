@@ -95,6 +95,10 @@ public class PFeatureSkel {
     return buf.toString();
   }
 
+  String reprSolo() {
+    return "[ " + this.repr() + " ]";
+  }
+
   public Parser.SrcInfo getSrcInfo() { return this.srcInfo; }
 
   void extractVars(java.util.List<PTypeVarSlot> extracted) {
