@@ -371,6 +371,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconProps);
+    if ((this.baseTconProps.subcat & PTypeId.SUBCAT_ALIAS) > 0) {
+      emsg = new StringBuffer();
+      emsg.append("Cannot extend type alias at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
     if (this.baseTconProps.acc == Module.ACC_OPAQUE) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend opaque data at ");
