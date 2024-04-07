@@ -59,9 +59,14 @@ data <*D *A bag_fs> @public :=
 
 feature <*T!> [ *A a'bag ] @public -> <T A bag_fo> ;;
 
+alias type <*A fd> @public := <A _1+> ;;
+alias type <*T *A fr> @public := <<A fd> T fun> ;;
+alias type <*T *A fx> @public := <<A fd> <T A fr> tuple> ;;
+
 data <*T *A bag_fo> @public :=
-  d: <T>
-  fs: <T A bag_fs>
+  fd: <A fd>
+  fr: <T A fr>
+  fs: <<T A fx> A bag_fs>
   bag_fo$ ;;
 
 
@@ -185,8 +190,8 @@ eval <*T![ *A a'bag ]> *FBag f_empty? | empty? @public -> <bool> {
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo fo_empty? | empty? @public -> <bool> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs _empty?
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs _empty?
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag f_size | size @public -> <int> {
@@ -195,8 +200,8 @@ eval <*T![ *A a'bag ]> *FBag f_size | size @public -> <int> {
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo fo_size | size @public -> <int> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs _size
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs _size
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_contain? | contain? @public -> <bool> {
@@ -205,8 +210,8 @@ eval <*T![ *A a'bag ]> *FBag <A> *Elem f_contain? | contain? @public -> <bool> {
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_contain? | contain? @public -> <bool> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _contain?
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _contain?
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_get_all | get_all @public -> <A list> {
@@ -215,87 +220,87 @@ eval <*T![ *A a'bag ]> *FBag <A> *Elem f_get_all | get_all @public -> <A list> {
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_get_all | get @public -> <A list> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _get_all
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _get_all
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_add | add @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Elem fo_add = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_add | add @public -> <T A bag_fo> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _add = *D',
-  d: D' fs: Fs bag_fo$
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _add = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs bag_fo$
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_remove | remove @public -> <T <A maybe> tuple> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Elem fo_remove = (| *Bag_fo', *Removed_ |),
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  (| D', Removed_ |)
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  (| D' &R', Removed_ |)
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_remove | remove @public -> <<T A bag_fo> <A maybe> tuple> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _remove = (| *D', *Removed_ |),
-  (| d: D' fs: Fs bag_fo$, Removed_ |)
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _remove = (| (| *D', *R' |), *Removed_ |),
+  (| fd: D' fr: R' fs: Fs bag_fo$, Removed_ |)
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_remove_all | remove_all @public -> <T <A list> tuple> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Elem fo_remove_all = (| *Bag_fo', *Removed_list |),
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  (| D', Removed_list |)
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  (| D' &R', Removed_list |)
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_remove_all | remove_all @public -> <<T A bag_fo> <A list> tuple> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _remove_all = (| *D', *Removed_list |),
-  (| d: D' fs: Fs bag_fo$, Removed_list |)
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _remove_all = (| (| *D', *R' |), *Removed_list |),
+  (| fd: D' fr: R' fs: Fs bag_fo$, Removed_list |)
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_delete | delete @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Elem fo_delete = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_delete | delete @public -> <T A bag_fo> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _delete = *D',
-  d: D' fs: Fs bag_fo$
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _delete = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs bag_fo$
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A> *Elem f_delete_all | delete_all @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Elem fo_delete_all = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A> *Elem fo_delete_all | delete_all @public -> <T A bag_fo> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs Elem _delete_all = *D',
-  d: D' fs: Fs bag_fo$
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs Elem _delete_all = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs bag_fo$
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag f_take | take @public -> <<A T tuple> maybe> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo fo_take >> case {
-  ; (| *Elem, d: *D' fs: *Fs' bag_fo$ |) value$ -> (| Elem, D' |) value$
+  ; (| *Elem, fd: *D' fr: *R' fs: *Fs' bag_fo$ |) value$ -> (| Elem, D' &R' |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo fo_take | take @public -> <<A <T A bag_fo> tuple> maybe> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs _take >> case {
-  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs bag_fo$ |) value$
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs _take >> case {
+  ; (| *Elem, (| *D', *R' |) |) value$ -> (| Elem, fd: D' fr: R' fs: Fs bag_fo$ |) value$
   ; ** -> none$
   }
 } ;;
@@ -303,14 +308,14 @@ eval <*T! *A bag_fo> *Bag_fo fo_take | take @public -> <<A <T A bag_fo> tuple> m
 eval <*T![ *A a'bag ]> *FBag f_clear | clear @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo fo_clear = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo fo_clear | clear @public -> <T A bag_fo> {
-  Bag_fo = d: *D fs: *Fs bag_fo$,
-  D Fs _clear = *D',
-  d: D' fs: Fs bag_fo$
+  Bag_fo = fd: *D fr: *R fs: *Fs bag_fo$,
+  (| D, R |) Fs _clear = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs bag_fo$
 } ;;
 
 eval <*T![ *A a'bag ]> *FBag <A list> *Elems f_add_list | add_list @public -> <T> {
@@ -324,8 +329,8 @@ eval <*T! *A bag_fo> *Bag_fo <A list> *Elems fo_add_list | add_list @public -> <
 eval <*T![ *A a'bag ]> *FBag <A iter> *Iter f_add_iter | add_iter @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Iter fo_add_iter = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A iter> *Iter fo_add_iter | add_iter @public -> <T A bag_fo> {
@@ -346,8 +351,8 @@ eval <*T! *A bag_fo> *Bag_fo <A list> *Elems fo_delete_list | delete_list @publi
 eval <*T![ *A a'bag ]> *FBag <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Iter fo_delete_iter = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A iter> *Iter fo_delete_iter | delete_iter @public -> <T A bag_fo> {
@@ -364,8 +369,8 @@ eval <*T![ *A a'bag ]> *FBag <A list> *Elems f_delete_all_list | delete_all_list
 eval <*T![ *A a'bag ]> *FBag <A iter> *Iter f_delete_all_iter | delete_all_iter @public -> <T> {
   FBag _feature_a'bag = *Bag_fo,
   Bag_fo Iter fo_delete_all_iter = *Bag_fo',
-  Bag_fo' = d: *D' fs: *Fs' bag_fo$,
-  D'
+  Bag_fo' = fd: *D' fr: *R' fs: *Fs' bag_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A bag_fo> *Bag_fo <A iter> *Iter fo_delete_all_iter | delete_all_iter @public -> <T A bag_fo> {
@@ -403,22 +408,92 @@ eval <*T! *A bag_fo> *Bag_fo fo_iter_next -> <A iter_res> {
 ### feature implementation of common-behavior object
 
 eval <*A bag> *Bag as_a'bag -> <<A bag> A bag_fo> {
-  d: Bag fs: cbag_fo_fs bag_fo$
+  Bag cfd$ = *FD,
+  \ <A fd> *X -> <A bag> {
+    X = *S cfd$, S
+  } = *FR,
+  fd: FD fr: FR fs: cbag_fo_fs bag_fo$
 } ;;
 
-eval cbag_fo_fs -> <<*A bag> A bag_fs> {
-  empty?_f: ^c_empty?
-  size_f: ^c_size
-  contain?_f: ^c_contain?
-  get_all_f: ^c_get_all
-  add_f: ^c_add
-  remove_f: ^c_remove
-  remove_all_f: ^c_remove_all
-  delete_f_: (^c_delete value$)
-  delete_all_f_: (^c_delete_all value$)
-  take_f: ^c_take
-  clear_f: ^c_clear
+extend <*A _1> -> cfd := <A bag> cfd$ ;;
+
+eval cbag_fo_fs -> <<<*A bag> A fx> A bag_fs> {
+  empty?_f: ^cfo_empty?
+  size_f: ^cfo_size
+  contain?_f: ^cfo_contain?
+  get_all_f: ^cfo_get_all
+  add_f: ^cfo_add
+  remove_f: ^cfo_remove
+  remove_all_f: ^cfo_remove_all
+  delete_f_: (^cfo_delete value$)
+  delete_all_f_: (^cfo_delete_all value$)
+  take_f: ^cfo_take
+  clear_f: ^cfo_clear
   bag_fs$
+} ;;
+
+eval <*T *A fx> *Fx cfo_empty? -> <bool> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag c_empty?
+} ;;
+
+eval <*T *A fx> *Fx cfo_size -> <int> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag c_size
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_contain? -> <bool> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_contain?
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_get_all -> <A list> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_get_all
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_add -> <T A fx> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_add = *Bag',
+  (| Bag' cfd$, R |)
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_remove -> <<T A fx> <A maybe> tuple> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_remove = (| *Bag', *Removed_ |),
+  (| (| Bag' cfd$, R |), Removed_ |)
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_remove_all -> <<T A fx> <A list> tuple> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_remove_all = (| *Bag', *Removed_list |),
+  (| (| Bag' cfd$, R |), Removed_list |)
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_delete -> <T A fx> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_delete = *Bag',
+  (| Bag' cfd$, R |)
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_delete_all -> <T A fx> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag Elem c_delete_all = *Bag',
+  (| Bag' cfd$, R |)
+} ;;
+
+eval <*T *A fx> *Fx cfo_take -> <<A <T A fx> tuple> maybe> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag c_take >> case {
+  ; (| *Elem, *Bag' |) value$ -> (| Elem, (| Bag' cfd$, R |) |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*T *A fx> *Fx cfo_clear -> <T A fx> {
+  Fx = (| *Bag cfd$, *R |),
+  Bag c_clear = *Bag',
+  (| Bag' cfd$, R |)
 } ;;
 
 
