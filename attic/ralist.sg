@@ -62,9 +62,14 @@ data <*D *A ralist_fs> @public :=
 
 feature <*T!> [ *A a'ralist ] @public -> <T A ralist_fo> ;;
 
+alias type <*A fd> @public := <A _1+> ;;
+alias type <*T *A fr> @public := <<A fd> T fun> ;;
+alias type <*T *A fx> @public := <<A fd> <T A fr> tuple> ;;
+
 data <*T *A ralist_fo> @public :=
-  d: <T>
-  fs: <T A ralist_fs>
+  fd: <A fd>
+  fr: <T A fr>
+  fs: <<T A fx> A ralist_fs>
   ralist_fo$ ;;
 
 
@@ -197,8 +202,8 @@ eval <*T![ *A a'ralist ]> *FRalist f_empty? | empty? @public -> <bool> {
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo fo_empty? | empty? @public -> <bool> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs _empty?
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs _empty?
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist f_non_empty? | non_empty? @public -> <bool> {
@@ -215,8 +220,8 @@ eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_elem | elem @public -> <A mayb
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Index fo_elem | elem @public -> <A maybe> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Index _elem
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Index _elem
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_first | first | head @public -> <A maybe> {
@@ -225,8 +230,8 @@ eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_first | first | head @public -
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo fo_first | first | head @public -> <A maybe> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs _first
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs _first
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_last | last @public -> <A maybe> {
@@ -235,24 +240,24 @@ eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_last | last @public -> <A mayb
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo fo_last | last @public -> <A maybe> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs _last
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs _last
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist f_tail | tail @public -> <T maybe> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo fo_tail >> case {
   ; *Ralist_fo' value$ ->
-    Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-    D' value$
+    Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+    (D' &R')  value$
   ; ** -> none$
   }
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo fo_tail | tail @public -> <<T A ralist_fo> maybe> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs _tail >> case {
-  ; *D' value$ -> (d: D' fs: Fs ralist_fo$) value$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs _tail >> case {
+  ; (| *D', *R' |) value$ -> (fd: D' fr: R' fs: Fs ralist_fo$) value$
   ; ** -> none$
   }
 } ;;
@@ -260,118 +265,118 @@ eval <*T! *A ralist_fo> *Ralist_fo fo_tail | tail @public -> <<T A ralist_fo> ma
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index <A> *Elem f_insert_at | insert_at @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Index Elem fo_insert_at = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Index <A> *Elem fo_insert_at | insert_at @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Index Elem _insert_at = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Index Elem _insert_at = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <A> *Elem f_append | append @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Elem fo_append = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <A> *Elem fo_append | append @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Elem _append = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Elem _append = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_remove_at | remove_at @public -> <T <A maybe> tuple> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Index fo_remove_at = (| *Ralist_fo', *Removed_ |),
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  (| D', Removed_ |)
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  (| D' &R', Removed_ |)
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Index fo_remove_at | remove_at @public -> <<T A ralist_fo> <A maybe> tuple> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Index _remove_at = (| *D', *Removed_ |),
-  (| d: D' fs: Fs ralist_fo$, Removed_ |)
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Index _remove_at = (| (| *D', *R' |), *Removed_ |),
+  (| fd: D' fr: R' fs: Fs ralist_fo$, Removed_ |)
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_delete_at | delete_at @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Index fo_delete_at = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Index fo_delete_at | delete_at @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Index _delete_at = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Index _delete_at = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index <A> *Elem f_replace_at | replace_at @public -> <T <A maybe> tuple> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Index Elem fo_replace_at = (| *Ralist_fo', *Replaced_ |),
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  (| D', Replaced_ |)
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  (| D' &R', Replaced_ |)
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Index <A> *Elem fo_replace_at | replace_at @public -> <<T A ralist_fo> <A maybe> tuple> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Index Elem _replace_at = (| *D', *Replaced_ |),
-  (| d: D' fs: Fs ralist_fo$, Replaced_ |)
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Index Elem _replace_at = (| (| *D', *R' |), *Replaced_ |),
+  (| fd: D' fr: R' fs: Fs ralist_fo$, Replaced_ |)
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index <A> *Elem f_update_at | update_at @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Index Elem fo_update_at = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Index <A> *Elem fo_update_at | update_at @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Index Elem _update_at = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Index Elem _update_at = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Count f_take | take @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Count fo_take = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Count fo_take | take @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Count _take = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Count _take = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Count f_drop | drop @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Count fo_drop = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <int> *Count fo_drop | drop @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs Count _drop = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs Count _drop = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist f_clear | clear @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo fo_clear = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo fo_clear | clear @public -> <T A ralist_fo> {
-  Ralist_fo = d: *D fs: *Fs ralist_fo$,
-  D Fs _clear = *D',
-  d: D' fs: Fs ralist_fo$
+  Ralist_fo = fd: *D fr: *R fs: *Fs ralist_fo$,
+  (| D, R |) Fs _clear = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs ralist_fo$
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <A list> *Elems f_append_list | append_list @public -> <T> {
@@ -385,8 +390,8 @@ eval <*T! *A ralist_fo> *Ralist_fo <A list> *Elems fo_append_list | append_list 
 eval <*T![ *A a'ralist ]> *FRalist <A iter> *Iter f_append_iter | append_iter @public -> <T> {
   FRalist _feature_a'ralist = *Ralist_fo,
   Ralist_fo Iter fo_append_iter = *Ralist_fo',
-  Ralist_fo' = d: *D' fs: *Fs' ralist_fo$,
-  D'
+  Ralist_fo' = fd: *D' fr: *R' fs: *Fs' ralist_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A ralist_fo> *Ralist_fo <A iter> *Iter fo_append_iter | append_iter @public -> <T A ralist_fo> {
@@ -417,24 +422,105 @@ eval <*T! *A ralist_fo> *Ralist_fo fo_iter_next -> <A iter_res> {
 ### feature implementation of common-behavior object
 
 eval <*A ralist> *Ralist as_a'ralist -> <<A ralist> A ralist_fo> {
-  d: Ralist fs: cralist_fo_fs ralist_fo$
+  Ralist cfd$ = *FD,
+  \ <A fd> *X -> <A ralist> {
+    X = *S cfd$, S
+  } = *FR,
+  fd: FD fr: FR fs: cralist_fo_fs ralist_fo$
 } ;;
 
-eval cralist_fo_fs -> <<*A ralist> A ralist_fs> {
-  empty?_f_: (^c_empty? value$)
-  length_f: ^c_length
-  elem_f: ^c_elem
-  first_f_: (^c_first value$)
-  last_f_: (^c_last value$)
-  tail_f_: (^c_tail value$)
-  insert_at_f: ^c_insert_at
-  append_f_: (^c_append value$)
-  remove_at_f: ^c_remove_at
-  replace_at_f_: (^c_replace_at value$)
-  take_f_: (^c_take value$)
-  drop_f_: (^c_drop value$)
-  clear_f: ^c_clear
+extend <*A _1> -> cfd := <A ralist> cfd$ ;;
+
+eval cralist_fo_fs -> <<<*A ralist> A fx> A ralist_fs> {
+  empty?_f_: (^cfo_empty? value$)
+  length_f: ^cfo_length
+  elem_f: ^cfo_elem
+  first_f_: (^cfo_first value$)
+  last_f_: (^cfo_last value$)
+  tail_f_: (^cfo_tail value$)
+  insert_at_f: ^cfo_insert_at
+  append_f_: (^cfo_append value$)
+  remove_at_f: ^cfo_remove_at
+  replace_at_f_: (^cfo_replace_at value$)
+  take_f_: (^cfo_take value$)
+  drop_f_: (^cfo_drop value$)
+  clear_f: ^cfo_clear
   ralist_fs$
+} ;;
+
+eval <*T *A fx> *Fx cfo_empty? -> <bool> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist c_empty?
+} ;;
+
+eval <*T *A fx> *Fx cfo_length -> <int> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist c_length
+} ;;
+
+eval <*T *A fx> *Fx <int> *Index cfo_elem -> <A maybe> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Index c_elem
+} ;;
+
+eval <*T *A fx> *Fx cfo_first -> <A maybe> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist c_first
+} ;;
+
+eval <*T *A fx> *Fx cfo_last -> <A maybe> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist c_last
+} ;;
+
+eval <*T *A fx> *Fx cfo_tail -> <<T A fx> maybe> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist c_tail >> case {
+  ; *Ralist' value$ -> (| Ralist' cfd$, R |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*T *A fx> *Fx <int> *Index <A> *Elem cfo_insert_at -> <T A fx> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Index Elem c_insert_at = *Ralist',
+  (| Ralist' cfd$, R |)
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_append -> <T A fx> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Elem c_append = *Ralist',
+  (| Ralist' cfd$, R |)
+} ;;
+
+eval <*T *A fx> *Fx <int> *Index cfo_remove_at -> <<T A fx> <A maybe> tuple> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Index c_remove_at = (| *Ralist', *Removed_ |),
+  (| (| Ralist' cfd$, R |), Removed_ |)
+} ;;
+
+eval <*T *A fx> *Fx <int> *Index <A> *Elem cfo_replace_at -> <<T A fx> <A maybe> tuple> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Index Elem c_replace_at = (| *Ralist', *Replaced_ |),
+  (| (| Ralist' cfd$, R |), Replaced_ |)
+} ;;
+
+eval <*T *A fx> *Fx <int> *Count cfo_take -> <T A fx> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Count c_take = *Ralist',
+  (| Ralist' cfd$, R |),
+} ;;
+
+eval <*T *A fx> *Fx <int> *Count cfo_drop -> <T A fx> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist Count c_drop = *Ralist',
+  (| Ralist' cfd$, R |),
+} ;;
+
+eval <*T *A fx> *Fx cfo_clear -> <T A fx> {
+  Fx = (| *Ralist cfd$, *R |),
+  Ralist c_clear = *Ralist',
+  (| Ralist' cfd$, R |),
 } ;;
 
 
