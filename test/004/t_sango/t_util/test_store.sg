@@ -1,0 +1,25 @@
+import "sango.debug" -> debug ;;
+import "sango.util.store" -> store ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval test000 -> <void> {
+  (0 dummy_obj$) store.create_store = *SI,
+  SI 5 store.put = *R5,
+  SI 7 store.put = *R7,
+  R5 case { R7 -> assertion_error$ "Same ref." new_exception >> throw ; ** -> },
+  SI R5 store.get = 5 value$,
+  SI R7 store.get = 7 value$,
+  SI R7 store.delete,
+  SI R7 store.get = none$,
+  ('a' dummy_obj$) store.create_store = *SC,
+  SC R5 store.get = none$,
+  void$
+} ;;

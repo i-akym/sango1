@@ -163,10 +163,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
         throw new CompileException(emsg.toString());
       }
       this.dat.featureImpls = this.featureImplList.toArray(new PFeatureImplDef[this.featureImplList.size()]);
-      // this.dat.implGetters = new String[this.dat.featureImpls.length];
-      // for (int i = 0; i < this.dat.implGetters.length; i++) {
-        // this.dat.implGetters[i] = this.dat.scope.generateId();
-      // }
       return this.dat;
     }
   }
@@ -205,6 +201,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (tcon == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (tcon.ext) {
+      emsg = new StringBuffer();
+      emsg.append("Attempt to define extended type at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());

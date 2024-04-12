@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.2言語解説</title>
+<title>Sango 1.7.3言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -1566,7 +1566,7 @@ data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省�
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.2">20.2. 実装</h2>
 <p>フィーチャの実装宣言と，フィーチャ・オブジェクトの供給コードを定義します。
-実装宣言は以下のように，<code>data</code>文にて行います。<sup>*1</sup></p>
+実装宣言は以下のように，<code>data</code>文，<code>extend</code>文にて行います。</p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map-impl&quot; ;;
 import &quot;feature.map&quot; -&gt; map ;;
@@ -1579,7 +1579,7 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
 供給関数の名前は自由に付けることができます。
 実装するフィーチャが複数ある場合には「<code>++</code>」からフィーチャの記述までを必要な分だけ繰り返して指定します。</p>
-<blockquote class="note">*1：現バージョンでは，データの拡張定義（<code>extend</code>文）では実装宣言はできません。</blockquote>
+<p>データの拡張定義（<code>extend</code>文）においては，基底型で実装宣言されている一部または全てのフィーチャを実装宣言することができます。</p>
 
 <p>供給コードの実装は以下のように定義します。</p>
 
@@ -2433,6 +2433,16 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【非互換】<code>&quot;sango.util.queue&quot;</code>において，キューのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>queue_fs</code>の定義を変更。</li>
 <li>【非互換】<code>&quot;sango.util.stack&quot;</code>において，スタックのAPIの関数名を変更（例：公式名 <code>depth</code>，別名 なし → 公式名 <code>c_depth</code>，別名 <code>depth</code>）。<code>stack_fs</code>の定義を変更。</li>
 <li>【非互換】<code>&quot;sango.util.ralist&quot;</code>において，ランダム・アクセス・リストのAPIの関数名を変更（例：公式名 <code>length</code>，別名 なし → 公式名 <code>c_length</code>，別名 <code>length</code>）。<code>ralist_fs</code>の定義を変更。</li>
+</ul>
+
+<p>■　1.7.3</p>
+<ul>
+<li><code>&quot;sango.lang&quot;.ord_fs_to_eq_fs</code>を追加</li>
+<li><code>&quot;sango.util.iter&quot;.concat</code>を追加</li>
+<li><code>&quot;sango.util.iter&quot;.add_max_count</code>を追加</li>
+<li>【Beta】<code>&quot;sango.util.unique&quot;</code>を追加</li>
+<li>【Alpha→Deprecated】<code>&quot;sango.entity.graph&quot;</code></li>
+<li>【Alpha→Deprecated】<code>&quot;sango.util.packaging&quot;</code></li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

@@ -126,6 +126,7 @@ eval test -> <void> {
   test300a,
   test500,
   test501,
+  test550,
   test600,
   test600a,
   test610,
@@ -276,6 +277,7 @@ eval test300 -> <int> { %xffffffff = -1 } ;;
 eval test300a -> <int> { %o37777777777 = -1 } ;;
 eval test500 -> <int> { 'a' code = %x61 } ;;
 eval test501 -> <char> { %x62 char_value = 'b' } ;;
+eval test550 -> <void> { char_ord_fs >> to_eq_fs = *Eq, 'c' 'c' Eq eqcmp_eq? = true$, 'c' 'd' Eq eqcmp_ne? = true$, void$ } ;;
 eval test600 -> <bool> { nan >> nan? = true$ } ;;
 eval test600a -> <void> { nan = *Nan, \\ <real> { nan = Nan } try = ** exc$, void$ } ;;
 eval test610 -> <bool> { pos_inf = *Pos_inf, Pos_inf infinite? = true$, Pos_inf gt0? = true$ } ;;

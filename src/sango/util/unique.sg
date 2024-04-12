@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2021 AKIYAMA Isao                                         #
+# Copyright (c) 2024 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,68 +21,13 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @deprecated "sango.util.packaging" ;;
+module @beta "sango.util.unique" ;;
 
 import "sango.entity.existence" -> ex ;;
-import "sango.util.map.weakkeymap" -> wkm ;;
 
-data <*A package> @opaque :=
-  key: <ex.existence>
-  val: <A>
-  package$ ;;
+data <u> @opaque := <ex.existence> u$ ;;
 
-data <tag> @opaque :=
-  ex: <ex.existence>
-  key: <ex.existence>
-  tag$ ;;
-
-eval tag_dress_fs @public -> <tag ex.dress_fs> {
-  undress_f: ^tag_undress ex.dress_fs$
-} ;;
-
-eval <tag> *Tag tag_undress -> <ex.existence <tag ex.redress_f> tuple> {
-  Tag = ex: *Ex key: *Key tag$,
-  (| Ex, \ <ex.existence> *E -> <tag> { ex: Ex key: Key tag$ } |)
-} ;;
-
-eval <*A> *X pack @public -> <A package> {
+eval new_unique @public -> <u> {
   none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
-  key: Ex val: X package$
-} ;;
-
-eval <*A package> *Pkg content @public -> <A> {
-  Pkg val
-} ;;
-
-eval <*A package> *Pkg create_tag @public -> <tag> {
-  none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
-  ex: Ex key: (Pkg key) tag$
-} ;;
-
-eval <tag> *Tag <*A package> *Pkg tag_on? @public -> <bool> {
-  (Tag key) (Pkg key) hard_eq?
-} ;;
-
-
-# -- package manager --
-
-data <*A! package_mgr_h> @opaque :=
-  tab: <tag <A package> wkm.map_h>
-  package_mgr_h$ ;;
-
-eval <*A! dummy> *Content create_package_mgr @public -> <A package_mgr_h> {
-  tag_dress_fs
-    ((&\\ <<A package> void fun> { ^ignore }) dummy_fun$)
-    wkm.create_weak_key_map = *Tab,
-  Tab package_mgr_h$
-} ;;
-
-eval <*A! package_mgr_h> *Mgr <tag> *Tag <A package> *Pkg put @public -> <void> {
-  Pkg key = *Key,
-  Tag key = Key,
-  (Mgr tab) Tag Pkg wkm.add
-} ;;
-
-eval <*A! package_mgr_h> *Mgr <tag> *Tag get @public -> <<A package> maybe> {
-  (Mgr tab) Tag wkm.assoc
+  Ex u$
 } ;;

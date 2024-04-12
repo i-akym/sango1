@@ -3,6 +3,7 @@ import "sango.cstr" -> cstr ;;
 import "sango.debug" -> debug ;;
 import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
+import "sango.list" -> list ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
 import "sango.util.avltree.map" -> avlmap ;;
@@ -10,6 +11,7 @@ import "sango.util.iter" -> iter ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.box" -> map_box ;;
 import "sango.util.map.weakvaluemap" -> wvm ;;
+import "sango.util.unique" -> uniq ;;
 
 eval _main_ -> <void> {
   test,
@@ -23,9 +25,9 @@ eval test -> <void> {
 } ;;
 
 eval make -> <cstr <int box.box_h> wvm.map_h> {
-  (&\\ <cstr <int box.box_h> wvm.container> { cstr.ord_fs avlmap.new_map })
-    (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs })
-    wvm.create_weak_value_map = *M,
+  cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
+  box.dress_fs = <<int box.box_h> ex.dress_fs> *Dfs,
+  KT Dfs wvm.create_weak_value_map = *M,
   1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V1, M "a" V1 wvm.add,
   2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V2, M "b" V2 wvm.add,
   3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V3, M "c" V3 wvm.add,
@@ -35,9 +37,9 @@ eval make -> <cstr <int box.box_h> wvm.map_h> {
 } ;;
 
 eval test000 -> <void> {
-  (&\\ <cstr <int box.box_h> wvm.container> { cstr.ord_fs avlmap.new_map })
-    (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs })
-    wvm.create_weak_value_map = *M,
+  cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
+  box.dress_fs = <<int box.box_h> ex.dress_fs> *Dfs,
+  KT Dfs wvm.create_weak_value_map = *M,
   1 none$ box.create_box = *V1,
   2 none$ box.create_box = *V2,
   3 none$ box.create_box = *V3,
@@ -66,16 +68,27 @@ eval test000 -> <void> {
   M [ (| "ghi", V3 |), (| "jkl", V4 |), (| "mno", V5 |) ] wvm.add_list,
   M [ "ghi", "jkl" ] wvm.delete_list,
   M wvm.size = 1,
+  V1,  # keep to here
+  V2,  # keep to here
+  V3,  # keep to here
+  V4,  # keep to here
+  V5,  # keep to here
   void$
 } ;;
 eval test010 -> <void> {
   make = *M,
   6 (\\ <void> { "6 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V6, M "f" V6 wvm.add,
   7 (\\ <void> { "7 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V7, M "g" V7 wvm.add,
-  M wvm.all_kvs >> debug.repr >> stdio.print_and_newline,
+  M wvm.all_kvs = *KVs1,
+  KVs1 debug.repr >> stdio.print_and_newline,
   runtime.gc,
   act.yield,
-  M wvm.all_kvs >> debug.repr >> stdio.print_and_newline,
+  M wvm.all_kvs = *KVs2,
+  KVs2 debug.repr >> stdio.print_and_newline, stdio.flush,
+  if {
+  ; (KVs2 list.length) 2 ge? ->
+  ; otherwise -> assertion_error$ "KV(s) lost." new_exception >> throw
+  },
   V6,  # keep to here
   V7,  # keep to here
   void$

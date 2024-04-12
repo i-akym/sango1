@@ -44,21 +44,29 @@ eval otherwise @public -> <bool> { true$ } ;;  # alias for conditional branch
 
 # arithmetic types
 
-data <int> @opaque := @native ;;  # 4 byte signed integer
-data <real> @opaque := @native ;;  # 8 byte floating point
-data <byte> @opaque := @native ;;  # 1 byte unsigned integer
+data <int> @opaque := @native  # 4 byte signed integer
+++ int_as_a'ord -> [ a'ord ] ;;
+
+data <real> @opaque := @native  # 8 byte floating point
+++ real_as_a'ord -> [ a'ord ] ;;
+
+data <byte> @opaque := @native  # 1 byte unsigned integer
+++ byte_as_a'ord -> [ a'ord ] ;;
 
 # character type
 
-data <char> @opaque := @native ;;  # charset is unicode
+data <char> @opaque := @native  # charset is unicode
+++ char_as_a'ord -> [ a'ord ] ;;
 
 # list type
 
-data <+*A list> @opaque := @native ;;
+data <+*A list> @opaque := @native
+++ list_iter -> [ A a'iter ] ;;
 
 # string type
 
-data <+*A string> @opaque := @native ;;
+data <+*A string> @opaque := @native
+++ string_iter -> [ A a'iter ] ;;
 
 alias type <bstr> @public := <byte string> ;;
 alias type <cstr> @public := <char string> ;;
@@ -146,6 +154,15 @@ alias type <*A iter_res> @public := <<A <A iter> tuple> maybe> ;;
 data @beta <*A dummy> @public :=
 | <A> dummy_obj$
 | <A void fun> dummy_fun$ ;;
+
+
+# -- features --
+
+feature @alpha <*T> [ a'eq ] @public -> <T eq_fs> ;;
+
+feature @alpha <*T> [ a'ord ] @public -> <T ord_fs> ;;
+
+feature @alpha <*T> [ *A a'iter ] @public -> <A iter> ;;
 
 
 # -- functions --
@@ -545,6 +562,17 @@ eval <*A ord_fs> *Ord ord_fs_inverse | inverse @public -> <A ord_fs> {
     ord_fs$
 } ;;
 
+eval <*A ord_fs> *Ord ord_fs_to_eq_fs | to_eq_fs @public -> <A eq_fs> {
+  eq?_f: (Ord eq?_f)
+  ne?_f_: none$
+  hash_f: (Ord hash_f)
+  eq_fs$
+} ;;
+
+eval @alpha <int> *I int_as_a'ord @public -> <int ord_fs> {
+  int_ord_fs
+} ;;
+
 eval int_ord_fs @public -> <int ord_fs> {
   compare_f: ^int_compare
     eq?_f_: (^int_eq? value$)
@@ -555,6 +583,11 @@ eval int_ord_fs @public -> <int ord_fs> {
     hash_f: ^hash
     ord_fs$
 } ;;
+
+eval @alpha <real> *R real_as_a'ord @public -> <real ord_fs> {
+  real_ord_fs
+} ;;
+
 eval real_ord_fs @public -> <real ord_fs> {
   compare_f: ^real_compare
     eq?_f_: (^real_eq? value$)
@@ -565,6 +598,11 @@ eval real_ord_fs @public -> <real ord_fs> {
     hash_f: ^hash
     ord_fs$
 } ;;
+
+eval @alpha <byte> *B byte_as_a'ord @public -> <byte ord_fs> {
+  byte_ord_fs
+} ;;
+
 eval byte_ord_fs @public -> <byte ord_fs> {
   compare_f: ^byte_compare
     eq?_f_: (^byte_eq? value$)
@@ -607,6 +645,10 @@ eval char_eq_fs @public -> <char eq_fs> {
     eq_fs$
 } ;;
 
+eval @alpha <char> *C char_as_a'ord @public -> <char ord_fs> {
+  char_ord_fs
+} ;;
+
 eval char_ord_fs @public -> <char ord_fs> {
   compare_f: ^char_compare
     eq?_f_: (^char_eq? value$)
@@ -618,6 +660,10 @@ eval char_ord_fs @public -> <char ord_fs> {
     ord_fs$
 } ;;
 
+# string functions
+
+eval <*A string> *Xz string_length | length @public -> <int> @native ;;
+eval <*A string> *Xz <int> *Pos string_elem | elem @public -> <A> @native ;;
 
 # 'try' functions
 
@@ -717,4 +763,28 @@ eval <*A maybe> *X_ <A *B fun> *F apply_to_something | ats @public -> <B maybe> 
 
 eval <*A iter> *I iter_next | next @public -> <A iter_res> {
   &(I next_f)
+} ;;
+
+eval <*A list> *Xs list_iter | iter @public -> <A iter> {
+  \\ <<A <A iter> tuple> maybe> { Xs list_iter_next } iter$
+} ;;
+
+eval <*A list> *Xs list_iter_next -> <A iter_res> {
+  Xs case {
+  ; [ *X ; *Xs' ] ->
+    (| X, \\ <A iter_res> { Xs' list_iter_next } iter$ |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*A string> *Xz string_iter @public -> <A iter> {
+  \\ <A iter_res> { Xz 0 string_iter_next } iter$
+} ;;
+
+eval <*A string> *Xz <int> *Index string_iter_next -> <A iter_res> {
+  if {
+  ; Index (Xz string_length) lt? ->
+    (| Xz Index string_elem, \\ <A iter_res> { Xz (Index inc) string_iter_next } iter$ |) value$
+  ; otherwise -> none$
+  }
 } ;;

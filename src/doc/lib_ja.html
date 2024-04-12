@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.2　ライブラリ解説</title>
+<title>Sango 1.7.3　ライブラリ解説</title>
 </head>
 
 <body>
@@ -184,7 +184,8 @@ kbd {
   <a href="#sango.util.enum.2">実装者向け情報</a>
 <a href="#sango.util.iter"><code>sango.util.iter</code></a>
   <a href="#sango.util.iter.1">定数の供給</a>
-  <a href="#sango.util.iter.2">変形</a>
+  <a href="#sango.util.iter.2">連結</a>
+  <a href="#sango.util.iter.3">変形</a>
 <a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
@@ -226,6 +227,7 @@ kbd {
   <a href="#sango.util.stack.1">フレームワーク</a>
   <a href="#sango.util.stack.2">実装者向け情報</a>
 <a href="#sango.util.stack.liststack"><code>sango.util.stack.liststack</code></a>
+<a href="#sango.util.unique"><code>sango.util.unique</code></a> 【Beta】
 </div>
 
 <hr/>
@@ -575,6 +577,9 @@ eval &lt;byte&gt; *B &lt;int&gt; *Count byte_shift_left | shift_left @public -&g
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord ord_fs_inverse | inverse @public -&gt; &lt;A ord_fs&gt; ;;</code></td></tr></table>
 <p><code>Ord</code>から，大小判定を逆に行う機能群を作成します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord ord_fs_to_eq_fs | to_eq_fs @public -&gt; &lt;A eq_fs&gt; ;;</code></td></tr></table>
+<p><code>Ord</code>から，等価判定を行う機能群を作成します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval byte_ord_fs @public -&gt; &lt;byte ord_fs&gt; ;;
 eval int_ord_fs @public -&gt; &lt;int ord_fs&gt; ;;
 eval real_ord_fs @public -&gt; &lt;real ord_fs&gt; ;;
@@ -707,6 +712,12 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.9"><code>sango.lang</code> - その他</h2>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz string_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>ストリングの要素の個数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz &lt;int&gt; *Pos string_elem | elem @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p>ストリングの指標<code>Pos</code>の要素を返します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X itself | id @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p><code>X</code>をそのまま返します。</p>
 
@@ -731,6 +742,12 @@ eval &lt;*A maybe&gt; *X_ nothing? @public -&gt; &lt;bool&gt; ;;</code></td></tr
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A maybe&gt; *X_ &lt;A *B fun&gt; *F
   apply_to_something | ats @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
 <p><code>X_</code>が値をもっている場合にFを適用させます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs list_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>リストの要素を順に供給するイテレータを返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz string_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>ストリングの要素を順に供給するイテレータを返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I iter_next | next @public -&gt; &lt;A iter_res&gt; ;;</code></td></tr></table>
 <p>イテレータから値を供給します。
@@ -2234,7 +2251,7 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <h2 id="sango.list.3"><code>sango.list</code> - データ供給</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>要素を順に供給するイテレータを返します。</p>
+<p>（<code>&quot;sango.lang&quot;.list_iter</code>と同じ）</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.list.4"><code>sango.list</code> - 要素処理</h2>
@@ -2492,16 +2509,16 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
 <h2 id="sango.string.2"><code>sango.string</code> - データ供給</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>要素を順に供給するイテレータを返します。</p>
+<p>（<code>&quot;sango.lang&quot;.string_iter</code>と同じ）</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.string.3"><code>sango.string</code> - 要素処理</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>要素の個数を返します。</p>
+<p>（<code>&quot;sango.lang&quot;.string_length</code>と同じ）</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz &lt;int&gt; *Pos elem @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
-<p>指標<code>Pos</code>の要素を返します。</p>
+<p>（<code>&quot;sango.lang&quot;.string_elem</code>と同じ）</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz &lt;int&gt; *Start &lt;int&gt; *Count slice @public -&gt; &lt;A string&gt; ;;</code></td></tr></table>
 <p>指標<code>Start</code>から<code>Count</code>個の要素を取り出します。
@@ -3271,16 +3288,26 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *K const_iter @public -&gt; &lt;A iter&gt; ;;
 </code></td></tr></table>
-<p>定数Xを供給し続けるイテレータを返します。
-  限りなく値を生成しますので，生成関数を呼び出す側で停止する場合のみに使用してください 。</p>
+<p>定数<code>X</code>を供給し続けるイテレータを返します。
+限りなく値を生成しますので，生成関数を呼び出す側で停止する場合のみに使用してください 。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.2"><code>sango.util.iter</code> - 変形</h2>
+<h2 id="sango.util.iter.2"><code>sango.util.iter</code> - 連結</h2>
+
+<p>複数のイテレータを連結します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;&lt;*A iter&gt; list&gt; *Is concat @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>リストに含まれる順にイテレータを連結して，一つのイテレータを生成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.iter.3"><code>sango.util.iter</code> - 変形</h2>
 
 <p>イテレータを変形します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *F add_filter @public -&gt; &lt;A iter&gt; ;;
-</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;int&gt; *C add_max_count @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>イテレータが生成する値の最大個数を指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *F add_filter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>値をフィルタする関数を追加します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A *B fun&gt; *M add_modifier @public -&gt; &lt;B iter&gt; ;; </code></td></tr></table>
@@ -3288,8 +3315,8 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I &lt;A bool fun&gt; *W add_while @public -&gt; &lt;A iter&gt; ;;
 </code></td></tr></table>
-<p>【Alpha】生成の継続条件を付加します。
-  <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
+<p>生成の継続条件を付加します。
+<code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>
@@ -4408,6 +4435,18 @@ data &lt;*A stack&gt; @public :=
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *L to_stack @public -&gt; &lt;A &quot;sango.util.stack&quot;.stack&gt; ;;</code></td></tr></table>
 <p>リストをスタックに変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.unique"><code>sango.util.unique</code> 【Beta】</h1>
+
+<p>プログラム内で唯一となるオブジェクトを供給します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;u&gt; @opaque ;;</code></td></tr></table>
+<p>プログラム内で唯一となるオブジェクトを表します。
+プログラム実行中，この型の全てのオブジェクトは互いに異なります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_unique @public -&gt; &lt;u&gt; ;;</code></td></tr></table>
+<p><code>&lt;u&gt;</code>のオブジェクトを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 

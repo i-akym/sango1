@@ -50,9 +50,14 @@ data <*D *A stack_fs> @public :=
 
 feature <*T!> [ *A a'stack ] @public -> <T A stack_fo> ;;
 
+alias type <*A fd> @public := <A _1+> ;;
+alias type <*T *A fr> @public := <<A fd> T fun> ;;
+alias type <*T *A fx> @public := <<A fd> <T A fr> tuple> ;;
+
 data <*T *A stack_fo> @public :=
-  d: <T>
-  fs: <T A stack_fs>
+  fd: <A fd>
+  fr: <T A fr>
+  fs: <<T A fx> A stack_fs>
   stack_fo$ ;;
 
 
@@ -128,8 +133,8 @@ eval <*T![ *A a'stack ]> *FStack f_empty? | empty? @public -> <bool> {
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo fo_empty? | empty? @public -> <bool> {
-  Stack_fo = d: *D fs: *Fs stack_fo$,
-  D Fs _empty?
+  Stack_fo = fd: *D fr: *R fs: *Fs stack_fo$,
+  (| D, R |) Fs _empty?
 } ;;
 
 eval <*T![ *A a'stack ]> *FStack f_depth | depth @public -> <int> {
@@ -138,20 +143,20 @@ eval <*T![ *A a'stack ]> *FStack f_depth | depth @public -> <int> {
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo fo_depth | depth @public -> <int> {
-  Stack_fo = d: *D fs: *Fs stack_fo$,
-  D Fs _depth
+  Stack_fo = fd: *D fr: *R fs: *Fs stack_fo$,
+  (| D, R |) Fs _depth
 } ;;
 
 eval <*T![ *A a'stack ]> *FStack <A> *Elem f_push | push @public -> <T> {
   FStack _feature_a'stack = *Stack_fo,
-  Stack_fo Elem fo_push = d: *D' fs: *Fs' stack_fo$,
-  D'
+  Stack_fo Elem fo_push = fd: *D' fr: *R' fs: *Fs' stack_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo <A> *Elem fo_push | push @public -> <T A stack_fo> {
-  Stack_fo = d: *D fs: *Fs stack_fo$,
-  D Fs Elem _push = *D',
-  d: D' fs: Fs stack_fo$
+  Stack_fo = fd: *D fr: *R fs: *Fs stack_fo$,
+  (| D, R |) Fs Elem _push = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs stack_fo$
 } ;;
 
 eval <*T![ *A a'stack ]> *FStack f_top | top @public -> <A maybe> {
@@ -160,36 +165,36 @@ eval <*T![ *A a'stack ]> *FStack f_top | top @public -> <A maybe> {
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo fo_top | top @public -> <A maybe> {
-  Stack_fo = d: *D fs: *Fs stack_fo$,
-  D Fs _top
+  Stack_fo = fd: *D fr: *R fs: *Fs stack_fo$,
+  (| D, R |) Fs _top
 } ;;
 
 eval <*T![ *A a'stack ]> *FStack f_pop | pop @public -> <<A T tuple> maybe> {
   FStack _feature_a'stack = *Stack_fo,
   Stack_fo fo_pop >> case {
-  ; (| *Elem, d: *D' fs: *Fs' stack_fo$ |) value$ -> (| Elem, D' |) value$
+  ; (| *Elem, fd: *D' fr: *R' fs: *Fs' stack_fo$ |) value$ -> (| Elem, D' &R' |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo fo_pop | pop @public -> <<A <T A stack_fo> tuple> maybe> {
-  Stack_fo = d: *D fs: *Fs stack_fo$,
-  D Fs _pop >> case {
-  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs stack_fo$ |) value$
+  Stack_fo = fd: *D fr: *R fs: *Fs stack_fo$,
+  (| D, R |) Fs _pop >> case {
+  ; (| *Elem, (| *D', *R' |) |) value$ -> (| Elem, fd: D' fr: R' fs: Fs stack_fo$ |) value$
   ; ** -> none$
   }
 } ;;
 
 eval <*T![ *A a'stack ]> *FStack f_clear | clear @public -> <T> {
   FStack _feature_a'stack = *Stack_fo,
-  Stack_fo fo_clear = d: *D' fs: *Fs' stack_fo$,
-  D'
+  Stack_fo fo_clear = fd: *D' fr: *R' fs: *Fs' stack_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo fo_clear | clear @public -> <T A stack_fo> {
-  Stack_fo = d: *D fs: *Fs stack_fo$,
-  D Fs _clear = *D',
-  d: D' fs: Fs stack_fo$
+  Stack_fo = fd: *D fr: *R fs: *Fs stack_fo$,
+  (| D, R |) Fs _clear = (| *D', *R' |),
+  fd: D' fr: R' fs: Fs stack_fo$
 } ;;
 
 eval <*T![ *A a'stack ]> *FStack <A list> *Elems f_push_list | push_list @public -> <T> {
@@ -198,8 +203,8 @@ eval <*T![ *A a'stack ]> *FStack <A list> *Elems f_push_list | push_list @public
 
 eval <*T![ *A a'stack ]> *FStack <A iter> *Iter f_push_iter | push_iter @public -> <T> {
   FStack _feature_a'stack = *Stack_fo,
-  Stack_fo Iter fo_push_iter = d: *D' fs: *Fs' stack_fo$,
-  D'
+  Stack_fo Iter fo_push_iter = fd: *D' fr: *R' fs: *Fs' stack_fo$,
+  D' &R'
 } ;;
 
 eval <*T! *A stack_fo> *Stack_fo <A list> *Elems fo_push_list | push_list @public -> <T A stack_fo> {
@@ -234,18 +239,64 @@ eval <*T! *A stack_fo> *Stack_fo fo_iter_next -> <A iter_res> {
 ### feature implementation of common-behavior object
 
 eval <*A stack> *Stack as_a'stack -> <<A stack> A stack_fo> {
-  d: Stack fs: cstack_fo_fs stack_fo$
+  Stack cfd$ = *FD,
+  \ <A fd> *X -> <A stack> {
+    X = *S cfd$, S
+  } = *FR,
+  fd: FD fr: FR fs: cstack_fo_fs stack_fo$
 } ;;
 
-eval cstack_fo_fs -> <<*A stack> A stack_fs> {
-  empty?_f: ^c_empty?
-  depth_f: ^c_depth
-  push_f: ^c_push
-  top_f: ^c_top
-  pop_f: ^c_pop
-  to_list_f_: (^c_to_list value$)
-  clear_f: ^c_clear
+extend <*A _1> -> cfd := <A stack> cfd$ ;;
+
+eval cstack_fo_fs -> <<<*A stack> A fx> A stack_fs> {
+  empty?_f: ^cfo_empty?
+  depth_f: ^cfo_depth
+  push_f: ^cfo_push
+  top_f: ^cfo_top
+  pop_f: ^cfo_pop
+  to_list_f_: (^cfo_to_list value$)
+  clear_f: ^cfo_clear
   stack_fs$
+} ;;
+
+eval <*T *A fx> *Fx cfo_empty? -> <bool> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack c_empty?
+} ;;
+
+eval <*T *A fx> *Fx cfo_depth -> <int> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack c_depth
+} ;;
+
+eval <*T *A fx> *Fx <A> *Elem cfo_push -> <T A fx> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack Elem c_push = *Stack',
+  (| Stack' cfd$, R |)
+} ;;
+
+eval <*T *A fx> *Fx cfo_top -> <A maybe> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack c_top
+} ;;
+
+eval <*T *A fx> *Fx cfo_pop -> <<A <T A fx> tuple> maybe> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack c_pop >> case {
+  ; (| *Elem, *Stack' |) value$ -> (| Elem, (| Stack' cfd$, R |) |) value$
+  ; ** -> none$
+  }
+} ;;
+
+eval <*T *A fx> *Fx cfo_to_list -> <A list> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack c_to_list
+} ;;
+
+eval <*T *A fx> *Fx cfo_clear -> <T A fx> {
+  Fx = (| *Stack cfd$, *R |),
+  Stack c_clear = *Stack',
+  (| Stack' cfd$, R |)
 } ;;
 
 

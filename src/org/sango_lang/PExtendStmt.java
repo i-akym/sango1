@@ -190,6 +190,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    if (tcon.ext) {
+      emsg = new StringBuffer();
+      emsg.append("Attempt to extend extended type at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     builder.setBaseTcon(tcon);
     if (ParserA.acceptToken(reader, LToken.GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -240,6 +247,12 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString());
     }
     builder.addConstrList(body.constrList);
+
+    PFeatureImplDef id;
+    while ((id = PFeatureImplDef.accept(reader, defScope)) != null) {
+      builder.addFeatureImpl(id);
+    }
+
     if (ParserA.acceptToken(reader, LToken.SEM_SEM, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("\";;\" missing at ");
@@ -358,6 +371,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconProps);
+    if ((this.baseTconProps.subcat & PTypeId.SUBCAT_ALIAS) > 0) {
+      emsg = new StringBuffer();
+      emsg.append("Cannot extend type alias at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
     if (this.baseTconProps.acc == Module.ACC_OPAQUE) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend opaque data at ");
@@ -459,6 +479,40 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   public void checkConcreteness() throws CompileException {
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].checkConcreteness();
+    }
+  }
+
+  void checkFeatureImpl() throws CompileException {
+    for (int i = 0; i < this.featureImpls.length; i++) {
+      this.checkFeatureImpl1(this.featureImpls[i], this.baseTconProps.defGetter.getDataDef());
+    }
+  }
+
+  void checkFeatureImpl1(PFeatureImplDef id, PDataDef base) throws CompileException {
+    List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
+    for (int i = 0; i < this.tparams.length; i++) {
+      vs.add(this.tparams[i].varDef.varSlot);
+    }
+    PTypeSkelBindings b = PTypeSkelBindings.create(vs);
+
+    PTypeRefSkel bsig = base.getTypeSig();
+    for (int i = 0; i < bsig.params.length; i++) {
+      b.bind(((PTypeVarSkel)bsig.params[i]).varSlot, this.tparams[i].varDef.toSkel());
+    }
+
+    PFeatureSkel f = id.feature.toSkel();
+    boolean a = false;
+    for (int i = 0; !a && i < base.getFeatureImplCount(); i++) {
+      a = f.accept(false, base.getFeatureImplAt(i).getImpl(), b.copy());
+    }
+    if (!a) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Feature implemetation ");
+      emsg.append(f.reprSolo().toString());
+      emsg.append(" is not defined in base at ");
+      emsg.append(id.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
     }
   }
 

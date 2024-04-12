@@ -56,6 +56,7 @@ abstract class Parser {
   }
 
   void parse5() throws CompileException {
+    this.mod.checkFeatureImplOnExtension();
     this.mod.makeSureTypeConsistency();
   }
 

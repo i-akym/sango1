@@ -1,0 +1,75 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.iter" -> iter ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  test010,
+  test100,
+  test110,
+  test120,
+  test130,
+  void$
+} ;;
+eval test000 -> <void> {
+  3 iter.const_iter = *I0,
+  I0 next = (| 3, *I1 |) value$,
+  I1 next = (| 3, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  void$
+} ;;
+eval test010 -> <void> {
+  [ 1, 2, 3 ] iter = *A,
+  [ 5, 6, 7 ] iter = *B,
+  [ A, B ] iter.concat = *I0,
+  I0 next = (| 1, *I1 |) value$,
+  I1 next = (| 2, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  I3 next = (| 5, *I4 |) value$,
+  I4 next = (| 6, *I5 |) value$,
+  I5 next = (| 7, *I6 |) value$,
+  I6 next = none$,
+  void$
+} ;;
+eval test100 -> <void> {
+  [ 1, 2, 3, 4, 5 ] iter = *J,
+  J \ <int> *X -> <bool> { X 3 le? } iter.add_while = *I0,
+  I0 next = (| 1, *I1 |) value$,
+  I1 next = (| 2, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  I3 next = none$,
+  void$
+} ;;
+eval test110 -> <void> {
+  [ 1, 2, 3, 4, 5 ] iter = *J,
+  J \ <int> *X -> <bool> { (X 2 ge?) (X 4 le?) and } iter.add_filter = *I0,
+  I0 next = (| 2, *I1 |) value$,
+  I1 next = (| 3, *I2 |) value$,
+  I2 next = (| 4, *I3 |) value$,
+  I3 next = none$,
+  void$
+} ;;
+eval test120 -> <void> {
+  [ 1, 2, 3, 4, 5 ] iter = *J,
+  J \ <int> *X -> <int> { X 2 prod } iter.add_modifier = *I0,
+  I0 next = (| 2, *I1 |) value$,
+  I1 next = (| 4, *I2 |) value$,
+  I2 next = (| 6, *I3 |) value$,
+  I3 next = (| 8, *I4 |) value$,
+  I4 next = (| 10, *I5 |) value$,
+  I5 next = none$,
+  void$
+} ;;
+eval test130 -> <void> {
+  [ 1, 2, 3, 4, 5 ] iter = *J,
+  J 3 iter.add_max_count = *I0,
+  I0 next = (| 1, *I1 |) value$,
+  I1 next = (| 2, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  I3 next = none$,
+  void$
+} ;;
