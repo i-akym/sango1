@@ -80,6 +80,18 @@ eval test -> <void> {
   test321,
   test322,
   test323,
+  test400,
+  test401,
+  test402,
+  test403,
+  test404,
+  test405,
+  test406,
+  test407,
+  test408,
+  test409,
+  test410,
+  test411,
   void$
 } ;;
 
@@ -212,3 +224,15 @@ eval test323 -> <bool> {
   (5 3 1 int.enum) 4 enum.contain? = false$,
   (3 5 -1 int.enum) 4 enum.contain? = false$
 } ;;
+eval test400 -> <bool> { int.eq0_filter = *F, -1 &F = false$, 0 &F = true$, 1 &F = false$ } ;;
+eval test401 -> <bool> { int.ne0_filter = *F, -1 &F = true$, 0 &F = false$, 1 &F = true$ } ;;
+eval test402 -> <bool> { int.lt0_filter = *F, -1 &F = true$, 0 &F = false$, 1 &F = false$ } ;;
+eval test403 -> <bool> { int.le0_filter = *F, -1 &F = true$, 0 &F = true$, 1 &F = false$ } ;;
+eval test404 -> <bool> { int.gt0_filter = *F, -1 &F = false$, 0 &F = false$, 1 &F = true$ } ;;
+eval test405 -> <bool> { int.ge0_filter = *F, -1 &F = false$, 0 &F = true$, 1 &F = true$ } ;;
+eval test406 -> <bool> { 5 int.eq_filter = *F, 4 &F = false$, 5 &F = true$, 6 &F = false$ } ;;
+eval test407 -> <bool> { 5 int.ne_filter = *F, 4 &F = true$, 5 &F = false$, 6 &F = true$ } ;;
+eval test408 -> <bool> { 5 int.lt_filter = *F, 4 &F = true$, 5 &F = false$, 6 &F = false$ } ;;
+eval test409 -> <bool> { 5 int.le_filter = *F, 4 &F = true$, 5 &F = true$, 6 &F = false$ } ;;
+eval test410 -> <bool> { 5 int.gt_filter = *F, 4 &F = false$, 5 &F = false$, 6 &F = true$ } ;;
+eval test411 -> <bool> { 5 int.ge_filter = *F, 4 &F = false$, 5 &F = true$, 6 &F = true$ } ;;
