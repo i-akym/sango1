@@ -64,6 +64,22 @@ eval <cstr> *Str parse @public -> <int> {
 } ;;
 
 
+# -- filter --
+
+eval @alpha eq0_filter @public -> <int bool fun> { ^int_zero? } ;;
+eval @alpha ne0_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J zero? >> not } } ;;
+eval @alpha lt0_filter @public -> <int bool fun> { ^int_lt0? } ;;
+eval @alpha le0_filter @public -> <int bool fun> { ^int_le0? } ;;
+eval @alpha gt0_filter @public -> <int bool fun> { ^int_gt0? } ;;
+eval @alpha ge0_filter @public -> <int bool fun> { ^int_ge0? } ;;
+eval @alpha <int> *I eq_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I eq? } } ;;
+eval @alpha <int> *I ne_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I eq? >> not } } ;;
+eval @alpha <int> *I lt_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I lt? } } ;;
+eval @alpha <int> *I le_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I le? } } ;;
+eval @alpha <int> *I gt_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I gt? } } ;;
+eval @alpha <int> *I ge_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I ge? } } ;;
+
+
 # -- enum --
 
 extend <*A _1> -> my1 := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
