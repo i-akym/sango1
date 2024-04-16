@@ -23,53 +23,59 @@
 ###########################################################################
 module @alpha "sango.util.array" ;;
 
-import "sango.util.enum" -> enum ;;
-
-data <*A *B array> @public :=
-  d: <A B _2+>
-  ix: <A enum.enum>
-  fs: <A B array_fs>
+data <*A array> @public :=
+  d: <A _1+>
+  fs: <A array_fs>
   array$ ;;
 
-data <*A *B array_fs> @public :=
-  get_f: <<A B _2+> A B fun>
-  set_f: <<A B _2+> A B <A B _2+> fun>
+data <*A array_fs> @public :=
+  length_f: <int fun>
+  get_f: <<A _1+> int A fun>
+  set_f: <<A _1+> int A <A _1+> fun>
   array_fs$ ;;
 
 
 # -- framework --
 
-eval <*A *B array> *Array length @public -> <int> {
-  Array ix >> enum.count
+eval <*A array> *Array c_length | length @public -> <int> {
+  Array = d: *D fs: *Fs array$,
+  &(Fs length_f)
 } ;;
 
-eval <*A *B array> *Array <A> *Index get @public -> <B> {
-  Array = d: *D ix: *Ix fs: *Fs array$,
-  Ix Index enum.contain? >> case {
-  ; true$ ->
-  ; ** -> bad_arg$ "Invalid index." new_exception >> throw
+eval <*A array> *Array <int> *Index c_get | get @public -> <A> {
+  Array = d: *D fs: *Fs array$,
+  &(Fs length_f) = *L,
+  if {
+  ; Index lt0? -> bad_arg$ "Negative index." new_exception >> throw
+  ; Index L ge? -> bad_arg$ "Too big index." new_exception >> throw
+  ; otherwise ->
   },
   D Index &(Fs get_f)
 } ;;
 
-eval <*A *B array> *Array <A> *Index <B> *Value set @public -> <A B array> {
-  Array = d: *D ix: *Ix fs: *Fs array$,
-  Ix Index enum.contain? >> case {
-  ; true$ ->
-  ; ** -> bad_arg$ "Invalid index." new_exception >> throw
+eval <*A array> *Array <int> *Index <A> *Value c_set | set @public -> <A array> {
+  Array = d: *D fs: *Fs array$,
+  &(Fs length_f) = *L,
+  if {
+  ; Index lt0? -> bad_arg$ "Negative index." new_exception >> throw
+  ; Index L ge? -> bad_arg$ "Too big index." new_exception >> throw
+  ; otherwise ->
   },
-  d: (D Index Value &(Fs set_f)) :: Array array$
+  d: (D Index Value &(Fs set_f)) fs: Fs array$
 } ;;
 
-eval <*A *B array> *Array iter @public -> <<A B tuple> iter> {
-  \\ <<A B tuple> iter_res> { Array (Array ix >> enum.iter) iter_next } iter$
+eval <*A array> *Array c_iter | iter @public -> <A iter> {
+  \\ <A iter_res> { Array 0 c_iter_next } iter$
 } ;;
 
-eval <*A *B array> *Array <A iter> *Index_iter iter_next -> <<A B tuple> iter_res> {
-  Index_iter next >> case {
-  ; (| *I, *Index_iter' |) value$ ->
-    (| (| I ,(Array d) I &(Array fs >> get_f) |),
-      \\ <<A B tuple> iter_res> { Array Index_iter' iter_next } iter$ |) value$
-  ; ** -> none$
+eval <*A array> *Array <int> *Index c_iter_next -> <A iter_res> {
+  Array = d: *D fs: *Fs array$,
+  &(Fs length_f) = *L,
+  if {
+  ; Index L lt? ->
+    (| D Index &(Fs get_f),
+      \\ <A iter_res> { Array (Index inc) c_iter_next } iter$
+    |) value$
+  ; otherwise -> none$
   }
 } ;;

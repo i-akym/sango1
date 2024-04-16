@@ -2885,33 +2885,33 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B array&gt; @public :=
-  d: &lt;A B _2+&gt;
-  ix: &lt;A &quot;sango.util.enum&quot;.enum&gt;
-  fs: &lt;A B array_fs&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*A array&gt; @public :=
+  d: &lt;A _1+&gt;
+  fs: &lt;A array_fs&gt;
   array$ ;;</code></td></tr></table>
 <p>カプセル化された配列オブジェクトを表します。
-  <code>&lt;A&gt;</code>は指標の型，<code>&lt;B&gt;</code>は要素の型です。
-  配列を使用するには属性を意識する必要はありません。</p>
+<code>&lt;A&gt;</code>は要素の型です。
+配列を使用するには属性を意識する必要はありません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B array&gt; *Array length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>要素の個数を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B array&gt; *Array &lt;A&gt; *Index get @public -&gt; &lt;B&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array &lt;int&gt; *Index get @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p>指標に対応する要素を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B array&gt; *Array &lt;A&gt; *Index &lt;B&gt; *Value set @public -&gt; &lt;A B array&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array &lt;int&gt; *Index &lt;A&gt; *Value set @public -&gt; &lt;A array&gt; ;;</code></td></tr></table>
 <p>指標に対応する要素を更新し，配列全体を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B array&gt; *Array iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
-<p>指標と要素の組を供給するイテレータを返します。</p>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>指標の順に要素を供給するイテレータを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.array.2"><code>sango.util.array</code> - 実装者向け情報</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B array_fs&gt; @public :=
-  get_f: &lt;&lt;A B _2+&gt; A B fun&gt;
-  set_f: &lt;&lt;A B _2+&gt; A B &lt;A B _2+&gt; fun&gt;
+<table border width="100%"><tr><td class="def"><code>data &lt;*A array_fs&gt; @public :=
+  length_f: &lt;int fun&gt;
+  get_f: &lt;&lt;A _1+&gt; int A fun&gt;
+  set_f: &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt;
   array_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
@@ -2920,11 +2920,13 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 
 <p>AVL木による配列の実装です。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum.enum&gt; *Enum
-  &lt;A *B fun&gt; *Supplier
-  &lt;&lt;B &lt;B bool fun&gt; tuple&gt; maybe&gt; *Compact_ 
-  new_array @public -&gt; &lt;A B &quot;sango.util.array&quot;.array&gt; ;;</code></td></tr></table>
-<p>配列を生成します。<code>Enum</code>には指標を指定します。<code>Supplier</code>には，指標に対する要素の初期値を返す関数を指定します。</p>
+<table border width="100%"><tr><td class="def"><code>eval &lt;int&gt; *Length
+  &lt;*A iter&gt; *Init
+  &lt;&lt;A &lt;A bool fun&gt; tuple&gt; maybe&gt; *Compact_ 
+  new_array @public -&gt; &lt;A &quot;sango.util.array&quot;.array&gt; ;;</code></td></tr></table>
+<p>配列を生成します。
+<code>Init</code>には，指標順に要素の初期値を返すイテレータを指定します。
+<code>Init</code>は，<code>Length</code>回，呼び出されます。</p>
 <p><code>Compact_<code>には，配列のメモリサイズを小さくする設定を指定します。
   本機能は，タプルの第一要素（以降，C）をAVL木の内部データとして作成することを抑制します。
   Cに配列の中に多く含まれる値を指定すると，効果が増大します。

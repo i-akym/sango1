@@ -2,7 +2,6 @@ import "sango.debug" -> debug ;;
 import "sango.num.int" -> int ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
-import "sango.util.enum" -> enum ;;
 
 eval _main_ -> <void> {
   runtime.terminate_on_my_abnormal_end,
@@ -62,24 +61,6 @@ eval test -> <void> {
   test215a,
   test216,
   test216a,
-  -2 3 1 int.enum = *E,
-  E test300,
-  E test301,
-  E test302,
-  E test303,
-  E test304,
-  # E test305,
-  3 -1 -2 int.enum = *E2,
-  E2 test310,
-  E2 test311,
-  E2 test312,
-  E2 test313,
-  E2 test314,
-  E2 test314a,
-  # test320,
-  test321,
-  test322,
-  test323,
   test400,
   test401,
   test402,
@@ -147,83 +128,6 @@ eval test215 -> <cstr> { 153 "x" int.format = "99" } ;;
 eval test215a -> <cstr> { 153 "X" int.format = "99" } ;;
 eval test216 -> <cstr> { 170 "x" int.format = "aa" } ;;
 eval test216a -> <cstr> { 170 "X" int.format = "AA" } ;;
-eval <int enum.enum> *E test300 -> <int> { E enum.count = 6 } ;;
-eval <int enum.enum> *E test301 -> <bool> {
-  E -3 enum.contain? = false$,
-  E -2 enum.contain? = true$,
-  E 3 enum.contain? = true$,
-  E 4 enum.contain? = false$ } ;;
-eval <int enum.enum> *E test302 -> <int maybe> {
-  E -2 enum.pred = none$,
-  E -2 enum.succ = -1 value$,
-  E -1 enum.pred = -2 value$ } ;;
-eval <int enum.enum> *E test303 -> <int maybe> {
-  E 2 enum.succ = 3 value$,
-  E 3 enum.pred = 2 value$,
-  E 3 enum.succ = none$} ;;
-eval <int enum.enum> *E test304 -> <int iter_res> {
-  E enum.iter = *I,
-  I next = (| -2, *I' |) value$,
-  I' next = (| -1, *I'' |) value$,
-  I'' next = (| 0, *I''' |) value$,
-  I''' next = (| 1, *I'''' |) value$,
-  I'''' next = (| 2, *I''''' |) value$,
-  I''''' next = (| 3, *I'''''' |) value$,
-  I'''''' next = none$
-} ;;
-# eval <int enum.enum> *E test305 -> <int iter_res> {
-  # E (| -1, 2 |) enum.inner >> enum.iter = *I,
-  # I next = (| -1, *I' |) value$,
-  # I' next = (| 0, *I'' |) value$,
-  # I'' next = (| 1, *I''' |) value$,
-  # I''' next = (| 2, *I'''' |) value$,
-  # I'''' next = none$
-# } ;;
-eval <int enum.enum> *E test310 -> <int> { E enum.count = 3 } ;;
-eval <int enum.enum> *E test311 -> <bool> {
-  E 4 enum.contain? = false$,
-  E 3 enum.contain? = true$,
-  E 2 enum.contain? = false$,
-  E 0 enum.contain? = false$,
-  E -1 enum.contain? = true$,
-  E -2 enum.contain? = false$ } ;;
-eval <int enum.enum> *E test312 -> <int maybe> {
-  E 3 enum.pred = none$,
-  E 3 enum.succ = 1 value$,
-  E 1 enum.pred = 3 value$ } ;;
-eval <int enum.enum> *E test313 -> <int maybe> {
-  E 1 enum.succ = -1 value$,
-  E -1 enum.pred = 1 value$,
-  E -1 enum.succ = none$} ;;
-eval <int enum.enum> *E test314 -> <int iter_res> {
-  E enum.iter = *I,
-  I next = (| 3, *I' |) value$,
-  I' next = (| 1, *I'' |) value$,
-  I'' next = (| -1, *I''' |) value$,
-  I''' next = none$
-} ;;
-eval <int enum.enum> *E test314a -> <int iter_res> {
-  E enum.reverse_iter = *I,
-  I next = (| -1, *I' |) value$,
-  I' next = (| 1, *I'' |) value$,
-  I'' next = (| 3, *I''' |) value$,
-  I''' next = none$
-} ;;
-# eval test320 -> <<int enum.enum> result> {
-  # \\ <int enum.enum> { 3 -2 -2 int.enum } try = ** exc$
-# } ;;
-eval test321 -> <int> {
-  5 5 1 int.enum >> enum.count = 1,
-  5 5 -1 int.enum >> enum.count = 1
-} ;;
-eval test322 -> <int> {
-  5 3 1 int.enum >> enum.count = 0,
-  3 5 -1 int.enum >> enum.count = 0
-} ;;
-eval test323 -> <bool> {
-  (5 3 1 int.enum) 4 enum.contain? = false$,
-  (3 5 -1 int.enum) 4 enum.contain? = false$
-} ;;
 eval test400 -> <bool> { int.eq0_filter = *F, -1 &F = false$, 0 &F = true$, 1 &F = false$ } ;;
 eval test401 -> <bool> { int.ne0_filter = *F, -1 &F = true$, 0 &F = false$, 1 &F = true$ } ;;
 eval test402 -> <bool> { int.lt0_filter = *F, -1 &F = true$, 0 &F = false$, 1 &F = false$ } ;;
