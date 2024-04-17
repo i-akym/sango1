@@ -73,6 +73,9 @@ eval test -> <void> {
   test409,
   test410,
   test411,
+  test500,
+  test501,
+  test502,
   void$
 } ;;
 
@@ -140,3 +143,24 @@ eval test408 -> <bool> { 5 int.lt_filter = *F, 4 &F = true$, 5 &F = false$, 6 &F
 eval test409 -> <bool> { 5 int.le_filter = *F, 4 &F = true$, 5 &F = true$, 6 &F = false$ } ;;
 eval test410 -> <bool> { 5 int.gt_filter = *F, 4 &F = false$, 5 &F = false$, 6 &F = true$ } ;;
 eval test411 -> <bool> { 5 int.ge_filter = *F, 4 &F = false$, 5 &F = true$, 6 &F = true$ } ;;
+eval test500 -> <void> {
+  0 1 int.new_step_iter = *I,
+  I next = (| 0, *I' |) value$,
+  I' next = (| 1, *I'' |) value$,
+  I'' next = (| 2, *I''' |) value$,
+  void$
+} ;;
+eval test501 -> <void> {
+  3 0 int.new_step_iter = *I,
+  I next = (| 3, *I' |) value$,
+  I' next = (| 3, *I'' |) value$,
+  I'' next = (| 3, *I''' |) value$,
+  void$
+} ;;
+eval test502 -> <void> {
+  1 -2 int.new_step_iter = *I,
+  I next = (| 1, *I' |) value$,
+  I' next = (| -1, *I'' |) value$,
+  I'' next = (| -3, *I''' |) value$,
+  void$
+} ;;
