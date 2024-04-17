@@ -79,6 +79,18 @@ eval @alpha <int> *I gt_filter @public -> <int bool fun> { \ <int> *J -> <bool> 
 eval @alpha <int> *I ge_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I ge? } } ;;
 
 
+# -- iterator --
+
+eval @alpha <int> *Start <int> *Step new_step_iter @public -> <int iter> {
+  \\ <int iter_res> { Start Step step_next } iter$
+} ;;
+
+eval <int> *Next <int> *Step step_next -> <int iter_res> {
+  (| Next,
+    \\ <int iter_res> { (Next Step sum) Step step_next } iter$ |) value$
+} ;;
+
+
 # -- format --
 
 # format param       ::= [ <align> ] [ <sign> ] [ <grouping> ] [ <min_digit_count> ] <radix>
