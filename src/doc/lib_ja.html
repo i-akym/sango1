@@ -712,6 +712,9 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.9"><code>sango.lang</code> - その他</h2>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs list_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>リストの要素の個数を返します。</p>
+
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A string&gt; *Xz string_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>ストリングの要素の個数を返します。</p>
 
@@ -2257,7 +2260,7 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <h2 id="sango.list.4"><code>sango.list</code> - 要素処理</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>リストの要素数を返します。</p>
+<p>（<code>&quot;sango.lang&quot;.list_length</code>と同じ）</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs head | first @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの先頭要素を返します。
