@@ -34,8 +34,23 @@ alias type <*A *B d> @public := <A B _2+> ;;
 data <*A *B map> @public :=
   d: <A B d>
   fs: <<A B d> A B map_fs>
-  map$
+  map$ ;;
+
+data <*A! *B! fxmap> @public :=
+  d: <A B d>
+  fs: <<A B d> A B map_fs>
+  fxmap$
 ++ as_a'map -> [ A B a'map ] ;;
+
+eval <*A! *B! map> *Map as_fxmap @public -> <A B fxmap> {
+  Map = d: *D fs: *Fs map$,
+  d: D fs: Fs fxmap$
+} ;;
+
+eval <*A! *B! fxmap> *FxMap as_map @public -> <A B map> {
+  FxMap = d: *D fs: *Fs fxmap$,
+  d: D fs: Fs map$
+} ;;
 
 
 ### definition of function set
@@ -60,7 +75,7 @@ data <*D *A *B map_fs> @public :=
 
 feature <*T!> [ *A *B a'map ] @public -> <T A B map_fo> ;;
 
-data <*T *A *B map_fo> @public :=
+data <*T! *A *B map_fo> @public :=
   d: <T>
   fs: <T A B map_fs>
   map_fo$ ;;
@@ -73,9 +88,17 @@ eval <*A *B map> *Map c_empty? | empty? @public -> <bool> {
   D Fs _empty?
 } ;;
 
+eval <*A! *B! fxmap> *FxMap fx_empty? | empty? @public -> <bool> {
+  (FxMap as_map) c_empty?
+} ;;
+
 eval <*A *B map> *Map c_size | size @public -> <int> {
   Map = d: *D fs: *Fs map$,
   D Fs _size
+} ;;
+
+eval <*A! *B! fxmap> *FxMap fx_size | size @public -> <int> {
+  (FxMap as_map) c_size
 } ;;
 
 eval <*A *B map> *Map <A> *Key c_get | get @public -> <<A B tuple> maybe> {
@@ -83,14 +106,26 @@ eval <*A *B map> *Map <A> *Key c_get | get @public -> <<A B tuple> maybe> {
   D Fs Key _get
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <A> *Key fx_get | get @public -> <<A B tuple> maybe> {
+  (FxMap as_map) Key c_get
+} ;;
+
 eval <*A *B map> *Map <A> *Key c_assoc | assoc @public -> <B maybe> {
   Map = d: *D fs: *Fs map$,
   D Fs Key _assoc
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <A> *Key fx_assoc | assoc @public -> <B maybe> {
+  (FxMap as_map) Key c_assoc
+} ;;
+
 eval <*A *B map> *Map <A> *Key c_contain_key? | contain_key? @public -> <bool> {
   Map = d: *D fs: *Fs map$,
   D Fs Key _contain_key?
+} ;;
+
+eval <*A! *B! fxmap> *FxMap <A> *Key fx_contain_key? | contain_key? @public -> <bool> {
+  (FxMap as_map) Key c_contain_key?
 } ;;
 
 eval <*A *B map> *Map <A> *Key <B> *Value c_put | put @public -> <<A B map> <<A B tuple> maybe> tuple> {
@@ -99,10 +134,20 @@ eval <*A *B map> *Map <A> *Key <B> *Value c_put | put @public -> <<A B map> <<A 
   (| d: D' fs: Fs map$, Replaced_kv_ |)
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <A> *Key <B> *Value fx_put | put @public -> <<A B fxmap> <<A B tuple> maybe> tuple> {
+  (FxMap as_map) Key Value c_put = (| *Map', *Replaced_kv_ |),
+  (| Map' as_fxmap, Replaced_kv_ |)
+} ;;
+
 eval <*A *B map> *Map <A> *Key <B> *Value c_put_new | put_new @public -> <<A B map> bool tuple> {
   Map = d: *D fs: *Fs map$,
   D Fs Key Value _put_new = (| *D', *Succeeded? |),
   (| d: D' fs: Fs map$, Succeeded? |)
+} ;;
+
+eval <*A! *B! fxmap> *FxMap <A> *Key <B> *Value fx_put_new | put_new @public -> <<A B fxmap> bool tuple> {
+  (FxMap as_map) Key Value c_put_new = (| *Map', *Succeeded? |),
+  (| Map' as_fxmap, Succeeded? |)
 } ;;
 
 eval <*A *B map> *Map <A> *Key <B> *Value c_add | add @public -> <A B map> {
@@ -111,16 +156,31 @@ eval <*A *B map> *Map <A> *Key <B> *Value c_add | add @public -> <A B map> {
   D' fs: Fs map$
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <A> *Key <B> *Value fx_add | add @public -> <A B fxmap> {
+  (FxMap as_map) Key Value c_add = *Map',
+  Map' as_fxmap
+} ;;
+
 eval <*A *B map> *Map <A> *Key c_remove | remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
   Map = d: *D fs: *Fs map$,
   D Fs Key _remove = (| *D', *Removed_kv_ |),
   (| D' fs: Fs map$, Removed_kv_ |)
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <A> *Key fx_remove | remove @public -> <<A B fxmap> <<A B tuple> maybe> tuple> {
+  (FxMap as_map) Key c_remove = (| *Map', *Removed_kv_ |),
+  (| Map' as_fxmap, Removed_kv_ |)
+} ;;
+
 eval <*A *B map> *Map <A> *Key c_delete | delete @public -> <A B map> {
   Map = d: *D fs: *Fs map$,
   D Fs Key _delete = *D',
   D' fs: Fs map$
+} ;;
+
+eval <*A! *B! fxmap> *FxMap <A> *Key fx_delete | delete @public -> <A B fxmap> {
+  (FxMap as_map) Key c_delete = *Map',
+  Map' as_fxmap
 } ;;
 
 eval <*A *B map> *Map c_take | take @public -> <<<A B tuple> <A B map> tuple> maybe> {
@@ -131,10 +191,22 @@ eval <*A *B map> *Map c_take | take @public -> <<<A B tuple> <A B map> tuple> ma
   }
 } ;;
 
+eval <*A! *B! fxmap> *FxMap fx_take | take @public -> <<<A B tuple> <A B fxmap> tuple> maybe> {
+  (FxMap as_map) c_take >> case {
+  ; (| *KV, *Map' |) value$ -> (| KV, Map' as_fxmap |) value$
+  ; ** -> none$
+  }
+} ;;
+
 eval <*A *B map> *Map c_clear | clear @public -> <A B map> {
   Map = d: *D fs: *Fs map$,
   D Fs _clear = *D',
   D' Fs map$
+} ;;
+
+eval <*A! *B! fxmap> *FxMap fx_clear | clear @public -> <A B fxmap> {
+  (FxMap as_map) c_clear = *Map',
+  Map' as_fxmap
 } ;;
 
 eval <*A *B map> *Map <<A B tuple> list> *KVs c_add_list | add_list @public -> <A B map> {
@@ -152,6 +224,16 @@ eval <*A *B map> *Map <<A B tuple> iter> *Iter c_add_iter | add_iter @public -> 
   D' Fs map$
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <<A B tuple> list> *KVs fx_add_list | add_list @public -> <A B fxmap> {
+  (FxMap as_map) KVs c_add_list = *Map',
+  Map' as_fxmap
+} ;;
+
+eval <*A! *B! fxmap> *FxMap <<A B tuple> iter> *Iter fx_add_iter | add_iter @public -> <A B fxmap> {
+  (FxMap as_map) Iter c_add_iter = *Map',
+  Map' as_fxmap
+} ;;
+
 eval <*A *B map> *Map <A list> *Ks c_delete_list | delete_list @public -> <A B map> {
   Map (Ks list.iter) c_delete_iter
 } ;;
@@ -167,6 +249,16 @@ eval <*A *B map> *Map <A iter> *Iter c_delete_iter | delete_iter @public -> <A B
   D' Fs map$
 } ;;
 
+eval <*A! *B! fxmap> *FxMap <A list> *Ks fx_delete_list | delete_list @public -> <A B fxmap> {
+  (FxMap as_map) Ks c_delete_list = *Map',
+  Map' as_fxmap
+} ;;
+
+eval <*A! *B! fxmap> *FxMap <A iter> *Iter fx_delete_iter | delete_iter @public -> <A B fxmap> {
+  (FxMap as_map) Iter c_delete_iter = *Map',
+  Map' as_fxmap
+} ;;
+
 eval <*A *B map> *Map c_iter | iter @public -> <<A B tuple> iter> {
   \\ <<A B tuple> iter_res> { Map c_iter_next } iter$
 } ;;
@@ -177,6 +269,10 @@ eval <*A *B map> *Map c_iter_next -> <<A B tuple> iter_res> {
     (| KV, \\ <<A B tuple> iter_res> { Map' c_iter_next } iter$ |) value$
   ; ** -> none$
   }
+} ;;
+
+eval <*A! *B! fxmap> *FxMap fx_iter | iter @public -> <<A B tuple> iter> {
+  (FxMap as_map) c_iter
 } ;;
 
 
@@ -390,23 +486,23 @@ eval <*T! *A *B map_fo> *Map_fo fo_iter_next -> <<A B tuple> iter_res> {
 
 ### feature implementation of common-behavior object
 
-eval <*A *B map> *Map as_a'map -> <<A B map> A B map_fo> {
-  d: Map fs: cmap_fo_fs map_fo$
+eval <*A! *B! fxmap> *Map as_a'map -> <<A B fxmap> A B map_fo> {
+  d: Map fs: fxmap_fo_fs map_fo$
 } ;;
 
-eval cmap_fo_fs -> <<*A *B map> A B map_fs> {
-  empty?_f: ^c_empty?
-  size_f: ^c_size
-  get_f: ^c_get
-  assoc_f_: (^c_assoc value$)
-  contain_key?_f_: (^c_contain_key? value$)
-  put_f: ^c_put
-  put_new_f_: (^c_put_new value$)
-  add_f_: (^c_add value$)
-  remove_f: ^c_remove
-  delete_f_: (^c_delete value$)
-  take_f: ^c_take
-  clear_f: ^c_clear
+eval fxmap_fo_fs -> <<*A! *B! fxmap> A B map_fs> {
+  empty?_f: ^fx_empty?
+  size_f: ^fx_size
+  get_f: ^fx_get
+  assoc_f_: (^fx_assoc value$)
+  contain_key?_f_: (^fx_contain_key? value$)
+  put_f: ^fx_put
+  put_new_f_: (^fx_put_new value$)
+  add_f_: (^fx_add value$)
+  remove_f: ^fx_remove
+  delete_f_: (^fx_delete value$)
+  take_f: ^fx_take
+  clear_f: ^fx_clear
   map_fs$
 } ;;
 
