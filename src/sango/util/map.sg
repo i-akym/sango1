@@ -78,7 +78,9 @@ feature <*T!> [ *A *B a'map ] @public -> <T A B map_fo> ;;
 data <*T! *A *B map_fo> @public :=
   d: <T>
   fs: <T A B map_fs>
-  map_fo$ ;;
+  map_fo$
+++ as_a'col -> [ <A B tuple> a'col ]
+;;
 
 
 ### implementation of common-behavior object
@@ -481,6 +483,38 @@ eval <*T! *A *B map_fo> *Map_fo fo_iter_next -> <<A B tuple> iter_res> {
     (| KV, \\ <<A B tuple> iter_res> { Map_fo' fo_iter_next } iter$ |) value$
   ; ** -> none$
   }
+} ;;
+
+
+### feature implementation of feature object
+
+eval <*T! *A *B map_fo> *Map_fo as_a'col -> <<A B tuple> col> {
+  Map_fo [] &\ <T A B map_fo> *Fo <<A B tuple> list> *KVsR -> <<A B tuple> list> {
+    Fo fo_take >> case {
+    ; (| *KV, *Fo' |) value$ -> Fo' [ KV ; KVsR ] &&
+    ; ** -> KVsR list.reverse
+    }
+  } = *KVs,
+  d: (KVs fo_col_d$) fs: map_fo_col_fs col$
+} ;;
+
+extend <*KV _1> -> fo_col_d := <KV list> fo_col_d$ ;;
+
+eval map_fo_col_fs -> <<<*A *B tuple> col_d> <A B tuple> col_fs> {
+  empty?_f_: (\ <<A B tuple> col_d> *D -> <bool> {
+    D = *KVs fo_col_d$, KVs list.empty?
+  } value$)
+  size_f: \ <<A B tuple> col_d> *D -> <int> {
+    D = *KVs fo_col_d$, KVs list.length
+  }
+  take_f: \ <<A B tuple> col_d> *D
+      -> <<<A B tuple> <<A B tuple> col_d> tuple> maybe> {
+    D = *KVs fo_col_d$, KVs case {
+    ; [ *KV ; *KVs' ] -> (| KV, KVs' fo_col_d$ |) value$
+    ; ** -> none$
+    }
+  }
+  col_fs$
 } ;;
 
 
