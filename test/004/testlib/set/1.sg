@@ -1,0 +1,80 @@
+import "sango.util.set" -> set ;;
+
+eval <int set.set> *S0 testA00 @public -> <void> {
+  S0 set.empty? = true$,
+  S0 1 set.put = (| *S1, none$ |),
+  S1 1 set.put_new = (| S1, false$ |),
+  S1 2 set.put_new = (| *S2, true$ |),
+  S2 2 set.put = (| *S3, 2 value$ |),
+  S3 set.size = 2,
+  S3 2 set.contain? = true$,
+  S3 3 set.contain? = false$,
+  S3 3 set.put = (| *S4, none$ |),
+  S4 2 set.remove = (| *S5, 2 value$ |),
+  S5 set.take >> case {
+  ; (| 1, *S5' |) value$ ->
+    S5' set.take = (| 3, *S5'' |) value$,
+    S5'' set.take = none$
+  ; (| 3, *S5' |) value$ ->
+    S5' set.take = (| 1, *S5'' |) value$,
+    S5'' set.take = none$
+  },
+  S5 set.clear >> set.empty? = true$,
+  S5 [ 4, 5 ] set.add_list = *S6,
+  S6 set.size = 4,
+  S6 set.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  S6 [ 4, 5 ] set.delete_list >> set.size = 2,
+  void$
+} ;;
+eval <int set.set> *S0 testA10 @public -> <void> {
+  S0 set.empty? = true$,
+  S0 [ 1, 3, 5, 7, 9 ] set.add_list = *S,
+  S [ 1, 3, 5, 7, 9 ] set.contain_just? = true$,
+  S [ 1, 3, 7, 9 ] set.contain_just? = false$,
+  S [ 1, 3, 4, 5, 7, 9 ] set.contain_just? = false$,
+  void$
+} ;;
+eval <int set.set> *S0 testA20 @public -> <void> {
+  S0 set.empty? = true$,
+  S0 [ 2, 3, 4, 5, 6 ] set.add_list = *Sa,
+  S0 [ 1, 3, 5, 7 ] set.add_list = *Sb,
+  (Sa Sb set.intersection) [ 3, 5 ] set.contain_just? = true$,
+  (Sa Sb set.difference) [ 2, 4, 6 ] set.contain_just? = true$,
+  void$
+} ;;
+eval <*T![ int set.a'set ]> *S0 testB00 @public -> <void> {
+  S0 set.empty? = true$,
+  S0 1 set.put = (| *S1, none$ |),
+  S1 1 set.put_new = (| S1, false$ |),
+  S1 2 set.put_new = (| *S2, true$ |),
+  S2 2 set.put = (| *S3, 2 value$ |),
+  S3 set.size = 2,
+  S3 2 set.contain? = true$,
+  S3 3 set.contain? = false$,
+  S3 3 set.put = (| *S4, none$ |),
+  S4 2 set.remove = (| *S5, 2 value$ |),
+  S5 set.take >> case {
+  ; (| 1, *S5' |) value$ ->
+    S5' set.take = (| 3, *S5'' |) value$,
+    S5'' set.take = none$
+  ; (| 3, *S5' |) value$ ->
+    S5' set.take = (| 1, *S5'' |) value$,
+    S5'' set.take = none$
+  },
+  S5 set.clear >> set.empty? = true$,
+  S5 [ 4, 5 ] set.add_list = *S6,
+  S6 set.size = 4,
+  S6 set.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  S6 [ 4, 5 ] set.delete_list >> set.size = 2,
+  void$
+} ;;

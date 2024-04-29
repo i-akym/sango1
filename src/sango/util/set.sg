@@ -33,9 +33,23 @@ alias type <*A d> @public := <A _1+> ;;
 data <*A set> @public :=
   d: <A d>
   fs: <<A d> A set_fs>
-  set$
-++ as_a'set -> [ A a'set ]
-;;
+  set$ ;;
+
+data <*A! fxset> @public :=
+  d: <A d>
+  fs: <<A d> A set_fs>
+  fxset$
+++ as_a'set -> [ A a'set ] ;;
+
+eval <*A! set> *Set as_fxset @public -> <A fxset> {
+  Set = d: *D fs: *Fs set$,
+  d: D fs: Fs fxset$
+} ;;
+
+eval <*A! fxset> *FxSet as_set @public -> <A set> {
+  FxSet = d: *D fs: *Fs fxset$,
+  d: D fs: Fs set$
+} ;;
 
 
 ### definition of function set
@@ -59,10 +73,11 @@ data <*D *A set_fs> @public :=
 
 feature <*T!> [ *A a'set ] @public -> <T A set_fo> ;;
 
-data <*T *A set_fo> @public :=
+data <*T! *A set_fo> @public :=
   d: <T>
   fs: <T A set_fs>
-  set_fo$ ;;
+  set_fo$
+++ as_a'col -> [ A a'col ] ;;
 
 
 ### implementation of common-behavior object
@@ -72,9 +87,17 @@ eval <*A set> *Set c_empty? | empty? @public -> <bool> {
   D Fs _empty?
 } ;;
 
+eval <*A! fxset> *FxSet fx_empty? | empty? @public -> <bool> {
+  (FxSet as_set) c_empty?
+} ;;
+
 eval <*A set> *Set c_size | size @public -> <int> {
   Set = d: *D fs: *Fs set$,
   D Fs _size
+} ;;
+
+eval <*A! fxset> *FxSet fx_size | size @public -> <int> {
+  (FxSet as_set) c_size
 } ;;
 
 eval <*A set> *Set <A> *Elem c_get | get @public -> <A maybe> {
@@ -82,9 +105,17 @@ eval <*A set> *Set <A> *Elem c_get | get @public -> <A maybe> {
   D Fs Elem _get
 } ;;
 
+eval <*A! fxset> *FxSet <A> *Elem fx_get | get @public -> <A maybe> {
+  (FxSet as_set) Elem c_get
+} ;;
+
 eval <*A set> *Set <A> *Elem c_contain? | contain? @public -> <bool> {
   Set = d: *D fs: *Fs set$,
   D Fs Elem _contain?
+} ;;
+
+eval <*A! fxset> *FxSet <A> *Elem fx_contain? | contain? @public -> <bool> {
+  (FxSet as_set) Elem c_contain?
 } ;;
 
 eval <*A set> *Set <A> *Elem c_put | put @public -> <<A set> <A maybe> tuple> {
@@ -93,10 +124,20 @@ eval <*A set> *Set <A> *Elem c_put | put @public -> <<A set> <A maybe> tuple> {
   (| d: D' fs: Fs set$, Replaced_ |)
 } ;;
 
+eval <*A! fxset> *FxSet <A> *Elem fx_put | put @public -> <<A fxset> <A maybe> tuple> {
+  (FxSet as_set) Elem c_put = (| *Set', *Replaced_ |),
+  (| Set' as_fxset, Replaced_ |)
+} ;;
+
 eval <*A set> *Set <A> *Elem c_put_new | put_new @public -> <<A set> bool tuple> {
   Set = d: *D fs: *Fs set$,
   D Fs Elem _put_new = (| *D', *Succeeded? |),
   (| d: D' fs: Fs set$, Succeeded? |)
+} ;;
+
+eval <*A! fxset> *FxSet <A> *Elem fx_put_new | put_new @public -> <<A fxset> bool tuple> {
+  (FxSet as_set) Elem c_put_new = (| *Set', *Succeeded? |),
+  (| Set' as_fxset, Succeeded? |)
 } ;;
 
 eval <*A set> *Set <A> *Elem c_add | add @public -> <A set> {
@@ -105,16 +146,31 @@ eval <*A set> *Set <A> *Elem c_add | add @public -> <A set> {
   d: D' fs: Fs set$
 } ;;
 
+eval <*A! fxset> *FxSet <A> *Elem fx_add | add @public -> <A fxset> {
+  (FxSet as_set) Elem c_add = *Set',
+  Set' as_fxset
+} ;;
+
 eval <*A set> *Set <A> *Elem c_remove | remove @public -> <<A set> <A maybe> tuple> {
   Set = d: *D fs: *Fs set$,
   D Fs Elem _remove = (| *D', *Removed_ |),
   (| d: D' fs: Fs set$, Removed_ |)
 } ;;
 
+eval <*A! fxset> *FxSet <A> *Elem fx_remove | remove @public -> <<A fxset> <A maybe> tuple> {
+  (FxSet as_set) Elem c_remove = (| *Set', *Removed_ |),
+  (| Set' as_fxset, Removed_ |)
+} ;;
+
 eval <*A set> *Set <A> *Elem c_delete | delete @public -> <A set> {
   Set = d: *D fs: *Fs set$,
   D Fs Elem _delete = *D',
   d: D' fs: Fs set$
+} ;;
+
+eval <*A! fxset> *FxSet <A> *Elem fx_delete | delete @public -> <A fxset> {
+  (FxSet as_set) Elem c_delete = *Set',
+  Set' as_fxset
 } ;;
 
 eval <*A set> *Set c_take | take @public -> <<A <A set> tuple> maybe> {
@@ -125,10 +181,22 @@ eval <*A set> *Set c_take | take @public -> <<A <A set> tuple> maybe> {
   }
 } ;;
 
+eval <*A! fxset> *FxSet fx_take | take @public -> <<A <A fxset> tuple> maybe> {
+  (FxSet as_set) c_take >> case {
+  ; (| *E, *Set' |) value$ -> (| E, Set' as_fxset |) value$
+  ; ** -> none$
+  }
+} ;;
+
 eval <*A set> *Set c_clear | clear @public -> <A set> {
   Set = d: *D fs: *Fs set$,
   D Fs _clear = *D',
   d: D' fs: Fs set$
+} ;;
+
+eval <*A! fxset> *FxSet fx_clear | clear @public -> <A fxset> {
+  (FxSet as_set) c_clear = *Set',
+  Set' as_fxset
 } ;;
 
 eval <*A set> *Set <A list> *Elems c_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
@@ -148,6 +216,14 @@ eval <*A set> *Set <A iter> *Iter c_contain_just_iter? | contain_just_iter? | co
   }
 } ;;
 
+eval <*A! fxset> *FxSet <A list> *Elems fx_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
+  (FxSet as_set) Elems c_contain_just_list?
+} ;;
+
+eval <*A! fxset> *FxSet <A iter> *Iter fx_contain_just_iter? | contain_just_iter? | contain_just? @public -> <bool> {
+  (FxSet as_set) Iter c_contain_just_iter?
+} ;;
+
 eval <*A set> *Set <A list> *Elems c_add_list | add_list @public -> <A set> {
   Set (Elems list.iter) c_add_iter
 } ;;
@@ -159,6 +235,16 @@ eval <*A set> *Set <A iter> *Iter c_add_iter | add_iter @public -> <A set> {
   }
 } ;;
 
+eval <*A! fxset> *FxSet <A list> *Elems fx_add_list | add_list @public -> <A fxset> {
+  (FxSet as_set) Elems c_add_list = *Set',
+  Set' as_fxset
+} ;;
+
+eval <*A! fxset> *FxSet <A iter> *Iter fx_add_iter | add_iter @public -> <A fxset> {
+  (FxSet as_set) Iter c_add_iter = *Set',
+  Set' as_fxset
+} ;;
+
 eval <*A set> *Set <A list> *Elems c_delete_list | delete_list @public -> <A set> {
   Set (Elems list.iter) c_delete_iter
 } ;;
@@ -168,6 +254,11 @@ eval <*A set> *Set <A iter> *Iter c_delete_iter | delete_iter @public -> <A set>
   ; (| *E, *Iter' |) value$ -> (Set E delete) Iter' &&
   ; ** -> Set
   }
+} ;;
+
+eval <*A! fxset> *FxSet <A list> *Elems fx_delete_list | delete_list @public -> <A fxset> {
+  (FxSet as_set) Elems c_delete_list = *Set',
+  Set' as_fxset
 } ;;
 
 eval <*A set> *Set c_iter | iter @public -> <A iter> {
@@ -182,8 +273,16 @@ eval <*A set> *Set c_iter_next -> <A iter_res> {
   }
 } ;;
 
+eval <*A! fxset> *FxSet fx_iter | iter @public -> <A iter> {
+  (FxSet as_set) c_iter
+} ;;
+
 eval <*A set> *Set <A bool fun> *Filter c_filter | filter @public -> <A set> {
   (Set c_clear) ((Set iter) Filter iter.add_filter) c_add_iter
+} ;;
+
+eval <*A! fxset> *FxSet <A bool fun> *Filter fx_filter | filter @public -> <A fxset> {
+  (FxSet as_set) Filter c_filter >> as_fxset
 } ;;
 
 eval <*A set> *Set0 <A set> *Set1 c_intersection | intersection @public -> <A set> {
@@ -192,10 +291,18 @@ eval <*A set> *Set0 <A set> *Set1 c_intersection | intersection @public -> <A se
     filter
 } ;;
 
+eval <*A! fxset> *FxSet0 <A fxset> *FxSet1 fx_intersection | intersection @public -> <A fxset> {
+  (FxSet0 as_set) (FxSet1 as_set) c_intersection >> as_fxset
+} ;;
+
 eval <*A set> *Set0 <A set> *Set1 c_difference | difference @public -> <A set> {
   Set0
     \ <A> *X -> <bool> { Set1 X c_contain? >> not }
     filter
+} ;;
+
+eval <*A! fxset> *FxSet0 <A fxset> *FxSet1 fx_difference | difference @public -> <A fxset> {
+  (FxSet0 as_set) (FxSet1 as_set) c_difference >> as_fxset
 } ;;
 
 
@@ -423,24 +530,56 @@ eval <*T! *A set_fo> *Set_fo fo_iter_next -> <A iter_res> {
 } ;;
 
 
-### feature implementation of common-behavior object
+### feature implementation of feature object
 
-eval <*A set> *Set as_a'set -> <<A set> A set_fo> {
-  d: Set fs: cset_fo_fs set_fo$
+eval <*T! *A set_fo> *Set_fo as_a'col -> <A col> {
+  Set_fo [] &\ <T A set_fo> *Fo <A list> *EsR -> <A list> {
+    Fo fo_take >> case {
+    ; (| *E, *Fo' |) value$ -> Fo' [ E ; EsR ] &&
+    ; ** -> EsR list.reverse
+    }
+  } = *Es,
+  d: (Es fo_col_d$) fs: set_fo_col_fs col$
 } ;;
 
-eval cset_fo_fs -> <<*A set> A set_fs> {
-  empty?_f: ^c_empty?
-  size_f: ^c_size
-  get_f: ^c_get
-  contain?_f_: (^c_contain? value$)
-  put_f: ^c_put
-  put_new_f_: (^c_put_new value$)
-  add_f_: (^c_add value$)
-  remove_f: ^c_remove
-  delete_f_: (^c_delete value$)
-  take_f: ^c_take
-  clear_f: ^c_clear
+extend <*A _1> -> fo_col_d := <A list> fo_col_d$ ;;
+
+eval set_fo_col_fs -> <<*A col_d> A col_fs> {
+  empty?_f_: (\ <A col_d> *D -> <bool> {
+    D = *Es fo_col_d$, Es list.empty?
+  } value$)
+  size_f: \ <A col_d> *D -> <int> {
+    D = *Es fo_col_d$, Es list.length
+  }
+  take_f: \ <A col_d> *D
+      -> <<A <A col_d> tuple> maybe> {
+    D = *Es fo_col_d$, Es case {
+    ; [ *E ; *Es' ] -> (| E, Es' fo_col_d$ |) value$
+    ; ** -> none$
+    }
+  }
+  col_fs$
+} ;;
+
+
+### feature implementation of common-behavior object
+
+eval <*A! fxset> *FxSet as_a'set -> <<A fxset> A set_fo> {
+  d: FxSet fs: fxset_fo_fs set_fo$
+} ;;
+
+eval fxset_fo_fs -> <<*A! fxset> A set_fs> {
+  empty?_f: ^fx_empty?
+  size_f: ^fx_size
+  get_f: ^fx_get
+  contain?_f_: (^fx_contain? value$)
+  put_f: ^fx_put
+  put_new_f_: (^fx_put_new value$)
+  add_f_: (^fx_add value$)
+  remove_f: ^fx_remove
+  delete_f_: (^fx_delete value$)
+  take_f: ^fx_take
+  clear_f: ^fx_clear
   set_fs$
 } ;;
 

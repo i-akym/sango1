@@ -79,8 +79,7 @@ data <*T! *A *B map_fo> @public :=
   d: <T>
   fs: <T A B map_fs>
   map_fo$
-++ as_a'col -> [ <A B tuple> a'col ]
-;;
+++ as_a'col -> [ <A B tuple> a'col ] ;;
 
 
 ### implementation of common-behavior object
@@ -520,8 +519,8 @@ eval map_fo_col_fs -> <<<*A *B tuple> col_d> <A B tuple> col_fs> {
 
 ### feature implementation of common-behavior object
 
-eval <*A! *B! fxmap> *Map as_a'map -> <<A B fxmap> A B map_fo> {
-  d: Map fs: fxmap_fo_fs map_fo$
+eval <*A! *B! fxmap> *FxMap as_a'map -> <<A B fxmap> A B map_fo> {
+  d: FxMap fs: fxmap_fo_fs map_fo$
 } ;;
 
 eval fxmap_fo_fs -> <<*A! *B! fxmap> A B map_fs> {
