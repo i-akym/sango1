@@ -33,9 +33,23 @@ alias type <*A d> @public := <A _1+> ;;
 data <*A bag> @public :=
   d: <A d>
   fs: <<A d> A bag_fs>
-  bag$
-++ as_a'bag -> [ A a'bag ]
-;;
+  bag$ ;;
+
+data <*A! fxbag> @public :=
+  d: <A d>
+  fs: <<A d> A bag_fs>
+  fxbag$
+++ as_a'bag -> [ A a'bag ] ;;
+
+eval <*A! bag> *Bag as_fxbag @public -> <A fxbag> {
+  Bag = d: *D fs: *Fs bag$,
+  d: D fs: Fs fxbag$
+} ;;
+
+eval <*A! fxbag> *FxBag as_bag @public -> <A bag> {
+  FxBag = d: *D fs: *Fs fxbag$,
+  d: D fs: Fs bag$
+} ;;
 
 
 ### definition of function set
@@ -59,10 +73,11 @@ data <*D *A bag_fs> @public :=
 
 feature <*T!> [ *A a'bag ] @public -> <T A bag_fo> ;;
 
-data <*T *A bag_fo> @public :=
+data <*T! *A bag_fo> @public :=
   d: <T>
   fs: <T A bag_fs>
-  bag_fo$ ;;
+  bag_fo$
+++ as_a'col -> [ A a'col ] ;;
 
 
 ### implementation of common-behavior object
@@ -72,9 +87,17 @@ eval <*A bag> *Bag c_empty? | empty? @public -> <bool> {
   D Fs _empty?
 } ;;
 
+eval <*A! fxbag> *FxBag fx_empty? | empty? @public -> <bool> {
+  (FxBag as_bag) c_empty?
+} ;;
+
 eval <*A bag> *Bag c_size | size @public -> <int> {
   Bag = d: *D fs: *Fs bag$,
   D Fs _size
+} ;;
+
+eval <*A! fxbag> *FxBag fx_size | size @public -> <int> {
+  (FxBag as_bag) c_size
 } ;;
 
 eval <*A bag> *Bag <A> *Elem c_contain? | contain? @public -> <bool> {
@@ -82,9 +105,17 @@ eval <*A bag> *Bag <A> *Elem c_contain? | contain? @public -> <bool> {
   D Fs Elem _contain?
 } ;;
 
+eval <*A! fxbag> *FxBag <A> *Elem fx_contain? | contain? @public -> <bool> {
+  (FxBag as_bag) Elem c_contain?
+} ;;
+
 eval <*A bag> *Bag <A> *Elem c_get_all | get_all @public -> <A list> {
   Bag = d: *D fs: *Fs bag$,
   D Fs Elem _get_all
+} ;;
+
+eval <*A! fxbag> *FxBag <A> *Elem fx_get_all | get_all @public -> <A list> {
+  (FxBag as_bag) Elem c_get_all
 } ;;
 
 eval <*A bag> *Bag <A> *Elem c_add | add @public -> <A bag> {
@@ -93,10 +124,20 @@ eval <*A bag> *Bag <A> *Elem c_add | add @public -> <A bag> {
   d: D' fs: Fs bag$
 } ;;
 
+eval <*A! fxbag> *FxBag <A> *Elem fx_add | add @public -> <A fxbag> {
+  (FxBag as_bag) Elem c_add = *Bag',
+  Bag' as_fxbag
+} ;;
+
 eval <*A bag> *Bag <A> *Elem c_remove | remove @public -> <<A bag> <A maybe> tuple> {
   Bag = d: *D fs: *Fs bag$,
   D Fs Elem _remove = (| *D', *Removed_ |),
   (| d: D' fs: Fs bag$, Removed_ |)
+} ;;
+
+eval <*A! fxbag> *FxBag <A> *Elem fx_remove | remove @public -> <<A fxbag> <A maybe> tuple> {
+  (FxBag as_bag) Elem c_remove = (| *Bag', *Removed_ |),
+  (| Bag' as_fxbag, Removed_ |)
 } ;;
 
 eval <*A bag> *Bag <A> *Elem c_remove_all | remove_all @public -> <<A bag> <A list> tuple> {
@@ -105,16 +146,31 @@ eval <*A bag> *Bag <A> *Elem c_remove_all | remove_all @public -> <<A bag> <A li
   (| d: D' fs: Fs bag$, Removed_list |)
 } ;;
 
+eval <*A! fxbag> *FxBag <A> *Elem fx_remove_all | remove_all @public -> <<A fxbag> <A list> tuple> {
+  (FxBag as_bag) Elem c_remove_all = (| *Bag', *Removed_list |),
+  (| Bag' as_fxbag, Removed_list |)
+} ;;
+
 eval <*A bag> *Bag <A> *Elem c_delete | delete @public -> <A bag> {
   Bag = d: *D fs: *Fs bag$,
   D Fs Elem _delete = *D',
   d: D' fs: Fs bag$
 } ;;
 
+eval <*A! fxbag> *FxBag <A> *Elem fx_delete | delete @public -> <A fxbag> {
+  (FxBag as_bag) Elem c_delete = *Bag',
+  Bag' as_fxbag
+} ;;
+
 eval <*A bag> *Bag <A> *Elem c_delete_all | delete_all @public -> <A bag> {
   Bag = d: *D fs: *Fs bag$,
   D Fs Elem _delete_all = *D',
   d: D' fs: Fs bag$
+} ;;
+
+eval <*A! fxbag> *FxBag <A> *Elem fx_delete_all | delete_all @public -> <A fxbag> {
+  (FxBag as_bag) Elem c_delete_all = *Bag',
+  Bag' as_fxbag
 } ;;
 
 eval <*A bag> *Bag c_take | take @public -> <<A <A bag> tuple> maybe> {
@@ -125,10 +181,22 @@ eval <*A bag> *Bag c_take | take @public -> <<A <A bag> tuple> maybe> {
   }
 } ;;
 
+eval <*A! fxbag> *FxBag fx_take | take @public -> <<A <A fxbag> tuple> maybe> {
+  (FxBag as_bag) c_take >> case {
+  ; (| *Elem, *Bag' |) value$ -> (| Elem, Bag' as_fxbag |) value$
+  ; ** -> none$
+  }
+} ;;
+
 eval <*A bag> *Bag c_clear | clear @public -> <A bag> {
   Bag = d: *D fs: *Fs bag$,
   D Fs _clear = *D',
   d: D' fs: Fs bag$
+} ;;
+
+eval <*A! fxbag> *FxBag fx_clear | clear @public -> <A fxbag> {
+  (FxBag as_bag) c_clear = *Bag',
+  Bag' as_fxbag
 } ;;
 
 eval <*A bag> *Bag <A list> *Elems c_add_list | add_list @public -> <A bag> {
@@ -142,6 +210,16 @@ eval <*A bag> *Bag <A iter> *Iter c_add_iter | add_iter @public -> <A bag> {
   }
 } ;;
 
+eval <*A! fxbag> *FxBag <A list> *Elems fx_add_list | add_list @public -> <A fxbag> {
+  (FxBag as_bag) Elems c_add_list = *Bag',
+  Bag' as_fxbag
+} ;;
+
+eval <*A! fxbag> *FxBag <A iter> *Iter fx_add_iter | add_iter @public -> <A fxbag> {
+  (FxBag as_bag) Iter c_add_iter = *Bag',
+  Bag' as_fxbag
+} ;;
+
 eval <*A bag> *Bag <A list> *Elems c_delete_list | delete_list @public -> <A bag> {
   Bag (Elems list.iter) c_delete_iter
 } ;;
@@ -151,6 +229,16 @@ eval <*A bag> *Bag <A iter> *Iter c_delete_iter | delete_iter @public -> <A bag>
   ; (| *Elem, *Iter' |) value$ -> (Bag Elem c_delete) Iter' &&
   ; ** -> Bag
   }
+} ;;
+
+eval <*A! fxbag> *FxBag <A list> *Elems fx_delete_list | delete_list @public -> <A fxbag> {
+  (FxBag as_bag) Elems c_delete_list = *Bag',
+  Bag' as_fxbag
+} ;;
+
+eval <*A! fxbag> *FxBag <A iter> *Iter fx_delete_iter | delete_iter @public -> <A fxbag> {
+  (FxBag as_bag) Iter c_delete_iter = *Bag',
+  Bag' as_fxbag
 } ;;
 
 eval <*A bag> *Bag <A list> *Elems c_delete_all_list | delete_all_list @public -> <A bag> {
@@ -164,6 +252,16 @@ eval <*A bag> *Bag <A iter> *Iter c_delete_all_iter | delete_all_iter @public ->
   }
 } ;;
 
+eval <*A! fxbag> *FxBag <A list> *Elems fx_delete_all_list | delete_all_list @public -> <A fxbag> {
+  (FxBag as_bag) Elems c_delete_all_list = *Bag',
+  Bag' as_fxbag
+} ;;
+
+eval <*A! fxbag> *FxBag <A iter> *Iter fx_delete_all_iter | delete_all_iter @public -> <A fxbag> {
+  (FxBag as_bag) Iter c_delete_all_iter = *Bag',
+  Bag' as_fxbag
+} ;;
+
 eval <*A bag> *Bag c_iter | iter @public -> <A iter> {
   \\ <A iter_res> { Bag c_iter_next } iter$
 } ;;
@@ -174,6 +272,10 @@ eval <*A bag> *Bag c_iter_next -> <A iter_res> {
     (| Elem, \\ <A iter_res> { Bag' c_iter_next } iter$ |) value$
   ; ** -> none$
   }
+} ;;
+
+eval <*A! fxbag> *FxBag fx_iter | iter @public -> <A iter> {
+  (FxBag as_bag) c_iter
 } ;;
 
 
@@ -400,24 +502,56 @@ eval <*T! *A bag_fo> *Bag_fo fo_iter_next -> <A iter_res> {
 } ;;
 
 
-### feature implementation of common-behavior object
+### feature implementation of feature object
 
-eval <*A bag> *Bag as_a'bag -> <<A bag> A bag_fo> {
-  d: Bag fs: cbag_fo_fs bag_fo$
+eval <*T! *A bag_fo> *Bag_fo as_a'col -> <A col> {
+  Bag_fo [] &\ <T A bag_fo> *Fo <A list> *EsR -> <A list> {
+    Fo fo_take >> case {
+    ; (| *E, *Fo' |) value$ -> Fo' [ E ; EsR ] &&
+    ; ** -> EsR list.reverse
+    }
+  } = *Es,
+  d: (Es fo_col_d$) fs: bag_fo_col_fs col$
 } ;;
 
-eval cbag_fo_fs -> <<*A bag> A bag_fs> {
-  empty?_f: ^c_empty?
-  size_f: ^c_size
-  contain?_f: ^c_contain?
-  get_all_f: ^c_get_all
-  add_f: ^c_add
-  remove_f: ^c_remove
-  remove_all_f: ^c_remove_all
-  delete_f_: (^c_delete value$)
-  delete_all_f_: (^c_delete_all value$)
-  take_f: ^c_take
-  clear_f: ^c_clear
+extend <*A _1> -> fo_col_d := <A list> fo_col_d$ ;;
+
+eval bag_fo_col_fs -> <<*A col_d> A col_fs> {
+  empty?_f_: (\ <A col_d> *D -> <bool> {
+    D = *Es fo_col_d$, Es list.empty?
+  } value$)
+  size_f: \ <A col_d> *D -> <int> {
+    D = *Es fo_col_d$, Es list.length
+  }
+  take_f: \ <A col_d> *D
+      -> <<A <A col_d> tuple> maybe> {
+    D = *Es fo_col_d$, Es case {
+    ; [ *E ; *Es' ] -> (| E, Es' fo_col_d$ |) value$
+    ; ** -> none$
+    }
+  }
+  col_fs$
+} ;;
+
+
+### feature implementation of common-behavior object
+
+eval <*A! fxbag> *FxBag as_a'bag -> <<A fxbag> A bag_fo> {
+  d: FxBag fs: fxbag_fo_fs bag_fo$
+} ;;
+
+eval fxbag_fo_fs -> <<*A! fxbag> A bag_fs> {
+  empty?_f: ^fx_empty?
+  size_f: ^fx_size
+  contain?_f: ^fx_contain?
+  get_all_f: ^fx_get_all
+  add_f: ^fx_add
+  remove_f: ^fx_remove
+  remove_all_f: ^fx_remove_all
+  delete_f_: (^fx_delete value$)
+  delete_all_f_: (^fx_delete_all value$)
+  take_f: ^fx_take
+  clear_f: ^fx_clear
   bag_fs$
 } ;;
 
