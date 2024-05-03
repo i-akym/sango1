@@ -35,20 +35,16 @@ data <*A bag> @public :=
   fs: <<A d> A bag_fs>
   bag$ ;;
 
-data <*A! fxbag> @public :=
-  d: <A d>
-  fs: <<A d> A bag_fs>
-  fxbag$
+data <*A! fxbag> @opaque :=
+  <A bag> fxbag$
 ++ as_a'bag -> [ A a'bag ] ;;
 
 eval <*A! bag> *Bag as_fxbag @public -> <A fxbag> {
-  Bag = d: *D fs: *Fs bag$,
-  d: D fs: Fs fxbag$
+  Bag fxbag$
 } ;;
 
 eval <*A! fxbag> *FxBag as_bag @public -> <A bag> {
-  FxBag = d: *D fs: *Fs fxbag$,
-  d: D fs: Fs bag$
+  FxBag = *Bag fxbag$, Bag
 } ;;
 
 
