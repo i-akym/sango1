@@ -36,20 +36,16 @@ data <*A *B map> @public :=
   fs: <<A B d> A B map_fs>
   map$ ;;
 
-data <*A! *B! fxmap> @public :=
-  d: <A B d>
-  fs: <<A B d> A B map_fs>
-  fxmap$
+data <*A! *B! fxmap> @opaque :=
+  <A B map> fxmap$
 ++ as_a'map -> [ A B a'map ] ;;
 
 eval <*A! *B! map> *Map as_fxmap @public -> <A B fxmap> {
-  Map = d: *D fs: *Fs map$,
-  d: D fs: Fs fxmap$
+  Map fxmap$
 } ;;
 
 eval <*A! *B! fxmap> *FxMap as_map @public -> <A B map> {
-  FxMap = d: *D fs: *Fs fxmap$,
-  d: D fs: Fs map$
+  FxMap = *Map fxmap$, Map
 } ;;
 
 

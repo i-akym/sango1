@@ -35,20 +35,16 @@ data <*A set> @public :=
   fs: <<A d> A set_fs>
   set$ ;;
 
-data <*A! fxset> @public :=
-  d: <A d>
-  fs: <<A d> A set_fs>
-  fxset$
+data <*A! fxset> @opaque :=
+  <A set> fxset$
 ++ as_a'set -> [ A a'set ] ;;
 
 eval <*A! set> *Set as_fxset @public -> <A fxset> {
-  Set = d: *D fs: *Fs set$,
-  d: D fs: Fs fxset$
+  Set fxset$
 } ;;
 
 eval <*A! fxset> *FxSet as_set @public -> <A set> {
-  FxSet = d: *D fs: *Fs fxset$,
-  d: D fs: Fs set$
+  FxSet = *Set fxset$, Set
 } ;;
 
 
