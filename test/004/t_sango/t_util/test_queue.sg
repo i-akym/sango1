@@ -1,0 +1,29 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.queue" -> queue ;;
+import "sango.util.queue.simplequeue" -> squeue ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+eval test000 -> <void> {
+  squeue.new_queue [ 1, 2, 3 ] queue.enqueue_list
+    >> queue.as_fxqueue >> queue._feature_a'queue = *Q3,
+  Q3 _feature_a'col = *C3,
+  C3 size = 3,
+  C3 empty? = false$,
+  C3 take = (| **, *C2 |) value$,
+  C2 size = 2,
+  C2 take = (| **, *C1 |) value$,
+  C1 size = 1,
+  C1 take = (| **, *C0 |) value$,
+  C0 size = 0,
+  C0 empty? = true$,
+  C0 take = none$,
+  void$
+} ;;

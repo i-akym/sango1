@@ -33,9 +33,20 @@ alias type <*A d> @public := <A _1+> ;;
 data <*A queue> @public :=
   d: <A d>
   fs: <<A d> A queue_fs>
-  queue$
+  queue$ ;;
+
+data <*A! fxqueue> @opaque :=
+  <A queue> fxqueue$
 ++ as_a'queue -> [ A a'queue ]
 ;;
+
+eval <*A! queue> *Queue as_fxqueue @public -> <A fxqueue> {
+  Queue fxqueue$
+} ;;
+
+eval <*A! fxqueue> *FxQueue as_queue @public -> <A queue> {
+  FxQueue = *Queue fxqueue$, Queue
+} ;;
 
 
 ### definition of function set
@@ -54,10 +65,11 @@ data <*D *A queue_fs> @public :=
 
 feature <*T!> [ *A a'queue ] @public -> <T A queue_fo> ;;
 
-data <*T *A queue_fo> @public :=
+data <*T! *A queue_fo> @public :=
   d: <T>
   fs: <T A queue_fs>
-  queue_fo$ ;;
+  queue_fo$
+++ as_a'col -> [ A a'col ] ;;
 
 
 ### implementation of common-behavior object
@@ -67,9 +79,17 @@ eval <*A queue> *Queue c_empty? | empty? @public -> <bool> {
   D Fs _empty?
 } ;;
 
+eval <*A! fxqueue> *FxQueue fx_empty? | empty? @public -> <bool> {
+  (FxQueue as_queue) c_empty?
+} ;;
+
 eval <*A queue> *Queue c_length | length @public -> <int> {
   Queue = d: *D fs: *Fs queue$,
   D Fs _length
+} ;;
+
+eval <*A! fxqueue> *FxQueue fx_length | length @public -> <int> {
+  (FxQueue as_queue) c_length
 } ;;
 
 eval <*A queue> *Queue <A> *Elem c_enqueue | enqueue @public -> <A queue> {
@@ -78,9 +98,18 @@ eval <*A queue> *Queue <A> *Elem c_enqueue | enqueue @public -> <A queue> {
   d: D' fs: Fs queue$
 } ;;
 
+eval <*A! fxqueue> *FxQueue <A> *Elem fx_enqueue | enqueue @public -> <A fxqueue> {
+  (FxQueue as_queue) Elem c_enqueue = *Queue',
+  Queue' as_fxqueue
+} ;;
+
 eval <*A queue> *Queue c_head | head @public -> <A maybe> {
   Queue = d: *D fs: *Fs queue$,
   D Fs _head
+} ;;
+
+eval <*A! fxqueue> *FxQueue fx_head | head @public -> <A maybe> {
+  (FxQueue as_queue) c_head
 } ;;
 
 eval <*A queue> *Queue c_dequeue | dequeue @public -> <<A <A queue> tuple> maybe> {
@@ -91,9 +120,21 @@ eval <*A queue> *Queue c_dequeue | dequeue @public -> <<A <A queue> tuple> maybe
   }
 } ;;
 
+eval <*A! fxqueue> *FxQueue fx_dequeue | dequeue @public -> <<A <A fxqueue> tuple> maybe> {
+  (FxQueue as_queue) c_dequeue >> case {
+  ; (| *Elem, *Queue' |) value$ -> (| Elem, Queue' as_fxqueue |) value$
+  ; ** -> none$
+  }
+} ;;
+
 eval <*A queue> *Queue c_clear | clear @public -> <A queue> {
   Queue = d: *D fs: *Fs queue$,
   d: (D &(Fs clear_f)) :: Queue queue$
+} ;;
+
+eval <*A! fxqueue> *FxQueue fx_clear | clear @public -> <A fxqueue> {
+  (FxQueue as_queue) c_clear = *Queue',
+  Queue' as_fxqueue
 } ;;
 
 eval <*A queue> *Queue <A list> *Elems c_enqueue_list | enqueue_list @public -> <A queue> {
@@ -107,6 +148,16 @@ eval <*A queue> *Queue <A iter> *Iter c_enqueue_iter | enqueue_iter @public -> <
   }
 } ;;
 
+eval <*A! fxqueue> *FxQueue <A list> *Elems fx_enqueue_list | enqueue_list @public -> <A fxqueue> {
+  (FxQueue as_queue) Elems c_enqueue_list = *Queue',
+  Queue' as_fxqueue
+} ;;
+
+eval <*A! fxqueue> *FxQueue <A iter> *Iter fx_enqueue_iter | enqueue_iter @public -> <A fxqueue> {
+  (FxQueue as_queue) Iter c_enqueue_iter = *Queue',
+  Queue' as_fxqueue
+} ;;
+
 eval <*A queue> *Queue c_iter | iter @public -> <A iter> {
   \\ <A iter_res> { Queue c_iter_next } iter$
 } ;;
@@ -117,6 +168,10 @@ eval <*A queue> *Queue c_iter_next -> <A iter_res> {
     (| Elem, \\ <A iter_res> { Queue' c_iter_next } iter$ |) value$
   ; ** -> none$
   }
+} ;;
+
+eval <*A! fxqueue> *FxQueue fx_iter | iter @public -> <A iter> {
+  (FxQueue as_queue) c_iter
 } ;;
 
 
@@ -231,19 +286,51 @@ eval <*T! *A queue_fo> *Queue_fo fo_iter_next -> <A iter_res> {
 } ;;
 
 
-### feature implementation of common-behavior object
+### feature implementation of feature object
 
-eval <*A queue> *Queue as_a'queue -> <<A queue> A queue_fo> {
-  d: Queue fs: cqueue_fo_fs queue_fo$
+eval <*T! *A queue_fo> *Queue_fo as_a'col -> <A col> {
+  Queue_fo [] &\ <T A queue_fo> *Fo <A list> *EsR -> <A list> {
+    Fo fo_dequeue >> case {
+    ; (| *E, *Fo' |) value$ -> Fo' [ E ; EsR ] &&
+    ; ** -> EsR list.reverse
+    }
+  } = *Es,
+  d: (Es fo_col_d$) fs: queue_fo_col_fs col$
 } ;;
 
-eval cqueue_fo_fs -> <<*A queue> A queue_fs> {
-  empty?_f: ^c_empty?
-  length_f: ^c_length
-  enqueue_f: ^c_enqueue
-  head_f: ^c_head
-  dequeue_f: ^c_dequeue
-  clear_f: ^c_clear
+extend <*A _1> -> fo_col_d := <A list> fo_col_d$ ;;
+
+eval queue_fo_col_fs -> <<*A col_d> A col_fs> {
+  empty?_f_: (\ <A col_d> *D -> <bool> {
+    D = *Es fo_col_d$, Es list.empty?
+  } value$)
+  size_f: \ <A col_d> *D -> <int> {
+    D = *Es fo_col_d$, Es list.length
+  }
+  take_f: \ <A col_d> *D
+      -> <<A <A col_d> tuple> maybe> {
+    D = *Es fo_col_d$, Es case {
+    ; [ *E ; *Es' ] -> (| E, Es' fo_col_d$ |) value$
+    ; ** -> none$
+    }
+  }
+  col_fs$
+} ;;
+
+
+### feature implementation of common-behavior object
+
+eval <*A! fxqueue> *FxQueue as_a'queue -> <<A fxqueue> A queue_fo> {
+  d: FxQueue fs: fxqueue_fo_fs queue_fo$
+} ;;
+
+eval fxqueue_fo_fs -> <<*A! fxqueue> A queue_fs> {
+  empty?_f: ^fx_empty?
+  length_f: ^fx_length
+  enqueue_f: ^fx_enqueue
+  head_f: ^fx_head
+  dequeue_f: ^fx_dequeue
+  clear_f: ^fx_clear
   queue_fs$
 } ;;
 
