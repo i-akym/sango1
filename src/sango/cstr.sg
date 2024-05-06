@@ -148,6 +148,40 @@ eval <cstr> *S <cstr> *Seq <cstr> *New replace_all_cstr @public -> <cstr> {
   S Seq New str.replace_all_seq
 } ;;
 
+data @alpha <ocstr> @opaque :=
+  <cstr> ocstr$
+++ as_a'ord -> [ a'ord ] ;;
+
+eval <cstr> *S as_ocstr @public -> <ocstr> {
+  S ocstr$
+} ;;
+
+eval <ocstr> *OS as_cstr @public -> <cstr> {
+  OS = *S ocstr$, S
+} ;;
+
+eval <ocstr> *OS as_a'ord -> <ocstr ord_fs> {
+  ocstr_ord_fs
+} ;;
+
+eval ocstr_ord_fs -> <ocstr ord_fs> {
+  compare_f:
+    \ <ocstr> *OS0 <ocstr> *OS1 -> <ordering> { (OS0 as_cstr) (OS1 as_cstr) compare }
+  eq?_f_:
+    (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) eq? } value$)
+  lt?_f_:
+    (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) lt? } value$)
+  le?_f_:
+    (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) le? } value$)
+  gt?_f_:
+    (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) gt? } value$)
+  ge?_f_:
+    (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) ge? } value$)
+  hash_f:
+    \ <ocstr> *OS -> <int> { OS as_cstr >> hash }
+  ord_fs$
+} ;;
+
 eval <cstr> *S0 <cstr> *S1 compare @public -> <ordering> {
   S0 length = *L0,
   S1 length = *L1,
@@ -183,13 +217,13 @@ eval <cstr> *S0 <cstr> *S1 ge? @public -> <bool> {
 
 eval ord_fs @public -> <cstr ord_fs> {
   compare_f: ^compare
-    eq?_f_: (^eq? value$)
-    lt?_f_: (^lt? value$)
-    le?_f_: (^le? value$)
-    gt?_f_: (^gt? value$)
-    ge?_f_: (^ge? value$)
-    hash_f: ^hash
-    ord_fs$
+  eq?_f_: (^eq? value$)
+  lt?_f_: (^lt? value$)
+  le?_f_: (^le? value$)
+  gt?_f_: (^gt? value$)
+  ge?_f_: (^ge? value$)
+  hash_f: ^hash
+  ord_fs$
 } ;;
 
 eval <cstr> *S0 <cstr> *S1 eq_ignore_case? @public -> <bool> {
