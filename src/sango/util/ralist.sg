@@ -34,9 +34,20 @@ alias type <*A d> @public := <A _1+> ;;
 data <*A ralist> @public :=
   d: <A d>
   fs: <<A d> A ralist_fs>
-  ralist$
+  ralist$ ;;
+
+data <*A! fxralist> @opaque :=
+  <A ralist> fxralist$
 ++ as_a'ralist -> [ A a'ralist ]
 ;;
+
+eval <*A! ralist> *Ralist as_fxralist @public -> <A fxralist> {
+  Ralist fxralist$
+} ;;
+
+eval <*A! fxralist> *FxRalist as_ralist @public -> <A ralist> {
+  FxRalist = *Ralist fxralist$, Ralist
+} ;;
 
 
 ### definition of function set
@@ -62,10 +73,11 @@ data <*D *A ralist_fs> @public :=
 
 feature <*T!> [ *A a'ralist ] @public -> <T A ralist_fo> ;;
 
-data <*T *A ralist_fo> @public :=
+data <*T! *A ralist_fo> @public :=
   d: <T>
   fs: <T A ralist_fs>
-  ralist_fo$ ;;
+  ralist_fo$
+++ as_a'col -> [ A a'col ] ;;
 
 
 ### implementation of common-behavior object
@@ -75,8 +87,16 @@ eval <*A ralist> *Ralist c_empty? | empty? @public -> <bool> {
   D Fs _empty?
 } ;;
 
+eval <*A! fxralist> *FxRalist fx_empty? | empty? @public -> <bool> {
+  (FxRalist as_ralist) c_empty?
+} ;;
+
 eval <*A ralist> *Ralist c_non_empty? | non_empty? @public -> <bool> {
   Ralist c_empty? >> not
+} ;;
+
+eval <*A! fxralist> *FxRalist fx_non_empty? | non_empty? @public -> <bool> {
+  (FxRalist as_ralist) c_non_empty?
 } ;;
 
 eval <*A ralist> *Ralist c_length | length @public -> <int> {
@@ -84,9 +104,17 @@ eval <*A ralist> *Ralist c_length | length @public -> <int> {
   D Fs _length
 } ;;
 
+eval <*A! fxralist> *FxRalist fx_length | length @public -> <int> {
+  (FxRalist as_ralist) c_length
+} ;;
+
 eval <*A ralist> *Ralist <int> *Index c_elem | elem @public -> <A maybe> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs Index _elem
+} ;;
+
+eval <*A! fxralist> *FxRalist <int> *Index fx_elem | elem @public -> <A maybe> {
+  (FxRalist as_ralist) Index c_elem
 } ;;
 
 eval <*A ralist> *Ralist c_first | first | head @public -> <A maybe> {
@@ -94,9 +122,17 @@ eval <*A ralist> *Ralist c_first | first | head @public -> <A maybe> {
   D Fs _first
 } ;;
 
+eval <*A! fxralist> *FxRalist fx_first | first | head @public -> <A maybe> {
+  (FxRalist as_ralist) c_first
+} ;;
+
 eval <*A ralist> *Ralist c_last | last @public -> <A maybe> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs _last
+} ;;
+
+eval <*A! fxralist> *FxRalist fx_last | last @public -> <A maybe> {
+  (FxRalist as_ralist) c_last
 } ;;
 
 eval <*A ralist> *Ralist c_tail | tail @public -> <<A ralist> maybe> {
@@ -107,16 +143,33 @@ eval <*A ralist> *Ralist c_tail | tail @public -> <<A ralist> maybe> {
   }
 } ;;
 
+eval <*A! fxralist> *FxRalist fx_tail | tail @public -> <<A fxralist> maybe> {
+  (FxRalist as_ralist) c_tail >> case {
+  ; *Ralist' value$ -> (Ralist' as_fxralist) value$
+  ; ** -> none$
+  }
+} ;;
+
 eval <*A ralist> *Ralist <int> *Index <A> *Elem c_insert_at | insert_at @public -> <A ralist> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs Index Elem _insert_at = *D',
   d: D' fs: Fs ralist$
 } ;;
 
+eval <*A! fxralist> *FxRalist <int> *Index <A> *Elem fx_insert_at | insert_at @public -> <A fxralist> {
+  (FxRalist as_ralist) Index Elem c_insert_at = *Ralist',
+  Ralist' as_fxralist
+} ;;
+
 eval <*A ralist> *Ralist <A> *Elem c_append | append @public -> <A ralist> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs Elem _append = *D',
   d: D' fs: Fs ralist$
+} ;;
+
+eval <*A! fxralist> *FxRalist <A> *Elem fx_append | append @public -> <A fxralist> {
+  (FxRalist as_ralist) Elem c_append = *Ralist',
+  Ralist' as_fxralist
 } ;;
 
 eval <*A ralist> *Ralist <int> *Index c_remove_at | remove_at @public -> <<A ralist> <A maybe> tuple> {
@@ -127,10 +180,20 @@ eval <*A ralist> *Ralist <int> *Index c_remove_at | remove_at @public -> <<A ral
   }
 } ;;
 
+eval <*A! fxralist> *FxRalist <int> *Index fx_remove_at | remove_at @public -> <<A fxralist> <A maybe> tuple> {
+  (FxRalist as_ralist) Index c_remove_at = (| *Ralist', *Removed_ |),
+  (| Ralist' as_fxralist, Removed_ |)
+} ;;
+
 eval <*A ralist> *Ralist <int> *Index c_delete_at | delete_at @public -> <A ralist> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs Index _delete_at = *D',
   d: D' fs: Fs ralist$
+} ;;
+
+eval <*A! fxralist> *FxRalist <int> *Index fx_delete_at | delete_at @public -> <A fxralist> {
+  (FxRalist as_ralist) Index c_delete_at = *Ralist',
+  Ralist' as_fxralist
 } ;;
 
 eval <*A ralist> *Ralist <int> *Index <A> *Elem c_replace_at | replace_at @public -> <<A ralist> <A maybe> tuple> {
@@ -141,10 +204,20 @@ eval <*A ralist> *Ralist <int> *Index <A> *Elem c_replace_at | replace_at @publi
   }
 } ;;
 
+eval <*A! fxralist> *FxRalist <int> *Index <A> *Elem fx_replace_at | replace_at @public -> <<A fxralist> <A maybe> tuple> {
+  (FxRalist as_ralist) Index Elem c_replace_at = (| *Ralist', *Replaced_ |),
+  (| Ralist' as_fxralist, Replaced_ |)
+} ;;
+
 eval <*A ralist> *Ralist <int> *Index <A> *Elem c_update_at | update_at @public -> <A ralist> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs Index Elem _update_at = *D',
   d: D' fs: Fs ralist$
+} ;;
+
+eval <*A! fxralist> *FxRalist <int> *Index <A> *Elem fx_update_at | update_at @public -> <A fxralist> {
+  (FxRalist as_ralist) Index Elem c_update_at = *Ralist',
+  Ralist' as_fxralist
 } ;;
 
 eval <*A ralist> *Ralist <int> *Count c_take | take @public -> <A ralist> {
@@ -153,16 +226,31 @@ eval <*A ralist> *Ralist <int> *Count c_take | take @public -> <A ralist> {
   d: D' fs: Fs ralist$
 } ;;
 
+eval <*A! fxralist> *FxRalist <int> *Count fx_take | take @public -> <A fxralist> {
+  (FxRalist as_ralist) Count c_take = *Ralist',
+  Ralist' as_fxralist
+} ;;
+
 eval <*A ralist> *Ralist <int> *Count c_drop | drop @public -> <A ralist> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs Count _drop = *D',
   d: D' fs: Fs ralist$
 } ;;
 
+eval <*A! fxralist> *FxRalist <int> *Count fx_drop | drop @public -> <A fxralist> {
+  (FxRalist as_ralist) Count c_drop = *Ralist',
+  Ralist' as_fxralist
+} ;;
+
 eval <*A ralist> *Ralist c_clear | clear @public -> <A ralist> {
   Ralist = d: *D fs: *Fs ralist$,
   D Fs _clear = *D',
   d: D' fs: Fs ralist$
+} ;;
+
+eval <*A! fxralist> *FxRalist fx_clear | clear @public -> <A fxralist> {
+  (FxRalist as_ralist) c_clear = *Ralist',
+  Ralist' as_fxralist
 } ;;
 
 eval <*A ralist> *Ralist <A list> *Elems c_append_list | append_list @public -> <A ralist> {
@@ -176,6 +264,16 @@ eval <*A ralist> *Ralist <A iter> *Iter c_append_iter | append_iter @public -> <
   }
 } ;;
 
+eval <*A! fxralist> *FxRalist <A list> *Elems fx_append_list | append_list @public -> <A fxralist> {
+  (FxRalist as_ralist) Elems c_append_list = *Ralist',
+  Ralist' as_fxralist
+} ;;
+
+eval <*A! fxralist> *FxRalist <A iter> *Iter fx_append_iter | append_iter @public -> <A fxralist> {
+  (FxRalist as_ralist) Iter c_append_iter = *Ralist',
+  Ralist' as_fxralist
+} ;;
+
 eval <*A ralist> *Ralist c_iter | iter @public -> <A iter> {
   \\ <A iter_res> { Ralist c_iter_next } iter$
 } ;;
@@ -186,6 +284,10 @@ eval <*A ralist> *Ralist c_iter_next -> <A iter_res> {
     (| Elem, \\ <A iter_res> { (Ralist c_tail >> value) c_iter_next } iter$ |) value$
   ; ** -> none$
   }
+} ;;
+
+eval <*A! fxralist> *FxRalist fx_iter | iter @public -> <A iter> {
+  (FxRalist as_ralist) c_iter
 } ;;
 
 
@@ -207,6 +309,16 @@ eval <*T![ *A a'ralist ]> *FRalist f_non_empty? | non_empty? @public -> <bool> {
 
 eval <*T! *A ralist_fo> *Ralist_fo fo_non_empty? | non_empty? @public -> <bool> {
   Ralist_fo fo_empty? >> not
+} ;;
+
+eval <*T![ *A a'ralist ]> *FRalist f_length | length @public -> <int> {
+  FRalist _feature_a'ralist = *Ralist_fo,
+  Ralist_fo fo_length
+} ;;
+
+eval <*T! *A ralist_fo> *Ralist_fo fo_length | length @public -> <int> {
+  Ralist_fo = d: *D fs: *Fs ralist_fo$,
+  D Fs _length
 } ;;
 
 eval <*T![ *A a'ralist ]> *FRalist <int> *Index f_elem | elem @public -> <A maybe> {
@@ -414,26 +526,58 @@ eval <*T! *A ralist_fo> *Ralist_fo fo_iter_next -> <A iter_res> {
 } ;;
 
 
-### feature implementation of common-behavior object
+### feature implementation of feature object
 
-eval <*A ralist> *Ralist as_a'ralist -> <<A ralist> A ralist_fo> {
-  d: Ralist fs: cralist_fo_fs ralist_fo$
+eval <*T! *A ralist_fo> *Ralist_fo as_a'col -> <A col> {
+  Ralist_fo [] &\ <T A ralist_fo> *Fo <A list> *EsR -> <A list> {
+    Fo fo_first >> case {
+    ; *E value$ -> (Fo fo_tail >> value) [ E ; EsR ] &&
+    ; ** -> EsR list.reverse
+    }
+  } = *Es,
+  d: (Es fo_col_d$) fs: ralist_fo_col_fs col$
 } ;;
 
-eval cralist_fo_fs -> <<*A ralist> A ralist_fs> {
-  empty?_f_: (^c_empty? value$)
-  length_f: ^c_length
-  elem_f: ^c_elem
-  first_f_: (^c_first value$)
-  last_f_: (^c_last value$)
-  tail_f_: (^c_tail value$)
-  insert_at_f: ^c_insert_at
-  append_f_: (^c_append value$)
-  remove_at_f: ^c_remove_at
-  replace_at_f_: (^c_replace_at value$)
-  take_f_: (^c_take value$)
-  drop_f_: (^c_drop value$)
-  clear_f: ^c_clear
+extend <*A _1> -> fo_col_d := <A list> fo_col_d$ ;;
+
+eval ralist_fo_col_fs -> <<*A col_d> A col_fs> {
+  empty?_f_: (\ <A col_d> *D -> <bool> {
+    D = *Es fo_col_d$, Es list.empty?
+  } value$)
+  size_f: \ <A col_d> *D -> <int> {
+    D = *Es fo_col_d$, Es list.length
+  }
+  take_f: \ <A col_d> *D
+      -> <<A <A col_d> tuple> maybe> {
+    D = *Es fo_col_d$, Es case {
+    ; [ *E ; *Es' ] -> (| E, Es' fo_col_d$ |) value$
+    ; ** -> none$
+    }
+  }
+  col_fs$
+} ;;
+
+
+### feature implementation of common-behavior object
+
+eval <*A! fxralist> *FxRalist as_a'ralist -> <<A fxralist> A ralist_fo> {
+  d: FxRalist fs: fxralist_fo_fs ralist_fo$
+} ;;
+
+eval fxralist_fo_fs -> <<*A! fxralist> A ralist_fs> {
+  empty?_f_: (^fx_empty? value$)
+  length_f: ^fx_length
+  elem_f: ^fx_elem
+  first_f_: (^fx_first value$)
+  last_f_: (^fx_last value$)
+  tail_f_: (^fx_tail value$)
+  insert_at_f: ^fx_insert_at
+  append_f_: (^fx_append value$)
+  remove_at_f: ^fx_remove_at
+  replace_at_f_: (^fx_replace_at value$)
+  take_f_: (^fx_take value$)
+  drop_f_: (^fx_drop value$)
+  clear_f: ^fx_clear
   ralist_fs$
 } ;;
 
