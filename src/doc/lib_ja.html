@@ -201,10 +201,10 @@ kbd {
   <a href="#sango.util.queue.1">フレームワーク</a>
   <a href="#sango.util.queue.2">実装者向け情報</a>
 <a href="#sango.util.queue.simplequeue"><code>sango.util.queue.simplequeue</code></a>
-<a href="#sango.util.random"><code>sango.util.random</code></a>
 <a href="#sango.util.ralist"><code>sango.util.ralist</code></a>
   <a href="#sango.util.ralist.1">フレームワーク</a>
   <a href="#sango.util.ralist.2">実装者向け情報</a>
+<a href="#sango.util.random"><code>sango.util.random</code></a>
 <a href="#sango.util.set"><code>sango.util.set</code></a>
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
@@ -3684,29 +3684,6 @@ data &lt;*A queue&gt; @public :=
 <p>simple queueのオブジェクトを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.random"><code>sango.util.random</code></h1>
-
-<p>0.0以上1.0未満の乱数を発生させます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.num.bigint&quot;.bigint&gt; *Seed new_generator @public -&gt; &lt;real iter&gt; ;;</code></td></tr></table>
-<p>乱数発生器を生成します。<code>Seed</code>には，1以上2<sup>64</sup>-1以下の値を指定します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;real iter&gt; *Gen start_service @public -&gt; &lt;svc_h&gt; ;;</code></td></tr></table>
-<p>乱数発生サービスを開始します。ハンドルを使用して乱数を発生できます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;svc_h&gt; *Svc svc_generate | generate @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
-<p>乱数を発生させます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;svc_h&gt; *Svc &lt;real iter&gt; *New_gen svc_set_generator | set_generator @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>乱数発生サービスに乱数発生器を設定しなおします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval builtin_generate | generate @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
-<p>モジュールに組み込まれた乱数発生サービスを使用して乱数を発生させます。このサービスはモジュール初期化時に開始しています。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;real iter&gt; *Gen builtin_set_generator | set_generator @public -&gt; &lt;void&gt;</code></td></tr></table>
-<p>モジュールに組み込まれた乱数発生サービスに乱数発生器を設定しなおします。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.ralist"><code>sango.util.ralist</code></h1>
 
 <p>リストの要素を指標によってアクセスするには，指標に比例するコストがかかります。
@@ -3800,7 +3777,7 @@ data &lt;*A ralist&gt; @public :=
 <h2 id="sango.util.ralist.2"><code>sango.util.ralist</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A ralist_fs&gt; @public :=
-  empty?_f_: &lt;&lt;D bool fun&gt; maybe&gt;
+  empty?_f: &lt;D bool fun&gt;
   length_f: &lt;D int fun&gt;
   elem_f: &lt;D int &lt;A maybe&gt; fun&gt;
   first_f_: &lt;&lt;D &lt;A maybe&gt; fun&gt; maybe&gt;
@@ -3815,9 +3792,6 @@ data &lt;*A ralist&gt; @public :=
   clear_f: &lt;D D fun&gt;
   ralist_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_empty?_f | empty?_f @public -&gt; &lt;D bool fun&gt; ;;</code></td></tr></table>
-<p>リストが空かどうかを判定する関数を返します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_first_f | first_f @public -&gt; &lt;D &lt;A maybe&gt; fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭要素を返す関数を返します。</p>
@@ -3845,6 +3819,29 @@ data &lt;*A ralist&gt; @public :=
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist_fs&gt; *Fs ralist_fs_drop_f | drop_f @public -&gt; &lt;D int D fun&gt; ;;</code></td></tr></table>
 <p>リストの先頭から指定された個数の要素を除く関数を返します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.random"><code>sango.util.random</code></h1>
+
+<p>0.0以上1.0未満の乱数を発生させます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;&quot;sango.num.bigint&quot;.bigint&gt; *Seed new_generator @public -&gt; &lt;real iter&gt; ;;</code></td></tr></table>
+<p>乱数発生器を生成します。<code>Seed</code>には，1以上2<sup>64</sup>-1以下の値を指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;real iter&gt; *Gen start_service @public -&gt; &lt;svc_h&gt; ;;</code></td></tr></table>
+<p>乱数発生サービスを開始します。ハンドルを使用して乱数を発生できます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;svc_h&gt; *Svc svc_generate | generate @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
+<p>乱数を発生させます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;svc_h&gt; *Svc &lt;real iter&gt; *New_gen svc_set_generator | set_generator @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>乱数発生サービスに乱数発生器を設定しなおします。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval builtin_generate | generate @public -&gt; &lt;real&gt; ;;</code></td></tr></table>
+<p>モジュールに組み込まれた乱数発生サービスを使用して乱数を発生させます。このサービスはモジュール初期化時に開始しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;real iter&gt; *Gen builtin_set_generator | set_generator @public -&gt; &lt;void&gt;</code></td></tr></table>
+<p>モジュールに組み込まれた乱数発生サービスに乱数発生器を設定しなおします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.set"><code>sango.util.set</code></h1>

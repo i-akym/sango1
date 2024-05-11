@@ -57,20 +57,20 @@ eval new_ralist @public -> <*A ral.ralist> {
 } ;;
 
 eval ralist_fs -> <<*A ral.d> A ral.ralist_fs> {
-  empty?_f_: (^empty? value$)
-    length_f: ^length
-    elem_f: ^elem
-    first_f_: none$
-    last_f_: none$
-    tail_f_: none$
-    insert_at_f: ^insert_at
-    append_f_: none$
-    remove_at_f: ^remove_at
-    replace_at_f_: none$
-    take_f_: none$
-    drop_f_: none$
-    clear_f: ^clear
-    ral.ralist_fs$
+  empty?_f: ^empty?
+  length_f: ^length
+  elem_f: ^elem
+  first_f_: none$
+  last_f_: none$
+  tail_f_: none$
+  insert_at_f: ^insert_at
+  append_f_: none$
+  remove_at_f: ^remove_at
+  replace_at_f_: none$
+  take_f_: none$
+  drop_f_: none$
+  clear_f: ^clear
+  ral.ralist_fs$
 } ;;
 
 eval <*A ral.d> *D empty? -> <bool> {
