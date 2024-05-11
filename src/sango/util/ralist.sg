@@ -53,7 +53,7 @@ eval <*A! fxralist> *FxRalist as_ralist @public -> <A ralist> {
 ### definition of function set
 
 data <*D *A ralist_fs> @public :=
-  empty?_f_: <<D bool fun> maybe>
+  empty?_f: <D bool fun>
   length_f: <D int fun>
   elem_f: <D int <A maybe> fun>
   first_f_: <<D <A maybe> fun> maybe>
@@ -565,7 +565,7 @@ eval <*A! fxralist> *FxRalist as_a'ralist -> <<A fxralist> A ralist_fo> {
 } ;;
 
 eval fxralist_fo_fs -> <<*A! fxralist> A ralist_fs> {
-  empty?_f_: (^fx_empty? value$)
+  empty?_f: ^fx_empty?
   length_f: ^fx_length
   elem_f: ^fx_elem
   first_f_: (^fx_first value$)
@@ -583,16 +583,6 @@ eval fxralist_fo_fs -> <<*A! fxralist> A ralist_fs> {
 
 
 ### subroutines
-
-eval <*D *A ralist_fs> *Fs ralist_fs_empty?_f | empty?_f @public -> <D bool fun> {
-  Fs empty?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *LD -> <bool> {
-      LD &(Fs length_f) >> zero?
-    }
-  }
-} ;;
 
 eval <*D *A ralist_fs> *Fs ralist_fs_first_f | first_f @public -> <D <A maybe> fun> {
   Fs first_f_ >> case {
