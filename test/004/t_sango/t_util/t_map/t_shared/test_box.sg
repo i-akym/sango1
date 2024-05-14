@@ -1,0 +1,38 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.shared" -> shmap ;;
+import "sango.util.map.shared.box" -> map_box ;;
+import "sango.util.map.simplemap" -> simplemap ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+eval test000 -> <void> {
+  simplemap.new_map = <int cstr map.map> *SM,
+  SM map.as_fxmap >> map_box.create_box = *M,
+  M shmap.empty? = true$,
+  M 1 "abc" shmap.put = none$,
+  M 1 "ABC" shmap.put_new = false$,
+  M 2 "def" shmap.put_new = true$,
+  M 2 "DEF" shmap.put = (| 2, "def" |) value$,
+  M shmap.size = 2,
+  M 2 shmap.get = (| 2, "DEF" |) value$,
+  M 2 shmap.assoc = "DEF" value$,
+  M 3 "ghi" shmap.put = none$,
+  M 2 shmap.remove = (| 2, "DEF" |) value$,
+  M shmap.clear,
+  M shmap.empty? = true$,
+  M [ (| 4, "jkl" |), (| 5, "mno" |), (| 6, "pqr" |) ] shmap.add_list,
+  M [ 4, 6 ] shmap.delete_list,
+  M shmap.extract = *I0,
+  I0 next = (| **, *I1 |) value$,
+  I1 next = none$,
+  void$
+} ;;

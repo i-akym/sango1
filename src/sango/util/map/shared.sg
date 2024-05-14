@@ -1,0 +1,145 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2024 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.map.shared" ;;
+
+import "sango.list" -> list ;;
+
+feature <*T> [ *A! *B! a'shared_map ] -> <A B shared_map_h> ;;
+
+data <*A! *B! shared_map_h> @public :=
+  extract_f: <<<A B tuple> iter> fun>
+  empty?_f: <bool fun>
+  size_f: <int fun>
+  get_f: <A <<A B tuple> maybe> fun>
+  assoc_f_: <<A <B maybe> fun> maybe>
+  contain_key?_f_: <<A bool fun> maybe>
+  put_f: <A B <<A B tuple> maybe> fun>
+  put_new_f_: <<A B bool fun> maybe>
+  add_f_: <<A B void fun> maybe>
+  remove_f: <A <<A B tuple> maybe> fun>
+  delete_f_: <<A void fun> maybe>
+  take_f: <<<A B tuple> maybe> fun>
+  clear_f: <void fun>
+  shared_map_h$ ;;
+
+eval <*A! *B! shared_map_h> *Map_h extract @public -> <<A B tuple> iter> {
+  &(Map_h extract_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h empty? @public -> <bool> {
+  &(Map_h empty?_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h size @public -> <int> {
+  &(Map_h size_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
+  Key &(Map_h get_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
+  Map_h assoc_f_ >> case {
+  ; *F value$ -> Key &F
+  ; ** ->
+    Map_h Key get >> case {
+    ; (| **, *V |) value$ -> V value$
+    ; ** -> none$
+    }
+  }
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
+  Map_h contain_key?_f_ >> case {
+  ; *F value$ -> Key &F
+  ; ** ->
+    Map_h Key get >> case {
+    ; ** value$ -> true$
+    ; ** -> false$
+    }
+  }
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key <B> *Assoc put @public -> <<A B tuple> maybe> {
+  Key Assoc &(Map_h put_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key <B> *Assoc put_new @public -> <bool> {
+  Map_h put_new_f_ >> case {
+  ; *F value$ -> Key Assoc &F
+  ; ** ->
+    Map_h Key get >> case {
+    ; none$ -> Map_h Key Assoc put, true$
+    ; ** -> false$
+    }
+  }
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key <B> *Assoc add @public -> <void> {
+  Map_h add_f_ >> case {
+  ; *F value$ -> Key Assoc &F
+  ; ** -> Map_h Key Assoc put >> ignore
+  }
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
+  Key &(Map_h remove_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A> *Key delete @public -> <void> {
+  Map_h delete_f_ >> case {
+  ; *F value$ -> Key &F
+  ; ** -> Map_h Key remove >> ignore
+  }
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h clear @public -> <void> {
+  &(Map_h clear_f)
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
+  Map_h (KVs list.iter) add_iter
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
+  Iter next >> case {
+  ; (| (| *K, *V |), *Iter' |) value$ ->
+    Map_h K V add,
+    Map_h Iter' &&
+  ; ** ->
+  }
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A list> *Keys delete_list @public -> <void> {
+  Map_h (Keys list.iter) delete_iter
+} ;;
+
+eval <*A! *B! shared_map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
+  Iter next >> case {
+  ; (| *K, *Iter' |) value$ ->
+    Map_h K delete,
+    Map_h Iter' &&
+  ; ** ->
+  }
+} ;;
