@@ -1066,7 +1066,7 @@ if (DEBUG > 1) {
         emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
-        emsg.append(t);
+        emsg.append(PTypeSkel.Repr.topLevelRepr(t));
         throw new CompileException(emsg.toString());
       }
       return t;
