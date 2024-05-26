@@ -167,19 +167,6 @@ public class PTypeRefSkel implements PTypeSkel {
     return c;
   }
 
-  // public void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException {
-    // if (isFun(this)) {
-      // for (int i = 0; i < this.params.length - 1; i++) {
-        // this.params[i].checkConstraint(true, checked);
-      // }
-      // this.params[this.params.length - 1].checkConstraint(false, checked);
-    // } else {
-      // for (int i = 0; i < this.params.length; i++) {
-        // this.params[i].checkConstraint(isArg, checked);
-      // }
-    // }
-  // }
-
   public boolean isLiteralNaked() {
     return this.tconProps.key.modName.equals(Module.MOD_LANG) && 
       this.tconProps.key.idName.equals(Module.TCON_EXPOSED) ;
@@ -193,12 +180,30 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
+  public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+    boolean b = true;
+    for (int i = 0; b & i < this.params.length; i++) {
+      b &= this.params[i].isConcrete(givenTVarList);
+    }
+    return b;
+  }
+
   public boolean isConcrete(PTypeSkelBindings bindings) {
     boolean b = true;
     for (int i = 0; b & i < this.params.length; i++) {
       b &= this.params[i].isConcrete(bindings);
     }
     return b;
+  }
+
+  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+    if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
+    PTypeRefSkel tt = (PTypeRefSkel)type;
+    PTypeSkel t = null;
+    for (int i = 0; t == null && i < this.params.length; i++) {
+      t = this.params[i].extractAnyInconcreteVar(tt.params[i], givenTVarList);
+    }
+    return t;
   }
 
   public PDefDict.TconProps getTconInfo() {

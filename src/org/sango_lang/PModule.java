@@ -1245,6 +1245,12 @@ class PModule implements PDefDict {
         b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], bindings);
       }
       if (b) {
+        for (int j = 0; b && j < pts.length; j++) {
+          PTypeSkel p = paramTypes[j].resolveBindings(bindings);
+          b = pts[j].extractAnyInconcreteVar(p, givenTVarList) == null;
+        }
+      }
+      if (b) {
         sel = PDefDict.FunSelRes.create(fd, bindings);
       }
     }

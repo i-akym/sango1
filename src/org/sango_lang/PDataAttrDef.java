@@ -176,16 +176,17 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
       } else if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
         // formally OK...
       } else {
-        PDefDict.TparamProps[] ps = t.tconProps.paramProps;
-        for (int i = 0; i < ps.length; i++) {
-          if (ps[i].concrete & !t.params[i].isConcrete()) {
-            StringBuffer emsg = new StringBuffer();
-            emsg.append("Non-concrete type definition for attribute at ");
-            emsg.append(this.getSrcInfo());
-            emsg.append(".");
-            throw new CompileException(emsg.toString());
-          }
-        }
+// TODO
+        // PDefDict.TparamProps[] ps = t.tconProps.paramProps;
+        // for (int i = 0; i < ps.length; i++) {
+          // if (ps[i].concrete & !t.params[i].isConcrete()) {
+            // StringBuffer emsg = new StringBuffer();
+            // emsg.append("Non-concrete type definition for attribute at ");
+            // emsg.append(this.getSrcInfo());
+            // emsg.append(".");
+            // throw new CompileException(emsg.toString());
+          // }
+        // }
       }
     }
   }

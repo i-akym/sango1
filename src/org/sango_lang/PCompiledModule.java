@@ -575,7 +575,7 @@ class PCompiledModule implements PDefDict {
     public PTypeSkel getFixedRetType() { return this.retType; }
   }
 
-  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {
+  PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
     List<FunDef> funList = this.funListDict.get(name);
     if (funList == null) { return null; }
     PDefDict.FunSelRes sel = null;
@@ -583,10 +583,16 @@ class PCompiledModule implements PDefDict {
       FunDef fd = funList.get(i);
       PTypeSkel[] pts = fd.getParamTypes();
       if (pts.length != paramTypes.length) { continue; }
-      PTypeSkelBindings bindings = PTypeSkelBindings.create(givenVarList);
+      PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
       boolean b = true;
       for (int j = 0; b && j < pts.length; j++) {
         b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], bindings);
+      }
+      if (b) {
+        for (int j = 0; b && j < pts.length; j++) {
+          PTypeSkel p = paramTypes[j].resolveBindings(bindings);
+          b = pts[j].extractAnyInconcreteVar(p, givenTVarList) == null;
+        }
       }
       if (b) {
         sel = PDefDict.FunSelRes.create(fd, bindings);
@@ -623,11 +629,11 @@ class PCompiledModule implements PDefDict {
 
     public PDataDef getDataDef() { return this.dataDef; }
 
-    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenVarList) throws CompileException {
+    public PDefDict.FunSelRes selectFunDef(PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
       PDefDict.FunSelRes r = null;
       if (this.funName == null) {
         ;
-      } else if ((r = PCompiledModule.this.selectFun(this.funName, paramTypes, givenVarList)) != null) {
+      } else if ((r = PCompiledModule.this.selectFun(this.funName, paramTypes, givenTVarList)) != null) {
         ;
       } else if (this.searchInLang) {
         throw new RuntimeException("PCompiledModule.ExprDefGetter#selectFunDef when 'search in lang' is on.");

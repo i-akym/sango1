@@ -107,6 +107,15 @@ public class PFeatureSkel {
     }
   }
 
+  PTypeSkel extractAnyInconcreteVar(java.util.List<PTypeVarSlot> givenTVarList) {
+    PTypeSkel t = null;
+// TODO
+    // for (int i = 0; t == null && i < this.params.length; i++) {
+      // t = this.params[i].extractAnyInconcreteVar(givenTVarList);
+    // }
+    return t;
+  }
+
   boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;
     for (int i = 0; !b && i < this.params.length; i++) {
@@ -304,6 +313,15 @@ public class PFeatureSkel {
       for (int i = 0; i < this.features.length; i++) {
         this.features[i].extractVars(extracted);
       }
+    }
+
+    PTypeSkel extractAnyInconcreteVar(java.util.List<PTypeVarSlot> givenTVarList) {
+      PTypeSkel t = null;
+// TODO
+      // for (int i = 0; null == null && i < this.features.length; i++) {
+        // t = this.features[i].extractAnyInconcreteVar(givenTVarList);
+      // }
+      return t;
     }
 
     boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {

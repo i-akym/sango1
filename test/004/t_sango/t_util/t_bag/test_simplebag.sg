@@ -21,5 +21,6 @@ eval test000 -> <void> {
   simplebag.new_bag >> t1.testA00
 } ;;
 eval test010 -> <void> {
-  simplebag.new_bag >> bag.as_fxbag >> t1.testB00
+  simplebag.new_bag = <int bag.bag> *B,
+  B bag.as_fxbag >> t1.testB00
 } ;;
