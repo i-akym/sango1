@@ -595,6 +595,18 @@ if (DEBUG > 1) {
           emsg.append(PTypeSkel.Repr.topLevelRepr(t));
           throw new CompileException(emsg.toString());
         }
+        PTypeSkel p = t.resolveBindings(this.bindings);
+        if (ctr.params[i].extractAnyInconcreteVar(p, this.bindings.givenTVarList) != null) {
+          emsg = new StringBuffer();
+          emsg.append("Inconcrete parameter at ");
+          emsg.append(this.exprObj.getSrcInfo());
+          emsg.append(".");
+          emsg.append("\n  required: ");
+          emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i]));
+          emsg.append("\n  actual: ");
+          emsg.append(PTypeSkel.Repr.topLevelRepr(p));
+          throw new CompileException(emsg.toString());
+        }
       }
 if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
