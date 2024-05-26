@@ -946,7 +946,21 @@ if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
       /* DEBUG */ System.out.println(b);
 }
-      return constr.getType(b);
+      PTypeSkel dt = constr.getType(b);
+      PTypeRefSkel sig = dataDef.getTypeSig();
+      if (sig.extractAnyInconcreteVar(dt, b.givenTVarList) != null) {
+        emsg = new StringBuffer();
+        emsg.append("Attempt to construct data including inconcrete type parameter at ");
+        emsg.append(this.exprObj.getSrcInfo());
+        emsg.append(".");
+        emsg.append("\n  required: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
+        emsg.append("\n  actual: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(dt));
+        throw new CompileException(emsg.toString());
+      }
+
+      return dt;
     }
   }
 
