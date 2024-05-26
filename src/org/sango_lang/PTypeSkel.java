@@ -45,7 +45,11 @@ public interface PTypeSkel {
 
   boolean isConcrete();
 
+  boolean isConcrete(List<PTypeVarSlot> givenTVarList);
+
   boolean isConcrete(PTypeSkelBindings bindings);
+
+  PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 

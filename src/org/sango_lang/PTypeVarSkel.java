@@ -38,7 +38,7 @@ public class PTypeVarSkel implements PTypeSkel {
   public static PTypeVarSkel create(Parser.SrcInfo srcInfo, String name, PTypeVarSlot varSlot, /* PTypeSkel constraint, */ PFeatureSkel.List features) {
     PTypeVarSkel var = new PTypeVarSkel();
     var.srcInfo = srcInfo;
-    var.name = ((name != null)? name + ".": "$") + Integer.toString(varSlot.id);
+    var.name = ((name != null)? name + ".": "$") + varSlot.toString();
     var.varSlot = varSlot;
     var.features = features;  // maybe null temprally, set later
     return var;
@@ -85,38 +85,37 @@ public class PTypeVarSkel implements PTypeSkel {
     return PTypeSkel.CAT_VAR;
   }
 
-  // public void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException {
-    // StringBuffer emsg;
-    // if (checked.contains(this.varSlot)) { return; }
-    // if (PTypeRefSkel.isAny(this.constraint)) {
-      // checked.add(this.varSlot);
-    // } else if (!isArg) {
-      // emsg = new StringBuffer();
-      // emsg.append("Constraint not allowed for ");
-      // emsg.append(this.name);
-      // emsg.append(" at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // } else {
-      // this.constraint.checkConstraint(false, checked);
-      // checked.add(this.varSlot);
-    // }
-  // }
-
   public boolean isLiteralNaked() { return false; }
 
-  public boolean isConcrete() { return this.varSlot.requiresConcrete; }
+  public boolean isConcrete() {
+    return this.varSlot.requiresConcrete;
+  }
+
+  public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+    return this.varSlot.requiresConcrete & givenTVarList.contains(this.varSlot);
+  }
 
   public boolean isConcrete(PTypeSkelBindings bindings) {
     PTypeSkel t = this.resolveBindings(bindings);
     boolean b;
     if (t == this) {
-      b = this.isConcrete();
+      b = this.isConcrete(bindings.givenTVarList);
     } else {
       b = t.isConcrete(bindings);
     }
     return b;
+  }
+
+  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+    PTypeSkel t = null;
+    if (!this.varSlot.requiresConcrete) {
+      ; 
+    } else if (!type.isConcrete(givenTVarList)) {
+      t = type;
+    } else {
+      t = this.features.extractAnyInconcreteVar(givenTVarList);
+    }
+    return t;
   }
 
   public PTypeSkel resolveBindings(PTypeSkelBindings bindings) {
@@ -320,11 +319,11 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeSome A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (this.varSlot.requiresConcrete && !tr.isConcrete(bindings)) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeSome B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
-}
-      b = false;
+    // } else if (this.varSlot.requiresConcrete && !tr.isConcrete(bindings)) {
+// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  // System.out.print("PTypeVarSkel#accept1FreeSome B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+// }
+      // b = false;
     } else if (tr.includesVar(this.varSlot, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeSome D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
@@ -558,9 +557,6 @@ if (PTypeGraph.DEBUG > 1) {
     if (!extracted.contains(this.varSlot)) {
       extracted.add(this.varSlot);
     }
-    // if (this.constraint != null) {
-      // this.constraint.extractVars(extracted);
-    // }
     this.features.extractVars(extracted);
   }
 
@@ -573,15 +569,11 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTypeSkel.Repr repr() {
     PTypeSkel.Repr r = PTypeSkel.Repr.create();
-    // if (!PTypeRefSkel.isAny(this.constraint)) {
-      // r.append(this.constraint.repr());
-      // r.add("=");
-    // }
     StringBuffer buf = new StringBuffer();
     buf.append(name);
-    if (this.varSlot.requiresConcrete) {
-      buf.append("!");
-    }
+    // if (this.varSlot.requiresConcrete) {
+      // buf.append("!");
+    // }
     if (!this.features.isEmpty()) {
       buf.append(this.features.repr());
     }
