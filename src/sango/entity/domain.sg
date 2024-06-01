@@ -74,14 +74,15 @@ eval <*A! entity_h> *E0 <*B! entity_h> *E1 entity_compare | compare @public -> <
 } ;;
 
 eval entity_ord_fs @public -> <<*A! entity_h> ord_fs> {
+  none$ = <<<*T! entity_h> <T entity_h> bool fun> maybe> *N,
   compare_f: ^entity_compare
-    eq?_f_: none$
-    lt?_f_: none$
-    le?_f_: none$
-    gt?_f_: none$
-    ge?_f_: none$
-    hash_f: ^_hash_entity_h
-    ord_fs$
+  eq?_f_: N
+  lt?_f_: N
+  le?_f_: N
+  gt?_f_: N
+  ge?_f_: N
+  hash_f: ^_hash_entity_h
+  ord_fs$
 } ;;
 
 data <*A! weak_holder_h> @opaque :=
@@ -108,14 +109,15 @@ eval <*A! weak_holder_h> *W0 <*B! weak_holder_h> *W1 weak_holder_compare | compa
 } ;;
 
 eval weak_holder_ord_fs @public -> <<*A! weak_holder_h> ord_fs> {
+  none$ = <<<*T! weak_holder_h> <T weak_holder_h> bool fun> maybe> *N,
   compare_f: ^weak_holder_compare
-    eq?_f_: none$
-    lt?_f_: none$
-    le?_f_: none$
-    gt?_f_: none$
-    ge?_f_: none$
-    hash_f: ^_hash_weak_holder_h
-    ord_fs$
+  eq?_f_: N
+  lt?_f_: N
+  le?_f_: N
+  gt?_f_: N
+  ge?_f_: N
+  hash_f: ^_hash_weak_holder_h
+  ord_fs$
 } ;;
 
 eval <domain_h> *Domain <*A!> *X <<void fun> maybe> *Invalidator_ create_entity @public -> <A entity_h> {

@@ -503,7 +503,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PFeatureSkel f = id.feature.toSkel();
     boolean a = false;
     for (int i = 0; !a && i < base.getFeatureImplCount(); i++) {
-      a = f.accept(false, base.getFeatureImplAt(i).getImpl(), b.copy());
+      a = f.require(base.getFeatureImplAt(i).getImpl(), b.copy());
     }
     if (!a) {
       StringBuffer emsg = new StringBuffer();

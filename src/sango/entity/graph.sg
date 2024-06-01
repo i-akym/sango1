@@ -33,14 +33,14 @@ import "sango.util.set" -> set ;;
 import "sango.util.set.hashset" -> hset ;;
 import "sango.util.set.simpleset" -> sset ;;
 
-data <*A graph> @opaque :=
+data <*A! graph> @opaque :=
   undress_f: <A ex.undress_f>
   tab: <A tab>
   graph$ ;;
 
-alias type <*A tab> := <ex.existence <A n> map.map> ;;
+alias type <*A! tab> := <ex.existence <A n> map.map> ;;
 
-data <*A n> :=
+data <*A! n> :=
   redress_f: <A ex.redress_f>
   weak_ref: <ex.weak_ref>
   link_tab: <cstr ex.weak_ref map.map>
@@ -49,11 +49,11 @@ data <*A n> :=
 
 eval <*A! ex.dress_fs> *Dress_fs create_graph @public -> <A graph> {
   undress_f: (Dress_fs ex.undress_f)
-    tab: hmap.new_map
-    graph$
+  tab: (&\\ <ex.existence <A n> map.map> { hmap.new_map })
+  graph$
 } ;;
 
-eval <*A graph> *Graph graph_nodes | nodes @public -> <A list> {
+eval <*A! graph> *Graph graph_nodes | nodes @public -> <A list> {
   (Graph tab >> map.iter >> list.new_list)
     \ <ex.existence <A n> tuple> *EN -> <A> {
       EN = (| *Ex, redress_f: *Redress_f *** n$ |),
@@ -62,20 +62,20 @@ eval <*A graph> *Graph graph_nodes | nodes @public -> <A list> {
     list.map
 } ;;
 
-eval <*A graph> *Graph <A> *Node contain? @public -> <bool> {
+eval <*A! graph> *Graph <A> *Node contain? @public -> <bool> {
   Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Node &Undress_f = (| *Ex, ** |),
   Tab Ex map.contain_key?
 } ;;
 
-eval <*A graph> *Graph <A> *Node ensure_in_graph -> <void> {
+eval <*A! graph> *Graph <A> *Node ensure_in_graph -> <void> {
   Graph Node contain? >> case {
   ; true$ ->
   ; ** -> bad_arg$ "Out of graph." new_exception >> throw
   }
 } ;;
 
-eval <*A graph> *Graph <A> *Node include @public -> <A graph> {
+eval <*A! graph> *Graph <A> *Node include @public -> <A graph> {
   Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Node &Undress_f = (| *Ex, *Redress_f |),
   Tab Ex map.contain_key? >> case {
@@ -88,7 +88,7 @@ eval <*A graph> *Graph <A> *Node include @public -> <A graph> {
   tab: Tab' :: Graph graph$
 } ;;
 
-eval <*A graph> *Graph <A> *Node node_links | links @public -> <cstr list> {
+eval <*A! graph> *Graph <A> *Node node_links | links @public -> <cstr list> {
   Graph Node ensure_in_graph,
   Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Node &Undress_f = (| *Ex, ** |),
@@ -96,7 +96,7 @@ eval <*A graph> *Graph <A> *Node node_links | links @public -> <cstr list> {
   (LT map.iter >> list.new_list) ^tuple.pair_first list.map
 } ;;
 
-eval <*A graph> *Graph <A> *Node <cstr> *Tag traverse @public -> <A maybe> {
+eval <*A! graph> *Graph <A> *Node <cstr> *Tag traverse @public -> <A maybe> {
   Graph Node ensure_in_graph,
   Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Node &Undress_f = (| *Ex, ** |),
@@ -113,7 +113,7 @@ eval <*A graph> *Graph <A> *Node <cstr> *Tag traverse @public -> <A maybe> {
   }
 } ;;
 
-eval <*A graph> *Graph <A> *Node <cstr> *Tag <A> *To link @public -> <A graph> {
+eval <*A! graph> *Graph <A> *Node <cstr> *Tag <A> *To link @public -> <A graph> {
   Graph Node Tag unlink = *Graph',
   Graph' To contain? >> case {
   ; true$ -> Graph'
@@ -140,7 +140,7 @@ eval <*A graph> *Graph <A> *Node <cstr> *Tag <A> *To link @public -> <A graph> {
   tab: Tab' :: Graph'' graph$
 } ;;
 
-eval <*A graph> *Graph <A> *Node <cstr> *Tag unlink @public -> <A graph> {
+eval <*A! graph> *Graph <A> *Node <cstr> *Tag unlink @public -> <A graph> {
   Graph Node ensure_in_graph,
   Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Node &Undress_f = (| *Ex, ** |),
@@ -148,7 +148,7 @@ eval <*A graph> *Graph <A> *Node <cstr> *Tag unlink @public -> <A graph> {
   tab: Tab' :: Graph graph$
 } ;;
 
-eval <*A tab> *Tab <ex.existence> *Ex <cstr> *Tag unlink_by_ex -> <A tab> {
+eval <*A! tab> *Tab <ex.existence> *Ex <cstr> *Tag unlink_by_ex -> <A tab> {
   Tab Ex map.assoc >> value = *N,
   N = weak_ref: *W link_tab: *LT refs: *Refs *** n$,
   LT Tag map.assoc >> case {
@@ -167,7 +167,7 @@ eval <*A tab> *Tab <ex.existence> *Ex <cstr> *Tag unlink_by_ex -> <A tab> {
   }
 } ;;
 
-eval <*A graph> *Graph <A> *Node exclude @public -> <A graph> {
+eval <*A! graph> *Graph <A> *Node exclude @public -> <A graph> {
   Graph Node contain? >> case {
   ; true$ ->
     Graph = undress_f: *Undress_f tab: *Tab *** graph$,
@@ -190,12 +190,12 @@ eval <*A graph> *Graph <A> *Node exclude @public -> <A graph> {
   }
 } ;;
 
-eval <*A graph> *Graph graph_clear | clear @public -> <A graph> {
+eval <*A! graph> *Graph graph_clear | clear @public -> <A graph> {
   Graph = tab: *Tab *** graph$,
   tab: (Tab map.clear) :: Graph graph$
 } ;;
 
-eval <*A graph> *Graph <A list> *Nodes nodes_reachable_nodes | reachable_nodes @public -> <A list> {
+eval <*A! graph> *Graph <A list> *Nodes nodes_reachable_nodes | reachable_nodes @public -> <A list> {
   Graph = undress_f: *Undress_f tab: *Tab *** graph$,
   Nodes
     \ <A> *N -> <ex.existence> { N &Undress_f >> tuple.pair_first }
@@ -209,7 +209,7 @@ eval <*A graph> *Graph <A list> *Nodes nodes_reachable_nodes | reachable_nodes @
     list.map
 } ;;
 
-eval <*A tab> *Tab <ex.existence list> *Exs collect_reachable_exs -> <ex.existence set.set> {
+eval <*A! tab> *Tab <ex.existence list> *Exs collect_reachable_exs -> <ex.existence set.set> {
   Exs hset.new_set
       &\ <ex.existence list> *To_check <ex.existence set.set> *Collected
       -> <ex.existence set.set> {

@@ -172,7 +172,7 @@ public class SNImodule {
       // if (PTypeRefSkel.willNotReturn(tv.type)) { ... }  // HERE
       PDataDef.Attr a = c.getAttrAt(i);
       PTypeSkel at = a.getFixedType();
-      if (!at.accept(PTypeSkel.NARROWER, true, tv.type, bindings)) {
+      if (!at.accept(PTypeSkel.NARROWER, tv.type, bindings)) {
         StringBuffer emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(Integer.toString(i));
@@ -215,7 +215,7 @@ public class SNImodule {
     PTypeSkel ts = dd.getTypeSig();
     PDataDef.Constr c = dd.getConstr(dconName);
     PTypeSkelBindings bindings = PTypeSkelBindings.create();
-    ts.accept(PTypeSkel.NARROWER, true, constrTao.type, bindings);
+    ts.accept(PTypeSkel.NARROWER, constrTao.type, bindings);
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
     RListItem L = helper.getListNilItem();
     for (int i = s.getFieldCount() - 1; i >= 0; i--) {
@@ -263,7 +263,7 @@ public class SNImodule {
       }
       RListItem.Cell lc = (RListItem.Cell)L;
       TaoItem p = (TaoItem)lc.head;
-      if (!pts[i].accept(PTypeSkel.NARROWER, true, p.type, bindings)) {
+      if (!pts[i].accept(PTypeSkel.NARROWER, p.type, bindings)) {
         helper.setException(sni_sango.SNIlang.createBadArgException(
           helper, new Cstr("Parameter type mismatch."), null));
         return;
