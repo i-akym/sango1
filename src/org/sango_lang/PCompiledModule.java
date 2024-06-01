@@ -586,7 +586,7 @@ class PCompiledModule implements PDefDict {
       PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
       boolean b = true;
       for (int j = 0; b && j < pts.length; j++) {
-        b = pts[j].accept(PTypeSkel.NARROWER, true, paramTypes[j], bindings);
+        b = pts[j].accept(PTypeSkel.NARROWER, paramTypes[j], bindings);
       }
       if (b) {
         for (int j = 0; b && j < pts.length; j++) {

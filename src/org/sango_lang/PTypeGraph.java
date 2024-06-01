@@ -162,7 +162,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.accept(PTypeSkel.NARROWER, true, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
+        } else if (!this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -206,10 +206,6 @@ class PTypeGraph {
       this.name = name;
       this.cat = cat;
       this.type = exprObj.getNormalizedType(); 
-      // if (this.type != null && this.cat != PExprVarDef.CAT_FUN_PARAM) {
-        // // already checked when fun param
-        // this.type.checkConstraint(false, new ArrayList<PTypeVarSlot>());
-      // }
     }
 
     PTypeSkel infer() throws CompileException {
@@ -225,7 +221,19 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.accept(PTypeSkel.NARROWER, this.cat == PExprVarDef.CAT_FUN_PARAM, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
+        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
+          emsg = new StringBuffer();
+          emsg.append("Cannot bind ");
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+          emsg.append(" to ");
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
+          emsg.append(" *");
+          emsg.append(this.name);
+          emsg.append(" at ");
+          emsg.append(this.exprObj.getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -270,7 +278,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.inNode.type.accept(PTypeSkel.NARROWER, true, this.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
+        } else if (!this.inNode.type.accept(PTypeSkel.NARROWER, this.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -311,7 +319,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.accept(PTypeSkel.NARROWER, false, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
+        } else if (!this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -579,7 +587,7 @@ if (DEBUG > 1) {
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
         PTypeSkelBindings bb = this.bindings;  // before looks for debug
-        boolean b = ctr.params[i].accept(PTypeSkel.NARROWER, true, t, this.bindings);
+        boolean b = ctr.params[i].accept(PTypeSkel.NARROWER, t, this.bindings);
         if (!b) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
@@ -924,7 +932,7 @@ if (DEBUG > 1) {
           /* DEBUG */ System.out.print("bindings: ");
           /* DEBUG */ System.out.println(b);
 }
-        if (!at.accept(PTypeSkel.NARROWER, true, t, b)) {
+        if (!at.accept(PTypeSkel.NARROWER, t, b)) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -1149,7 +1157,7 @@ if (DEBUG > 1) {
       PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
       int width = PTypeSkel.WIDER;  // may strengthen check; warning?
       // int width = (this.context == PPtnMatch.CONTEXT_FIXED)? PTypeSkel.EQUAL: PTypeSkel.WIDER;
-      if (!sig.accept(width, true, t, b)) {
+      if (!sig.accept(width, t, b)) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.exprObj.getSrcInfo());
