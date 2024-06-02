@@ -125,8 +125,6 @@ public class PTypeRefSkel implements PTypeSkel {
     int c;
     if (isBottom(this)) {
       c = PTypeSkel.CAT_BOTTOM;
-    // } else if (isAny(this)) {
-      // c = PTypeSkel.CAT_ANY;
     } else {
       c = PTypeSkel.CAT_SOME;
     }
@@ -138,13 +136,13 @@ public class PTypeRefSkel implements PTypeSkel {
       this.tconProps.key.idName.equals(Module.TCON_EXPOSED) ;
   }
 
-  public boolean isConcrete() {
-    boolean b = true;
-    for (int i = 0; b & i < this.params.length; i++) {
-      b &= this.params[i].isConcrete();
-    }
-    return b;
-  }
+  // public boolean isConcrete() {
+    // boolean b = true;
+    // for (int i = 0; b & i < this.params.length; i++) {
+      // b &= this.params[i].isConcrete();
+    // }
+    // return b;
+  // }
 
   public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
     boolean b = true;
@@ -154,13 +152,13 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  public boolean isConcrete(PTypeSkelBindings bindings) {
-    boolean b = true;
-    for (int i = 0; b & i < this.params.length; i++) {
-      b &= this.params[i].isConcrete(bindings);
-    }
-    return b;
-  }
+  // public boolean isConcrete(PTypeSkelBindings bindings) {
+    // boolean b = true;
+    // for (int i = 0; b & i < this.params.length; i++) {
+      // b &= this.params[i].isConcrete(bindings);
+    // }
+    // return b;
+  // }
 
   public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
     if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }

@@ -34,17 +34,16 @@ public interface PTypeSkel {
 
   int getCat();
   static final int CAT_BOTTOM = 1;
-  // static final int CAT_ANY = 2;
   static final int CAT_SOME = 2;
   static final int CAT_VAR = 3;
 
   boolean isLiteralNaked();
 
-  boolean isConcrete();
+  // boolean isConcrete();
 
   boolean isConcrete(List<PTypeVarSlot> givenTVarList);
 
-  boolean isConcrete(PTypeSkelBindings bindings);
+  // boolean isConcrete(PTypeSkelBindings bindings);
 
   PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 

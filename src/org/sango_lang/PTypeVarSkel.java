@@ -88,24 +88,24 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
-  public boolean isConcrete() {
-    return this.varSlot.requiresConcrete;
-  }
+  // public boolean isConcrete() {
+    // return this.varSlot.requiresConcrete;
+  // }
 
   public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
     return this.varSlot.requiresConcrete & givenTVarList.contains(this.varSlot);
   }
 
-  public boolean isConcrete(PTypeSkelBindings bindings) {
-    PTypeSkel t = this.resolveBindings(bindings);
-    boolean b;
-    if (t == this) {
-      b = this.isConcrete(bindings.givenTVarList);
-    } else {
-      b = t.isConcrete(bindings);
-    }
-    return b;
-  }
+  // public boolean isConcrete(PTypeSkelBindings bindings) {
+    // PTypeSkel t = this.resolveBindings(bindings);
+    // boolean b;
+    // if (t == this) {
+      // b = this.isConcrete(bindings.givenTVarList);
+    // } else {
+      // b = t.isConcrete(bindings);
+    // }
+    // return b;
+  // }
 
   public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
     PTypeSkel t = null;
@@ -384,29 +384,32 @@ public class PTypeVarSkel implements PTypeSkel {
 }
     boolean b;
     PTypeVarSkel tv2;
-    if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete && (tv2 = tv.cast(this.varSlot.requiresConcrete, this.features, bindings)) != null) {
+    if ((tv2 = tv.cast(this.varSlot.requiresConcrete | tv.varSlot.requiresConcrete, this.features, bindings)) != null) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeFree 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       bindings.bind(this.varSlot, tv2);
       b = true;
-    } else if (this.varSlot.requiresConcrete) {
+    } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeFree 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (tv.varSlot.requiresConcrete && (tv2 = tv.cast(this.varSlot.requiresConcrete, this.features, bindings)) != null) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeFree 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      bindings.bind(this.varSlot, tv2);
-      b = true;
-    } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeFree 4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      b = false;
     }
+
+//// Concreteness is to be checked after all bindings are done.
+    // if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete && (tv2 = tv.cast(this.varSlot.requiresConcrete, this.features, bindings)) != null) {
+      // bindings.bind(this.varSlot, tv2);
+      // b = true;
+    // } else if (this.varSlot.requiresConcrete) {
+      // b = false;
+    // } else if (tv.varSlot.requiresConcrete && (tv2 = tv.cast(this.varSlot.requiresConcrete, this.features, bindings)) != null) {
+      // bindings.bind(this.varSlot, tv2);
+      // b = true;
+    // } else {
+      // b = false;
+    // }
+
     return b;
   }
 
