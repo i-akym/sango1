@@ -60,10 +60,8 @@ eval <*A list> *Xs non_empty? @public -> <bool> {
   }
 } ;;
 
-eval <*A list> *Xs length @public -> <int> {
-  0 Xs
-    \ <int> *N <A> *X -> <int> { N inc }
-    fold
+eval <*A list> *Xs length @public -> <int> {  # for compatibility
+  Xs list_length
 } ;;
 
 eval <*A list> *Xs head | first @public -> <A maybe> {

@@ -1,0 +1,62 @@
+import "sango.util.map" -> map ;;
+
+eval <int cstr map.map> *M0 testA00 @public -> <void> {
+  M0 map.empty? = true$,
+  M0 1 "abc" map.put = (| *M1, none$ |),
+  M1 1 "ABC" map.put_new = (| M1, false$ |),
+  M1 2 "def" map.put_new = (| *M2, true$ |),
+  M2 2 "DEF" map.put = (| *M3, (| 2, "def" |) value$ |),
+  M3 map.size = 2,
+  M3 2 map.assoc = "DEF" value$,
+  M3 3 "ghi" map.put = (| *M4, none$ |),
+  M4 2 map.remove = (| *M5, (| 2, "DEF" |) value$ |),
+  M5 map.take >> case {
+  ; (| (| 1, "abc" |), *M5' |) value$ ->
+    M5' map.take = (| (| 3, "ghi" |), *M5'' |) value$,
+    M5'' map.take = none$
+  ; (| (| 3, "ghi" |), *M5' |) value$ ->
+    M5' map.take = (| (| 1, "abc" |), *M5'' |) value$,
+    M5'' map.take = none$
+  },
+  M5 map.clear >> map.empty? = true$,
+  M5 [ (| 4, "jkl" |), (| 5, "mno" |) ] map.add_list = *M6,
+  M6 map.size = 4,
+  M6 map.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  M6 [ 4, 5 ] map.delete_list >> map.size = 2,
+  void$
+} ;;
+eval <*T![ int cstr map.a'map ]> *M0 testB00 @public -> <void> {
+  M0 map.empty? = true$,
+  M0 1 "abc" map.put = (| *M1, none$ |),
+  M1 1 "ABC" map.put_new = (| M1, false$ |),
+  M1 2 "def" map.put_new = (| *M2, true$ |),
+  M2 2 "DEF" map.put = (| *M3, (| 2, "def" |) value$ |),
+  M3 map.size = 2,
+  M3 2 map.assoc = "DEF" value$,
+  M3 3 "ghi" map.put = (| *M4, none$ |),
+  M4 2 map.remove = (| *M5, (| 2, "DEF" |) value$ |),
+  M5 map.take >> case {
+  ; (| (| 1, "abc" |), *M5' |) value$ ->
+    M5' map.take = (| (| 3, "ghi" |), *M5'' |) value$,
+    M5'' map.take = none$
+  ; (| (| 3, "ghi" |), *M5' |) value$ ->
+    M5' map.take = (| (| 1, "abc" |), *M5'' |) value$,
+    M5'' map.take = none$
+  },
+  M5 map.clear >> map.empty? = true$,
+  M5 [ (| 4, "jkl" |), (| 5, "mno" |) ] map.add_list = *M6,
+  M6 map.size = 4,
+  M6 map.iter = *I,
+  I next = (| **, *I' |) value$,
+  I' next = (| **, *I'' |) value$,
+  I'' next = (| **, *I''' |) value$,
+  I''' next = (| **, *I'''' |) value$,
+  I'''' next = none$,
+  M6 [ 4, 5 ] map.delete_list >> map.size = 2,
+  void$
+} ;;

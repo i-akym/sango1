@@ -34,25 +34,28 @@ public interface PTypeSkel {
 
   int getCat();
   static final int CAT_BOTTOM = 1;
-  // static final int CAT_ANY = 2;
   static final int CAT_SOME = 2;
   static final int CAT_VAR = 3;
 
-  // void checkConstraint(boolean isArg, List<PTypeVarSlot> checked) throws CompileException;
-  // // caution: to be used to normalized skel
-
   boolean isLiteralNaked();
 
-  boolean isConcrete();
+  // boolean isConcrete();
 
-  boolean isConcrete(PTypeSkelBindings bindings);
+  boolean isConcrete(List<PTypeVarSlot> givenTVarList);
+
+  // boolean isConcrete(PTypeSkelBindings bindings);
+
+  PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
   PTypeSkel instanciate(InstanciationContext context);
 
-  boolean accept(int width, boolean bindsRef, PTypeSkel type, PTypeSkelBindings bindings);
-  // where, width is
+  boolean accept(int width, PTypeSkel type, PTypeSkelBindings bindings);
+
+  boolean require(int width, PTypeSkel type, PTypeSkelBindings bindings);
+
+  // width is
   static final int EQUAL = 0;
   static final int NARROWER = 1;
   static final int WIDER = - NARROWER;
@@ -63,7 +66,7 @@ public interface PTypeSkel {
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
     // foward to following method internally
-  JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings);
+  JoinResult join2(int width, PTypeSkel type, PTypeSkelBindings bindings);
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 

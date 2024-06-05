@@ -235,7 +235,8 @@ eval <*A! *B! map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
 
 eval <*A! *B! d> *D d_lives -> <<<A ex.existence <B ex.redress_f> tuple> list> <A B d> tuple> {
   D = key_tab: *KT value_tab: *VT d$,
-  KT VT [] (KT map.clear) (VT map.clear) &\
+  [] = <<A ex.existence <B ex.redress_f> tuple> list> *ERL,
+  KT VT ERL (KT map.clear) (VT map.clear) &\
       <A uniq.u map.map> *KT1  # current
       <uniq.u <A B v> map.map> *VT1  # current
       <<A ex.existence <B ex.redress_f> tuple> list> *Ls  # result in reverse order

@@ -232,7 +232,10 @@ eval <*A! *B! map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
 
 eval <*A! *B! d> *D d_lives -> <<<ex.existence <A B k> tuple> list> <A B d> tuple> {
   D = ktab: *KT count: *Count d$,
-  [] 0 KT [] [] (KT map.clear) 0 &\
+  [] = <<A B k> list> *KL,
+  [] = <<ex.existence <A B k> tuple> list> *EKL,
+  [] = <<A B k> list> *KL2,
+  KL 0 KT EKL KL2 (KT map.clear) 0 &\
       <<A B k> list> *Ks  # staged key infos
       <int> *EH  # existence's hash of statged key info; initial 0 will not be used
       <A B ktab> *Ktab  # source of key infos
@@ -256,7 +259,7 @@ eval <*A! *B! d> *D d_lives -> <<<ex.existence <A B k> tuple> list> <A B d> tupl
       ; ** -> KT2 EH Ks2 map.add
       } = *KT2',
       Ktab map.take >> case {
-      ; (| (| *EH', *Ks' |), *Ktab' |) value$ -> Ks' EH' Ktab' Ls [] KT2' C &&
+      ; (| (| *EH', *Ks' |), *Ktab' |) value$ -> [] = <<A B k> list> *KL2', Ks' EH' Ktab' Ls KL2' KT2' C &&
       ; none$ -> (| Ls, ktab: KT2' count: C d$ |)
       }
     }
@@ -331,7 +334,8 @@ eval <*A! *B! d> *D <ex.weak_ref> *Weak_ref <int> *EH d_purge -> <A B d> {
   D = ktab: *KT count: *Count d$,
   KT EH map.assoc >> case {
   ; *Ks value$ ->
-    Ks [] Count &\ <<A B k> list> *To_be_scanned <<A B k> list> *Scanned <int> *C
+    [] = <<A B k> list> *KL,
+    Ks KL Count &\ <<A B k> list> *To_be_scanned <<A B k> list> *Scanned <int> *C
         -> <<<A B k> list> <int> tuple> {
       To_be_scanned case {
       ; [ weak_ref: Weak_ref *** k$ ; *To_be_scanned' ] ->
@@ -356,7 +360,8 @@ eval <*A! *B! d> *D <ex.weak_ref> *Weak_ref <int> *EH d_purge -> <A B d> {
 
 eval <*A! *B! d> *D d_take -> <<<ex.existence <A B k> tuple> maybe> <A B d> tuple> {
   D = ktab: *KT count: *Count d$,
-  [] 0 KT Count &\
+  [] = <<A B k> list> *KL,
+  KL 0 KT Count &\
       <<A B k> list> *Ks  # staged key infos
       <int> *E_hash  # existence's hash of staged key infos
       <A B ktab> *Ktab  # to be processed
@@ -394,7 +399,8 @@ eval <*A! *B! d> *D d_clear -> <A B d> {
 eval <<*A! *B! k> list> *Ks <ex.existence> *Ex find_in_candidates
     -> <<<<A B k> <<A B k> list> tuple> maybe> <<A B k> list> int tuple> {
       # (key info, not yet scanned)?, scanned, purged_count
-  Ks [] 0 &\ <<A B k> list> *To_be_scanned <<A B k> list> *Scanned <int> *Purged_count
+  [] = <<A B k> list> *KL,
+  Ks KL 0 &\ <<A B k> list> *To_be_scanned <<A B k> list> *Scanned <int> *Purged_count
       -> <<<<A B k> <<A B k> list> tuple> maybe> <<A B k> list> int tuple> {
     To_be_scanned case {
     ; [ *K ; *To_be_scanned' ] ->

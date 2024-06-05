@@ -387,6 +387,7 @@ class PScope {
 
   private void setupGivenTVarListForClosure() throws CompileException {
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    this.givenTVarList.addAll(this.parent.getGivenTVarList());
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
     for (int i = 0; i < pts.length; i++) {
       pts[i].extractVars(this.givenTVarList);

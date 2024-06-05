@@ -26,7 +26,6 @@ module "sango.num.int" ;;
 import "sango.arith" -> arith ;;
 import "sango.cstr" -> cstr ;;
 import "sango.string" -> str ;;
-import "sango.util.enum" -> enum ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.locale" -> loc ;;
 
@@ -64,96 +63,31 @@ eval <cstr> *Str parse @public -> <int> {
 } ;;
 
 
-# -- enum --
+# -- filter --
 
-extend <*A _1> -> my1 := origin: <int> stepw: <int> dir: <int> step_ec_d$ ;;
+eval @alpha eq0_filter @public -> <int bool fun> { ^int_zero? } ;;
+eval @alpha ne0_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J zero? >> not } } ;;
+eval @alpha lt0_filter @public -> <int bool fun> { ^int_lt0? } ;;
+eval @alpha le0_filter @public -> <int bool fun> { ^int_le0? } ;;
+eval @alpha gt0_filter @public -> <int bool fun> { ^int_gt0? } ;;
+eval @alpha ge0_filter @public -> <int bool fun> { ^int_ge0? } ;;
+eval @alpha <int> *I eq_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I eq? } } ;;
+eval @alpha <int> *I ne_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I eq? >> not } } ;;
+eval @alpha <int> *I lt_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I lt? } } ;;
+eval @alpha <int> *I le_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I le? } } ;;
+eval @alpha <int> *I gt_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I gt? } } ;;
+eval @alpha <int> *I ge_filter @public -> <int bool fun> { \ <int> *J -> <bool> { J I ge? } } ;;
 
-eval @alpha <int> *Start <int> *End <int> *Step enum @public -> <int enum.enum> {
-  if {
-  ; Step gt0? -> (| Step, 1, int_ord_fs |)
-  ; Step lt0? -> (| Step neg, -1, int_ord_fs inverse |)
-  ; otherwise -> bad_arg$ "Step is zero." new_exception >> throw
-  } = (| *Stepw, *Dir, *Ord_fs |),
-  d: (origin: Start stepw: Stepw dir: Dir step_ec_d$) fs: (Ord_fs step_ec_f) enum.context$ = *Context,
-  Context (| Start, End |) enum.enum$
+
+# -- iterator --
+
+eval @alpha <int> *Start <int> *Step new_step_iter @public -> <int iter> {
+  \\ <int iter_res> { Start Step step_next } iter$
 } ;;
 
-eval <int ord_fs> *Ord_fs step_ec_f -> <int enum.context_fs> {
-  min_ge:
-    \ <int _1+> *D <int> *B -> <int maybe> {
-      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
-      Origin Stepw Dir B step_ec_min_ge
-    }
-  min_gt:
-    \ <int _1+> *D <int> *B -> <int maybe> {
-      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
-      Origin Stepw Dir (B Dir sum) step_ec_min_ge
-    }
-  max_le:
-    \ <int _1+> *D <int> *B -> <int maybe> {
-      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
-      Origin Stepw Dir B step_ec_max_le
-    }
-  max_lt:
-    \ <int _1+> *D <int> *B -> <int maybe> {
-      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
-      Origin Stepw Dir (B Dir diff) step_ec_max_le
-    }
-  contain?_f:
-    \ <int _1+> *D <int> *X -> <bool> {
-      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
-      (X Origin diff) Stepw div >> case { (| **, 0 |) -> true$ ; ** -> false$ }
-    }
-  count_f:
-    \ <int _1+> *D <int int tuple> *R -> <int> {
-      D = origin: *Origin stepw: *Stepw dir: *Dir step_ec_d$,
-      R = (| *L, *U |),
-      Origin Stepw Dir L step_ec_min_ge >> value = *Min,
-      Origin Stepw Dir U step_ec_max_le >> value = *Max,
-      if {
-      ; Max Min Ord_fs ge? -> (Max Min diff >> arith.abs) Stepw quot >> inc
-      ; otherwise -> 0
-      }
-    }
-  ord_fs:
-    Ord_fs
-  enum.context_fs$
-} ;;
-
-eval <int> *Origin <int> *Stepw <int> *Dir <int> *B step_ec_min_ge -> <int maybe> {
-  Dir case {
-  ; 1 ->
-    \\ <int> { Origin ((B Origin diff) Stepw step_ceil) sum }
-      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
-  ; -1 ->
-    \\ <int> { Origin ((B Origin diff) Stepw step_floor) sum }
-      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
-  }
-} ;;
-
-eval <int> *Origin <int> *Stepw <int> *Dir <int> *B step_ec_max_le -> <int maybe> {
-  Dir case {
-  ; 1 ->
-    \\ <int> { Origin ((B Origin diff) Stepw step_floor) sum }
-      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
-  ; -1 ->
-    \\ <int> { Origin ((B Origin diff) Stepw step_ceil) sum }
-      try >> case { *Y fin$ -> Y value$ ; ** -> none$ }
-  }
-} ;;
-
-eval <int> *I <int> *Stepw step_floor -> <int> {
-  if {
-  ; I ge0? -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> Q Stepw prod }
-  ; otherwise -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> (Q dec) Stepw prod }
-  }
-} ;;
-
-eval <int> *I <int> *Stepw step_ceil -> <int> {
-  if {
-  ; I ge0? -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> (Q inc) Stepw prod }
-  ; otherwise -> I Stepw div >> case { (| **, 0 |) -> I ; (| *Q, ** |) -> Q Stepw prod }
-  }
+eval <int> *Next <int> *Step step_next -> <int iter_res> {
+  (| Next,
+    \\ <int iter_res> { (Next Step sum) Step step_next } iter$ |) value$
 } ;;
 
 

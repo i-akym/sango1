@@ -6,51 +6,21 @@ import "sango.system.runtime" -> runtime ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.bag" -> bag ;;
 import "sango.util.bag.simplebag" -> simplebag ;;
+import "testlib.bag.1" -> t1 ;;
 
 eval _main_ -> <void> {
-  runtime.terminate_on_my_abnormal_end,
   test
 } ;;
 
 eval test -> <void> {
-  test101,
+  test000,
+  test010,
   void$
 } ;;
-
-eval <int bag.bag> *B0 test001 @public -> <void> {
-  B0 bag.empty? = true$,
-  B0 1 bag.add = *B1,  # [ 1 ]
-  B1 2 bag.add = *B2,  # [ 1, 2 ]
-  B2 1 bag.add = *B3,  # [ 1, 2, 1 ]
-  B3 2 bag.add = *B4,  # [ 1, 2, 1, 2 ]
-  B4 3 bag.add = *B5,  # [ 1, 2, 1, 2, 3 ]
-  B5 bag.size = 5,
-  B5 2 bag.contain? = true$,
-  B5 4 bag.contain? = false$,
-  B5 2 bag.get_all = [ 2, 2 ],
-  B5 1 bag.remove_all = (| *B6, [ 1, 1 ] |),  # [ 2, 2, 3 ]
-  B6 2 bag.remove = (| *B7, 2 value$ |),  # [ 2, 3 ]
-  B7 bag.take >> case {
-  ; (| 2, *B7' |) value$ ->
-    B7' bag.take = (| 3, *B7'' |) value$,
-    B7'' bag.take = none$
-  ; (| 3, *B7' |) value$ ->
-    B7' bag.take = (| 2, *B7'' |) value$,
-    B7'' bag.take = none$
-  },
-  B6 bag.clear >> bag.empty? = true$,
-  B7 [ 4, 5 ] bag.add_list = *B8,  # [ 2, 3, 4, 5 ]
-  B8 bag.size = 4,
-  B8 bag.iter = *I,
-  I next = (| **, *I' |) value$,
-  I' next = (| **, *I'' |) value$,
-  I'' next = (| **, *I''' |) value$,
-  I''' next = (| **, *I'''' |) value$,
-  I'''' next = none$,
-  B5 [ 1, 2 ] bag.delete_list >> bag.size = 3,
-  B5 [ 1, 2 ] bag.delete_all_list >> bag.size = 1,
-  void$
+eval test000 -> <void> {
+  simplebag.new_bag >> t1.testA00
 } ;;
-eval test101 -> <void> {
-  simplebag.new_bag >> test001
+eval test010 -> <void> {
+  simplebag.new_bag = <int bag.bag> *B,
+  B bag.as_fxbag >> t1.testB00
 } ;;

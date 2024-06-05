@@ -4,9 +4,9 @@ import "sango.system.runtime" -> runtime ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.set" -> set ;;
 import "sango.util.avltree.set" -> avlset ;;
+import "testlib.set.1" -> t1 ;;
 
 eval _main_ -> <void> {
-  runtime.terminate_on_my_abnormal_end,
   test
 } ;;
 
@@ -16,32 +16,5 @@ eval test -> <void> {
 } ;;
 
 eval <int set.set> *S0 test100 -> <void> {
-  S0 set.empty? = true$,
-  S0 1 set.put = (| *S1, none$ |),
-  S1 1 set.put_new = (| S1, false$ |),
-  S1 2 set.put_new = (| *S2, true$ |),
-  S2 2 set.put = (| *S3, 2 value$ |),
-  S3 set.size = 2,
-  S3 2 set.contain? = true$,
-  S3 3 set.contain? = false$,
-  S3 3 set.put = (| *S4, none$ |),
-  S4 2 set.remove = (| *S5, 2 value$ |),
-  S5 set.take >> case {
-  ; (| 1, *S5' |) value$ ->
-    S5' set.take = (| 3, *S5'' |) value$,
-    S5'' set.take = none$
-  ; (| 3, *S5' |) value$ ->
-    S5' set.take = (| 1, *S5'' |) value$,
-    S5'' set.take = none$
-  },
-  S5 set.clear >> set.empty? = true$,
-  S5 [ 4, 5 ] set.add_list = *S6,
-  S6 set.size = 4,
-  S6 set.iter = *I,
-  I next = (| **, *I' |) value$,
-  I' next = (| **, *I'' |) value$,
-  I'' next = (| **, *I''' |) value$,
-  I''' next = (| **, *I'''' |) value$,
-  I'''' next = none$,
-  void$
+  S0 t1.testA00
 } ;;

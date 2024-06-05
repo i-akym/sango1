@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.3言語解説</title>
+<title>Sango 1.7.4言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -128,7 +128,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#21.4">21.4. マップ</a>
   <a href="#21.5">21.5. キュー</a>
   <a href="#21.6">21.6. スタック</a>
-  <a href="#21.7">21.7. 配列</a>
+  <a href="#21.7">21.7. 配列【Alpha】</a>
   <a href="#21.8">21.8. ランダム・アクセス・リスト</a>
 <a href="#22">22. 表示可能な文字列に変換する</a>
   <a href="#22.1">22.1. フォーマット関数</a>
@@ -1806,12 +1806,12 @@ M6 map.size = 4</code></blockquote>
   <code>&quot;sango.util.stack&quot;</code>モジュールからスタックのフレームワークが，<code>&quot;sango.util.stack.liststack&quot;</code>モジュールからリストとの相互変換機能が提供されています。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="21.7">21.7. 配列</h2>
-<p>【Alpha】固定個数の要素を持つコレクションです。
-  列挙（<code>&lt;A &quot;sango.util.enum&quot;enum&gt;</code>）を指標として使用し，個々の要素の参照と更新ができます。
-  ストリングは，要素の参照は低コスト（O(1)）で実行できますが，要素の変更においては他の要素のコピーが発生するため，要素数に比例した（O(n)の）コストがかかります。
-  配列は，参照のコストと更新のコストをバランスしています。
-  <code>&quot;sango.util.array&quot;</code>モジュールから配列のフレームワークが，<code>&quot;sango.util.avltree.array&quot;</code>モジュールからAVL木による実装が提供されています。</p>
+<h2 id="21.7">21.7. 配列【Alpha】</h2>
+<p>固定個数の要素を持つコレクションです。
+0以上の整数を指標として使用し，個々の要素の参照と更新ができます。
+ストリングは，要素の参照は低コスト（O(1)）で実行できますが，要素の変更においては他の要素のコピーが発生するため，要素数に比例した（O(n)の）コストがかかります。
+配列は，参照のコストと更新のコストをバランスしています。
+<code>&quot;sango.util.array&quot;</code>モジュールから配列のフレームワークが，<code>&quot;sango.util.avltree.array&quot;</code>モジュールからAVL木による実装が提供されています。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="21.8">21.8. ランダム・アクセス・リスト</h2>
@@ -2443,6 +2443,13 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【Beta】<code>&quot;sango.util.unique&quot;</code>を追加</li>
 <li>【Alpha→Deprecated】<code>&quot;sango.entity.graph&quot;</code></li>
 <li>【Alpha→Deprecated】<code>&quot;sango.util.packaging&quot;</code></li>
+</ul>
+
+<p>■　1.7.4</p>
+<ul>
+<li>コンパイル時の型の整合性検査を修正。チェックが厳しくなっていることがあります。</li>
+<li>【非互換】<code>&quot;sango.util.ralist&quot;.ralist_fs</code>を変更。ランダム・アクセス・リストの利用者には影響ありません。</li>
+<li>【Alpha→Deprecated】<code>&quot;sango.util.enum&quot;</code></li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

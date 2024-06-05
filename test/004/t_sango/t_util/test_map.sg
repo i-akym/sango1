@@ -1,0 +1,29 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.simplemap" -> smap ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+eval test000 -> <void> {
+  smap.new_map [ (| 1, "A" |), (| 2, "B" |), (| 3, "C" |) ] map.add_list
+    >> map.as_fxmap >> map._feature_a'map = *M3,
+  M3 _feature_a'col = *C3,
+  C3 size = 3,
+  C3 empty? = false$,
+  C3 take = (| **, *C2 |) value$,
+  C2 size = 2,
+  C2 take = (| **, *C1 |) value$,
+  C1 size = 1,
+  C1 take = (| **, *C0 |) value$,
+  C0 size = 0,
+  C0 empty? = true$,
+  C0 take = none$,
+  void$
+} ;;

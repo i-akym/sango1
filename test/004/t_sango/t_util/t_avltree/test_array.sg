@@ -5,6 +5,7 @@ import "sango.num.int" -> int ;;
 import "sango.system.runtime" -> runtime ;;
 import "sango.util.array" -> array ;;
 import "sango.util.avltree.array" -> avlarray ;;
+import "sango.util.iter" -> iter ;;
 
 eval _main_ -> <void> {
   runtime.terminate_on_my_abnormal_end,
@@ -12,13 +13,11 @@ eval _main_ -> <void> {
 } ;;
 
 eval test -> <void> {
-  (0 4 1 int.enum)
-    \ <int> *I -> <real> { 0.0 }
+  5 (0.0 iter.const_iter)
     ((| 0.0, \ <real> *R -> <bool> { R 0.0 eq1? } |) value$)
     avlarray.new_array = *Ary1,
   Ary1 test100,
-  (0 4 1 int.enum)
-    \ <int> *I -> <real> { 0.0 }
+  5 (0.0 iter.const_iter)
     none$
     avlarray.new_array = *Ary2,
   Ary2 test100,
@@ -29,17 +28,17 @@ eval <real> *R0 <real> *R1 eq1? -> <bool> {
   ((R0 R1 diff) arith.abs) 1.0e-5 lt?
 } ;;
 
-eval <int real array.array> *A test100 -> <void> {
+eval <real array.array> *A test100 -> <void> {
   A array.length = 5,
   (A 2 array.get) 0.0 eq1?,
   A 2 1.0 array.set = *A',
   (A' 2 array.get) 1.0 eq1?,
   A' array.iter = *I,
-  I next = (| (| 0, *R |), *I' |) value$, R 0.0 eq1? = true$,
-  I' next = (| (| 1, *R' |), *I'' |) value$, R' 0.0 eq1? = true$,
-  I'' next = (| (| 2, *R'' |), *I''' |) value$, R'' 1.0 eq1? = true$,
-  I''' next = (| (| 3, *R''' |), *I'''' |) value$, R''' 0.0 eq1? = true$,
-  I'''' next = (| (| 4, *R'''' |), *I''''' |) value$, R'''' 0.0 eq1? = true$,
+  I next = (| *R, *I' |) value$, R 0.0 eq1? = true$,
+  I' next = (| *R', *I'' |) value$, R' 0.0 eq1? = true$,
+  I'' next = (| *R'', *I''' |) value$, R'' 1.0 eq1? = true$,
+  I''' next = (| *R''', *I'''' |) value$, R''' 0.0 eq1? = true$,
+  I'''' next = (| *R'''', *I''''' |) value$, R'''' 0.0 eq1? = true$,
   I''''' next = none$,
   void$
 } ;;
