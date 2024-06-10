@@ -74,7 +74,8 @@ eval <*A! entity_h> *E0 <*B! entity_h> *E1 entity_compare | compare @public -> <
 } ;;
 
 eval entity_ord_fs @public -> <<*A! entity_h> ord_fs> {
-  none$ = <<<*T! entity_h> <T entity_h> bool fun> maybe> *N,
+  none$ = *N,
+  # none$ = <<<*T! entity_h> <T entity_h> bool fun> maybe> *N,
   compare_f: ^entity_compare
   eq?_f_: N
   lt?_f_: N
@@ -109,7 +110,8 @@ eval <*A! weak_holder_h> *W0 <*B! weak_holder_h> *W1 weak_holder_compare | compa
 } ;;
 
 eval weak_holder_ord_fs @public -> <<*A! weak_holder_h> ord_fs> {
-  none$ = <<<*T! weak_holder_h> <T weak_holder_h> bool fun> maybe> *N,
+  none$ = *N,
+  # none$ = <<<*T! weak_holder_h> <T weak_holder_h> bool fun> maybe> *N,
   compare_f: ^weak_holder_compare
   eq?_f_: N
   lt?_f_: N
