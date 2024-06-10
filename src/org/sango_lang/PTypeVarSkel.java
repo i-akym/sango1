@@ -620,9 +620,9 @@ public class PTypeVarSkel implements PTypeSkel {
     if (this.varSlot.requiresConcrete == tv.varSlot.requiresConcrete) {
       bindings.bind(tv.varSlot, this);
       b = true;
-    } else if (this.varSlot.requiresConcrete) {
-      bindings.bind(tv.varSlot, this);
-      b = true;
+    // } else if (this.varSlot.requiresConcrete) {
+      // bindings.bind(tv.varSlot, this);
+      // b = true;
     } else {
       b = false;
     }
