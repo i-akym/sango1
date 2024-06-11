@@ -227,7 +227,7 @@ class PTypeGraph {
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
-          emsg.append(" *");
+          emsg.append(" for *");
           emsg.append(this.name);
           emsg.append(" at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -235,11 +235,11 @@ class PTypeGraph {
           throw new CompileException(emsg.toString());
         } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
-          emsg.append("Cannot bind ");
+          emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
-          emsg.append(" *");
+          emsg.append(" for *");
           emsg.append(this.name);
           emsg.append(" at ");
           emsg.append(this.exprObj.getSrcInfo());
