@@ -136,21 +136,21 @@ public class PTypeRefSkel implements PTypeSkel {
       this.tconProps.key.idName.equals(Module.TCON_EXPOSED) ;
   }
 
-  // public boolean isConcrete() {
-    // boolean b = true;
-    // for (int i = 0; b & i < this.params.length; i++) {
-      // b &= this.params[i].isConcrete();
-    // }
-    // return b;
-  // }
-
-  public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+  public boolean isConcrete() {
     boolean b = true;
     for (int i = 0; b & i < this.params.length; i++) {
-      b &= this.params[i].isConcrete(givenTVarList);
+      b &= this.params[i].isConcrete();
     }
     return b;
   }
+
+  // public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+    // boolean b = true;
+    // for (int i = 0; b & i < this.params.length; i++) {
+      // b &= this.params[i].isConcrete(givenTVarList);
+    // }
+    // return b;
+  // }
 
   // public boolean isConcrete(PTypeSkelBindings bindings) {
     // boolean b = true;
@@ -160,15 +160,25 @@ public class PTypeRefSkel implements PTypeSkel {
     // return b;
   // }
 
-  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
     if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
     PTypeRefSkel tt = (PTypeRefSkel)type;
     PTypeSkel t = null;
     for (int i = 0; t == null && i < this.params.length; i++) {
-      t = this.params[i].extractAnyInconcreteVar(tt.params[i], givenTVarList);
+      t = this.params[i].extractAnyInconcreteVar(tt.params[i]);
     }
     return t;
   }
+
+  // public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+    // if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
+    // PTypeRefSkel tt = (PTypeRefSkel)type;
+    // PTypeSkel t = null;
+    // for (int i = 0; t == null && i < this.params.length; i++) {
+      // t = this.params[i].extractAnyInconcreteVar(tt.params[i], givenTVarList);
+    // }
+    // return t;
+  // }
 
   public PDefDict.TconProps getTconInfo() {
     if (this.tconProps == null) {

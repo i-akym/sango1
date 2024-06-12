@@ -107,7 +107,7 @@ public class PFeatureSkel {
     }
   }
 
-  PTypeSkel extractAnyInconcreteVar(java.util.List<PTypeVarSlot> givenTVarList) {
+  PTypeSkel extractAnyInconcreteVar(/* java.util.List<PTypeVarSlot> givenTVarList */) {
     PTypeSkel t = null;
 // TODO
     // for (int i = 0; t == null && i < this.params.length; i++) {
@@ -341,7 +341,7 @@ public class PFeatureSkel {
       }
     }
 
-    PTypeSkel extractAnyInconcreteVar(java.util.List<PTypeVarSlot> givenTVarList) {
+    PTypeSkel extractAnyInconcreteVar(/* java.util.List<PTypeVarSlot> givenTVarList */) {
       PTypeSkel t = null;
 // TODO
       // for (int i = 0; null == null && i < this.features.length; i++) {

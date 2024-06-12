@@ -39,13 +39,12 @@ public interface PTypeSkel {
 
   boolean isLiteralNaked();
 
-  // boolean isConcrete();
-
-  boolean isConcrete(List<PTypeVarSlot> givenTVarList);
-
+  boolean isConcrete();
+  // boolean isConcrete(List<PTypeVarSlot> givenTVarList);
   // boolean isConcrete(PTypeSkelBindings bindings);
 
-  PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
+  PTypeSkel extractAnyInconcreteVar(PTypeSkel type);
+  // PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
