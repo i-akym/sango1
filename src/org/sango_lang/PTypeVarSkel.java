@@ -88,13 +88,13 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean isLiteralNaked() { return false; }
 
-  // public boolean isConcrete() {
-    // return this.varSlot.requiresConcrete;
-  // }
-
-  public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
-    return this.varSlot.requiresConcrete & givenTVarList.contains(this.varSlot);
+  public boolean isConcrete() {
+    return this.varSlot.requiresConcrete;
   }
+
+  // public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+    // return this.varSlot.requiresConcrete & givenTVarList.contains(this.varSlot);
+  // }
 
   // public boolean isConcrete(PTypeSkelBindings bindings) {
     // PTypeSkel t = this.resolveBindings(bindings);
@@ -107,17 +107,29 @@ public class PTypeVarSkel implements PTypeSkel {
     // return b;
   // }
 
-  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
     PTypeSkel t = null;
     if (!this.varSlot.requiresConcrete) {
       ; 
-    } else if (!type.isConcrete(givenTVarList)) {
+    } else if (!type.isConcrete()) {
       t = type;
     } else {
-      t = this.features.extractAnyInconcreteVar(givenTVarList);
+      t = this.features.extractAnyInconcreteVar();
     }
     return t;
   }
+
+  // public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+    // PTypeSkel t = null;
+    // if (!this.varSlot.requiresConcrete) {
+      // ; 
+    // } else if (!type.isConcrete(givenTVarList)) {
+      // t = type;
+    // } else {
+      // t = this.features.extractAnyInconcreteVar(givenTVarList);
+    // }
+    // return t;
+  // }
 
   public PTypeSkel resolveBindings(PTypeSkelBindings bindings) {
 /* DEBUG */ if (this.features == null) { throw new IllegalArgumentException("Null features " + this.toString()); }

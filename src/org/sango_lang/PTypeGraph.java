@@ -604,7 +604,7 @@ if (DEBUG > 1) {
           throw new CompileException(emsg.toString());
         }
         PTypeSkel p = t.resolveBindings(this.bindings);
-        if (ctr.params[i].extractAnyInconcreteVar(p, this.bindings.givenTVarList) != null) {
+        if (ctr.params[i].extractAnyInconcreteVar(p /* , this.bindings.givenTVarList */) != null) {
           emsg = new StringBuffer();
           emsg.append("Inconcrete parameter at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -956,7 +956,7 @@ if (DEBUG > 1) {
 }
       PTypeSkel dt = constr.getType(b);
       PTypeRefSkel sig = dataDef.getTypeSig();
-      if (sig.extractAnyInconcreteVar(dt, b.givenTVarList) != null) {
+      if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {
         emsg = new StringBuffer();
         emsg.append("Attempt to construct data including inconcrete type parameter at ");
         emsg.append(this.exprObj.getSrcInfo());
