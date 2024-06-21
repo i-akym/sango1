@@ -114,6 +114,10 @@ eval <*A! *B! shared_map_h> *Map_h <A> *Key delete @public -> <void> {
   }
 } ;;
 
+eval <*A! *B! shared_map_h> *Map_h take @public -> <<A B tuple> maybe> {
+  &(Map_h take_f)
+} ;;
+
 eval <*A! *B! shared_map_h> *Map_h clear @public -> <void> {
   &(Map_h clear_f)
 } ;;

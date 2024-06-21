@@ -26,10 +26,11 @@ module @alpha "sango.util.set.weakset" ;;
 import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
-import "sango.util.map.weakkeymap" -> wkmap ;;
+import "sango.util.map.shared" -> shmap ;;
+import "sango.util.map.shared.weakkeymap" -> wkmap ;;
 
 data <*A! set_h> @opaque :=
-  map: <A void wkmap.map_h>
+  map: <A void shmap.shared_map_h>
   set_h$ ;;
 
 eval <*A! ex.dress_fs> *Dress_fs create_weak_set @public -> <A set_h> {
@@ -38,51 +39,51 @@ eval <*A! ex.dress_fs> *Dress_fs create_weak_set @public -> <A set_h> {
 } ;;
 
 eval <*A! set_h> *Set_h all_elems @public -> <A list> {
-  ((Set_h map) wkmap.all_kvs) ^tuple.pair_first list.map
+  ((Set_h map) shmap.extract >> list.new_list) ^tuple.pair_first list.map
 } ;;
 
 eval <*A! set_h> *Set_h empty? @public -> <bool> {
-  (Set_h map) wkmap.empty?
+  (Set_h map) shmap.empty?
 } ;;
 
 eval <*A! set_h> *Set_h size @public -> <int> {
-  (Set_h map) wkmap.size
+  (Set_h map) shmap.size
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X get @public -> <A maybe> {
-  ((Set_h map) X wkmap.get) ^tuple.pair_first apply_to_something
+  ((Set_h map) X shmap.get) ^tuple.pair_first apply_to_something
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X contain? @public -> <bool> {
-  (Set_h map) X wkmap.contain_key?
+  (Set_h map) X shmap.contain_key?
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X put @public -> <A maybe> {
-  ((Set_h map) X void$ wkmap.put) ^tuple.pair_first apply_to_something
+  ((Set_h map) X void$ shmap.put) ^tuple.pair_first apply_to_something
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X put_new @public -> <bool> {
-  (Set_h map) X void$ wkmap.put_new
+  (Set_h map) X void$ shmap.put_new
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X add @public -> <void> {
-  (Set_h map) X void$ wkmap.add
+  (Set_h map) X void$ shmap.add
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X remove @public -> <A maybe> {
-  ((Set_h map) X wkmap.remove) ^tuple.pair_first apply_to_something
+  ((Set_h map) X shmap.remove) ^tuple.pair_first apply_to_something
 } ;;
 
 eval <*A! set_h> *Set_h <A> *X delete @public -> <void> {
-  (Set_h map) X wkmap.delete
+  (Set_h map) X shmap.delete
 } ;;
 
 eval <*A! set_h> *Set_h take @public -> <A maybe> {
-  ((Set_h map) wkmap.take) ^tuple.pair_first apply_to_something
+  ((Set_h map) shmap.take) ^tuple.pair_first apply_to_something
 } ;;
 
 eval <*A! set_h> *Set_h clear @public -> <void> {
-  (Set_h map) wkmap.clear
+  (Set_h map) shmap.clear
 } ;;
 
 eval <*A! set_h> *Set_h <A list> *Xs add_list @public -> <void> {
