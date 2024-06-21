@@ -1,0 +1,81 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
+import "sango.list" -> list ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.box" -> map_box ;;
+import "sango.util.map.shared" -> shm ;;
+import "sango.util.map.shared.weakkeymap" -> wkm ;;
+
+eval _main_ -> <void> {
+  test,
+  stdio.flush
+} ;;
+
+eval test -> <void> {
+  test000,
+  test010,
+  void$
+} ;;
+
+eval make -> <<int box.box_h> cstr shm.shared_map_h> {
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ("" dummy_obj$) wkm.create_weak_key_map = *M,
+  1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K1, M K1 "a" shm.add,
+  2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K2, M K2 "b" shm.add,
+  3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K3, M K3 "c" shm.add,
+  4 (\\ <void> { "4 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K4, M K4 "d" shm.add,
+  5 (\\ <void> { "5 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K5, M K5 "e" shm.add,
+  M
+} ;;
+
+eval test000 -> <void> {
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ("" dummy_obj$) wkm.create_weak_key_map = *M,
+  1 none$ box.create_box = *K1,
+  2 none$ box.create_box = *K2,
+  3 none$ box.create_box = *K3,
+  4 none$ box.create_box = *K4,
+  5 none$ box.create_box = *K5,
+  M shm.empty? = true$,
+  M K1 "abc" shm.put = none$,
+  M K1 "ABC" shm.put_new = false$,
+  M K2 "def" shm.put_new = true$,
+  M K2 "DEF" shm.put = (| K2, "def" |) value$,
+  M shm.size = 2,
+  M K2 shm.get = (| K2, "DEF" |) value$,
+  M K2 shm.assoc = "DEF" value$,
+  M shm.extract >> list.new_list >> case {
+  ; [ (| K1, "abc" |), (| K2, "DEF" |) ] ->
+  ; [ (| K2, "DEF" |), (| K1, "abc" |) ] ->
+  },
+  M K3 "ghi" shm.put = none$,
+  M K2 shm.remove = (| K2, "DEF" |) value$,
+  M shm.clear,
+  M shm.empty? = true$,
+  M [ (| K3, "ghi" |), (| K4, "jkl" |), (| K5, "mno" |) ] shm.add_list,
+  M shm.size = 3,
+  M shm.take >> something? = true$,
+  M shm.take >> something? = true$,
+  M shm.take >> something? = true$,
+  M shm.take >> something? = false$,
+  M shm.empty? = true$,
+  M [ (| K3, "ghi" |), (| K4, "jkl" |), (| K5, "mno" |) ] shm.add_list,
+  M [ K3, K4 ] shm.delete_list,
+  M shm.size = 1,
+  void$
+} ;;
+eval test010 -> <void> {
+  make = *M,
+  6 (\\ <void> { "6 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K6, M K6 "f" shm.add,
+  7 (\\ <void> { "7 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *K7, M K7 "g" shm.add,
+  M shm.extract >> list.new_list >> debug.repr >> stdio.print_and_newline,
+  runtime.gc,
+  act.yield,
+  M shm.extract >> list.new_list >> debug.repr >> stdio.print_and_newline,
+  K6,  # keep to here
+  K7,  # keep to here
+  void$
+} ;;
