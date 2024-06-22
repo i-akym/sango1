@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2021 AKIYAMA Isao                                         #
+# Copyright (c) 2024 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.map.weakvaluemap" ;;
+module @alpha "sango.util.map.shared.weakvaluemap" ;;
 
 import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
@@ -29,17 +29,8 @@ import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hmap ;;
+import "sango.util.map.shared" -> shared ;;
 import "sango.util.unique" -> uniq ;;
-
-data <*A! *B! map_h> @opaque :=
-  mon: <<A B d> actu.box_monitor_h>
-  undress_f: <B ex.undress_f>
-  map_h$ ;;
-
-data <*A! *B! d> :=
-  key_tab: <A uniq.u map.map>
-  value_tab: <uniq.u <A B v> map.map>
-  d$ ;;
 
 data <*A! *B! v> :=
   key: <A>
@@ -47,8 +38,18 @@ data <*A! *B! v> :=
   redress_f: <B ex.redress_f>
   v$ ;;
 
+data <*A! *B! d> :=
+  key_tab: <A uniq.u map.map>
+  value_tab: <uniq.u <A B v> map.map>
+  d$ ;;
+
+data <*A! *B! h> @opaque :=
+  mon: <<A B d> actu.box_monitor_h>
+  undress_f: <B ex.undress_f>
+  h$ ;;
+
 eval <*A! uniq.u map.map> *Key_tab <*B! ex.dress_fs> *Dress_fs
-    create_weak_value_map @public -> <A B map_h> {
+    create_weak_value_map @public -> <A B shared.shared_map_h> {
   if {
   ; Key_tab map.empty? ->
   ; otherwise -> bad_arg$ "Not empty." new_exception >> throw
@@ -56,11 +57,26 @@ eval <*A! uniq.u map.map> *Key_tab <*B! ex.dress_fs> *Dress_fs
   hmap.new_map = <uniq.u <A B v> map.map> *Value_tab,
   (key_tab: Key_tab value_tab: Value_tab d$) none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
-  mon: Mon undress_f: (Dress_fs ex.undress_f) map_h$
+  mon: Mon undress_f: (Dress_fs ex.undress_f) h$ = *H,
+
+  extract_f: \\ <<A B tuple> iter> { H extract }
+  empty?_f: \\ <bool> { H empty? }
+  size_f: \\ <int> { H size }
+  get_f: \ <A> *Key -> <<A B tuple> maybe> { H Key get }
+  assoc_f_: (\ <A> *Key -> <B maybe> { H Key assoc } value$)
+  contain_key?_f_: (\ <A> *Key -> <bool> { H Key contain_key? } value$)
+  put_f: \ <A> *Key <B> *Assoc -> <<A B tuple> maybe> { H Key Assoc put }
+  put_new_f_: (\ <A> *Key <B> *Assoc -> <bool> { H Key Assoc put_new } value$)
+  add_f_: (\ <A> *Key <B> *Assoc -> <void> { H Key Assoc add } value$)
+  remove_f: \ <A> *Key -> <<A B tuple> maybe> { H Key remove }
+  delete_f_: (\ <A> *Key -> <void> { H Key delete } value$)
+  take_f: \\ <<A B tuple> maybe> { H take }
+  clear_f: \\ <void> { H clear }
+  shared.shared_map_h$
 } ;;
 
-eval <*A! *B! map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H extract -> <<A B tuple> iter> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ex.redress_f> tuple> list> {
       Box box.read = *D,
@@ -74,11 +90,11 @@ eval <*A! *B! map_h> *Map_h all_kvs @public -> <<A B tuple> list> {
       L = (| *K, *E, *Rf |),
       (| K, E &Rf |)
     }
-    list.map
+    list.map >> list.iter
 } ;;
 
-eval <*A! *B! map_h> *Map_h empty? @public -> <bool> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H empty? -> <bool> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
@@ -87,8 +103,8 @@ eval <*A! *B! map_h> *Map_h empty? @public -> <bool> {
     actu.run
 } ;;
 
-eval <*A! *B! map_h> *Map_h size @public -> <int> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H size -> <int> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <int> {
       Box box.read = *D,
@@ -97,8 +113,8 @@ eval <*A! *B! map_h> *Map_h size @public -> <int> {
     actu.run
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H <A> *Key get -> <<A B tuple> maybe> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ex.redress_f> tuple> maybe> {
       Box box.read = *D,
@@ -113,19 +129,19 @@ eval <*A! *B! map_h> *Map_h <A> *Key get @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key assoc @public -> <B maybe> {
-  Map_h Key get >> case {
+eval <*A! *B! h> *H <A> *Key assoc -> <B maybe> {
+  H Key get >> case {
   ; (| **, *Assoc |) value$ -> Assoc value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key contain_key? @public -> <bool> {
-  Map_h Key get >> something?
+eval <*A! *B! h> *H <A> *Key contain_key? -> <bool> {
+  H Key get >> something?
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H <A> *Key <B> *Value put -> <<A B tuple> maybe> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ex.redress_f> tuple> maybe> {
       Box box.read = *D,
@@ -141,8 +157,8 @@ eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value put @public -> <<A B tuple> mayb
   }
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H <A> *Key <B> *Value put_new -> <bool> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
@@ -157,12 +173,12 @@ eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value put_new @public -> <bool> {
     actu.run
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key <B> *Value add @public -> <void> {
-  Map_h Key Value put >> ignore
+eval <*A! *B! h> *H <A> *Key <B> *Value add -> <void> {
+  H Key Value put >> ignore
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H <A> *Key remove -> <<A B tuple> maybe> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ex.redress_f> tuple> maybe> {
       Box box.read = *D,
@@ -177,12 +193,12 @@ eval <*A! *B! map_h> *Map_h <A> *Key remove @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A! *B! map_h> *Map_h <A> *Key delete @public -> <void> {
-  Map_h Key remove >> ignore
+eval <*A! *B! h> *H <A> *Key delete -> <void> {
+  H Key remove >> ignore
 } ;;
 
-eval <*A! *B! map_h> *Map_h take @public -> <<A B tuple> maybe> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H take -> <<A B tuple> maybe> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ex.redress_f> tuple> maybe> {
       Box box.read = *D,
@@ -197,8 +213,8 @@ eval <*A! *B! map_h> *Map_h take @public -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*A! *B! map_h> *Map_h clear @public -> <void> {
-  Map_h = mon: *Mon undress_f: *Uf *** map_h$,
+eval <*A! *B! h> *H clear -> <void> {
+  H = mon: *Mon undress_f: *Uf *** h$,
   Mon
     \ <<A B d> box.box_h> *Box -> <void> {
       Box box.read = *D,
@@ -206,28 +222,6 @@ eval <*A! *B! map_h> *Map_h clear @public -> <void> {
       Box D' box.write >> ignore
     }
     actu.run
-} ;;
-
-eval <*A! *B! map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <void> {
-  Map_h (KVs list.iter) add_iter
-} ;;
-
-eval <*A! *B! map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
-  Iter next >> case {
-  ; (| (| *K, *V |), *Iter' |) value$ -> Map_h K V add, Map_h Iter' &&
-  ; ** ->
-  }
-} ;;
-
-eval <*A! *B! map_h> *Map_h <A list> *Ks delete_list @public -> <void> {
-  Map_h (Ks list.iter) delete_iter
-} ;;
-
-eval <*A! *B! map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
-  Iter next >> case {
-  ; (| *K, *Iter' |) value$ -> Map_h K delete, Map_h Iter' &&
-  ; ** ->
-  }
 } ;;
 
 

@@ -1,0 +1,96 @@
+import "sango.actor" -> act ;;
+import "sango.cstr" -> cstr ;;
+import "sango.debug" -> debug ;;
+import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
+import "sango.list" -> list ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.avltree.map" -> avlmap ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.box" -> map_box ;;
+import "sango.util.map.shared" -> shm ;;
+import "sango.util.map.shared.weakvaluemap" -> wvm ;;
+import "sango.util.unique" -> uniq ;;
+
+eval _main_ -> <void> {
+  test,
+  stdio.flush
+} ;;
+
+eval test -> <void> {
+  test000,
+  test010,
+  void$
+} ;;
+
+eval make -> <cstr <int box.box_h> shm.shared_map_h> {
+  cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
+  box.dress_fs = <<int box.box_h> ex.dress_fs> *Dfs,
+  KT Dfs wvm.create_weak_value_map = *M,
+  1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V1, M "a" V1 shm.add,
+  2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V2, M "b" V2 shm.add,
+  3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V3, M "c" V3 shm.add,
+  4 (\\ <void> { "4 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V4, M "d" V4 shm.add,
+  5 (\\ <void> { "5 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V5, M "e" V5 shm.add,
+  M
+} ;;
+
+eval test000 -> <void> {
+  cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
+  box.dress_fs = <<int box.box_h> ex.dress_fs> *Dfs,
+  KT Dfs wvm.create_weak_value_map = *M,
+  1 none$ box.create_box = *V1,
+  2 none$ box.create_box = *V2,
+  3 none$ box.create_box = *V3,
+  4 none$ box.create_box = *V4,
+  5 none$ box.create_box = *V5,
+  M shm.empty? = true$,
+  M "abc" V1 shm.put = none$,
+  M "abc" V1 shm.put_new = false$,
+  M "def" V2 shm.put_new = true$,
+  M "def" V1 shm.put = (| "def", V2 |) value$,
+  M shm.size = 2,
+  M "def" shm.get = (| "def", V1 |) value$,
+  M "def" shm.assoc = V1 value$,
+  M shm.extract >> list.new_list = [ (| "abc", V1 |), (| "def", V1 |) ],
+  M "ghi" V3 shm.put = none$,
+  M "ghi" shm.remove = (| "ghi", V3 |) value$,
+  M shm.clear,
+  M shm.empty? = true$,
+  M [ (| "ghi", V3 |), (| "jkl", V4 |), (| "mno", V5 |) ] shm.add_list,
+  M shm.size = 3,
+  M shm.take >> something? = true$,
+  M shm.take >> something? = true$,
+  M shm.take >> something? = true$,
+  M shm.take >> something? = false$,
+  M shm.empty? = true$,
+  M [ (| "ghi", V3 |), (| "jkl", V4 |), (| "mno", V5 |) ] shm.add_list,
+  M [ "ghi", "jkl" ] shm.delete_list,
+  M shm.size = 1,
+  V1,  # keep to here
+  V2,  # keep to here
+  V3,  # keep to here
+  V4,  # keep to here
+  V5,  # keep to here
+  void$
+} ;;
+eval test010 -> <void> {
+  make = *M,
+  6 (\\ <void> { "6 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V6, M "f" V6 shm.add,
+  7 (\\ <void> { "7 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V7, M "g" V7 shm.add,
+  M shm.extract >> list.new_list = *KVs1,
+  KVs1 debug.repr >> stdio.print_and_newline,
+  runtime.gc,
+  act.yield,
+  M shm.extract >> list.new_list = *KVs2,
+  KVs2 debug.repr >> stdio.print_and_newline, stdio.flush,
+  if {
+  ; (KVs2 list.length) 2 ge? ->
+  ; otherwise -> assertion_error$ "KV(s) lost." new_exception >> throw
+  },
+  V6,  # keep to here
+  V7,  # keep to here
+  void$
+} ;;
