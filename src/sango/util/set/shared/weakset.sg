@@ -1,0 +1,98 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2024 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.set.shared.weakset" ;;
+
+import "sango.entity.existence" -> ex ;;
+import "sango.util.iter" -> iter ;;
+import "sango.list" -> list ;;
+import "sango.tuple" -> tuple ;;
+import "sango.util.map.shared" -> shmap ;;
+import "sango.util.map.shared.weakkeymap" -> wkmap ;;
+import "sango.util.set.shared" -> shset ;;
+
+eval <*A! ex.dress_fs> *Dress_fs create_weak_set @public -> <A shset.shared_set_h> {
+  Dress_fs (void$ dummy_obj$) wkmap.create_weak_key_map = *WKM,
+
+  extract_f: \\ <A iter> { WKM extract }
+  empty?_f: \\ <bool> { WKM empty? }
+  size_f: \\ <int> { WKM size }
+  get_f: \ <A> *Elem -> <A maybe> { WKM Elem get }
+  contain?_f_: (\ <A> *Elem -> <bool> { WKM Elem contain? } value$)
+  put_f: \ <A> *Elem -> <A maybe> { WKM Elem put }
+  put_new_f_: (\ <A> *Elem -> <bool> { WKM Elem put_new } value$)
+  add_f_: (\ <A> *Elem -> <void> { WKM Elem add } value$)
+  remove_f: \ <A> *Elem -> <A maybe> { WKM Elem remove }
+  delete_f_: (\ <A> *Elem -> <void> { WKM Elem delete } value$)
+  take_f: \\ <A maybe> { WKM take }
+  clear_f: \\ <void> { WKM clear }
+  shset.shared_set_h$
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM extract -> <A iter> {
+  (WKM shmap.extract) ^tuple.pair_first iter.add_modifier
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM empty? -> <bool> {
+  WKM shmap.empty?
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM size -> <int> {
+  WKM shmap.size
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X get -> <A maybe> {
+  (WKM X shmap.get) ^tuple.pair_first apply_to_something
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X contain? -> <bool> {
+  WKM X shmap.contain_key?
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X put -> <A maybe> {
+  (WKM X void$ shmap.put) ^tuple.pair_first apply_to_something
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X put_new -> <bool> {
+  WKM X void$ shmap.put_new
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X add -> <void> {
+  WKM X void$ shmap.add
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X remove -> <A maybe> {
+  (WKM X shmap.remove) ^tuple.pair_first apply_to_something
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM <A> *X delete -> <void> {
+  WKM X shmap.delete
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM take -> <A maybe> {
+  (WKM shmap.take) ^tuple.pair_first apply_to_something
+} ;;
+
+eval <*A! void shmap.shared_map_h> *WKM clear -> <void> {
+  WKM shmap.clear
+} ;;
