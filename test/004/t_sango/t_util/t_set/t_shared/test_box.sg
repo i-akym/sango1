@@ -1,0 +1,50 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.shared" -> shset ;;
+import "sango.util.set.shared.box" -> set_box ;;
+import "sango.util.set.simpleset" -> simpleset ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval new_set -> <int set.set> {
+  simpleset.new_set
+} ;;
+
+eval test000 -> <void> {
+  new_set >> set.as_fxset >> set_box.create_box = *S,
+  S shset.empty? = true$,
+  S 1 shset.put = none$,
+  S 1 shset.put_new = false$,
+  S 2 shset.put_new = true$,
+  S 2 shset.put = 2 value$,
+  S shset.size = 2,
+  S 2 shset.contain? = true$,
+  S 3 shset.contain? = false$,
+  S 3 shset.put = none$,
+  S 2 shset.remove = 2 value$,
+  S shset.take >> case {
+  ; 1 value$ ->
+    S shset.take = 3 value$,
+    S shset.take = none$
+  ; 3 value$ ->
+    S shset.take = 1 value$,
+    S shset.take = none$
+  },
+  S shset.clear,
+  S shset.empty? = true$,
+  S [ 4, 5 ] shset.add_list,
+  S shset.extract >> list.new_list = *Es,
+  Es list.length = 2,
+  void$
+} ;;
