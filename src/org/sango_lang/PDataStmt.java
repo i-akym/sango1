@@ -386,6 +386,14 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       PTypeVarDef varDef = PTypeVarDef.accept(reader, scope);
       Param p;
       if (varDef != null) {
+        if (varDef.features != null) {
+          emsg = new StringBuffer();
+          emsg.append("Feature description not allowed at ");
+          emsg.append(varDef.getSrcInfo());
+          emsg.append(". *");
+          emsg.append(varDef.name);
+          throw new CompileException(emsg.toString());
+        }
         p = create(si, variance, varDef);
       } else if (variance == Module.INVARIANT) {
         p = null;
