@@ -44,7 +44,7 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   PTypeVarSkel cast(boolean newRequiresConcrete, PFeatureSkel.List featuresToMerge, PTypeSkelBindings bindings) {
-    PFeatureSkel.List fs = this.features.merge(featuresToMerge, bindings);
+    PFeatureSkel.List fs = this.features.merge(PTypeSkel.EQUAL /* HERE */ , featuresToMerge, bindings);
     if (fs == null) { return null; }
     PTypeVarSlot s = PTypeVarSlot.createInternal(newRequiresConcrete);
     String n = this.name;
@@ -337,7 +337,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeSome 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (!this.features.accept(tr, bindings)) {
+    } else if (!this.features.accept(width, tr, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeSome 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -370,7 +370,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeGiven "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (!this.features.accept(tv, bindings)) {
+    if (!this.features.accept(width, tv, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeGiven 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -559,7 +559,7 @@ public class PTypeVarSkel implements PTypeSkel {
       b = false;
     }
     if (b) {
-      b = tv.features.merge(this.features, bindings) != null;
+      b = tv.features.merge(width, this.features, bindings) != null;
     }
     return b;
   }
@@ -639,7 +639,7 @@ public class PTypeVarSkel implements PTypeSkel {
       b = false;
     }
     if (b) {
-      b = this.features.merge(tv.features, bindings) != null;
+      b = this.features.merge(width, tv.features, bindings) != null;
     }
     return b;
   }
@@ -763,7 +763,7 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel.JoinResult r;
     if (tr.includesVar(this.varSlot, bindings)) {
       r = null;
-    } else if (!this.features.accept(tr, bindings)) {
+    } else if (!this.features.accept(width, tr, bindings)) {
       r = null;
     } else {
       PTypeSkelBindings b = bindings.copy();
@@ -777,7 +777,7 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel.JoinResult r;
     PFeatureSkel.JoinResult fr;
     PTypeSkelBindings b = bindings.copy();
-    if ((fr = this.features.joinList(tv.features, b)) == null) {
+    if ((fr = this.features.joinList(width, tv.features, b)) == null) {
       r = null;
     } else {
       PTypeVarSlot s = PTypeVarSlot.createInternal(this.varSlot.requiresConcrete | tv.varSlot.requiresConcrete);
