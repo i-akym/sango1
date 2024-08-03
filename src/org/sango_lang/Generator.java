@@ -186,7 +186,7 @@ class Generator {
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       MTypeVar v = (MTypeVar)pvs[i].toMType(this.parser.mod, varSlotList);
-      MDataDef.Param p = MDataDef.Param.create(dd.getParamVarianceAt(i), v);
+      MTypeVar.DefWithVariance p = MTypeVar.DefWithVariance.create(dd.getParamVarianceAt(i), v);
       this.modBuilder.putDataDefParam(p);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {
