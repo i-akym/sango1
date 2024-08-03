@@ -123,15 +123,7 @@ public class MDataDef implements Module.Elem {
     if (this.params.length > 0) {
       Element paramsNode = doc.createElement(Module.TAG_PARAMS);
       for (int i = 0; i < this.params.length; i++) {
-        Element paramNode = this.params[i].var.externalize(doc);
-        if (this.params[i].variance == Module.INVARIANT) {
-          ;  // nothing added
-        } else if (this.params[i].variance == Module.COVARIANT) {
-          paramNode.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
-        } else if (this.params[i].variance == Module.CONTRAVARIANT) {
-          paramNode.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
-        }  // if no variance, nothing added
-        paramsNode.appendChild(paramNode);
+        paramsNode.appendChild(this.params[i].externalize(doc));
       }
       dataDefNode.appendChild(paramsNode);
     }
