@@ -520,27 +520,12 @@ public class Module {
 
   static void internalizeDataDefParams(Node node, Builder builder) throws FormatException {
     Node n = node.getFirstChild();
-    MTypeVar v;
+    MTypeVar.DefWithVariance v;
     while (n != null) {
       if (isIgnorable(n)) {
         ;
-      } else if ((v = MTypeVar.internalize(n)) != null) {
-        NamedNodeMap attrs = n.getAttributes();
-        Variance variance = NO_VARIANCE;
-        Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
-        if (aVariance != null) {
-          String sVariance = aVariance.getNodeValue();
-          if (sVariance.equals(REPR_INVARIANT)) {
-            variance = INVARIANT;
-          } else if (sVariance.equals(REPR_COVARIANT)) {
-            variance = COVARIANT;
-          } else if (sVariance.equals(REPR_CONTRAVARIANT)) {
-            variance = CONTRAVARIANT;
-          } else {
-            throw new FormatException("Invalid 'variance': " + sVariance);
-          }
-        }
-        builder.putDataDefParam(MDataDef.Param.create((variance == NO_VARIANCE)? INVARIANT: variance, v));
+      } else if ((v = MTypeVar.DefWithVariance.internalize(n)) != null) {
+        builder.putDataDefParam(v);
       } else {
         throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
       }
@@ -1735,7 +1720,7 @@ public class Module {
       this.dataDefBuilder.setBaseTcon(baseTcon);
     }
 
-    void putDataDefParam(MDataDef.Param p) {
+    void putDataDefParam(MTypeVar.DefWithVariance p) {
       this.dataDefBuilder.addParam(p);
     }
 

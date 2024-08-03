@@ -123,25 +123,6 @@ class MTypeVar implements MType {
     return create(slot, requiresConcrete, /* constraint, */ features);
   }
 
-  // static MType internalizeConstraint(Node node) throws FormatException {
-    // if (!node.getNodeName().equals(Module.TAG_CONSTRAINT)) { return null; }
-
-    // Node n = node.getFirstChild();
-    // MType constraint = null;
-    // int state = 0;
-    // while (n != null) {
-      // if (Module.isIgnorable(n)) {
-        // ;
-      // } else if (state == 0 && (constraint = MType.Envelope.internalizeDesc(n)) != null) {
-        // state = 1;
-      // } else {
-        // throw new FormatException("Unknown or extra element : " + n.getNodeName());
-      // }
-      // n = n.getNextSibling();
-    // }
-    // return constraint;
-  // }
-
   public boolean isCompatible(Module.ModTab modTab, MType type, Module.ModTab defModTab) {
     boolean b;
     if (!(type instanceof MTypeVar)) {
@@ -151,5 +132,38 @@ class MTypeVar implements MType {
       b = tv.slot == this.slot;
     }
     return b;
+  }
+
+  public static class DefWithVariance {
+    Module.Variance variance;
+    MTypeVar var;
+
+    static DefWithVariance create(Module.Variance variance, MTypeVar var) {
+      DefWithVariance d = new DefWithVariance();
+      d.variance = variance;
+      d.var = var;
+      return d;
+    }
+
+    public static DefWithVariance internalize(Node node) throws FormatException {
+      if (!node.getNodeName().equals(Module.TAG_TYPE_VAR)) { return null; }
+      MTypeVar v = MTypeVar.internalize(node);
+      NamedNodeMap attrs = node.getAttributes();
+      Module.Variance variance = Module.NO_VARIANCE;
+      Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
+      if (aVariance != null) {
+        String sVariance = aVariance.getNodeValue();
+        if (sVariance.equals(Module.REPR_INVARIANT)) {
+          variance = Module.INVARIANT;
+        } else if (sVariance.equals(Module.REPR_COVARIANT)) {
+          variance = Module.COVARIANT;
+        } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
+          variance = Module.CONTRAVARIANT;
+        } else {
+          throw new FormatException("Invalid 'variance': " + sVariance);
+        }
+      }
+      return DefWithVariance.create((variance == Module.NO_VARIANCE)? Module.INVARIANT: variance, v);
+    }
   }
 }
