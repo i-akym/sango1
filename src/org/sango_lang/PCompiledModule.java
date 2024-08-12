@@ -509,8 +509,10 @@ class PCompiledModule implements PDefDict {
     fd.nameKey = PDefDict.IdKey.create(mod.name, featureDef.fname);
     fd.obj = convertTypeVar(featureDef.obj, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
     fd.params = new PTypeVarSkel[featureDef.params.length];
+    fd.paramVariances = new Module.Variance[featureDef.params.length];
     for (int i = 0; i < fd.params.length; i++) {
-      fd.params[i] = convertTypeVar(featureDef.params[i], mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      fd.params[i] = convertTypeVar(featureDef.params[i].var, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      fd.paramVariances[i] = featureDef.params[i].variance;
     }
     fd.impl = this.convertTypeRef(featureDef.impl, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
     return fd;
@@ -522,6 +524,7 @@ class PCompiledModule implements PDefDict {
     PDefDict.IdKey nameKey;
     PTypeVarSkel obj;
     PTypeVarSkel[] params;
+    Module.Variance[] paramVariances;
     PTypeRefSkel impl;
 
     public Module.Availability getAvailability() { return this.availability; }
@@ -535,6 +538,10 @@ class PCompiledModule implements PDefDict {
     public PTypeVarSkel getObjType() { return this.obj; }
 
     public PTypeVarSkel[] getParams() { return this.params; }
+
+    // public PFeatureSkel getFeatureSig() { return HERE; }
+
+    public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public PTypeRefSkel getImplType() { return this.impl; }
   }

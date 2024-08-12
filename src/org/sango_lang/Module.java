@@ -814,11 +814,11 @@ public class Module {
   static boolean internalizeFeatureParams(Node node, Builder builder, MFeatureDef.Builder featureDefBuilder) throws FormatException {
     if (node == null || !node.getNodeName().equals(TAG_PARAMS)) { return false; }
     Node n = node.getFirstChild();
-    MTypeVar v;
+    MTypeVar.DefWithVariance v;
     while (n != null) {
       if (isIgnorable(n)) {
         ;
-      } else if ((v = MTypeVar.internalize(n)) != null) {
+      } else if ((v = MTypeVar.DefWithVariance.internalize(n)) != null) {
         featureDefBuilder.addParam(v);
       } else {
         throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());

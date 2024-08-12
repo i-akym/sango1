@@ -735,19 +735,19 @@ class PModule implements PDefDict {
   void addFeatureStmt(PFeatureStmt feat) throws CompileException {
     StringBuffer emsg;
     feat.collectModRefs();
-    if (this.tconDict.containsKey(feat.sig.fname.name)) {
+    if (this.tconDict.containsKey(feat.fname)) {
       emsg = new StringBuffer();
       emsg.append("Feature name \"");
-      emsg.append(feat.sig.fname.name);
+      emsg.append(feat.fname);
       emsg.append("\" collides with type constuctor at ");
       emsg.append(feat.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (this.fnameDict.containsKey(feat.sig.fname.name)) {
+    if (this.fnameDict.containsKey(feat.fname)) {
       emsg = new StringBuffer();
       emsg.append("Feature name \"");
-      emsg.append(feat.sig.fname.name);
+      emsg.append(feat.fname);
       emsg.append("\" duplicate at ");
       emsg.append(feat.srcInfo);
       emsg.append(".");
@@ -755,10 +755,10 @@ class PModule implements PDefDict {
     }
     this.featureStmtList.add(feat);
     this.fnameDict.put(
-      feat.sig.fname.name,
+      feat.fname.name,
       PDefDict.FeatureProps.create(
-        PDefDict.IdKey.create(this.name, feat.sig.fname.name),
-        feat.sig.params.length,
+        PDefDict.IdKey.create(this.name, feat.fname.name),
+        feat.params.length,
         feat.acc,
         FeatureDefGetter.create(feat))
     );

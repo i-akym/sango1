@@ -32,7 +32,7 @@ public class MFeatureDef implements Module.Elem {
   String fname;
   Module.Availability availability;
   Module.Access acc;
-  MTypeVar[] params;
+  MTypeVar.DefWithVariance[] params;
   MTypeVar obj;
   MTypeRef impl;
 
@@ -40,7 +40,7 @@ public class MFeatureDef implements Module.Elem {
 
   static class Builder {
     MFeatureDef featureDef;
-    List<MTypeVar> paramList;
+    List<MTypeVar.DefWithVariance> paramList;
 
     static Builder newInstance() {
       return new Builder();
@@ -48,7 +48,7 @@ public class MFeatureDef implements Module.Elem {
 
     Builder() {
       this.featureDef = new MFeatureDef();
-      this.paramList = new ArrayList<MTypeVar>();
+      this.paramList = new ArrayList<MTypeVar.DefWithVariance>();
     }
 
     void setName(String fname) {
@@ -63,7 +63,7 @@ public class MFeatureDef implements Module.Elem {
       this.featureDef.acc = acc;
     }
 
-    void addParam(MTypeVar param) {
+    void addParam(MTypeVar.DefWithVariance param) {
       this.paramList.add(param);
     }
 
@@ -76,7 +76,7 @@ public class MFeatureDef implements Module.Elem {
     }
 
     MFeatureDef create() {
-      this.featureDef.params = this.paramList.toArray(new MTypeVar[this.paramList.size()]);
+      this.featureDef.params = this.paramList.toArray(new MTypeVar.DefWithVariance[this.paramList.size()]);
       return this.featureDef;
     }
   }
