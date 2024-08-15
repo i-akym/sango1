@@ -209,21 +209,25 @@ public class PTypeRefSkel implements PTypeSkel {
 
   static int[] paramWidths(int width, Module.Variance[] variances) {
     int[] ww = new int[variances.length] ;
-    if (width == PTypeSkel.EQUAL) {
-      for (int i = 0; i < variances.length; i++) {
-        ww[i] = PTypeSkel.EQUAL;
-      }
-    } else {
-      for (int i = 0; i < variances.length; i++) {
-        if (variances[i] == Module.INVARIANT) {
-          ww[i] = PTypeSkel.EQUAL;
-        } else if (variances[i] == Module.CONTRAVARIANT) {
-          ww[i] = - width;
-        } else {
-          ww[i] = width;
-        }
-      }
+    for (int i = 0; i < variances.length; i++) {
+      ww[i] = PTypeSkel.calcWidth(width, variances[i]);
     }
+
+    // if (width == PTypeSkel.EQUAL) {
+      // for (int i = 0; i < variances.length; i++) {
+        // ww[i] = PTypeSkel.EQUAL;
+      // }
+    // } else {
+      // for (int i = 0; i < variances.length; i++) {
+        // if (variances[i] == Module.INVARIANT) {
+          // ww[i] = PTypeSkel.EQUAL;
+        // } else if (variances[i] == Module.CONTRAVARIANT) {
+          // ww[i] = - width;
+        // } else {
+          // ww[i] = width;
+        // }
+      // }
+    // }
     return ww;
   }
 

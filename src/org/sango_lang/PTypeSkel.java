@@ -77,6 +77,22 @@ public interface PTypeSkel {
 
   Repr repr();
 
+  static int calcWidth(int widthContext, Module.Variance variance) {
+    int w;
+    if (widthContext == EQUAL) {
+      w = EQUAL;
+    } else if (variance == Module.INVARIANT) {
+      w = EQUAL;
+    } else if (variance == Module.COVARIANT) {
+      w = widthContext;
+    } else if (variance == Module.CONTRAVARIANT) {
+      w = - widthContext;
+    } else {
+      throw new RuntimeException("Width calculation error.");
+    }
+    return w;
+  }
+
   public static class JoinResult {
     PTypeSkel joined;
     PTypeSkelBindings bindings;

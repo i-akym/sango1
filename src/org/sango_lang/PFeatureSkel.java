@@ -156,8 +156,11 @@ public class PFeatureSkel {
     if (!(b = this.featureProps.key.equals(feature.featureProps.key))) {
       ;
     } else {
+      PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
       for (int i = 0; b && i < this.params.length; i++) {
-        b = this.params[i].accept(width, feature.params[i], bindings);
+        int w = PTypeSkel.calcWidth(width, fd.getParamVarianceAt(i));
+        b = this.params[i].accept(w, feature.params[i], bindings);
+        // b = this.params[i].accept(width, feature.params[i], bindings);
       }
     }
     return b;
@@ -267,10 +270,13 @@ public class PFeatureSkel {
 
   JoinResult join(int width, PFeatureSkel f2, JoinResult res) {
     PTypeSkelBindings b = res.bindings;
+    PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     boolean cont = true;
     for (int i = 0; cont && i < this.params.length; i++) {
-      PTypeSkel.JoinResult sr = this.params[i].join2(width, f2.params[i], b);
+      int w = PTypeSkel.calcWidth(width, fd.getParamVarianceAt(i));
+      PTypeSkel.JoinResult sr = this.params[i].join2(w, f2.params[i], b);
+      // PTypeSkel.JoinResult sr = this.params[i].join2(width, f2.params[i], b);
       if (sr != null) {
         ps[i] = sr.joined;
         b = sr.bindings;
