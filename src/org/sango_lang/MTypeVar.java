@@ -65,7 +65,7 @@ class MTypeVar implements MType {
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
-    if (this.features != null && this.features.features.length > 0) {
+    if (this.features != null /* && this.features.features.length > 0 */) {
       node.appendChild(this.features.externalize(doc));
     }
     return node;

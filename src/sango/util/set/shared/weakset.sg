@@ -50,7 +50,7 @@ eval <*A! ex.dress_fs> *Dress_fs create_weak_set @public -> <A shset.shared_set_
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM extract -> <A iter> {
-  (WKM shmap.extract) ^tuple.pair_first iter.add_modifier
+  (WKM shmap.extract) (&\\ <<*T! *U tuple> T fun> { ^tuple.pair_first }) iter.add_modifier
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM empty? -> <bool> {
@@ -62,7 +62,7 @@ eval <*A! void shmap.shared_map_h> *WKM size -> <int> {
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM <A> *X get -> <A maybe> {
-  (WKM X shmap.get) ^tuple.pair_first apply_to_something
+  (WKM X shmap.get) (&\\ <<*T! *U tuple> T fun> { ^tuple.pair_first }) apply_to_something
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM <A> *X contain? -> <bool> {
@@ -70,7 +70,7 @@ eval <*A! void shmap.shared_map_h> *WKM <A> *X contain? -> <bool> {
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM <A> *X put -> <A maybe> {
-  (WKM X void$ shmap.put) ^tuple.pair_first apply_to_something
+  (WKM X void$ shmap.put) (&\\ <<*T! *U tuple> T fun> { ^tuple.pair_first }) apply_to_something
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM <A> *X put_new -> <bool> {
@@ -82,7 +82,7 @@ eval <*A! void shmap.shared_map_h> *WKM <A> *X add -> <void> {
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM <A> *X remove -> <A maybe> {
-  (WKM X shmap.remove) ^tuple.pair_first apply_to_something
+  (WKM X shmap.remove) (&\\ <<*T! *U tuple> T fun> { ^tuple.pair_first }) apply_to_something
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM <A> *X delete -> <void> {
@@ -90,7 +90,7 @@ eval <*A! void shmap.shared_map_h> *WKM <A> *X delete -> <void> {
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM take -> <A maybe> {
-  (WKM shmap.take) ^tuple.pair_first apply_to_something
+  (WKM shmap.take) (&\\ <<*T! *U tuple> T fun> { ^tuple.pair_first }) apply_to_something
 } ;;
 
 eval <*A! void shmap.shared_map_h> *WKM clear -> <void> {

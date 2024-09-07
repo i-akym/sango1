@@ -355,7 +355,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#acceptGenericVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (tv.features.features.length > 0) {
+    } else if (tv.features != null) {
       throw new RuntimeException("Oops, var with features not supported for casting. " + tv.toString());  // HERE
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
@@ -472,7 +472,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#requireGenericVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (tv.features.features.length > 0) {
+    } else if (tv.features != null) {
       throw new RuntimeException("Oops, var with features not supported for casting. " + tv.toString());  // HERE
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
@@ -600,7 +600,7 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
         PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s, /* null, */ PFeatureSkel.List.createEmpty(this.srcInfo));  // features empty ok?
+        v = PTypeVarSkel.create(this.srcInfo, null, s, null);
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);

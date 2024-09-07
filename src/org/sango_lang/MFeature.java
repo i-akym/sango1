@@ -204,7 +204,8 @@ class MFeature {
         }
         n = n.getNextSibling();
       }
-      return (fs.size() > 0)? create(fs): null;
+      return create(fs);
+      // return (fs.size() > 0)? create(fs): null;
     }
 
     public Element externalize(Document doc) {
