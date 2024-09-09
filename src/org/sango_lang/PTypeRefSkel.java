@@ -136,21 +136,21 @@ public class PTypeRefSkel implements PTypeSkel {
       this.tconProps.key.idName.equals(Module.TCON_EXPOSED) ;
   }
 
-  // public boolean isConcrete() {
-    // boolean b = true;
-    // for (int i = 0; b & i < this.params.length; i++) {
-      // b &= this.params[i].isConcrete();
-    // }
-    // return b;
-  // }
-
-  public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+  public boolean isConcrete() {
     boolean b = true;
     for (int i = 0; b & i < this.params.length; i++) {
-      b &= this.params[i].isConcrete(givenTVarList);
+      b &= this.params[i].isConcrete();
     }
     return b;
   }
+
+  // public boolean isConcrete(List<PTypeVarSlot> givenTVarList) {
+    // boolean b = true;
+    // for (int i = 0; b & i < this.params.length; i++) {
+      // b &= this.params[i].isConcrete(givenTVarList);
+    // }
+    // return b;
+  // }
 
   // public boolean isConcrete(PTypeSkelBindings bindings) {
     // boolean b = true;
@@ -160,15 +160,25 @@ public class PTypeRefSkel implements PTypeSkel {
     // return b;
   // }
 
-  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
     if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
     PTypeRefSkel tt = (PTypeRefSkel)type;
     PTypeSkel t = null;
     for (int i = 0; t == null && i < this.params.length; i++) {
-      t = this.params[i].extractAnyInconcreteVar(tt.params[i], givenTVarList);
+      t = this.params[i].extractAnyInconcreteVar(tt.params[i]);
     }
     return t;
   }
+
+  // public PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList) {
+    // if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
+    // PTypeRefSkel tt = (PTypeRefSkel)type;
+    // PTypeSkel t = null;
+    // for (int i = 0; t == null && i < this.params.length; i++) {
+      // t = this.params[i].extractAnyInconcreteVar(tt.params[i], givenTVarList);
+    // }
+    // return t;
+  // }
 
   public PDefDict.TconProps getTconInfo() {
     if (this.tconProps == null) {
@@ -199,21 +209,25 @@ public class PTypeRefSkel implements PTypeSkel {
 
   static int[] paramWidths(int width, Module.Variance[] variances) {
     int[] ww = new int[variances.length] ;
-    if (width == PTypeSkel.EQUAL) {
-      for (int i = 0; i < variances.length; i++) {
-        ww[i] = PTypeSkel.EQUAL;
-      }
-    } else {
-      for (int i = 0; i < variances.length; i++) {
-        if (variances[i] == Module.INVARIANT) {
-          ww[i] = PTypeSkel.EQUAL;
-        } else if (variances[i] == Module.CONTRAVARIANT) {
-          ww[i] = - width;
-        } else {
-          ww[i] = width;
-        }
-      }
+    for (int i = 0; i < variances.length; i++) {
+      ww[i] = PTypeSkel.calcWidth(width, variances[i]);
     }
+
+    // if (width == PTypeSkel.EQUAL) {
+      // for (int i = 0; i < variances.length; i++) {
+        // ww[i] = PTypeSkel.EQUAL;
+      // }
+    // } else {
+      // for (int i = 0; i < variances.length; i++) {
+        // if (variances[i] == Module.INVARIANT) {
+          // ww[i] = PTypeSkel.EQUAL;
+        // } else if (variances[i] == Module.CONTRAVARIANT) {
+          // ww[i] = - width;
+        // } else {
+          // ww[i] = width;
+        // }
+      // }
+    // }
     return ww;
   }
 
@@ -341,7 +355,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#acceptGenericVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (tv.features.features.length > 0) {
+    } else if (tv.features != null) {
       throw new RuntimeException("Oops, var with features not supported for casting. " + tv.toString());  // HERE
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
@@ -458,7 +472,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#requireGenericVar 3 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (tv.features.features.length > 0) {
+    } else if (tv.features != null) {
       throw new RuntimeException("Oops, var with features not supported for casting. " + tv.toString());  // HERE
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
@@ -586,7 +600,7 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
         PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.srcInfo, null, s, /* null, */ PFeatureSkel.List.createEmpty(this.srcInfo));  // features empty ok?
+        v = PTypeVarSkel.create(this.srcInfo, null, s, null);
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);

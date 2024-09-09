@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.4　ライブラリ解説</title>
+<title>Sango 1.7.5　ライブラリ解説</title>
 </head>
 
 <body>
@@ -193,9 +193,9 @@ kbd {
   <a href="#sango.util.map.1">フレームワーク</a>
   <a href="#sango.util.map.2">実装者向け情報</a>
 <a href="#sango.util.map.hashmap"><code>sango.util.map.hashmap</code></a>
+<a href="#sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code></a> 【Alpha】
+<a href="#sango.util.map.shared.weakvaluemap"><code>sango.util.map.shared.weakvaluemap</code></a> 【Alpha】
 <a href="#sango.util.map.simplemap"><code>sango.util.map.simplemap</code></a>
-<a href="#sango.util.map.weakkeymap"><code>sango.util.map.weakkeymap</code></a> 【Alpha】
-<a href="#sango.util.map.weakvaluemap"><code>sango.util.map.weakvaluemap</code></a> 【Alpha】
 <a href="#sango.util.prop"><code>sango.util.prop</code></a> 【Alpha】
 <a href="#sango.util.queue"><code>sango.util.queue</code></a>
   <a href="#sango.util.queue.1">フレームワーク</a>
@@ -3493,6 +3493,20 @@ data &lt;*A *B map&gt; @public :=
   <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code> 【Alpha】</h1>
+
+<p>実体をキーとするマップです。
+キーは弱参照で保持され，これ以外からの参照がなくなると，当該キーと関連データが自動的に削除されます。
+このマップは複数のアクタから共有可能です。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.map.shared.weakvaluemap"><code>sango.util.map.shared.weakvaluemap</code> 【Alpha】</h1>
+
+<p>実体を関連データとするマップです。
+関連データは弱参照で保持され，これ以外からの参照がなくなると，そのキーと当該データが自動的に削除されます。
+このマップは複数のアクタから共有可能です。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.map.simplemap"><code>sango.util.map.simplemap</code></h1>
 
 <p>簡易なマップの実装を提供します。
@@ -3505,105 +3519,6 @@ data &lt;*A *B map&gt; @public :=
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
 <p>simple mapのオブジェクトを生成します。
   <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.map.weakkeymap"><code>sango.util.map.weakkeymap</code> 【Alpha】</h1>
-
-<p>実体をキーとするマップです。
-  キーは弱参照で保持され，これ以外からの参照がなくなると，当該キーと関連データが自動的に削除されます。
-  このマップは複数のアクタから共有可能です。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! *B! map_h&gt; @opaque ;;</code></td></tr></table>
-<p>マップへのハンドルを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.existence&quot;.dress_fs&gt; *Dress_fs &lt;*B! dummy&gt; *Assoc
-  create_weak_key_map @public -&gt; &lt;A B map_h&gt; ;;</code></td></tr></table>
-<p>マップを生成し，ハンドルを返します。
-  <code>Dress_fs</code>には，キーとする実体のundress・redress機能関数群を指定します。
-  <code>Assoc</code>は関連データの型を指定するためのものです。
-  以下に呼び出し例を示します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h all_kvs @public -&gt; &lt;&lt;A B tuple&gt; list&gt; ;;</code></td></tr></table>
-<p>有効なキーと関連データの組をリストします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A list&gt; *Ks delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>マップの対応する関数の機能を提供します。
-  ただし，マップ本体は返り値に含まれません。
-  <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.map.weakvaluemap"><code>sango.util.map.weakvaluemap</code> 【Alpha】</h1>
-
-<p>実体を関連データとするマップです。
-  関連データは弱参照で保持され，これ以外からの参照がなくなると，そのキーと当該データが自動的に削除されます。
-  このマップは複数のアクタから共有可能です。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map_h&gt; @opaque ;;</code></td></tr></table>
-<p>マップへのハンドルを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>alias type &lt;*A *B container&gt; @public := &lt;A &lt;B v&gt; &quot;sango.util.map&quot;.map&gt; ;;
-data &lt;*A v&gt; @opaque ;;</code></td></tr></table>
-<p>マップの実体（入れ物）を表します。
-  生成時にユーザが指定します。
-  <code>v</code>は当モジュール内部で使用するデータであり，その内容についてユーザは意識する必要はありません。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! container&gt; *Container &lt;B &quot;sango.entity.existence&quot;.dress_fs&gt; *Dress_fs
-  create_weak_value_map @public -&gt; &lt;A B map_h&gt; ;;
-</code></td></tr></table>
-<p>マップを生成し，ハンドルを返します。
-  <code>Container</code>にはマップの実体（入れ物）を指定します。
-  キーへのアクセス効率やメモリ効率を考慮して，適切な実装のマップを指定してください。
-  <code>Dress_fs</code>には，関連データとする実体のundress・redress機能関数群を指定します。
-  以下に呼び出し例を示します。</p>
-<blockquote class="code-sample">コード例
-<code>import &quot;sango.util.map.weakvaluemap&quot; -&gt; wvm ;;
-import &quot;sango.entity.existence&quot; -&gt; ex ;;
-import &quot;sango.entity.box&quot; -&gt; box ;;
-import &quot;sango.util.map.simplemap&quot; -&gt; smap ;;
-(&amp;\\ &lt;cstr &lt;int box.box_h&gt; wvm.container&gt; { smap.new_map })
-  (&amp;\\ &lt;&lt;int box.box_h&gt; ex.dress_fs&gt; { box.dress_fs })
-  wvm.create_weak_value_map = ...
-</code></blockquote>
-<p>この例では，キーが<code>&lt;cstr&gt;</code>，関連データが<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>のマップを生成しています。
-  引数を具象型にするためcastします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h all_kvs @public -&gt; &lt;&lt;A B tuple&gt; list&gt; ;;</code></td></tr></table>
-<p>有効なキーと関連データの組をリストします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A list&gt; *Ks delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! *B! map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>マップの対応する関数の機能を提供します。
-  ただし，マップ本体は返り値に含まれません。
-  <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.prop"><code>sango.util.prop</code> 【Alpha】</h1>

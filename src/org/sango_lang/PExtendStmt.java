@@ -35,7 +35,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   String baseModId;
   String baseTcon;
   String tcon;
-  PDataStmt.Param[] tparams;
+  PTypeVarDef.DefWithVariance[] tparams;
   PDataConstrDef[] constrs;
   PFeatureImplDef[] featureImpls;
   PTypeRef sig;
@@ -71,7 +71,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   static class Builder {
     PExtendStmt ext;
-    List<PDataStmt.Param> paramList;
+    List<PTypeVarDef.DefWithVariance> paramList;
     PTypeId baseTcon;
     String rename;
     List<PDataConstrDef> constrList;
@@ -84,7 +84,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.ext = new PExtendStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<PDataStmt.Param>();
+      this.paramList = new ArrayList<PTypeVarDef.DefWithVariance>();
       this.constrList = new ArrayList<PDataConstrDef>();
       this.featureImplList = new ArrayList<PFeatureImplDef>();
       this.nameSet = new HashSet<String>();
@@ -96,7 +96,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.ext.availability = availability;
     }
 
-    void addParam(PDataStmt.Param param) {
+    void addParam(PTypeVarDef.DefWithVariance param) {
       this.paramList.add(param);
     }
 
@@ -143,7 +143,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     PExtendStmt create() throws CompileException {
       StringBuffer emsg;
-      this.ext.tparams = this.paramList.toArray(new PDataStmt.Param[this.paramList.size()]);
+      this.ext.tparams = this.paramList.toArray(new PTypeVarDef.DefWithVariance[this.paramList.size()]);
       this.ext.baseModId = (this.baseTcon.modId != null)? this.baseTcon.modId: PModule.MOD_ID_LANG;
       this.ext.baseTcon = this.baseTcon.name;
       this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
@@ -176,9 +176,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PDataStmt.Param param;
+    PTypeVarDef.DefWithVariance param;
     int spc = ParserA.SPACE_DO_NOT_CARE;
-    while ((param = PDataStmt.Param.accept(reader, defScope)) != null) {
+    while ((param = PTypeVarDef.DefWithVariance.accept(reader, defScope)) != null) {
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
@@ -503,7 +503,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     PFeatureSkel f = id.feature.toSkel();
     boolean a = false;
     for (int i = 0; !a && i < base.getFeatureImplCount(); i++) {
-      a = f.require(base.getFeatureImplAt(i).getImpl(), b.copy());
+      a = f.require(PTypeSkel.EQUAL /* HERE */, base.getFeatureImplAt(i).getImpl(), b.copy());
     }
     if (!a) {
       StringBuffer emsg = new StringBuffer();

@@ -1,0 +1,79 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.entity.existence" -> ex ;;
+import "sango.entity.box" -> box ;;
+import "sango.list" -> list ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.shared" -> shset ;;
+import "sango.util.set.shared.weakset" -> ws ;;
+
+eval _main_ -> <void> {
+  test,
+  stdio.flush
+} ;;
+
+eval test -> <void> {
+  test000,
+  test010,
+  void$
+} ;;
+
+eval make -> <<int box.box_h> shset.shared_set_h> {
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ws.create_weak_set = *S,
+  1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E1, S E1 shset.add,
+  2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E2, S E2 shset.add,
+  3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E3, S E3 shset.add,
+  4 (\\ <void> { "4 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E4, S E4 shset.add,
+  5 (\\ <void> { "5 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E5, S E5 shset.add,
+  S
+} ;;
+
+eval test000 -> <void> {
+  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ws.create_weak_set = *S,
+  1 none$ box.create_box = *E1,
+  2 none$ box.create_box = *E2,
+  3 none$ box.create_box = *E3,
+  4 none$ box.create_box = *E4,
+  5 none$ box.create_box = *E5,
+  S shset.empty? = true$,
+  S E1 shset.put = none$,
+  S E1 shset.put_new = false$,
+  S E2 shset.put_new = true$,
+  S E2 shset.put = E2 value$,
+  S shset.size = 2,
+  S E2 shset.contain? = true$,
+  S E3 shset.contain? = false$,
+  S shset.extract >> list.new_list >> case {
+  ; [ E1, E2 ] ->
+  ; [ E2, E1 ] ->
+  },
+  S E3 shset.put = none$,
+  S E2 shset.remove = E2 value$,
+  S shset.clear,
+  S shset.empty? = true$,
+  S [ E3, E4, E5 ] shset.add_list,
+  S shset.size = 3,
+  S shset.take >> something? = true$,
+  S shset.take >> something? = true$,
+  S shset.take >> something? = true$,
+  S shset.take >> something? = false$,
+  S shset.empty? = true$,
+  S [ E3, E4, E5 ] shset.add_list,
+  S [ E3, E4 ] shset.delete_list,
+  S shset.size = 1,
+  void$
+} ;;
+eval test010 -> <void> {
+  make = *S,
+  6 (\\ <void> { "6 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E6, S E6 shset.add,
+  7 (\\ <void> { "7 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E7, S E7 shset.add,
+  S shset.extract >> list.new_list >> debug.repr >> stdio.print_and_newline,
+  runtime.gc,
+  act.yield,
+  S shset.extract >> list.new_list >> debug.repr >> stdio.print_and_newline,
+  E6,  # keep to here
+  E7,  # keep to here
+  void$
+} ;;

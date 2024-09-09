@@ -33,9 +33,13 @@ public interface PFeatureDef {
 
   int getParamCount();
 
+  PTypeVarSkel[] getParams();
+
   PTypeVarSkel getObjType();
 
-  PTypeVarSkel[] getParams();
+  // PFeatureSkel getFeatureSig();
+
+  Module.Variance getParamVarianceAt(int pos);
 
   PTypeRefSkel getImplType();
 

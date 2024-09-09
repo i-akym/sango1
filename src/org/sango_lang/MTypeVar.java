@@ -31,16 +31,14 @@ import org.w3c.dom.Node;
 class MTypeVar implements MType {
   int slot;
   boolean requiresConcrete;
-  // MType constraint;  // maybe null
   MFeature.List features;  // maybe null
 
   private MTypeVar() {}
 
-  static MTypeVar create(int slot, boolean requiresConcrete, /* MType constraint, */ MFeature.List features) {
+  static MTypeVar create(int slot, boolean requiresConcrete, MFeature.List features) {
     MTypeVar t = new MTypeVar();
     t.slot = slot;
     t.requiresConcrete = requiresConcrete;
-    // t.constraint = constraint;
     t.features = features;
     return t;
   }
@@ -48,10 +46,6 @@ class MTypeVar implements MType {
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("<");
-    // if (this.constraint != null) {
-      // buf.append(this.constraint.toString());  // HERE: do not embrace by < >
-      // buf.append(" = ");
-    // }
     buf.append("_");
     buf.append(this.slot);
     if (this.requiresConcrete) {
@@ -71,12 +65,7 @@ class MTypeVar implements MType {
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
-    // if (this.constraint != null) {
-      // Element c = doc.createElement(Module.TAG_CONSTRAINT);
-      // c.appendChild(this.constraint.externalize(doc));
-      // node.appendChild(c);
-    // }
-    if (this.features != null && this.features.features.length > 0) {
+    if (this.features != null /* && this.features.features.length > 0 */) {
       node.appendChild(this.features.externalize(doc));
     }
     return node;
@@ -106,13 +95,10 @@ class MTypeVar implements MType {
 
     Node n = node.getFirstChild();
     MFeature.List features = null;
-    // MType constraint = null;
     int state = 0;
     while (n != null) {
       if (Module.isIgnorable(n)) {
         ;
-      // } else if (state < 1 && (constraint = internalizeConstraint(n)) != null) {
-        // state = 1;
       } else if (state < 2 && (features = MFeature.List.internalize(n)) != null) {
         state = 2;
       } else {
@@ -120,27 +106,8 @@ class MTypeVar implements MType {
       }
       n = n.getNextSibling();
     }
-    return create(slot, requiresConcrete, /* constraint, */ features);
+    return create(slot, requiresConcrete, features);
   }
-
-  // static MType internalizeConstraint(Node node) throws FormatException {
-    // if (!node.getNodeName().equals(Module.TAG_CONSTRAINT)) { return null; }
-
-    // Node n = node.getFirstChild();
-    // MType constraint = null;
-    // int state = 0;
-    // while (n != null) {
-      // if (Module.isIgnorable(n)) {
-        // ;
-      // } else if (state == 0 && (constraint = MType.Envelope.internalizeDesc(n)) != null) {
-        // state = 1;
-      // } else {
-        // throw new FormatException("Unknown or extra element : " + n.getNodeName());
-      // }
-      // n = n.getNextSibling();
-    // }
-    // return constraint;
-  // }
 
   public boolean isCompatible(Module.ModTab modTab, MType type, Module.ModTab defModTab) {
     boolean b;
@@ -151,5 +118,50 @@ class MTypeVar implements MType {
       b = tv.slot == this.slot;
     }
     return b;
+  }
+
+  public static class DefWithVariance {
+    Module.Variance variance;
+    MTypeVar var;
+
+    static DefWithVariance create(Module.Variance variance, MTypeVar var) {
+      DefWithVariance d = new DefWithVariance();
+      d.variance = variance;
+      d.var = var;
+      return d;
+    }
+
+    public static DefWithVariance internalize(Node node) throws FormatException {
+      if (!node.getNodeName().equals(Module.TAG_TYPE_VAR)) { return null; }
+      MTypeVar v = MTypeVar.internalize(node);
+      NamedNodeMap attrs = node.getAttributes();
+      Module.Variance variance = Module.NO_VARIANCE;
+      Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
+      if (aVariance != null) {
+        String sVariance = aVariance.getNodeValue();
+        if (sVariance.equals(Module.REPR_INVARIANT)) {
+          variance = Module.INVARIANT;
+        } else if (sVariance.equals(Module.REPR_COVARIANT)) {
+          variance = Module.COVARIANT;
+        } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
+          variance = Module.CONTRAVARIANT;
+        } else {
+          throw new FormatException("Invalid 'variance': " + sVariance);
+        }
+      }
+      return DefWithVariance.create((variance == Module.NO_VARIANCE)? Module.INVARIANT: variance, v);
+    }
+
+    public Element externalize(Document doc) {
+      Element n = this.var.externalize(doc);
+      if (this.variance == Module.INVARIANT) {
+        ;  // nothing added
+      } else if (this.variance == Module.COVARIANT) {
+        n.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
+      } else if (this.variance == Module.CONTRAVARIANT) {
+        n.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
+      }  // if no variance, nothing added
+      return n;
+    }
   }
 }

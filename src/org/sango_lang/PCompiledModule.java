@@ -384,7 +384,7 @@ class PCompiledModule implements PDefDict {
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), /* null, */ PFeatureSkel.List.createEmpty(null));
+      ad.tparams[i] = PTypeVarSkel.create(null, null, PTypeVarSlot.createInternal(false), null);
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
@@ -509,8 +509,10 @@ class PCompiledModule implements PDefDict {
     fd.nameKey = PDefDict.IdKey.create(mod.name, featureDef.fname);
     fd.obj = convertTypeVar(featureDef.obj, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
     fd.params = new PTypeVarSkel[featureDef.params.length];
+    fd.paramVariances = new Module.Variance[featureDef.params.length];
     for (int i = 0; i < fd.params.length; i++) {
-      fd.params[i] = convertTypeVar(featureDef.params[i], mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      fd.params[i] = convertTypeVar(featureDef.params[i].var, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      fd.paramVariances[i] = featureDef.params[i].variance;
     }
     fd.impl = this.convertTypeRef(featureDef.impl, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
     return fd;
@@ -522,6 +524,7 @@ class PCompiledModule implements PDefDict {
     PDefDict.IdKey nameKey;
     PTypeVarSkel obj;
     PTypeVarSkel[] params;
+    Module.Variance[] paramVariances;
     PTypeRefSkel impl;
 
     public Module.Availability getAvailability() { return this.availability; }
@@ -535,6 +538,10 @@ class PCompiledModule implements PDefDict {
     public PTypeVarSkel getObjType() { return this.obj; }
 
     public PTypeVarSkel[] getParams() { return this.params; }
+
+    // public PFeatureSkel getFeatureSig() { return HERE; }
+
+    public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public PTypeRefSkel getImplType() { return this.impl; }
   }
@@ -591,7 +598,7 @@ class PCompiledModule implements PDefDict {
       if (b) {
         for (int j = 0; b && j < pts.length; j++) {
           PTypeSkel p = paramTypes[j].resolveBindings(bindings);
-          b = pts[j].extractAnyInconcreteVar(p, givenTVarList) == null;
+          b = pts[j].extractAnyInconcreteVar(p /* , givenTVarList */) == null;
         }
       }
       if (b) {
@@ -727,10 +734,9 @@ class PCompiledModule implements PDefDict {
       v = PTypeVarSkel.create(null, null,
         PTypeVarSlot.createInternal(tv.requiresConcrete), /* null, */ null);
       varList.add(v);
-      // if (tv.constraint != null) {
-        // v.constraint = (PTypeRefSkel)this.convertType(tv.constraint, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
-      // }
-      v.features = this.convertFeatures(tv.features, mod, varList, unresolvedTypeRefList, unresolvedFeatureList);
+      v.features = (tv.features != null)?
+        this.convertFeatures(tv.features, mod, varList, unresolvedTypeRefList, unresolvedFeatureList):
+        null;
     } else {
       throw new RuntimeException("Slot number is not sequential. " + mod.name.toJavaString() + " " + tv.toString() + " " + varList.size());
     }

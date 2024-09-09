@@ -227,7 +227,7 @@ class PTypeGraph {
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
-          emsg.append(" *");
+          emsg.append(" for *");
           emsg.append(this.name);
           emsg.append(" at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -235,11 +235,11 @@ class PTypeGraph {
           throw new CompileException(emsg.toString());
         } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
-          emsg.append("Cannot bind ");
+          emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
-          emsg.append(" *");
+          emsg.append(" for *");
           emsg.append(this.name);
           emsg.append(" at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -604,7 +604,7 @@ if (DEBUG > 1) {
           throw new CompileException(emsg.toString());
         }
         PTypeSkel p = t.resolveBindings(this.bindings);
-        if (ctr.params[i].extractAnyInconcreteVar(p, this.bindings.givenTVarList) != null) {
+        if (ctr.params[i].extractAnyInconcreteVar(p /* , this.bindings.givenTVarList */) != null) {
           emsg = new StringBuffer();
           emsg.append("Inconcrete parameter at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -956,7 +956,7 @@ if (DEBUG > 1) {
 }
       PTypeSkel dt = constr.getType(b);
       PTypeRefSkel sig = dataDef.getTypeSig();
-      if (sig.extractAnyInconcreteVar(dt, b.givenTVarList) != null) {
+      if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {
         emsg = new StringBuffer();
         emsg.append("Attempt to construct data including inconcrete type parameter at ");
         emsg.append(this.exprObj.getSrcInfo());

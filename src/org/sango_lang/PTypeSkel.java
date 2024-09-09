@@ -39,13 +39,12 @@ public interface PTypeSkel {
 
   boolean isLiteralNaked();
 
-  // boolean isConcrete();
-
-  boolean isConcrete(List<PTypeVarSlot> givenTVarList);
-
+  boolean isConcrete();
+  // boolean isConcrete(List<PTypeVarSlot> givenTVarList);
   // boolean isConcrete(PTypeSkelBindings bindings);
 
-  PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
+  PTypeSkel extractAnyInconcreteVar(PTypeSkel type);
+  // PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
@@ -77,6 +76,22 @@ public interface PTypeSkel {
   PTypeSkel unalias(PTypeSkelBindings bindings);
 
   Repr repr();
+
+  static int calcWidth(int widthContext, Module.Variance variance) {
+    int w;
+    if (widthContext == EQUAL) {
+      w = EQUAL;
+    } else if (variance == Module.INVARIANT) {
+      w = EQUAL;
+    } else if (variance == Module.COVARIANT) {
+      w = widthContext;
+    } else if (variance == Module.CONTRAVARIANT) {
+      w = - widthContext;
+    } else {
+      throw new RuntimeException("Width calculation error.");
+    }
+    return w;
+  }
 
   public static class JoinResult {
     PTypeSkel joined;

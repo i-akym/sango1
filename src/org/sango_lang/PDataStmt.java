@@ -32,7 +32,7 @@ import java.util.Set;
 class PDataStmt extends PDefaultProgObj implements PDataDef {
   Module.Availability availability;
   Module.Access acc;
-  Param[] tparams;  // null means variable params
+  PTypeVarDef.DefWithVariance[] tparams;  // null means variable params
   String tcon;
   PDataConstrDef[] constrs;  // null means native impl
   PFeatureImplDef[] featureImpls;
@@ -75,7 +75,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   static class Builder {
     PDataStmt dat;
-    List<Param> paramList;
+    List<PTypeVarDef.DefWithVariance> paramList;
     PTypeId tcon;
     List<PDataConstrDef> constrList;
     List<PFeatureImplDef> featureImplList;
@@ -87,7 +87,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.dat = new PDataStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<Param>();
+      this.paramList = new ArrayList<PTypeVarDef.DefWithVariance>();
       this.constrList = new ArrayList<PDataConstrDef>();
       this.featureImplList = new ArrayList<PFeatureImplDef>();
       this.nameSet = new HashSet<String>();
@@ -99,7 +99,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.dat.availability = availability;
     }
 
-    void addParam(Param param) {
+    void addParam(PTypeVarDef.DefWithVariance param) {
       this.paramList.add(param);
     }
 
@@ -144,7 +144,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     PDataStmt create() throws CompileException {
       StringBuffer emsg;
-      this.dat.tparams = this.paramList.toArray(new Param[this.paramList.size()]);
+      this.dat.tparams = this.paramList.toArray(new PTypeVarDef.DefWithVariance[this.paramList.size()]);
       this.dat.tcon = this.tcon.name;
       PType[] ps = new PType[this.dat.tparams.length];
       for (int i = 0; i < this.dat.tparams.length; i++) {
@@ -191,9 +191,9 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    Param param;
+    PTypeVarDef.DefWithVariance param;
     int spc = ParserA.SPACE_DO_NOT_CARE;
-    while ((param = Param.accept(reader, defScope)) != null) {
+    while ((param = PTypeVarDef.DefWithVariance.accept(reader, defScope)) != null) {
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
@@ -365,47 +365,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       }
     }
     return body.constrList.isEmpty()? null: body;
-  }
-
-  static class Param {
-    Parser.SrcInfo srcInfo;
-    Module.Variance variance;
-    PTypeVarDef varDef;
-
-    static Param accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      StringBuffer emsg;
-      Parser.SrcInfo si = reader.getCurrentSrcInfo();
-      Module.Variance variance;
-      if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        variance = Module.COVARIANT;
-      } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        variance = Module.CONTRAVARIANT;
-      } else {
-        variance = Module.INVARIANT;
-      }
-      PTypeVarDef varDef = PTypeVarDef.accept(reader, scope);
-      Param p;
-      if (varDef != null) {
-        p = create(si, variance, varDef);
-      } else if (variance == Module.INVARIANT) {
-        p = null;
-      } else {
-        emsg = new StringBuffer();
-        emsg.append("Parameter missing at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      return p;
-    }
-
-    static Param create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
-      Param p = new Param();
-      p.srcInfo = srcInfo;
-      p.variance = variance;
-      p.varDef = varDef;
-      return p;
-    }
   }
 
   static class DataDefBody {

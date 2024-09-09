@@ -205,7 +205,7 @@ public class PFeature extends PDefaultProgObj {
   }
 
   static class List extends PDefaultProgObj {
-    PFeature[] features;  // at least one element
+    PFeature[] features;
 
     private List(Parser.SrcInfo srcInfo, PScope scope) {
       super(srcInfo, scope);
@@ -408,14 +408,14 @@ public class PFeature extends PDefaultProgObj {
     }
 
     List create() throws CompileException {
-      StringBuffer emsg;
-      if (this.features.size() == 0) {
-        emsg = new StringBuffer();
-        emsg.append("Empty feature list at ");
-        emsg.append(this.list.getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      // StringBuffer emsg;
+      // if (this.features.size() == 0) {
+        // emsg = new StringBuffer();
+        // emsg.append("Empty feature list at ");
+        // emsg.append(this.list.getSrcInfo());
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
       this.list.features = this.features.toArray(new PFeature[this.features.size()]);
       return this.list;
     }

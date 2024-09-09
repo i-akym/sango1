@@ -186,7 +186,7 @@ class Generator {
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < pvs.length; i++) {
       MTypeVar v = (MTypeVar)pvs[i].toMType(this.parser.mod, varSlotList);
-      MDataDef.Param p = MDataDef.Param.create(dd.getParamVarianceAt(i), v);
+      MTypeVar.DefWithVariance p = MTypeVar.DefWithVariance.create(dd.getParamVarianceAt(i), v);
       this.modBuilder.putDataDefParam(p);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {
@@ -255,13 +255,15 @@ class Generator {
   void generateFeatureDef(PFeatureStmt feature) {
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
-    b.setName(feature.sig.fname.name);
-/* DEBUG */ if (feature.availability == null) { throw new RuntimeException("Null availability. " + feature.sig); }
+    b.setName(feature.fname.name);
+/* DEBUG */ if (feature.availability == null) { throw new RuntimeException("Null availability. " + feature.fname); }
     b.setAvailability(feature.availability);
     b.setAcc(feature.acc);
     b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.parser.mod, varSlotList));
-    for (int i = 0; i < feature.sig.params.length; i++) {
-      b.addParam((MTypeVar)feature.sig.params[i].toSkel().toMType(this.parser.mod, varSlotList));
+    for (int i = 0; i < feature.params.length; i++) {
+      MTypeVar v = (MTypeVar)feature.params[i].varDef.toSkel().toMType(this.parser.mod, varSlotList);
+      MTypeVar.DefWithVariance d = MTypeVar.DefWithVariance.create(feature.params[i].variance, v);
+      b.addParam(d);
     }
     b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.parser.mod, varSlotList));
     this.modBuilder.putFeatureDef(b.create());
@@ -276,7 +278,9 @@ class Generator {
     b.setObjType((MTypeVar)fd.getObjType().toMType(this.parser.mod, varSlotList));
     PTypeVarSkel[] ps = fd.getParams();
     for (int i = 0; i < ps.length; i++) {
-      b.addParam((MTypeVar)ps[i].toMType(this.parser.mod, varSlotList));
+      MTypeVar v = (MTypeVar)ps[i].toMType(this.parser.mod, varSlotList);
+      MTypeVar.DefWithVariance d = MTypeVar.DefWithVariance.create(fd.getParamVarianceAt(i), v);
+      b.addParam(d);
     }
     b.setImplType((MTypeRef)fd.getImplType().toMType(this.parser.mod, varSlotList));
     this.modBuilder.putFeatureDef(b.create());
