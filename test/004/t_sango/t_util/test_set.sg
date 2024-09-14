@@ -3,12 +3,18 @@ import "sango.io.stdio" -> stdio ;;
 import "sango.util.set" -> set ;;
 import "sango.util.set.simpleset" -> sset ;;
 
+extend <bool> -> my_bool := undef$ ;;
+
 eval _main_ -> <void> {
   test
 } ;;
 
+eval <bool set.set> *S f -> <void> {} ;;
+eval <my_bool set.set> *S g -> <void> {} ;;
+
 eval test -> <void> {
   test000,
+  test100,
   void$
 } ;;
 eval test000 -> <void> {
@@ -25,5 +31,14 @@ eval test000 -> <void> {
   C0 size = 0,
   C0 empty? = true$,
   C0 take = none$,
+  void$
+} ;;
+eval test100 -> <void> {
+  sset.new_set = *S0,
+  S0 true$ set.add = *S1,  # <bool set.set>
+  S0 undef$ set.add = *S2,  # <my_bool set.set>
+  S1 f,
+  S1 g,
+  S2 g,
   void$
 } ;;
