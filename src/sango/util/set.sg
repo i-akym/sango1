@@ -30,12 +30,12 @@ import "sango.util.iter" -> iter ;;
 
 alias type <*A d> @public := <A _1+> ;;
 
-data <+*A set> @public :=
+data <*A set> @public :=
   d: <A d>
   fs: <<A d> A set_fs>
   set$ ;;
 
-data <+*A! fxset> @opaque :=
+data <*A! fxset> @opaque :=
   <A set> fxset$
 ++ as_a'set -> [ A a'set ] ;;
 
