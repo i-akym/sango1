@@ -31,12 +31,12 @@ import "sango.util.iter" -> iter ;;
 
 alias type <*A d> @public := <A _1+> ;;
 
-data <*A ralist> @public :=
+data <+*A ralist> @public :=
   d: <A d>
   fs: <<A d> A ralist_fs>
   ralist$ ;;
 
-data <*A! fxralist> @opaque :=
+data <+*A! fxralist> @opaque :=
   <A ralist> fxralist$
 ++ as_a'ralist -> [ A a'ralist ]
 ;;
