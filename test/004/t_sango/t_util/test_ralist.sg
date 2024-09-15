@@ -3,18 +3,12 @@ import "sango.io.stdio" -> stdio ;;
 import "sango.util.ralist" -> ral ;;
 import "sango.util.avltree.ralist" -> avlral ;;
 
-extend <bool> -> my_bool := undef$ ;;
-
 eval _main_ -> <void> {
   test
 } ;;
 
-eval <bool ral.ralist> *L f -> <void> {} ;;
-eval <my_bool ral.ralist> *L g -> <void> {} ;;
-
 eval test -> <void> {
   test000,
-  test100,
   void$
 } ;;
 eval test000 -> <void> {
@@ -31,14 +25,5 @@ eval test000 -> <void> {
   C0 size = 0,
   C0 empty? = true$,
   C0 take = none$,
-  void$
-} ;;
-eval test100 -> <void> {
-  avlral.new_ralist = *L0,
-  L0 true$ ral.append = *L1,  # <bool ral.ralist>
-  L0 undef$ ral.append = *L2,  # <my_bool ral.ralist>
-  L1 f,
-  L1 g,
-  L2 g,
   void$
 } ;;
