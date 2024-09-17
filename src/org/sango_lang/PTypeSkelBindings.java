@@ -30,9 +30,7 @@ import java.util.Map;
 
 public class PTypeSkelBindings {
   Map<PTypeVarSlot, PTypeSkel> bindingDict;
-  Map<PTypeVarSlot, PTypeVarSkel> givenBindingDict;
   List<PTypeVarSlot> givenTVarList;
-  // List<PTypeVarSlot> featureTVarList;
 
   private PTypeSkelBindings() {}
 
@@ -43,9 +41,7 @@ public class PTypeSkelBindings {
   static PTypeSkelBindings create(List<PTypeVarSlot> givenTVarList) {
     PTypeSkelBindings b = new PTypeSkelBindings();
     b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
-    b.givenBindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
     b.givenTVarList = givenTVarList;
-    // b.featureTVarList = new ArrayList<PTypeVarSlot>();
     return b;
   }
 
@@ -53,20 +49,14 @@ public class PTypeSkelBindings {
     PTypeSkelBindings b = new PTypeSkelBindings();
     b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
     b.bindingDict.putAll(this.bindingDict);
-    b.givenBindingDict = new HashMap<PTypeVarSlot, PTypeVarSkel>();
-    b.givenBindingDict.putAll(this.givenBindingDict);
     b.givenTVarList = new ArrayList<PTypeVarSlot>();
     b.givenTVarList.addAll(this.givenTVarList);
-    // b.featureTVarList = new ArrayList<PTypeVarSlot>();
-    // b.featureTVarList.addAll(this.featureTVarList);
     return b;
   }
 
   public String toString() {
     return this.bindingDict.toString()
-      + " G" + this.givenTVarList.toString()
-      + " GB" + this.givenBindingDict.toString();
-      // + " F" + this.featureTVarList.toString();
+      + " G" + this.givenTVarList.toString();
   }
 
   boolean isBound(PTypeVarSlot var) {
@@ -74,18 +64,11 @@ public class PTypeSkelBindings {
   }
 
   void bind(PTypeVarSlot var, PTypeSkel typeSkel) {
-/* DEBUG */ if (this.isBound(var) || this.givenBindingDict.get(var) != null || this.isGivenTVar(var)) {
+/* DEBUG */ if (this.isBound(var) || this.isGivenTVar(var)) {
       throw new IllegalArgumentException("Cannot bind. " + var.toString() + " " + this.toString());
     }
     this.bindingDict.put(var, typeSkel);
   }
-
-  // void bindGiven(PTypeVarSlot var, PTypeVarSkel given) {
-// /* DEBUG */ if (this.isBound(var) || this.givenBindingDict.get(var) != null || this.isGivenTVar(var)) {
-      // throw new IllegalArgumentException("Cannot bind. " + var.toString() + " " + this.toString());
-    // }
-    // this.givenBindingDict.put(var, given);
-  // }
 
   PTypeSkel lookup(PTypeVarSlot var) {
 // /* DEBUG */ System.out.println("PTypeSkelBindings#lookup called " + var);
@@ -106,10 +89,6 @@ public class PTypeSkelBindings {
     return t;
   }
 
-  PTypeVarSkel getGivenBound(PTypeVarSlot var) {
-    return this.givenBindingDict.get(var);
-  }
-
   boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
 
   void addGivenTVar(PTypeVarSlot var) {
@@ -117,12 +96,4 @@ public class PTypeSkelBindings {
 /* DEBUG */ if (this.isBound(var)) { throw new IllegalArgumentException("Not free. " + var.toString() + " " + this.toString()); }
     this.givenTVarList.add(var);
   }
-
-  // PTypeSkelBindings copyForFeatureImpl(PTypeVarSlot var) {
-    // PTypeSkelBindings b = this.copy();
-    // b.featureTVarList.add(var);
-    // return b;
-  // }
-
-  // boolean isInFeatureImpl(PTypeVarSlot var) { return this.featureTVarList.contains(var); }
 }
