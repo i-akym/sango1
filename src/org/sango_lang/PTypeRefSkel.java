@@ -801,6 +801,25 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
+  PTypeVarSkel varIncompatVariance(PTypeSkel.VarianceTab vt) {
+    PTypeVarSkel x = null;
+    Module.Variance[] vs = this.paramVariances();
+    for (int i = 0; x == null && i < this.params.length; i++) {
+      if (this.params[i] instanceof PTypeVarSkel) {
+        PTypeVarSkel v = (PTypeVarSkel)this.params[i];
+        if (!vt.isCompatible(v.varSlot, vs[i])) {
+          x = v;
+        }
+      } else if (this.params[i] instanceof PTypeRefSkel) {
+        PTypeRefSkel r = (PTypeRefSkel)this.params[i];
+        x = r.varIncompatVariance(vt.forContext(vs[i]));
+      } else {
+        throw new RuntimeException("Unexpected type. " + this.params[i]);
+      }
+    }
+    return x;
+  }
+
   public PTypeSkel.Repr repr() {
     PTypeSkel.Repr r = PTypeSkel.Repr.create();
     for (int i = 0; i < this.params.length; i++) {

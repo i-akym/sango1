@@ -168,6 +168,27 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
     this.type.excludePrivateAcc();
   }
 
+  void checkVariance(PTypeSkel.VarianceTab vt) throws CompileException {
+    if (this.nTypeSkel == null) { throw new RuntimeException("No normalized type skel. " + this); }
+    if (this.nTypeSkel instanceof PTypeVarSkel) {
+      ;  // skip
+    } else if (this.nTypeSkel instanceof PTypeRefSkel) {
+      PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
+      PTypeVarSkel x = t.varIncompatVariance(vt);
+      if (x != null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Incompatible variance for ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(x));
+        emsg.append(" at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    } else {
+      throw new RuntimeException("Unexpected type. " + this.nTypeSkel);
+    }
+  }
+
   public void checkConcreteness() throws CompileException {
     if (this.nTypeSkel instanceof PTypeRefSkel) {
       PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
