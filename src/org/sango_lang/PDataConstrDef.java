@@ -206,6 +206,12 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     }
   }
 
+  void checkVariance(PTypeSkel.VarianceTab vt) throws CompileException {
+    for (int i = 0; i < this.attrs.length; i++) {
+      this.attrs[i].checkVariance(vt);
+    }
+  }
+
   public void checkConcreteness() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
       this.attrs[i].checkConcreteness();

@@ -492,6 +492,22 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
+  public void checkVariance() throws CompileException {
+    if (this.tparams != null && this.constrs != null) {
+      PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
+      Module.Variance[] vs = new Module.Variance[this.tparams.length];
+      for (int i = 0; i < this.tparams.length; i++) {
+        if (this.tparams[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
+        ss[i] = this.tparams[i].varDef.varSlot;
+        vs[i] = this.tparams[i].variance;
+      }
+      PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
+      for (int i = 0; i < this.constrs.length; i++) {
+        this.constrs[i].checkVariance(vt);
+      }
+    }
+  }
+
   public void checkConcreteness() throws CompileException {
     if (this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {

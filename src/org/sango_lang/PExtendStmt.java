@@ -476,6 +476,20 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     g.addExtension(this.baseTconProps.key, PDefDict.IdKey.create(this.scope.myModName(), this.tcon));
   }
 
+  public void checkVariance() throws CompileException {
+    PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
+    Module.Variance[] vs = new Module.Variance[this.tparams.length];
+    for (int i = 0; i < this.tparams.length; i++) {
+      if (this.tparams[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
+      ss[i] = this.tparams[i].varDef.varSlot;
+      vs[i] = this.tparams[i].variance;
+    }
+    PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
+    for (int i = 0; i < this.constrs.length; i++) {
+      this.constrs[i].checkVariance(vt);
+    }
+  }
+
   public void checkConcreteness() throws CompileException {
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].checkConcreteness();

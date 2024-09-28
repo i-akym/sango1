@@ -157,6 +157,85 @@ public interface PTypeSkel {
     // }
   }
 
+  static class VarianceTab {
+    PTypeVarSlot[] varSlots;
+    Module.Variance[] variances;
+
+    static VarianceTab create(PTypeVarSlot[] ss, Module.Variance[] vs) {
+      if (ss.length != vs.length) {
+        throw new IllegalArgumentException("Length mismatch.");
+      }
+      VarianceTab vt = new VarianceTab();
+      vt.varSlots = new PTypeVarSlot[ss.length];
+      vt.variances = new Module.Variance[ss.length];
+      for (int i = 0; i < ss.length; i++) {
+        vt.varSlots[i] = ss[i];
+        vt.variances[i] = vs[i];
+      }
+      return vt;
+    }
+
+    private VarianceTab() {}
+
+    VarianceTab forContext(Module.Variance v) {
+      VarianceTab vt;
+      if (v == Module.INVARIANT) {
+        vt = this;
+        for (int i = 0; vt != null && i < this.variances.length; i++) {
+          Module.Variance w = this.variances[i];
+          if (w == Module.INVARIANT) {
+            ;  // ok
+          } else if (w == Module.COVARIANT) {
+            vt = null;  // error
+          } else if (w == Module.CONTRAVARIANT) {
+            vt = null;  // error
+          } else {
+            throw new RuntimeException("Unexpected variance. " + w);
+          }
+        }
+      } else if (v == Module.COVARIANT) {
+        vt = this;
+      } else if (v == Module.CONTRAVARIANT) {
+        Module.Variance[] ws = new Module.Variance[this.variances.length];
+        for (int i = 0; i < this.variances.length; i++) {
+          Module.Variance w = this.variances[i];
+          if (w == Module.INVARIANT) {
+            ws[i] = Module.INVARIANT;
+          } else if (w == Module.COVARIANT) {
+            ws[i] = Module.CONTRAVARIANT;
+          } else if (w == Module.CONTRAVARIANT) {
+            ws[i] = Module.COVARIANT;
+          } else {
+            throw new RuntimeException("Unexpected variance. " + w);
+          }
+        }
+        vt = VarianceTab.create(this.varSlots, ws);
+      } else {
+        throw new IllegalArgumentException("Unknown variance. " + v);
+      }
+      return vt;
+    }
+
+    boolean isCompatible(PTypeVarSlot s, Module.Variance v) {  // v: variance def in attr typeref
+      Module.Variance w = v;  // if not founed, assume to be same value
+      for (int i = 0; i < this.varSlots.length; i++) {
+        if (this.varSlots[i] == s) {
+          w = this.variances[i];
+          break;
+        }
+      }
+      boolean b;
+      if (v == w) {
+        b = true;
+      } else if (w == Module.INVARIANT) {
+        b = true;
+      } else {
+        b = false;
+      }
+      return b;
+    }
+  }
+
   public static class Repr {
     public static String topLevelRepr(PTypeSkel t) {
       return "<" + t.repr().toString() + ">";
