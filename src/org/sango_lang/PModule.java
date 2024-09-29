@@ -1309,6 +1309,9 @@ class PModule implements PDefDict {
     for (int i = 0; i < this.extendStmtList.size(); i++) {
       this.extendStmtList.get(i).checkVariance();
     }
+    for (int i = 0; i < this.featureStmtList.size(); i++) {
+      this.featureStmtList.get(i).checkVariance();
+    }
   }
 
   void checkConcreteness() throws CompileException {
