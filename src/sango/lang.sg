@@ -181,7 +181,7 @@ eval <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
   }
 } ;;
 
-data <*A iter> @public :=
+data <+*A iter> @public :=
   next_f: <<A iter_res> fun>
   iter$ ;;
 

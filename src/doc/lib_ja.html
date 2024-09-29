@@ -292,7 +292,7 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>data &lt;+*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;+*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
 <p>イテレータ（データを次々と供給するオブジェクト）を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;*A iter_res&gt; @public := &lt;&lt;A &lt;A iter&gt; tuple&gt; maybe&gt; ;;
