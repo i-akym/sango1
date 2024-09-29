@@ -368,6 +368,27 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
 
+  void checkVariance() throws CompileException {
+    PTypeVarSlot[] ss = new PTypeVarSlot[this.params.length];
+    Module.Variance[] vs = new Module.Variance[this.params.length];
+    for (int i = 0; i < this.params.length; i++) {
+      if (this.params[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
+      ss[i] = this.params[i].varDef.varSlot;
+      vs[i] = this.params[i].variance;
+    }
+    PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
+    PTypeVarSkel x = this.implSkel.varIncompatVariance(vt);
+    if (x != null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Incompatible variance for ");
+      emsg.append(PTypeSkel.Repr.topLevelRepr(x));
+      emsg.append(" at ");
+      emsg.append(implSkel.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+  }
+
   public void checkConcreteness() throws CompileException {}
 
   List<PAliasTypeStmt> generateAliases(PModule mod) throws CompileException {
