@@ -336,7 +336,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     for (int i = 0; i < this.paramSkels.length; i++) {
       this.paramSkels[i] = (PTypeVarSkel)this.params[i].varDef.toSkel();
     }
-    this.implSkel = (PTypeRefSkel)this.impl.toSkel();
+    this.implSkel = (PTypeRefSkel)this.impl.getNormalizedSkel();
     return this;
   }
 
