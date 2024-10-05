@@ -272,64 +272,10 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public PFeatureStmt resolve() throws CompileException {
     StringBuffer emsg;
+
     this.obj = this.obj.resolve();
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].varDef = this.params[i].varDef.resolve();
-    // }
     this.sig = this.sig.resolve();
     this.impl = this.impl.resolve();
-
-    PTypeRef itr = (PTypeRef)this.impl;
-    PDefDict.TconProps tps = itr.tconProps;
-    Set<String> ivs = new HashSet<String>();  // var refs in impl
-    for (int i = 0; i < itr.params.length; i++) {
-      if (!(itr.params[i] instanceof PTypeVarRef)) {
-        emsg = new StringBuffer();
-        emsg.append("Invalid feature implementation type paramter at ");
-        emsg.append(itr.params[i].getSrcInfo());
-        emsg.append(". parameter ");
-        emsg.append(i + 1);
-        throw new CompileException(emsg.toString());
-      }
-      PTypeVarRef r = (PTypeVarRef)itr.params[i];
-      if (r.def.name.equals(this.obj.name)) {
-        if (this.params.length > 0 && !this.obj.requiresConcrete) {
-          emsg = new StringBuffer();
-          emsg.append("The object should be concrete at ");
-          emsg.append(this.obj.getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      } else {
-        ivs.add(r.def.name);  // collect refs of feature sig param
-        PDefDict.TparamProps pp = tps.paramProps[i];
-        int jj = -1;
-        for (int j = 0; jj < 0 && j < this.params.length; j++) {
-          if (r.def.name.equals(this.params[j].varDef.name)) {
-            jj = j;
-          }
-        }
-        if (jj < 0) { throw new RuntimeException("Unknown var name. " + r.def.name); }
-        if (this.params[jj].variance == Module.INVARIANT || this.params[jj].variance == pp.variance) {
-          ;
-        } else {
-          emsg = new StringBuffer();
-          emsg.append("Parameter variance for ");
-          emsg.append(r.def.name);
-          emsg.append(" mismatch at ");
-          emsg.append(r.getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      }
-    }
-    if (ivs.size() != this.params.length) {
-      emsg = new StringBuffer();
-      emsg.append("Insufficient variable references in feature implementation type at ");
-      emsg.append(itr.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
 
     this.objSkel = this.obj.toSkel();
     this.paramSkels = new PTypeVarSkel[this.params.length];
@@ -337,6 +283,24 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.paramSkels[i] = (PTypeVarSkel)this.params[i].varDef.toSkel();
     }
     this.implSkel = (PTypeRefSkel)this.impl.getNormalizedSkel();
+
+    PTypeSkelBindings bindings = PTypeSkelBindings.create();  // dummy
+    if (this.implSkel.includesVar(this.objSkel.varSlot, bindings) && this.params.length > 0 && !this.obj.requiresConcrete) {
+      emsg = new StringBuffer();
+      emsg.append("The object should be concrete at ");
+      emsg.append(this.obj.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    for (int i = 0; i < this.params.length; i++) {
+      if (!this.implSkel.includesVar(this.params[i].varDef.varSlot, bindings)) {
+        emsg = new StringBuffer();
+        emsg.append("Insufficient variable references in feature implementation type at ");
+        emsg.append(this.implSkel.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
     return this;
   }
 
