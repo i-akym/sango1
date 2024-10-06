@@ -1564,7 +1564,7 @@ data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省�
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.2">20.2. 実装</h2>
 <p>フィーチャの実装宣言と，フィーチャ・オブジェクトの供給コードを定義します。
-実装宣言は以下のように，<code>data</code>文，<code>extend</code>文にて行います。</p>
+実装宣言は以下のように，<code>data</code>文にて行います。</p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map-impl&quot; ;;
 import &quot;feature.map&quot; -&gt; map ;;
@@ -1577,7 +1577,9 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
 供給関数の名前は自由に付けることができます。
 実装するフィーチャが複数ある場合には「<code>++</code>」からフィーチャの記述までを必要な分だけ繰り返して指定します。</p>
-<p>データの拡張定義（<code>extend</code>文）においては，基底型で実装宣言されている一部または全てのフィーチャを実装宣言することができます。</p>
+<p>データの拡張定義（<code>extend</code>文）においては，フィーチャの実装宣言をすることはできません<sup>*1</sup>。</p>
+
+<blockquote class="note">*1：拡張型でフィーチャ実装宣言を許すと型の整合性が保てなくなるためであり，これは仕様です。</blockquote>
 
 <p>供給コードの実装は以下のように定義します。</p>
 
@@ -1589,7 +1591,7 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <h2 id="20.3">20.3. 使用</h2>
 <p>フィーチャを実装したオブジェクトを受け取る型<sup>*1</sup>は，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*2</sup>。
 例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*3</sup>。
-フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します。<sup>*4</sup></p>
+フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します<sup>*4</sup>。</p>
 
 <blockquote class="note">*1：データ構築定義の中の型として宣言することもできます。</blockquote>
 <blockquote class="note">*2：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
