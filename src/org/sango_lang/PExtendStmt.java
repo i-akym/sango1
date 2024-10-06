@@ -248,10 +248,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
     builder.addConstrList(body.constrList);
 
-    PFeatureImplDef id;
-    while ((id = PFeatureImplDef.accept(reader, defScope)) != null) {
-      builder.addFeatureImpl(id);
-    }
+    // PFeatureImplDef id;
+    // while ((id = PFeatureImplDef.accept(reader, defScope)) != null) {
+      // builder.addFeatureImpl(id);
+    // }
 
     if (ParserA.acceptToken(reader, LToken.SEM_SEM, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
