@@ -186,8 +186,14 @@ public class PFeatureSkel {
   }
 
   boolean acceptTypeRef(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) {
-    List fs = tr.getFeatures();
-    return this.acceptList(width, fs, bindings);
+    boolean b;
+    if (tr.ext) {
+      b = false;
+    } else {
+      List fs = tr.getFeatures();
+      b = this.acceptList(width, fs, bindings);
+    }
+    return b;
   }
 
   boolean acceptVar(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
@@ -229,8 +235,14 @@ public class PFeatureSkel {
   }
 
   boolean requireTypeRef(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) {
-    List fs = tr.getFeatures();
-    return this.requireList(width, fs, bindings);
+    boolean b;
+    if (tr.ext) {
+      b = false;
+    } else {
+      List fs = tr.getFeatures();
+      b = this.requireList(width, fs, bindings);
+    }
+    return b;
   }
 
   boolean requireVar(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
