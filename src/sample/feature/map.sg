@@ -23,17 +23,7 @@
 ###########################################################################
 module "feature.map" ;;
 
-feature <*T!> [ *A *B a'map ] @public -> <T A B map_fo> ;;
-
-alias type <*A *B fd> @public := <A B _2+> ;;
-alias type <*T *A *B fr> @public := <<A B fd> T fun> ;;
-alias type <*T *A *B fx> @public := <<A B fd> <<A B fd> T fun> tuple> ;;
-
-data <*T *A *B map_fo> @public :=
-  fd: <A B fd>
-  fr: <T A B fr>
-  fs: <<T A B fx> A B map_fs>
-  map_fo$ ;;
+feature <*T> [ *A *B a'map ] @public -> <T A B map_fs> ;;
 
 data <*D *A *B map_fs> @public :=
   size_f: <D int fun>
@@ -41,35 +31,17 @@ data <*D *A *B map_fs> @public :=
   add_f: <D A B D fun>
   map_fs$ ;;
 
-eval <*T![ *A *B a'map ]> *FMap f_size | size @public -> <int> {
-  FMap _feature_a'map = *Map_fo,
-  Map_fo fo_size
+eval <*T[ *A *B a'map ]> *FMap f_size | size @public -> <int> {
+  FMap _feature_a'map = *Map_fs,
+  FMap &(Map_fs size_f)
 } ;;
 
-eval <*T! *A *B map_fo> *Map_fo fo_size | size @public -> <int> {
-  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
-  (| D, R |) &(Fs size_f)
+eval <*T[ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Key &(Map_fs assoc_f)
 } ;;
 
-eval <*T![ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
-  FMap _feature_a'map = *Map_fo,
-  Map_fo Key fo_assoc
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Key Value &(Map_fs add_f)
 } ;;
-
-eval <*T! *A *B map_fo> *Map_fo <A> *Key fo_assoc | assoc @public -> <B maybe> {
-  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
-  (| D, R |) Key &(Fs assoc_f)
-} ;;
-
-eval <*T![ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
-  FMap _feature_a'map = *Map_fo,
-  Map_fo Key Value fo_add = *Map_fo',
-  Map_fo' = fd: *D' fr: *R' fs: *Fs' map_fo$,
-  D' &R'
-} ;;
-
-eval <*T! *A *B map_fo> *Map_fo <A> *Key <B> *Value fo_add | add @public -> <T A B map_fo> {
-  Map_fo = fd: *D fr: *R fs: *Fs map_fo$,
-  (| D, R |) Key Value &(Fs add_f) = (| *D', *R' |),
-  fd: D' fr: R' fs: Fs map_fo$
-} ;; 

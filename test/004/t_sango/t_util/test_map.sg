@@ -12,18 +12,15 @@ eval test -> <void> {
   void$
 } ;;
 eval test000 -> <void> {
-  smap.new_map [ (| 1, "A" |), (| 2, "B" |), (| 3, "C" |) ] map.add_list
-    >> map.as_fxmap >> map._feature_a'map = *M3,
-  M3 _feature_a'col = *C3,
-  C3 size = 3,
-  C3 empty? = false$,
-  C3 take = (| **, *C2 |) value$,
-  C2 size = 2,
-  C2 take = (| **, *C1 |) value$,
-  C1 size = 1,
-  C1 take = (| **, *C0 |) value$,
-  C0 size = 0,
-  C0 empty? = true$,
-  C0 take = none$,
+  smap.new_map [ (| 1, "A" |), (| 2, "B" |), (| 3, "C" |) ] map.add_list = *M3,
+  M3 map._feature_a'map = *MF,
+  MF map.map_fs_to_col_fs = *CF,
+  M3 &(CF empty?_f) = false$,
+  M3 &(CF size_f) = 3,
+  M3 &(CF iter_f) = *I3,
+  I3 iter_next = (| **, *I2 |) value$,
+  I2 iter_next = (| **, *I1 |) value$,
+  I1 iter_next = (| **, *I0 |) value$,
+  I0 iter_next = none$,
   void$
 } ;;

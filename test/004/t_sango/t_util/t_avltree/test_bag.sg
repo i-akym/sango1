@@ -19,5 +19,6 @@ eval test000 -> <void> {
   int_ord_fs avlbag.new_bag >> t1.testA00
 } ;;
 eval test010 -> <void> {
-  int_ord_fs avlbag.new_bag >> bag.as_fxbag >> t1.testB00
+  int_ord_fs avlbag.new_bag = <int bag.bag> *B,
+  B t1.testB00
 } ;;

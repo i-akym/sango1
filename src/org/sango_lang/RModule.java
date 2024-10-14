@@ -318,11 +318,10 @@ public class RModule {
         throw new RuntimeException("Feature impl not found. " + obj.dump().toJavaString());
         // helper.setReturnValue(SNIlang.getMaybeItem(helper, null));
       } else {
-        helper.scheduleInvocation(g, new RObjItem[] { obj }, self);
+        helper.scheduleInvocation(g, new RObjItem[0], self);  // ignore arg
       }
     } else {
       helper.setReturnValue(helper.getInvocationResult().getReturnValue());
-      // helper.setReturnValue(SNIlang.getMaybeItem(helper, helper.getInvocationResult().getReturnValue()));
     }
   }
 

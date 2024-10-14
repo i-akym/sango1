@@ -160,7 +160,7 @@ eval <ocstr> *OS as_cstr @public -> <cstr> {
   OS = *S ocstr$, S
 } ;;
 
-eval <ocstr> *OS as_a'ord -> <ocstr ord_fs> {
+eval as_a'ord -> <ocstr ord_fs> {
   ocstr_ord_fs
 } ;;
 
