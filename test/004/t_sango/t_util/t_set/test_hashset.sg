@@ -47,5 +47,5 @@ eval test001 -> <void> {
 } ;;
 eval test200 -> <void> {
   hashset.new_set = <int set.set> *S0,
-  S0 set.as_fxset >> t1.testB00
+  S0 t1.testB00
 } ;;

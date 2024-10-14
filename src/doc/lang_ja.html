@@ -1542,22 +1542,29 @@ Box act.wait_forever$ act.listen</code></blockquote>
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.1">20.1. 宣言・実行</h2>
 <p>まず，フィーチャの定義と，フィーチャを実行するためのオブジェクト（フィーチャ・オブジェクト）の型を宣言します。
-フィーチャ・オブジェクトの型は，フィーチャの実装に使用するものであり，フィーチャの使用者が意識する必要はありません。 </p>
-<blockquote class="code-sample"><code>module &quot;feature.map&quot; ;;
-feature &lt;*T!&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fo&gt; ;;
-data &lt;*T *A *B map_fo&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
+フィーチャ・オブジェクトはフィーチャの実装に使用するもので，使用者が直接使用する場合と，意識する必要がない場合があります。 </p>
+<p>フィーチャの使用方法はに主に以下のものがあります。</p>
+<ul>
+<li>セットやマップのように，一つの振る舞いに対して複数の実装があるとき → フィーチャ・オブジェクトは，振る舞いの実装関数群</li>
+<li>オブジェクトをもとに別の型のオブジェクトを生成するとき → フィーチャ・オブジェクトは，変換関数</li>
+<li>同じ型の別のオブジェクトと演算したり比較したりするとき → フィーチャ・オブジェクトは，演算や比較の関数群</li>
+</ul>
 
-<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map_fo&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します<sup>*1</sup>。
+<blockquote class="code-sample"><code>module &quot;feature.map&quot; ;;
+feature &lt;*T&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fs&gt; ;;
+data &lt;*T *A *B map_fs&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
+
+<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map_fs&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します。
 <code>[ ]</code>内がフィーチャを表し，「<code>a'map</code>」がフィーチャ名です。
 「<code>a'</code>」はフィーチャ名に慣習的に付けるもので，「abstract」を意味します。
-文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*2</sup>。
+文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*1</sup>。
 マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています。</p>
-<blockquote class="note">*1：フィーチャがパラメタを持ち，かつ，オブジェクトの型がフィーチャ・オブジェクトの型に含まれる場合には，オブジェクトの型を具象型にします。</blockquote>
-<blockquote class="note">*2：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
+<blockquote class="note">*1：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
 
-<p>フィーチャの実行は，フィーチャ・オブジェクトを用いて処理を行います。</p>
+<p>この<code>a'map</code>フィーチャをもつオブジェクトの例では，以下のように処理関数が定義されています。
+この関数の呼び出し側は，フィーチャオブジェクトを意識する必要はありません。</p>
 
-<blockquote class="code-sample"><code>eval &lt;*T! *A *B map_fo&gt; *FMap f_size | size @public -&gt; &lt;int&gt; {
+<blockquote class="code-sample"><code>eval &lt;*T[ *A *B a'map ]&gt; *FMap f_size | size @public -&gt; &lt;int&gt; {
   #</code> FMapからマップのサイズを計算する<code>
 } ;;</code></blockquote>
 
@@ -1572,7 +1579,7 @@ import &quot;feature.map&quot; -&gt; map ;;
 data &lt;*A *B map_impl&gt; @opaque :=
   ...  #</code> 具体的定義は省略<code>
   map_impl$  #</code> データ構築子<code>
-++ as_a'map -&gt; [ A B map.a'map ] ;;</code></blockquote>
+++ map_fs -&gt; [ A B map.a'map ] ;;</code></blockquote>
 
 <p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
 供給関数の名前は自由に付けることができます。
@@ -1583,8 +1590,8 @@ data &lt;*A *B map_impl&gt; @opaque :=
 
 <p>供給コードの実装は以下のように定義します。</p>
 
-<blockquote class="code-sample"><code>eval &lt;*A *B map_impl&gt; *MI as_a'map -&gt; &lt;&lt;A B map_impl&gt; A B map.map_fo&gt; {
-  #</code> MIからフィーチャ・オブジェクトを生成<code>
+<blockquote class="code-sample"><code>eval map_fs -&gt; &lt;&lt;*A *B map_impl&gt; A B map.map_fs&gt; {
+  #</code>フィーチャ・オブジェクトを生成<code>
 } ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
@@ -1596,17 +1603,18 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <blockquote class="note">*1：データ構築定義の中の型として宣言することもできます。</blockquote>
 <blockquote class="note">*2：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
 <blockquote class="note">*3：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
-<blockquote class="note">*4：この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されています。</blockquote>
+<blockquote class="note">*4：この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
+この例では，フィーチャの実装コードの中で使用しています。</blockquote>
 
 <blockquote class="code-sample"><code>import &quot;feature.map&quot; -&gt; map ;;
 import &quot;feature.map-impl&quot; -&gt; map_impl ;;
 
 eval _main_ -&gt; &lt;void&gt; {
-  map_impl.new_map = &lt;int cstr map_impl.map_impl&gt; *MI,
+  map_impl.new_map = *MI,
   MI f
 } ;;
 
-eval &lt;*T![ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
+eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
   M map.size = 0,
   M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
@@ -2461,6 +2469,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <ul>
 <li><code>&quot;sango.lang&quot;.iter</code>の型パラメタの変位を共変に変更</li>
 <li>コンパイル時の型の整合性検査を修正。チェックが厳しくなっていることがあります。</li>
+<li>【Alpha】フィーチャのフレームワークを変更</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

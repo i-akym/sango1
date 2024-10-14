@@ -285,13 +285,14 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     this.implSkel = (PTypeRefSkel)this.impl.getNormalizedSkel();
 
     PTypeSkelBindings bindings = PTypeSkelBindings.create();  // dummy
-    if (this.implSkel.includesVar(this.objSkel.varSlot, bindings) && this.params.length > 0 && !this.obj.requiresConcrete) {
-      emsg = new StringBuffer();
-      emsg.append("The object should be concrete at ");
-      emsg.append(this.obj.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
+    // following check is no more needed...  
+    // if (this.implSkel.includesVar(this.objSkel.varSlot, bindings) && this.params.length > 0 && !this.obj.requiresConcrete) {
+      // emsg = new StringBuffer();
+      // emsg.append("The object should be concrete at ");
+      // emsg.append(this.obj.getSrcInfo());
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
     for (int i = 0; i < this.params.length; i++) {
       if (!this.implSkel.includesVar(this.params[i].varDef.varSlot, bindings)) {
         emsg = new StringBuffer();
@@ -384,7 +385,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     aliasTypeStmtBuilder.setSig(sigBuilder.create());
     aliasTypeStmtBuilder.setAcc(this.acc);
     aliasTypeStmtBuilder.setBody(this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
-    // PAliasTypeStmt a = aliasTypeStmtBuilder.create();
+// /* DEBUG */ PAliasTypeStmt a = aliasTypeStmtBuilder.create();
 // /* DEBUG */ System.out.println(a);
     return aliasTypeStmtBuilder.create();
   }

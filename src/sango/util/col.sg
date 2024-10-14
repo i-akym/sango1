@@ -29,13 +29,13 @@ module @alpha "sango.util.col" ;;
 ### framework of faeture
 
 eval <*T[ *A a'col ]> *FCol f_empty? | empty? @public -> <bool> {
-  FCol _feature_a'col >> col_empty?
+  FCol &(FCol _feature_a'col >> empty?_f)
 } ;;
 
 eval <*T[ *A a'col ]> *FCol f_size | size @public -> <int> {
-  FCol _feature_a'col >> col_size
+  FCol &(FCol _feature_a'col >> size_f)
 } ;;
 
 eval <*T[ *A a'col ]> *FCol f_iter | iter @public -> <A iter> {
-  FCol _feature_a'col >> _feature_a'iter
+  FCol &(FCol _feature_a'col >> iter_f)
 } ;;

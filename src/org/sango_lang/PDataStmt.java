@@ -932,9 +932,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   PEvalStmt generateFeatureImplFun(PModule mod, PFeatureImplDef impl) throws CompileException {
-    // eval @availability <*T0 *T1 .. TCON> *X GETTER | @private -> <feature impl type> {
-    //   X impl_provider
+    // eval @availability *X GETTER | @private -> <<*T0 *T1 .. TCON> ... feature impl type alias> {
+    //   impl_provider
     // }
+    // // OLD VERSION
+    // // eval @availability <*T0 *T1 .. TCON> *X GETTER | @private -> <feature impl type> {
+    // //   X impl_provider
+    // // }
     Parser.SrcInfo si = srcInfo.appendPostfix("_feature_impl");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -944,38 +948,28 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(impl.getter);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
-    PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
-    for (int i = 0; i < this.tparams.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
-        PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-      paramTypeBuilder.addItem(p);
-    }
-    paramTypeBuilder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
-// /* DEBUG */ PType pt = paramTypeBuilder.create();
-// /* DEBUG */ System.out.print("PARAM "); System.out.println(pt);
-// /* DEBUG */ evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, pt, "X"));
-    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     PType.Builder retType1Builder = PType.Builder.newInstance(si, retScope);
     for (int i = 0; i < this.tparams.length; i++) {
-      retType1Builder.addItem(PTypeId.create(si, retScope, null, this.tparams[i].varDef.name, false));
+      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
+        PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+      retType1Builder.addItem(p);
     }
-    retType1Builder.addItem(PTypeId.create(si, retScope, null, tcon, false));
+    retType1Builder.addItem(PTypeId.create(si, defScope, null, this.tcon, false));
     retTypeBuilder.addItem(retType1Builder.create());
-    for (int i = 0; i < impl.feature.params.length; i++) {
-      retTypeBuilder.addItem(impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+      for (int i = 0; i < impl.feature.params.length; i++) {
+        retTypeBuilder.addItem(impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
     }
     retTypeBuilder.addItem(
       PTypeId.create(si, retScope, 
         impl.feature.fname.modId, "_feature_impl_" + impl.feature.fname.name,
         false));
-// /* DEBUG */ PType rt = retTypeBuilder.create();
+// /* DEBUG */ PType rt = retTypeBuilder.create();  // CAUTION: 'create' changes state in the builder
 // /* DEBUG */ System.out.print("RET "); System.out.println(rt);
 // /* DEBUG */ retDefBuilder.setType(rt);
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
     callEvalBuilder.addItem(PEvalItem.create(impl.provider));
     List<PExpr> ies = new ArrayList<PExpr>();
     ies.add(PExpr.create(callEvalBuilder.create()));

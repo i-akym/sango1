@@ -22,7 +22,7 @@ eval new_set -> <int set.set> {
 } ;;
 
 eval test000 -> <void> {
-  new_set >> set.as_fxset >> set_box.create_box = *S,
+  new_set >> set_box.create_box = *S,
   S shset.empty? = true$,
   S 1 shset.put = none$,
   S 1 shset.put_new = false$,

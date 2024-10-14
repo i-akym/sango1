@@ -30,8 +30,7 @@ import "sango.util.set" -> set ;;
 import "sango.util.set.shared" -> shset ;;
 
 eval <*T![ *A! set.a'set ]> *FSet create_box @public -> <A shset.shared_set_h> {
-  FSet set._feature_a'set = *Set_fo,
-  Set_fo none$ box.create_box = *Box,
+  FSet none$ box.create_box = *Box,
   Box actu.create_box_monitor = *Mon,
 
   extract_f: \\ <A iter> { Mon extract }
@@ -49,118 +48,111 @@ eval <*T![ *A! set.a'set ]> *FSet create_box @public -> <A shset.shared_set_h> {
   shset.shared_set_h$
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon extract -> <A iter> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon extract -> <A iter> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <T A set.set_fo> {
+    \ <T box.box_h> *Box -> <T> {
       Box box.read
     }
-    actu.run = *Fo,
-  \\ <A iter_res> { Fo fo_iter_next } iter$
+    actu.run = *Z,
+  Z set.f_iter
 } ;;
 
-eval <*T! *A! set.set_fo> *Fo fo_iter_next -> <A iter_res> {
-  Fo set.fo_take >> case {
-  ; (| *E, *Fo' |) value$ -> (| E, \\ <A iter_res> { Fo' fo_iter_next } iter$ |) value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon empty? -> <bool> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon empty? -> <bool> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <T A set.set_fo> {
+    \ <T box.box_h> *Box -> <T> {
       Box box.read
-    } actu.run = *Fo,
-  Fo set.fo_empty?
+    } actu.run = *Z,
+  Z set.f_empty?
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon size -> <int> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon size -> <int> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <T A set.set_fo> {
+    \ <T box.box_h> *Box -> <T> {
       Box box.read
-    } actu.run = *Fo,
-  Fo set.fo_size
+    } actu.run = *Z,
+  Z set.f_size
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem get -> <A maybe> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem get -> <A maybe> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <T A set.set_fo> {
+    \ <T box.box_h> *Box -> <T> {
       Box box.read
-    } actu.run = *Fo,
-  Fo Elem set.fo_get
+    } actu.run = *Z,
+  Z Elem set.f_get
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem contain? -> <bool> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem contain? -> <bool> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <T A set.set_fo> {
+    \ <T box.box_h> *Box -> <T> {
       Box box.read
-    } actu.run = *Fo,
-  Fo Elem set.fo_contain?
+    } actu.run = *Z,
+  Z Elem set.f_contain?
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem put -> <A maybe> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem put -> <A maybe> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <A maybe> {
-      Box box.read = *Fo,
-      Fo Elem set.fo_put = (| *Fo', *Replaced_ |),
-      Box Fo' box.write,
+    \ <T box.box_h> *Box -> <A maybe> {
+      Box box.read = *Z,
+      Z Elem set.f_put = (| *Z', *Replaced_ |),
+      Box Z' box.write,
       Replaced_
-  } actu.run
+    } actu.run
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem put_new -> <bool> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem put_new -> <bool> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <bool> {
-      Box box.read = *Fo,
-      Fo Elem set.fo_put_new = (| *Fo', *Succeeded? |),
-      Box Fo' box.write,
+    \ <T box.box_h> *Box -> <bool> {
+      Box box.read = *Z,
+      Z Elem set.f_put_new = (| *Z', *Succeeded? |),
+      Box Z' box.write,
       Succeeded?
-  } actu.run
+    } actu.run
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem add -> <void> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem add -> <void> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <void> {
-      Box box.read = *Fo,
-      Fo Elem set.fo_add = *Fo',
-      Box Fo' box.write >> ignore
-  } actu.run
+    \ <T box.box_h> *Box -> <void> {
+      Box box.read = *Z,
+      Z Elem set.f_add = *Z',
+      Box Z' box.write >> ignore
+    } actu.run
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem remove -> <A maybe> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem remove -> <A maybe> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <A maybe> {
-      Box box.read = *Fo,
-      Fo Elem set.fo_remove = (| *Fo', *Removed_ |),
-      Box Fo' box.write,
+    \ <T box.box_h> *Box -> <A maybe> {
+      Box box.read = *Z,
+      Z Elem set.f_remove = (| *Z', *Removed_ |),
+      Box Z' box.write,
       Removed_
-  } actu.run
+    } actu.run
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon <A> *Elem delete -> <void> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem delete -> <void> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <void> {
-      Box box.read = *Fo,
-      Fo Elem set.fo_delete = *Fo',
-      Box Fo' box.write >> ignore
-  } actu.run
+    \ <T box.box_h> *Box -> <void> {
+      Box box.read = *Z,
+      Z Elem set.f_delete = *Z',
+      Box Z' box.write >> ignore
+    } actu.run
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon take -> <A maybe> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon take -> <A maybe> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <A maybe> {
-      Box box.read = *Fo,
-      Fo set.fo_take >> case {
-      ; (| *Elem, *Fo' |) value$ -> Box Fo' box.write, Elem value$
+    \ <T box.box_h> *Box -> <A maybe> {
+      Box box.read = *Z,
+      Z set.f_take >> case {
+      ; (| *Elem, *Z' |) value$ -> Box Z' box.write, Elem value$
       ; ** -> none$
       }
-  } actu.run
+    } actu.run
 } ;;
 
-eval <<*T! *A! set.set_fo> actu.box_monitor_h> *Mon clear -> <void> {
+eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon clear -> <void> {
   Mon
-    \ <<T A set.set_fo> box.box_h> *Box -> <void> {
-      Box box.read = *Fo,
-      Fo set.fo_clear = *Fo',
-      Box Fo' box.write >> ignore
-  } actu.run
+    \ <T box.box_h> *Box -> <void> {
+      Box box.read = *Z,
+      Z set.f_clear = *Z',
+      Box Z' box.write >> ignore
+    } actu.run
 } ;;

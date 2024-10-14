@@ -23,5 +23,5 @@ eval test000 -> <void> {
 } ;;
 eval test100 -> <void> {
   liststack.new_stack = <int stack.stack> *S,
-  S stack.as_fxstack >> t1.testB00
+  S t1.testB00
 } ;;
