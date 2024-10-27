@@ -617,7 +617,7 @@ class PModule implements PDefDict {
       dat.tcon,
       PDefDict.TconProps.create(
         PDefDict.IdKey.create(this.name, dat.tcon),
-        PTypeId.SUBCAT_DATA,
+        PDefDict.TID_SUBCAT_DATA,
         paramPropss,
         dat.acc,
         DataDefGetter.createForDataDef(dat)));
@@ -673,7 +673,7 @@ class PModule implements PDefDict {
       ext.tcon,
       PDefDict.TconProps.create(
         PDefDict.IdKey.create(this.name, ext.tcon),
-        PTypeId.SUBCAT_EXTEND,
+        PDefDict.TID_SUBCAT_EXTEND,
         paramPropss,
         ext.acc,
         DataDefGetter.createForDataDef(ext)));
@@ -724,7 +724,7 @@ class PModule implements PDefDict {
       alias.tcon,
       PDefDict.TconProps.create(
         PDefDict.IdKey.create(this.name, alias.tcon),
-        PTypeId.SUBCAT_ALIAS,
+        PDefDict.TID_SUBCAT_ALIAS,
         paramPropss,
         alias.acc,
         DataDefGetter.createForAliasTypeDef(alias)));
@@ -1041,7 +1041,7 @@ class PModule implements PDefDict {
       .add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
     return this.resolveTcon(
       tcon,
-      PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
+      PDefDict.TID_SUBCAT_DATA + PDefDict.TID_SUBCAT_EXTEND + PDefDict.TID_SUBCAT_ALIAS,
       as);
   }
 
@@ -1400,7 +1400,7 @@ class PModule implements PDefDict {
       as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
       PDefDict.TconProps tp = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
         tcon,
-        PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
+        PDefDict.TID_SUBCAT_DATA + PDefDict.TID_SUBCAT_EXTEND + PDefDict.TID_SUBCAT_ALIAS,
         as);
       if (tp != null) {
         this.referredTcon(modName, tcon, tp);
@@ -1522,7 +1522,7 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(tp); 
       switch (tp.subcat) {
-      case PTypeId.SUBCAT_ALIAS:
+      case PDefDict.TID_SUBCAT_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");
         PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
         if (this.aliasDefDictDict.containsKey(modName)) {

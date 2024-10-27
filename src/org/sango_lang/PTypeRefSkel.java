@@ -612,7 +612,7 @@ public class PTypeRefSkel implements PTypeSkel {
       .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
     return defDictGetter.getReferredDefDict(key.modName).resolveTcon(
       key.idName,
-      PTypeId.SUBCAT_DATA + PTypeId.SUBCAT_EXTEND + PTypeId.SUBCAT_ALIAS,
+      PDefDict.TID_SUBCAT_DATA + PDefDict.TID_SUBCAT_EXTEND + PDefDict.TID_SUBCAT_ALIAS,
       as);
   }
 

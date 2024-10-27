@@ -29,6 +29,16 @@ import java.util.List;
 import java.util.Map;
 
 public interface PDefDict {
+  static final int TID_CAT_UNDET = 0;
+  static final int TID_CAT_VAR = 1;
+  static final int TID_CAT_TCON = 2;
+  static final int TID_CAT_FEATURE = 3;
+
+  static final int TID_SUBCAT_NOT_FOUND = 0;
+  static final int TID_SUBCAT_DATA = 1;
+  static final int TID_SUBCAT_EXTEND = 2;
+  static final int TID_SUBCAT_ALIAS = 4;
+
   Module.Availability getModAvailability();
 
   Cstr[] getForeignMods();
@@ -183,7 +193,7 @@ public interface PDefDict {
     }
 
     TconProps(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
-      super(PTypeId.CAT_TCON, key);
+      super(TID_CAT_TCON, key);
       this.subcat = subcat;
       this.paramProps = paramProps;
       this.acc = acc;
@@ -223,7 +233,7 @@ public interface PDefDict {
     }
 
     FeatureProps(IdKey key, int paramCount, Module.Access acc, FeatureDefGetter getter) {
-      super(PTypeId.CAT_FEATURE, key);
+      super(TID_CAT_FEATURE, key);
       this.paramCount = paramCount;
       this.acc = acc;
       this.defGetter = getter;
