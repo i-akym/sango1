@@ -95,7 +95,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    provider.setCat(PExprId.CAT_FUN_OFFICIAL);
+    provider.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
     builder.setProvider(provider);
 
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {

@@ -39,6 +39,15 @@ public interface PDefDict {
   static final int TID_SUBCAT_EXTEND = 2;
   static final int TID_SUBCAT_ALIAS = 4;
 
+  static final int EID_CAT_NOT_FOUND = 0;
+  static final int EID_CAT_VAR = 1;
+  static final int EID_CAT_DCON_EVAL = 2;
+  static final int EID_CAT_DCON_PTN = 4;
+  static final int EID_CAT_DCON = EID_CAT_DCON_EVAL + EID_CAT_DCON_PTN;
+  static final int EID_CAT_FUN_OFFICIAL = 8;
+  static final int EID_CAT_FUN_ALIAS = 16;
+  static final int EID_CAT_FUN = EID_CAT_FUN_OFFICIAL + EID_CAT_FUN_ALIAS;
+
   Module.Availability getModAvailability();
 
   Cstr[] getForeignMods();

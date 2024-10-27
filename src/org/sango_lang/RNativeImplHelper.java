@@ -478,7 +478,7 @@ public class RNativeImplHelper {
         Option.Set<Module.Access> as = new Option.Set<Module.Access>();
         as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
           .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
-        PDefDict.EidProps ep = d.resolveEid(dcon, PExprId.CAT_DCON, as);
+        PDefDict.EidProps ep = d.resolveEid(dcon, PDefDict.EID_CAT_DCON, as);
         if (ep == null) { return null; }
         dd = ep.defGetter.getDataDef();
       } catch (CompileException ex) {}
@@ -493,7 +493,7 @@ public class RNativeImplHelper {
         Option.Set<Module.Access> as = new Option.Set<Module.Access>();
         as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
         PDefDict.EidProps ep = d.resolveEid(
-          official, PExprId.CAT_FUN_OFFICIAL, as);
+          official, PDefDict.EID_CAT_FUN_OFFICIAL, as);
         if (ep == null) { return null; }
         PFunDef fd = ep.defGetter.getFunDef();
         PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();

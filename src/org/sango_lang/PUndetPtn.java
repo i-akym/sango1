@@ -58,7 +58,7 @@ class PUndetPtn extends PDefaultExprObj {
       ;
     } else {
       PExprId dcon = (PExprId)this.anchor;
-      dcon.setCat(PExprId.CAT_DCON_PTN);
+      dcon.setCat(PDefDict.EID_CAT_DCON_PTN);
       p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
     }
     return p;

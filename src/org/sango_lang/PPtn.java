@@ -302,7 +302,7 @@ abstract class PPtn {
         throw new CompileException(emsg.toString());
       }
       PExprId id = (PExprId)item.elem;
-      id.cutOffCat(PExprId.CAT_DCON_EVAL);
+      id.cutOffCat(PDefDict.EID_CAT_DCON_EVAL);
       return PUndetPtn.create(this.srcInfo, this.scope, this.context, id);
     }
 
@@ -349,7 +349,7 @@ abstract class PPtn {
         namedAttrs[j] = this.itemList.get(i);
       }
       PExprId dcon = (PExprId)anchor.elem;
-      dcon.setCat(PExprId.CAT_DCON_PTN);
+      dcon.setCat(PDefDict.EID_CAT_DCON_PTN);
       return PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, posdAttrs, namedAttrs, wildCards);
     }
   }
