@@ -635,7 +635,7 @@ class PModule implements PDefDict {
           throw new CompileException(emsg.toString());
         }
         this.dconDict.put(constr.dcon, constr);
-        this.eidDict.put(constr.dcon, PDefDict.EidProps.create(this.name, PExprId.CAT_DCON, dat.acc, this.createExprDefGetter(dat)));
+        this.eidDict.put(constr.dcon, PDefDict.EidProps.create(this.name, PDefDict.EID_CAT_DCON, dat.acc, this.createExprDefGetter(dat)));
       }
     }
     // /* DEBUG */ System.out.print("data stmt added: ");
@@ -690,7 +690,7 @@ class PModule implements PDefDict {
         throw new CompileException(emsg.toString());
       }
       this.dconDict.put(constr.dcon, constr);
-      this.eidDict.put(constr.dcon, PDefDict.EidProps.create(this.name, PExprId.CAT_DCON, ext.acc, this.createExprDefGetter(ext)));
+      this.eidDict.put(constr.dcon, PDefDict.EidProps.create(this.name, PDefDict.EID_CAT_DCON, ext.acc, this.createExprDefGetter(ext)));
     }
     // /* DEBUG */ System.out.print("extend stmt added: ");
     // /* DEBUG */ System.out.println(ext);
@@ -781,9 +781,9 @@ class PModule implements PDefDict {
       throw new CompileException(emsg.toString());
     }
     if (this.eidDict.containsKey(official)) {
-      this.mergeFunToEidDict(official, PExprId.CAT_FUN_OFFICIAL, eval.acc);
+      this.mergeFunToEidDict(official, PDefDict.EID_CAT_FUN_OFFICIAL, eval.acc);
     } else {
-      this.eidDict.put(official, PDefDict.EidProps.create(this.name, PExprId.CAT_FUN_OFFICIAL, eval.acc, this.createExprDefGetter(official)));
+      this.eidDict.put(official, PDefDict.EidProps.create(this.name, PDefDict.EID_CAT_FUN_OFFICIAL, eval.acc, this.createExprDefGetter(official)));
     }
     Integer evalIndex = this.evalStmtList.size();
     this.funOfficialDict.put(official, evalIndex);
@@ -818,9 +818,9 @@ class PModule implements PDefDict {
       }
       this.funDict.get(alias).add(evalIndex);
       if (this.eidDict.containsKey(alias)) {
-        this.mergeFunToEidDict(official, PExprId.CAT_FUN_ALIAS, eval.acc);
+        this.mergeFunToEidDict(official, PDefDict.EID_CAT_FUN_ALIAS, eval.acc);
       } else {
-        this.eidDict.put(alias, PDefDict.EidProps.create(this.name, PExprId.CAT_FUN_ALIAS, eval.acc, this.createExprDefGetter(alias)));
+        this.eidDict.put(alias, PDefDict.EidProps.create(this.name, PDefDict.EID_CAT_FUN_ALIAS, eval.acc, this.createExprDefGetter(alias)));
       }
       names.add(alias);
     }
@@ -966,7 +966,7 @@ class PModule implements PDefDict {
 
   PDefDict.EidProps resolveEid(PExprId id) throws CompileException {
     // variable is already converted to PVarRef
-    if ((id.catOpt & PExprId.CAT_VAR) > 0) {
+    if ((id.catOpt & PDefDict.EID_CAT_VAR) > 0) {
       throw new IllegalArgumentException("invalid cat of id - " + id.toString());
     }
     return this.isLang()? this.resolveEidInLang(id): this.resolveEidInOther(id);
@@ -1000,7 +1000,7 @@ class PModule implements PDefDict {
   PDefDict.EidProps resolveEidLocal(String name, int catOpts) {
     Option.Set<Module.Access> as = new Option.Set<Module.Access>();
     as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
-    if ((catOpts & PExprId.CAT_DCON) > 0) {
+    if ((catOpts & PDefDict.EID_CAT_DCON) > 0) {
       as = as.add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
     }
     return this.resolveEid(name, catOpts, as);
@@ -1155,7 +1155,7 @@ class PModule implements PDefDict {
         PDefDict.EidProps p = PModule.this.theCompiler.getReferredDefDict(Module.MOD_LANG)
           .resolveEid(
             this.funName,
-            PExprId.CAT_FUN,
+            PDefDict.EID_CAT_FUN,
             (new Option.Set<Module.Access>()).add(Module.ACC_PUBLIC));
         if (p != null) {
           r = p.defGetter.selectFunDef(paramTypes, givenTVarList);
@@ -1179,7 +1179,7 @@ class PModule implements PDefDict {
         ;
       } else if (this.searchInLang) {
         PDefDict.EidProps p = PModule.this.theCompiler.getReferredDefDict(Module.MOD_LANG).resolveEid(
-          this.funName, PExprId.CAT_FUN_OFFICIAL, (new Option.Set<Module.Access>()).add(Module.ACC_PUBLIC));
+          this.funName, PDefDict.EID_CAT_FUN_OFFICIAL, (new Option.Set<Module.Access>()).add(Module.ACC_PUBLIC));
         if (p != null) {
           d = p.defGetter.getFunDef();
         }
@@ -1382,7 +1382,7 @@ class PModule implements PDefDict {
     PDefDict.EidProps resolveEid(String modId, String name, int catOpts) throws CompileException {
       Option.Set<Module.Access> as = new Option.Set<Module.Access>();
       as = as.add(Module.ACC_PUBLIC);
-      as = ((catOpts & PExprId.CAT_DCON_PTN) > 0)? as.add(Module.ACC_PROTECTED): as;
+      as = ((catOpts & PDefDict.EID_CAT_DCON_PTN) > 0)? as.add(Module.ACC_PROTECTED): as;
       PDefDict.EidProps ep = PModule.this.theCompiler.getReferredDefDict(PModule.this.resolveModId(modId)).resolveEid(
         name,
         catOpts,
@@ -1433,7 +1433,7 @@ class PModule implements PDefDict {
       PDataDef dd;
       PFunDef fd;
       switch (catOpts & ep.cat) {
-      case PExprId.CAT_DCON_EVAL:
+      case PDefDict.EID_CAT_DCON_EVAL:
       // /* DEBUG */ System.out.println(" >> DCON_EVAL");
         dd = ep.defGetter.getDataDef();
         if (this.dataDefDictDict.containsKey(modName)) {
@@ -1459,7 +1459,7 @@ class PModule implements PDefDict {
           PModule.this.maintainFarModRef(modName);
         }
         break;
-      case PExprId.CAT_DCON_PTN:
+      case PDefDict.EID_CAT_DCON_PTN:
       // /* DEBUG */ System.out.println(" >> DCON_PTN");
         dd = ep.defGetter.getDataDef();
         if (this.dataDefDictDict.containsKey(modName)) {
@@ -1486,11 +1486,11 @@ class PModule implements PDefDict {
         }
         break;
       // when function referred, registered later
-      // case PExprId.CAT_FUN_OFFICIAL:
+      // case PDefDict.EID_CAT_FUN_OFFICIAL:
       // /* DEBUG */ System.out.println(" >> FUN official " + id);
         // this.referredFunOfficial(ep.defGetter.getFunDef());
         // break;
-      // case PExprId.CAT_FUN_ALIAS:
+      // case PDefDict.EID_CAT_FUN_ALIAS:
       // /* DEBUG */ System.out.println(" >> FUN alias " + id);
         // break;
       default:

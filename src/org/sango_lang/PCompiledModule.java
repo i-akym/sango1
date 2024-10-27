@@ -138,7 +138,7 @@ class PCompiledModule implements PDefDict {
       for (int j = 0; j < mdd.constrs.length; j++) {
         MConstrDef mcd = mdd.constrs[j];
         cm.eidDict.put(mcd.dcon, PDefDict.EidProps.create(
-          mod.name, PExprId.CAT_DCON, mdd.acc, cm.createExprDefGetter(dd)));
+          mod.name, PDefDict.EID_CAT_DCON, mdd.acc, cm.createExprDefGetter(dd)));
       }
     }
     MAliasTypeDef[] matds = mod.getAliasTypeDefs();
@@ -170,9 +170,9 @@ class PCompiledModule implements PDefDict {
       FunDef fd = cm.convertFunDef(mod, mfd, unresolvedTypeRefList, unresolvedFeatureList);
       cm.funOfficialDict.put(mfd.name, fd);
       if (cm.eidDict.containsKey(mfd.name)) {
-        cm.mergeFunToEidDict(mfd.name, PExprId.CAT_FUN_OFFICIAL, mfd.acc);
+        cm.mergeFunToEidDict(mfd.name, PDefDict.EID_CAT_FUN_OFFICIAL, mfd.acc);
       } else {
-        cm.eidDict.put(mfd.name, PDefDict.EidProps.create(mod.name, PExprId.CAT_FUN_OFFICIAL, mfd.acc, cm.createExprDefGetter(mfd.name)));
+        cm.eidDict.put(mfd.name, PDefDict.EidProps.create(mod.name, PDefDict.EID_CAT_FUN_OFFICIAL, mfd.acc, cm.createExprDefGetter(mfd.name)));
       }
       List<FunDef> funList;
       if (cm.funListDict.containsKey(mfd.name)) {
@@ -185,9 +185,9 @@ class PCompiledModule implements PDefDict {
       for (int j = 0; j < mfd.aliases.length; j++) {
         String a = mfd.aliases[j];
         if (cm.eidDict.containsKey(a)) {
-          cm.mergeFunToEidDict(a, PExprId.CAT_FUN_ALIAS, mfd.acc);
+          cm.mergeFunToEidDict(a, PDefDict.EID_CAT_FUN_ALIAS, mfd.acc);
         } else {
-          cm.eidDict.put(a, PDefDict.EidProps.create(mod.name, PExprId.CAT_FUN_ALIAS, mfd.acc, cm.createExprDefGetter(a)));
+          cm.eidDict.put(a, PDefDict.EidProps.create(mod.name, PDefDict.EID_CAT_FUN_ALIAS, mfd.acc, cm.createExprDefGetter(a)));
         }
         if (cm.funListDict.containsKey(a)) {
           funList = cm.funListDict.get(a);

@@ -26,15 +26,6 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PExprId extends PDefaultExprObj {
-  static final int CAT_NOT_FOUND = 0;
-  static final int CAT_VAR = 1;
-  static final int CAT_DCON_EVAL = 2;
-  static final int CAT_DCON_PTN = 4;
-  static final int CAT_DCON = CAT_DCON_EVAL + CAT_DCON_PTN;
-  static final int CAT_FUN_OFFICIAL = 8;
-  static final int CAT_FUN_ALIAS = 16;
-  static final int CAT_FUN = CAT_FUN_OFFICIAL + CAT_FUN_ALIAS;
-
   int catOpt;
   String modId;
   String name;
@@ -49,37 +40,37 @@ class PExprId extends PDefaultExprObj {
     id.modId = modId;
     id.name = name;
     if (id.modId == null) {
-      id.catOpt = CAT_VAR + CAT_FUN + CAT_DCON;
+      id.catOpt = PDefDict.EID_CAT_VAR + PDefDict.EID_CAT_FUN + PDefDict.EID_CAT_DCON;
     } else {
-      id.catOpt = CAT_FUN + CAT_DCON;
+      id.catOpt = PDefDict.EID_CAT_FUN + PDefDict.EID_CAT_DCON;
     }
     return id;
   }
 
-  boolean isVar() { return this.isCat(CAT_VAR); }
+  boolean isVar() { return this.isCat(PDefDict.EID_CAT_VAR); }
 
-  boolean isDcon() { return this.isCat(CAT_DCON); }
+  boolean isDcon() { return this.isCat(PDefDict.EID_CAT_DCON); }
 
   boolean isCat(int cat) { return this.catOpt == cat; }
 
-  boolean maybeVar() { return this.maybeCat(CAT_VAR); }
+  boolean maybeVar() { return this.maybeCat(PDefDict.EID_CAT_VAR); }
 
-  boolean maybeDcon() { return this.maybeCat(CAT_DCON); }
+  boolean maybeDcon() { return this.maybeCat(PDefDict.EID_CAT_DCON); }
 
-  boolean maybeFun() { return this.maybeCat(CAT_FUN); }
+  boolean maybeFun() { return this.maybeCat(PDefDict.EID_CAT_FUN); }
 
   boolean maybeCat(int cat) { return (this.catOpt & cat) > 0; }
 
   void cutOffVar() {
-    this.cutOffCat(CAT_VAR);
+    this.cutOffCat(PDefDict.EID_CAT_VAR);
   }
 
   void cutOffDcon() {
-    this.cutOffCat(CAT_DCON);
+    this.cutOffCat(PDefDict.EID_CAT_DCON);
   }
 
   void cutOffFun() {
-    this.cutOffCat(CAT_FUN);
+    this.cutOffCat(PDefDict.EID_CAT_FUN);
   }
 
   void cutOffCat(int cat) {
@@ -87,15 +78,15 @@ class PExprId extends PDefaultExprObj {
   }
 
   void setVar() {
-    this.setCat(CAT_VAR);
+    this.setCat(PDefDict.EID_CAT_VAR);
   }
 
   void setDcon() {
-    this.setCat(CAT_DCON);
+    this.setCat(PDefDict.EID_CAT_DCON);
   }
 
   void setFun() {
-    this.setCat(CAT_FUN);
+    this.setCat(PDefDict.EID_CAT_FUN);
   }
 
   void setCat(int cat) {
@@ -113,19 +104,19 @@ class PExprId extends PDefaultExprObj {
       buf.append("src=");
       buf.append(this.srcInfo);
     }
-    if (this.maybeCat(CAT_VAR)) {
+    if (this.maybeCat(PDefDict.EID_CAT_VAR)) {
       buf.append(",(VAR)");
     }
-    if (this.maybeCat(CAT_DCON_EVAL)) {
+    if (this.maybeCat(PDefDict.EID_CAT_DCON_EVAL)) {
       buf.append(",(DCON_EVAL)");
     }
-    if (this.maybeCat(CAT_DCON_PTN)) {
+    if (this.maybeCat(PDefDict.EID_CAT_DCON_PTN)) {
       buf.append(",(DCON_PTN)");
     }
-    if (this.maybeCat(CAT_FUN_OFFICIAL)) {
+    if (this.maybeCat(PDefDict.EID_CAT_FUN_OFFICIAL)) {
       buf.append(",(FUN_OFFICIAL)");
     }
-    if (this.maybeCat(CAT_FUN_ALIAS)) {
+    if (this.maybeCat(PDefDict.EID_CAT_FUN_ALIAS)) {
       buf.append(",(FUN_ALIAS)");
     }
     buf.append(",id=");

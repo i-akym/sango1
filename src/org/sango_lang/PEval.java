@@ -187,7 +187,7 @@ interface PEval extends PExprObj {
       if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      ((PExprId)item.obj).cutOffCat(PExprId.CAT_DCON_PTN);
+      ((PExprId)item.obj).cutOffCat(PDefDict.EID_CAT_DCON_PTN);
       this.itemList.add(item);
       switch (this.state) {
       case 0: this.state = 1; break;
@@ -198,7 +198,7 @@ interface PEval extends PExprObj {
         this.state = 4;
         break;
       case 4:
-        ((PExprId)item.obj).setCat(PExprId.CAT_DCON_EVAL);
+        ((PExprId)item.obj).setCat(PDefDict.EID_CAT_DCON_EVAL);
         this.state = 6;
         break;
       case 5:
@@ -457,11 +457,11 @@ interface PEval extends PExprObj {
       PEval e;
       if (namedAttrCount > 0) {
         PExprId dcon = (PExprId)anchor.obj;
-	dcon.setCat(PExprId.CAT_DCON_EVAL);
+	dcon.setCat(PDefDict.EID_CAT_DCON_EVAL);
         e = PDataConstrEval.create(this.srcInfo, this.scope, dcon, posdParams, namedAttrs, null);
       } else {
         PExprId id = (PExprId)anchor.obj;
-        id.cutOffCat(PExprId.CAT_DCON_PTN);
+        id.cutOffCat(PDefDict.EID_CAT_DCON_PTN);
         e = PUndetEval.create(this.srcInfo, this.scope, id, posdParams);
       }
       return e;

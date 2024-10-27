@@ -77,7 +77,7 @@ class PFunRef extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    id.setCat(PExprId.CAT_FUN_OFFICIAL);
+    id.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
     return create(t.getSrcInfo(), outerScope, id);
   }
 
@@ -105,7 +105,7 @@ class PFunRef extends PDefaultExprObj {
       f = createSelf(elem.getSrcInfo(), outerScope);
     } else if (Parser.isNormalId(id)) {
       PExprId official = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);
-      official.setCat(PExprId.CAT_FUN_OFFICIAL);
+      official.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
       f = create(elem.getSrcInfo(), outerScope, official);
     } else {
       emsg = new StringBuffer();
