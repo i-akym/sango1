@@ -404,7 +404,7 @@ public class SNImodule {
     PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, tcon);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        tk, PTypeId.SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
+        tk, PDefDict.TID_SUBCAT_DATA, new PDefDict.TparamProps[0], Module.ACC_PUBLIC, ddg);
     return PTypeRefSkel.create(
       helper.getCore().getDefDictGetter(), null, tp, false, dd.sigParams);
   }
@@ -421,7 +421,7 @@ public class SNImodule {
     PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, Module.TCON_TUPLE);
     PDefDict.DataDefGetter ddg = new DataDefGetter(dd);
     PDefDict.TconProps tp = PDefDict.TconProps.create(
-        tk, PTypeId.SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
+        tk, PDefDict.TID_SUBCAT_DATA, null, Module.ACC_PUBLIC, ddg);
     return PTypeRefSkel.create(
       helper.getCore().getDefDictGetter(), null, tp, false, elemTypes);
   }
@@ -477,7 +477,7 @@ public class SNImodule {
             paramPropss[i] = PDefDict.TparamProps.create(this.getParamVarianceAt(i), this.sigParams[i].isConcrete(/* givenTVarList */));
           }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
-            tk, (this.baseTconKey != null)? PTypeId.SUBCAT_EXTEND: PTypeId.SUBCAT_DATA,
+            tk, (this.baseTconKey != null)? PDefDict.TID_SUBCAT_EXTEND: PDefDict.TID_SUBCAT_DATA,
             paramPropss, this.acc, ddg);
           this.sig = PTypeRefSkel.create(
             this.defDictGetter, null, tp, false, this.sigParams);

@@ -84,7 +84,7 @@ class PCompiledModule implements PDefDict {
           paramPropss = null;
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(ik,
-          (dds[j].baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
+          (dds[j].baseModIndex == 0)? PDefDict.TID_SUBCAT_DATA: PDefDict.TID_SUBCAT_EXTEND,
           paramPropss, dds[j].acc, g);
         cm.foreignTconDict.put(ik, tp);
       }
@@ -98,7 +98,7 @@ class PCompiledModule implements PDefDict {
           paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          ik, PTypeId.SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
+          ik, PDefDict.TID_SUBCAT_ALIAS, paramPropss, ads[j].acc, g);
         cm.foreignTconDict.put(ik, tp);
       }
       MFeatureDef[] fds = mod.getForeignFeatureDefs(cm.foreignMods[i]);
@@ -132,7 +132,7 @@ class PCompiledModule implements PDefDict {
       }
       PDefDict.TconProps tp = PDefDict.TconProps.create(
         PDefDict.IdKey.create(mod.name, mdd.tcon),
-        (mdd.baseModIndex == 0)? PTypeId.SUBCAT_DATA: PTypeId.SUBCAT_EXTEND,
+        (mdd.baseModIndex == 0)? PDefDict.TID_SUBCAT_DATA: PDefDict.TID_SUBCAT_EXTEND,
         paramPropss, mdd.acc, g);
       cm.tconDict.put(mdd.tcon, tp);
       for (int j = 0; j < mdd.constrs.length; j++) {
@@ -150,7 +150,7 @@ class PCompiledModule implements PDefDict {
       }
       cm.tconDict.put(matd.tcon, PDefDict.TconProps.create(
         PDefDict.IdKey.create(mod.name, matd.tcon),
-        PTypeId.SUBCAT_ALIAS,
+        PDefDict.TID_SUBCAT_ALIAS,
         paramPropss, matd.acc, createDataDefGetter(cm.convertAliasTypeDef(mod, matd, unresolvedTypeRefList, unresolvedFeatureList))));
     }
     MFeatureDef[] mftds = mod.getFeatureDefs();
@@ -226,7 +226,7 @@ class PCompiledModule implements PDefDict {
     while (i.hasNext()) {
       String tcon = i.next();
       PDefDict.TconProps p = this.tconDict.get(tcon);
-      if (p.subcat == PTypeId.SUBCAT_EXTEND) {
+      if (p.subcat == PDefDict.TID_SUBCAT_EXTEND) {
         PDataDef dd = p.defGetter.getDataDef();
         g.addExtension(dd.getBaseTconKey(), PDefDict.IdKey.create(this.name, tcon));
       }
@@ -378,7 +378,7 @@ class PCompiledModule implements PDefDict {
       paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
     }
     ad.tconProps = PDefDict.TconProps.create(
-      ik, PTypeId.SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);
+      ik, PDefDict.TID_SUBCAT_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.availability = aliasTypeDef.availability;
     ad.acc = aliasTypeDef.acc;
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];

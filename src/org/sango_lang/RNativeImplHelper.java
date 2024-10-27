@@ -509,7 +509,7 @@ public class RNativeImplHelper {
           paramPropss[i] = PDefDict.TparamProps.create(Module.INVARIANT, false);  // HERE
         }
         PDefDict.TconProps tp = PDefDict.TconProps.create(
-          tk, PTypeId.SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
+          tk, PDefDict.TID_SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
         t = PTypeRefSkel.create(this.getDefDictGetter(), null, tp, false, tis);
       } catch (CompileException ex) {}
       return t;

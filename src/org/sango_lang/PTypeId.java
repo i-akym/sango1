@@ -26,16 +26,6 @@ package org.sango_lang;
 import java.io.IOException;
 
 public class PTypeId extends PDefaultProgObj {
-  static final int CAT_UNDET = 0;
-  static final int CAT_VAR = 1;
-  static final int CAT_TCON = 2;
-  static final int CAT_FEATURE = 3;
-
-  public static final int SUBCAT_NOT_FOUND = 0;
-  public static final int SUBCAT_DATA = 1;
-  public static final int SUBCAT_EXTEND = 2;
-  public static final int SUBCAT_ALIAS = 4;
-
   int catOpt;
   String modId;
   String name;
@@ -51,9 +41,9 @@ public class PTypeId extends PDefaultProgObj {
     PTypeId id = new PTypeId(srcInfo, scope);
     id.modId = modId;
     if (modId == null) {
-      id.catOpt = CAT_VAR + CAT_TCON;
+      id.catOpt = PDefDict.TID_CAT_VAR + PDefDict.TID_CAT_TCON;
     } else {
-      id.catOpt = CAT_TCON;
+      id.catOpt = PDefDict.TID_CAT_TCON;
     }
     id.name = name;
     id.ext = ext;
@@ -75,17 +65,17 @@ public class PTypeId extends PDefaultProgObj {
     return id;
   }
 
-  boolean isVar() { return this.isCat(CAT_VAR); }
+  boolean isVar() { return this.isCat(PDefDict.TID_CAT_VAR); }
 
-  boolean isTcon() { return this.isCat(CAT_TCON); }
+  boolean isTcon() { return this.isCat(PDefDict.TID_CAT_TCON); }
 
-  boolean isFeature() { return this.isCat(CAT_FEATURE); }
+  boolean isFeature() { return this.isCat(PDefDict.TID_CAT_FEATURE); }
 
   boolean isCat(int cat) { return this.catOpt == cat; }
 
-  boolean maybeVar() { return this.maybeCat(CAT_VAR); }
+  boolean maybeVar() { return this.maybeCat(PDefDict.TID_CAT_VAR); }
 
-  boolean maybeTcon() { return this.maybeCat(CAT_TCON); }
+  boolean maybeTcon() { return this.maybeCat(PDefDict.TID_CAT_TCON); }
 
   boolean maybeCat(int cat) { return (this.catOpt & cat) > 0; }
 
@@ -94,15 +84,15 @@ public class PTypeId extends PDefaultProgObj {
   }
 
   void setVar() {
-    this.setCat(CAT_VAR);
+    this.setCat(PDefDict.TID_CAT_VAR);
   }
 
   void setTcon() {
-    this.setCat(CAT_TCON);
+    this.setCat(PDefDict.TID_CAT_TCON);
   }
 
   void setFeature() {
-    this.setCat(CAT_FEATURE);
+    this.setCat(PDefDict.TID_CAT_FEATURE);
   }
 
   void setCat(int cat) {
@@ -110,11 +100,11 @@ public class PTypeId extends PDefaultProgObj {
   }
 
   void cutOffVar() {
-    this.cutOffCat(CAT_VAR);
+    this.cutOffCat(PDefDict.TID_CAT_VAR);
   }
 
   void cutOffTcon() {
-    this.cutOffCat(CAT_TCON);
+    this.cutOffCat(PDefDict.TID_CAT_TCON);
   }
 
   void cutOffCat(int cat) {
