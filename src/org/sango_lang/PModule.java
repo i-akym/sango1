@@ -1684,11 +1684,13 @@ class PModule implements PDefDict {
 
     public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
 
-    public int getParamCount() { return this.referredDataDef.getParamCount(); }
+    public PDefDict.TparamProps[] getParamPropss() { return this.referredDataDef.getParamPropss(); }
+
+    // public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
     public PTypeRefSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
-    public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
+    // public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
 
     public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
 

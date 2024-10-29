@@ -267,7 +267,7 @@ public interface PDefDict {
   }
 
   static class TparamProps {
-    Module.Variance variance;
+    public Module.Variance variance;  // public for impl of sango.lang.module
     boolean concrete;
 
     public static TparamProps create(Module.Variance variance, boolean concrete) {

@@ -460,7 +460,20 @@ public class SNImodule {
 
     public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
-    public int getParamCount() { return this.sigParams.length; }
+    public PDefDict.TparamProps[] getParamPropss() {
+      PDefDict.TparamProps[] tps;
+      if (this.sigParams == null) {
+        tps = null;
+      } else {
+        tps = new PDefDict.TparamProps[this.sigParams.length];
+        for (int i = 0; i < this.sigParams.length; i++) {
+          tps[i] = PDefDict.TparamProps.create(null /* HERE: dummy for compilation */, this.sigParams[i].varSlot.requiresConcrete);
+        }
+      }
+      return tps;
+    }
+
+    // public int getParamCount() { return this.sigParams.length; }
 
     public PTypeRefSkel getTypeSig() {
       if (this.sig == null) {
@@ -472,9 +485,8 @@ public class SNImodule {
           PDefDict.IdKey tk = PDefDict.IdKey.create(this.mod, this.sigTcon);
           PDefDict.DataDefGetter ddg = new DataDefGetter(this);
           PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[this.sigParams.length];
-          // List<PTypeVarSlot> givenTVarList = new ArrayList<PTypeVarSlot>();
           for (int i = 0; i < this.sigParams.length; i++) {
-            paramPropss[i] = PDefDict.TparamProps.create(this.getParamVarianceAt(i), this.sigParams[i].isConcrete(/* givenTVarList */));
+            paramPropss[i] = PDefDict.TparamProps.create(this.getParamPropss()[i].variance, this.sigParams[i].isConcrete(/* givenTVarList */));
           }
           PDefDict.TconProps tp = PDefDict.TconProps.create(
             tk, (this.baseTconKey != null)? PDefDict.TID_SUBCAT_EXTEND: PDefDict.TID_SUBCAT_DATA,
@@ -486,9 +498,9 @@ public class SNImodule {
       return this.sig;
     }
 
-    public Module.Variance getParamVarianceAt(int pos) {
-      throw new RuntimeException("getParamVariance not implemtented.");
-    }
+    // public Module.Variance getParamVarianceAt(int pos) {
+      // throw new RuntimeException("getParamVariance not implemtented.");
+    // }
 
     public Module.Availability getAvailability() { return this.availability; }
 

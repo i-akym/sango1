@@ -29,7 +29,7 @@ import java.util.List;
 public class PTypeVarSkel implements PTypeSkel {
   Parser.SrcInfo srcInfo;
   String name;
-  PTypeVarSlot varSlot;
+  public PTypeVarSlot varSlot;  // public for native impl of sango.lang.module
   PFeatureSkel.List features;  // maybe null
 
   private PTypeVarSkel() {}
