@@ -29,11 +29,14 @@ public interface PDataDef {
 
   PDefDict.IdKey getBaseTconKey();
 
-  int getParamCount();  // -1 if variable count  // needed?
+  PDefDict.TparamProps[] getParamPropss();
+  // null for 'tuple', 'fun'
+
+  // int getParamCount();  // -1 if variable count  // needed?
 
   PTypeRefSkel getTypeSig();
 
-  Module.Variance getParamVarianceAt(int pos);
+  // Module.Variance getParamVarianceAt(int pos);
 
   Module.Availability getAvailability();
 

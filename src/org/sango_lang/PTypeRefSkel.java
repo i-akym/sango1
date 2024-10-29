@@ -201,7 +201,7 @@ public class PTypeRefSkel implements PTypeSkel {
     } else {
       PDataDef dd = this.tconProps.defGetter.getDataDef();
       for (int i = 0; i < this.params.length; i++) {
-        vv[i] = dd.getParamVarianceAt(i);
+        vv[i] = dd.getParamPropss()[i].variance;
       }
     }
     return vv;
@@ -212,22 +212,6 @@ public class PTypeRefSkel implements PTypeSkel {
     for (int i = 0; i < variances.length; i++) {
       ww[i] = PTypeSkel.calcWidth(width, variances[i]);
     }
-
-    // if (width == PTypeSkel.EQUAL) {
-      // for (int i = 0; i < variances.length; i++) {
-        // ww[i] = PTypeSkel.EQUAL;
-      // }
-    // } else {
-      // for (int i = 0; i < variances.length; i++) {
-        // if (variances[i] == Module.INVARIANT) {
-          // ww[i] = PTypeSkel.EQUAL;
-        // } else if (variances[i] == Module.CONTRAVARIANT) {
-          // ww[i] = - width;
-        // } else {
-          // ww[i] = width;
-        // }
-      // }
-    // }
     return ww;
   }
 

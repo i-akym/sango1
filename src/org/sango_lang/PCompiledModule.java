@@ -334,7 +334,20 @@ class PCompiledModule implements PDefDict {
 
     public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
-    public int getParamCount() { return (this.sigParams != null)? this.sigParams.length: -1 ; }
+    public PDefDict.TparamProps[] getParamPropss() {
+      PDefDict.TparamProps[] tps;
+      if (this.sigParams == null) {
+        tps = null;
+      } else {
+        tps = new PDefDict.TparamProps[this.sigParams.length];
+        for (int i = 0; i < this.sigParams.length; i++) {
+          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i], this.sigParams[i].varSlot.requiresConcrete);
+        }
+      }
+      return tps;
+    }
+
+    // public int getParamCount() { return (this.sigParams != null)? this.sigParams.length: -1 ; }
 
     public PTypeRefSkel getTypeSig() {
       if (this.sig == null) {
@@ -344,7 +357,7 @@ class PCompiledModule implements PDefDict {
       return this.sig;
     }
 
-    public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
+    // public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public Module.Availability getAvailability() { return this.availability; }
 

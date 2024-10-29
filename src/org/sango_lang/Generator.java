@@ -184,9 +184,10 @@ class Generator {
       this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc());
     }
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
+    PDefDict.TparamProps[] tps = dd.getParamPropss();
     for (int i = 0; i < pvs.length; i++) {
       MTypeVar v = (MTypeVar)pvs[i].toMType(this.parser.mod, varSlotList);
-      MTypeVar.DefWithVariance p = MTypeVar.DefWithVariance.create(dd.getParamVarianceAt(i), v);
+      MTypeVar.DefWithVariance p = MTypeVar.DefWithVariance.create(tps[i].variance, v);
       this.modBuilder.putDataDefParam(p);
     }
     for (int i = 0; i < dd.getConstrCount(); i++) {
@@ -224,7 +225,7 @@ class Generator {
   void generateDataConstrImpls(PDataDef dd) {
     for (int i = 0; i < dd.getConstrCount(); i++) {
       PDataDef.Constr dc = dd.getConstrAt(i);
-      this.modBuilder.putUniqueDataConstrLocal(dc.getDcon(), dc.getAttrCount(), dd.getFormalTcon(), dd.getParamCount());
+      this.modBuilder.putUniqueDataConstrLocal(dc.getDcon(), dc.getAttrCount(), dd.getFormalTcon(), dd.getParamPropss().length);
     }
   }
 

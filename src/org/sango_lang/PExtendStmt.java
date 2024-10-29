@@ -415,13 +415,21 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public PDefDict.IdKey getBaseTconKey() { return this.baseTconProps.key; }
 
-  public int getParamCount() { return this.tparams.length; }
+  public PDefDict.TparamProps[] getParamPropss() {
+    PDefDict.TparamProps[] tps = new PDefDict.TparamProps[this.tparams.length];
+    for (int i = 0; i < this.tparams.length; i++) {
+      tps[i] = PDefDict.TparamProps.create(this.tparams[i].variance, this.tparams[i].varDef.requiresConcrete);
+    }
+    return tps;
+  }
+
+  // public int getParamCount() { return this.tparams.length; }
 
   public PTypeRefSkel getTypeSig() {
     return (PTypeRefSkel)this.sig.toSkel();
   }
 
-  public Module.Variance getParamVarianceAt(int pos) { return this.tparams[pos].variance; }
+  // public Module.Variance getParamVarianceAt(int pos) { return this.tparams[pos].variance; }
 
   public Module.Availability getAvailability() { return this.availability; }
 

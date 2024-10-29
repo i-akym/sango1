@@ -424,13 +424,26 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   public PDefDict.IdKey getBaseTconKey() { return null; }
 
-  public int getParamCount() { return (this.tparams != null)? this.tparams.length: -1 ; }
+  public PDefDict.TparamProps[] getParamPropss() {
+    PDefDict.TparamProps[] tps;
+    if (this.tparams == null) {
+      tps = null;
+    } else {
+      tps = new PDefDict.TparamProps[this.tparams.length];
+      for (int i = 0; i < this.tparams.length; i++) {
+        tps[i] = PDefDict.TparamProps.create(this.tparams[i].variance, this.tparams[i].varDef.requiresConcrete);
+      }
+    }
+    return tps;
+  }
+
+  // public int getParamCount() { return (this.tparams != null)? this.tparams.length: -1 ; }
 
   public PTypeRefSkel getTypeSig() {
     return (this.sig != null)? this.sig.toSkel(): null;
   }
 
-  public Module.Variance getParamVarianceAt(int pos) { return this.tparams[pos].variance; }
+  // public Module.Variance getParamVarianceAt(int pos) { return this.tparams[pos].variance; }
     // consider when tparams == null
 
   public Module.Availability getAvailability() { return this.availability; }
