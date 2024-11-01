@@ -470,61 +470,12 @@ public class RNativeImplHelper {
       return c;
     }
 
-    public PDataDef getDataDef(Cstr modName, String dcon) {
-      PDataDef dd = null;
-      try {
-        PDefDict d = this.getDefDictGetter().getReferredDefDict(modName);
-        if (d == null) { return null; }
-        Option.Set<Module.Access> as = new Option.Set<Module.Access>();
-        as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
-          .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
-        PDefDict.EidProps ep = d.resolveEid(dcon, PDefDict.EID_CAT_DCON, as);
-        if (ep == null) { return null; }
-        dd = ep.defGetter.getDataDef();
-      } catch (CompileException ex) {}
-      return dd;
-    }
-
-    public PTypeRefSkel getFunType(Cstr modName, String official) {
-      PTypeRefSkel t = null;
-      try {
-        PDefDict d = this.getDefDictGetter().getReferredDefDict(modName);
-        if (d == null) { return null; }
-        Option.Set<Module.Access> as = new Option.Set<Module.Access>();
-        as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE);
-        PDefDict.EidProps ep = d.resolveEid(
-          official, PDefDict.EID_CAT_FUN_OFFICIAL, as);
-        if (ep == null) { return null; }
-        PFunDef fd = ep.defGetter.getFunDef();
-        PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
-        PTypeSkel[] pts = fd.getParamTypes();
-        PTypeSkel[] tis = new PTypeSkel[pts.length + 1];
-        for (int i = 0; i < pts.length; i++) {
-          tis[i] = pts[i].instanciate(ic);  // resolving is not needed
-        }
-        tis[pts.length] = fd.getRetType().instanciate(ic);  // resolving is not needed
-        PDefDict.IdKey tk = PDefDict.IdKey.create(Module.MOD_LANG, "fun");
-        PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[pts.length];
-        for (int i = 0; i < pts.length; i++) {
-          paramPropss[i] = PDefDict.TparamProps.create(Module.INVARIANT, false);  // HERE
-        }
-        PDefDict.TconProps tp = PDefDict.TconProps.create(
-          tk, PDefDict.TID_SUBCAT_NOT_FOUND, paramPropss, Module.ACC_OPAQUE, null);
-        t = PTypeRefSkel.create(this.getDefDictGetter(), null, tp, false, tis);
-      } catch (CompileException ex) {}
-      return t;
-    }
-
     public void loadModuleOnDemand(Cstr modName) throws Exception {
       RNativeImplHelper.this.theEngine.modMgr.loadModuleOnDemand(modName);
     }
 
     public RActorHItem getModuleInitActorH(Cstr modName) {
       return RNativeImplHelper.this.theEngine.modMgr.getModuleInitActorH(modName);
-    }
-
-    public PDefDict.DefDictGetter getDefDictGetter() {
-      return RNativeImplHelper.this.theEngine.modMgr;
     }
 
     public void requestShutdown(int exitCode, int timeout) {
