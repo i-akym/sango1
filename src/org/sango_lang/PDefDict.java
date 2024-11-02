@@ -29,15 +29,14 @@ import java.util.List;
 import java.util.Map;
 
 public interface PDefDict {
-  static final int TID_CAT_UNDET = 0;
+  static final int TID_CAT_NOT_FOUND = 0;
   static final int TID_CAT_VAR = 1;
-  static final int TID_CAT_TCON = 2;
-  static final int TID_CAT_FEATURE = 3;
-
-  static final int TID_SUBCAT_NOT_FOUND = 0;
-  static final int TID_SUBCAT_DATA = 1;
-  static final int TID_SUBCAT_EXTEND = 2;
-  static final int TID_SUBCAT_ALIAS = 4;
+  static final int TID_CAT_TCON_DATAEXT_DATA = 2;
+  static final int TID_CAT_TCON_DATAEXT_EXTEND = 4;
+  static final int TID_CAT_TCON_DATAEXT = TID_CAT_TCON_DATAEXT_DATA + TID_CAT_TCON_DATAEXT_EXTEND;
+  static final int TID_CAT_TCON_ALIAS = 8;
+  static final int TID_CAT_TCON = TID_CAT_TCON_DATAEXT + TID_CAT_TCON_ALIAS;
+  static final int TID_CAT_FEATURE = 16;
 
   static final int EID_CAT_NOT_FOUND = 0;
   static final int EID_CAT_VAR = 1;
@@ -54,7 +53,7 @@ public interface PDefDict {
 
   EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
-  TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) throws CompileException;
+  TconProps resolveTcon(String tcon, int catOpts, Option.Set<Module.Access> accOpts) throws CompileException;
 
   FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) throws CompileException;
 
@@ -188,22 +187,20 @@ public interface PDefDict {
   }
 
   static class TconProps extends TidProps {
-    int subcat;
     TparamProps[] paramProps;  // null means variable
     Module.Access acc;
     DataDefGetter defGetter;
 
-    public static TconProps create(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
-      return new TconProps(key, subcat, paramProps, acc, getter);
+    public static TconProps create(IdKey key, int cat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+      return new TconProps(key, cat, paramProps, acc, getter);
     }
 
     public static TconProps createUnresolved(IdKey key) {
-      return create(key, 0, null, null, null);
+      return create(key, 0 /* undetermined */, null, null, null);
     }
 
-    TconProps(IdKey key, int subcat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
-      super(TID_CAT_TCON, key);
-      this.subcat = subcat;
+    TconProps(IdKey key, int cat, TparamProps[] paramProps, Module.Access acc, DataDefGetter getter) {
+      super(cat, key);
       this.paramProps = paramProps;
       this.acc = acc;
       this.defGetter = getter;
@@ -217,8 +214,8 @@ public interface PDefDict {
       StringBuffer buf = new StringBuffer();
       buf.append("tconprops[key=");
       buf.append(this.key);
-      buf.append("tconprops[subcat=");
-      buf.append(this.subcat);
+      buf.append(",cat=");
+      buf.append(this.cat);
       buf.append(",paramcount=");
       buf.append(this.paramCount());
       buf.append(",acc=");

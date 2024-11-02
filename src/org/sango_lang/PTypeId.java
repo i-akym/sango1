@@ -30,8 +30,6 @@ public class PTypeId extends PDefaultProgObj {
   String modId;
   String name;
   boolean ext;
-  // Cstr resolvedModName;
-  // PDefDict.TconProps tconProps;
 
   private PTypeId(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);

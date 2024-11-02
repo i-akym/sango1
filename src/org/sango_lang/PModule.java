@@ -617,7 +617,7 @@ class PModule implements PDefDict {
       dat.tcon,
       PDefDict.TconProps.create(
         PDefDict.IdKey.create(this.name, dat.tcon),
-        PDefDict.TID_SUBCAT_DATA,
+        PDefDict.TID_CAT_TCON_DATAEXT_DATA,
         paramPropss,
         dat.acc,
         DataDefGetter.createForDataDef(dat)));
@@ -673,7 +673,7 @@ class PModule implements PDefDict {
       ext.tcon,
       PDefDict.TconProps.create(
         PDefDict.IdKey.create(this.name, ext.tcon),
-        PDefDict.TID_SUBCAT_EXTEND,
+        PDefDict.TID_CAT_TCON_DATAEXT_EXTEND,
         paramPropss,
         ext.acc,
         DataDefGetter.createForDataDef(ext)));
@@ -724,7 +724,7 @@ class PModule implements PDefDict {
       alias.tcon,
       PDefDict.TconProps.create(
         PDefDict.IdKey.create(this.name, alias.tcon),
-        PDefDict.TID_SUBCAT_ALIAS,
+        PDefDict.TID_CAT_TCON_ALIAS,
         paramPropss,
         alias.acc,
         DataDefGetter.createForAliasTypeDef(alias)));
@@ -1039,10 +1039,7 @@ class PModule implements PDefDict {
     Option.Set<Module.Access> as = new Option.Set<Module.Access>();
     as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PRIVATE)
       .add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
-    return this.resolveTcon(
-      tcon,
-      PDefDict.TID_SUBCAT_DATA + PDefDict.TID_SUBCAT_EXTEND + PDefDict.TID_SUBCAT_ALIAS,
-      as);
+    return this.resolveTcon(tcon, PDefDict.TID_CAT_TCON, as);
   }
 
   PDefDict.FeatureProps resolveFeature(String modId, String fname) throws CompileException {
@@ -1107,10 +1104,10 @@ class PModule implements PDefDict {
       props: null;
   }
 
-  public PDefDict.TconProps resolveTcon(String tcon, int subcatOpts, Option.Set<Module.Access> accOpts) {
+  public PDefDict.TconProps resolveTcon(String tcon, int catOpts, Option.Set<Module.Access> accOpts) {
     PDefDict.TconProps tp;
     return
-      ((tp = this.tconDict.get(tcon)) != null && (tp.subcat & subcatOpts) > 0 && accOpts.contains(tp.acc))?
+      ((tp = this.tconDict.get(tcon)) != null && (tp.cat & catOpts) > 0 && accOpts.contains(tp.acc))?
       tp: null;
   }
 
@@ -1399,9 +1396,7 @@ class PModule implements PDefDict {
       Option.Set<Module.Access> as = new Option.Set<Module.Access>();
       as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
       PDefDict.TconProps tp = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
-        tcon,
-        PDefDict.TID_SUBCAT_DATA + PDefDict.TID_SUBCAT_EXTEND + PDefDict.TID_SUBCAT_ALIAS,
-        as);
+        tcon, PDefDict.TID_CAT_TCON, as);
       if (tp != null) {
         this.referredTcon(modName, tcon, tp);
       }
@@ -1521,8 +1516,8 @@ class PModule implements PDefDict {
 // /* DEBUG */ System.out.print(tcon); 
 // /* DEBUG */ System.out.print(" "); 
 // /* DEBUG */ System.out.println(tp); 
-      switch (tp.subcat) {
-      case PDefDict.TID_SUBCAT_ALIAS:
+      switch (tp.cat) {
+      case PDefDict.TID_CAT_TCON_ALIAS:
       // /* DEBUG */ System.out.println(" >> ALIAS");
         PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
         if (this.aliasDefDictDict.containsKey(modName)) {

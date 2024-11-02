@@ -273,7 +273,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   void checkUnalias(AliasGraphNode a) throws CompileException {
     StringBuffer emsg;
 // /* DEBUG */ System.out.println(this);
-    if (a.tp.subcat != PDefDict.TID_SUBCAT_ALIAS) { return; }
+    if (a.tp.cat != PDefDict.TID_CAT_TCON_ALIAS) { return; }
     List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
     a.tp.defGetter.getAliasTypeDef().collectUnaliasTconProps(tps);
 // /* DEBUG */ System.out.println("unalias to " + tps.toString());

@@ -595,9 +595,7 @@ public class PTypeRefSkel implements PTypeSkel {
       .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
       .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
     return defDictGetter.getReferredDefDict(key.modName).resolveTcon(
-      key.idName,
-      PDefDict.TID_SUBCAT_DATA + PDefDict.TID_SUBCAT_EXTEND + PDefDict.TID_SUBCAT_ALIAS,
-      as);
+      key.idName, PDefDict.TID_CAT_TCON, as);
   }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
