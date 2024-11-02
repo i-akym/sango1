@@ -371,7 +371,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       throw new CompileException(emsg.toString()) ;
     }
     // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconProps);
-    if ((this.baseTconProps.subcat & PDefDict.TID_SUBCAT_ALIAS) > 0) {
+    if ((this.baseTconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend type alias at ");
       emsg.append(this.srcInfo);
