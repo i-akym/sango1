@@ -97,8 +97,8 @@ class PImportStmt extends PDefaultProgObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExprId id;
-    if ((id = PExprId.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    PEid id;
+    if ((id = PEid.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("No identifier for imported module at ");
       emsg.append(reader.getCurrentSrcInfo());

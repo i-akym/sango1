@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2024 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,18 +25,18 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-class PExprId extends PDefaultExprObj {
+class PEid extends PDefaultExprObj {
   int catOpt;
   String modId;
   String name;
   PDefDict.EidProps props;
 
-  private PExprId(Parser.SrcInfo srcInfo, PScope outerScope) {
+  private PEid(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
   }
 
-  static PExprId create(Parser.SrcInfo srcInfo, PScope outerScope, String modId, String name) {
-    PExprId id = new PExprId(srcInfo, outerScope);
+  static PEid create(Parser.SrcInfo srcInfo, PScope outerScope, String modId, String name) {
+    PEid id = new PEid(srcInfo, outerScope);
     id.modId = modId;
     id.name = name;
     if (id.modId == null) {
@@ -133,7 +133,7 @@ class PExprId extends PDefaultExprObj {
     return (modId != null)? modId + "." + name: name;
   }
 
-  static PExprId accept(ParserA.TokenReader reader, PScope outerScope,
+  static PEid accept(ParserA.TokenReader reader, PScope outerScope,
       Option.Set<Parser.QualState> qual, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token word;

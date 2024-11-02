@@ -93,8 +93,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     }
 
     PAliasTypeStmt create() throws CompileException {
-      if (this.alias.sig instanceof PTypeId) {
-        PTypeId tp = (PTypeId)this.alias.sig;
+      if (this.alias.sig instanceof PTid) {
+        PTid tp = (PTid)this.alias.sig;
         this.alias.tcon = tp.name;
         this.alias.tparams = new PTypeVarDef[0];
       } else if (this.alias.sig instanceof PTypeRef) {
@@ -177,7 +177,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), defScope, null, tcon, false);
+    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon, false);
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));

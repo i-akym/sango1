@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2024 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -25,18 +25,18 @@ package org.sango_lang;
 
 import java.io.IOException;
 
-public class PTypeId extends PDefaultProgObj {
+public class PTid extends PDefaultProgObj {
   int catOpt;
   String modId;
   String name;
   boolean ext;
 
-  private PTypeId(Parser.SrcInfo srcInfo, PScope scope) {
+  private PTid(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
   }
 
-  static PTypeId create(Parser.SrcInfo srcInfo, PScope scope, String modId, String name, boolean ext) {
-    PTypeId id = new PTypeId(srcInfo, scope);
+  static PTid create(Parser.SrcInfo srcInfo, PScope scope, String modId, String name, boolean ext) {
+    PTid id = new PTid(srcInfo, scope);
     id.modId = modId;
     if (modId == null) {
       id.catOpt = PDefDict.TID_CAT_VAR + PDefDict.TID_CAT_TCON;
@@ -51,14 +51,14 @@ public class PTypeId extends PDefaultProgObj {
     return id;
   }
 
-  static PTypeId createVar(Parser.SrcInfo srcInfo, PScope scope, String name) {
-    PTypeId id = create(srcInfo, scope, null, name, false);
+  static PTid createVar(Parser.SrcInfo srcInfo, PScope scope, String name) {
+    PTid id = create(srcInfo, scope, null, name, false);
     id.setVar();
     return id;
   }
 
-  static PTypeId createFeature(Parser.SrcInfo srcInfo, PScope scope, String name) {
-    PTypeId id = create(srcInfo, scope, null, name, false);
+  static PTid createFeature(Parser.SrcInfo srcInfo, PScope scope, String name) {
+    PTid id = create(srcInfo, scope, null, name, false);
     id.setFeature();
     return id;
   }
@@ -152,8 +152,8 @@ public class PTypeId extends PDefaultProgObj {
     return buf.toString();
   }
 
-  public PTypeId copy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-    PTypeId id = new PTypeId(srcInfo, scope);
+  public PTid copy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    PTid id = new PTid(srcInfo, scope);
     id.catOpt = this.catOpt;
     id.modId = this.modId;
     id.name = this.name;
@@ -170,7 +170,7 @@ public class PTypeId extends PDefaultProgObj {
     return id;
   }
 
-  static PTypeId accept(ParserA.TokenReader reader, PScope scope, Option.Set<Parser.QualState> qual, int spc) throws CompileException, IOException {
+  static PTid accept(ParserA.TokenReader reader, PScope scope, Option.Set<Parser.QualState> qual, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token word;
     if ((word = ParserA.acceptNormalWord(reader, spc)) == null) {
@@ -201,35 +201,15 @@ public class PTypeId extends PDefaultProgObj {
     this.scope.referredModId(this.srcInfo, this.modId);
   }
 
-  // void resolveModIdSimply() throws CompileException {
-    // StringBuffer emsg;
-    // if (this.modId != null) {
-      // this.resolvedModName = this.scope.resolveModId(this.modId);
-      // if (this.resolvedModName == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("Module id \"");
-        // emsg.append(this.modId);
-        // emsg.append("\" not defined at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-    // }
-  // }
-
   public PType resolve() throws CompileException {
-    throw new RuntimeException("PTypeId#resolve is called.");
+    throw new RuntimeException("PTid#resolve is called.");
   }
 
-  // public PDefDict.TconProps getTconProps() {
-    // throw new IllegalStateException("PTypeId#getTconProps should not called.");
-  // }
-
   public void excludePrivateAcc() throws CompileException {
-    throw new RuntimeException("PTypeId#excludePrivateAcc should not called.");
+    throw new RuntimeException("PTid#excludePrivateAcc should not called.");
   }
 
   public PTypeSkel getSkel() {
-    throw new RuntimeException("PTypeId#getSkel is called. " + this.toString());
+    throw new RuntimeException("PTid#getSkel is called. " + this.toString());
   }
 }

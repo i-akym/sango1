@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 class PStaticInvEval extends PDefaultExprObj implements PEval {
-  PExprId funId;  // HERE: official name needed
+  PEid funId;  // HERE: official name needed
   PExprObj params[];
 
   private PStaticInvEval(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -49,7 +49,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PStaticInvEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId funId, PExprObj[] params) {
+  static PStaticInvEval create(Parser.SrcInfo srcInfo, PScope outerScope, PEid funId, PExprObj[] params) {
     PStaticInvEval e = new PStaticInvEval(srcInfo, outerScope);
     e.funId = funId;
     e.params = params;
@@ -68,7 +68,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
       throw new CompileException(emsg.toString());
     }
     String mid = elem.getAttrValueAsId("mid");
-    PExprId eid = null;
+    PEid eid = null;
     if (id.equals("@SELF")) {
       if (mid != null) {
         emsg = new StringBuffer();
@@ -78,7 +78,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
         throw new CompileException(emsg.toString());
       }
     } else if (Parser.isNormalId(id)) {
-      eid = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);;
+      eid = PEid.create(elem.getSrcInfo(), outerScope, mid, id);;
     } else {
       emsg = new StringBuffer();
       emsg.append("Invalid id at ");
@@ -118,7 +118,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
-    this.funId = (PExprId)this.funId.resolve();
+    this.funId = (PEid)this.funId.resolve();
     return this;
   }
 

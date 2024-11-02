@@ -88,7 +88,7 @@ class PPtnItem extends PDefaultExprObj {
       ;
     } else if ((acceptables & PPtn.ACCEPT_STRING) > 0 && (elem = PStringPtn.accept(reader, outerScope, space, context)) != null) {
       ;
-    } else if ((acceptables & PPtn.ACCEPT_ID) > 0 && (elem = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, space)) != null) {
+    } else if ((acceptables & PPtn.ACCEPT_ID) > 0 && (elem = PEid.accept(reader, outerScope, Parser.QUAL_MAYBE, space)) != null) {
       ;
     } else if ((acceptables & PPtn.ACCEPT_VARDEF_NOT_CASTED) > 0 && (elem = PExprVarDef.accept(reader, outerScope, PExprVarDef.CAT_LOCAL_VAR, PExprVarDef.TYPE_NOT_ALLOWED)) != null) {
       ;
@@ -117,7 +117,7 @@ class PPtnItem extends PDefaultExprObj {
           || elem instanceof PListPtn
           || elem instanceof PTuplePtn
           || elem instanceof PStringPtn
-          || elem instanceof PExprId
+          || elem instanceof PEid
           || elem instanceof PExprVarDef
           || elem instanceof PWildCard
           || elem instanceof PPtnMatch) {
@@ -135,8 +135,8 @@ class PPtnItem extends PDefaultExprObj {
   }
 
   void fixAsAttr() {
-    if (this.elem instanceof PExprId) {
-      this.elem = PUndetPtn.create(this.srcInfo, this.scope, this.context, (PExprId)this.elem);
+    if (this.elem instanceof PEid) {
+      this.elem = PUndetPtn.create(this.srcInfo, this.scope, this.context, (PEid)this.elem);
     }
   }
 

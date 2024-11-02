@@ -24,7 +24,7 @@
 package org.sango_lang;
 
 class PUndetEval extends PDefaultExprObj implements PEval {
-  PExprId anchor;
+  PEid anchor;
   PEvalItem.ObjItem params[];
 
   private PUndetEval(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -46,7 +46,7 @@ class PUndetEval extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  static PUndetEval create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId anchor, PEvalItem.ObjItem[] params) {
+  static PUndetEval create(Parser.SrcInfo srcInfo, PScope outerScope, PEid anchor, PEvalItem.ObjItem[] params) {
     PUndetEval e = new PUndetEval(srcInfo, outerScope);
     e.anchor = anchor;
     e.params = params;
@@ -79,7 +79,7 @@ class PUndetEval extends PDefaultExprObj implements PEval {
       }
       e = (PExprVarRef)a;
     } else {
-      PExprId anc = (PExprId)a;
+      PEid anc = (PEid)a;
       if (anc.maybeDcon()) {
         e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, anc, this.params);
       } else {

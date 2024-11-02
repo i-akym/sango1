@@ -335,15 +335,15 @@ class PTypeGraph {
     }
   }
 
-  FunRefNode createFunRefNode(PExprObj exprObj, PExprId official) {
+  FunRefNode createFunRefNode(PExprObj exprObj, PEid official) {
     FunRefNode n = new FunRefNode(exprObj, official);
     return n;
   }
 
   class FunRefNode extends Node {
-    PExprId official;
+    PEid official;
 
-    FunRefNode(PExprObj exprObj, PExprId official) {
+    FunRefNode(PExprObj exprObj, PEid official) {
       super(exprObj);
       this.official = official;
     }
@@ -443,18 +443,18 @@ class PTypeGraph {
     }
   }
 
-  StaticInvNode createStaticInvNode(PExprObj exprObj, PExprId funId, int paramCount) {
+  StaticInvNode createStaticInvNode(PExprObj exprObj, PEid funId, int paramCount) {
     StaticInvNode n = new StaticInvNode(exprObj, funId, paramCount);
     return n;
   }
 
   class StaticInvNode extends Node {
-    PExprId funId;
+    PEid funId;
     Node[] paramNodes;
     PFunDef funDef;
     PTypeSkelBindings bindings;
 
-    StaticInvNode(PExprObj exprObj, PExprId funId, int paramCount) {
+    StaticInvNode(PExprObj exprObj, PEid funId, int paramCount) {
       super(exprObj);
       this.funId = funId;
       this.paramNodes = new Node[paramCount];
@@ -881,16 +881,16 @@ if (DEBUG > 1) {
     }
   }
 
-  DataConstrNode createDataConstrNode(PExprObj exprObj, PExprId dcon, int attrCount) {
+  DataConstrNode createDataConstrNode(PExprObj exprObj, PEid dcon, int attrCount) {
     DataConstrNode n = new DataConstrNode(exprObj, dcon, attrCount);
     return n;
   }
 
   class DataConstrNode extends Node {
-    PExprId dcon;
+    PEid dcon;
     Node[] attrNodes;
 
-    DataConstrNode(PExprObj exprObj, PExprId dcon, int attrCount) {
+    DataConstrNode(PExprObj exprObj, PEid dcon, int attrCount) {
       super(exprObj);
       this.dcon = dcon;
       this.attrNodes = new Node[attrCount];
@@ -1126,17 +1126,17 @@ if (DEBUG > 1) {
     }
   }
 
-  DataConstrPtnNode createDataConstrPtnNode(PExprObj exprObj, int context, PExprId dcon) {
+  DataConstrPtnNode createDataConstrPtnNode(PExprObj exprObj, int context, PEid dcon) {
     DataConstrPtnNode n = new DataConstrPtnNode(exprObj, context, dcon);
     return n;
   }
 
   class DataConstrPtnNode extends RefNode {
     int context;  // PPtnMatch.CONTEXT_*
-    PExprId dcon;
+    PEid dcon;
     PTypeSkelBindings bindings;
 
-    DataConstrPtnNode(PExprObj exprObj, int context, PExprId dcon) {
+    DataConstrPtnNode(PExprObj exprObj, int context, PEid dcon) {
       super(exprObj);
       if (context == PPtnMatch.CONTEXT_FIXED || context == PPtnMatch.CONTEXT_TRIAL) {
       } else {
@@ -1201,16 +1201,16 @@ if (DEBUG > 1) {
     }
   }
 
-  DataConstrPtnAttrNode createDataConstrPtnAttrNode(PExprObj exprObj, PExprId dcon, int index) {
+  DataConstrPtnAttrNode createDataConstrPtnAttrNode(PExprObj exprObj, PEid dcon, int index) {
     DataConstrPtnAttrNode n = new DataConstrPtnAttrNode(exprObj, dcon, index);
     return n;
   }
 
   class DataConstrPtnAttrNode extends Node {
-    PExprId dcon;
+    PEid dcon;
     int index;
 
-    DataConstrPtnAttrNode(PExprObj exprObj, PExprId dcon, int index) {
+    DataConstrPtnAttrNode(PExprObj exprObj, PEid dcon, int index) {
       super(exprObj);
       this.dcon = dcon;
       this.index = index;

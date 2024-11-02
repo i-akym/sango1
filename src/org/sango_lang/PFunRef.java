@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.List;
 
 class PFunRef extends PDefaultExprObj {
-  PExprId official;  // null means self
+  PEid official;  // null means self
 
   private PFunRef(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -47,7 +47,7 @@ class PFunRef extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PFunRef create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId official) {
+  static PFunRef create(Parser.SrcInfo srcInfo, PScope outerScope, PEid official) {
     PFunRef fr = new PFunRef(srcInfo, outerScope);
     fr.official = official;
     return fr;
@@ -64,13 +64,13 @@ class PFunRef extends PDefaultExprObj {
   static PFunRef accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
-    PExprId id;
+    PEid id;
     if ((t = ParserA.acceptToken(reader, LToken.CARET_CARET, spc)) != null) {
       return createSelf(t.getSrcInfo(), outerScope);
     } else if ((t = ParserA.acceptToken(reader, LToken.CARET, spc)) == null) {
       return null;
     }
-    if ((id = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PEid.accept(reader, outerScope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function name missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -104,7 +104,7 @@ class PFunRef extends PDefaultExprObj {
       }
       f = createSelf(elem.getSrcInfo(), outerScope);
     } else if (Parser.isNormalId(id)) {
-      PExprId official = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);
+      PEid official = PEid.create(elem.getSrcInfo(), outerScope, mid, id);
       official.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
       f = create(elem.getSrcInfo(), outerScope, official);
     } else {
@@ -126,7 +126,7 @@ class PFunRef extends PDefaultExprObj {
 
   public PFunRef resolve() throws CompileException {
     if (this.official != null) {
-      this.official = (PExprId)this.official.resolve();
+      this.official = (PEid)this.official.resolve();
     }
     return this;
   }
@@ -135,12 +135,12 @@ class PFunRef extends PDefaultExprObj {
     if (this.official != null) {
       this.typeGraphNode = graph.createFunRefNode(this, this.official);
     } else if (this.scope.pos == 1) {
-      PExprId callee = PExprId.create(
+      PEid callee = PEid.create(
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
       try {
-        callee = (PExprId)callee.resolve();
+        callee = (PEid)callee.resolve();
       } catch (CompileException ex) {
         throw new RuntimeException("Internal error.");
       }

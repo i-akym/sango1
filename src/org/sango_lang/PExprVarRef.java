@@ -38,7 +38,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return v;
   }
 
-  static PExprId acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
+  static PEid acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("var")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -49,7 +49,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PExprId v = PExprId.create(elem.getSrcInfo(), outerScope, null, id);
+    PEid v = PEid.create(elem.getSrcInfo(), outerScope, null, id);
     v.setVar();
     return v;
   }
@@ -71,8 +71,8 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return buf.toString();
   }
 
-  public PTypeId deepCopy(Parser.SrcInfo srcInfo, PScope outerScope) {  // rollback to PTypeId
-    return PTypeId.create(srcInfo, outerScope, null, this.name, false);
+  public PTid deepCopy(Parser.SrcInfo srcInfo, PScope outerScope) {  // rollback to PTid
+    return PTid.create(srcInfo, outerScope, null, this.name, false);
   }
 
   public void collectModRefs() throws CompileException {}

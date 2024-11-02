@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 class PDataConstrEval extends PDefaultExprObj implements PEval {
-  PExprId dcon;
+  PEid dcon;
   PEvalItem.ObjItem posdAttrs[];
   PEvalItem.ObjItem namedAttrs[];
   Map<String, PEvalItem> namedAttrDict;
@@ -66,7 +66,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   }
 
   static PDataConstrEval create(Parser.SrcInfo srcInfo, PScope outerScope,
-      PExprId dcon, PEvalItem.ObjItem[] posdAttrs, PEvalItem.ObjItem[] namedAttrs,
+      PEid dcon, PEvalItem.ObjItem[] posdAttrs, PEvalItem.ObjItem[] namedAttrs,
       PEvalItem.ObjItem using) throws CompileException {
     StringBuffer emsg;
     PDataConstrEval e = new PDataConstrEval(srcInfo, outerScope);
@@ -93,7 +93,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   }
 
   static PDataConstrEval convertFromResolvedUndet(Parser.SrcInfo srcInfo, PScope outerScope,
-      PExprId dcon, PEvalItem.ObjItem[] attrs) throws CompileException {
+      PEid dcon, PEvalItem.ObjItem[] attrs) throws CompileException {
     StringBuffer emsg;
     PDataConstrEval e = new PDataConstrEval(srcInfo, outerScope);
     e.dcon = dcon;
@@ -182,7 +182,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     Parser.SrcInfo si = elem.getSrcInfo();
     return create(
       si, outerScope,
-      PExprId.create(si, outerScope, mid, dcon),
+      PEid.create(si, outerScope, mid, dcon),
       pas.toArray(new PEvalItem.ObjItem[pas.size()]),
       nas.toArray(new PEvalItem.ObjItem[nas.size()]),
       PEvalItem.ObjItem.create(using.getSrcInfo(), outerScope, null, using));
@@ -211,7 +211,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     if (this.using != null) {
       this.using = this.using.resolve();
     }
-    this.dcon = (PExprId)this.dcon.resolve();
+    this.dcon = (PEid)this.dcon.resolve();
     this.breakDown();
     return this;
   }
@@ -308,26 +308,26 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     // /* DEBUG */ System.out.println(this);
     try {
       PExprVarDef[] posdVarDefs = new PExprVarDef[this.posdAttrs.length];
-      PExprId[] posdVarRefs = new PExprId[this.posdAttrs.length];
+      PEid[] posdVarRefs = new PEid[this.posdAttrs.length];
       for (int i = 0; i < this.posdAttrs.length; i++) {
         String varName = this.scope.generateId();
         posdVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-        posdVarRefs[i] = PExprId.create(this.srcInfo, this.scope, null, varName);
+        posdVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
       }
       PExprVarDef[] namedVarDefs = new PExprVarDef[this.namedAttrs.length];
-      PExprId[] namedVarRefs = new PExprId[this.namedAttrs.length];
+      PEid[] namedVarRefs = new PEid[this.namedAttrs.length];
       for (int i = 0; i < this.namedAttrs.length; i++) {
         String varName = this.scope.generateId();
         namedVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-        namedVarRefs[i] = PExprId.create(this.srcInfo, this.scope, null, varName);
+        namedVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
       }
       PExprVarDef[] usingVarDefs = new PExprVarDef[attrSrcs.length];
-      PExprId[] usingVarRefs = new PExprId[attrSrcs.length];
+      PEid[] usingVarRefs = new PEid[attrSrcs.length];
       for (int i = 0; i < attrSrcs.length; i++) {
         if (attrSrcs[i] == ATTR_FROM_USING) {
           String varName = this.scope.generateId();
           usingVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-          usingVarRefs[i] = PExprId.create(this.srcInfo, this.scope, null, varName);
+          usingVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
         } else {
           usingVarDefs[i] = null;
           usingVarRefs[i] = null;

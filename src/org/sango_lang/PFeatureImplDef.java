@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
-  PExprId provider;
+  PEid provider;
   PFeature feature;
   String getter;
 
@@ -66,7 +66,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
 
     PScope getScope() { return this.implDef.scope; }
 
-    void setProvider(PExprId provider) {
+    void setProvider(PEid provider) {
       this.implDef.provider = provider;
       this.implDef.provider.setFun();
     }
@@ -87,8 +87,8 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
 
     if (ParserA.acceptToken(reader, LToken.PLUS_PLUS, ParserA.SPACE_DO_NOT_CARE) == null) { return null; }
 
-    PExprId provider;
-    if ((provider = PExprId.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_NEEDED)) == null) {
+    PEid provider;
+    if ((provider = PEid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Feature provider missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -159,7 +159,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   }
 
   public PFeatureImplDef resolve() throws CompileException {
-    this.provider = (PExprId)this.provider.resolve();
+    this.provider = (PEid)this.provider.resolve();
     this.feature = this.feature.resolve();
     return this;
   }
