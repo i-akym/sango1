@@ -162,7 +162,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader, defScope));
-    PExprId official = PExprId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
+    PEid official = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
     if (official == null) {
       emsg = new StringBuffer();
       emsg.append("Function official name missing at ");
@@ -320,12 +320,12 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
   private static List<String> acceptAliasList(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
     List<String> aliasList = new ArrayList<String>();
-    PExprId a = null;
+    PEid a = null;
     int state = 0;
     while (state >= 0) {
       if (ParserA.acceptToken(reader, LToken.VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
         state = 1;
-      } else if (state == 1 && (a = PExprId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
+      } else if (state == 1 && (a = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
         aliasList.add(a.name);
         state = 0;
       } else {

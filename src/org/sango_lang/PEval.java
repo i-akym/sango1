@@ -134,7 +134,7 @@ interface PEval extends PExprObj {
           this.addDataObj(ACCEPT_TUPLE, (PEvalItem.ObjItem)item);
         } else if (o instanceof PString) {
           this.addDataObj(ACCEPT_STRING, (PEvalItem.ObjItem)item);
-        } else if (o instanceof PExprId) {
+        } else if (o instanceof PEid) {
           this.addId(ACCEPT_ID, (PEvalItem.ObjItem)item);
         } else if (o instanceof PFunRef) {
           this.addFunObj(ACCEPT_FUN_REF, (PEvalItem.ObjItem)item);
@@ -187,26 +187,26 @@ interface PEval extends PExprObj {
       if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      ((PExprId)item.obj).cutOffCat(PDefDict.EID_CAT_DCON_PTN);
+      ((PEid)item.obj).cutOffCat(PDefDict.EID_CAT_DCON_PTN);
       this.itemList.add(item);
       switch (this.state) {
       case 0: this.state = 1; break;
       case 1: this.state = 2; break;
       case 2: this.state = 2; break;
       case 3:
-        ((PExprId)item.obj).cutOffDcon();
+        ((PEid)item.obj).cutOffDcon();
         this.state = 4;
         break;
       case 4:
-        ((PExprId)item.obj).setCat(PDefDict.EID_CAT_DCON_EVAL);
+        ((PEid)item.obj).setCat(PDefDict.EID_CAT_DCON_EVAL);
         this.state = 6;
         break;
       case 5:
-        ((PExprId)item.obj).cutOffDcon();
+        ((PEid)item.obj).cutOffDcon();
         this.state = 6;
         break;
       case 7:
-        ((PExprId)item.obj).setFun();
+        ((PEid)item.obj).setFun();
         this.state = 6;
         break;
       }
@@ -390,7 +390,7 @@ interface PEval extends PExprObj {
         PExprObj elem = this.itemList.get(0).obj;
         if (elem instanceof PEval) {
           e = (PEval)elem;
-        } else if (elem instanceof PExprId) {
+        } else if (elem instanceof PEid) {
           e = this.createDispatch2();
         } else if (elem instanceof PByte
           || elem instanceof PInt
@@ -423,7 +423,7 @@ interface PEval extends PExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!(anchor.obj instanceof PExprId)) {
+      if (!(anchor.obj instanceof PEid)) {
 // /* DEBUG */ System.out.print("anchor "); System.out.println(anchor);
         emsg = new StringBuffer();
         emsg.append("Either function or data constructor missing at ");
@@ -456,11 +456,11 @@ interface PEval extends PExprObj {
       }
       PEval e;
       if (namedAttrCount > 0) {
-        PExprId dcon = (PExprId)anchor.obj;
+        PEid dcon = (PEid)anchor.obj;
 	dcon.setCat(PDefDict.EID_CAT_DCON_EVAL);
         e = PDataConstrEval.create(this.srcInfo, this.scope, dcon, posdParams, namedAttrs, null);
       } else {
-        PExprId id = (PExprId)anchor.obj;
+        PEid id = (PEid)anchor.obj;
         id.cutOffCat(PDefDict.EID_CAT_DCON_PTN);
         e = PUndetEval.create(this.srcInfo, this.scope, id, posdParams);
       }
@@ -487,7 +487,7 @@ interface PEval extends PExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (!(dcon.obj instanceof PExprId)) {
+      if (!(dcon.obj instanceof PEid)) {
         emsg = new StringBuffer();
         emsg.append("Either function or data constructor missing at ");
         emsg.append(dcon.srcInfo);
@@ -520,7 +520,7 @@ interface PEval extends PExprObj {
       if (using != null) {
         using.fixAsParam();
       }
-      return PDataConstrEval.create(this.srcInfo, this.scope, (PExprId)dcon.obj, posdAttrs, namedAttrs, using);
+      return PDataConstrEval.create(this.srcInfo, this.scope, (PEid)dcon.obj, posdAttrs, namedAttrs, using);
     }
 
     private PEval createCaseEval() throws CompileException {
@@ -533,8 +533,8 @@ interface PEval extends PExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PExprObj v = (obj.obj instanceof PExprId)? 
-        PUndetEval.create(this.srcInfo, this.scope, (PExprId)obj.obj, new PEvalItem.ObjItem[0]):
+      PExprObj v = (obj.obj instanceof PEid)? 
+        PUndetEval.create(this.srcInfo, this.scope, (PEid)obj.obj, new PEvalItem.ObjItem[0]):
         (PExprObj)obj.obj;
       return PCaseEval.create(this.srcInfo, this.scope, v, (PCaseBlock)this.itemList.get(1).obj);
     }
@@ -647,7 +647,7 @@ interface PEval extends PExprObj {
     } else if ((o = PFunRef.acceptX(elem, outerScope)) != null) {
       eval = PObjEval.create(o.getSrcInfo(), outerScope, o);
     } else if ((o = PExprVarRef.acceptX(elem, outerScope)) != null) {
-      eval = PUndetEval.create(o.getSrcInfo(), outerScope, (PExprId)o, new PEvalItem.ObjItem[0]);
+      eval = PUndetEval.create(o.getSrcInfo(), outerScope, (PEid)o, new PEvalItem.ObjItem[0]);
     } else if ((eval = PStaticInvEval.acceptX(elem, outerScope)) != null) {
       ;
     } else if ((eval = PDynamicInvEval.acceptX(elem, outerScope)) != null) {

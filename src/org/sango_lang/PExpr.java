@@ -147,7 +147,7 @@ class PExpr extends PDefaultExprObj implements PEval {
   static PExpr createDummyVoidExpr(Parser.SrcInfo si, PScope outerScope) {
     try {
       PEval.Builder voidEvalBuilder = PEval.Builder.newInstance(si, outerScope);
-      voidEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, outerScope, PModule.MOD_ID_LANG, "void$")));
+      voidEvalBuilder.addItem(PEvalItem.create(PEid.create(si, outerScope, PModule.MOD_ID_LANG, "void$")));
       return create(si, outerScope, voidEvalBuilder.create() , null);
     } catch (CompileException ex) {
       throw new RuntimeException(ex.toString());

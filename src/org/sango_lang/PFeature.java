@@ -29,7 +29,7 @@ import java.util.List;
 
 public class PFeature extends PDefaultProgObj {
   Cstr modName;
-  PTypeId fname;
+  PTid fname;
   PType[] params;
   PDefDict.FeatureProps featureProps;
 
@@ -46,7 +46,7 @@ public class PFeature extends PDefaultProgObj {
       buf.append(",");
     }
     buf.append("name=");
-    buf.append(PTypeId.repr(this.fname.modId, this.fname.name, false));
+    buf.append(PTid.repr(this.fname.modId, this.fname.name, false));
     buf.append(",params=[");
     String sep = "";
     for (int i = 0; i < this.params.length; i++) {
@@ -81,7 +81,7 @@ public class PFeature extends PDefaultProgObj {
     int spc = ParserA.SPACE_DO_NOT_CARE;
     while (state >= 0) {
       PProgObj item;
-      if ((item = PTypeId.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+      if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
       } else if ((item = PTypeVarDef.accept(reader, scope)) != null) {
@@ -107,10 +107,10 @@ public class PFeature extends PDefaultProgObj {
     int state = 0;
     while (state >= 0) {
       PTypeVarDef p;
-      PTypeId n;
+      PTid n;
       if (state == 0 && (p = PTypeVarDef.accept(reader, scope)) != null) {
         builder.addParam(p);
-      } else if (state == 0 && (n = PTypeId.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
+      } else if (state == 0 && (n = PTid.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
         builder.setName(n);
         state = -1;
       } else {
@@ -318,7 +318,7 @@ public class PFeature extends PDefaultProgObj {
       this.params.add(v);
     }
 
-    void setName(PTypeId n) {
+    void setName(PTid n) {
       this.feature.fname = n;
     }
 
@@ -357,7 +357,7 @@ public class PFeature extends PDefaultProgObj {
       }
 
       PProgObj a = this.items.get(this.items.size() - 1);  // anchor item
-      if (!(a instanceof PTypeId)) {
+      if (!(a instanceof PTid)) {
         emsg = new StringBuffer();
         emsg.append("Feature name missing at ");
         emsg.append(this.feature.srcInfo);
@@ -365,7 +365,7 @@ public class PFeature extends PDefaultProgObj {
         throw new CompileException(emsg.toString());
       }
       this.feature.modName = this.feature.scope.myModName();
-      this.feature.fname = (PTypeId)a;
+      this.feature.fname = (PTid)a;
 
       this.feature.params = new PType[this.items.size() - 1];
       for (int i = 0; i < this.items.size() - 1; i++) {
@@ -373,8 +373,8 @@ public class PFeature extends PDefaultProgObj {
         PType t = null;
         if (p instanceof PType) {
           t = (PType)p;
-        } else if (p instanceof PTypeId) {
-          t = PType.Undet.create((PTypeId)p);
+        } else if (p instanceof PTid) {
+          t = PType.Undet.create((PTid)p);
         } else {
           emsg = new StringBuffer();
           emsg.append("Invalid feature parameter at ");

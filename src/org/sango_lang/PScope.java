@@ -282,11 +282,11 @@ class PScope {
     return this.theMod.resolveModId(id);
   }
 
-  PDefDict.EidProps resolveEid(PExprId id) throws CompileException {
+  PDefDict.EidProps resolveEid(PEid id) throws CompileException {
     return this.theMod.resolveEid(id);
   }
 
-  PDefDict.TconProps resolveTcon(PTypeId tcon) throws CompileException {
+  PDefDict.TconProps resolveTcon(PTid tcon) throws CompileException {
     return this.resolveTcon(tcon.modId, tcon.name);
   }
 
@@ -294,7 +294,7 @@ class PScope {
     return this.theMod.resolveTcon(tconModId, tconName);
   }
 
-  PDefDict.FeatureProps resolveFeature(PTypeId fname) throws CompileException {
+  PDefDict.FeatureProps resolveFeature(PTid fname) throws CompileException {
     return this.theMod.resolveFeature(fname.modId, fname.name);
   }
 
@@ -347,7 +347,7 @@ class PScope {
     PType.Builder b = PType.Builder.newInstance(srcInfo, this);
     PType ct;
     try {
-      b.addItem(PTypeId.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
+      b.addItem(PTid.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
       ct = b.create();
       ct = ct.resolve();
     } catch (CompileException ex) {

@@ -34,7 +34,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Access acc;
   PTypeVarDef obj;
   PTypeVarDef.DefWithVariance[] params;
-  PTypeId fname;
+  PTid fname;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
   PTypeVarSkel objSkel;
@@ -104,7 +104,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.paramList.add(param);
     }
 
-    void setFname(PTypeId fname) {
+    void setFname(PTid fname) {
       this.feature.fname = fname;
     }
 
@@ -175,7 +175,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
-    PTypeId fname = PTypeId.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
+    PTid fname = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
     if (fname == null) {
       emsg = new StringBuffer();
       emsg.append("Feature name missing at ");
@@ -381,7 +381,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     for (int i = 0; i < this.params.length; i++) {
       sigBuilder.addItem(this.params[i].varDef.unresolvedCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
     }
-    sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_impl_" + this.fname.name, false));
+    sigBuilder.addItem(PTid.create(si, defScope, null, "_feature_impl_" + this.fname.name, false));
     aliasTypeStmtBuilder.setSig(sigBuilder.create());
     aliasTypeStmtBuilder.setAcc(this.acc);
     aliasTypeStmtBuilder.setBody(this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
@@ -414,8 +414,8 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "_builtin_feature_get_" + this.fname.name)));
+    callEvalBuilder.addItem(PEvalItem.create(PEid.create(si, bodyScope, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PEid.create(si, bodyScope, null, "_builtin_feature_get_" + this.fname.name)));
     List<PExpr> ies = new ArrayList<PExpr>();
     ies.add(PExpr.create(callEvalBuilder.create()));
     evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));

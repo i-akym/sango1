@@ -24,7 +24,7 @@
 package org.sango_lang;
 
 class PTypeRef extends PDefaultProgObj implements PType {
-  PTypeId tcon;
+  PTid tcon;
   // Parser.SrcInfo tconSrcInfo;
   PType[] params;  // empty array if no params
   PDefDict.TconProps tconProps;
@@ -33,7 +33,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     super(srcInfo, scope);
   }
 
-  static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTypeId tcon, PType[] param) {
+  static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTid tcon, PType[] param) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
     t.tcon = tcon;
     // t.tconSrcInfo = id.srcInfo;
@@ -56,7 +56,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
     }
     String mid = elem.getAttrValueAsId("mid");
     boolean ext = elem.getAttrValueAsYesNoSwitch("ext", false);
-    PTypeId tconItem = PTypeId.create(elem.getSrcInfo(), scope, mid, tcon, ext);
+    PTid tconItem = PTid.create(elem.getSrcInfo(), scope, mid, tcon, ext);
     tconItem.setTcon();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
@@ -128,7 +128,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, PScope scope, String tcon, PType[] paramTypeDescs) {
     return  create(srcInfo, scope,
-      PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, tcon, false),
+      PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, tcon, false),
       paramTypeDescs);
   }
 

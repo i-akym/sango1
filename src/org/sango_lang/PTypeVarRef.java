@@ -36,7 +36,7 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTypeId acceptXTvar(ParserB.Elem elem, PScope scope) throws CompileException {
+  static PTid acceptXTvar(ParserB.Elem elem, PScope scope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("var")) { return null; }
     String id = elem.getAttrValueAsId("id");
@@ -47,7 +47,7 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return PTypeId.createVar(elem.getSrcInfo(), scope, id);
+    return PTid.createVar(elem.getSrcInfo(), scope, id);
   }
 
   public String toString() {
@@ -64,7 +64,7 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
   }
 
   public PType.Undet unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-    return PType.Undet.create(PTypeId.create(srcInfo, scope, null, this.def.name, false));
+    return PType.Undet.create(PTid.create(srcInfo, scope, null, this.def.name, false));
   }
 
   public void collectModRefs() throws CompileException {}

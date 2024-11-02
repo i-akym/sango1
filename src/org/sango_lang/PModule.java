@@ -381,8 +381,8 @@ class PModule implements PDefDict {
     }
     builder.setDefinedName(t.value.cstrValue);
     if ((t = ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE)) != null) {
-      PExprId id;
-      if ((id = PExprId.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      PEid id;
+      if ((id = PEid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
         emsg.append("My id missing at ");
         emsg.append(reader.getCurrentSrcInfo());
@@ -846,7 +846,7 @@ class PModule implements PDefDict {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTypeId.create(si, retScope, MOD_ID_LANG, "cstr", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, MOD_ID_LANG, "cstr", false));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
@@ -964,7 +964,7 @@ class PModule implements PDefDict {
     return this;
   }
 
-  PDefDict.EidProps resolveEid(PExprId id) throws CompileException {
+  PDefDict.EidProps resolveEid(PEid id) throws CompileException {
     // variable is already converted to PVarRef
     if ((id.catOpt & PDefDict.EID_CAT_VAR) > 0) {
       throw new IllegalArgumentException("invalid cat of id - " + id.toString());
@@ -972,7 +972,7 @@ class PModule implements PDefDict {
     return this.isLang()? this.resolveEidInLang(id): this.resolveEidInOther(id);
   }
 
-  PDefDict.EidProps resolveEidInLang(PExprId id) {
+  PDefDict.EidProps resolveEidInLang(PEid id) {
     if (id.modId == null || id.modId.equals(this.myId) || id.modId.equals(MOD_ID_HERE) || id.modId.equals(MOD_ID_LANG)) {
       ;
     } else {
@@ -981,7 +981,7 @@ class PModule implements PDefDict {
     return this.resolveEidLocal(id.name, id.catOpt);
   }
 
-  PDefDict.EidProps resolveEidInOther(PExprId id) throws CompileException {
+  PDefDict.EidProps resolveEidInOther(PEid id) throws CompileException {
     PDefDict.EidProps props;
     if (id.modId == null) {
       if ((props = this.resolveEidLocal(id.name, id.catOpt)) == null) {

@@ -29,7 +29,7 @@ import java.util.Map;
 
 class PDataConstrPtn extends PDefaultExprObj {
   int context;  // PPtnMatch.CONTEXT_*
-  PExprId dcon;
+  PEid dcon;
   PExprObj posdAttrs[];
   PPtnItem namedAttrs[];
   Map<String, PPtnItem> namedAttrDict;
@@ -62,7 +62,7 @@ class PDataConstrPtn extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PDataConstrPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId dcon,
+  static PDataConstrPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PEid dcon,
       PExprObj[] posdAttrs, PPtnItem[] namedAttrs,
       boolean wildCards) throws CompileException {
     StringBuffer emsg;
@@ -90,7 +90,7 @@ class PDataConstrPtn extends PDefaultExprObj {
     return p;
   }
 
-  static PDataConstrPtn convertFromResolvedUndet(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId dcon) throws CompileException {
+  static PDataConstrPtn convertFromResolvedUndet(Parser.SrcInfo srcInfo, PScope outerScope, int context, PEid dcon) throws CompileException {
     StringBuffer emsg;
     PDataConstrPtn p = new PDataConstrPtn(srcInfo, outerScope);
     p.context = context;
@@ -167,7 +167,7 @@ class PDataConstrPtn extends PDefaultExprObj {
     Parser.SrcInfo si = elem.getSrcInfo();
     return create(
       si, outerScope, context,
-      PExprId.create(si, outerScope, mid, dcon),
+      PEid.create(si, outerScope, mid, dcon),
       pas.toArray(new PExprObj[pas.size()]),
       nas.toArray(new PPtnItem[nas.size()]),
       wildCards);
@@ -190,7 +190,7 @@ class PDataConstrPtn extends PDefaultExprObj {
     for (int i = 0; i < this.namedAttrs.length; i++) {
       this.namedAttrs[i] = this.namedAttrs[i].resolve();
     }
-    this.dcon = (PExprId)this.dcon.resolve();
+    this.dcon = (PEid)this.dcon.resolve();
     this.sortAttrs();
     return this;
   }

@@ -25,7 +25,7 @@ package org.sango_lang;
 
 class PUndetPtn extends PDefaultExprObj {
   int context;
-  PExprId anchor;
+  PEid anchor;
 
   private PUndetPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -41,7 +41,7 @@ class PUndetPtn extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PUndetPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PExprId anchor) {
+  static PUndetPtn create(Parser.SrcInfo srcInfo, PScope outerScope, int context, PEid anchor) {
     PUndetPtn p = new PUndetPtn(srcInfo, outerScope);
     p.context = context;
     p.anchor = anchor;
@@ -57,7 +57,7 @@ class PUndetPtn extends PDefaultExprObj {
     if (p instanceof PExprVarRef) {
       ;
     } else {
-      PExprId dcon = (PExprId)this.anchor;
+      PEid dcon = (PEid)this.anchor;
       dcon.setCat(PDefDict.EID_CAT_DCON_PTN);
       p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
     }
