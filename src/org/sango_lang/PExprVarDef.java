@@ -157,8 +157,6 @@ class PExprVarDef extends PDefaultExprObj {
     return this;
   }
 
-  public PDefDict.TconProps getTconProps() { return null; }
-
   public void excludePrivateAcc() throws CompileException {
     if (this.type != null) {
       this.type.excludePrivateAcc();

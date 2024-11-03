@@ -25,7 +25,6 @@ package org.sango_lang;
 
 class PTypeRef extends PDefaultProgObj implements PType {
   PTid tcon;
-  // Parser.SrcInfo tconSrcInfo;
   PType[] params;  // empty array if no params
   PDefDict.TconProps tconProps;
 
@@ -36,7 +35,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
   static PTypeRef create(Parser.SrcInfo srcInfo, PScope scope, PTid tcon, PType[] param) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
     t.tcon = tcon;
-    // t.tconSrcInfo = id.srcInfo;
     t.params = (param != null)? param: new PType[0];
     return t;
   }
@@ -100,19 +98,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
   public PTypeRef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
     t.tcon = this.tcon.copy(srcInfo, scope, extOpt, concreteOpt);
-    // t.modId = this.modId;
-    // t.modName = this.modName;
-    // t.tcon = this.tcon;
-    // switch (extOpt) {
-    // case PType.COPY_EXT_OFF:
-      // t.ext = false;;
-      // break;
-    // case PType.COPY_EXT_ON:
-      // t.ext = true;;
-      // break;
-    // default:  // PType.COPY_EXT_KEEP
-      // t.ext = this.ext;
-    // }
     t.params = new PType[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       try {
@@ -166,13 +151,6 @@ class PTypeRef extends PDefaultProgObj implements PType {
       this.params[i] = p;
     }
     return this;
-  }
-
-  public PDefDict.TconProps getTconProps() {
-    if (this.tconProps == null) {
-      throw new IllegalStateException("Tcon props not set up.");
-    }
-    return this.tconProps;
   }
 
   public void excludePrivateAcc() throws CompileException {

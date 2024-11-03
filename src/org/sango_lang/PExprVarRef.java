@@ -81,8 +81,6 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return this;
   }
 
-  public PDefDict.TconProps getTconProps() { return null; }
-
   public void excludePrivateAcc() throws CompileException {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {

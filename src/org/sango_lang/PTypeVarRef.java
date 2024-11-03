@@ -73,8 +73,6 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return this;
   }
 
-  public PDefDict.TconProps getTconProps() { return null; }
-
   public void excludePrivateAcc() throws CompileException {}
 
   public PTypeSkel toSkel() {
