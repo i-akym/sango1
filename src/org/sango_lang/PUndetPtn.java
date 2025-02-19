@@ -53,14 +53,39 @@ class PUndetPtn extends PDefaultExprObj {
   }
 
   public PExprObj resolve() throws CompileException {
-    PExprObj p = this.anchor.resolve();
-    if (p instanceof PExprVarRef) {
-      ;
+    PExprObj p = null;
+    PDefDict.EidProps ep = this.scope.resolveEid(this.anchor);
+    if (ep == null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("\"");
+      emsg.append(this.anchor.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.anchor.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    } else if (ep.cat == PDefDict.EID_CAT_VAR) {
+      this.anchor.setVar();
+      PExprVarDef v = this.scope.lookupEVar(this.anchor.name);
+      p = PExprVarRef.create(this.anchor.srcInfo, this.scope, this.anchor.name, v._resolved_varSlot);
+    } else if ((ep.cat & PDefDict.EID_CAT_DCON_PTN) > 0) {
+      this.anchor.setDconPtn();
+      p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, this.anchor).resolve();
     } else {
-      PEid dcon = (PEid)this.anchor;
-      dcon.setCat(PDefDict.EID_CAT_DCON_PTN);
-      p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
+      throw new RuntimeException("Unknown item. " + this.anchor);
     }
+
+    // PExprObj p = this.anchor.resolve();
+    // if (p instanceof PExprVarRef) {
+      // ;
+    // } else {
+      // PEid dcon = (PEid)this.anchor;
+      // dcon.setCat(PDefDict.EID_CAT_DCON_PTN);
+      // p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, dcon);
+    // }
     return p;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    throw new RuntimeException("PUndetPtn#normalizeTypes is called.");
   }
 }

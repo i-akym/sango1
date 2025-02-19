@@ -63,6 +63,11 @@ class PListConstrPtn extends PListPtn {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    this.elem.normalizeTypes();
+    this.tail.normalizeTypes();
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createListPtnNode(this);
     PTypeGraph.Node e = this.elem.setupTypeGraph(graph);

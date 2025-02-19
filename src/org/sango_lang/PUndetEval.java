@@ -64,28 +64,62 @@ class PUndetEval extends PDefaultExprObj implements PEval {
   }
 
   public PEval resolve() throws CompileException {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolve();
-    }
-    PExprObj a = this.anchor.resolve();
     PEval e;
-    if (a instanceof PExprVarRef) {
+    PDefDict.EidProps ep = this.scope.resolveEid(this.anchor);
+    if (ep == null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("\"");
+      emsg.append(this.anchor.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.anchor.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    } else if (ep.cat == PDefDict.EID_CAT_VAR) {
       if (this.params.length > 0) {
         StringBuffer emsg = new StringBuffer();
-        emsg.append("Neither function name nor data constructor found at ");
-        emsg.append(this.srcInfo);
+        emsg.append("Variable \"");
+        emsg.append(this.anchor.name);
+        emsg.append("\" is not allowed at ");
+        emsg.append(this.anchor.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      e = (PExprVarRef)a;
+      this.anchor.setVar();
+      PExprVarDef v = this.scope.lookupEVar(this.anchor.name);
+      e = PExprVarRef.create(this.anchor.srcInfo, this.scope, this.anchor.name, v._resolved_varSlot);
+    } else if ((ep.cat & PDefDict.EID_CAT_DCON_EVAL) > 0) {
+      this.anchor.setDconEval();
+      e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, this.anchor, this.params).resolve();
+    } else if ((ep.cat & PDefDict.EID_CAT_FUN) > 0) {
+      this.anchor.setFun();
+      e = PStaticInvEval.create(this.srcInfo, this.scope, this.anchor, this.params).resolve();
     } else {
-      PEid anc = (PEid)a;
-      if (anc.maybeDcon()) {
-        e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, anc, this.params);
-      } else {
-        e = PStaticInvEval.create(this.srcInfo, this.scope, anc, this.params);
-      }
+      throw new RuntimeException("Unknown item. " + this.anchor);
     }
+
+    // PExprObj a = this.anchor.resolve();
+    // PEval e;
+    // if (a instanceof PExprVarRef) {
+      // if (this.params.length > 0) {
+        // StringBuffer emsg = new StringBuffer();
+        // emsg.append("Neither function name nor data constructor found at ");
+        // emsg.append(this.srcInfo);
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+      // e = (PExprVarRef)a;
+    // } else {
+      // PEid anc = (PEid)a;
+      // if (anc.maybeDcon()) {
+        // e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, anc, this.params);
+      // } else {
+        // e = PStaticInvEval.create(this.srcInfo, this.scope, anc, this.params);
+      // }
+    // }
     return e;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    throw new RuntimeException("PUndetEval#normalizeTypes is called.");
   }
 }

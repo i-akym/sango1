@@ -27,18 +27,18 @@ import java.util.List;
 
 public interface PAliasTypeDef {
 
-  String getTcon();
-
-  PTypeVarSlot[] getParamVarSlots();
-  
   Module.Availability getAvailability();
 
   Module.Access getAcc();
 
-  void collectUnaliasTconProps(List<PDefDict.TconProps> list);
+  String getTcon();
+
+  PTypeVarSlot[] getParamVarSlots();
+  
+  // void collectUnaliasTconProps(List<PDefDict.TconProps> list);
 
   PTypeRefSkel getBody();
 
-  PTypeRefSkel unalias(PTypeSkel[] params);
+  PTypeRefSkel unalias(PTypeSkel[] params) throws CompileException;
 
 }

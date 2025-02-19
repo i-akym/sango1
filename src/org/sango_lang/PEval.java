@@ -187,7 +187,7 @@ interface PEval extends PExprObj {
       if ((acceptablesTab[this.state] & accept) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      ((PEid)item.obj).cutOffCat(PDefDict.EID_CAT_DCON_PTN);
+      ((PEid)item.obj).cutOffDconPtn();
       this.itemList.add(item);
       switch (this.state) {
       case 0: this.state = 1; break;
@@ -433,7 +433,6 @@ interface PEval extends PExprObj {
       }
       int namedAttrCount = 0;
       for (int i = 0; i < this.itemList.size(); i++) {
-        this.itemList.get(i).fixAsParam();
         if (this.itemList.get(i).name != null) {
           namedAttrCount++;
         } else if (namedAttrCount > 0) {
@@ -450,9 +449,11 @@ interface PEval extends PExprObj {
       PEvalItem.ObjItem namedAttrs[] = new PEvalItem.ObjItem[namedAttrCount];
       for (int i = 0; i < posdParams.length; i++) {
         posdParams[i] = this.itemList.get(i);
+        posdParams[i].fixAsParam();
       }
       for (int i = posdParams.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
+        namedAttrs[j].fixAsParam();
       }
       PEval e;
       if (namedAttrCount > 0) {
@@ -461,7 +462,7 @@ interface PEval extends PExprObj {
         e = PDataConstrEval.create(this.srcInfo, this.scope, dcon, posdParams, namedAttrs, null);
       } else {
         PEid id = (PEid)anchor.obj;
-        id.cutOffCat(PDefDict.EID_CAT_DCON_PTN);
+        id.cutOffDconPtn();
         e = PUndetEval.create(this.srcInfo, this.scope, id, posdParams);
       }
       return e;
@@ -496,7 +497,6 @@ interface PEval extends PExprObj {
       }
       int namedAttrCount = 0;
       for (int i = 0; i < this.itemList.size(); i++) {
-        this.itemList.get(i).fixAsParam();
         if (this.itemList.get(i).name != null) {
           namedAttrCount++;
         } else if (namedAttrCount > 0) {
@@ -509,13 +509,15 @@ interface PEval extends PExprObj {
           ;
         }
       }
-      PEvalItem.ObjItem posdAttrs[] = new PEvalItem.ObjItem[this.itemList.size() - namedAttrCount];
-      PEvalItem.ObjItem namedAttrs[] = new PEvalItem.ObjItem[namedAttrCount];
+      PEvalItem.ObjItem[] posdAttrs = new PEvalItem.ObjItem[this.itemList.size() - namedAttrCount];
+      PEvalItem.ObjItem[] namedAttrs = new PEvalItem.ObjItem[namedAttrCount];
       for (int i = 0; i < posdAttrs.length; i++) {
         posdAttrs[i] = this.itemList.get(i);
+        posdAttrs[i].fixAsParam();
       }
       for (int i = posdAttrs.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
+        namedAttrs[j].fixAsParam();
       }
       if (using != null) {
         using.fixAsParam();
@@ -549,7 +551,9 @@ interface PEval extends PExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if ((funObj.obj instanceof PClosure) && this.itemList.size() != ((PClosure)funObj.obj).params.length) {
+      if (funObj.obj instanceof PEid) {
+        funObj.obj = PUndetEval.create(funObj.srcInfo, this.scope, (PEid)funObj.obj, new PEvalItem.ObjItem[0]);
+      } else if ((funObj.obj instanceof PClosure) && this.itemList.size() != ((PClosure)funObj.obj).params.length) {
         emsg = new StringBuffer();
         emsg.append("Argument count mismatch at ");
         emsg.append(funObj.srcInfo);

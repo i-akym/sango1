@@ -31,6 +31,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   PEid provider;
   PFeature feature;
   String getter;
+  PDefDict.EidProps _resolved_providerProps;
 
   PFeatureImplDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.enterInner());
@@ -159,7 +160,18 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   }
 
   public PFeatureImplDef resolve() throws CompileException {
-    this.provider = (PEid)this.provider.resolve();
+    StringBuffer emsg;
+    this.provider.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
+    this._resolved_providerProps = this.scope.theMod.resolveFunOfficial(this.provider);
+    if (this._resolved_providerProps == null) {
+      emsg = new StringBuffer();
+      emsg.append("Provider \"");
+      emsg.append(this.provider.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.provider.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     this.feature = this.feature.resolve();
     return this;
   }
@@ -173,8 +185,10 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     // // HERE
   // }
 
-  public Cstr getProviderModName() {
-    return this.provider.props.modName;
+  public Cstr getProviderModName() throws CompileException {
+    PDefDict.EidProps ep = this.scope.theMod.resolveFunOfficial(this.provider);
+    if (ep == null) { throw new RuntimeException("Unknown provider. " + this.provider.repr()); }
+    return ep.key.modName;
   }
 
   public String getProviderFunName() { return this.provider.name; }

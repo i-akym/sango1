@@ -75,6 +75,8 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
 
   public void excludePrivateAcc() throws CompileException {}
 
+  public void normalizeTypes() throws CompileException {}
+
   public PTypeSkel toSkel() {
     /* DEBUG */ if (this.scope == null) { throw new RuntimeException("scope is null " + this.toString()); }
     return this.def.toSkel();

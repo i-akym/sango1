@@ -97,8 +97,11 @@ class PInt extends PDefaultExprObj {
   public void collectModRefs() throws CompileException {}
 
   public PInt resolve() throws CompileException {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "int").toSkel();
     return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "int").toSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

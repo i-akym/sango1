@@ -29,7 +29,7 @@ import java.util.List;
 
 class PExpr extends PDefaultExprObj implements PEval {
   PEval eval;
-  PPtnMatch ptnMatch;
+  PPtnMatch ptnMatch;  // maybe null
 
   PExpr(Parser.SrcInfo srcInfo, PScope outerScope, PEval eval, PPtnMatch ptnMatch) {
     super(srcInfo, outerScope);
@@ -167,6 +167,14 @@ class PExpr extends PDefaultExprObj implements PEval {
       this.ptnMatch = this.ptnMatch.resolve();
     }
     return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this.eval.normalizeTypes();
+    if (this.ptnMatch != null) {
+      this.ptnMatch.normalizeTypes();
+    }
+    this._normalized_typeSkel = this.eval.getNormalizedType();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

@@ -55,6 +55,10 @@ class PObjEval extends PDefaultExprObj implements PEval {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    this.obj.normalizeTypes();
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     return this.obj.setupTypeGraph(graph);
   }

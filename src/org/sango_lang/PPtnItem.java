@@ -28,7 +28,8 @@ import java.io.IOException;
 class PPtnItem extends PDefaultExprObj {
   int context;  // PPtnMatch.CONTEXT_*
   String name;
-  PProgObj elem;
+  PTypedObj elem;
+  // PProgObj elem;
 
   private PPtnItem(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -48,7 +49,7 @@ class PPtnItem extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PPtnItem create(Parser.SrcInfo srcInfo, PScope outerScope, int context, String name, PProgObj elem) {
+  static PPtnItem create(Parser.SrcInfo srcInfo, PScope outerScope, int context, String name, PTypedObj elem) {
     PPtnItem i = new PPtnItem(srcInfo, outerScope);
     i.context = context;
     i.name = name;
@@ -147,5 +148,9 @@ class PPtnItem extends PDefaultExprObj {
   public PPtnItem resolve() throws CompileException {
     this.elem = this.elem.resolve();
     return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this.elem.normalizeTypes();
   }
 }

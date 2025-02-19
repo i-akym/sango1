@@ -127,6 +127,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
           this.nameSet.add(name);
         }
       }
+      constr.setDataDef(this.dat);
       this.constrList.add(constr);
     }
 
@@ -405,13 +406,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       for (int i = 0; i < this.featureImpls.length; i++) {
         this.featureImpls[i] = this.featureImpls[i].resolve();
         for (int j = 0; j < i; j++) {
-          if (this.featureImpls[i].feature.featureProps.key.equals(
-              this.featureImpls[j].feature.featureProps.key)) {
+          if (this.featureImpls[i].feature.fname.equals(
+              this.featureImpls[j].feature.fname)) {
             emsg = new StringBuffer();
             emsg.append("Feature name duplicated at ");
             emsg.append(this.featureImpls[i].srcInfo);
             emsg.append(". ");
-            emsg.append(this.featureImpls[i].feature.featureProps.key.repr());
+            emsg.append(this.featureImpls[i].feature.fname.repr());
             throw new CompileException(emsg.toString());
           }
         }
@@ -426,7 +427,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   public PDefDict.TparamProps[] getParamPropss() {
     PDefDict.TparamProps[] tps;
-    if (this.tparams == null) {
+    if (this.tparams == null) {  // for tuple, fun
       tps = null;
     } else {
       tps = new PDefDict.TparamProps[this.tparams.length];
@@ -493,25 +494,25 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  void collectTconProps() throws CompileException {
-    if (this.constrs != null) {
-      List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-      for (int i = 0; i < this.constrs.length; i++) {
-        for (int j = 0; j < constrs[i].attrs.length; j++) {
-          constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
-        }
-      }
-      this.scope.addReferredTcons(tps);
-    }
-  }
+  // void collectTconProps() throws CompileException {
+    // if (this.constrs != null) {
+      // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
+      // for (int i = 0; i < this.constrs.length; i++) {
+        // for (int j = 0; j < constrs[i].attrs.length; j++) {
+          // constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
+        // }
+      // }
+      // this.scope.addReferredTcons(tps);
+    // }
+  // }
 
   public void checkVariance() throws CompileException {
     if (this.tparams != null && this.constrs != null) {
       PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
       Module.Variance[] vs = new Module.Variance[this.tparams.length];
       for (int i = 0; i < this.tparams.length; i++) {
-        if (this.tparams[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
-        ss[i] = this.tparams[i].varDef.varSlot;
+        if (this.tparams[i].varDef._resolved_varSlot == null) { throw new RuntimeException("Null varSlot."); }
+        ss[i] = this.tparams[i].varDef._resolved_varSlot;
         vs[i] = this.tparams[i].variance;
       }
       PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
@@ -525,6 +526,14 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i].checkConcreteness();
+      }
+    }
+  }
+
+  void normalizeTypes() throws CompileException {
+    if (this.constrs != null) {
+      for (int i = 0; i < this.constrs.length; i++) {
+        this.constrs[i].normalizeTypes();
       }
     }
   }
@@ -548,7 +557,12 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (this.tparams == null) { return null; }
     if (this.constrs == null) { return null; }
-    if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
+    PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
+      null,
+      PDefDict.IdKey.create(mod.name, "_hash_" + this.tcon));
+    if (ep == null) { return null; }
+    // if (!mod.predefineFunOfficial("_hash_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
+    // // if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
     PScope modScope = this.scope.theMod.scope;
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, modScope);
@@ -585,7 +599,12 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (this.tparams == null) { return null; }
     if (this.constrs == null) { return null; }
-    if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
+    PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
+      null,
+      PDefDict.IdKey.create(mod.name, "_debug_repr_" + this.tcon));
+    if (ep == null) { return null; }
+    // if (!mod.predefineFunOfficial("_debug_repr_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
+    // // if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_debug_repr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -628,7 +647,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs == null) { return null; }
     if (this.acc != Module.ACC_PUBLIC && this.acc != Module.ACC_PROTECTED) { return null; }
     String[] names = PModule.generateInFunNames(this.tcon);  // official name and aliases
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    // if (!mod.predefineFunOfficial(names[0], Module.ACC_PUBLIC)) { return null; }
+    // // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_in");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -707,7 +727,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs == null) { return null; }
     if (this.acc != Module.ACC_PUBLIC && this.acc != Module.ACC_PROTECTED) { return null; }
     String[] names = PModule.generateNarrowFunNames(this.tcon);
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    // if (!mod.predefineFunOfficial(names[0], Module.ACC_PUBLIC)) { return null; }
+    // // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -819,7 +840,9 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (attr.name == null) { return null; }
     String[] names = PModule.generateAttrFunNames(this.tcon, attr.name);
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Module.Access a = (this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE;
+    // if (!mod.predefineFunOfficial(names[0], a)) { return null; }
+    // // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -829,7 +852,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
-    evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
+    evalStmtBuilder.setAcc(a);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {
       PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
@@ -868,7 +891,9 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (attr.name == null) { return null; }
     String[] names = PModule.generateMaybeAttrFunNames(this.tcon, attr.name);
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Module.Access a = (this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE;
+    // if (!mod.predefineFunOfficial(names[0], a)) { return null; }
+    // // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -878,7 +903,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
-    evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
+    evalStmtBuilder.setAcc(a);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {
       PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
@@ -945,11 +970,11 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
   }
 
   PEvalStmt generateFeatureImplFun(PModule mod, PFeatureImplDef impl) throws CompileException {
-    // eval @availability *X GETTER | @private -> <<*T0 *T1 .. TCON> ... feature impl type alias> {
+    // eval @availability GETTER @private -> <<*T0 *T1 .. TCON> ... feature impl type alias> {
     //   impl_provider
     // }
     // // OLD VERSION
-    // // eval @availability <*T0 *T1 .. TCON> *X GETTER | @private -> <feature impl type> {
+    // // eval @availability <*T0 *T1 .. TCON> *X GETTER @private -> <feature impl type> {
     // //   X impl_provider
     // // }
     Parser.SrcInfo si = srcInfo.appendPostfix("_feature_impl");

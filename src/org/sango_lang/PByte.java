@@ -105,8 +105,11 @@ class PByte extends PDefaultExprObj {
   public void collectModRefs() throws CompileException {}
 
   public PByte resolve() throws CompileException {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "byte").toSkel();
     return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "byte").toSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

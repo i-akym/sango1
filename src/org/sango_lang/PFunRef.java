@@ -28,6 +28,7 @@ import java.util.List;
 
 class PFunRef extends PDefaultExprObj {
   PEid official;  // null means self
+  PDefDict.EidProps _resolved_officialProps;
 
   private PFunRef(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -126,10 +127,22 @@ class PFunRef extends PDefaultExprObj {
 
   public PFunRef resolve() throws CompileException {
     if (this.official != null) {
-      this.official = (PEid)this.official.resolve();
+      this.official.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
+      this._resolved_officialProps = this.scope.resolveEid(this.official);
+      if (this._resolved_officialProps == null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Function \"");
+        emsg.append(this.official.repr());
+        emsg.append("\" not defined at ");
+        emsg.append(this.official.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
     }
     return this;
   }
+
+  public void normalizeTypes() throws CompileException {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
@@ -139,11 +152,11 @@ class PFunRef extends PDefaultExprObj {
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
-      try {
-        callee = (PEid)callee.resolve();
-      } catch (CompileException ex) {
-        throw new RuntimeException("Internal error.");
-      }
+      // try {
+        // callee = (PEid)callee.resolve();
+      // } catch (CompileException ex) {
+        // throw new RuntimeException("Internal error.");
+      // }
       this.typeGraphNode = graph.createFunRefNode(this, callee);
     } else {
       this.typeGraphNode = graph.createSelfRefNode(
@@ -161,7 +174,7 @@ class PFunRef extends PDefaultExprObj {
     // }
     if (this.official != null) {
       node.addChild(flow.createNodeForFunRefBody(
-        this.srcInfo, this.scope.theMod.modNameToModRefIndex(this.official.props.modName), this.official.name));
+        this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_officialProps.key.modName), this.official.name));
     } else {
       node.addChild(flow.createNodeForSelfRef(this.srcInfo));
     }

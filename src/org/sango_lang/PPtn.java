@@ -154,8 +154,11 @@ abstract class PPtn {
       if ((acceptablesTab[this.state] & ACCEPT_ID) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      ((PEid)item.elem).cutOffFun();
+      PEid id = (PEid)item.elem;
+      id.cutOffFun();
+      id.cutOffDconEval();
       this.itemList.add(item);
+      // this.itemList.add(id);
       switch (this.state) {
       case 0: state = 2; break;
       case 2: state = 2; break;
@@ -302,7 +305,8 @@ abstract class PPtn {
         throw new CompileException(emsg.toString());
       }
       PEid id = (PEid)item.elem;
-      id.cutOffCat(PDefDict.EID_CAT_DCON_EVAL);
+      id.cutOffFun();
+      id.cutOffDconEval();
       return PUndetPtn.create(this.srcInfo, this.scope, this.context, id);
     }
 

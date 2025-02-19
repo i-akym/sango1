@@ -42,7 +42,7 @@ interface PType extends PProgObj {
 
   PTypeSkel toSkel();
 
-  PTypeSkel getNormalizedSkel() throws CompileException;
+  // PTypeSkel getNormalizedSkel() throws CompileException;
 
   static final int INHIBIT_REQUIRE_CONCRETE = 0;
   static final int ALLOW_REQUIRE_CONCRETE = 1;
@@ -67,7 +67,6 @@ interface PType extends PProgObj {
     Parser.SrcInfo srcInfo;
     PScope scope;
     List<PProgObj> itemList;
-    // PTypeVarDef constrainedVar;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
       return new Builder(srcInfo, scope);
@@ -370,7 +369,7 @@ interface PType extends PProgObj {
         if ((v = this.scope.lookupTVar(this.id.name)) != null) {
           t = PTypeVarRef.create(this.id.srcInfo, this.id.scope, v);
           t = t.resolve();
-        } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
+        } else if (this.scope.resolveTcon(this.id) != null) {
           t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
           t = t.resolve();
         } else {
@@ -382,7 +381,7 @@ interface PType extends PProgObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-      } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
+      } else if (this.scope.resolveTcon(this.id) != null) {
         t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
         t = t.resolve();
       } else {
