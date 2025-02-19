@@ -27,7 +27,7 @@ public class PTypeVarSlot {
   static int idValue = 0;
 
   int id;
-  boolean requiresConcrete;
+  public boolean requiresConcrete;  // public for native impl of sango.lang.module
 
   private PTypeVarSlot() {}
 

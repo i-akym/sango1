@@ -34,22 +34,15 @@ interface PType extends PProgObj {
   static final int COPY_EXT_KEEP = -1;
   static final int COPY_EXT_OFF = 0;
   static final int COPY_EXT_ON = 1;
-  // static final int COPY_VARIANCE_KEEP = -1;
-  // static final int COPY_VARIANCE_CUT = 0;
-  // static final int COPY_VARIANCE_INVARIANT = 1;
-  // static final int COPY_VARIANCE_COVARIANT = 2;
-  // static final int COPY_VARIANCE_CONTRAVARIANT = 3;
   static final int COPY_CONCRETE_KEEP = -1;
   static final int COPY_CONCRETE_OFF = 0;
   static final int COPY_CONCRETE_ON = 1;
-
-  PDefDict.TconProps getTconProps();
 
   void excludePrivateAcc() throws CompileException;
 
   PTypeSkel toSkel();
 
-  PTypeSkel getNormalizedSkel() throws CompileException;
+  // PTypeSkel getNormalizedSkel() throws CompileException;
 
   static final int INHIBIT_REQUIRE_CONCRETE = 0;
   static final int ALLOW_REQUIRE_CONCRETE = 1;
@@ -74,7 +67,6 @@ interface PType extends PProgObj {
     Parser.SrcInfo srcInfo;
     PScope scope;
     List<PProgObj> itemList;
-    // PTypeVarDef constrainedVar;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
       return new Builder(srcInfo, scope);
@@ -108,8 +100,8 @@ interface PType extends PProgObj {
       if (anchor instanceof PType.Undet) {
         anchor = ((PType.Undet)anchor).id;
       }
-      if (anchor instanceof PTypeId) {
-        PTypeId id = (PTypeId)anchor;
+      if (anchor instanceof PTid) {
+        PTid id = (PTid)anchor;
         if (!id.maybeVar() || this.itemList.size() > 0) {
           PType[] ps = new PType[this.itemList.size()];
           for (int i = 0; i < this.itemList.size(); i++) {
@@ -291,7 +283,7 @@ interface PType extends PProgObj {
   static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
     PProgObj item;
     if ((acceptables & ACCEPTABLE_ID) > 0
-        && (item = PTypeId.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+        && (item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
         && (item = PTypeVarDef.accept(reader, scope)) != null) {
@@ -325,7 +317,7 @@ interface PType extends PProgObj {
 
   static PType voidType(Parser.SrcInfo srcInfo, PScope scope) {
     Builder builder = Builder.newInstance(srcInfo, scope);
-    builder.addItem(PTypeId.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
+    builder.addItem(PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
     PType v = null;
     try {
       v = builder.create();
@@ -339,8 +331,8 @@ interface PType extends PProgObj {
       t = (PTypeVarDef)o;
     } else if (o instanceof PTypeVarRef) {
       t = (PTypeVarRef)o;
-    } else if (o instanceof PTypeId) {
-      t = Undet.create((PTypeId)o);
+    } else if (o instanceof PTid) {
+      t = Undet.create((PTid)o);
     } else if (o instanceof PTypeRef) {
       t = (PTypeRef)o;
     } else if (o instanceof Undet) {
@@ -352,13 +344,13 @@ interface PType extends PProgObj {
   }
 
   static class Undet extends PDefaultProgObj implements PType {
-    PTypeId id;
+    PTid id;
 
     private Undet(Parser.SrcInfo srcInfo, PScope scope) {
       super(srcInfo, scope);
     }
 
-    static Undet create(PTypeId id) {
+    static Undet create(PTid id) {
       Undet u = new Undet(id.srcInfo, id.scope);
       u.id = id;
       return u;
@@ -377,7 +369,7 @@ interface PType extends PProgObj {
         if ((v = this.scope.lookupTVar(this.id.name)) != null) {
           t = PTypeVarRef.create(this.id.srcInfo, this.id.scope, v);
           t = t.resolve();
-        } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
+        } else if (this.scope.resolveTcon(this.id) != null) {
           t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
           t = t.resolve();
         } else {
@@ -389,23 +381,19 @@ interface PType extends PProgObj {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-      } else if (this.scope.resolveTcon(this.id.modId, this.id.name) != null) {
+      } else if (this.scope.resolveTcon(this.id) != null) {
         t = PTypeRef.create(this.id.srcInfo, this.id.scope, this.id, new PType[0]);
         t = t.resolve();
       } else {
         emsg = new StringBuffer();
         emsg.append("Type constructor \"");
-        emsg.append(PTypeId.repr(this.id.modId, this.id.name, false));
+        emsg.append(PTid.repr(this.id.modId, this.id.name, false));
         emsg.append("\" not defined at ");
         emsg.append(this.id.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
       return t;
-    }
-
-    public PDefDict.TconProps getTconProps() {
-      throw new RuntimeException("Undet#getTconProps is called.");
     }
 
     public void excludePrivateAcc() throws CompileException {
@@ -431,7 +419,7 @@ interface PType extends PProgObj {
       } else {
         throw new IllegalArgumentException("Unknown extOpt.");
       }
-      return Undet.create(PTypeId.create(srcInfo, scope, this.id.modId, this.id.name, ext));
+      return Undet.create(PTid.create(srcInfo, scope, this.id.modId, this.id.name, ext));
     }
 
     public String toString() {
@@ -448,49 +436,4 @@ interface PType extends PProgObj {
       return buf.toString();
     }
   }
-
-  // // pseudo object
-  // static class Bound extends PDefaultProgObj {
-    // private Bound(Parser.SrcInfo srcInfo, PScope scope) {
-      // super(srcInfo, scope);
-    // }
-
-    // static Bound accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      // ParserA.Token t;
-      // if ((t = ParserA.acceptToken(reader, LToken.EQ, ParserA.SPACE_DO_NOT_CARE)) == null) {
-        // return null;
-      // }
-      // return new Bound(t.getSrcInfo(), scope);
-    // }
-
-    // public String toString() {
-      // StringBuffer buf = new StringBuffer();
-      // buf.append("bound");
-      // return buf.toString();
-    // }
-
-    // public Bound unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-      // throw new RuntimeException("Bound#unresolvedCopy is called.");
-    // }
-
-    // public void collectModRefs() throws CompileException {
-      // throw new RuntimeException("Bound#collectModRefs is called.");
-    // }
-
-    // public PTypeId resolve() throws CompileException {
-      // throw new RuntimeException("Bound#resolveId is called.");
-    // }
-
-    // public PDefDict.TconProps getTconProps() {
-      // throw new RuntimeException("Bound#getTconProps is called.");
-    // }
-
-    // public void excludePrivateAcc() throws CompileException {
-      // throw new RuntimeException("Bound#excludePrivateAcc is called.");
-    // }
-
-    // public PTypeSkel getSkel() {
-      // throw new RuntimeException("Bound#getSkel is called.");
-    // }
-  // }
 }

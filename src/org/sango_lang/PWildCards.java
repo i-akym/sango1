@@ -52,4 +52,8 @@ class PWildCards extends PDefaultExprObj {
   public PWildCards resolve() throws CompileException {
     throw new RuntimeException("PWildCards#resolveId() called. - " + this.toString());
   }
+
+  public void normalizeTypes() throws CompileException {
+    throw new RuntimeException("PWildCards#normalizeTypes is called.");
+  }
 }

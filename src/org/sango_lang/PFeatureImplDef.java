@@ -28,9 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
-  PExprId provider;
+  PEid provider;
   PFeature feature;
   String getter;
+  PDefDict.EidProps _resolved_providerProps;
 
   PFeatureImplDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.enterInner());
@@ -66,7 +67,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
 
     PScope getScope() { return this.implDef.scope; }
 
-    void setProvider(PExprId provider) {
+    void setProvider(PEid provider) {
       this.implDef.provider = provider;
       this.implDef.provider.setFun();
     }
@@ -87,15 +88,15 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
 
     if (ParserA.acceptToken(reader, LToken.PLUS_PLUS, ParserA.SPACE_DO_NOT_CARE) == null) { return null; }
 
-    PExprId provider;
-    if ((provider = PExprId.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_NEEDED)) == null) {
+    PEid provider;
+    if ((provider = PEid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_NEEDED)) == null) {
       emsg = new StringBuffer();
       emsg.append("Feature provider missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    provider.setCat(PExprId.CAT_FUN_OFFICIAL);
+    provider.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
     builder.setProvider(provider);
 
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) == null) {
@@ -159,7 +160,18 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   }
 
   public PFeatureImplDef resolve() throws CompileException {
-    this.provider = (PExprId)this.provider.resolve();
+    StringBuffer emsg;
+    this.provider.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
+    this._resolved_providerProps = this.scope.theMod.resolveFunOfficial(this.provider);
+    if (this._resolved_providerProps == null) {
+      emsg = new StringBuffer();
+      emsg.append("Provider \"");
+      emsg.append(this.provider.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.provider.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     this.feature = this.feature.resolve();
     return this;
   }
@@ -173,8 +185,10 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     // // HERE
   // }
 
-  public Cstr getProviderModName() {
-    return this.provider.props.modName;
+  public Cstr getProviderModName() throws CompileException {
+    PDefDict.EidProps ep = this.scope.theMod.resolveFunOfficial(this.provider);
+    if (ep == null) { throw new RuntimeException("Unknown provider. " + this.provider.repr()); }
+    return ep.key.modName;
   }
 
   public String getProviderFunName() { return this.provider.name; }

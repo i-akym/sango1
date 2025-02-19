@@ -22,13 +22,14 @@ eval <d003> *X fun002 -> <void> {} ;;
 alias type <*A d004> := <A list> ;;
 eval <cs d004> *II fun003 -> <void> {} ;;
 
-feature <*T!> [ *A *B a'feat ] -> <T B A feat> ;;
-data <*T *B *A feat> := <T> <B A tuple> feat$ ;;
-data <*P *Q feat_impl> := <P Q tuple> feat_impl$
-++ as_a'feat -> [ <P P tuple> <Q Q tuple> a'feat ] ;;
-eval <*P *Q feat_impl> *X as_a'feat -> <<P Q feat_impl> <Q Q tuple> <P P tuple> feat> {
-  X = (| *Y, *Z |) feat_impl$,
-  X (| (| Z, Z |), (| Y, Y |) |) feat$
+feature <*T> [ *A *B a'feat ] -> <T <T A B tuple> fun> ;;
+data <*P *Q feat_impl> := <P> <Q> feat_impl$
+++ a'feat_impl -> [ P Q a'feat ] ;;
+eval a'feat_impl -> <<*P *Q feat_impl> <<P Q feat_impl> P Q tuple> fun> {
+  \ <P Q feat_impl> *X -> <<P Q feat_impl> P Q tuple> {
+    X = *Y *Z feat_impl$,
+    (| X, Y, Z |)
+  }
 } ;;
 
 eval _main_ -> <void> {
@@ -321,4 +322,4 @@ eval test731 -> <void> { "(void$ value$) hash " stdio.print, (void$ value$) hash
 eval test732 -> <void> { "(| 1, 1 |) hash " stdio.print, (| 1, 1 |) hash >> debug.repr >> stdio.print_and_newline } ;;
 eval test733 -> <void> { "(| 1, true$, \"abc\" value$ |) hash " stdio.print, (| 1, true$, "abc" value$ |) hash >> debug.repr >> stdio.print_and_newline } ;;
 eval test750 -> <void> { (3 'e' d001$) hash = 123456, void$ } ;;
-eval test800 -> <void> { (| 5, "ee" |) feat_impl$ = *FI, FI _feature_a'feat = FI (| (| "ee", "ee" |), (| 5, 5 |) |) feat$, void$ } ;;
+eval test800 -> <void> { 5 "ee" feat_impl$ = *FI, FI _feature_a'feat = *G, FI &G = (| FI, 5, "ee" |), void$ } ;;

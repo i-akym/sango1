@@ -58,6 +58,10 @@ class PImpose extends PDefaultExprObj {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    this._normalized_typeSkel = this.type.toSkel().normalize();
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     StringBuffer emsg;
     PTypeSkel t = this.getNormalizedType();

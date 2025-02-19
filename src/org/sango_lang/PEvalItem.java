@@ -36,7 +36,7 @@ abstract class PEvalItem extends PDefaultExprObj {
   abstract String getName();
   abstract PProgElem getSym();
 
-  static ObjItem create(PExprId id) {
+  static ObjItem create(PEid id) {
     return ObjItem.create(id.getSrcInfo(), id.getScope(), null, id);
   }
 
@@ -80,8 +80,8 @@ abstract class PEvalItem extends PDefaultExprObj {
     }
 
     void fixAsParam() {
-      if (this.obj instanceof PExprId) {
-        this.obj = PUndetEval.create(this.srcInfo, this.scope, (PExprId)this.obj, new PEvalItem.ObjItem[0]);
+      if (this.obj instanceof PEid) {
+        this.obj = PUndetEval.create(this.srcInfo, this.scope, (PEid)this.obj, new PEvalItem.ObjItem[0]);
       }
     }
 
@@ -92,6 +92,10 @@ abstract class PEvalItem extends PDefaultExprObj {
     public ObjItem resolve() throws CompileException {
       this.obj = this.obj.resolve();
       return this;
+    }
+
+    public void normalizeTypes() throws CompileException {
+      this.obj.normalizeTypes();
     }
 
     public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
@@ -142,6 +146,10 @@ abstract class PEvalItem extends PDefaultExprObj {
 
     public SymItem resolve() throws CompileException {
       return this;
+    }
+
+    public void normalizeTypes() throws CompileException {
+      throw new RuntimeException("PEvalItem.SymItem#normalizeTypes is called.");
     }
 
     public String toString() {
@@ -196,7 +204,7 @@ abstract class PEvalItem extends PDefaultExprObj {
       ;
     } else if ((acceptables & PEval.ACCEPT_CASE_BLOCK) > 0 && (obj = PCaseBlock.accept(reader, outerScope, space)) != null) {
       ;
-    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, space)) != null) {  // must be after 'if' 'case'
+    } else if ((acceptables & PEval.ACCEPT_ID) > 0 && (obj = PEid.accept(reader, outerScope, Parser.QUAL_MAYBE, space)) != null) {  // must be after 'if' 'case'
       ;
     } else if ((acceptables & PEval.ACCEPT_DYNAMIC_INV) > 0 && (sym = PDynamicInv.accept(reader, space)) != null) {
       ;

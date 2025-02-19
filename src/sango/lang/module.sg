@@ -25,7 +25,6 @@ module @beta "sango.lang.module" ;;
 
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
-import "sango.list" -> list ;;
 
 data <d> :=
   worker: <actu.serializer_h>
@@ -49,93 +48,6 @@ eval <cstr> *Module_name wait_module_initialized @public -> <void> {
   ; *A value$ -> A act.wait_forever$ act.join >> ignore
   ; ** ->
   }
-} ;;
-
-
-# -- meta programming feature --
-
-### UNDER CONSTRUCTION ###
-
-data <tao> @opaque := @native ;;  # type-aware object
-data <run_obj> := @native ;;  # internal use for concurrent invocation
-
-# native implementations; MTU means "possibly MT-unsafe"
-
-eval <byte> *Byte do_byte_tao -> <tao> @native ;;  # MTU
-eval <int> *Int do_int_tao -> <tao> @native ;;  # MTU
-eval <real> *Real do_real_tao -> <tao> @native ;;  # MTU
-eval <char> *Char do_char_tao -> <tao> @native ;;  # MTU
-eval <tao list> *Elems do_new_tuple -> <tao> @native ;;  # MTU
-eval <tao> *Tuple do_tuple_elems -> <tao list> @native ;;  # MTU
-eval <tao list> *Attrs <cstr> *Mod <cstr> *Dcon do_new_data -> <tao> @native ;;  # MTU
-eval <tao> *Constr do_constr_attrs -> <tao list> @native ;;  # MTU
-eval <cstr> *Mod <cstr> *Official do_closure -> <tao> @native ;;  # MTU
-eval <tao list> *Params <tao> *Closure prepare_apply -> <run_obj> @native ;;  # MTU
-eval <run_obj> *Run do_apply -> <tao result> @native ;;
-
-# features
-
-eval <tao> *Tao tao_value | value @public -> <_?_> @native ;;
-
-eval <byte> *Byte byte_tao | tao @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Byte do_byte_tao }
-    actu.run_serialized
-} ;;
-
-eval <int> *Int int_tao | tao @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Int do_int_tao }
-    actu.run_serialized
-} ;;
-
-eval <real> *Real real_tao | tao @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Real do_real_tao }
-    actu.run_serialized
-} ;;
-
-eval <char> *Char char_tao | tao @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Char do_char_tao }
-    actu.run_serialized
-} ;;
-
-eval <tao list> *Elems new_tuple @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Elems do_new_tuple }
-    actu.run_serialized
-} ;;
-
-eval <tao> *Tuple tuple_elems | elems @public -> <tao list> {
-  (_initd_ >> worker)
-    \\ <tao list> { Tuple do_tuple_elems }
-    actu.run_serialized
-} ;;
-
-eval <tao list> *Attrs <cstr> *Mod <cstr> *Dcon new_data @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Attrs Mod Dcon do_new_data }
-    actu.run_serialized
-} ;;
-
-eval <tao> *Constr constr_attrs | attrs @public -> <tao list> {
-  (_initd_ >> worker)
-    \\ <tao list> { Constr do_constr_attrs }
-    actu.run_serialized
-} ;;
-
-eval <cstr> *Mod <cstr> *Official closure @public -> <tao> {
-  (_initd_ >> worker)
-    \\ <tao> { Mod Official do_closure }
-    actu.run_serialized
-} ;;
-
-eval <tao list> *Params <tao> *Closure apply @public -> <tao result> {
-  (_initd_ >> worker)
-    \\ <run_obj> { Params Closure prepare_apply }
-    actu.run_serialized
-  >> do_apply
 } ;;
 
 

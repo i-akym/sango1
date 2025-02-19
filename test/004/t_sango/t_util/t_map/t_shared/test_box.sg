@@ -16,7 +16,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   simplemap.new_map = <int cstr map.map> *SM,
-  SM map.as_fxmap >> map_box.create_box = *M,
+  SM map_box.create_box = *M,
   M shmap.empty? = true$,
   M 1 "abc" shmap.put = none$,
   M 1 "ABC" shmap.put_new = false$,

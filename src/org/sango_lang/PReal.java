@@ -79,8 +79,11 @@ class PReal extends PDefaultExprObj {
   public void collectModRefs() throws CompileException {}
 
   public PReal resolve() throws CompileException {
-    this.nTypeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "real").toSkel();
     return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.srcInfo, "real").toSkel();
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

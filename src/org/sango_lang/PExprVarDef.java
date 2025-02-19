@@ -35,7 +35,7 @@ class PExprVarDef extends PDefaultExprObj {
 
   String name;
   int cat;
-  PExprVarSlot varSlot;
+  PExprVarSlot _resolved_varSlot;
 
   private PExprVarDef(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -62,9 +62,9 @@ class PExprVarDef extends PDefaultExprObj {
       buf.append(",type=");
       buf.append(this.type);
     }
-    if (this.varSlot != null) {
+    if (this._resolved_varSlot != null) {
       buf.append(",slot=");
-      buf.append(this.varSlot);
+      buf.append(this._resolved_varSlot);
     }
     buf.append("]");
     return buf.toString();
@@ -140,7 +140,7 @@ class PExprVarDef extends PDefaultExprObj {
 
   public PExprVarDef resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.varSlot != null) { return this; }
+    if (this._resolved_varSlot != null) { return this; }
     if (!this.scope.canDefineEVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -150,18 +150,22 @@ class PExprVarDef extends PDefaultExprObj {
       /* DEBUG */ // throw new RuntimeException(emsg.toString());
       throw new CompileException(emsg.toString());
     }
-    this.varSlot = this.scope.defineEVar(this);
+    this._resolved_varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
       this.type = (PType)this.type.resolve();
     }
     return this;
   }
 
-  public PDefDict.TconProps getTconProps() { return null; }
-
   public void excludePrivateAcc() throws CompileException {
     if (this.type != null) {
       this.type.excludePrivateAcc();
+    }
+  }
+
+  public void normalizeTypes() throws CompileException {
+    if (this.type != null && this._normalized_typeSkel == null) {
+      this._normalized_typeSkel = this.type.toSkel().normalize();
     }
   }
 
@@ -171,6 +175,6 @@ class PExprVarDef extends PDefaultExprObj {
   }
 
   public GFlow.Node setupFlow(GFlow flow) {
-    return flow.createNodeForVarDef(this.srcInfo, this.varSlot);
+    return flow.createNodeForVarDef(this.srcInfo, this._resolved_varSlot);
   }
 }

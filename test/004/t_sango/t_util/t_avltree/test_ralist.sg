@@ -20,5 +20,5 @@ eval test000 -> <void> {
 } ;;
 eval test100 -> <void> {
   avlral.new_ralist = <cstr ral.ralist> *L,
-  L ral.as_fxralist >> t1.testB00
+  L t1.testB00
 } ;;

@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.util.List;
 
 class PFunRef extends PDefaultExprObj {
-  PExprId official;  // null means self
+  PEid official;  // null means self
+  PDefDict.EidProps _resolved_officialProps;
 
   private PFunRef(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -47,7 +48,7 @@ class PFunRef extends PDefaultExprObj {
     return buf.toString();
   }
 
-  static PFunRef create(Parser.SrcInfo srcInfo, PScope outerScope, PExprId official) {
+  static PFunRef create(Parser.SrcInfo srcInfo, PScope outerScope, PEid official) {
     PFunRef fr = new PFunRef(srcInfo, outerScope);
     fr.official = official;
     return fr;
@@ -64,20 +65,20 @@ class PFunRef extends PDefaultExprObj {
   static PFunRef accept(ParserA.TokenReader reader, PScope outerScope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
-    PExprId id;
+    PEid id;
     if ((t = ParserA.acceptToken(reader, LToken.CARET_CARET, spc)) != null) {
       return createSelf(t.getSrcInfo(), outerScope);
     } else if ((t = ParserA.acceptToken(reader, LToken.CARET, spc)) == null) {
       return null;
     }
-    if ((id = PExprId.accept(reader, outerScope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((id = PEid.accept(reader, outerScope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Function name missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    id.setCat(PExprId.CAT_FUN_OFFICIAL);
+    id.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
     return create(t.getSrcInfo(), outerScope, id);
   }
 
@@ -104,8 +105,8 @@ class PFunRef extends PDefaultExprObj {
       }
       f = createSelf(elem.getSrcInfo(), outerScope);
     } else if (Parser.isNormalId(id)) {
-      PExprId official = PExprId.create(elem.getSrcInfo(), outerScope, mid, id);
-      official.setCat(PExprId.CAT_FUN_OFFICIAL);
+      PEid official = PEid.create(elem.getSrcInfo(), outerScope, mid, id);
+      official.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
       f = create(elem.getSrcInfo(), outerScope, official);
     } else {
       emsg = new StringBuffer();
@@ -126,24 +127,36 @@ class PFunRef extends PDefaultExprObj {
 
   public PFunRef resolve() throws CompileException {
     if (this.official != null) {
-      this.official = (PExprId)this.official.resolve();
+      this.official.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
+      this._resolved_officialProps = this.scope.resolveEid(this.official);
+      if (this._resolved_officialProps == null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Function \"");
+        emsg.append(this.official.repr());
+        emsg.append("\" not defined at ");
+        emsg.append(this.official.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
     }
     return this;
   }
+
+  public void normalizeTypes() throws CompileException {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
       this.typeGraphNode = graph.createFunRefNode(this, this.official);
     } else if (this.scope.pos == 1) {
-      PExprId callee = PExprId.create(
+      PEid callee = PEid.create(
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
-      try {
-        callee = (PExprId)callee.resolve();
-      } catch (CompileException ex) {
-        throw new RuntimeException("Internal error.");
-      }
+      // try {
+        // callee = (PEid)callee.resolve();
+      // } catch (CompileException ex) {
+        // throw new RuntimeException("Internal error.");
+      // }
       this.typeGraphNode = graph.createFunRefNode(this, callee);
     } else {
       this.typeGraphNode = graph.createSelfRefNode(
@@ -161,7 +174,7 @@ class PFunRef extends PDefaultExprObj {
     // }
     if (this.official != null) {
       node.addChild(flow.createNodeForFunRefBody(
-        this.srcInfo, this.scope.theMod.modNameToModRefIndex(this.official.props.modName), this.official.name));
+        this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_officialProps.key.modName), this.official.name));
     } else {
       node.addChild(flow.createNodeForSelfRef(this.srcInfo));
     }

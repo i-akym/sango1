@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface PTypeSkel {
 
@@ -46,13 +47,15 @@ public interface PTypeSkel {
   PTypeSkel extractAnyInconcreteVar(PTypeSkel type);
   // PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
 
+  PTypeSkel normalize() throws CompileException;
+
   PTypeSkel resolveBindings(PTypeSkelBindings bindings);
 
   PTypeSkel instanciate(InstanciationContext context);
 
-  boolean accept(int width, PTypeSkel type, PTypeSkelBindings bindings);
+  boolean accept(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException ;
 
-  boolean require(int width, PTypeSkel type, PTypeSkelBindings bindings);
+  boolean require(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException ;
 
   // width is
   static final int EQUAL = 0;
@@ -63,17 +66,19 @@ public interface PTypeSkel {
 
   PTypeVarSlot getVarSlot();
 
-  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
+  PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
     // foward to following method internally
-  JoinResult join2(int width, PTypeSkel type, PTypeSkelBindings bindings);
+  JoinResult join2(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException;
 
   MType toMType(PModule mod, List<PTypeVarSlot> slotList);
 
   void extractVars(List<PTypeVarSlot> extracted);
 
-  void collectTconProps(List<PDefDict.TconProps> list);
+  // void collectTconProps(List<PDefDict.TconProps> list);
 
-  PTypeSkel unalias(PTypeSkelBindings bindings);
+  PTypeSkel unalias(PTypeSkelBindings bindings) throws CompileException;
+
+  void collectTconKeys(Set<PDefDict.IdKey> keys);
 
   Repr repr();
 
@@ -155,6 +160,85 @@ public interface PTypeSkel {
     // PTypeSkel lookupAppl(PTypeVarSlot var) {
       // return this.applBindings.lookup(var);
     // }
+  }
+
+  static class VarianceTab {
+    PTypeVarSlot[] varSlots;
+    Module.Variance[] variances;
+
+    static VarianceTab create(PTypeVarSlot[] ss, Module.Variance[] vs) {
+      if (ss.length != vs.length) {
+        throw new IllegalArgumentException("Length mismatch.");
+      }
+      VarianceTab vt = new VarianceTab();
+      vt.varSlots = new PTypeVarSlot[ss.length];
+      vt.variances = new Module.Variance[ss.length];
+      for (int i = 0; i < ss.length; i++) {
+        vt.varSlots[i] = ss[i];
+        vt.variances[i] = vs[i];
+      }
+      return vt;
+    }
+
+    private VarianceTab() {}
+
+    VarianceTab forContext(Module.Variance v) {
+      VarianceTab vt;
+      if (v == Module.INVARIANT) {
+        vt = this;
+        for (int i = 0; vt != null && i < this.variances.length; i++) {
+          Module.Variance w = this.variances[i];
+          if (w == Module.INVARIANT) {
+            ;  // ok
+          } else if (w == Module.COVARIANT) {
+            vt = null;  // error
+          } else if (w == Module.CONTRAVARIANT) {
+            vt = null;  // error
+          } else {
+            throw new RuntimeException("Unexpected variance. " + w);
+          }
+        }
+      } else if (v == Module.COVARIANT) {
+        vt = this;
+      } else if (v == Module.CONTRAVARIANT) {
+        Module.Variance[] ws = new Module.Variance[this.variances.length];
+        for (int i = 0; i < this.variances.length; i++) {
+          Module.Variance w = this.variances[i];
+          if (w == Module.INVARIANT) {
+            ws[i] = Module.INVARIANT;
+          } else if (w == Module.COVARIANT) {
+            ws[i] = Module.CONTRAVARIANT;
+          } else if (w == Module.CONTRAVARIANT) {
+            ws[i] = Module.COVARIANT;
+          } else {
+            throw new RuntimeException("Unexpected variance. " + w);
+          }
+        }
+        vt = VarianceTab.create(this.varSlots, ws);
+      } else {
+        throw new IllegalArgumentException("Unknown variance. " + v);
+      }
+      return vt;
+    }
+
+    boolean isCompatible(PTypeVarSlot s, Module.Variance v) {  // v: variance def in attr typeref
+      Module.Variance w = v;  // if not founed, assume to be same value
+      for (int i = 0; i < this.varSlots.length; i++) {
+        if (this.varSlots[i] == s) {
+          w = this.variances[i];
+          break;
+        }
+      }
+      boolean b;
+      if (v == w) {
+        b = true;
+      } else if (w == Module.INVARIANT) {
+        b = true;
+      } else {
+        b = false;
+      }
+      return b;
+    }
   }
 
   public static class Repr {

@@ -25,7 +25,7 @@ package org.sango_lang;
 
 abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
   PType type;
-  PTypeSkel nTypeSkel;
+  PTypeSkel _normalized_typeSkel;
   PTypeGraph.Node typeGraphNode;
 
   PDefaultTypedObj(Parser.SrcInfo srcInfo, PScope scope) {
@@ -34,12 +34,26 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
 
   // public PType getType() { return this.type; }
 
-  public PTypeSkel getNormalizedType() throws CompileException {
-    if (this.nTypeSkel == null && this.type != null) {
-      this.nTypeSkel = this.type.getNormalizedSkel();
+// following impl does not have a problem. but general?
+  // public void normalizeTypes() throws CompileException {
+    // if (this.type != null && this._normalized_typeSkel == null) {
+      // this._normalized_typeSkel = this.type.toSkel().normalize();
+    // }
+  // }
+
+  public PTypeSkel getNormalizedType() {
+    if (this.type != null && this._normalized_typeSkel == null) {
+      throw new RuntimeException("Type is not normalized. " + this.type);
     }
-    return this.nTypeSkel;
+    return this._normalized_typeSkel;
   }
+
+  // public PTypeSkel getNormalizedType() throws CompileException {
+    // if (this._normalized_typeSkel == null && this.type != null) {
+      // this._normalized_typeSkel = this.type.getNormalizedSkel();
+    // }
+    // return this._normalized_typeSkel;
+  // }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     throw new RuntimeException("PTypedObj#setupTypeGraph called. - " + this.toString());
@@ -52,7 +66,7 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
   }
 
   public PTypeSkel getFixedType() {
-// /* DEBUG */ System.out.print(this); System.out.print(this.nTypeSkel); System.out.println(this.typeGraphNode);
-    return (this.nTypeSkel != null)? this.nTypeSkel: this.typeGraphNode.getFixedType();
+// /* DEBUG */ System.out.print(this); System.out.print(this._normalized_typeSkel); System.out.println(this.typeGraphNode);
+    return (this._normalized_typeSkel != null)? this._normalized_typeSkel: this.typeGraphNode.getFixedType();
   }
 }

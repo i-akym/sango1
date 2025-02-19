@@ -23,5 +23,5 @@ eval test000 -> <void> {
 } ;;
 eval test100 -> <void> {
   simplequeue.new_queue = <int queue.queue> *Q,
-  Q queue.as_fxqueue >> t1.testB00
+  Q t1.testB00
 } ;;

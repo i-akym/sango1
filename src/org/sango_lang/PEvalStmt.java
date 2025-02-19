@@ -162,7 +162,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader, defScope));
-    PExprId official = PExprId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
+    PEid official = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
     if (official == null) {
       emsg = new StringBuffer();
       emsg.append("Function official name missing at ");
@@ -320,12 +320,21 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
   private static List<String> acceptAliasList(ParserA.TokenReader reader, PScope defScope) throws CompileException, IOException {
     List<String> aliasList = new ArrayList<String>();
-    PExprId a = null;
+    PEid a = null;
     int state = 0;
     while (state >= 0) {
       if (ParserA.acceptToken(reader, LToken.VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
         state = 1;
-      } else if (state == 1 && (a = PExprId.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
+      } else if (state == 1 && (a = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        if (aliasList.contains(a.name)) {
+          StringBuffer emsg = new StringBuffer();
+          emsg.append("Function's alias \"");
+          emsg.append(a.name);
+          emsg.append("\" is already defined at ");
+          emsg.append(a.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
         aliasList.add(a.name);
         state = 0;
       } else {
@@ -408,16 +417,28 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     this.retDef.excludePrivateAcc();
   }
 
-  public void collectTconProps() throws CompileException {
-    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-    if (this.params != null) {
-      for (int i = 0; i < this.params.length; i++) {
-        this.params[i].getNormalizedType().collectTconProps(tps);
-      }
+  void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].normalizeTypes();
     }
-    this.retDef.getNormalizedType().collectTconProps(tps);
-    this.scope.addReferredTcons(tps);
+    if (this.retDef != null) {
+      this.retDef.normalizeTypes();
+    }
+    if (this.implExprs != null) {
+      this.implExprs.normalizeTypes();
+    }
   }
+
+  // public void collectTconProps() throws CompileException {
+    // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
+    // if (this.params != null) {
+      // for (int i = 0; i < this.params.length; i++) {
+        // this.params[i].getNormalizedType().collectTconProps(tps);
+      // }
+    // }
+    // this.retDef.getNormalizedType().collectTconProps(tps);
+    // this.scope.addReferredTcons(tps);
+  // }
 
   void setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
@@ -429,6 +450,10 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
   }
 
+  public Module.Availability getAvailability() { return this.availability; }
+
+  public Module.Access getAcc() { return this.acc; }
+
   public Cstr getModName() {
     return this.scope.theMod.name;
   }
@@ -437,13 +462,14 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return this.official;
   }
 
-  public Module.Availability getAvailability() { return this.availability; }
+  public String[] getAliases() {
+    return this.aliases;
+  }
 
   public PTypeSkel[] getParamTypes() throws CompileException {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
       pts[i] = this.params[i].getNormalizedType();
-      // pts[i].checkConstraint(true);
     }
     return pts;
   }

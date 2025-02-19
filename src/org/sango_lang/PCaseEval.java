@@ -123,6 +123,11 @@ class PCaseEval extends PDefaultExprObj implements PEval {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    this.obj.normalizeTypes();
+    this.caseBlock.normalizeTypes();
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     PTypeGraph.Node on = this.obj.setupTypeGraph(graph);
     PTypeGraph.Node bn = this.caseBlock.setupTypeGraph(graph);

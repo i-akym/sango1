@@ -72,11 +72,7 @@ class PRetDef extends PDefaultExprObj {
     }
     PType type = PType.acceptX(e, scope);
     if (type == null) {
-      emsg = new StringBuffer();
-      emsg.append("Type missing at ");
-      emsg.append(elem.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
+      type = PType.voidType(e.getSrcInfo(), scope);
     }
     builder.setType(type);
     return builder.create();
@@ -115,6 +111,12 @@ class PRetDef extends PDefaultExprObj {
 
   public void excludePrivateAcc() throws CompileException {
     this.type.excludePrivateAcc();
+  }
+
+  public void normalizeTypes() throws CompileException {
+    if (this._normalized_typeSkel == null) {
+      this._normalized_typeSkel = this.type.toSkel().normalize();
+    }
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

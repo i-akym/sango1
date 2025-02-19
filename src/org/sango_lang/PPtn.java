@@ -120,7 +120,7 @@ abstract class PPtn {
         this.addDataObj(ACCEPT_TUPLE, item);
       } else if (elem instanceof PStringPtn) {
         this.addDataObj(ACCEPT_STRING, item);
-      } else if (elem instanceof PExprId) {
+      } else if (elem instanceof PEid) {
         this.addId(item);
       } else if (elem instanceof PExprVarDef) {
         this.addVarDef(item);
@@ -154,8 +154,11 @@ abstract class PPtn {
       if ((acceptablesTab[this.state] & ACCEPT_ID) == 0) {
         throw new IllegalArgumentException("Invalid item");
       }
-      ((PExprId)item.elem).cutOffFun();
+      PEid id = (PEid)item.elem;
+      id.cutOffFun();
+      id.cutOffDconEval();
       this.itemList.add(item);
+      // this.itemList.add(id);
       switch (this.state) {
       case 0: state = 2; break;
       case 2: state = 2; break;
@@ -239,7 +242,7 @@ abstract class PPtn {
       PProgElem anchorElem = this.itemList.get(this.itemList.size() - 1).elem;
       PExprObj p;
       if (this.itemList.size() == 1) {
-        if (anchorElem instanceof PExprId) {
+        if (anchorElem instanceof PEid) {
           p = this.createUndetPtn();
         } else if (anchorElem instanceof PByte
             || anchorElem instanceof PInt
@@ -259,7 +262,7 @@ abstract class PPtn {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-      } else if (anchorElem instanceof PExprId) {
+      } else if (anchorElem instanceof PEid) {
         p = this.createDataConstrPtn();
       } else {
         emsg = new StringBuffer();
@@ -301,8 +304,9 @@ abstract class PPtn {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PExprId id = (PExprId)item.elem;
-      id.cutOffCat(PExprId.CAT_DCON_EVAL);
+      PEid id = (PEid)item.elem;
+      id.cutOffFun();
+      id.cutOffDconEval();
       return PUndetPtn.create(this.srcInfo, this.scope, this.context, id);
     }
 
@@ -316,7 +320,7 @@ abstract class PPtn {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      ((PExprId)anchor.elem).cutOffVar();
+      ((PEid)anchor.elem).cutOffVar();
       PPtnItem lastAttr = this.itemList.get(this.itemList.size() - 1);
       boolean wildCards;
       if (lastAttr.elem instanceof PWildCards) {
@@ -348,8 +352,8 @@ abstract class PPtn {
       for (int i = posdAttrs.length, j = 0; j < namedAttrCount; i++, j++) {
         namedAttrs[j] = this.itemList.get(i);
       }
-      PExprId dcon = (PExprId)anchor.elem;
-      dcon.setCat(PExprId.CAT_DCON_PTN);
+      PEid dcon = (PEid)anchor.elem;
+      dcon.setCat(PDefDict.EID_CAT_DCON_PTN);
       return PDataConstrPtn.create(this.srcInfo, this.scope, this.context, dcon, posdAttrs, namedAttrs, wildCards);
     }
   }

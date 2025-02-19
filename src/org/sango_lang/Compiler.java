@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.xml.parsers.DocumentBuilder;
@@ -42,7 +44,9 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict {
+public class Compiler /* implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict */ {
+  static final String ABORT_MSG = "** One or more errors occurred during compilation.";
+
   static class Action extends Option {
     private static int nextSN = 0;
     int severity;
@@ -55,7 +59,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   PrintStream msgOut;
   List<String> srcList;
-  List<Cstr> importQueue;
+  List<Cstr> modsToStart;
+  Set<Cstr> modsStarted;
+  Set<Cstr> modsUnavailable;
   List<ReferEntry> referQueue;
   List<CompileEntry> parse1Queue;
   List<CompileEntry> parse2Queue;
@@ -63,9 +69,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
   List<CompileEntry> parse4Queue;
   List<CompileEntry> parse5Queue;
   List<CompileEntry> generateQueue;
-  Map<Cstr, Parser> parserDict;
-  Map<Cstr, PDefDict> defDictDict;
-  PDefDict.ExtGraph extGraph;
+  PDefDict defDict;
+  // Map<Cstr, Parser> parserDict;
+  Map<Cstr, PModDecl> modDeclDict;
   List<File> sysLibPathList;
   List<File> userModPathList;
   List<File> modPathList;
@@ -149,7 +155,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   Compiler() {
     this.msgOut = System.out;
-    this.importQueue = new ArrayList<Cstr>();
+    this.modsToStart = new ArrayList<Cstr>();
+    this.modsStarted = new HashSet<Cstr>();
+    this.modsUnavailable = new HashSet<Cstr>();
     this.referQueue = new ArrayList<ReferEntry>();
     this.parse1Queue = new ArrayList<CompileEntry>();
     this.parse2Queue = new ArrayList<CompileEntry>();
@@ -157,9 +165,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     this.parse4Queue = new ArrayList<CompileEntry>();
     this.parse5Queue = new ArrayList<CompileEntry>();
     this.generateQueue = new ArrayList<CompileEntry>();
-    this.parserDict = new HashMap<Cstr, Parser>();
-    this.defDictDict = new HashMap<Cstr, PDefDict>();
-    this.extGraph = PDefDict.createExtGraph();
+    this.defDict = new PDefDict(this.modsUnavailable);
+    // this.parserDict = new HashMap<Cstr, Parser>();
+    this.modDeclDict = new HashMap<Cstr, PModDecl>();
     this.sysLibPathList = new ArrayList<File>();
     this.sysLibPathList.add(new File("lib"));
     this.userModPathList = new ArrayList<File>();
@@ -398,7 +406,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
     this.compile();
     if (this.compileError) {
-      throw new AbortException("** One or more errors occurred during compilation.");
+      throw new AbortException(ABORT_MSG);
     }
   }
 
@@ -432,6 +440,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     CompileEntry tce = new CompileEntry(targetModName, targetFile, null);
     tce.complete();
     this.parse1Queue.add(tce);
+    this.modsStarted.add(targetModName);
   }
 
   void compile() throws AbortException {
@@ -440,20 +449,14 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     while (cont) {
       if (!this.parse1Queue.isEmpty()) {
         CompileEntry ce = this.parse1Queue.remove(0);
-        if (!this.parserDict.containsKey(ce.modName)) {
-          this.parse1(ce);
-        }
+        this.parse1(ce);
       } else if (!this.referQueue.isEmpty()) {
         ReferEntry re = this.referQueue.remove(0);
-        if (!this.defDictDict.containsKey(re.modName)) {
-          this.referMod(re);
-        }
-      } else if (!this.importQueue.isEmpty()) {
-        Cstr modName = this.importQueue.remove(0);
-        if (!this.defDictDict.containsKey(modName)
-            // && !this.parserDict.containsKey(modName)  // if contained in parserDict, also contained in defDictDict
-            && !this.referQueueContains(modName)
-            && !this.parse1QueueContains(modName)) {
+        this.referMod(re);
+      } else if (!this.modsToStart.isEmpty()) {
+        Cstr modName = this.modsToStart.remove(0);
+        if (!this.modsStarted.contains(modName)) {
+          this.modsStarted.add(modName);
           try {
             this.determineActionToImport(modName);
           } catch (IOException ex) {
@@ -467,27 +470,51 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
     // phase 2
     while (!this.parse2Queue.isEmpty()) {
-      this.parse2(this.parse2Queue.remove(0));
+      CompileEntry ce = this.parse2Queue.remove(0);
+      if (!this.modsUnavailable.contains(ce.modName)) {
+        this.parse2(ce);
+      }
+    }
+    if (this.compileError) {
+      throw new AbortException(ABORT_MSG);
     }
 
     // phase 3
+    try {
+      this.defDict.checkCyclicAlias();
+      this.defDict.checkCyclicExtension();
+    } catch (Exception ex) {
+      this.compileErrorDetected(null, ex);
+    }
     while (!this.parse3Queue.isEmpty()) {
-      this.parse3(this.parse3Queue.remove(0));
+      CompileEntry ce = this.parse3Queue.remove(0);
+      if (!this.modsUnavailable.contains(ce.modName)) {
+        this.parse3(ce);
+      }
     }
 
     // phase 4
     while (!this.parse4Queue.isEmpty()) {
-      this.parse4(this.parse4Queue.remove(0));
+      CompileEntry ce = this.parse4Queue.remove(0);
+      if (!this.modsUnavailable.contains(ce.modName)) {
+        this.parse4(ce);
+      }
     }
 
     // phase 5
     while (!this.parse5Queue.isEmpty()) {
-      this.parse5(this.parse5Queue.remove(0));
+      CompileEntry ce = this.parse5Queue.remove(0);
+      if (!this.modsUnavailable.contains(ce.modName)) {
+        this.parse5(ce);
+      }
     }
 
     // generate
     while (!this.generateQueue.isEmpty()) {
-      this.generate(this.generateQueue.remove(0));
+      CompileEntry ce = this.generateQueue.remove(0);
+      if (!this.modsUnavailable.contains(ce.modName)) {
+        this.generate(ce);
+      }
     }
   }
 
@@ -504,15 +531,14 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
         this.msgOut.print(ce.srcFile.getCanonicalPath());
         this.msgOut.println(" ...");
       }
-      Parser p = ce.createParser();
-      p.parse1();
+      ce.setupParser();
+      ce.parser.parse1();
       this.parse2Queue.add(ce);
-      PDefDict d = p.getDefDict();
-      this.parserDict.put(ce.modName, p);
-      this.defDictDict.put(ce.modName, d);
-      Cstr[] ms = d.getForeignMods();
+      // this.parserDict.put(ce.modName, p);
+      this.modDeclDict.put(ce.modName, ce.parser.mod.getModDecl());
+      Cstr[] ms = ce.parser.mod.getForeignMods();
       for (int i = 0; i < ms.length; i++) {
-        this.importQueue.add(ms[i]);
+        this.modsToStart.add(ms[i]);
       }
     } catch (Exception ex) {
       this.compileErrorDetected(ce.modName, ex);
@@ -521,7 +547,8 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   void parse2(CompileEntry ce) throws AbortException {
     try {
-      this.parserDict.get(ce.modName).parse2();
+      ce.parser.parse2();
+      // this.parserDict.get(ce.modName).parse2();
       this.parse3Queue.add(ce);
     } catch (Exception ex) {
       this.compileErrorDetected(ce.modName, ex);
@@ -530,7 +557,8 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   void parse3(CompileEntry ce) throws AbortException {
     try {
-      this.parserDict.get(ce.modName).parse3();
+      ce.parser.parse3();
+      // this.parserDict.get(ce.modName).parse3();
       this.parse4Queue.add(ce);
     } catch (Exception ex) {
       this.compileErrorDetected(ce.modName, ex);
@@ -539,7 +567,8 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   void parse4(CompileEntry ce) throws AbortException {
     try {
-      this.parserDict.get(ce.modName).parse4();
+      ce.parser.parse4();
+      // this.parserDict.get(ce.modName).parse4();
       this.parse5Queue.add(ce);
     } catch (Exception ex) {
       this.compileErrorDetected(ce.modName, ex);
@@ -548,7 +577,8 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   void parse5(CompileEntry ce) throws AbortException {
     try {
-      this.parserDict.get(ce.modName).parse5();
+      ce.parser.parse5();
+      // this.parserDict.get(ce.modName).parse5();
       this.generateQueue.add(ce);
     } catch (Exception ex) {
       this.compileErrorDetected(ce.modName, ex);
@@ -581,7 +611,6 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
       this.msgOut.print(re.file.getCanonicalPath());
       this.msgOut.println(" ...");
     }
-    PCompiledModule d = null;
     ZipInputStream zis = null;
     try {
       zis = new ZipInputStream(new FileInputStream(re.file));
@@ -597,7 +626,12 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
       factory.setIgnoringComments(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
       Document doc = builder.parse(zis);
-      d = PCompiledModule.create(this, Module.internalize(doc, re.modName));
+      PCompiledModule m = PCompiledModule.create(this, Module.internalize(doc, re.modName));
+      this.modDeclDict.put(m.getName(), m.getModDecl());
+      Cstr[] foreignMods = m.getForeignMods();
+      for (int i = 0; i < foreignMods.length; i++) {
+        this.modsToStart.add(foreignMods[i]);
+      }
     } catch (SAXException ex) {
       emsg = new StringBuffer();
       emsg.append("Module file format error. - ");
@@ -617,8 +651,6 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
         } catch (Exception ex) {}
       }
     }
-    this.defDictDict.put(re.modName, d);
-    d.setupExtensionGraph(this.extGraph);
   }
 
   void determineActionToImport(Cstr modName) throws IOException {
@@ -629,11 +661,11 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     if (!sm[0].exists()) {  // only module file exists
       this.referQueue.add(new ReferEntry(modName, sm[1]));
     } else if (!sm[1].exists()) {  // only source file exists
-      if (!this.parse1Queue.contains(sm[0])) {
+      // if (!this.parse1Queue.contains(sm[0])) {
         CompileEntry ce = new CompileEntry(modName, sm[0],null);
         ce.complete();
         this.parse1Queue.add(ce);
-      }
+      // }
     } else {
       long srcFileTime = sm[0].lastModified();
       long modFileTime = sm[1].lastModified();
@@ -647,29 +679,34 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     }
   }
 
-  public PDefDict getReferredDefDict(Cstr modName) throws CompileException {
-    PDefDict d =  this.defDictDict.get(modName);
-    if (d == null) {
-      StringBuffer emsg = new StringBuffer();
-      emsg.append("Unavailable module. - ");
-      emsg.append(modName.repr());
-      throw new CompileException(emsg.toString());
-    }
-    return d;
-  }
+  // public PDefDict getReferredDefDict(Cstr modName) throws CompileException {
+    // PDefDict d =  this.defDictDict.get(modName);
+    // if (d == null) {
+      // StringBuffer emsg = new StringBuffer();
+      // emsg.append("Unavailable module. - ");
+      // emsg.append(modName.repr());
+      // throw new CompileException(emsg.toString());
+    // }
+    // return d;
+  // }
 
-  public PDefDict.GlobalDefDict getGlobalDefDict() {
-    return this;
-  }
+  // public PDefDict.GlobalDefDict getGlobalDefDict() {
+    // return this;
+  // }
 
   void compileErrorDetected(Cstr modName, Exception ex) throws AbortException {
+// /* DEBUG */ System.out.println(this.defDict.eidDict);
     if (ex instanceof RuntimeException) {
       throw (RuntimeException)ex;  // maybe internal bug
+    } else if (modName == null) {
+      this.msgOut.println("** Compile error.");
+      this.msgOut.println(ex.getMessage());
+      this.compileError = true;
     } else {
       this.msgOut.println("** Compile error in " + modName.repr() + ".");
       this.msgOut.println(ex.getMessage());
-      this.parserDict.remove(modName);
-      this.defDictDict.remove(modName);
+      // this.parserDict.remove(modName);
+      this.modsUnavailable.add(modName);
       this.compileError = true;
     }
   }
@@ -680,7 +717,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     } else {
       this.msgOut.println("** Import error in " + modName.repr() + ".");
       this.msgOut.println(ex.getMessage());
-      this.defDictDict.remove(modName);
+      this.modsUnavailable.add(modName);
       this.compileError = true;
     }
   }
@@ -688,9 +725,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
   void handleFunAvailability(Cstr referrerModName, Cstr referredModName, String id, Module.Availability featureAv)
       throws CompileException {
 /* DEBUG */ if (featureAv == null) { throw new IllegalArgumentException( "Null availability. " + referrerModName.repr() + " " + referredModName.repr()); }
-    PDefDict dd = this.defDictDict.get(referredModName);
-    if (dd != null) {  // should be not null...
-      Module.Availability ma = dd.getModAvailability();
+    PModDecl md = this.modDeclDict.get(referredModName);
+    if (md != null) {  // should be not null...
+      Module.Availability ma = md.getAvailability();
 /* DEBUG */ if (ma == null) { throw new IllegalArgumentException( "Null availability. " + referredModName.repr()); }
       Action a = this.decideAvailabilityAction(ma, featureAv);
       if (a == ACTION_IGNORE) {
@@ -724,9 +761,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
 
   void handleTypeAvailability(Cstr referrerModName, Cstr referredModName, String id, Module.Availability featureAv)
       throws CompileException {
-    PDefDict dd = this.defDictDict.get(referredModName);
-    if (dd != null) {  // should be not null...
-      Module.Availability ma = dd.getModAvailability();
+    PModDecl md = this.modDeclDict.get(referredModName);
+    if (md != null) {  // should be not null...
+      Module.Availability ma = md.getAvailability();
       Action a = this.decideAvailabilityAction(ma, featureAv);
       if (a == ACTION_IGNORE) {
         ;
@@ -805,6 +842,7 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     Cstr modName;
     File srcFile;
     File modFile;
+    Parser parser;
 
     CompileEntry(Cstr modName, File srcFile, File modFile) {
       this.modName = modName;
@@ -812,8 +850,8 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
       this.modFile = modFile;
     }
 
-    Parser createParser() throws CompileException, IOException {
-      return srcFile.getCanonicalPath().endsWith(FileSystem.SOURCE_FILE_SUFFIX)? 
+    void setupParser() throws CompileException, IOException {
+      this.parser = srcFile.getCanonicalPath().endsWith(FileSystem.SOURCE_FILE_SUFFIX)? 
         new ParserA(Compiler.this, this):
         new ParserB(Compiler.this, this);
     }
@@ -871,9 +909,9 @@ public class Compiler implements PDefDict.DefDictGetter, PDefDict.GlobalDefDict 
     return b;
   }
 
-  public boolean isBaseOf(PDefDict.IdKey b, PDefDict.IdKey e) {
-    return this.extGraph.isBaseOf(b, e);
-  }
+  // public boolean isBaseOf(PDefDict.IdKey b, PDefDict.IdKey e) {
+    // return this.extGraph.isBaseOf(b, e);
+  // }
 
   static void printVersion(PrintStream out) {
     out.println("Sango " + Version.getInstance().full);

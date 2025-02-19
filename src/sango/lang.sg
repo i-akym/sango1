@@ -45,28 +45,28 @@ eval otherwise @public -> <bool> { true$ } ;;  # alias for conditional branch
 # arithmetic types
 
 data <int> @opaque := @native  # 4 byte signed integer
-++ int_as_a'ord -> [ a'ord ] ;;
+++ int_ord_fs -> [ a'ord ] ;;
 
 data <real> @opaque := @native  # 8 byte floating point
-++ real_as_a'ord -> [ a'ord ] ;;
+++ real_ord_fs -> [ a'ord ] ;;
 
 data <byte> @opaque := @native  # 1 byte unsigned integer
-++ byte_as_a'ord -> [ a'ord ] ;;
+++ byte_ord_fs -> [ a'ord ] ;;
 
 # character type
 
 data <char> @opaque := @native  # charset is unicode
-++ char_as_a'ord -> [ a'ord ] ;;
+++ char_ord_fs -> [ a'ord ] ;;
 
 # list type
 
 data <+*A list> @opaque := @native
-++ list_as_a'col -> [ A a'col ] ;;
+++ list_col_fs -> [ A a'col ] ;;
 
 # string type
 
 data <+*A string> @opaque := @native
-++ string_as_a'col -> [ A a'col ] ;;
+++ string_col_fs -> [ A a'col ] ;;
 
 alias type <bstr> @public := <byte string> ;;
 alias type <cstr> @public := <char string> ;;
@@ -145,31 +145,11 @@ data <*A ord_fs> @public :=
   hash_f: <A int fun>
   ord_fs$ ;;
 
-alias type @alpha <*A col_d> @public := <A _1+> ;;
-
-data @alpha <*A col> @public :=
-  d: <A col_d>
-  fs: <<A col_d> A col_fs>
-  col$
-++ col_iter -> [ A a'iter ]
-;;
-
 data @alpha <*D *A col_fs> @public :=
   empty?_f_: <<D bool fun> maybe>
   size_f: <D int fun>
-  take_f: <D <<A D tuple> maybe> fun>
+  iter_f: <D <A iter> fun>
   col_fs$ ;;
-
-eval <*A col> *Col col_iter -> <A iter> {
-  \\ <A iter_res> { Col col_iter_next } iter$
-} ;;
-
-eval <*A col> *Col col_iter_next -> <A iter_res> {
-  Col take >> case {
-  ; (| *X, *Col' |) value$ -> (| X, \\ <A iter_res> { Col' col_iter_next } iter$ |) value$
-  ; ** -> none$
-  }
-} ;;
 
 eval <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
   Fs empty?_f_ >> case {
@@ -181,7 +161,7 @@ eval <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
   }
 } ;;
 
-data <*A iter> @public :=
+data <+*A iter> @public :=
   next_f: <<A iter_res> fun>
   iter$ ;;
 
@@ -198,9 +178,9 @@ feature @alpha <*T> [ a'eq ] @public -> <T eq_fs> ;;
 
 feature @alpha <*T> [ a'ord ] @public -> <T ord_fs> ;;
 
-feature @alpha <*T> [ *A a'col ] @public -> <A col> ;;
+feature @alpha <*T> [ *A a'iter ] @public -> <T <A iter> fun> ;;
 
-feature @alpha <*T> [ *A a'iter ] @public -> <A iter> ;;
+feature @alpha <*T> [ *A a'col ] @public -> <T A col_fs> ;;
 
 
 # -- functions --
@@ -607,49 +587,37 @@ eval <*A ord_fs> *Ord ord_fs_to_eq_fs | to_eq_fs @public -> <A eq_fs> {
   eq_fs$
 } ;;
 
-eval @alpha <int> *I int_as_a'ord @public -> <int ord_fs> {
-  int_ord_fs
-} ;;
-
 eval int_ord_fs @public -> <int ord_fs> {
   compare_f: ^int_compare
-    eq?_f_: (^int_eq? value$)
-    lt?_f_: (^int_lt? value$)
-    le?_f_: (^int_le? value$)
-    gt?_f_: (^int_gt? value$)
-    ge?_f_: (^int_ge? value$)
-    hash_f: ^hash
-    ord_fs$
-} ;;
-
-eval @alpha <real> *R real_as_a'ord @public -> <real ord_fs> {
-  real_ord_fs
+  eq?_f_: (^int_eq? value$)
+  lt?_f_: (^int_lt? value$)
+  le?_f_: (^int_le? value$)
+  gt?_f_: (^int_gt? value$)
+  ge?_f_: (^int_ge? value$)
+  hash_f: ^hash
+  ord_fs$
 } ;;
 
 eval real_ord_fs @public -> <real ord_fs> {
   compare_f: ^real_compare
-    eq?_f_: (^real_eq? value$)
-    lt?_f_: (^real_lt? value$)
-    le?_f_: (^real_le? value$)
-    gt?_f_: (^real_gt? value$)
-    ge?_f_: (^real_ge? value$)
-    hash_f: ^hash
-    ord_fs$
-} ;;
-
-eval @alpha <byte> *B byte_as_a'ord @public -> <byte ord_fs> {
-  byte_ord_fs
+  eq?_f_: (^real_eq? value$)
+  lt?_f_: (^real_lt? value$)
+  le?_f_: (^real_le? value$)
+  gt?_f_: (^real_gt? value$)
+  ge?_f_: (^real_ge? value$)
+  hash_f: ^hash
+  ord_fs$
 } ;;
 
 eval byte_ord_fs @public -> <byte ord_fs> {
   compare_f: ^byte_compare
-    eq?_f_: (^byte_eq? value$)
-    lt?_f_: (^byte_lt? value$)
-    le?_f_: (^byte_le? value$)
-    gt?_f_: (^byte_gt? value$)
-    ge?_f_: (^byte_ge? value$)
-    hash_f: ^hash
-    ord_fs$
+  eq?_f_: (^byte_eq? value$)
+  lt?_f_: (^byte_lt? value$)
+  le?_f_: (^byte_le? value$)
+  gt?_f_: (^byte_gt? value$)
+  ge?_f_: (^byte_ge? value$)
+  hash_f: ^hash
+  ord_fs$
 } ;;
 
 # character functions
@@ -678,24 +646,20 @@ eval <char> *C0 <char> *C1 char_compare | compare @public -> <ordering> {
 
 eval char_eq_fs @public -> <char eq_fs> {
   eq?_f: ^char_eq?
-    ne?_f_: none$
-    hash_f: ^hash
-    eq_fs$
-} ;;
-
-eval @alpha <char> *C char_as_a'ord @public -> <char ord_fs> {
-  char_ord_fs
+  ne?_f_: none$
+  hash_f: ^hash
+  eq_fs$
 } ;;
 
 eval char_ord_fs @public -> <char ord_fs> {
   compare_f: ^char_compare
-    eq?_f_: (^char_eq? value$)
-    lt?_f_: (^char_lt? value$)
-    le?_f_: (^char_le? value$)
-    gt?_f_: (^char_gt? value$)
-    ge?_f_: (^char_ge? value$)
-    hash_f: ^hash
-    ord_fs$
+  eq?_f_: (^char_eq? value$)
+  lt?_f_: (^char_lt? value$)
+  le?_f_: (^char_le? value$)
+  gt?_f_: (^char_gt? value$)
+  ge?_f_: (^char_ge? value$)
+  hash_f: ^hash
+  ord_fs$
 } ;;
 
 # list functions
@@ -710,7 +674,15 @@ eval <*A list> *Xs list_length | length @public -> <int> {
 } ;;
 
 eval <*A list> *Xs list_iter | iter @public -> <A iter> {
-  Xs _feature_a'col >> _feature_a'iter
+  \\ <A iter_res> { Xs list_iter_next } iter$
+} ;;
+
+eval <*A list> *Xs list_iter_next -> <A iter_res> {
+  Xs case {
+  ; [ *X ; *Xs' ] ->
+    (| X, \\ <A iter_res> { Xs' list_iter_next } iter$ |) value$
+  ; ** -> none$
+  }
 } ;;
 
 # string functions
@@ -719,9 +691,17 @@ eval <*A string> *Xz string_length | length @public -> <int> @native ;;
 eval <*A string> *Xz <int> *Pos string_elem | elem @public -> <A> @native ;;
 
 eval <*A string> *Xz string_iter | iter @public -> <A iter> {
-  Xz _feature_a'col >> _feature_a'iter
+  \\ <A iter_res> { (| Xz, 0 |)  string_iter_next } iter$
 } ;;
 
+eval <<*A string> int tuple> *XzN string_iter_next -> <A iter_res> {
+  XzN = (| *Xz, *N |),
+  if {
+  ; N (Xz string_length) lt? ->
+    (| Xz N string_elem, \\ <A iter_res> { (| Xz, N inc |)  string_iter_next } iter$ |) value$
+  ; otherwise -> none$
+  }
+} ;;
 
 # 'try' functions
 
@@ -819,76 +799,17 @@ eval <*A maybe> *X_ <A *B fun> *F apply_to_something | ats @public -> <B maybe> 
   }
 } ;;
 
-eval @alpha <*A col> *Col col_empty? | empty? @public -> <bool> {
-  Col = d: *D fs: *Fs col$,
-  D &(Fs empty?_f)
-} ;;
-
-eval @alpha <*A col> *Col col_size | size @public -> <int> {
-  Col = d: *D fs: *Fs col$,
-  D &(Fs size_f)
-} ;;
-
-eval @alpha <*A col> *Col col_take | take @public -> <<A <A col> tuple> maybe> {
-  Col = d: *D fs: *Fs col$,
-  D &(Fs take_f) >> case {
-  ; (| *E, *D' |) value$ -> (| E, d: D' fs: Fs col$ |) value$
-  ; ** -> none$
-  }
-} ;;
-
-extend <*A _1> -> _col_d :=
-| <A list> list_col_d$
-| <A string> <int> string_col_d$ ;;
-
-eval <*A list> *Xs list_as_a'col -> <A col> {
-  d: (Xs list_col_d$) fs: list_col_fs col$
-} ;;
-
-eval list_col_fs @public -> <<*A col_d> A col_fs> {
-  empty?_f_: (
-    \ <*B col_d> *DD -> <bool> {
-      DD = *L list_col_d$,
-      L case { [] -> true$ ; ** -> false$ }
-    } value$
-  )
-  size_f:
-    \ <*B col_d> *DD -> <int> {
-      DD = *L list_col_d$,
-      L list_length
-    }
-  take_f:
-    \ <*B col_d> *DD -> <<B <B col_d> tuple> maybe> {
-      DD = *L list_col_d$,
-      L case { [ *X ; *L' ] -> (| X, L' list_col_d$ |) value$ ; ** -> none$ }
-    }
+eval list_col_fs @public -> <<*A list> A col_fs> {
+  empty?_f_: (\ <*B list> *L -> <bool> { L case { [] -> true$ ; ** -> false$ } } value$)
+  size_f: \ <*B list> *L -> <int> { L list_length }
+  iter_f: \ <*B list> *L -> <B iter> { L list_iter }
   col_fs$
 } ;;
 
-eval <*A string> *Xz string_as_a'col -> <A col> {
-  d: (Xz 0 string_col_d$) fs: string_col_fs col$
-} ;;
-
-eval string_col_fs @public -> <<*A col_d> A col_fs> {
-  empty?_f_: (
-    \ <*B col_d> *DD -> <bool> {
-      DD = *S *I string_col_d$,
-      (S length) I ge?
-    } value$
-  )
-  size_f:
-    \ <*B col_d> *DD -> <int> {
-      DD = *S *I string_col_d$,
-      (S length) I diff
-    }
-  take_f:
-    \ <*B col_d> *DD -> <<B <B col_d> tuple> maybe> {
-      DD = *S *I string_col_d$,
-      if {
-      ; I (S length) lt? -> (| S I elem, S (I inc) string_col_d$ |) value$
-      ; otherwise -> none$
-      }
-    }
+eval string_col_fs @public -> <<*A string> A col_fs> {
+  empty?_f_: (\ <*B string> *S -> <bool> { (S string_length) zero?  } value$)
+  size_f: \ <*B string> *S -> <int> { S string_length }
+  iter_f: \ <*B string> *S -> <B iter> { S string_iter }
   col_fs$
 } ;;
 

@@ -173,7 +173,7 @@ class PScope {
       slot = this.parent.defineTVar(varDef);  // temporal impl - forward simply
     } else {
       slot = PTypeVarSlot.create(varDef);
-      varDef.varSlot = slot;
+      varDef._resolved_varSlot = slot;
       this.tvarDict.put(varDef.name, varDef);
     }
     return slot;
@@ -188,7 +188,7 @@ class PScope {
       slot = this.parent.defineEVar(varDef);  // temporal impl - forward simply
     } else {
       slot = PExprVarSlot.create(varDef);
-      varDef.varSlot = slot;
+      varDef._resolved_varSlot = slot;
       this.evarDict.put(varDef.name, varDef);
     }
     return slot;
@@ -211,7 +211,7 @@ class PScope {
           if (v != null) {
             this.outerTVarDict.put(id, v);
             if (this.parent.pos != this.pos) {  // in top scope of closure
-              this.envTVarList.add(v.varSlot);
+              this.envTVarList.add(v._resolved_varSlot);
             }
           }
         }
@@ -237,7 +237,7 @@ class PScope {
           if (v != null) {
             this.outerEVarDict.put(id, v);
             if (this.parent.pos != this.pos) {  // in top scope of closure
-              this.envEVarList.add(v.varSlot);
+              this.envEVarList.add(v._resolved_varSlot);
             }
           }
         }
@@ -275,6 +275,15 @@ class PScope {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
+      if (id.equals(PModule.MOD_ID_LANG) || id.equals(PModule.MOD_ID_HERE) ) {
+        ;  // pass
+      } else if (this.theMod.myId != null && id.equals(this.theMod.myId)) {
+        ;  // pass
+      } else if (this.theMod.referredModIds.contains(id)) {
+        ;  // already added
+      } else {
+        this.theMod.referredModIds.add(id);
+      }
     }
   }
 
@@ -282,35 +291,47 @@ class PScope {
     return this.theMod.resolveModId(id);
   }
 
-  PDefDict.EidProps resolveEid(PExprId id) throws CompileException {
-    return this.theMod.resolveEid(id);
-  }
-
-  PDefDict.TconProps resolveTcon(PTypeId tcon) throws CompileException {
-    return this.resolveTcon(tcon.modId, tcon.name);
-  }
-
-  PDefDict.TconProps resolveTcon(String tconModId, String tconName) throws CompileException {
-    return this.theMod.resolveTcon(tconModId, tconName);
-  }
-
-  PDefDict.FeatureProps resolveFeature(PTypeId fname) throws CompileException {
-    return this.theMod.resolveFeature(fname.modId, fname.name);
-  }
-
-  PDefDict.FeatureProps resolveFeature(String modId, String name) throws CompileException {
-    return this.theMod.resolveFeature(modId, name);
-  }
-
-  void addReferredTcons(List<PDefDict.TconProps> tis) {
-    for (int i = 0; i < tis.size(); i++) {
-      this.addReferredTcon(tis.get(i));
+  PDefDict.TidProps resolveTcon(PTid tcon) throws CompileException {
+    PDefDict.TidProps tp;
+    if (tcon.maybeVar() && this.lookupTVar(tcon.name) != null) {
+      tp = PDefDict.TidProps.create(
+        PDefDict.IdKey.create(new Cstr(""), tcon.name),
+        // PDefDict.IdKey.create(this.theMod.resolveModId(tcon.modId), tcon.name),
+        PDefDict.TID_CAT_VAR, Module.ACC_PRIVATE);
+    } else {
+      tcon.cutOffVar();
+      tp = this.theMod.resolveTcon(tcon);
     }
+    return tp;
   }
 
-  void addReferredTcon(PDefDict.TconProps ti) {
-    this.theMod.addReferredTcon(ti);
+  PDefDict.TidProps resolveFeature(PTid fname) throws CompileException {
+    return this.theMod.resolveFeature(fname);
   }
+
+  PDefDict.EidProps resolveEid(PEid id) throws CompileException {
+    PDefDict.EidProps ep;
+    if (id.maybeVar() && this.lookupEVar(id.name) != null) {
+      ep = PDefDict.EidProps.create(
+        PDefDict.IdKey.create(new Cstr(""), id.name),
+        // PDefDict.IdKey.create(this.theMod.resolveModId(id.modId), id.name),
+        PDefDict.EID_CAT_VAR, Module.ACC_PRIVATE, null);
+    } else {
+      id.cutOffVar();
+      ep = this.theMod.resolveAnchor(id);
+    }
+    return ep;
+  }
+
+  // void addReferredTcons(List<PDefDict.TidProps> tis) {
+    // for (int i = 0; i < tis.size(); i++) {
+      // this.addReferredTcon(tis.get(i));
+    // }
+  // }
+
+  // void addReferredTcon(PDefDict.TidProps ti) {
+    // this.theMod.addReferredTcon(ti);
+  // }
 
   PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PType[] paramTypeDescs) {
     PTypeRef t = null;
@@ -347,7 +368,7 @@ class PScope {
     PType.Builder b = PType.Builder.newInstance(srcInfo, this);
     PType ct;
     try {
-      b.addItem(PTypeId.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
+      b.addItem(PTid.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
       ct = b.create();
       ct = ct.resolve();
     } catch (CompileException ex) {
@@ -357,11 +378,12 @@ class PScope {
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {
-    PDefDict.TconProps tp = this.theMod.resolveTcon(PModule.MOD_ID_LANG, tcon);
+    PDefDict.IdKey k = PDefDict.IdKey.create(Module.MOD_LANG, tcon);
+    PDefDict.TidProps tp = this.theMod.theCompiler.defDict.resolveTcon(this.theMod.getName(), k);
     if (tp == null) {
       throw new RuntimeException("Internal error.");
     }
-    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, tp, false, paramTypeSkels);
+    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, k, false, paramTypeSkels);
   }
 
   List<PTypeVarSlot> getGivenTVarList() throws CompileException {

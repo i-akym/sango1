@@ -25,11 +25,11 @@ import "feature.map" -> map ;;
 import "feature.map-impl" -> map_impl ;;
 
 eval _main_ -> <void> {
-  map_impl.new_map = <int cstr map_impl.map_impl> *MI,
+  map_impl.new_map = *MI,
   MI f
 } ;;
 
-eval <*T![ int cstr map.a'map ]> *M f -> <void> {
+eval <*T[ int cstr map.a'map ]> *M f -> <void> {
   # M = {}
   M map.size = 0,
   M 2 "two" map.add = *M1,  # M1 = { (2,"two") }

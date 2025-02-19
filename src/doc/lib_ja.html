@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.5　ライブラリ解説</title>
+<title>Sango 1.7.6　ライブラリ解説</title>
 </head>
 
 <body>
@@ -209,8 +209,8 @@ kbd {
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
 <a href="#sango.util.set.hashset"><code>sango.util.set.hashset</code></a>
+<a href="#sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code></a> 【Alpha】
 <a href="#sango.util.set.simpleset"><code>sango.util.set.simpleset</code></a>
-<a href="#sango.util.set.weakset"><code>sango.util.set.weakset</code></a> 【Alpha】
 <a href="#sango.util.shell"><code>sango.util.shell</code></a> 【Alpha】
   <a href="#sango.util.shell.1">プログラム実行環境取得</a>
   <a href="#sango.util.shell.2">ディレクトリとファイルの操作</a>
@@ -292,7 +292,7 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>data &lt;+*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;+*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
 <p>イテレータ（データを次々と供給するオブジェクト）を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;*A iter_res&gt; @public := &lt;&lt;A &lt;A iter&gt; tuple&gt; maybe&gt; ;;
@@ -3894,22 +3894,7 @@ data &lt;*A set&gt; @public :=
   <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.set.simpleset"><code>sango.util.set.simpleset</code></h1>
-
-<p>簡易なセットの実装を提供します。
-  サイズに比例したアクセスコストがかかります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval new_set @public -&gt; &lt;*A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
-<p>セットを生成します。
-  オブジェクトの等価比較以外で比較する場合は，次の関数を使用します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_set_eq | new_set @public
-  -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
-<p>セットを生成します。
-  <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.set.weakset"><code>sango.util.set.weakset</code> 【Alpha】</h1>
+<h1 id="sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code> 【Alpha】</h1>
 
 <p>実体を要素とするセットです。
   要素は弱参照で保持され，これ以外からの参照がなくなると，自動的に削除されます。
@@ -3923,7 +3908,7 @@ data &lt;*A set&gt; @public :=
   <code>Dress_fs</code>には，要素とする実体のundress・redress機能関数群を指定します。
   以下に呼び出し例を示します。</p>
 <blockquote class="code-sample">コード例
-<code>import &quot;sango.util.map.weakset&quot; -&gt; ws ;;
+<code>import &quot;sango.util.set.shared.weakset&quot; -&gt; ws ;;
 import &quot;sango.entity.existence&quot; -&gt; ex ;;
 import &quot;sango.entity.box&quot; -&gt; box ;;
 (&amp;\\ &lt;&lt;int box.box_h&gt; ex.dress_fs&gt; { box.dress_fs })
@@ -3952,6 +3937,21 @@ eval &lt;*A! set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt
 <p>セットの対応する関数の機能を提供します。
   ただし，セット本体は返り値に含まれません。
   <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.set.simpleset"><code>sango.util.set.simpleset</code></h1>
+
+<p>簡易なセットの実装を提供します。
+  サイズに比例したアクセスコストがかかります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_set @public -&gt; &lt;*A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
+<p>セットを生成します。
+  オブジェクトの等価比較以外で比較する場合は，次の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_set_eq | new_set @public
+  -&gt; &lt;A &quot;sango.util.set&quot;.set&gt; ;;</code></td></tr></table>
+<p>セットを生成します。
+  <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.shell"><code>sango.util.shell</code> 【Alpha】</h1>

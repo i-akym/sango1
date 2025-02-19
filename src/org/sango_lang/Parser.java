@@ -46,12 +46,14 @@ abstract class Parser {
   }
 
   void parse3() throws CompileException {
-    this.mod.checkCyclicAlias();
+    this.mod.setupAliasBody();
   }
 
   void parse4() throws CompileException {
-    this.mod.collectTconProps();
-    this.mod.setupExtensionGraph(this.theCompiler.extGraph);
+    // this.mod.collectTconProps();
+    // this.mod.setupExtensionGraph(this.theCompiler.extGraph);
+    this.mod.normalizeTypes();
+    this.mod.checkVariance();
     this.mod.checkConcreteness();
   }
 
@@ -60,9 +62,9 @@ abstract class Parser {
     this.mod.makeSureTypeConsistency();
   }
 
-  PDefDict getDefDict() {
-    return this.mod;
-  }
+  // PDefDict getDefDict() {
+    // return this.mod;
+  // }
 
   static class SrcInfo {
     Cstr src;

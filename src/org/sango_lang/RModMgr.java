@@ -42,16 +42,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-class RModMgr implements PDefDict.DefDictGetter {
+class RModMgr /* implements PDefDict.DefDictGetter */ {
   RuntimeEngine theEngine;
   Map<Cstr, Module> modDict;
   Map<Cstr, RModule> rmodDict;
-  Map<Cstr, PDefDict> defDictDict;
+  // Map<Cstr, PDefDict> defDictDict;
   RModule mainRMod;
 
   RModMgr(RuntimeEngine e) {
     this.theEngine = e;
-    this.defDictDict = new HashMap<Cstr, PDefDict>();
+    // this.defDictDict = new HashMap<Cstr, PDefDict>();
   }
 
   void loadMain(Cstr modName) throws IOException, FormatException {
@@ -259,20 +259,20 @@ class RModMgr implements PDefDict.DefDictGetter {
     }
   }
 
-  // MT-unsafe
-  public PDefDict getReferredDefDict(Cstr mod) throws IllegalArgumentException {
-    PDefDict d =  this.defDictDict.get(mod);
-    if (d == null) {
-      Module m = this.modDict.get(mod);
-      if (m != null) {
-        d = PCompiledModule.create(this, m);  // lazy setup
-        this.defDictDict.put(mod, d);
-      }
-    }
-    return d;
-  }
+  // // MT-unsafe
+  // public PDefDict getReferredDefDict(Cstr mod) throws IllegalArgumentException {
+    // PDefDict d =  this.defDictDict.get(mod);
+    // if (d == null) {
+      // Module m = this.modDict.get(mod);
+      // if (m != null) {
+        // d = PCompiledModule.create(this, m);  // lazy setup
+        // this.defDictDict.put(mod, d);
+      // }
+    // }
+    // return d;
+  // }
 
-  public PDefDict.GlobalDefDict getGlobalDefDict() {
-    return null;  // HERE
-  }
+  // public PDefDict.GlobalDefDict getGlobalDefDict() {
+    // return null;  // HERE
+  // }
 }

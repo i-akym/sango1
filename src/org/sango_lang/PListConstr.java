@@ -63,6 +63,11 @@ class PListConstr extends PList {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    this.elem.normalizeTypes();
+    this.tail.normalizeTypes();
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createListNode(this);
     ((PTypeGraph.ListNode)this.typeGraphNode).setElemNode(this.elem.setupTypeGraph(graph));

@@ -30,7 +30,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   boolean requiresConcrete;
   PFeature.List features;  // maybe null
   PFeatureSkel.List nFeatures;  // maybe null
-  PTypeVarSlot varSlot;  // setup later
+  PTypeVarSlot _resolved_varSlot;
 
   private PTypeVarDef(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -55,9 +55,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     if (this.requiresConcrete) {
       buf.append("!");
     }
-    if (this.varSlot != null) {
+    if (this._resolved_varSlot != null) {
       buf.append(",slot=");
-      buf.append(this.varSlot);
+      buf.append(this._resolved_varSlot);
     }
     if (this.features != null) {
       buf.append(",features=");
@@ -126,7 +126,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 
   public PTypeVarDef resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.varSlot != null) { return this; }
+    if (this._resolved_varSlot != null) { return this; }
     if (!this.scope.canDefineTVar(this)) {
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
@@ -135,29 +135,33 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(this.name);
       throw new CompileException(emsg.toString());
     }
-    this.varSlot = this.scope.defineTVar(this);
+    this._resolved_varSlot = this.scope.defineTVar(this);
     if (this.features != null) {
       this.features = this.features.resolve();
     }
     return this;
   }
 
-  public PDefDict.TconProps getTconProps() { return null; }
-
   public void excludePrivateAcc() throws CompileException {}
+
+  public void normalizeTypes() throws CompileException {
+    if (this.type != null && this._normalized_typeSkel == null) {
+      this._normalized_typeSkel = this.type.toSkel().normalize();
+    }
+  }
 
   public PTypeVarSkel toSkel() {
     PFeatureSkel.List fs = (this.features != null)?  this.features.toSkel(): null;
-    return PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, fs);
+    return PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, fs);
   }
 
-  public PTypeVarSkel getNormalizedSkel() throws CompileException {
-    if (this.nTypeSkel == null) {
-      this.nFeatures = (this.features != null)?  this.features.getNormalizedSkel(): null;
-      this.nTypeSkel = PTypeVarSkel.create(this.srcInfo, this.name, this.varSlot, this.nFeatures);
-    }
-    return (PTypeVarSkel)this.nTypeSkel;
-  }
+  // public PTypeVarSkel getNormalizedSkel() throws CompileException {
+    // if (this._normalized_typeSkel == null) {
+      // this.nFeatures = (this.features != null)?  this.features.getNormalizedSkel(): null;
+      // this._normalized_typeSkel = PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, this.nFeatures);
+    // }
+    // return (PTypeVarSkel)this._normalized_typeSkel;
+  // }
 
   static class DefWithVariance {
     Parser.SrcInfo srcInfo;

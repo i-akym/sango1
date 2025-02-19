@@ -34,12 +34,12 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Access acc;
   PTypeVarDef obj;
   PTypeVarDef.DefWithVariance[] params;
-  PTypeId fname;
+  String fname;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
   PTypeVarSkel objSkel;
   PTypeVarSkel[] paramSkels;
-  PTypeRefSkel implSkel;
+  PTypeRefSkel _normalized_implSkel;
 
   PFeatureStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
@@ -104,7 +104,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.paramList.add(param);
     }
 
-    void setFname(PTypeId fname) {
+    void setFname(String fname) {
       this.feature.fname = fname;
     }
 
@@ -122,7 +122,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       for (int i = 0; i < this.feature.params.length; i++) {
         sb.addParam(this.feature.params[i].varDef);
       }
-      sb.setName(this.feature.fname);
+      sb.setName(PTid.createFeature(this.feature.getSrcInfo(), this.feature.getScope(), this.feature.fname));
       this.feature.sig = sb.create();
       return this.feature;
     }
@@ -175,7 +175,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
-    PTypeId fname = PTypeId.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
+    PTid fname = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
     if (fname == null) {
       emsg = new StringBuffer();
       emsg.append("Feature name missing at ");
@@ -183,7 +183,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setFname(fname);
+    builder.setFname(fname.name);
     if (ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Definition form incomplete at ");
@@ -272,71 +272,35 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   public PFeatureStmt resolve() throws CompileException {
     StringBuffer emsg;
+
     this.obj = this.obj.resolve();
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].varDef = this.params[i].varDef.resolve();
-    // }
     this.sig = this.sig.resolve();
     this.impl = this.impl.resolve();
-
-    PTypeRef itr = (PTypeRef)this.impl;
-    PDefDict.TconProps tps = itr.tconProps;
-    Set<String> ivs = new HashSet<String>();  // var refs in impl
-    for (int i = 0; i < itr.params.length; i++) {
-      if (!(itr.params[i] instanceof PTypeVarRef)) {
-        emsg = new StringBuffer();
-        emsg.append("Invalid feature implementation type paramter at ");
-        emsg.append(itr.params[i].getSrcInfo());
-        emsg.append(". parameter ");
-        emsg.append(i + 1);
-        throw new CompileException(emsg.toString());
-      }
-      PTypeVarRef r = (PTypeVarRef)itr.params[i];
-      if (r.def.name.equals(this.obj.name)) {
-        if (this.params.length > 0 && !this.obj.requiresConcrete) {
-          emsg = new StringBuffer();
-          emsg.append("The object should be concrete at ");
-          emsg.append(this.obj.getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      } else {
-        ivs.add(r.def.name);  // collect refs of feature sig param
-        PDefDict.TparamProps pp = tps.paramProps[i];
-        int jj = -1;
-        for (int j = 0; jj < 0 && j < this.params.length; j++) {
-          if (r.def.name.equals(this.params[j].varDef.name)) {
-            jj = j;
-          }
-        }
-        if (jj < 0) { throw new RuntimeException("Unknown var name. " + r.def.name); }
-        if (this.params[jj].variance == Module.INVARIANT || this.params[jj].variance == pp.variance) {
-          ;
-        } else {
-          emsg = new StringBuffer();
-          emsg.append("Parameter variance for ");
-          emsg.append(r.def.name);
-          emsg.append(" mismatch at ");
-          emsg.append(r.getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      }
-    }
-    if (ivs.size() != this.params.length) {
-      emsg = new StringBuffer();
-      emsg.append("Insufficient variable references in feature implementation type at ");
-      emsg.append(itr.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
 
     this.objSkel = this.obj.toSkel();
     this.paramSkels = new PTypeVarSkel[this.params.length];
     for (int i = 0; i < this.paramSkels.length; i++) {
       this.paramSkels[i] = (PTypeVarSkel)this.params[i].varDef.toSkel();
     }
-    this.implSkel = (PTypeRefSkel)this.impl.toSkel();
+
+    PTypeSkelBindings bindings = PTypeSkelBindings.create();  // dummy
+    // following check is no more needed...  
+    // if (this.implSkel.includesVar(this.objSkel.varSlot, bindings) && this.params.length > 0 && !this.obj.requiresConcrete) {
+      // emsg = new StringBuffer();
+      // emsg.append("The object should be concrete at ");
+      // emsg.append(this.obj.getSrcInfo());
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    for (int i = 0; i < this.params.length; i++) {
+      if (!this.impl.toSkel().includesVar(this.params[i].varDef._resolved_varSlot, bindings)) {
+        emsg = new StringBuffer();
+        emsg.append("Insufficient variable references in feature implementation type at ");
+        emsg.append(this.impl.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
     return this;
   }
 
@@ -345,20 +309,28 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   public Module.Access getAcc() { return this.acc; }
 
   public PDefDict.IdKey getNameKey() {
-    return PDefDict.IdKey.create(this.scope.myModName(), this.fname.name);
+    return PDefDict.IdKey.create(this.scope.myModName(), this.fname);
   }
 
-  public int getParamCount() { return this.params.length; }
+  public PDefDict.TparamProps[] getParamPropss() {
+    PDefDict.TparamProps[] tps = new PDefDict.TparamProps[this.params.length];
+    for (int i = 0; i < this.params.length; i++) {
+      tps[i] = PDefDict.TparamProps.create(this.params[i].variance, this.params[i].varDef.requiresConcrete);
+    }
+    return tps;
+  }
+
+  // public int getParamCount() { return this.params.length; }
 
   public PTypeVarSkel getObjType() { return this.objSkel; }
 
-  public PTypeVarSkel[] getParams() { return this.paramSkels; }
+  // public PTypeVarSkel[] getParams() { return this.paramSkels; }
 
-  // public PFeatureSkel getFeatureSig() { return this.sig.toSkel(); }
+  public PFeatureSkel getFeatureSig() { return this.sig.toSkel(); }
 
-  public Module.Variance getParamVarianceAt(int pos) { return this.params[pos].variance; }
+  // public Module.Variance getParamVarianceAt(int pos) { return this.params[pos].variance; }
 
-  public PTypeRefSkel getImplType() { return this.implSkel; }
+  public PTypeRefSkel getImplType() { return this._normalized_implSkel; }
 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
@@ -366,9 +338,35 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     return;
   }
 
-  public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
+  // public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
+
+  void checkVariance() throws CompileException {
+// TODO
+    // PTypeVarSlot[] ss = new PTypeVarSlot[this.params.length];
+    // Module.Variance[] vs = new Module.Variance[this.params.length];
+    // for (int i = 0; i < this.params.length; i++) {
+      // if (this.params[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
+      // ss[i] = this.params[i].varDef.varSlot;
+      // vs[i] = this.params[i].variance;
+    // }
+    // PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
+    // PTypeVarSkel x = this.impl.varIncompatVariance(vt);
+    // if (x != null) {
+      // StringBuffer emsg = new StringBuffer();
+      // emsg.append("Incompatible variance for ");
+      // emsg.append(PTypeSkel.Repr.topLevelRepr(x));
+      // emsg.append(" at ");
+      // emsg.append(this.impl.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+  }
 
   public void checkConcreteness() throws CompileException {}
+
+  void normalizeTypes() throws CompileException {
+    this._normalized_implSkel = (PTypeRefSkel)this.impl.toSkel().normalize();
+  }
 
   List<PAliasTypeStmt> generateAliases(PModule mod) throws CompileException {
     List<PAliasTypeStmt> aliases = new ArrayList<PAliasTypeStmt>();
@@ -395,11 +393,11 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     for (int i = 0; i < this.params.length; i++) {
       sigBuilder.addItem(this.params[i].varDef.unresolvedCopy(si, defScope, PType.COPY_EXT_OFF, PType.COPY_CONCRETE_OFF));
     }
-    sigBuilder.addItem(PTypeId.create(si, defScope, null, "_feature_impl_" + this.fname.name, false));
+    sigBuilder.addItem(PTid.create(si, defScope, null, "_feature_impl_" + this.fname, false));
     aliasTypeStmtBuilder.setSig(sigBuilder.create());
     aliasTypeStmtBuilder.setAcc(this.acc);
     aliasTypeStmtBuilder.setBody(this.impl.unresolvedCopy(si, bodyScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
-    // PAliasTypeStmt a = aliasTypeStmtBuilder.create();
+// /* DEBUG */ PAliasTypeStmt a = aliasTypeStmtBuilder.create();
 // /* DEBUG */ System.out.println(a);
     return aliasTypeStmtBuilder.create();
   }
@@ -415,7 +413,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PScope bodyScope = evalStmtBuilder.getBodyScope();
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
     PScope retScope = retDefBuilder.getScope();
-    evalStmtBuilder.setOfficial("_feature_" + this.fname.name);
+    evalStmtBuilder.setOfficial("_feature_" + this.fname);
     evalStmtBuilder.setAcc(this.acc);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     PFeature.ListBuilder paramFeaturesBuilder = PFeature.ListBuilder.newInstance(si, defScope);
@@ -428,8 +426,8 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     retDefBuilder.setType(this.impl.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "X")));
-    callEvalBuilder.addItem(PEvalItem.create(PExprId.create(si, bodyScope, null, "_builtin_feature_get_" + this.fname.name)));
+    callEvalBuilder.addItem(PEvalItem.create(PEid.create(si, bodyScope, null, "X")));
+    callEvalBuilder.addItem(PEvalItem.create(PEid.create(si, bodyScope, null, "_builtin_feature_get_" + this.fname)));
     List<PExpr> ies = new ArrayList<PExpr>();
     ies.add(PExpr.create(callEvalBuilder.create()));
     evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
@@ -445,7 +443,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PScope bodyScope = evalStmtBuilder.getBodyScope();
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
     PScope retScope = retDefBuilder.getScope();
-    evalStmtBuilder.setOfficial("_builtin_feature_get_" + this.fname.name);
+    evalStmtBuilder.setOfficial("_builtin_feature_get_" + this.fname);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     PFeature.ListBuilder paramFeaturesBuilder = PFeature.ListBuilder.newInstance(si, defScope);

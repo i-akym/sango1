@@ -35,16 +35,16 @@ import javax.xml.transform.stream.StreamResult;
 
 class Generator {
   Compiler theCompiler;
-  Parser parser;
-  Cstr modName;
+  PModule theMod;
+  // Parser parser;
+  // Cstr modName;
   File modFile;
   Module.Builder modBuilder;
   boolean stop;
 
   Generator(Compiler theCompiler, Compiler.CompileEntry ce) {
     this.theCompiler = theCompiler;
-    this.parser = theCompiler.parserDict.get(ce.modName);
-    this.modName = ce.modName;
+    this.theMod = ce.parser.mod;
     this.modFile = ce.modFile;
     this.modBuilder = Module.newBuilder();
   }
@@ -54,15 +54,19 @@ class Generator {
     this.generateModInfo();
     this.generateForeignInfo();
     if (this.stop) { return; }
-    this.generateDataDefs();
-    this.generateAliasTypeDefs();
-    this.generateFeatureDefs();
-    this.generateFunDefs();
-    this.generateFunImpls();
+    try {
+      this.generateDataDefs();
+      this.generateAliasTypeDefs();
+      this.generateFeatureDefs();
+      this.generateFunDefs();
+      this.generateFunImpls();
+    } catch (CompileException ex) {
+      throw new RuntimeException("Unexpteced exception. " + ex.toString());
+    }
 
     if (this.theCompiler.verboseModule) {
       this.theCompiler.msgOut.print("Generating ");
-      this.theCompiler.msgOut.print(this.parser.modName.repr());
+      this.theCompiler.msgOut.print(this.theMod.name.repr());
       this.theCompiler.msgOut.print(" = ");
       this.theCompiler.msgOut.print(this.modFile.getAbsolutePath());
       this.theCompiler.msgOut.println(" ... ");
@@ -76,26 +80,27 @@ class Generator {
   }
 
   void prepare() {
-    PModule m = this.parser.mod;
-    for (int i = 0; i < m.aliasTypeStmtList.size(); i++) {
-      PAliasTypeStmt a = m.aliasTypeStmtList.get(i);
-      if (a.acc != Module.ACC_PRIVATE) {
-        a.getBody();  // finish all bodies' setup
-      }
-    }
+// have to do something?
+    // PModule m = this.theMod;
+    // for (int i = 0; i < m.aliasTypeStmtList.size(); i++) {
+      // PAliasTypeStmt a = m.aliasTypeStmtList.get(i);
+      // if (a.acc != Module.ACC_PRIVATE) {
+        // a.getBody();  // finish all bodies' setup
+      // }
+    // }
   }
 
   void generateModInfo() {
-    this.modBuilder.setName(this.parser.mod.definedName);
-    this.modBuilder.setAvailability(this.parser.mod.availability);
-    this.modBuilder.setSlotCount((this.parser.mod.isInitFunDefined())? 2: 1);
+    this.modBuilder.setName(this.theMod.definedName);
+    this.modBuilder.setAvailability(this.theMod.availability);
+    this.modBuilder.setSlotCount((this.theMod.isInitFunDefined())? 2: 1);
   }
 
   void generateForeignInfo() {
-    if (this.parser.mod.isLang()) {
+    if (this.theMod.isLang()) {
       ;
     } else {
-      Cstr[] foreignMods = this.parser.mod.getForeignMods();
+      Cstr[] foreignMods = this.theMod.getForeignMods();
       for (int i = 0; i < foreignMods.length; i++) {
         this.modBuilder.startForeignMod(foreignMods[i]); 
         this.generateForeignRefsIn(foreignMods[i]);
@@ -105,45 +110,45 @@ class Generator {
   }
 
   void generateForeignRefsIn(Cstr modName) {
-    PDataDef[] dds = this.parser.mod.foreignIdResolver.getReferredDataDefsIn(modName);
-    for (int i = 0; i < dds.length; i++) {
-      PDataDef dd = dds[i];
+    List<PDataDef> dds = this.theCompiler.defDict.getForeignDataDefsIn(this.theMod.name, modName);
+    for (int i = 0; i < dds.size(); i++) {
+      PDataDef dd = dds.get(i);
       try {
         this.theCompiler.handleTypeAvailability(
-          this.modName, modName, dd.getFormalTcon(), dd.getAvailability());
-        this.generateDataDefGeneric(dd);
+          this.theMod.name, modName, dd.getFormalTcon(), dd.getAvailability());
+        this.generateDataDefGeneric(dd, false);
       } catch (CompileException ex) {
         this.stop = true;
       }
     }
-    PAliasTypeDef[] ads = this.parser.mod.foreignIdResolver.getReferredAliasTypeDefsIn(modName);
-    for (int i = 0; i < ads.length; i++) {
-      PAliasTypeDef ad = ads[i];
+    List<PAliasTypeDef> ads = this.theCompiler.defDict.getForeignAliasTypeDefsIn(this.theMod.name, modName);
+    for (int i = 0; i < ads.size(); i++) {
+      PAliasTypeDef ad = ads.get(i);
       try {
         this.theCompiler.handleTypeAvailability(
-          this.modName, modName, ad.getTcon(), ad.getAvailability());
+          this.theMod.name, modName, ad.getTcon(), ad.getAvailability());
         this.generateAliasTypeDefGeneric(ad);
       } catch (CompileException ex) {
         this.stop = true;
       }
     }
-    PFeatureDef[] ftds = this.parser.mod.foreignIdResolver.getReferredFeatureDefsIn(modName);
-    for (int i = 0; i < ftds.length; i++) {
-      PFeatureDef ftd = ftds[i];
+    List<PFeatureDef> ftds = this.theCompiler.defDict.getForeignFeatureDefsIn(this.theMod.name, modName);
+    for (int i = 0; i < ftds.size(); i++) {
+      PFeatureDef ftd = ftds.get(i);
       try {
         this.theCompiler.handleTypeAvailability(
-          this.modName, modName, ftd.getNameKey().idName, ftd.getAvailability());
+          this.theMod.name, modName, ftd.getNameKey().idName, ftd.getAvailability());
         this.generateFeatureDef(ftd);
       } catch (CompileException ex) {
         this.stop = true;
       }
     }
-    PFunDef[] fds = this.parser.mod.foreignIdResolver.getReferredFunDefsIn(modName);
-    for (int i = 0; i < fds.length; i++) {
-      PFunDef fd = fds[i];
+    List<PFunDef> fds = this.theCompiler.defDict.getForeignFunDefsIn(this.theMod.name, modName);
+    for (int i = 0; i < fds.size(); i++) {
+      PFunDef fd = fds.get(i);
       try {
         this.theCompiler.handleFunAvailability(
-          this.modName, modName, fd.getOfficialName(), fd.getAvailability());
+          this.theMod.name, modName, fd.getOfficialName(), fd.getAvailability());
         this.generateFunDef(fd);
       } catch (CompileException ex) {
         this.stop = true;
@@ -151,18 +156,20 @@ class Generator {
     }
   }
 
-  void generateDataDefs() {
-    for (int i = 0; i < this.parser.mod.dataStmtList.size(); i++) {
-      this.generateDataDefGeneric(this.parser.mod.dataStmtList.get(i)) ;
-      this.generateDataConstrImpls(this.parser.mod.dataStmtList.get(i)) ;
+  void generateDataDefs() throws CompileException {
+    for (int i = 0; i < this.theMod.dataStmtList.size(); i++) {
+      this.generateDataDefGeneric(this.theMod.dataStmtList.get(i), true) ;
+      this.generateDataConstrImpls(this.theMod.dataStmtList.get(i)) ;
     }
-    for (int i = 0; i < this.parser.mod.extendStmtList.size(); i++) {
-      this.generateDataDefGeneric(this.parser.mod.extendStmtList.get(i)) ;
-      this.generateDataConstrImpls(this.parser.mod.extendStmtList.get(i)) ;
+    for (int i = 0; i < this.theMod.extendStmtList.size(); i++) {
+      this.generateDataDefGeneric(this.theMod.extendStmtList.get(i), true) ;
+      this.generateDataConstrImpls(this.theMod.extendStmtList.get(i)) ;
     }
   }
 
-  void generateDataDefGeneric(PDataDef dd) {
+  void generateDataDefGeneric(PDataDef dd, boolean def) throws CompileException {
+    // def: true -> defined here; false -> referred
+    Module.Access acc = dd.getAcc();
     PTypeSkel sig = dd.getTypeSig();
     if (sig == null) { return; }  // fun, tuple?
     PTypeVarSkel[] pvs;
@@ -178,25 +185,27 @@ class Generator {
     }
     PDefDict.IdKey btk = dd.getBaseTconKey();
     if (btk != null) {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc(),
-        this.parser.mod.modNameToModRefIndex(btk.modName), btk.idName);
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), acc,
+        this.theMod.modNameToModRefIndex(btk.modName), btk.idName);
     } else {
-      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), dd.getAcc());
+      this.modBuilder.startDataDef(dd.getFormalTcon(), dd.getAvailability(), acc);
     }
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
+    PDefDict.TparamProps[] tps = dd.getParamPropss();
     for (int i = 0; i < pvs.length; i++) {
-      MTypeVar v = (MTypeVar)pvs[i].toMType(this.parser.mod, varSlotList);
-      MTypeVar.DefWithVariance p = MTypeVar.DefWithVariance.create(dd.getParamVarianceAt(i), v);
+      MTypeVar v = (MTypeVar)pvs[i].toMType(this.theMod, varSlotList);
+      MTypeVar.DefWithVariance p = MTypeVar.DefWithVariance.create(tps[i].variance, v);
       this.modBuilder.putDataDefParam(p);
     }
-    for (int i = 0; i < dd.getConstrCount(); i++) {
-      this.generateConstrDef(dd.getConstrAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
+    if (def || acc == Module.ACC_PUBLIC || acc == Module.ACC_PROTECTED) {
+      for (int i = 0; i < dd.getConstrCount(); i++) {
+        this.generateConstrDef(dd.getConstrAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
+      }
     }
     for (int i = 0; i < dd.getFeatureImplCount(); i++) {
       this.generateFeatureImplDef(dd.getFeatureImplAt(i), new ArrayList<PTypeVarSlot>(varSlotList));
     }
     this.modBuilder.endDataDef();
-
   }
 
   void generateConstrDef(PDataDef.Constr constrDef, List<PTypeVarSlot> varSlotList) {
@@ -209,28 +218,28 @@ class Generator {
 
   void generateAttrDef(PDataDef.Attr attrDef, List<PTypeVarSlot> varSlotList) {
     this.modBuilder.startAttrDef(attrDef.getName());
-    this.modBuilder.setAttrType(attrDef.getFixedType().toMType(this.parser.mod, varSlotList));
+    this.modBuilder.setAttrType(attrDef.getFixedType().toMType(this.theMod, varSlotList));
     this.modBuilder.endAttrDef();
   }
 
-  void generateFeatureImplDef(PDataDef.FeatureImpl featureImplDef, List<PTypeVarSlot> varSlotList) {
+  void generateFeatureImplDef(PDataDef.FeatureImpl featureImplDef, List<PTypeVarSlot> varSlotList) throws CompileException {
     this.modBuilder.addFeatureImplDef(
-      this.parser.mod.modNameToModRefIndex(featureImplDef.getProviderModName()),
+      this.theMod.modNameToModRefIndex(featureImplDef.getProviderModName()),
       featureImplDef.getProviderFunName(),
       featureImplDef.getGetter(),
-      featureImplDef.getImpl().toMType(this.parser.mod, varSlotList));
+      featureImplDef.getImpl().toMType(this.theMod, varSlotList));
   }
 
   void generateDataConstrImpls(PDataDef dd) {
     for (int i = 0; i < dd.getConstrCount(); i++) {
       PDataDef.Constr dc = dd.getConstrAt(i);
-      this.modBuilder.putUniqueDataConstrLocal(dc.getDcon(), dc.getAttrCount(), dd.getFormalTcon(), dd.getParamCount());
+      this.modBuilder.putUniqueDataConstrLocal(dc.getDcon(), dc.getAttrCount(), dd.getFormalTcon(), dd.getParamPropss().length);
     }
   }
 
   void generateAliasTypeDefs() {
-    for (int i = 0; i < this.parser.mod.aliasTypeStmtList.size(); i++) {
-      this.generateAliasTypeDefGeneric(this.parser.mod.aliasTypeStmtList.get(i));
+    for (int i = 0; i < this.theMod.aliasTypeStmtList.size(); i++) {
+      this.generateAliasTypeDefGeneric(this.theMod.aliasTypeStmtList.get(i));
     }
   }
 
@@ -242,53 +251,54 @@ class Generator {
     for (int i = 0; i < pvs.length; i++) {
       varSlotList.add(pvs[i]);
     }
-    atd.setBody(alias.getBody().toMType(this.parser.mod, varSlotList));
+    atd.setBody(alias.getBody().toMType(this.theMod, varSlotList));
     this.modBuilder.putAliasTypeDef(atd);
   }
 
   void generateFeatureDefs() {
-    for (int i = 0; i < this.parser.mod.featureStmtList.size(); i++) {
-      this.generateFeatureDef(this.parser.mod.featureStmtList.get(i)) ;
+    for (int i = 0; i < this.theMod.featureStmtList.size(); i++) {
+      this.generateFeatureDef(this.theMod.featureStmtList.get(i)) ;
     }
   }
 
   void generateFeatureDef(PFeatureStmt feature) {
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
-    b.setName(feature.fname.name);
+    b.setName(feature.fname);
 /* DEBUG */ if (feature.availability == null) { throw new RuntimeException("Null availability. " + feature.fname); }
     b.setAvailability(feature.availability);
     b.setAcc(feature.acc);
-    b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.parser.mod, varSlotList));
+    b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.theMod, varSlotList));
     for (int i = 0; i < feature.params.length; i++) {
-      MTypeVar v = (MTypeVar)feature.params[i].varDef.toSkel().toMType(this.parser.mod, varSlotList);
+      MTypeVar v = (MTypeVar)feature.params[i].varDef.toSkel().toMType(this.theMod, varSlotList);
       MTypeVar.DefWithVariance d = MTypeVar.DefWithVariance.create(feature.params[i].variance, v);
       b.addParam(d);
     }
-    b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.parser.mod, varSlotList));
+    b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.theMod, varSlotList));
     this.modBuilder.putFeatureDef(b.create());
   }
 
-  void generateFeatureDef(PFeatureDef fd) {  // foreign
+  void generateFeatureDef(PFeatureDef fd) throws CompileException {  // foreign
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     MFeatureDef.Builder b = MFeatureDef.Builder.newInstance();
     b.setName(fd.getNameKey().idName);
     b.setAvailability(fd.getAvailability());
     b.setAcc(fd.getAcc());
-    b.setObjType((MTypeVar)fd.getObjType().toMType(this.parser.mod, varSlotList));
-    PTypeVarSkel[] ps = fd.getParams();
-    for (int i = 0; i < ps.length; i++) {
-      MTypeVar v = (MTypeVar)ps[i].toMType(this.parser.mod, varSlotList);
-      MTypeVar.DefWithVariance d = MTypeVar.DefWithVariance.create(fd.getParamVarianceAt(i), v);
+    b.setObjType((MTypeVar)fd.getObjType().toMType(this.theMod, varSlotList));
+    PFeatureSkel sig = fd.getFeatureSig();
+    PDefDict.TparamProps[] pps = fd.getParamPropss();
+    for (int i = 0; i < sig.params.length; i++) {
+      MTypeVar v = (MTypeVar)sig.params[i].toMType(this.theMod, varSlotList);
+      MTypeVar.DefWithVariance d = MTypeVar.DefWithVariance.create(pps[i].variance, v);
       b.addParam(d);
     }
-    b.setImplType((MTypeRef)fd.getImplType().toMType(this.parser.mod, varSlotList));
+    b.setImplType((MTypeRef)fd.getImplType().toMType(this.theMod, varSlotList));
     this.modBuilder.putFeatureDef(b.create());
   }
 
   void generateFunDefs() {
-    for (int i = 0; i < this.parser.mod.evalStmtList.size(); i++) {
-      this.generateFunDef(this.parser.mod.evalStmtList.get(i)) ;
+    for (int i = 0; i < this.theMod.evalStmtList.size(); i++) {
+      this.generateFunDef(this.theMod.evalStmtList.get(i)) ;
     }
   }
 
@@ -303,9 +313,9 @@ class Generator {
     }
     List<PTypeVarSlot> varSlotList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < eval.params.length; i++) {
-      b.addParamType(eval.params[i].nTypeSkel.toMType(this.parser.mod, varSlotList));
+      b.addParamType(eval.params[i].getNormalizedType().toMType(this.theMod, varSlotList));
     }
-    b.setRetType(eval.retDef.nTypeSkel.toMType(this.parser.mod, varSlotList));
+    b.setRetType(eval.retDef.getNormalizedType().toMType(this.theMod, varSlotList));
     this.modBuilder.putFunDef(b.create());
   }
 
@@ -318,22 +328,22 @@ class Generator {
     PTypeSkel[] pts = fd.getFixedParamTypes();
     for (int i = 0; i < pts.length; i++) {
 // /* DEBUG */ System.out.print("param "); System.out.println(pts[i]);
-      b.addParamType(pts[i].toMType(this.parser.mod, varSlotList));
+      b.addParamType(pts[i].toMType(this.theMod, varSlotList));
     }
-    b.setRetType(fd.getFixedRetType().toMType(this.parser.mod, varSlotList));
+    b.setRetType(fd.getFixedRetType().toMType(this.theMod, varSlotList));
     this.modBuilder.putFunDef(b.create());
   }
 
   void generateFunImpls() {
-    for (int i = 0; i < this.parser.mod.evalStmtList.size(); i++) {
-      this.generateFunImpl(this.parser.mod.evalStmtList.get(i)) ;
+    for (int i = 0; i < this.theMod.evalStmtList.size(); i++) {
+      this.generateFunImpl(this.theMod.evalStmtList.get(i)) ;
     }
   }
 
   void generateFunImpl(PEvalStmt eval) {
     PExprVarSlot[] paramVarSlots = new PExprVarSlot[eval.params.length];
     for (int i = 0; i < eval.params.length; i++) {
-      paramVarSlots[i] = eval.params[i].varSlot;
+      paramVarSlots[i] = eval.params[i]._resolved_varSlot;
     }
     if (eval.implExprs != null) {
       GFlow flow = GFlow.create(this, eval.getSrcInfo(), eval.official, paramVarSlots, eval.getFixedParamTypes());
