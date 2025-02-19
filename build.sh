@@ -68,7 +68,8 @@ compile_misc() {
 }
 
 compile_targets() {
-  $SANGOC -m src -quiet all $* || build_error
+  $SANGOC -m src $* || build_error
+#  $SANGOC -m src -quiet all $* || build_error
   IMPLS=`tool/nativeimpl.sh $*`
   if [ "$IMPLS" != "" ]; then
     $JAVAC -cp src $IMPLS || build_error

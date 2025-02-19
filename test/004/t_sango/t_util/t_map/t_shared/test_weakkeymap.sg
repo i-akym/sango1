@@ -7,7 +7,7 @@ import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.map" -> map ;;
-import "sango.util.map.box" -> map_box ;;
+import "sango.util.map.shared.box" -> map_box ;;
 import "sango.util.map.shared" -> shm ;;
 import "sango.util.map.shared.weakkeymap" -> wkm ;;
 

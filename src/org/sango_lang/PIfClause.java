@@ -183,6 +183,11 @@ class PIfClause extends PDefaultExprObj {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    this.guard.normalizeTypes();
+    this.action.normalizeTypes();
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??
     this.typeGraphNode = graph.createRefNode(this);

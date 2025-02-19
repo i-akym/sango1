@@ -29,6 +29,7 @@ import java.util.ArrayList;
 class PStaticInvEval extends PDefaultExprObj implements PEval {
   PEid funId;  // HERE: official name needed
   PExprObj params[];
+  PDefDict.EidProps _resolved_funIdProps;
 
   private PStaticInvEval(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
@@ -115,11 +116,28 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PStaticInvEval resolve() throws CompileException {
+    StringBuffer emsg;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
-    this.funId = (PEid)this.funId.resolve();
+    this.funId.setFun();
+    this._resolved_funIdProps = this.scope.resolveEid(this.funId);
+    if (this._resolved_funIdProps == null) {
+      emsg = new StringBuffer();
+      emsg.append("Function \"");
+      emsg.append(this.funId.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.funId.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     return this;
+  }
+
+  public void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].normalizeTypes();
+    }
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {

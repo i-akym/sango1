@@ -34,6 +34,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   PEvalItem.ObjItem namedAttrs[];
   Map<String, PEvalItem> namedAttrDict;
   PEvalItem.ObjItem using;
+  PDefDict.EidProps _resolved_dconProps;
+  PDataDef _resolved_dataDef;
   PExpr[] bdPosd;
   PExpr[] bdNamed;
   PExpr bdUsing;
@@ -202,6 +204,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   }
 
   public PDataConstrEval resolve() throws CompileException {
+    StringBuffer emsg;
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
@@ -211,7 +214,19 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     if (this.using != null) {
       this.using = this.using.resolve();
     }
-    this.dcon = (PEid)this.dcon.resolve();
+    this.dcon.setDconEval();
+    this._resolved_dconProps = this.scope.theMod.resolveAnchor(this.dcon);
+    if (this._resolved_dconProps == null) {
+      emsg = new StringBuffer();
+      emsg.append("Data constructor \"");
+      emsg.append(this.dcon.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.dcon.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForEval(this.scope.theMod.name, this._resolved_dconProps.key);
+    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, tconKey);
     this.breakDown();
     return this;
   }
@@ -242,8 +257,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
 
   private int[] analyzeAttrSrc() throws CompileException {
     StringBuffer emsg;
-    PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
-    PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
+    //PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
+    PDataDef.Constr constr = this._resolved_dataDef.getConstr(this.dcon.name);
     int[] attrSrcs = new int[constr.getAttrCount()];
     if (this.posdAttrs.length + this.namedAttrs.length > attrSrcs.length) {
       emsg = new StringBuffer();
@@ -308,26 +323,38 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     // /* DEBUG */ System.out.println(this);
     try {
       PExprVarDef[] posdVarDefs = new PExprVarDef[this.posdAttrs.length];
-      PEid[] posdVarRefs = new PEid[this.posdAttrs.length];
+      PEval[] posdVarRefs = new PEval[this.posdAttrs.length];
       for (int i = 0; i < this.posdAttrs.length; i++) {
         String varName = this.scope.generateId();
         posdVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-        posdVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
+        PEid v = PEid.create(this.srcInfo, this.scope, null, varName);
+        v.setVar();
+        posdVarRefs[i] = PUndetEval.create(this.srcInfo, this.scope, v, new PEvalItem.ObjItem[0]);
+        // posdVarRefs[i] = PExprVarRef.create(this.srcInfo, this.scope, varName, posdVarDefs[i].varSlot);
+        // posdVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
       }
       PExprVarDef[] namedVarDefs = new PExprVarDef[this.namedAttrs.length];
-      PEid[] namedVarRefs = new PEid[this.namedAttrs.length];
+      PEval[] namedVarRefs = new PEval[this.namedAttrs.length];
       for (int i = 0; i < this.namedAttrs.length; i++) {
         String varName = this.scope.generateId();
         namedVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-        namedVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
+        PEid v = PEid.create(this.srcInfo, this.scope, null, varName);
+        v.setVar();
+        namedVarRefs[i] = PUndetEval.create(this.srcInfo, this.scope, v, new PEvalItem.ObjItem[0]);
+        // namedVarRefs[i] = PExprVarRef.create(this.srcInfo, this.scope, varName, namedVarDefs[i].varSlot);
+        // namedVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
       }
       PExprVarDef[] usingVarDefs = new PExprVarDef[attrSrcs.length];
-      PEid[] usingVarRefs = new PEid[attrSrcs.length];
+      PEval[] usingVarRefs = new PEval[attrSrcs.length];
       for (int i = 0; i < attrSrcs.length; i++) {
         if (attrSrcs[i] == ATTR_FROM_USING) {
           String varName = this.scope.generateId();
           usingVarDefs[i] = PExprVarDef.create(this.srcInfo, this.scope, PExprVarDef.CAT_LOCAL_VAR, null, varName);
-          usingVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
+          PEid v = PEid.create(this.srcInfo, this.scope, null, varName);
+          v.setVar();
+          usingVarRefs[i] = PUndetEval.create(this.srcInfo, this.scope, v, new PEvalItem.ObjItem[0]);
+          // usingVarRefs[i] = PExprVarRef.create(this.srcInfo, this.scope, varName, usingVarDefs[i].varSlot);
+          // usingVarRefs[i] = PEid.create(this.srcInfo, this.scope, null, varName);
         } else {
           usingVarDefs[i] = null;
           usingVarRefs[i] = null;
@@ -433,6 +460,18 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     }
   }
 
+  public void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.posdAttrs.length; i++) {
+      this.posdAttrs[i].normalizeTypes();
+    }
+    for (int i = 0; i < this.namedAttrs.length; i++) {
+      this.namedAttrs[i].normalizeTypes();
+    }
+    if (this.using != null) {
+      this.using.normalizeTypes();
+    }
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.bdPosd != null) {
       for (int i = 0; i < this.bdPosd.length; i++) {
@@ -477,8 +516,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     PTypeRefSkel type = (PTypeRefSkel)this.typeGraphNode.getFixedType();
     // /* DEBUG */ System.out.println(type.tconProps);
     GFlow.DataConstrNode n = flow.createNodeForDataConstrBody(
-      this.srcInfo, this.scope.theMod.modNameToModRefIndex(this.dcon.props.modName), this.dcon.name,
-      type.tconProps.key.idName, type.tconProps.paramCount());
+      this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_dconProps.key.modName), this.dcon.name,
+      type.tconKey.idName, type.params.length);
     for (int i = 0; i < this.bdAttrs.length; i++) {
       n.addChild(this.bdAttrs[i].setupFlow(flow));
     }

@@ -94,6 +94,10 @@ abstract class PEvalItem extends PDefaultExprObj {
       return this;
     }
 
+    public void normalizeTypes() throws CompileException {
+      this.obj.normalizeTypes();
+    }
+
     public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
       return this.obj.setupTypeGraph(graph);
     }
@@ -142,6 +146,10 @@ abstract class PEvalItem extends PDefaultExprObj {
 
     public SymItem resolve() throws CompileException {
       return this;
+    }
+
+    public void normalizeTypes() throws CompileException {
+      throw new RuntimeException("PEvalItem.SymItem#normalizeTypes is called.");
     }
 
     public String toString() {

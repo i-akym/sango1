@@ -169,11 +169,12 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   }
 
   void checkVariance(PTypeSkel.VarianceTab vt) throws CompileException {
-    if (this.nTypeSkel == null) { throw new RuntimeException("No normalized type skel. " + this); }
-    if (this.nTypeSkel instanceof PTypeVarSkel) {
+    // this.getNormalizedType();
+    if (this._normalized_typeSkel == null) { throw new RuntimeException("No normalized type skel. " + this); }
+    if (this._normalized_typeSkel instanceof PTypeVarSkel) {
       ;  // skip
-    } else if (this.nTypeSkel instanceof PTypeRefSkel) {
-      PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
+    } else if (this._normalized_typeSkel instanceof PTypeRefSkel) {
+      PTypeRefSkel t = (PTypeRefSkel)this._normalized_typeSkel;
       PTypeVarSkel x = t.varIncompatVariance(vt);
       if (x != null) {
         StringBuffer emsg = new StringBuffer();
@@ -185,19 +186,19 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
         throw new CompileException(emsg.toString());
       }
     } else {
-      throw new RuntimeException("Unexpected type. " + this.nTypeSkel);
+      throw new RuntimeException("Unexpected type. " + this._normalized_typeSkel);
     }
   }
 
   public void checkConcreteness() throws CompileException {
-    if (this.nTypeSkel instanceof PTypeRefSkel) {
-      PTypeRefSkel t = (PTypeRefSkel)this.nTypeSkel;
-      if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_FUN))) {
-        // formally OK...
-      } else if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
-        // formally OK...
-      } else {
 // TODO
+    // if (this._normalized_typeSkel instanceof PTypeRefSkel) {
+      // PTypeRefSkel t = (PTypeRefSkel)this._normalized_typeSkel;
+      // if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_FUN))) {
+        // // formally OK...
+      // } else if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
+        // // formally OK...
+      // } else {
         // PDefDict.TparamProps[] ps = t.tconProps.paramProps;
         // for (int i = 0; i < ps.length; i++) {
           // if (ps[i].concrete & !t.params[i].isConcrete()) {
@@ -208,7 +209,11 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
             // throw new CompileException(emsg.toString());
           // }
         // }
-      }
-    }
+      // }
+    // }
+  }
+
+  public void normalizeTypes() throws CompileException {
+    this._normalized_typeSkel = this.type.toSkel().normalize();
   }
 }

@@ -26,7 +26,7 @@ package org.sango_lang;
 class PTypeRef extends PDefaultProgObj implements PType {
   PTid tcon;
   PType[] params;  // empty array if no params
-  PDefDict.TconProps tconProps;
+  PDefDict.TidProps _resolved_tconProps;
 
   private PTypeRef(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -128,7 +128,8 @@ class PTypeRef extends PDefaultProgObj implements PType {
     StringBuffer emsg;
     /* DEBUG */ if (this.scope == null) { System.out.print("scope is null "); System.out.println(this); }
 
-    if ((this.tconProps = this.scope.resolveTcon(this.tcon)) == null) {
+    this._resolved_tconProps = this.scope.resolveTcon(this.tcon);
+    if (this._resolved_tconProps == null) {
       emsg = new StringBuffer();
       emsg.append("Type constructor \"");
       emsg.append(this.tcon.repr());
@@ -137,7 +138,20 @@ class PTypeRef extends PDefaultProgObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (this.tconProps.paramCount() >= 0 && this.params.length != this.tconProps.paramCount()) {
+    int paramCount = -2;
+    if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
+      PDataDef dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, this._resolved_tconProps.key);
+      if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before
+      PDefDict.TparamProps[] pps = dataDef.getParamPropss();
+      paramCount = (pps == null)? -1: pps.length;
+    } else if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
+      PAliasTypeDef aliasTypeDef = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.name, this._resolved_tconProps.key);
+      if (aliasTypeDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before
+      paramCount = aliasTypeDef.getParamVarSlots().length;
+    } else {
+      throw new RuntimeException("Unexpected cat. " + this.tcon + " " + this._resolved_tconProps.cat);
+    }
+    if (paramCount >= 0 && this.params.length != paramCount) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
       emsg.append(this.tcon.repr());
@@ -155,7 +169,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   public void excludePrivateAcc() throws CompileException {
     StringBuffer emsg;
-    if (this.tconProps.acc == Module.ACC_PRIVATE) {
+    if (this._resolved_tconProps.acc == Module.ACC_PRIVATE) {
       emsg = new StringBuffer();
       emsg.append("\"");
       emsg.append(this.tcon.repr());
@@ -175,21 +189,23 @@ class PTypeRef extends PDefaultProgObj implements PType {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.tcon.ext, ps);
+    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, this.tcon.ext, ps);
   }
 
-  public PTypeSkel getNormalizedSkel() throws CompileException {
-    PTypeSkel t;
-    PAliasTypeDef a;
-    PTypeSkel[] ps = new PTypeSkel[this.params.length];
-    for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].getNormalizedSkel();
-    }
-    if ((a = this.tconProps.defGetter.getAliasTypeDef()) != null) {
-      t = a.unalias(ps);
-    } else {
-      t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this.tconProps, this.tcon.ext, ps);
-    }
-    return t;
-  }
+  // public PTypeSkel getNormalizedSkel() throws CompileException {
+    // PTypeSkel t;
+    // PTypeSkel[] ps = new PTypeSkel[this.params.length];
+    // for (int i = 0; i < ps.length; i++) {
+      // ps[i] = this.params[i].getNormalizedSkel();
+    // }
+
+    // if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
+    // // if ((a = this._resolved_tconProps.defGetter.getAliasTypeDef()) != null) {
+      // PAliasTypeDef a = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.name, this._resolved_tconProps.key);
+      // t = a.unalias(ps);
+    // } else {
+      // t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, this.tcon.ext, ps);
+    // }
+    // return t;
+  // }
 }

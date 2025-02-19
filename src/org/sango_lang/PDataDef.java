@@ -25,6 +25,10 @@ package org.sango_lang;
 
 public interface PDataDef {
 
+  Module.Availability getAvailability();
+
+  Module.Access getAcc();
+
   String getFormalTcon();
 
   PDefDict.IdKey getBaseTconKey();
@@ -32,15 +36,7 @@ public interface PDataDef {
   PDefDict.TparamProps[] getParamPropss();
   // null for 'tuple', 'fun'
 
-  // int getParamCount();  // -1 if variable count  // needed?
-
   PTypeRefSkel getTypeSig();
-
-  // Module.Variance getParamVarianceAt(int pos);
-
-  Module.Availability getAvailability();
-
-  Module.Access getAcc();
 
   int getConstrCount();  // 0 if native impl
 
@@ -53,6 +49,8 @@ public interface PDataDef {
   FeatureImpl getFeatureImplAt(int index);
 
   interface Constr {
+
+    PDataDef getDataDef();
 
     String getDcon();
 
@@ -78,9 +76,9 @@ public interface PDataDef {
 
   interface FeatureImpl {
 
-    Cstr getProviderModName();
+    Cstr getProviderModName() throws CompileException;
 
-    String getProviderFunName();
+    String getProviderFunName() throws CompileException;
 
     String getGetter();
 

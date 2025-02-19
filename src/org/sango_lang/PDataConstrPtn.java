@@ -34,6 +34,8 @@ class PDataConstrPtn extends PDefaultExprObj {
   PPtnItem namedAttrs[];
   Map<String, PPtnItem> namedAttrDict;
   boolean wildCards;
+  PDefDict.EidProps _resolved_dconProps;
+  PDataDef _resolved_dataDef;
   PExprObj[] sortedAttrs;
 
   private PDataConstrPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -190,7 +192,19 @@ class PDataConstrPtn extends PDefaultExprObj {
     for (int i = 0; i < this.namedAttrs.length; i++) {
       this.namedAttrs[i] = this.namedAttrs[i].resolve();
     }
-    this.dcon = (PEid)this.dcon.resolve();
+    this.dcon.setDconPtn();
+    this._resolved_dconProps = this.scope.resolveEid(this.dcon);
+    if (this._resolved_dconProps == null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Data constructor \"");
+      emsg.append(this.dcon.repr());
+      emsg.append("\" is not defined at ");
+      emsg.append(this.dcon.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForPtn(this.scope.theMod.name, this._resolved_dconProps.key);
+    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, tconKey);
     this.sortAttrs();
     return this;
   }
@@ -224,8 +238,8 @@ class PDataConstrPtn extends PDefaultExprObj {
 
   private int[] analyzeAttrDst() throws CompileException {
     StringBuffer emsg;
-    PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
-    PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
+    // PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
+    PDataDef.Constr constr = this._resolved_dataDef.getConstr(this.dcon.name);
     int[] attrDsts = new int[constr.getAttrCount()];
     if (this.posdAttrs.length + this.namedAttrs.length > attrDsts.length) {
       emsg = new StringBuffer();
@@ -277,6 +291,15 @@ class PDataConstrPtn extends PDefaultExprObj {
     return attrDsts;
   }
 
+  public void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.posdAttrs.length; i++) {
+      this.posdAttrs[i].normalizeTypes();
+    }
+    for (int i = 0; i < this.namedAttrs.length; i++) {
+      this.namedAttrs[i].normalizeTypes();
+    }
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = graph.createDataConstrPtnNode(this, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
@@ -290,7 +313,7 @@ class PDataConstrPtn extends PDefaultExprObj {
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForDataConstrPtn(
-      this.srcInfo, this.scope.theMod.modNameToModRefIndex(this.dcon.props.modName), this.dcon.name,
+      this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_dconProps.key.modName), this.dcon.name,
       null, 0);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       node.addChild(this.sortedAttrs[i].setupFlow(flow));

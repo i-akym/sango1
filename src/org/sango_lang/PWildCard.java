@@ -58,6 +58,8 @@ class PWildCard extends PDefaultExprObj {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {}
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     this.typeGraphNode = graph.createRefNode(this);
     return this.typeGraphNode;

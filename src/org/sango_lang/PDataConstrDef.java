@@ -30,6 +30,7 @@ import java.util.List;
 class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
+  PDataDef dataDef;
   PType dataType;
 
   PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
@@ -162,6 +163,8 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     return builder.create();
   }
 
+  public PDataDef getDataDef() { return this.dataDef; }
+
   public String getDcon() { return this.dcon; }
 
   public int getAttrCount() { return this.attrs.length; }
@@ -176,6 +179,10 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
       }
     }
     return i;
+  }
+
+  void setDataDef(PDataDef dataDef) {
+    this.dataDef = dataDef;
   }
 
   void setDataType(PType type) {
@@ -215,6 +222,12 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   public void checkConcreteness() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
       this.attrs[i].checkConcreteness();
+    }
+  }
+
+  void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.attrs.length; i++) {
+      this.attrs[i].normalizeTypes();
     }
   }
 }

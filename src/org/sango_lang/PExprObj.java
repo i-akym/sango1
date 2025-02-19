@@ -27,6 +27,8 @@ interface PExprObj extends PTypedObj {
 
   PExprObj resolve() throws CompileException;
 
+  void normalizeTypes() throws CompileException;
+
   GFlow.Node setupFlow(GFlow flow);
 
 }

@@ -155,8 +155,14 @@ class PStringPtn extends PDefaultExprObj {
     return this;
   }
 
+  public void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.elems.length; i++) {
+      this.elems[i].normalizeTypes();
+    }
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    if (this.nTypeSkel != null) {
+    if (this._normalized_typeSkel != null) {
       this.typeGraphNode = graph.createDetNode(this);
     } else {  // one or more elements
       this.typeGraphNode = graph.createStringPtnNode(this);

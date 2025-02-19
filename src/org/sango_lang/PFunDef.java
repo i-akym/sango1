@@ -25,11 +25,15 @@ package org.sango_lang;
 
 interface PFunDef {
 
+  Module.Availability getAvailability();
+
+  Module.Access getAcc();
+
   Cstr getModName();
 
   String getOfficialName();
 
-  Module.Availability getAvailability();
+  String[] getAliases();
 
   PTypeSkel[] getParamTypes() throws CompileException;
 

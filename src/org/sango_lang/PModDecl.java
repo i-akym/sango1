@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2024 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -23,43 +23,12 @@
  ***************************************************************************/
 package org.sango_lang;
 
-class PEmptyListPtn extends PListPtn {
+public interface PModDecl {
 
-  private PEmptyListPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope);
-  }
+  Module.Availability getAvailability();
 
-  public String toString() {
-    StringBuffer buf = new StringBuffer();
-    buf.append("NIL[src=");
-    buf.append(this.srcInfo);
-    buf.append("]");
-    return buf.toString();
-  }
+  Cstr getName();
 
-  static PEmptyListPtn create(Parser.SrcInfo srcInfo, PScope outerScope) {
-    return new PEmptyListPtn(srcInfo, outerScope);
-  }
+  Cstr[] getForeignMods();
 
-  static PEmptyListPtn acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
-    if (!elem.getName().equals("nil")) { return null; }
-    return create(elem.getSrcInfo(), outerScope);
-  }
-
-  public void collectModRefs() throws CompileException {}
-
-  public PEmptyListPtn resolve() throws CompileException {
-    return this;
-  }
-
-  public void normalizeTypes() throws CompileException {}
-
-  public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createListPtnNode(this);
-    return this.typeGraphNode;
-  }
-
-  public GFlow.Node setupFlow(GFlow flow) {
-    return flow.createNodeForEmptyListBody(this.srcInfo);
-  }
 }

@@ -31,15 +31,15 @@ public interface PFeatureDef {
 
   PDefDict.IdKey getNameKey();
 
-  int getParamCount();
+  PDefDict.TparamProps[] getParamPropss();
 
-  PTypeVarSkel[] getParams();
+  // PTypeVarSkel[] getParams();
 
   PTypeVarSkel getObjType();
 
-  // PFeatureSkel getFeatureSig();
+  PFeatureSkel getFeatureSig();
 
-  Module.Variance getParamVarianceAt(int pos);
+  // Module.Variance getParamVarianceAt(int pos);
 
   PTypeRefSkel getImplType();
 

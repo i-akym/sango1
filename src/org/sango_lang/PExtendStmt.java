@@ -39,7 +39,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   PDataConstrDef[] constrs;
   PFeatureImplDef[] featureImpls;
   PTypeRef sig;
-  PDefDict.TconProps baseTconProps;
+  PDefDict.IdKey baseTconKey;
+  // PDefDict.TconProps baseTconProps;
 
   PExtendStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.enterInner());
@@ -128,6 +129,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
           this.nameSet.add(name);
         }
       }
+      constr.setDataDef(this.ext);
       this.constrList.add(constr);
     }
 
@@ -339,18 +341,18 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.featureImpls[i].collectModRefs();
     }
   }
+
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
-    if (this.baseModId != null && this.scope.resolveModId(this.baseModId) == null) {  // refer base mod id in order to register foreign mod
-      emsg = new StringBuffer();
-      emsg.append("Module id \"");
-      emsg.append(this.baseModId);
-      emsg.append("\" not defined at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    // /* DEBUG */ System.out.print("extend sig resolveid "); System.out.println(this.sig);
+    // if (this.baseModId != null && this.scope.resolveModId(this.baseModId) == null) {  // refer base mod id in order to register foreign mod
+      // emsg = new StringBuffer();
+      // emsg.append("Module id \"");
+      // emsg.append(this.baseModId);
+      // emsg.append("\" not defined at ");
+      // emsg.append(this.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
     this.sig = this.sig.resolve();
     for (int i = 0; i < this.tparams.length; i++) {
       this.tparams[i].varDef = this.tparams[i].varDef.resolve();
@@ -362,39 +364,41 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.featureImpls.length; i++) {
       this.featureImpls[i] = this.featureImpls[i].resolve();
     }
-    // /* DEBUG */ System.out.println("resolve " + this.baseModId + "." + this.baseTcon);
-    if ((this.baseTconProps = this.scope.resolveTcon(this.baseModId, this.baseTcon)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Base type constructor not found at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString()) ;
-    }
-    // /* DEBUG */ System.out.println("extend base tcon info " + this.baseTconProps);
-    if ((this.baseTconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
-      emsg = new StringBuffer();
-      emsg.append("Cannot extend type alias at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString()) ;
-    }
-    if (this.baseTconProps.acc == Module.ACC_OPAQUE) {
+    // PDefDict.TidProps baseTconProps = this.scope.resolveTcon(this.baseModId, this.baseTcon);
+    // if (baseTconProps == null) {
+      // emsg = new StringBuffer();
+      // emsg.append("Base type constructor not found at ");
+      // emsg.append(this.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString()) ;
+    // }
+    // if ((baseTconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {  // already done in circular check
+      // emsg = new StringBuffer();
+      // emsg.append("Cannot extend type alias at ");
+      // emsg.append(this.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString()) ;
+    // }
+    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
+    if (baseDef.getAcc() == Module.ACC_OPAQUE) {
+    // if (baseTconProps.acc == Module.ACC_OPAQUE) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend opaque data at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
     }
-    if (this.baseTconProps.paramCount() >= 0 && this.tparams.length != this.baseTconProps.paramCount()) {
+    PDefDict.TparamProps[] bpps = baseDef.getParamPropss();
+    if (bpps != null && this.tparams.length != bpps.length) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of 'extend' definition mismatch at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
     }
-    if (this.baseTconProps.paramProps != null) {
+    if (bpps != null) {
       for (int i = 0; i < this.tparams.length; i++) {
-        if (this.tparams[i].variance != this.baseTconProps.paramProps[i].variance) {
+        if (this.tparams[i].variance != bpps[i].variance) {
           emsg = new StringBuffer();
           emsg.append("Variance of *");
           emsg.append(this.tparams[i].varDef.name);
@@ -403,7 +407,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
           emsg.append(". ");
           emsg.append(this.tparams[i].variance);
           emsg.append(" ");
-          emsg.append(this.baseTconProps.paramProps[i].variance);
+          emsg.append(bpps[i].variance);
           throw new CompileException(emsg.toString()) ;
         }
       }
@@ -413,7 +417,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public String getFormalTcon() { return this.tcon; }
 
-  public PDefDict.IdKey getBaseTconKey() { return this.baseTconProps.key; }
+  public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
   public PDefDict.TparamProps[] getParamPropss() {
     PDefDict.TparamProps[] tps = new PDefDict.TparamProps[this.tparams.length];
@@ -470,26 +474,26 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  void collectTconProps() throws CompileException {
-    List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-    for (int i = 0; i < this.constrs.length; i++) {
-      for (int j = 0; j < constrs[i].attrs.length; j++) {
-        constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
-      }
-    }
-    this.scope.addReferredTcons(tps);
-  }
+  // void collectTconProps() throws CompileException {
+    // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
+    // for (int i = 0; i < this.constrs.length; i++) {
+      // for (int j = 0; j < constrs[i].attrs.length; j++) {
+        // constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
+      // }
+    // }
+    // this.scope.addReferredTcons(tps);
+  // }
 
-  public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
-    g.addExtension(this.baseTconProps.key, PDefDict.IdKey.create(this.scope.myModName(), this.tcon));
-  }
+  // public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
+    // g.addExtension(this.baseTconProps.key, PDefDict.IdKey.create(this.scope.myModName(), this.tcon));
+  // }
 
   public void checkVariance() throws CompileException {
     PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
     Module.Variance[] vs = new Module.Variance[this.tparams.length];
     for (int i = 0; i < this.tparams.length; i++) {
-      if (this.tparams[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
-      ss[i] = this.tparams[i].varDef.varSlot;
+      if (this.tparams[i].varDef._resolved_varSlot == null) { throw new RuntimeException("Null varSlot."); }
+      ss[i] = this.tparams[i].varDef._resolved_varSlot;
       vs[i] = this.tparams[i].variance;
     }
     PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
@@ -504,16 +508,23 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
+  void normalizeTypes() throws CompileException {
+    for (int i = 0; i < this.constrs.length; i++) {
+      this.constrs[i].normalizeTypes();
+    }
+  }
+
   void checkFeatureImpl() throws CompileException {
     for (int i = 0; i < this.featureImpls.length; i++) {
-      this.checkFeatureImpl1(this.featureImpls[i], this.baseTconProps.defGetter.getDataDef());
+      this.checkFeatureImpl1(this.featureImpls[i], this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey));
+      // this.checkFeatureImpl1(this.featureImpls[i], this.baseTconProps.defGetter.getDataDef());
     }
   }
 
   void checkFeatureImpl1(PFeatureImplDef id, PDataDef base) throws CompileException {
     List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < this.tparams.length; i++) {
-      vs.add(this.tparams[i].varDef.varSlot);
+      vs.add(this.tparams[i].varDef._resolved_varSlot);
     }
     PTypeSkelBindings b = PTypeSkelBindings.create(vs);
 
@@ -555,7 +566,12 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // eval <*T0 *T1 .. TCON> *X _call_hash_TCON @private -> <int> {
     //   X _hash_TCON
     // }
-    if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
+    PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
+      null,
+      PDefDict.IdKey.create(mod.name, "_hash_" + this.tcon));
+    if (ep == null) { return null; }
+    // if (!mod.predefineFunOfficial("_hash_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
+    // if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_hash");
     PScope modScope = this.scope.theMod.scope;
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, modScope);
@@ -590,7 +606,12 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // eval <*T0 *T1 .. TCON> *X _call_debug_repr_TCON @private -> <cstr> {
     //   X _debug_repr_TCON
     // }
-    if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
+    PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
+      null,
+      PDefDict.IdKey.create(mod.name, "_debug_repr_" + this.tcon));
+    if (ep == null) { return null; }
+    // if (!mod.predefineFunOfficial("_debug_repr_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
+    // if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_debug_repr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -630,7 +651,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (this.acc != Module.ACC_PUBLIC && this.acc != Module.ACC_PROTECTED) { return null; }
     String[] names = PModule.generateInFunNames(this.tcon);  // official name and aliases
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    // if (!mod.predefineFunOfficial(names[0], Module.ACC_PUBLIC)) { return null; }
+    // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_in");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -709,7 +731,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (this.acc != Module.ACC_PUBLIC && this.acc != Module.ACC_PROTECTED) { return null; }
     String[] names = PModule.generateNarrowFunNames(this.tcon);
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    // if (!mod.predefineFunOfficial(names[0], Module.ACC_PUBLIC)) { return null; }
+    // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_narrow");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -821,7 +844,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (attr.name == null) { return null; }
     String[] names = PModule.generateAttrFunNames(this.tcon, attr.name);
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Module.Access a = (this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE;
+    // if (!mod.predefineFunOfficial(names[0], a)) { return null; }
+    // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = this.srcInfo.appendPostfix("_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -831,7 +856,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
-    evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
+    evalStmtBuilder.setAcc(a);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {
       PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
@@ -870,7 +895,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // }
     if (attr.name == null) { return null; }
     String[] names = PModule.generateMaybeAttrFunNames(this.tcon, attr.name);
-    if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    Module.Access a = (this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE;
+    // if (!mod.predefineFunOfficial(names[0], a)) { return null; }
+    // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
     Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -880,7 +907,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setAvailability(this.availability);
     evalStmtBuilder.setOfficial(names[0]);
     evalStmtBuilder.addAlias(names[1]);
-    evalStmtBuilder.setAcc((this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE);
+    evalStmtBuilder.setAcc(a);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     for (int i = 0; i < this.tparams.length; i++) {
       PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,

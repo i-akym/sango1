@@ -28,10 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PFeature extends PDefaultProgObj {
-  Cstr modName;
   PTid fname;
   PType[] params;
-  PDefDict.FeatureProps featureProps;
+  PDefDict.TidProps featureProps;
 
   private PFeature(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -150,7 +149,9 @@ public class PFeature extends PDefaultProgObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (this.featureProps.paramCount() != this.params.length) {
+    PFeatureDef def = this.scope.theMod.theCompiler.defDict.getFeatureDef(this.scope.theMod.name, this.featureProps.key);
+    PDefDict.TparamProps[] pss = def.getParamPropss();
+    if (pss.length != this.params.length) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
       emsg.append(this.fname.repr());
@@ -178,16 +179,16 @@ public class PFeature extends PDefaultProgObj {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps, ps);
+    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps.key, ps);
   }
 
-  PFeatureSkel getNormalizedSkel() throws CompileException {
-    PTypeSkel ps[] = new PTypeSkel[this.params.length];
-    for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].getNormalizedSkel();
-    }
-    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps, ps);
-  }
+  // PFeatureSkel getNormalizedSkel() throws CompileException {
+    // PTypeSkel ps[] = new PTypeSkel[this.params.length];
+    // for (int i = 0; i < ps.length; i++) {
+      // ps[i] = this.params[i].getNormalizedSkel();
+    // }
+    // return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps.key, ps);
+  // }
 
   PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
     Builder builder = Builder.newInstance(srcInfo, scope);
@@ -278,13 +279,13 @@ public class PFeature extends PDefaultProgObj {
       return PFeatureSkel.List.create(this.srcInfo, fss);
     }
 
-    PFeatureSkel.List getNormalizedSkel() throws CompileException {
-      PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
-      for (int i = 0; i < fss.length; i++) {
-        fss[i] = this.features[i].getNormalizedSkel();
-      }
-      return PFeatureSkel.List.create(this.srcInfo, fss);
-    }
+    // PFeatureSkel.List getNormalizedSkel() throws CompileException {
+      // PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
+      // for (int i = 0; i < fss.length; i++) {
+        // fss[i] = this.features[i].getNormalizedSkel();
+      // }
+      // return PFeatureSkel.List.create(this.srcInfo, fss);
+    // }
 
     List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
       ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
@@ -364,7 +365,7 @@ public class PFeature extends PDefaultProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.feature.modName = this.feature.scope.myModName();
+      // this.feature.modName = this.feature.scope.myModName();
       this.feature.fname = (PTid)a;
 
       this.feature.params = new PType[this.items.size() - 1];
