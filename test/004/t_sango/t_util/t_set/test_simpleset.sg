@@ -1,6 +1,5 @@
 import "sango.actor" -> act ;;
 import "sango.debug" -> debug ;;
-import "sango.entity" -> ent ;;
 import "sango.io" -> io ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;

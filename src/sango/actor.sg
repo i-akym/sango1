@@ -23,7 +23,6 @@
 ###########################################################################
 module "sango.actor" ;;
 
-import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 import "sango.list" -> list ;;
 
