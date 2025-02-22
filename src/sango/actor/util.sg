@@ -24,7 +24,6 @@
 module "sango.actor.util" ;;
 
 import "sango.actor" -> act ;;
-import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 
 extend <act.msg> :=
@@ -137,19 +136,6 @@ eval <serialize_svr_d> *SD <act.post_h maybe> *Ret_ <act.actor_h> *Actor seriali
 
 eval <serialize_svr_d> *SD serialize_svr_end -> <void> {} ;;
 
-
-# -- [Deprecated] entity monitor for sango.entity.eref --
-
-data @deprecated <monitor_h> @opaque := <ent.eref> <serializer_h> monitor_h$ ;;
-
-eval @deprecated <ent.eref> *E create_monitor @public -> <monitor_h> {
-  E start_serializer monitor_h$
-} ;;
-
-eval @deprecated <monitor_h> *M <ent.eref *A fun> *F run_monitor | run @public -> <A> {
-  M = *Entity *Serializer monitor_h$,
-  Serializer \\ <A> { Entity &F } run_serialized
-} ;;
 
 # -- entity box monitor --
 

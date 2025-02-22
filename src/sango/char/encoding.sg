@@ -25,7 +25,6 @@ module "sango.char.encoding" ;;
 
 import "sango.actor" -> act ;;
 import "sango.cstr" -> cstr ;;
-import "sango.entity" -> ent ;;
 import "sango.lang.module" -> mod ;;
 import "sango.string" -> str ;;
 import "sango.system" -> sys ;;
