@@ -179,9 +179,6 @@ kbd {
   <a href="#sango.util.datetime.2">判定</a>
   <a href="#sango.util.datetime.3">比較</a>
   <a href="#sango.util.datetime.4">現在時刻取得</a>
-<a href="#sango.util.enum"><code>sango.util.enum</code></a> 【Alpha】
-  <a href="#sango.util.enum.1">フレームワーク</a>
-  <a href="#sango.util.enum.2">実装者向け情報</a>
 <a href="#sango.util.iter"><code>sango.util.iter</code></a>
   <a href="#sango.util.iter.1">定数の供給</a>
   <a href="#sango.util.iter.2">連結</a>
@@ -2451,13 +2448,6 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
 <p><code>&lt;int&gt;</code>についてのユーティリティ関数を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.num.int.1"><code>sango.num.int</code> - 列挙</h2>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;int&gt; *Start &lt;int&gt; *End &lt;int&gt; *Step enum @public -&gt; &lt;int &quot;sango.util.enum&quot;.enum&gt; ;;</code></td></tr></table>
-<p>【Alpha】<code>Start</code>から<code>End</code>まで<code>Step</code>きざみの列挙を返します。
-  <code>Step</code>には負の値も指定可能です。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.num.int.2"><code>sango.num.int</code> - 文字表現との変換</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Str parse @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
@@ -3205,83 +3195,6 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval millisecs_from_1970 | now @public -&gt; &lt;&quot;sango.num.bigint&quot;.bigint&gt; ;;</code></td></tr></table>
 <p>現在の時刻を1970年1月1日00:00:00からのミリ秒で返します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.enum"><code>sango.util.enum</code> 【Alpha】</h1>
-
-<p>列挙(enumeration)のフレームワークを提供します。
-  列挙は，単一の型の，特定の文脈（context）において順序付けされた有限個の値からなります。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.enum.1"><code>sango.util.enum</code> - フレームワーク</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A enum&gt; @public :=
-  context: &lt;A context&gt;
-  bounds: &lt;A A tuple&gt;
-  enum$ ;;</code></td></tr></table>
-<p>カプセル化された列挙オブジェクトを表します。
-  <code>&lt;A&gt;</code>は値の型です。
-  列挙を使用するには属性を意識する必要はありません。
-  </p>
-<p><code>context</code>は，文脈です。
-  <code>bounds</code>は，範囲（下限と上限）です。要素と一致するとは限りません。</p> 
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum count @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>列挙を構成する要素の個数を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum first @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
-<p>最初の要素を返します。
-  要素が一つも含まれないときは<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum last @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
-<p>最後の要素を返します。
-  要素が一つも含まれないときは<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum &lt;A&gt; *X contain? @public -&gt; &lt;bool&gt;</code></td></tr></table>
-<p><code>X</code>を要素として含むかどうか判定します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum &lt;A&gt; *X succ @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
-<p>次の要素を返します。
-  <code>X</code>は要素でなければなりません。
-  最後の要素に対しては，<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum &lt;A&gt; *X pred @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
-<p>前の要素を返します。
-  <code>X</code>は要素でなければなりません。
-  最初の要素に対しては，<code>none$</code>が返ります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>要素を供給するイテレータを返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A enum&gt; *Enum reverse_iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>要素を逆順に供給するイテレータを返します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.enum.2"><code>sango.util.enum</code> - 実装者向け情報</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A context&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A context_fs&gt;
-  context$ ;;</code></td></tr></table>
-<p>列挙の文脈を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A context_fs&gt; @public :=
-  min_ge: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
-  min_gt: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
-  max_le: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
-  max_lt: &lt;&lt;A _1+&gt; A &lt;A maybe&gt; fun&gt;
-  contain?_f: &lt;&lt;A _1+&gt; A bool fun&gt;
-  count_f: &lt;&lt;A _1+&gt; &lt;A A tuple&gt; int fun&gt;
-  ord_fs: &lt;A ord_fs&gt;
-  context_fs$ ;;</code></td></tr></table>
-<p>文脈の実装関数群を表します。
-  <code>min_ge</code>は，その値以上の最小の要素を返します。
-  <code>min_gt</code>は，その値より大きい最小の要素を返します。
-  <code>max_le</code>は，その値以下の最大の要素を返します。
-  <code>max_lt</code>は，その値より小さい最大の要素を返します。
-  <code>contain?_f</code>は，値が要素として含まれるかどうかを返します。
-  <code>count_f</code>は，要素の個数を返します。
-  <code>ord_fs</code>は，大小関係を判定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.iter"><code>sango.util.iter</code></h1>
