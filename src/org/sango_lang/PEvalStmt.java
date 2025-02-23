@@ -474,21 +474,20 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     return pts;
   }
 
-  public PTypeSkel[] getFixedParamTypes() {
+  public PTypeSkel[] getFinalizedParamTypes() {
     PTypeSkel[] pts = new PTypeSkel[this.params.length];
     for (int i = 0; i < pts.length; i++) {
-      pts[i] = this.params[i].getFixedType();
+      pts[i] = this.params[i].getFinalizedType();
     }
     return pts;
   }
 
   public PTypeSkel getRetType() throws CompileException {
     PTypeSkel r = this.retDef.getNormalizedType();
-    // r.checkConstraint(false);
     return r;
   }
 
-  public PTypeSkel getFixedRetType() {
-    return this.retDef.getFixedType();
+  public PTypeSkel getFinalizedRetType() {
+    return this.retDef.getFinalizedType();
   }
 }

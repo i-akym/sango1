@@ -126,7 +126,7 @@ class PTypeGraph {
       return node.type;
     }
 
-    PTypeSkel getFixedType() { return this.type; }
+    PTypeSkel getFinalizedType() { return this.type; }
 
     List<PTypeVarSlot> getGivenTvarList() throws CompileException {
       return this.exprObj.getScope().getGivenTVarList();

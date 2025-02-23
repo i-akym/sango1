@@ -25,14 +25,11 @@ package org.sango_lang;
 
 interface PTypedObj extends PProgObj {
 
-  // PType getType();
-
   PTypedObj resolve() throws CompileException;
 
   void normalizeTypes() throws CompileException;
 
   PTypeSkel getNormalizedType();
-  // PTypeSkel getNormalizedType() throws CompileException;
 
   PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException;
 
@@ -40,6 +37,6 @@ interface PTypedObj extends PProgObj {
 
   void setTypeGraphNode(PTypeGraph.Node node);
 
-  PTypeSkel getFixedType();
+  PTypeSkel getFinalizedType();
 
 }

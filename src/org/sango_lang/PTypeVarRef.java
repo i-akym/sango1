@@ -86,5 +86,5 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return (PTypeVarSkel)this.toSkel();
   }
 
-  public PTypeSkel getFixedType() { return this.def.getFixedType(); }
+  public PTypeSkel getFinalizedType() { return this.def.getFinalizedType(); }
 }

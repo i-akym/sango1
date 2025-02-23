@@ -95,7 +95,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
     return this.varSlot.varDef.typeGraphNode;
   }
 
-  public PTypeSkel getFixedType() { return this.varSlot.varDef.getFixedType(); }
+  public PTypeSkel getFinalizedType() { return this.varSlot.varDef.getFinalizedType(); }
 
   public GFlow.Node setupFlow(GFlow flow) {
     return flow.createNodeForVarRef(this.srcInfo, this.varSlot);

@@ -37,10 +37,10 @@ interface PFunDef {
 
   PTypeSkel[] getParamTypes() throws CompileException;
 
-  PTypeSkel[] getFixedParamTypes();
+  PTypeSkel[] getFinalizedParamTypes();
 
   PTypeSkel getRetType() throws CompileException;
 
-  PTypeSkel getFixedRetType();
+  PTypeSkel getFinalizedRetType();
 
 }
