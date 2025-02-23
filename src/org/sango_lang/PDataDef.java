@@ -70,7 +70,7 @@ public interface PDataDef {
 
     PTypeSkel getNormalizedType() throws CompileException;
 
-    PTypeSkel getFixedType();
+    PTypeSkel getFinalizedType();
   
   }
 

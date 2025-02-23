@@ -32,28 +32,12 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
     super(srcInfo, scope);
   }
 
-  // public PType getType() { return this.type; }
-
-// following impl does not have a problem. but general?
-  // public void normalizeTypes() throws CompileException {
-    // if (this.type != null && this._normalized_typeSkel == null) {
-      // this._normalized_typeSkel = this.type.toSkel().normalize();
-    // }
-  // }
-
   public PTypeSkel getNormalizedType() {
     if (this.type != null && this._normalized_typeSkel == null) {
       throw new RuntimeException("Type is not normalized. " + this.type);
     }
     return this._normalized_typeSkel;
   }
-
-  // public PTypeSkel getNormalizedType() throws CompileException {
-    // if (this._normalized_typeSkel == null && this.type != null) {
-      // this._normalized_typeSkel = this.type.getNormalizedSkel();
-    // }
-    // return this._normalized_typeSkel;
-  // }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     throw new RuntimeException("PTypedObj#setupTypeGraph called. - " + this.toString());
@@ -65,8 +49,8 @@ abstract class PDefaultTypedObj extends PDefaultProgObj implements PTypedObj {
     this.typeGraphNode = node;
   }
 
-  public PTypeSkel getFixedType() {
+  public PTypeSkel getFinalizedType() {
 // /* DEBUG */ System.out.print(this); System.out.print(this._normalized_typeSkel); System.out.println(this.typeGraphNode);
-    return (this._normalized_typeSkel != null)? this._normalized_typeSkel: this.typeGraphNode.getFixedType();
+    return (this._normalized_typeSkel != null)? this._normalized_typeSkel: this.typeGraphNode.getFinalizedType();
   }
 }

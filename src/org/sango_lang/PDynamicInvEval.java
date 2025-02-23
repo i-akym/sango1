@@ -146,13 +146,8 @@ class PDynamicInvEval extends PDefaultExprObj implements PEval {
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForInv(this.srcInfo);
-    PTypeSkel[] pts = ((PTypeRefSkel)this.funObj.getFixedType()).params;
+    PTypeSkel[] pts = ((PTypeRefSkel)this.funObj.getFinalizedType()).params;
     PTypeSkelBindings bindings = ((PTypeGraph.DynamicInvNode)this.typeGraphNode).bindings;
-    // List<PVarSlot> nvList = this.typeGraphNode.getNewvarList();
-// /* DEBUG */ System.out.println("nvList " + nvList);
-    // for (int i = 0; i < nvList.size(); i++) {
-      // node.addChild(flow.createNodeForNewTvar(this.srcInfo, nvList.get(i), this.scope));
-    // }
     for (int i = 0; i < this.params.length; i++) {
       node.addChild(this.params[i].setupFlow(flow));
     }
