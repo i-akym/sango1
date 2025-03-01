@@ -172,6 +172,13 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PTypeVarDef.DefWithVariance param;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     while ((param = PTypeVarDef.DefWithVariance.accept(reader, defScope)) != null) {
+      if (param.variance != Module.INVARIANT) {  // guard temporally
+        emsg = new StringBuffer();
+        emsg.append("Variance specification not allowed at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
