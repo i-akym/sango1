@@ -178,7 +178,7 @@ feature @alpha <*T> [ a'eq ] @public -> <T eq_fs> ;;
 
 feature @alpha <*T> [ a'ord ] @public -> <T ord_fs> ;;
 
-feature @alpha <*T> [ *A a'iter ] @public -> <T <A iter> fun> ;;
+feature @alpha <*T> [ +*A a'iter ] @public -> <T <A iter> fun> ;;
 
 feature @alpha <*T> [ *A a'col ] @public -> <T A col_fs> ;;
 
