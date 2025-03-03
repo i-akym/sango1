@@ -33,7 +33,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Availability availability;
   Module.Access acc;
   PTypeVarDef obj;
-  PTypeVarDef.DefWithVariance[] params;
+  PTypeVarDef.DefWithVariance[] params;  // variance is used internally
   String fname;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
@@ -172,13 +172,13 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PTypeVarDef.DefWithVariance param;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     while ((param = PTypeVarDef.DefWithVariance.accept(reader, defScope)) != null) {
-      // if (param.variance != Module.INVARIANT) {  // guard temporally
-        // emsg = new StringBuffer();
-        // emsg.append("Variance specification not allowed at ");
-        // emsg.append(reader.getCurrentSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
+      if (param.variance != Module.INVARIANT) {
+        emsg = new StringBuffer();
+        emsg.append("Variance specification not allowed at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
@@ -373,17 +373,18 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
         v = Module.INVARIANT;
       }
     }
-    if (p.variance != v) {
-      StringBuffer emsg = new StringBuffer();
-      emsg.append("Variance for ");
-      emsg.append(p.varDef.name);
-      emsg.append(" must be \'");
-      emsg.append(v);
-      emsg.append("\' at ");
-      emsg.append(p.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
+    p.variance = v;
+    // if (p.variance != v) {
+      // StringBuffer emsg = new StringBuffer();
+      // emsg.append("Variance for ");
+      // emsg.append(p.varDef.name);
+      // emsg.append(" must be \'");
+      // emsg.append(v);
+      // emsg.append("\' at ");
+      // emsg.append(p.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
   }
 
   public void checkConcreteness() throws CompileException {}
