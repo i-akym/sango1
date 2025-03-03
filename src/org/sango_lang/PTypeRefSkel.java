@@ -744,6 +744,21 @@ if (PTypeGraph.DEBUG > 1) {
     }
   }
 
+  public void collectVarVariances(PTypeVarSlot slot, Module.Variance contextVariance, List<Module.Variance> variances) throws CompileException {
+    Module.Variance[] vs = this.paramVariances();
+    for (int i = 0; i < this.params.length; i++) {
+      if (contextVariance == null) {
+        this.params[i].collectVarVariances(slot, vs[i], variances);
+      } else if (contextVariance == Module.INVARIANT) {
+        this.params[i].collectVarVariances(slot, Module.INVARIANT, variances);
+      } else if (contextVariance == vs[i]) {
+        this.params[i].collectVarVariances(slot, contextVariance, variances);
+      } else {
+        this.params[i].collectVarVariances(slot, Module.INVARIANT, variances);
+      }
+    }
+  }
+
   // public void collectTconProps(List<PDefDict.TconProps> list) {
     // for (int i = 0; i < this.params.length; i++) {
       // this.params[i].collectTconProps(list);
