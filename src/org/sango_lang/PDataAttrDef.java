@@ -191,26 +191,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   }
 
   public void checkConcreteness() throws CompileException {
-// TODO
-    // if (this._normalized_typeSkel instanceof PTypeRefSkel) {
-      // PTypeRefSkel t = (PTypeRefSkel)this._normalized_typeSkel;
-      // if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_FUN))) {
-        // // formally OK...
-      // } else if (t.tconProps.key.equals(new PDefDict.IdKey(Module.MOD_LANG, Module.TCON_TUPLE))) {
-        // // formally OK...
-      // } else {
-        // PDefDict.TparamProps[] ps = t.tconProps.paramProps;
-        // for (int i = 0; i < ps.length; i++) {
-          // if (ps[i].concrete & !t.params[i].isConcrete()) {
-            // StringBuffer emsg = new StringBuffer();
-            // emsg.append("Non-concrete type definition for attribute at ");
-            // emsg.append(this.getSrcInfo());
-            // emsg.append(".");
-            // throw new CompileException(emsg.toString());
-          // }
-        // }
-      // }
-    // }
+// HERE: Is check unnecessary here? Checks is to be done for some defferent points...
   }
 
   public void normalizeTypes() throws CompileException {
