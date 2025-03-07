@@ -145,16 +145,6 @@ data <*A ord_fs> @public :=
   hash_f: <A int fun>
   ord_fs$ ;;
 
-data @alpha <*D *A gcol> @public :=
-  d: <D>
-  fs: <D A col_fs>
-  gcol$
-++ gcol_as_a'col -> [ A a'col ] ;;
-
-alias type @alpha <*A col_d> @public := <A _1+> ;;
-
-alias type @alpha <*A col> @public := <<A col_d> A gcol> ;;
-
 data @alpha <*D *A col_fs> @public :=
   empty?_f_: <<D bool fun> maybe>
   size_f: <D int fun>
@@ -169,40 +159,6 @@ eval @alpha <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun
       DD &(Fs size_f) >> zero?
     }
   }
-} ;;
-
-eval @alpha <*D *A gcol> *Col col_empty? | empty? @public -> <bool> {
-  Col = *CD *CFs gcol$,
-  CD CFs do_col_empty?
-} ;;
-
-eval @alpha <*D *A gcol> *Col col_size | size @public -> <int> {
-  Col = *CD *CFs gcol$,
-  CD CFs do_col_size
-} ;;
-
-eval @alpha <*D *A gcol> *Col col_iter | iter @public -> <A iter> {
-  Col = *CD *CFs gcol$,
-  CD CFs do_col_iter
-} ;;
-
-eval @alpha <*D> *Col_d <D *A col_fs> *Col_fs do_col_empty? @public -> <bool> {
-  Col_d &(Col_fs empty?_f)
-} ;;
-
-eval @alpha <*D> *Col_d <D *A col_fs> *Col_fs do_col_size @public -> <int> {
-  Col_d &(Col_fs size_f)
-} ;;
-
-eval @alpha <*D> *Col_d <D *A col_fs> *Col_fs do_col_iter @public -> <A iter> {
-  Col_d &(Col_fs iter_f)
-} ;;
-
-eval @alpha gcol_as_a'col -> <<*D *A gcol> A col_fs> {
-  empty?_f_: (^col_empty? value$)
-  size_f: ^col_size
-  iter_f: ^col_iter
-  col_fs$
 } ;;
 
 data <+*A iter> @public :=
