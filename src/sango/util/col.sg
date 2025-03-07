@@ -23,19 +23,25 @@
 ###########################################################################
 module @alpha "sango.util.col" ;;
 
-### implementation of common-behavior object
-
-
 ### framework of faeture
 
 eval <*T[ *A a'col ]> *FCol f_empty? | empty? @public -> <bool> {
-  FCol &(FCol _feature_a'col >> empty?_f)
+  FCol (FCol _feature_a'col) do_col_empty?
 } ;;
 
 eval <*T[ *A a'col ]> *FCol f_size | size @public -> <int> {
-  FCol &(FCol _feature_a'col >> size_f)
+  FCol (FCol _feature_a'col) do_col_size
 } ;;
 
 eval <*T[ *A a'col ]> *FCol f_iter | iter @public -> <A iter> {
-  FCol &(FCol _feature_a'col >> iter_f)
+  FCol (FCol _feature_a'col) do_col_iter
+} ;;
+
+
+### utility routines
+
+eval <*T[ *A a'col ]> *FCol to_instance @public -> <T A gcol> {
+  d: FCol
+  fs: (FCol _feature_a'col)
+  gcol$
 } ;;
