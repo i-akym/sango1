@@ -23,20 +23,34 @@
 ###########################################################################
 module @alpha "sango.util.col" ;;
 
-### base
+### generic and incarnation
 
 data <*D *A gcol> @public :=
   d: <D>
   fs: <D A col_fs>
   gcol$
-++ gcol_as_a'col -> [ A a'col ] ;;
+++ gcol_as_a'col -> [ A a'col ]
+++ gcol_as_a'iter -> [ A a'iter ] ;;
 
 alias type <*A col_d> @public := <A _1+> ;;
-
 alias type <*A col> @public := <<A col_d> A gcol> ;;
 
+eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A gcol> {
+  d: FCol
+  fs: (FCol _feature_a'col)
+  gcol$
+} ;;
 
-### generic object
+eval gcol_as_a'col -> <<*D *A gcol> A col_fs> {
+  empty?_f_: (^g_empty? value$)
+  size_f: ^g_size
+  iter_f: ^g_iter
+  col_fs$
+} ;;
+
+eval gcol_as_a'iter -> <<*D *A gcol> <A iter> fun> {
+  ^g_iter
+} ;;
 
 eval <*D *A gcol> *Col g_empty? | empty? @public -> <bool> {
   Col = *CD *CFs gcol$,
@@ -65,13 +79,6 @@ eval <*D> *Col_d <D *A col_fs> *Col_fs do_col_iter @public -> <A iter> {
   Col_d &(Col_fs iter_f)
 } ;;
 
-eval gcol_as_a'col -> <<*D *A gcol> A col_fs> {
-  empty?_f_: (^g_empty? value$)
-  size_f: ^g_size
-  iter_f: ^g_iter
-  col_fs$
-} ;;
-
 
 ### framework of faeture
 
@@ -85,13 +92,4 @@ eval <*T[ *A a'col ]> *FCol f_size | size @public -> <int> {
 
 eval <*T[ *A a'col ]> *FCol f_iter | iter @public -> <A iter> {
   FCol (FCol _feature_a'col) do_col_iter
-} ;;
-
-
-### utility routines
-
-eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A gcol> {
-  d: FCol
-  fs: (FCol _feature_a'col)
-  gcol$
 } ;;
