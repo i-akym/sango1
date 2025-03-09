@@ -32,6 +32,30 @@ data <*A ord_inc> @public :=
 ++ as_a'ord -> [ a'ord ]
 ++ as_a'eq -> [ a'eq ] ;;
 
+eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
+  d: FOrd
+  fs: (FOrd _feature_a'ord)
+  ord_inc$
+} ;;
+
+eval as_a'ord -> <<*A ord_inc> ord_fs> {
+  compare_f: ^inc_compare
+  eq?_f_: (^inc_eq? value$)
+  lt?_f_: (^inc_lt? value$)
+  le?_f_: (^inc_le? value$)
+  gt?_f_: (^inc_gt? value$)
+  ge?_f_: (^inc_ge? value$)
+  hash_f: ^inc_hash
+  ord_fs$
+} ;;
+
+eval as_a'eq -> <<*A ord_inc> eq_fs> {
+  eq?_f: ^inc_eq?
+  ne?_f_: none$
+  hash_f: ^inc_hash
+  eq_fs$
+} ;;
+
 eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_compare | compare @public -> <ordering> {
   X0 = *D0 *Fs ord_inc$,
   X1 = *D1 ** ord_inc$,
@@ -71,31 +95,4 @@ eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_ge? | ge? @public -> <bool> {
 eval <*A ord_inc> *X inc_hash | hash @public -> <int> {
   X = *D *Fs ord_inc$,
   D &(Fs hash_f)
-} ;;
-
-eval as_a'ord -> <<*A ord_inc> ord_fs> {
-  compare_f: ^inc_compare
-  eq?_f_: (^inc_eq? value$)
-  lt?_f_: (^inc_lt? value$)
-  le?_f_: (^inc_le? value$)
-  gt?_f_: (^inc_gt? value$)
-  ge?_f_: (^inc_ge? value$)
-  hash_f: ^inc_hash
-  ord_fs$
-} ;;
-
-eval as_a'eq -> <<*A ord_inc> eq_fs> {
-  eq?_f: ^inc_eq?
-  ne?_f_: none$
-  hash_f: ^inc_hash
-  eq_fs$
-} ;;
-
-
-### utility routines
-
-eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
-  d: FOrd
-  fs: (FOrd _feature_a'ord)
-  ord_inc$
 } ;;

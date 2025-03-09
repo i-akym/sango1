@@ -31,6 +31,12 @@ data <*A eq_inc> @public :=
   eq_inc$
 ++ as_a'eq -> [ a'eq ] ;;
 
+eval <*T[ a'eq ]> *FEq incarnate @public -> <T eq_inc> {
+  d: FEq
+  fs: (FEq _feature_a'eq)
+  eq_inc$
+} ;;
+
 eval <*A eq_inc> *X0 <A eq_inc> *X1 inc_eq? | eq? @public -> <bool> {
   X0 = *D0 *Fs eq_inc$,
   X1 = *D1 ** eq_inc$,
@@ -53,13 +59,4 @@ eval as_a'eq -> <<*A eq_inc> eq_fs> {
   ne?_f_: (^inc_ne? value$)
   hash_f: ^inc_hash
   eq_fs$
-} ;;
-
-
-### utility routines
-
-eval <*T[ a'eq ]> *FEq incarnate @public -> <T eq_inc> {
-  d: FEq
-  fs: (FEq _feature_a'eq)
-  eq_inc$
 } ;;
