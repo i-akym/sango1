@@ -25,38 +25,13 @@ module @alpha "sango.util.eq" ;;
 
 ### incarnation
 
-data <*A eq_inc> @public :=
-  d: <A>
-  fs: <A eq_fs>
-  eq_inc$
-++ as_a'eq -> [ a'eq ] ;;
+data <*A eq_inc> @protected :=
+  org: <A>
+  fo: <A eq_fs>
+  eq_inc$ ;;
 
 eval <*T[ a'eq ]> *FEq incarnate @public -> <T eq_inc> {
-  d: FEq
-  fs: (FEq _feature_a'eq)
+  org: FEq
+  fo: (FEq _feature_a'eq)
   eq_inc$
-} ;;
-
-eval <*A eq_inc> *X0 <A eq_inc> *X1 inc_eq? | eq? @public -> <bool> {
-  X0 = *D0 *Fs eq_inc$,
-  X1 = *D1 ** eq_inc$,
-  D0 D1 Fs eqcmp_eq?
-} ;;
-
-eval <*A eq_inc> *X0 <A eq_inc> *X1 inc_ne? | ne? @public -> <bool> {
-  X0 = *D0 *Fs eq_inc$,
-  X1 = *D1 ** eq_inc$,
-  D0 D1 Fs eqcmp_ne?
-} ;;
-
-eval <*A eq_inc> *X inc_hash | hash @public -> <int> {
-  X = *D *Fs eq_inc$,
-  D &(Fs hash_f)
-} ;;
-
-eval as_a'eq -> <<*A eq_inc> eq_fs> {
-  eq?_f: ^inc_eq?
-  ne?_f_: (^inc_ne? value$)
-  hash_f: ^inc_hash
-  eq_fs$
 } ;;

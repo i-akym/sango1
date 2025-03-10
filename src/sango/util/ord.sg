@@ -25,74 +25,30 @@ module @alpha "sango.util.ord" ;;
 
 ### incarnation
 
-data <*A ord_inc> @public :=
-  d: <A>
-  fs: <A ord_fs>
+data <*A ord_inc> @protected :=
+  org: <A>
+  fo: <A ord_fs>
   ord_inc$
-++ as_a'ord -> [ a'ord ]
 ++ as_a'eq -> [ a'eq ] ;;
 
 eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
-  d: FOrd
-  fs: (FOrd _feature_a'ord)
+  org: FOrd
+  fo: (FOrd _feature_a'ord)
   ord_inc$
 } ;;
 
-eval as_a'ord -> <<*A ord_inc> ord_fs> {
-  compare_f: ^inc_compare
-  eq?_f_: (^inc_eq? value$)
-  lt?_f_: (^inc_lt? value$)
-  le?_f_: (^inc_le? value$)
-  gt?_f_: (^inc_gt? value$)
-  ge?_f_: (^inc_ge? value$)
-  hash_f: ^inc_hash
-  ord_fs$
-} ;;
-
 eval as_a'eq -> <<*A ord_inc> eq_fs> {
-  eq?_f: ^inc_eq?
+  eq?_f:
+    \ <*AA ord_inc> *X0 <AA ord_inc> *X1 -> <bool> {
+      X0 = *D0 *Fs ord_inc$,
+      X1 = *D1 ** ord_inc$,
+      D0 D1 Fs ordcmp_eq?
+    }
   ne?_f_: none$
-  hash_f: ^inc_hash
+  hash_f:
+    \ <*AA ord_inc> *X0 -> <int> {
+      X0 = *D0 *Fs ord_inc$,
+      D0 &(Fs hash_f)
+    }
   eq_fs$
-} ;;
-
-eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_compare | compare @public -> <ordering> {
-  X0 = *D0 *Fs ord_inc$,
-  X1 = *D1 ** ord_inc$,
-  D0 D1 Fs ordcmp_compare
-} ;;
-
-eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_eq? | eq? @public -> <bool> {
-  X0 = *D0 *Fs ord_inc$,
-  X1 = *D1 ** ord_inc$,
-  D0 D1 Fs ordcmp_eq?
-} ;;
-
-eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_lt? | lt? @public -> <bool> {
-  X0 = *D0 *Fs ord_inc$,
-  X1 = *D1 ** ord_inc$,
-  D0 D1 Fs ordcmp_lt?
-} ;;
-
-eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_le? | le? @public -> <bool> {
-  X0 = *D0 *Fs ord_inc$,
-  X1 = *D1 ** ord_inc$,
-  D0 D1 Fs ordcmp_le?
-} ;;
-
-eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_gt? | gt? @public -> <bool> {
-  X0 = *D0 *Fs ord_inc$,
-  X1 = *D1 ** ord_inc$,
-  D0 D1 Fs ordcmp_gt?
-} ;;
-
-eval <*A ord_inc> *X0 <A ord_inc> *X1 inc_ge? | ge? @public -> <bool> {
-  X0 = *D0 *Fs ord_inc$,
-  X1 = *D1 ** ord_inc$,
-  D0 D1 Fs ordcmp_ge?
-} ;;
-
-eval <*A ord_inc> *X inc_hash | hash @public -> <int> {
-  X = *D *Fs ord_inc$,
-  D &(Fs hash_f)
 } ;;

@@ -23,33 +23,22 @@
 ###########################################################################
 module @alpha "sango.util.col" ;;
 
-### generic and incarnation
+### generic
 
 data <*D *A gcol> @public :=
   d: <D>
   fs: <D A col_fs>
   gcol$
-++ gcol_as_a'col -> [ A a'col ]
-++ gcol_as_a'iter -> [ A a'iter ] ;;
+++ gcol_as_a'col -> [ A a'col ] ;;
 
 alias type <*A col_d> @public := <A _1+> ;;
 alias type <*A col> @public := <<A col_d> A gcol> ;;
-
-eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A gcol> {
-  d: FCol
-  fs: (FCol _feature_a'col)
-  gcol$
-} ;;
 
 eval gcol_as_a'col -> <<*D *A gcol> A col_fs> {
   empty?_f_: (^g_empty? value$)
   size_f: ^g_size
   iter_f: ^g_iter
   col_fs$
-} ;;
-
-eval gcol_as_a'iter -> <<*D *A gcol> <A iter> fun> {
-  ^g_iter
 } ;;
 
 eval <*D *A gcol> *Col g_empty? | empty? @public -> <bool> {
@@ -92,4 +81,26 @@ eval <*T[ *A a'col ]> *FCol f_size | size @public -> <int> {
 
 eval <*T[ *A a'col ]> *FCol f_iter | iter @public -> <A iter> {
   FCol (FCol _feature_a'col) do_col_iter
+} ;;
+
+
+### incarnation
+
+data <*D *A col_inc> @protected :=
+  org: <D>
+  fo: <D A col_fs>
+  col_inc$
+++ inc_as_a'iter -> [ A a'iter ] ;;
+
+eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A col_inc> {
+  org: FCol
+  fo: (FCol _feature_a'col)
+  col_inc$
+} ;;
+
+eval inc_as_a'iter -> <<*D *A col_inc> <A iter> fun> {
+  \ <*DD *AA col_inc> *I -> <AA iter> {
+    I = *ID *IFs col_inc$,
+    ID IFs do_col_iter
+  }
 } ;;
