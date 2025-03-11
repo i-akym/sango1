@@ -28,7 +28,7 @@ import "sango.util.map" -> map ;;
 import "sango.util.set" -> set ;;
 import "sango.util.set.simpleset" -> sset ;;
 
-extend <*A _1> -> my1 :=
+extend <*A _1> -> hash_set_d :=
   eq_fs: <A eq_fs>
   col: <int <A set.set> map.map>
   count: <int>
@@ -39,24 +39,23 @@ eval new_set @public -> <*A set.set> {
 } ;;
 
 eval <*A eq_fs> *Eq new_set_eq | new_set @public -> <A set.set> {
-  d: (Eq (int_ord_fs avlmap.new_map) 0 hash_set_d$)
-    fs: set_fs
-    set.set$
+  (Eq (int_ord_fs avlmap.new_map) 0 hash_set_d$) = <A set.d> *D,
+  d: D fs: set_fs set.gset$
 } ;;
 
 eval set_fs -> <<*A set.d> A set.set_fs> {
   empty?_f: ^empty?
-    size_f: ^size
-    get_f: ^get
-    contain?_f_: (^contain? value$)
-    put_f: ^put
-    put_new_f_: (^put_new value$)
-    add_f_: (^add value$)
-    remove_f: ^remove
-    delete_f_: (^delete value$)
-    take_f: ^take
-    clear_f: ^clear
-    set.set_fs$
+  size_f: ^size
+  get_f: ^get
+  contain?_f_: (^contain? value$)
+  put_f: ^put
+  put_new_f_: (^put_new value$)
+  add_f_: (^add value$)
+  remove_f: ^remove
+  delete_f_: (^delete value$)
+  take_f: ^take
+  clear_f: ^clear
+  set.set_fs$
 } ;;
 
 eval <*A set.d> *Set_d empty? -> <bool> {

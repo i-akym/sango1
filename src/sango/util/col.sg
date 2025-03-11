@@ -86,9 +86,9 @@ eval <*T[ *A a'col ]> *FCol f_iter | iter @public -> <A iter> {
 
 ### incarnation
 
-data <*D *A col_inc> @protected :=
-  org: <D>
-  fo: <D A col_fs>
+data <*T *A col_inc> @protected :=
+  org: <T>
+  fo: <T A col_fs>
   col_inc$
 ++ inc_as_a'iter -> [ A a'iter ] ;;
 
@@ -98,8 +98,8 @@ eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A col_inc> {
   col_inc$
 } ;;
 
-eval inc_as_a'iter -> <<*D *A col_inc> <A iter> fun> {
-  \ <*DD *AA col_inc> *I -> <AA iter> {
+eval inc_as_a'iter -> <<*T *A col_inc> <A iter> fun> {
+  \ <*TT *AA col_inc> *I -> <AA iter> {
     I = *ID *IFs col_inc$,
     ID IFs do_col_iter
   }

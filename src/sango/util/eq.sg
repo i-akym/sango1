@@ -25,9 +25,9 @@ module @alpha "sango.util.eq" ;;
 
 ### incarnation
 
-data <*A eq_inc> @protected :=
-  org: <A>
-  fo: <A eq_fs>
+data <*T eq_inc> @protected :=
+  org: <T>
+  fo: <T eq_fs>
   eq_inc$ ;;
 
 eval <*T[ a'eq ]> *FEq incarnate @public -> <T eq_inc> {
