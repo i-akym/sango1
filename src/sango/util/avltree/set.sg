@@ -53,8 +53,8 @@ eval <*A ord_fs> *Ord <A> *X put_new_locator -> <<A avl.node> <A avl.locate> fun
 } ;;
 
 eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
-  ord: Ord body: avl.new_tree d$ = *D,
-  d: D fs: set_fs set.set$
+  ord: Ord body: avl.new_tree d$ = <A set.d> *D,
+  d: D fs: set_fs set.gset$
 } ;;
 
 eval set_fs -> <<*A set.d> A set.set_fs> {

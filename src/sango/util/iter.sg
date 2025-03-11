@@ -25,9 +25,9 @@ module "sango.util.iter" ;;
 
 ### incarnation
 
-data @alpha <*D *A iter_inc> @protected :=
-  org: <D>
-  fo: <D <A iter> fun>
+data @alpha <*T *A iter_inc> @protected :=
+  org: <T>
+  fo: <T <A iter> fun>
   iter_inc$ ;;
 
 eval @alpha <*T[ *A a'iter ]> *FIter incarnate @public -> <T A iter_inc> {

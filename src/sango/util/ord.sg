@@ -25,9 +25,9 @@ module @alpha "sango.util.ord" ;;
 
 ### incarnation
 
-data <*A ord_inc> @protected :=
-  org: <A>
-  fo: <A ord_fs>
+data <*T ord_inc> @protected :=
+  org: <T>
+  fo: <T ord_fs>
   ord_inc$
 ++ as_a'eq -> [ a'eq ] ;;
 
@@ -37,16 +37,16 @@ eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
   ord_inc$
 } ;;
 
-eval as_a'eq -> <<*A ord_inc> eq_fs> {
+eval as_a'eq -> <<*T ord_inc> eq_fs> {
   eq?_f:
-    \ <*AA ord_inc> *X0 <AA ord_inc> *X1 -> <bool> {
+    \ <*TT ord_inc> *X0 <TT ord_inc> *X1 -> <bool> {
       X0 = *D0 *Fs ord_inc$,
       X1 = *D1 ** ord_inc$,
       D0 D1 Fs ordcmp_eq?
     }
   ne?_f_: none$
   hash_f:
-    \ <*AA ord_inc> *X0 -> <int> {
+    \ <*TT ord_inc> *X0 -> <int> {
       X0 = *D0 *Fs ord_inc$,
       D0 &(Fs hash_f)
     }

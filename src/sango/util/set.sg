@@ -26,7 +26,7 @@ module "sango.util.set" ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
-### definition of function set
+### function set
 
 data <*D *A set_fs> @public :=
   empty?_f: <D bool fun>
@@ -42,159 +42,207 @@ data <*D *A set_fs> @public :=
   clear_f: <D D fun>
   set_fs$ ;;
 
+eval <*D *A set_fs> *Fs set_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
+  Fs = empty?_f: *Empty_f size_f: *Size_f *** set_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Size_f
+  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+  col_fs$
+} ;;
 
-### definition of feature
+eval <*D *A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <D A bool fun> {
+  Fs contain?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <D> *Z <A> *Elem -> <bool> {
+      Z Elem &(Fs get_f) >> something? 
+    }
+  }
+} ;;
 
-feature <*T> [ *A a'set ] @public -> <T A set_fs> ;;
+eval <*D *A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <D A <D bool tuple> fun> {
+  Fs put_new_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <D> *Z <A> *Elem -> <D bool tuple> {
+      Z Elem &(Fs contain?_f) >> case {
+      ; true$ -> (| Z, false$ |)
+      ; ** -> (| Z Elem &(Fs add_f), true$ |)
+      }
+    }
+  }
+} ;;
+
+eval <*D *A set_fs> *Fs set_fs_add_f | add_f @public -> <D A D fun> {
+  Fs add_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <D> *Z <A> *Elem -> <D> {
+      Z Elem &(Fs put_f) = (| *Z', ** |),
+      Z'
+    }
+  }
+} ;;
+
+eval <*D *A set_fs> *Fs set_fs_delete_f | delete_f @public -> <D A D fun> {
+  Fs delete_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <D> *Z <A> *Elem -> <D> {
+      Z Elem &(Fs remove_f) = (| *Z', ** |),
+      Z'
+    }
+  }
+} ;;
 
 
-### definition of common-behavior object
+### generic
 
-alias type <*A d> @public := <A _1+> ;;
-
-data <*A set> @public :=
-  d: <A d>
-  fs: <<A d> A set_fs>
-  set$
+data <*D *A gset> @public :=
+  d: <D>
+  fs: <D A set_fs>
+  gset$
 ++ a'set_impl -> [ A a'set ] ;;
 
-eval a'set_impl -> <<*A set> A set_fs> {
-  empty?_f: ^c_empty?
-  size_f: ^c_size
-  get_f: ^c_get
-  contain?_f_: (^c_contain? value$)
-  put_f: ^c_put
-  put_new_f_: (^c_put_new value$)
-  add_f_: (^c_add value$)
-  remove_f: ^c_remove
-  delete_f_: (^c_delete value$)
-  take_f: ^c_take
-  clear_f: ^c_clear
+alias type <*A d> @public := <A _1+> ;;
+alias type <*A set> @public := <<A d> A gset> ;;
+
+eval a'set_impl -> <<*D *A gset> A set_fs> {
+  empty?_f: ^g_empty?
+  size_f: ^g_size
+  get_f: ^g_get
+  contain?_f_: (^g_contain? value$)
+  put_f: ^g_put
+  put_new_f_: (^g_put_new value$)
+  add_f_: (^g_add value$)
+  remove_f: ^g_remove
+  delete_f_: (^g_delete value$)
+  take_f: ^g_take
+  clear_f: ^g_clear
   set_fs$
 } ;;
 
-
-### implementation of common-behavior object
-
-eval <*A set> *Set c_empty? | empty? @public -> <bool> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set g_empty? | empty? @public -> <bool> {
+  Set = d: *D fs: *Fs gset$,
   D Fs do_empty?
 } ;;
 
-eval <*A set> *Set c_size | size @public -> <int> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set g_size | size @public -> <int> {
+  Set = d: *D fs: *Fs gset$,
   D Fs do_size
 } ;;
 
-eval <*A set> *Set <A> *Elem c_get | get @public -> <A maybe> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_get | get @public -> <A maybe> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_get
 } ;;
 
-eval <*A set> *Set <A> *Elem c_contain? | contain? @public -> <bool> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_contain? | contain? @public -> <bool> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_contain?
 } ;;
 
-eval <*A set> *Set <A> *Elem c_put | put @public -> <<A set> <A maybe> tuple> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_put | put @public -> <<D A gset> <A maybe> tuple> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_put = (| *D', *Replaced_ |),
-  (| d: D' fs: Fs set$, Replaced_ |)
+  (| d: D' fs: Fs gset$, Replaced_ |)
 } ;;
 
-eval <*A set> *Set <A> *Elem c_put_new | put_new @public -> <<A set> bool tuple> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_put_new | put_new @public -> <<D A gset> bool tuple> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_put_new = (| *D', *Succeeded? |),
-  (| d: D' fs: Fs set$, Succeeded? |)
+  (| d: D' fs: Fs gset$, Succeeded? |)
 } ;;
 
-eval <*A set> *Set <A> *Elem c_add | add @public -> <A set> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_add | add @public -> <D A gset> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_add = *D',
-  d: D' fs: Fs set$
+  d: D' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set <A> *Elem c_remove | remove @public -> <<A set> <A maybe> tuple> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_remove | remove @public -> <<D A gset> <A maybe> tuple> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_remove = (| *D', *Removed_ |),
-  (| d: D' fs: Fs set$, Removed_ |)
+  (| d: D' fs: Fs gset$, Removed_ |)
 } ;;
 
-eval <*A set> *Set <A> *Elem c_delete | delete @public -> <A set> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A> *Elem g_delete | delete @public -> <D A gset> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Elem do_delete = *D',
-  d: D' fs: Fs set$
+  d: D' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set c_take | take @public -> <<A <A set> tuple> maybe> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set g_take | take @public -> <<A <D A gset> tuple> maybe> {
+  Set = d: *D fs: *Fs gset$,
   D Fs do_take >> case {
-  ; (| *E, *D' |) value$ -> (| E, d: D' fs: Fs set$ |) value$
+  ; (| *E, *D' |) value$ -> (| E, d: D' fs: Fs gset$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A set> *Set c_clear | clear @public -> <A set> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set g_clear | clear @public -> <D A gset> {
+  Set = d: *D fs: *Fs gset$,
   D Fs do_clear = *D',
-  d: D' fs: Fs set$
+  d: D' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set <A list> *Elems c_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
-  Set (Elems list.iter) c_contain_just_iter?
+eval <*D *A gset> *Set <A list> *Elems g_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
+  Set (Elems list.iter) g_contain_just_iter?
 } ;;
 
-eval <*A set> *Set <A iter> *Iter c_contain_just_iter? | contain_just_iter? | contain_just? @public -> <bool> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A iter> *Iter g_contain_just_iter? | contain_just_iter? | contain_just? @public -> <bool> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Iter do_contain_just_iter? 
 } ;;
 
-eval <*A set> *Set <A list> *Elems c_add_list | add_list @public -> <A set> {
-  Set (Elems list.iter) c_add_iter
+eval <*D *A gset> *Set <A list> *Elems g_add_list | add_list @public -> <D A gset> {
+  Set (Elems list.iter) g_add_iter
 } ;;
 
-eval <*A set> *Set <A iter> *Iter c_add_iter | add_iter @public -> <A set> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A iter> *Iter g_add_iter | add_iter @public -> <D A gset> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Iter do_add_iter = *D',
-  d: D' fs: Fs set$
+  d: D' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set <A list> *Elems c_delete_list | delete_list @public -> <A set> {
-  Set (Elems list.iter) c_delete_iter
+eval <*D *A gset> *Set <A list> *Elems g_delete_list | delete_list @public -> <D A gset> {
+  Set (Elems list.iter) g_delete_iter
 } ;;
 
-eval <*A set> *Set <A iter> *Iter c_delete_iter | delete_iter @public -> <A set> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A iter> *Iter g_delete_iter | delete_iter @public -> <D A gset> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Iter do_delete_iter = *D',
-  d: D' fs: Fs set$
+  d: D' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set c_iter | iter @public -> <A iter> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set g_iter | iter @public -> <A iter> {
+  Set = d: *D fs: *Fs gset$,
   D Fs do_iter
 } ;;
 
-eval <*A set> *Set <A bool fun> *Filter c_filter | filter @public -> <A set> {
-  Set = d: *D fs: *Fs set$,
+eval <*D *A gset> *Set <A bool fun> *Filter g_filter | filter @public -> <D A gset> {
+  Set = d: *D fs: *Fs gset$,
   D Fs Filter do_filter = *D',
-  d: D' fs: Fs set$
+  d: D' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set0 <A set> *Set1 c_intersection | intersection @public -> <A set> {
-  Set0 = d: *D0 fs: *Fs set$,
-  Set1 = d: *D1 fs: ** set$,
+eval <*D *A gset> *Set0 <D A gset> *Set1 g_intersection | intersection @public -> <D A gset> {
+  Set0 = d: *D0 fs: *Fs gset$,
+  Set1 = d: *D1 fs: ** gset$,
   D0 Fs D1 do_intersection = *D0',
-  d: D0' fs: Fs set$
+  d: D0' fs: Fs gset$
 } ;;
 
-eval <*A set> *Set0 <A set> *Set1 c_difference | difference @public -> <A set> {
+eval <*D *A gset> *Set0 <D A gset> *Set1 g_difference | difference @public -> <D A gset> {
   Set0
-    \ <A> *X -> <bool> { Set1 X c_contain? >> not }
+    \ <A> *X -> <bool> { Set1 X g_contain? >> not }
     filter
 } ;;
 
 
-### framework of faeture
+### faeture
+
+feature <*T> [ *A a'set ] @public -> <T A set_fs> ;;
 
 eval <*T[ *A a'set ]> *FSet f_empty? | empty? @public -> <bool> {
   FSet _feature_a'set = *Set_fs,
@@ -284,60 +332,41 @@ eval <*T[ *A a'set ]> *FSet f_iter | iter @public -> <A iter> {
 } ;;
 
 
-### subroutines
+### incarnation
 
-eval <*D *A set_fs> *Fs set_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
-  Fs = empty?_f: *Empty_f size_f: *Size_f *** set_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Size_f
-  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+data <*T *A set_inc> @protected :=
+  org: <T>
+  fo: <T A set_fs>
+  set_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'set ]> *FSet incarnate @public -> <T A set_inc> {
+  org: FSet
+  fo: (FSet _feature_a'set)
+  set_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A set_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA set_inc> *I -> <bool> {
+       I = *ID *IFs set_inc$,
+       ID IFs do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA set_inc> *I -> <int> {
+      I = *ID *IFs set_inc$,
+      ID IFs do_size
+    }
+  iter_f:
+    \ <*TT *AA set_inc> *I -> <AA iter> {
+      I = *ID *IFs set_inc$,
+      ID IFs do_iter
+    }
   col_fs$
 } ;;
 
-eval <*D *A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <D A bool fun> {
-  Fs contain?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *Z <A> *Elem -> <bool> {
-      Z Elem &(Fs get_f) >> something? 
-    }
-  }
-} ;;
 
-eval <*D *A set_fs> *Fs set_fs_put_new_f | put_new_f @public -> <D A <D bool tuple> fun> {
-  Fs put_new_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *Z <A> *Elem -> <D bool tuple> {
-      Z Elem &(Fs contain?_f) >> case {
-      ; true$ -> (| Z, false$ |)
-      ; ** -> (| Z Elem &(Fs add_f), true$ |)
-      }
-    }
-  }
-} ;;
-
-eval <*D *A set_fs> *Fs set_fs_add_f | add_f @public -> <D A D fun> {
-  Fs add_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *Z <A> *Elem -> <D> {
-      Z Elem &(Fs put_f) = (| *Z', ** |),
-      Z'
-    }
-  }
-} ;;
-
-eval <*D *A set_fs> *Fs set_fs_delete_f | delete_f @public -> <D A D fun> {
-  Fs delete_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *Z <A> *Elem -> <D> {
-      Z Elem &(Fs remove_f) = (| *Z', ** |),
-      Z'
-    }
-  }
-} ;;
+### subroutines
 
 eval <*D> *Z <D *A set_fs> *Fs do_empty? | empty? @public -> <bool> {
   Z &(Fs empty?_f)
