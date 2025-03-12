@@ -28,29 +28,30 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.bag" -> bag ;;
 import "sango.util.iter" -> iter ;;
 
-extend <*A _1> -> my1 := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
+extend <*A _1> -> simple_bag_d := eq_fs: <A eq_fs> col: <A list> simple_bag_d$ ;;
 
 eval new_bag @public -> <*A bag.bag> {
   hard_eq_fs new_bag
 } ;;
 
 eval <*A eq_fs> *Eq new_bag_eq | new_bag @public -> <A bag.bag> {
-  d: (Eq [] simple_bag_d$) fs: bag_fs bag.bag$
+  Eq [] simple_bag_d$ = <A bag.d> *D,
+  d: D fs: bag_fs bag.gbag$
 } ;;
 
 eval bag_fs -> <<*A bag.d> A bag.bag_fs> {
   empty?_f: ^empty?
-    size_f: ^size
-    contain?_f: ^contain?
-    get_all_f: ^get_all
-    add_f: ^add
-    remove_f: ^remove
-    remove_all_f: ^remove_all
-    delete_f_: (^delete value$)
-    delete_all_f_: (^delete_all value$)
-    take_f: ^take
-    clear_f: ^clear
-    bag.bag_fs$
+  size_f: ^size
+  contain?_f: ^contain?
+  get_all_f: ^get_all
+  add_f: ^add
+  remove_f: ^remove
+  remove_all_f: ^remove_all
+  delete_f_: (^delete value$)
+  delete_all_f_: (^delete_all value$)
+  take_f: ^take
+  clear_f: ^clear
+  bag.bag_fs$
 } ;;
 
 eval <*A bag.d> *Bag_d empty? -> <bool> {
