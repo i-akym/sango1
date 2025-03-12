@@ -27,7 +27,7 @@ import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.map" -> map ;;
 
-extend <*A *B _2> -> my2 :=
+extend <*A *B _2> -> simple_map_d :=
   eq_fs: <A eq_fs>
   tab: <<A B tuple> list>
   simple_map_d$ ;;
@@ -37,7 +37,8 @@ eval new_map @public -> <*A *B map.map> {
 } ;;
 
 eval <*A eq_fs> *Eq new_map_eq | new_map @public -> <A *B map.map> {
-  d: (eq_fs: Eq tab: [] simple_map_d$) fs: map_fs map.map$
+  eq_fs: Eq tab: [] simple_map_d$ = <A *BB map.d> *D,
+  d: D fs: map_fs map.gmap$
 } ;;
 
 eval map_fs -> <<*A *B map.d> A B map.map_fs> {

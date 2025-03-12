@@ -28,7 +28,7 @@ import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.simplemap" -> smap ;;
 
-extend <*A *B _2> -> my2 :=
+extend <*A *B _2> -> hash_map_d :=
   eq_fs: <A eq_fs>
   tab: <int <A B map.map> map.map>
   count: <int>
@@ -39,25 +39,25 @@ eval new_map @public -> <*A *B map.map> {
 } ;;
 
 eval <*A eq_fs> *Eq new_map_eq | new_map @public -> <A *B map.map> {
-  d: (Eq (int_ord_fs avlmap.new_map) 0 hash_map_d$)
-    fs: map_fs
-    map.map$
+  int_ord_fs avlmap.new_map = *Tab,
+  Eq Tab 0 hash_map_d$ = <A *BB map.d> *D,
+  d: D fs: map_fs map.gmap$
 } ;;
 
 eval map_fs -> <<*A *B map.d> A B map.map_fs> {
   empty?_f: ^empty?
-    size_f: ^size
-    get_f: ^get
-    assoc_f_: (^assoc value$)
-    contain_key?_f_: (^contain_key? value$)
-    put_f: ^put
-    put_new_f_: (^put_new value$)
-    add_f_: (^add value$)
-    remove_f: ^remove
-    delete_f_: (^delete value$)
-    take_f: ^take
-    clear_f: ^clear
-    map.map_fs$
+  size_f: ^size
+  get_f: ^get
+  assoc_f_: (^assoc value$)
+  contain_key?_f_: (^contain_key? value$)
+  put_f: ^put
+  put_new_f_: (^put_new value$)
+  add_f_: (^add value$)
+  remove_f: ^remove
+  delete_f_: (^delete value$)
+  take_f: ^take
+  clear_f: ^clear
+  map.map_fs$
 } ;;
 
 eval <*A *B map.d> *Map_d empty? -> <bool> {
