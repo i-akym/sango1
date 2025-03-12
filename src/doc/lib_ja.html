@@ -3280,79 +3280,91 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>alias type &lt;*A *B d&gt; @public := &lt;A B _2+&gt; ;;
-data &lt;*A *B map&gt; @public :=
-  d: &lt;A B d&gt;
-  fs: &lt;&lt;A B d&gt; A B map_fs&gt;
-  map$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A *B gmap&gt; @public :=
+  d: &lt;D&gt;
+  fs: &lt;D A B map_fs&gt;
+  gmap$ ;;
+alias type &lt;*A *B d&gt; @public := &lt;A B _2+&gt; ;;
+alias type &lt;*A *B map&gt; @public := &lt;&lt;A B d&gt; A B gmap&gt;;;</code></td></tr></table>
 <p>カプセル化されたマップオブジェクトを表します。
-  <code>&lt;A&gt;</code>はキー，<code>&lt;B&gt;</code>は値の型です。
-  マップを使用するには属性を意識する必要はありません。</p>
+<code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>はキーの型，<code>&lt;B&gt;</code>は値の型です。
+マップを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
+標準ライブラリのマップの実装が生成するオブジェクトは<code>&lt;&lt;A B _2+&gt; A B gmap&gt;</code>型であり，別名によって簡易に<code>&lt;A B map&gt;</code>と書くことができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>マップが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_size | size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A *B map&gt; *Map g_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>マップの大きさ（キーと値のペアの数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key c_get | get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key g_get | get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key g_get | get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キーと値のペアを返します。
-  登録されていない場合は<code>none$</code>が返ります。</p>
+登録されていない場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key c_assoc | assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*d *A *B gmap&gt; *Map &lt;A&gt; *Key g_assoc | assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key g_assoc | assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
 <p>キーに対する値を返します。
-  登録されていない場合は<code>none$</code>が返ります。</p>
+登録されていない場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key c_contain_key? | contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key g_contain_key? | contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key g_contain_key? | contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キーがマップに登録されているかどうか判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value
-  c_put | put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value g_put | put @public -&gt; &lt;&lt;D A B gmap&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value g_put | put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録します。
-  処理後のマップとすでに登録されていた値が返されます。</p>
+処理後のマップとすでに登録されていた値が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value
-  c_put_new | put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value g_put_new | put_new @public -&gt; &lt;&lt;D A B gmap&gt; bool tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value g_put_new | put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;</code></td></tr></table>
 <p>新しいキーと値のペアをマップに登録します。
-  すでにキーが登録されている場合，マップは変化しません。
-  処理後のマップとマップの更新有無が返されます。</p>
+すでにキーが登録されている場合，マップは変化しません。
+処理後のマップとマップの更新有無が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key
-  c_remove | remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key g_remove | remove @public -&gt; &lt;&lt;D A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key g_remove | remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除します。
-  処理後のマップと登録されていたペアが返されます。</p>
+処理後のマップと登録されていたペアが返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_take | take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_take | take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;D A B gmap&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map g_take | take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから一組取り出します。
-  取り出されたペアと，残りのマップが返されます。
-  マップが空の場合，<code>none$</code>が返されます。</p>
+取り出されたペアと，残りのマップが返されます。
+マップが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_clear | clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_clear | clear @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map g_clear | clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>マップを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map c_iter | iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_iter | iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;
+eval &lt;*A *B map&gt; *Map g_iter | iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
 <p>キーと値のペアを供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; list&gt; *KVs
-  c_add_list | add_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;&lt;A B tuple&gt; list&gt; *KVs g_add_list | add_list @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; list&gt; *KVs g_add_list | add_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>リストに含まれるキーと値のペアを全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; iter&gt; *Iter
-  c_add_iter | add_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;&lt;A B tuple&gt; iter&gt; *Iter g_add_iter | add_iter @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; iter&gt; *Iter g_add_iter | add_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>イテレータが供給するキーと値のペアを全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A list&gt; *Ks
-  c_delete_list | delete_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A list&gt; *Ks g_delete_list | delete_list @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A list&gt; *Ks g_delete_list | delete_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>リストに含まれるキーを全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A iter&gt; *Iter
-  c_delete_iter | delete_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map &lt;A iter&gt; *Iter g_delete_iter | delete_iter @public -&gt; &lt;D A B gmap&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A iter&gt; *Iter g_delete_iter | delete_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
 <p>イテレータが供給するキーを全て削除します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
