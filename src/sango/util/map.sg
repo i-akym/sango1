@@ -97,6 +97,14 @@ eval <*D *A *B map_fs> *Fs map_fs_delete_f | delete_f @public -> <D A D fun> {
   }
 } ;;
 
+eval <*D *A *B map_fs> *Fs map_fs_to_col_fs | to_col_fs @public -> <D <A B tuple> col_fs> {
+  Fs = empty?_f: *Empty_f size_f: *Size_f *** map_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Size_f
+  iter_f: \ <D> *Z -> <<A B tuple> iter> { Z Fs do_iter }
+  col_fs$
+} ;;
+
 
 ### generic
 
@@ -337,14 +345,6 @@ eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
 
 
 ### subroutines
-
-eval <*D *A *B map_fs> *Fs map_fs_to_col_fs | to_col_fs @public -> <D <A B tuple> col_fs> {
-  Fs = empty?_f: *Empty_f size_f: *Size_f *** map_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Size_f
-  iter_f: \ <D> *Z -> <<A B tuple> iter> { Z Fs do_iter }
-  col_fs$
-} ;;
 
 eval <*D> *Z <D *A *B map_fs> *Fs do_empty? @public -> <bool> {
   Z &(Fs empty?_f)

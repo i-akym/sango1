@@ -26,7 +26,7 @@ module "sango.util.stack" ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
-### definition of function set
+### function set
 
 data <*D *A stack_fs> @public :=
   empty?_f: <D bool fun>
@@ -38,93 +38,111 @@ data <*D *A stack_fs> @public :=
   clear_f: <D D fun>
   stack_fs$ ;;
 
+eval <*D *A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <D <A list> fun> {
+  Fs to_list_f_ >> case {
+  ; *F value$ -> F
+  ; ** ->
+    \ <D> *Stack_d -> <A list> {
+      Stack_d [] &\ <D> *Z <A list> *L_r -> <A list> {
+        Z &(Fs pop_f) >> case {
+        ; (| *Elem, *Z' |) value$ -> Z' [ Elem ; L_r ] &&
+        ; ** -> L_r list.reverse
+        }
+      }
+    }
+  }
+} ;;
 
-### definition of feature
+eval <*D *A stack_fs> *Fs stack_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
+  Fs = empty?_f: *Empty_f depth_f: *Depth_f *** stack_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Depth_f
+  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+  col_fs$
+} ;;
 
-feature <*T> [ *A a'stack ] @public -> <T A stack_fs> ;;
 
+### generic
 
-### definition of common-behavior object
-
-alias type <*A d> @public := <A _1+> ;;
-
-data <*A stack> @public :=
-  d: <A d>
-  fs: <<A d> A stack_fs>
-  stack$
+data <*D *A gstack> @public :=
+  d: <D>
+  fs: <D A stack_fs>
+  gstack$
 ++ a'stack_impl -> [ A a'stack ] ;;
 
-eval a'stack_impl -> <<*A stack> A stack_fs> {
-  empty?_f: ^c_empty?
-  depth_f: ^c_depth
-  push_f: ^c_push
-  top_f: ^c_top
-  pop_f: ^c_pop
-  to_list_f_: (^c_to_list value$)
-  clear_f: ^c_clear
+alias type <*A d> @public := <A _1+> ;;
+alias type <*A stack> @public := <<A d> A gstack> ;;
+
+eval a'stack_impl -> <<*D *A gstack> A stack_fs> {
+  empty?_f: ^g_empty?
+  depth_f: ^g_depth
+  push_f: ^g_push
+  top_f: ^g_top
+  pop_f: ^g_pop
+  to_list_f_: (^g_to_list value$)
+  clear_f: ^g_clear
   stack_fs$
 } ;;
 
-
-### implementation of common-behavior object
-
-eval <*A stack> *Stack c_empty? | empty? @public -> <bool> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_empty? | empty? @public -> <bool> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_empty?
 } ;;
 
-eval <*A stack> *Stack c_depth | depth @public -> <int> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_depth | depth @public -> <int> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_depth
 } ;;
 
-eval <*A stack> *Stack <A> *Elem c_push | push @public -> <A stack> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack <A> *Elem g_push | push @public -> <D A gstack> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs Elem do_push = *D',
-  d: D' fs: Fs stack$
+  d: D' fs: Fs gstack$
 } ;;
 
-eval <*A stack> *Stack c_top | top @public -> <A maybe> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_top | top @public -> <A maybe> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_top
 } ;;
 
-eval <*A stack> *Stack c_pop | pop @public -> <<A <A stack> tuple> maybe> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_pop | pop @public -> <<A <D A gstack> tuple> maybe> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_pop >> case {
-  ; (| *E, *D' |) value$ -> (| E, d: D' fs: Fs stack$ |) value$
+  ; (| *E, *D' |) value$ -> (| E, d: D' fs: Fs gstack$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A stack> *Stack c_to_list | to_list @public -> <A list> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_to_list | to_list @public -> <A list> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_to_list
 } ;;
 
-eval <*A stack> *Stack c_clear | clear @public -> <A stack> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_clear | clear @public -> <D A gstack> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_clear = *D',
-  d: D' fs: Fs stack$
+  d: D' fs: Fs gstack$
 } ;;
 
-eval <*A stack> *Stack <A list> *Elems c_push_list | push_list @public -> <A stack> {
-  Stack (Elems list.iter) c_push_iter
+eval <*D *A gstack> *Stack <A list> *Elems g_push_list | push_list @public -> <D A gstack> {
+  Stack (Elems list.iter) g_push_iter
 } ;;
 
-eval <*A stack> *Stack <A iter> *Iter c_push_iter | push_iter @public -> <A stack> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack <A iter> *Iter g_push_iter | push_iter @public -> <D A gstack> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs Iter do_push_iter = *D',
-  d: D' fs: Fs stack$
+  d: D' fs: Fs gstack$
 } ;;
 
-eval <*A stack> *Stack c_iter | iter @public -> <A iter> {
-  Stack = d: *D fs: *Fs stack$,
+eval <*D *A gstack> *Stack g_iter | iter @public -> <A iter> {
+  Stack = d: *D fs: *Fs gstack$,
   D Fs do_iter
 } ;;
 
 
-### framework of faeture
+### feature
+
+feature <*T> [ *A a'stack ] @public -> <T A stack_fs> ;;
 
 eval <*T[ *A a'stack ]> *FStack f_empty? | empty? @public -> <bool> {
   FStack _feature_a'stack = *Stack_fs,
@@ -177,29 +195,6 @@ eval <*T[ *A a'stack ]> *FStack f_iter | iter @public -> <A iter> {
 
 
 ### subroutines
-
-eval <*D *A stack_fs> *Fs stack_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
-  Fs = empty?_f: *Empty_f depth_f: *Depth_f *** stack_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Depth_f
-  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
-  col_fs$
-} ;;
-
-eval <*D *A stack_fs> *Fs stack_fs_to_list_f | to_list_f @public -> <D <A list> fun> {
-  Fs to_list_f_ >> case {
-  ; *F value$ -> F
-  ; ** ->
-    \ <D> *Stack_d -> <A list> {
-      Stack_d [] &\ <D> *Z <A list> *L_r -> <A list> {
-        Z &(Fs pop_f) >> case {
-        ; (| *Elem, *Z' |) value$ -> Z' [ Elem ; L_r ] &&
-        ; ** -> L_r list.reverse
-        }
-      }
-    }
-  }
-} ;;
 
 eval <*D> *Z <D *A stack_fs> *Fs do_empty? @public -> <bool> {
   Z &(Fs empty?_f)

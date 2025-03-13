@@ -42,14 +42,6 @@ data <*D *A set_fs> @public :=
   clear_f: <D D fun>
   set_fs$ ;;
 
-eval <*D *A set_fs> *Fs set_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
-  Fs = empty?_f: *Empty_f size_f: *Size_f *** set_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Size_f
-  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
-  col_fs$
-} ;;
-
 eval <*D *A set_fs> *Fs set_fs_contain?_f | contain?_f @public -> <D A bool fun> {
   Fs contain?_f_ >> case {
   ; *F value$ -> F
@@ -93,6 +85,14 @@ eval <*D *A set_fs> *Fs set_fs_delete_f | delete_f @public -> <D A D fun> {
       Z'
     }
   }
+} ;;
+
+eval <*D *A set_fs> *Fs set_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
+  Fs = empty?_f: *Empty_f size_f: *Size_f *** set_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Size_f
+  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+  col_fs$
 } ;;
 
 
