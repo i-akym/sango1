@@ -3481,43 +3481,54 @@ eval &lt;*A *B map&gt; *Map &lt;A iter&gt; *Iter g_delete_iter | delete_iter @pu
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
-data &lt;*A queue&gt; @public :=
-  d: &lt;A d&gt;
-  fs: &lt;&lt;A d&gt; A queue_fs&gt;
-  queue$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A gqueue&gt; @public :=
+  d: &lt;D&gt;
+  fs: &lt;D A queue_fs&gt;
+  gqueue$ ;;
+alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+alias type &lt;*A queue&gt; @public := &lt;&lt;A d&gt; A gqueue&gt;;;</code></td></tr></table>
 <p>カプセル化されたキューオブジェクトを表します。
-  <code>&lt;A&gt;</code>は値の型です。
-  キューを使用するには属性を意識する必要はありません。</p>
+<code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>は要素の型です。
+キューを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
+標準ライブラリのキューの実装が生成するオブジェクトは<code>&lt;&lt;A _1+&gt; A gqueue&gt;</code>型であり，別名によって簡易に<code>&lt;A queue&gt;</code>と書くことができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A queue&gt; *Queue g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キューが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue g_length | length @public -&gt; &lt;int&gt; ;;
+eval &lt;*A queue&gt; *Queue g_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>キューの長さを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A&gt; *Elem enqueue @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue &lt;A&gt; *Elem g_enqueue | enqueue @public -&gt; &lt;D A gqueue&gt; ;;
+eval &lt;*A queue&gt; *Queue &lt;A&gt; *Elem g_enqueue | enqueue @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>値をキューに登録します。
-  登録された値はキューの末尾に位置づけられます。</p>
+登録された値はキューの末尾に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue g_head | head @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A queue&gt; *Queue g_head | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>キューの先頭の値を返します。
-  キューが空の場合は，<code>none$</code>が返されます。</p>
+キューが空の場合は，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue dequeue @public -&gt; &lt;&lt;A &lt;A queue&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A queue&gt; *Queue g_dequeue | dequeue @public -&gt; &lt;&lt;A &lt;D A gqueue&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A queue&gt; *Queue g_dequeue | dequeue @public -&gt; &lt;&lt;A &lt;A queue&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キューの先頭の値を取り出し，残りのキューと共に返します。
-  キューが空の場合は，<code>none$</code>が返されます。</p>
+キューが空の場合は，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue clear @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue g_clear | clear @public -&gt; &lt;D A gqueue&gt; ;;
+eval &lt;*A queue&gt; *Queue g_clear | clear @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>キューを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue g_iter | iter @public -&gt; &lt;A iter&gt; ;;
+eval &lt;*A queue&gt; *Queue g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を先頭から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A list&gt; *Elems enqueue_list @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue &lt;A list&gt; *Elems g_enqueue_list | enqueue_list @public -&gt; &lt;D A gqueue&gt; ;;
+eval &lt;*A queue&gt; *Queue &lt;A list&gt; *Elems g_enqueue_list | enqueue_list @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を順に登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A iter&gt; *Iter enqueue_iter @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gqueue&gt; *Queue &lt;A iter&gt; *Iter g_enqueue_iter | enqueue_iter @public -&gt; &lt;D A gqueue&gt; ;;
+eval &lt;*A queue&gt; *Queue &lt;A iter&gt; *Iter g_enqueue_iter | enqueue_iter @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を順に登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

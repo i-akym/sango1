@@ -26,7 +26,7 @@ module "sango.util.queue" ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
-### definition of function set
+### function set
 
 data <*D *A queue_fs> @public :=
   empty?_f: <D bool fun>
@@ -37,87 +37,93 @@ data <*D *A queue_fs> @public :=
   clear_f: <D D fun>
   queue_fs$ ;;
 
+eval <*D *A queue_fs> *Fs queue_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
+  Fs = empty?_f: *Empty_f length_f: *Length_f *** queue_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Length_f
+  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+  col_fs$
+} ;;
 
-### definition of feature
 
-feature <*T> [ *A a'queue ] @public -> <T A queue_fs> ;;
+### generic
 
-
-### definition of common-behavior object
-
-alias type <*A d> @public := <A _1+> ;;
-
-data <*A queue> @public :=
-  d: <A d>
-  fs: <<A d> A queue_fs>
-  queue$
+data <*D *A gqueue> @public :=
+  d: <D>
+  fs: <D A queue_fs>
+  gqueue$
 ++ a'queue_impl -> [ A a'queue ] ;;
 
-eval a'queue_impl -> <<*A queue> A queue_fs> {
-  empty?_f: ^c_empty?
-  length_f: ^c_length
-  enqueue_f: ^c_enqueue
-  head_f: ^c_head
-  dequeue_f: ^c_dequeue
-  clear_f: ^c_clear
+alias type <*A d> @public := <A _1+> ;;
+alias type <*A queue> @public := <<A d> A gqueue> ;;
+
+eval a'queue_impl -> <<*D *A gqueue> A queue_fs> {
+  empty?_f: ^g_empty?
+  length_f: ^g_length
+  enqueue_f: ^g_enqueue
+  head_f: ^g_head
+  dequeue_f: ^g_dequeue
+  clear_f: ^g_clear
   queue_fs$
 } ;;
 
 
 ### implementation of common-behavior object
 
-eval <*A queue> *Queue c_empty? | empty? @public -> <bool> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue g_empty? | empty? @public -> <bool> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs do_empty?
 } ;;
 
-eval <*A queue> *Queue c_length | length @public -> <int> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue g_length | length @public -> <int> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs do_length
 } ;;
 
-eval <*A queue> *Queue <A> *Elem c_enqueue | enqueue @public -> <A queue> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue <A> *Elem g_enqueue | enqueue @public -> <D A gqueue> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs Elem do_enqueue = *D',
-  d: D' fs: Fs queue$
+  d: D' fs: Fs gqueue$
 } ;;
 
-eval <*A queue> *Queue c_head | head @public -> <A maybe> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue g_head | head @public -> <A maybe> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs do_head
 } ;;
 
-eval <*A queue> *Queue c_dequeue | dequeue @public -> <<A <A queue> tuple> maybe> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue g_dequeue | dequeue @public -> <<A <D A gqueue> tuple> maybe> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs do_dequeue >> case {
-  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs queue$ |) value$
+  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs gqueue$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A queue> *Queue c_clear | clear @public -> <A queue> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue g_clear | clear @public -> <D A gqueue> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs do_clear = *D',
-  d: D' fs: Fs queue$
+  d: D' fs: Fs gqueue$
 } ;;
 
-eval <*A queue> *Queue <A list> *Elems c_enqueue_list | enqueue_list @public -> <A queue> {
-  Queue (Elems list.iter) c_enqueue_iter
+eval <*D *A gqueue> *Queue <A list> *Elems g_enqueue_list | enqueue_list @public -> <D A gqueue> {
+  Queue (Elems list.iter) g_enqueue_iter
 } ;;
 
-eval <*A queue> *Queue <A iter> *Iter c_enqueue_iter | enqueue_iter @public -> <A queue> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue <A iter> *Iter g_enqueue_iter | enqueue_iter @public -> <D A gqueue> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs Iter do_enqueue_iter = *D',
-  d: D' fs: Fs queue$
+  d: D' fs: Fs gqueue$
 } ;;
 
-eval <*A queue> *Queue c_iter | iter @public -> <A iter> {
-  Queue = d: *D fs: *Fs queue$,
+eval <*D *A gqueue> *Queue g_iter | iter @public -> <A iter> {
+  Queue = d: *D fs: *Fs gqueue$,
   D Fs do_iter
 } ;;
 
 
-### framework of faeture
+### definition of feature
+
+feature <*T> [ *A a'queue ] @public -> <T A queue_fs> ;;
 
 eval <*T[ *A a'queue ]> *FQueue f_empty? | empty? @public -> <bool> {
   FQueue _feature_a'queue = *Queue_fs,
@@ -165,14 +171,6 @@ eval <*T[ *A a'queue ]> *FQueue f_iter | iter @public -> <A iter> {
 
 
 ### subroutines
-
-eval <*D *A queue_fs> *Fs queue_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
-  Fs = empty?_f: *Empty_f length_f: *Length_f *** queue_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Length_f
-  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
-  col_fs$
-} ;;
 
 eval <*D> *Z <D *A queue_fs> *Fs do_empty? @public -> <bool> {
   Z &(Fs empty?_f)
