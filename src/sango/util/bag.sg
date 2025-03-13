@@ -42,14 +42,6 @@ data <*D *A bag_fs> @public :=
   clear_f: <D D fun>
   bag_fs$ ;;
 
-eval <*D *A bag_fs> *Fs bag_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
-  Fs = empty?_f: *Empty_f size_f: *Size_f *** bag_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Size_f
-  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
-  col_fs$
-} ;;
-
 eval <*D *A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <D A D fun> {
   Fs delete_f_ >> case {
   ; *F value$ -> F
@@ -70,6 +62,14 @@ eval <*D *A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <D A D fun
       Z'
     }
   }
+} ;;
+
+eval <*D *A bag_fs> *Fs bag_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
+  Fs = empty?_f: *Empty_f size_f: *Size_f *** bag_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Size_f
+  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+  col_fs$
 } ;;
 
 

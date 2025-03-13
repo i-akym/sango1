@@ -4260,45 +4260,58 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
-data &lt;*A stack&gt; @public :=
-  d: &lt;A d&gt;
-  fs: &lt;&lt;A d&gt; A stack_fs&gt;
-  stack$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A gstack&gt; @public :=
+  d: &lt;D&gt;
+  fs: &lt;D A stack_fs&gt;
+  gstack$ ;;
+alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
+alias type &lt;*A stack&gt; @public := &lt;&lt;A d&gt; A gstack&gt;;;</code></td></tr></table>
 <p>カプセル化されたスタックオブジェクトを表します。
-  &lt;A&gt;は値の型です。</p>
+<code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>は要素の型です。
+スタックを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
+標準ライブラリのスタックの実装が生成するオブジェクトは<code>&lt;&lt;A _1+&gt; A gstack&gt;</code>型であり，別名によって簡易に<code>&lt;A stack&gt;</code>と書くことができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A stack&gt; *Stack g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>スタックが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_depth | depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_depth | depth @public -&gt; &lt;int&gt; ;;
+eval &lt;*A stack&gt; *Stack g_depth | depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>スタックの深さ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem c_push | push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack &lt;A&gt; *Elem g_push | push @public -&gt; &lt;D A gstack&gt; ;;
+eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem g_push | push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>値をスタックに登録します。
-  登録された値はスタックの一番上に位置づけられます。</p>
+登録された値はスタックの一番上に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_top | top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_top | top @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A stack&gt; *Stack g_top | top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を返します。
-  スタックが空の場合は<code>none$</code>が返されます。</p>
+スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_pop | pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_pop | pop @public -&gt; &lt;&lt;A &lt;D A gstack&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A stack&gt; *Stack g_pop | pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を取り出し，残りのスタックと共に返します。
-  スタックが空の場合は<code>none$</code>が返されます。</p>
+スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_to_list | to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_to_list | to_list @public -&gt; &lt;A list&gt; ;;
+eval &lt;*A stack&gt; *Stack g_to_list | to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>スタックをリストに変換します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_clear | clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_clear | clear @public -&gt; &lt;D A gstack&gt; ;;
+eval &lt;*A stack&gt; *Stack g_clear | clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>スタックを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack c_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack g_iter | iter @public -&gt; &lt;A iter&gt; ;;
+eval &lt;*A stack&gt; *Stack g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素をスタックの上から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems c_push_list | push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack &lt;A list&gt; *Elems g_push_list | push_list @public -&gt; &lt;D A gstack&gt; ;;
+eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems g_push_list | push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter c_push_iter | push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gstack&gt; *Stack &lt;A iter&gt; *Iter g_push_iter | push_iter @public -&gt; &lt;D A gstack&gt; ;;
+eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter g_push_iter | push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>

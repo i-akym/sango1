@@ -26,14 +26,15 @@ module "sango.util.stack.liststack" ;;
 import "sango.list" -> list ;;
 import "sango.util.stack" -> stack ;;
 
-extend <*A _1> -> my1 := <A list> list_stack_d$ ;;
+extend <*A _1> -> list_stack_d := <A list> list_stack_d$ ;;
 
 eval new_stack @public -> <*A stack.stack> {
   [] to_stack
 } ;;
 
 eval <*A list> *Elems to_stack @public -> <A stack.stack> {
-  d: (Elems list_stack_d$) fs: stack_fs stack.stack$
+  Elems list_stack_d$ = <A stack.d> *D,
+  d: D fs: stack_fs stack.gstack$
 } ;;
 
 eval stack_fs @public -> <<*A stack.d> A stack.stack_fs> {
