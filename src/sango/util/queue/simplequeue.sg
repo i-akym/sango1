@@ -27,25 +27,25 @@ import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.queue" -> queue ;;
 
-extend <*A _1> -> my1 :=
+extend <*A _1> -> simple_queue_d :=
   in: <A list>
   out: <A list>
   simple_queue_d$ ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  d: ([] [] simple_queue_d$)
-    fs: queue_fs
-    queue.queue$
+  [] [] simple_queue_d$ = <A queue.d> *D,
+  d: D fs: queue_fs
+  queue.gqueue$
 } ;;
 
 eval queue_fs -> <<*A queue.d> A queue.queue_fs> {
   empty?_f: ^empty?
-    length_f: ^length
-    enqueue_f: ^enqueue
-    head_f: ^head
-    dequeue_f: ^dequeue
-    clear_f: ^clear
-    queue.queue_fs$
+  length_f: ^length
+  enqueue_f: ^enqueue
+  head_f: ^head
+  dequeue_f: ^dequeue
+  clear_f: ^clear
+  queue.queue_fs$
 } ;;
 
 eval <*A queue.d> *Queue_d empty? -> <bool> {
