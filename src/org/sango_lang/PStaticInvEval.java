@@ -151,7 +151,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForInv(this.srcInfo);
     PFunDef fd = ((PTypeGraph.StaticInvNode)this.typeGraphNode).funDef;
-    PTypeSkel[] pts = fd.getFixedParamTypes();
+    PTypeSkel[] pts = fd.getFinalizedParamTypes();
     PTypeSkelBindings bindings = ((PTypeGraph.StaticInvNode)this.typeGraphNode).bindings;
     for (int i = 0; i < this.params.length; i++) {
       node.addChild(this.params[i].setupFlow(flow));

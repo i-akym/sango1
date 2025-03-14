@@ -42,18 +42,18 @@ eval <*A avl.node> *Node locate_enqueue -> <A avl.locate> {
 } ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  body: avl.new_tree d$ = *D,
-  d: D fs: queue_fs queue.queue$
+  body: avl.new_tree d$ = <A queue.d> *D,
+  d: D fs: queue_fs queue.gqueue$
 } ;;
 
 eval queue_fs -> <<*A queue.d> A queue.queue_fs> {
   empty?_f: ^empty?
-    length_f: ^length
-    enqueue_f: ^enqueue
-    head_f: ^head
-    dequeue_f: ^dequeue
-    clear_f: ^clear
-    queue.queue_fs$
+  length_f: ^length
+  enqueue_f: ^enqueue
+  head_f: ^head
+  dequeue_f: ^dequeue
+  clear_f: ^clear
+  queue.queue_fs$
 } ;;
 
 eval <*A queue.d> *Queue_d empty? -> <bool> {

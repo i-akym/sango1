@@ -844,6 +844,12 @@ if (PTypeGraph.DEBUG > 1) {
     }
   }
 
+  public void collectVarVariances(PTypeVarSlot slot, Module.Variance contextVariance, List<Module.Variance> variances) throws CompileException {
+    if (this.varSlot == slot) {
+      variances.add(contextVariance);
+    }
+  }
+
   // public void collectTconProps(List<PDefDict.TconProps> list) {}
 
   public PTypeSkel unalias(PTypeSkelBindings bindings) {

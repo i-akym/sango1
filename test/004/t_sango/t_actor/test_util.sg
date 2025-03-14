@@ -1,12 +1,8 @@
 import "sango.actor" -> act ;;
 import "sango.actor.util" -> actu ;;
 import "sango.debug" -> debug ;;
-import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
-import "sango.entity.domain" -> ed ;;
 import "sango.system.runtime" -> runtime ;;
-
-extend <ent.ent_d> := <int> ee$ ;;
 
 eval _main_ -> <void> {
   test
@@ -16,8 +12,6 @@ eval test -> <void> {
   test201,
   test202,
   test301,
-  test400,
-  test410,
   test420,
   void$
 } ;;
@@ -28,18 +22,6 @@ eval <act.post_h void fun> *R act003 -> <void> { act.open_mbox = (| *B, *P |), P
 eval test201 -> <act.actor_h> { ^act002 actu.startup_actor } ;;
 eval test202 -> <act.actor_h act.post_h tuple> { ^act003 actu.startup_svr } ;;
 eval test301 -> <int> { actu.start_serializer = *S, S \\ <int> { 301 } actu.run_serialized = 301 } ;;
-eval test400 -> <void> {
-  (3 ee$) none$ ent.create_entity = *E,
-  E actu.create_monitor = *M,
-  M \ <ent.eref> *EE -> <int> { EE ent.read = *X ee$, X } actu.run = 3,
-  void$
-} ;;
-eval test410 -> <void> {
-  ed.default_domain (4 ee$) none$ ed.create_entity = *E,
-  E actu.create_monitor = *M,
-  M \ <ent_d ed.entity_h> *EE -> <int> { EE ed.read = *X ee$, X } actu.run = 4,
-  void$
-} ;;
 eval test420 -> <void> {
   9 none$ box.create_box = *B,
   B actu.create_monitor = *M,

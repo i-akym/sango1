@@ -151,7 +151,7 @@ data @alpha <*D *A col_fs> @public :=
   iter_f: <D <A iter> fun>
   col_fs$ ;;
 
-eval <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
+eval @alpha <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
   Fs empty?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->

@@ -51,7 +51,7 @@ public class Module {
   // planned: always use module index on type ref
 
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
-  public static final Cstr MOD_ENTITY = new Cstr("sango.entity");
+  // public static final Cstr MOD_ENTITY = new Cstr("sango.entity");
   public static final Cstr MOD_ACTOR = new Cstr("sango.actor");
 
   // lang-special tcons

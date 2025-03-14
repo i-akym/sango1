@@ -23,6 +23,22 @@
 ###########################################################################
 module "sango.util.iter" ;;
 
+### incarnation
+
+data @alpha <*T *A iter_inc> @protected :=
+  org: <T>
+  fo: <T <A iter> fun>
+  iter_inc$ ;;
+
+eval @alpha <*T[ *A a'iter ]> *FIter incarnate @public -> <T A iter_inc> {
+  org: FIter
+  fo: (FIter _feature_a'iter)
+  iter_inc$
+} ;;
+
+
+### utility routines
+
 eval <*A> *K const_iter @public -> <A iter> {
   \\ <A iter_res> { K const_next } iter$
 } ;;

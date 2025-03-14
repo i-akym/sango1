@@ -74,6 +74,8 @@ public interface PTypeSkel {
 
   void extractVars(List<PTypeVarSlot> extracted);
 
+  void collectVarVariances(PTypeVarSlot slot, Module.Variance contextVariance, List<Module.Variance> variances) throws CompileException;
+
   // void collectTconProps(List<PDefDict.TconProps> list);
 
   PTypeSkel unalias(PTypeSkelBindings bindings) throws CompileException;

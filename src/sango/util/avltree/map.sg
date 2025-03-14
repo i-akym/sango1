@@ -70,8 +70,8 @@ eval map_fs @public -> <<*A *B map.d> A B map.map_fs> {
 } ;;
 
 eval <*A ord_fs> *Ord new_map @public -> <A *B map.map> {
-  ord: Ord body: avl.new_tree d$ = *D,
-  d: D fs: map_fs map.map$
+  ord: Ord body: avl.new_tree d$ = <A *BB map.d> *D,
+  d: D fs: map_fs map.gmap$
 } ;;
 
 eval <*A *B map.d> *Map_d empty? -> <bool> {

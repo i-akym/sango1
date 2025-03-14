@@ -23,19 +23,84 @@
 ###########################################################################
 module @alpha "sango.util.col" ;;
 
-### implementation of common-behavior object
+### generic
+
+data <*D *A gcol> @public :=
+  d: <D>
+  fs: <D A col_fs>
+  gcol$
+++ gcol_as_a'col -> [ A a'col ] ;;
+
+alias type <*A col_d> @public := <A _1+> ;;
+alias type <*A col> @public := <<A col_d> A gcol> ;;
+
+eval gcol_as_a'col -> <<*D *A gcol> A col_fs> {
+  empty?_f_: (^g_empty? value$)
+  size_f: ^g_size
+  iter_f: ^g_iter
+  col_fs$
+} ;;
+
+eval <*D *A gcol> *Col g_empty? | empty? @public -> <bool> {
+  Col = *CD *CFs gcol$,
+  CD CFs do_col_empty?
+} ;;
+
+eval <*D *A gcol> *Col g_size | size @public -> <int> {
+  Col = *CD *CFs gcol$,
+  CD CFs do_col_size
+} ;;
+
+eval <*D *A gcol> *Col g_iter | iter @public -> <A iter> {
+  Col = *CD *CFs gcol$,
+  CD CFs do_col_iter
+} ;;
+
+eval <*D> *Col_d <D *A col_fs> *Col_fs do_col_empty? @public -> <bool> {
+  Col_d &(Col_fs empty?_f)
+} ;;
+
+eval <*D> *Col_d <D *A col_fs> *Col_fs do_col_size @public -> <int> {
+  Col_d &(Col_fs size_f)
+} ;;
+
+eval <*D> *Col_d <D *A col_fs> *Col_fs do_col_iter @public -> <A iter> {
+  Col_d &(Col_fs iter_f)
+} ;;
 
 
 ### framework of faeture
 
 eval <*T[ *A a'col ]> *FCol f_empty? | empty? @public -> <bool> {
-  FCol &(FCol _feature_a'col >> empty?_f)
+  FCol (FCol _feature_a'col) do_col_empty?
 } ;;
 
 eval <*T[ *A a'col ]> *FCol f_size | size @public -> <int> {
-  FCol &(FCol _feature_a'col >> size_f)
+  FCol (FCol _feature_a'col) do_col_size
 } ;;
 
 eval <*T[ *A a'col ]> *FCol f_iter | iter @public -> <A iter> {
-  FCol &(FCol _feature_a'col >> iter_f)
+  FCol (FCol _feature_a'col) do_col_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A col_inc> @protected :=
+  org: <T>
+  fo: <T A col_fs>
+  col_inc$
+++ inc_as_a'iter -> [ A a'iter ] ;;
+
+eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A col_inc> {
+  org: FCol
+  fo: (FCol _feature_a'col)
+  col_inc$
+} ;;
+
+eval inc_as_a'iter -> <<*T *A col_inc> <A iter> fun> {
+  \ <*TT *AA col_inc> *I -> <AA iter> {
+    I = *ID *IFs col_inc$,
+    ID IFs do_col_iter
+  }
 } ;;

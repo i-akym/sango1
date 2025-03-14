@@ -33,7 +33,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Availability availability;
   Module.Access acc;
   PTypeVarDef obj;
-  PTypeVarDef.DefWithVariance[] params;
+  PTypeVarDef.DefWithVariance[] params;  // variance is used internally
   String fname;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
@@ -172,6 +172,13 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     PTypeVarDef.DefWithVariance param;
     int spc = ParserA.SPACE_DO_NOT_CARE;
     while ((param = PTypeVarDef.DefWithVariance.accept(reader, defScope)) != null) {
+      if (param.variance != Module.INVARIANT) {
+        emsg = new StringBuffer();
+        emsg.append("Variance specification not allowed at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       builder.addParam(param);
       spc = ParserA.SPACE_NEEDED;
     }
@@ -341,22 +348,40 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   // public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
 
   void checkVariance() throws CompileException {
-// TODO
-    // PTypeVarSlot[] ss = new PTypeVarSlot[this.params.length];
-    // Module.Variance[] vs = new Module.Variance[this.params.length];
-    // for (int i = 0; i < this.params.length; i++) {
-      // if (this.params[i].varDef.varSlot == null) { throw new RuntimeException("Null varSlot."); }
-      // ss[i] = this.params[i].varDef.varSlot;
-      // vs[i] = this.params[i].variance;
-    // }
-    // PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
-    // PTypeVarSkel x = this.impl.varIncompatVariance(vt);
-    // if (x != null) {
+    for(int i = 0; i < this.params.length; i++) {
+      this.checkVariance1(this.params[i]);
+    }
+  }
+
+  void checkVariance1(PTypeVarDef.DefWithVariance p) throws CompileException {
+    List<Module.Variance> vs = new ArrayList<Module.Variance>();
+    this._normalized_implSkel.collectVarVariances(p.varDef._resolved_varSlot, null, vs);
+    Module.Variance v = null;
+    for (int i = 0; i < vs.size(); i++) {
+      Module.Variance vv = vs.get(i);
+      if (v == null) {
+        v = vv;  // replace
+      } else if (v == Module.INVARIANT) {
+        // keep
+      } else if (vv == null) {
+        // skip
+      } else if (vv == Module.INVARIANT) {
+        v = Module.INVARIANT;
+      } else if (v == vv) {
+        // keep
+      } else {
+        v = Module.INVARIANT;
+      }
+    }
+    p.variance = v;
+    // if (p.variance != v) {
       // StringBuffer emsg = new StringBuffer();
-      // emsg.append("Incompatible variance for ");
-      // emsg.append(PTypeSkel.Repr.topLevelRepr(x));
-      // emsg.append(" at ");
-      // emsg.append(this.impl.srcInfo);
+      // emsg.append("Variance for ");
+      // emsg.append(p.varDef.name);
+      // emsg.append(" must be \'");
+      // emsg.append(v);
+      // emsg.append("\' at ");
+      // emsg.append(p.srcInfo);
       // emsg.append(".");
       // throw new CompileException(emsg.toString());
     // }

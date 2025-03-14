@@ -513,7 +513,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       node.addChild(this.bdUsing.setupFlow(flow));
       node.addChild(flow.createSinkNode(this.srcInfo));
     }
-    PTypeRefSkel type = (PTypeRefSkel)this.typeGraphNode.getFixedType();
+    PTypeRefSkel type = (PTypeRefSkel)this.typeGraphNode.getFinalizedType();
     // /* DEBUG */ System.out.println(type.tconProps);
     GFlow.DataConstrNode n = flow.createNodeForDataConstrBody(
       this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_dconProps.key.modName), this.dcon.name,

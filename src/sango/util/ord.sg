@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,66 +21,34 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.stack.liststack" ;;
+module @alpha "sango.util.ord" ;;
 
-import "sango.list" -> list ;;
-import "sango.util.stack" -> stack ;;
+### incarnation
 
-extend <*A _1> -> list_stack_d := <A list> list_stack_d$ ;;
+data <*T ord_inc> @protected :=
+  org: <T>
+  fo: <T ord_fs>
+  ord_inc$
+++ as_a'eq -> [ a'eq ] ;;
 
-eval new_stack @public -> <*A stack.stack> {
-  [] to_stack
+eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
+  org: FOrd
+  fo: (FOrd _feature_a'ord)
+  ord_inc$
 } ;;
 
-eval <*A list> *Elems to_stack @public -> <A stack.stack> {
-  Elems list_stack_d$ = <A stack.d> *D,
-  d: D fs: stack_fs stack.gstack$
-} ;;
-
-eval stack_fs @public -> <<*A stack.d> A stack.stack_fs> {
-  empty?_f: ^empty?
-  depth_f: ^depth
-  push_f: ^push
-  top_f: ^top
-  pop_f: ^pop
-  to_list_f_: (^to_list value$)
-  clear_f: ^clear
-  stack.stack_fs$
-} ;;
-
-eval <*A stack.d> *Stack_d empty? -> <bool> {
-  Stack_d = *Elems list_stack_d$,
-  Elems list.empty?
-} ;;
-
-eval <*A stack.d> *Stack_d depth -> <int> {
-  Stack_d = *Elems list_stack_d$,
-  Elems list.length
-} ;;
-
-eval <*A stack.d> *Stack_d <A> *Elem push -> <A stack.d> {
-  Stack_d = *Elems list_stack_d$,
-  [ Elem ; Elems ] list_stack_d$
-} ;;
-
-eval <*A stack.d> *Stack_d top -> <A maybe> {
-  Stack_d = *Elems list_stack_d$,
-  Elems list.head
-} ;;
-
-eval <*A stack.d> *Stack_d pop -> <<A <A stack.d> tuple> maybe> {
-  Stack_d = *Elems list_stack_d$,
-  Elems case {
-  ; [ *Top ; *Others ] -> (| Top, Others list_stack_d$ |) value$
-  ; ** -> none$
-  }
-} ;;
-
-eval <*A stack.d> *Stack_d to_list -> <A list> {
-  Stack_d = *Elems list_stack_d$,
-  Elems
-} ;;
-
-eval <*A stack.d> *Stack_d clear -> <A stack.d> {
-  [] list_stack_d$
+eval as_a'eq -> <<*T ord_inc> eq_fs> {
+  eq?_f:
+    \ <*TT ord_inc> *X0 <TT ord_inc> *X1 -> <bool> {
+      X0 = *D0 *Fs ord_inc$,
+      X1 = *D1 ** ord_inc$,
+      D0 D1 Fs ordcmp_eq?
+    }
+  ne?_f_: none$
+  hash_f:
+    \ <*TT ord_inc> *X0 -> <int> {
+      X0 = *D0 *Fs ord_inc$,
+      D0 &(Fs hash_f)
+    }
+  eq_fs$
 } ;;

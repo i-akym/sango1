@@ -507,7 +507,7 @@ class PCompiledModule implements PModDecl {
 
     public PTypeSkel getNormalizedType() { return this.type; }
 
-    public PTypeSkel getFixedType() { return this.type; }
+    public PTypeSkel getFinalizedType() { return this.type; }
   }
 
   class FeatureImpl implements PDataDef.FeatureImpl {
@@ -617,43 +617,12 @@ class PCompiledModule implements PModDecl {
 
     public PTypeSkel[] getParamTypes() { return this.paramTypes; }
 
-    public PTypeSkel[] getFixedParamTypes() { return this.paramTypes; }
+    public PTypeSkel[] getFinalizedParamTypes() { return this.paramTypes; }
 
     public PTypeSkel getRetType() { return this.retType; }
 
-    public PTypeSkel getFixedRetType() { return this.retType; }
+    public PTypeSkel getFinalizedRetType() { return this.retType; }
   }
-
-  // PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
-    // List<FunDef> funList = this.funListDict.get(name);
-    // if (funList == null) { return null; }
-    // PDefDict.FunSelRes sel = null;
-    // for (int i = 0; sel == null && i < funList.size(); i++) {
-      // FunDef fd = funList.get(i);
-      // PTypeSkel[] pts = fd.getParamTypes();
-      // if (pts.length != paramTypes.length) { continue; }
-      // PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
-      // boolean b = true;
-      // for (int j = 0; b && j < pts.length; j++) {
-        // b = pts[j].accept(PTypeSkel.NARROWER, paramTypes[j], bindings);
-      // }
-      // if (b) {
-        // for (int j = 0; b && j < pts.length; j++) {
-          // PTypeSkel p = paramTypes[j].resolveBindings(bindings);
-          // b = pts[j].extractAnyInconcreteVar(p /* , givenTVarList */) == null;
-        // }
-      // }
-      // if (b) {
-        // sel = PDefDict.FunSelRes.create(fd, bindings);
-      // }
-    // }
-    // return sel;
-  // }
-
-  // PFunDef getFun(String official) {
-    // return this.funOfficialDict.get(official);
-  // }
-
 
   PTypeSkel convertType(MType type, Module mod, List<PTypeVarSkel> varList) {
     PTypeSkel t;
@@ -681,9 +650,6 @@ class PCompiledModule implements PModDecl {
       ik,
       tr.ext,
       params);
-
-    // t = PTypeRefSkel.create(this.defDictGetter, null, PDefDict.TidProps.createUnresolved(ik), tr.ext, params);
-    // unresolvedTypeRefList.add((PTypeRefSkel)t);
     return t;
   }
 

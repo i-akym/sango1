@@ -26,7 +26,7 @@ module "sango.util.bag" ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
-### definition of function set
+### function set
 
 data <*D *A bag_fs> @public :=
   empty?_f: <D bool fun>
@@ -42,141 +42,166 @@ data <*D *A bag_fs> @public :=
   clear_f: <D D fun>
   bag_fs$ ;;
 
+eval <*D *A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <D A D fun> {
+  Fs delete_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <D> *Z <A> *Elem -> <D> {
+      Z Elem &(Fs remove_f) = (| *Z', ** |),
+      Z'
+    }
+  }
+} ;;
 
-### definition of feature
+eval <*D *A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <D A D fun> {
+  Fs delete_all_f_ >> case {
+  ; *F value$ -> F
+  ; none$ ->
+    \ <D> *Z <A> *Elem -> <D> {
+      Z Elem &(Fs remove_all_f) = (| *Z', ** |),
+      Z'
+    }
+  }
+} ;;
 
-feature <*T> [ *A a'bag ] @public -> <T A bag_fs> ;;
+eval <*D *A bag_fs> *Fs bag_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
+  Fs = empty?_f: *Empty_f size_f: *Size_f *** bag_fs$,
+  empty?_f_: (Empty_f value$)
+  size_f: Size_f
+  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+  col_fs$
+} ;;
 
 
-### definition of common-behavior object
+### generic
 
-alias type <*A d> @public := <A _1+> ;;
-
-data <*A bag> @public :=
-  d: <A d>
-  fs: <<A d> A bag_fs>
-  bag$
+data <*D *A gbag> @public :=
+  d: <D>
+  fs: <D A bag_fs>
+  gbag$
 ++ a'bag_impl -> [ A a'bag ] ;;
 
-eval a'bag_impl -> <<*A bag> A bag_fs> {
-  empty?_f: ^c_empty?
-  size_f: ^c_size
-  contain?_f: ^c_contain?
-  get_all_f: ^c_get_all
-  add_f: ^c_add
-  remove_f: ^c_remove
-  remove_all_f: ^c_remove_all
-  delete_f_: (^c_delete value$)
-  delete_all_f_: (^c_delete_all value$)
-  take_f: ^c_take
-  clear_f: ^c_clear
+alias type <*A d> @public := <A _1+> ;;
+alias type <*A bag> @public := <<A d> A gbag> ;;
+
+eval a'bag_impl -> <<*D *A gbag> A bag_fs> {
+  empty?_f: ^g_empty?
+  size_f: ^g_size
+  contain?_f: ^g_contain?
+  get_all_f: ^g_get_all
+  add_f: ^g_add
+  remove_f: ^g_remove
+  remove_all_f: ^g_remove_all
+  delete_f_: (^g_delete value$)
+  delete_all_f_: (^g_delete_all value$)
+  take_f: ^g_take
+  clear_f: ^g_clear
   bag_fs$
 } ;;
 
-
-### implementation of common-behavior object
-
-eval <*A bag> *Bag c_empty? | empty? @public -> <bool> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag g_empty? | empty? @public -> <bool> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs do_empty?
 } ;;
 
-eval <*A bag> *Bag c_size | size @public -> <int> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag g_size | size @public -> <int> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs do_size
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_contain? | contain? @public -> <bool> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_contain? | contain? @public -> <bool> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_contain?
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_get_all | get_all @public -> <A list> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_get_all | get_all @public -> <A list> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_get_all
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_add | add @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_add | add @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_add = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_remove | remove @public -> <<A bag> <A maybe> tuple> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_remove | remove @public -> <<D A gbag> <A maybe> tuple> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_remove = (| *D', *Removed_ |),
-  (| d: D' fs: Fs bag$, Removed_ |)
+  (| d: D' fs: Fs gbag$, Removed_ |)
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_remove_all | remove_all @public -> <<A bag> <A list> tuple> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_remove_all | remove_all @public -> <<D A gbag> <A list> tuple> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_remove_all = (| *D', *Removed_list |),
-  (| d: D' fs: Fs bag$, Removed_list |)
+  (| d: D' fs: Fs gbag$, Removed_list |)
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_delete | delete @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_delete | delete @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_delete = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag <A> *Elem c_delete_all | delete_all @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A> *Elem g_delete_all | delete_all @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Elem do_delete_all = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag c_take | take @public -> <<A <A bag> tuple> maybe> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag g_take | take @public -> <<A <D A gbag> tuple> maybe> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs do_take >> case {
-  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs bag$ |) value$
+  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs gbag$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A bag> *Bag c_clear | clear @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag g_clear | clear @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs do_clear = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag <A list> *Elems c_add_list | add_list @public -> <A bag> {
-  Bag (Elems list.iter) c_add_iter
+eval <*D *A gbag> *Bag <A list> *Elems g_add_list | add_list @public -> <D A gbag> {
+  Bag (Elems list.iter) g_add_iter
 } ;;
 
-eval <*A bag> *Bag <A iter> *Iter c_add_iter | add_iter @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A iter> *Iter g_add_iter | add_iter @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Iter do_add_iter = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag <A list> *Elems c_delete_list | delete_list @public -> <A bag> {
-  Bag (Elems list.iter) c_delete_iter
+eval <*D *A gbag> *Bag <A list> *Elems g_delete_list | delete_list @public -> <D A gbag> {
+  Bag (Elems list.iter) g_delete_iter
 } ;;
 
-eval <*A bag> *Bag <A iter> *Iter c_delete_iter | delete_iter @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A iter> *Iter g_delete_iter | delete_iter @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Iter do_delete_iter = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag <A list> *Elems c_delete_all_list | delete_all_list @public -> <A bag> {
-  Bag (Elems list.iter) c_delete_all_iter
+eval <*D *A gbag> *Bag <A list> *Elems g_delete_all_list | delete_all_list @public -> <D A gbag> {
+  Bag (Elems list.iter) g_delete_all_iter
 } ;;
 
-eval <*A bag> *Bag <A iter> *Iter c_delete_all_iter | delete_all_iter @public -> <A bag> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag <A iter> *Iter g_delete_all_iter | delete_all_iter @public -> <D A gbag> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs Iter do_delete_all_iter = *D',
-  d: D' fs: Fs bag$
+  d: D' fs: Fs gbag$
 } ;;
 
-eval <*A bag> *Bag c_iter | iter @public -> <A iter> {
-  Bag = d: *D fs: *Fs bag$,
+eval <*D *A gbag> *Bag g_iter | iter @public -> <A iter> {
+  Bag = d: *D fs: *Fs gbag$,
   D Fs do_iter
 } ;;
 
 
-### framework of faeture
+### feature
+
+feature <*T> [ *A a'bag ] @public -> <T A bag_fs> ;;
 
 eval <*T[ *A a'bag ]> *FBag f_empty? | empty? @public -> <bool> {
   FBag _feature_a'bag = *Bag_fs,
@@ -266,37 +291,41 @@ eval <*T[ *A a'bag ]> *FBag f_iter | iter @public -> <A iter> {
 } ;;
 
 
-### subroutines
+### incarnation
 
-eval <*D *A bag_fs> *Fs bag_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
-  Fs = empty?_f: *Empty_f size_f: *Size_f *** bag_fs$,
-  empty?_f_: (Empty_f value$)
-  size_f: Size_f
-  iter_f: \ <D> *Z -> <A iter> { Z Fs do_iter }
+data <*T *A bag_inc> @protected :=
+  org: <T>
+  fo: <T A bag_fs>
+  bag_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'bag ]> *FBag incarnate @public -> <T A bag_inc> {
+  org: FBag
+  fo: (FBag _feature_a'bag)
+  bag_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A bag_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA bag_inc> *I -> <bool> {
+       I = *ID *IFs bag_inc$,
+       ID IFs do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA bag_inc> *I -> <int> {
+      I = *ID *IFs bag_inc$,
+      ID IFs do_size
+    }
+  iter_f:
+    \ <*TT *AA bag_inc> *I -> <AA iter> {
+      I = *ID *IFs bag_inc$,
+      ID IFs do_iter
+    }
   col_fs$
 } ;;
 
-eval <*D *A bag_fs> *Fs bag_fs_delete_f | delete_f @public -> <D A D fun> {
-  Fs delete_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *Z <A> *Elem -> <D> {
-      Z Elem &(Fs remove_f) = (| *Z', ** |),
-      Z'
-    }
-  }
-} ;;
 
-eval <*D *A bag_fs> *Fs bag_fs_delete_all_f | delete_all_f @public -> <D A D fun> {
-  Fs delete_all_f_ >> case {
-  ; *F value$ -> F
-  ; none$ ->
-    \ <D> *Z <A> *Elem -> <D> {
-      Z Elem &(Fs remove_all_f) = (| *Z', ** |),
-      Z'
-    }
-  }
-} ;;
+### subroutines
 
 eval <*D> *Z <D *A bag_fs> *Fs do_empty? @public -> <bool> {
   Z &(Fs empty?_f)

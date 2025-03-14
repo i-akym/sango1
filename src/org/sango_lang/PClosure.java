@@ -326,7 +326,7 @@ class PClosure extends PDefaultExprObj {
     PTypeSkel[] paramTypes = new PTypeSkel[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       paramVarSlots[i] = this.params[i]._resolved_varSlot;
-      paramTypes[i] = this.params[i].getFixedType();
+      paramTypes[i] = this.params[i].getFinalizedType();
     }
     GFlow.RootNode implNode = flow.createNodeForClosureImpl(this.srcInfo, name, paramVarSlots, paramTypes);
     for (int i = 0; i < implExprs.exprs.length - 1; i++) {

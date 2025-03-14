@@ -95,6 +95,6 @@ class PImpose extends PDefaultExprObj {
   }
 
   public GFlow.Node setupFlow(GFlow flow) {
-    return flow.createNodeForImpose(this.srcInfo, this.typeGraphNode.getFixedType());
+    return flow.createNodeForImpose(this.srcInfo, this.typeGraphNode.getFinalizedType());
   }
 }
