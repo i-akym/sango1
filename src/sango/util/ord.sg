@@ -25,7 +25,7 @@ module @alpha "sango.util.ord" ;;
 
 ### feature functions
 
-eval <*T[ a'ord ]> *X0 <T> *X1 compare @public -> <ordering> {
+eval <*T[ a'ord ]> *X0 <T> *X1 f_compare | compare @public -> <ordering> {
   X0 X1 (X0 _feature_a'ord) ordcmp_compare
 } ;;
 
