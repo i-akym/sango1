@@ -233,6 +233,65 @@ eval <*A string> *Xz <A string> *Seq <A string> *New replace_all_seq @public -> 
 } ;;
 
 
+# -- ordered string --
+
+data @alpha <*A ord_string> @public :=
+  str: <A string>
+  ord_fs: <A ord_fs>
+  ord_string$
+++ ord_string_as_a'ord -> [ a'ord ] ;;
+
+eval ord_string_as_a'ord -> <<*A ord_string> ord_fs> {
+  compare_f:
+    \ <A ord_string> *S0 <A ord_string> *S1 -> <ordering> {
+      S0 = *X0 *Fs ord_string$,
+      S1 = *X1 ** ord_string$,
+      Fs compare_f = *Compare_f,
+      X0 length = *L0,
+      X1 length = *L1,
+      0 &\ <int> *I -> <ordering> {
+        (| L0, L1 |) case {
+        ; (| I, I |) -> eq$  # both ended at the same time
+        ; (| I, ** |) -> lt$  # X0 ended first
+        ; (| **, I |) -> gt$  # X1 ended first
+        ; ** ->
+          (X0 I elem) (X1 I elem) &Compare_f >> case {
+          ; eq$ -> (I inc) &&
+          ; *R -> R
+          }
+        }
+      }
+    }
+  eq?_f_: none$
+  lt?_f_: none$
+  le?_f_: none$
+  gt?_f_: none$
+  ge?_f_: none$
+  hash_f:
+    \ <A ord_string> *S0 -> <int> {
+      S0 = *X0 *Fs ord_string$,
+      Fs hash_f = *Hash_f,
+      X0 length = *L,
+      50 = *M,  # max
+      L 2 div = (| *Q, ** |),
+      if {
+      ; Q M lt? -> Q
+      ; otherwise -> M
+      } = *W,
+      W 0 (L dec) 0 &\ <int> *C <int> *I <int> *J <int> *H -> <int> {
+        C case {
+        ; 0 -> H
+        ; ** ->
+          ((X0 I elem) &Hash_f) H bit_xor = *H',
+          ((X0 J elem) &Hash_f) H' bit_xor = *H'',
+          (C dec) (I inc) (J dec) H'' &&
+        }
+      }
+    }
+  ord_fs$
+} ;;
+
+
 # -- string buffer --
 
 data <*A string_buf> @opaque := <<A string> list> sbuf$ ;;

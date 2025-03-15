@@ -130,6 +130,13 @@ data <*A eq_fs> @public :=
   hash_f: <A int fun>
   eq_fs$ ;;
 
+eval <*A eq_fs> *Funs eq_fs_ne?_f | ne?_f @public -> <A A bool fun> {
+  Funs ne?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs eq?_f) >> not }
+  }
+} ;;
+
 data <ordering> @public :=
 | lt$
 | eq$
@@ -144,6 +151,41 @@ data <*A ord_fs> @public :=
   ge?_f_: <<A A bool fun> maybe>
   hash_f: <A int fun>
   ord_fs$ ;;
+
+eval <*A ord_fs> *Funs ord_fs_eq?_f | eq?_f @public -> <A A bool fun> {
+  Funs eq?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> eq? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_lt?_f | lt?_f @public -> <A A bool fun> {
+  Funs lt?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> lt? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_le?_f | le?_f @public -> <A A bool fun> {
+  Funs le?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> le? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_gt?_f | gt?_f @public -> <A A bool fun> {
+  Funs gt?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> gt? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_ge?_f | ge?_f @public -> <A A bool fun> {
+  Funs ge?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> ge? }
+  }
+} ;;
 
 data @alpha <*D *A col_fs> @public :=
   empty?_f_: <<D bool fun> maybe>
@@ -203,9 +245,9 @@ eval <*A> *X0 <A> *X1 hard_ne? @public -> <bool> {
 
 eval hard_eq_fs @public -> <*A eq_fs> {
   eq?_f: ^hard_eq?
-    ne?_f_: (^hard_ne? value$)
-    hash_f: ^hash
-    eq_fs$
+  ne?_f_: (^hard_ne? value$)
+  hash_f: ^hash
+  eq_fs$
 } ;;
 
 eval <*A> *X0 <A> *X1 <A eq_fs> *Funs eqcmp_eq? | eq? @public -> <bool> {
@@ -216,13 +258,6 @@ eval <*A> *X0 <A> *X1 <A eq_fs> *Funs eqcmp_ne? | ne? @public -> <bool> {
   X0 X1 &(Funs ne?_f)
 } ;;
 
-eval <*A eq_fs> *Funs eq_fs_ne?_f | ne?_f @public -> <A A bool fun> {
-  Funs ne?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs eq?_f) >> not }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_compare | compare @public -> <ordering> {
   X0 X1 &(Funs compare_f)
 } ;;
@@ -230,55 +265,20 @@ eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_eq? | eq? @public -> <bool> {
   X0 X1 &(Funs eq?_f)
 } ;;
 
-eval <*A ord_fs> *Funs ord_fs_eq?_f | eq?_f @public -> <A A bool fun> {
-  Funs eq?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> eq? }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_lt? | lt? @public -> <bool> {
   X0 X1 &(Funs lt?_f)
-} ;;
-
-eval <*A ord_fs> *Funs ord_fs_lt?_f | lt?_f @public -> <A A bool fun> {
-  Funs lt?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> lt? }
-  }
 } ;;
 
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_le? | le? @public -> <bool> {
   X0 X1 &(Funs le?_f)
 } ;;
 
-eval <*A ord_fs> *Funs ord_fs_le?_f | le?_f @public -> <A A bool fun> {
-  Funs le?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> le? }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_gt? | gt? @public -> <bool> {
   X0 X1 &(Funs gt?_f)
 } ;;
 
-eval <*A ord_fs> *Funs ord_fs_gt?_f | gt?_f @public -> <A A bool fun> {
-  Funs gt?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> gt? }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_ge? | ge? @public -> <bool> {
   X0 X1 &(Funs ge?_f)
-} ;;
-
-eval <*A ord_fs> *Funs ord_fs_ge?_f | ge?_f @public -> <A A bool fun> {
-  Funs ge?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> ge? }
-  }
 } ;;
 
 eval <ordering> *O ordering_eq? | eq? @public -> <bool> {
