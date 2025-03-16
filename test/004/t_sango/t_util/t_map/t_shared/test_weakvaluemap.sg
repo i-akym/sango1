@@ -1,6 +1,7 @@
 import "sango.actor" -> act ;;
 import "sango.cstr" -> cstr ;;
 import "sango.debug" -> debug ;;
+import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
@@ -27,7 +28,7 @@ eval test -> <void> {
 
 eval make -> <cstr <int box.box_h> shm.shared_map_h> {
   cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
-  box.dress_fs = <<int box.box_h> ex.dress_fs> *Dfs,
+  box.entity_fs = <<int box.box_h> ent.entity_fs> *Dfs,
   KT Dfs wvm.create_weak_value_map = *M,
   1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V1, M "a" V1 shm.add,
   2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V2, M "b" V2 shm.add,
@@ -39,7 +40,7 @@ eval make -> <cstr <int box.box_h> shm.shared_map_h> {
 
 eval test000 -> <void> {
   cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
-  box.dress_fs = <<int box.box_h> ex.dress_fs> *Dfs,
+  box.entity_fs = <<int box.box_h> ent.entity_fs> *Dfs,
   KT Dfs wvm.create_weak_value_map = *M,
   1 none$ box.create_box = *V1,
   2 none$ box.create_box = *V2,

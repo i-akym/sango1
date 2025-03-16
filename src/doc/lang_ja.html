@@ -2475,7 +2475,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 
 <p>■　1.7.7</p>
 <ul>
-<li>【Deprecated→Obsolete】<code>&quot;sango.entity&quot;</code>
+<li>【Deprecated→Obsolete】<code>&quot;sango.entity&quot;</code></li>
 <li>【Deprecated→Obsolete】<code>&quot;sango.entity.domain&quot;</code>および<code>&quot;sango.actor.util&quot;</code>の関連定義</li>
 <li>【Deprecated→Obsolete】<code>&quot;sango.entity.graph&quot;</code></li>
 <li>【Deprecated→Obsolete】<code>&quot;sango.util.enum&quot;</code></li>
@@ -2486,6 +2486,11 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【非互換】フィーチャとの統合のため，キューの実装を変更。従来から提供されてきたキューの利用者においては，データ構築子名の変更（<code>queue$</code>から<code>gqueue$</code>へ），関数の公式名の変更（<code>c_*</code>から<code>g_*</code>へ）以外は影響ありません。</li>
 <li>【非互換】フィーチャとの統合のため，スタックの実装を変更。従来から提供されてきたスタックの利用者においては，データ構築子名の変更（<code>stack$</code>から<code>gstack$</code>へ），関数の公式名の変更（<code>c_*</code>から<code>g_*</code>へ）以外は影響ありません。</li>
 <li>【非互換】フィーチャとの統合のため，ランダム・アクセス・リストの実装を変更。従来から提供されてきたランダム・アクセス・リストの利用者においては，データ構築子名の変更（<code>ralist$</code>から<code>gralist$</code>へ），関数の公式名の変更（<code>c_*</code>から<code>g_*</code>へ）以外は影響ありません。</li>
+</ul>
+
+<p>■　NEXT VERSION</p>
+<ul>
+<li>【非互換】<code>sango.entity.existence.dress_fs</code>を<code>sango.entity.entity_fs</code>に変更。<code>sango.entity.existence</code>の<code>undress_f</code>，<code>redress_f</code>を<code>sango.entity</code>に移動。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
