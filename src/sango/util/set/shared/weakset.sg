@@ -23,6 +23,7 @@
 ###########################################################################
 module @alpha "sango.util.set.shared.weakset" ;;
 
+import "sango.entity" -> ent ;;
 import "sango.entity.existence" -> ex ;;
 import "sango.util.iter" -> iter ;;
 import "sango.list" -> list ;;
@@ -31,8 +32,8 @@ import "sango.util.map.shared" -> shmap ;;
 import "sango.util.map.shared.weakkeymap" -> wkmap ;;
 import "sango.util.set.shared" -> shset ;;
 
-eval <*A! ex.dress_fs> *Dress_fs create_weak_set @public -> <A shset.shared_set_h> {
-  Dress_fs (void$ dummy_obj$) wkmap.create_weak_key_map = *WKM,
+eval <*A! ent.entity_fs> *Entity_fs create_weak_set @public -> <A shset.shared_set_h> {
+  Entity_fs (void$ dummy_obj$) wkmap.create_weak_key_map = *WKM,
 
   extract_f: \\ <A iter> { WKM extract }
   empty?_f: \\ <bool> { WKM empty? }

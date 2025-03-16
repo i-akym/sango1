@@ -24,6 +24,7 @@
 module @alpha "sango.util.map.shared.weakkeymap" ;;
 
 import "sango.actor.util" -> actu ;;
+import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
@@ -34,7 +35,7 @@ import "sango.util.map.shared" -> shared ;;
 
 data <*A! *B! k> :=
   weak_ref: <ex.weak_ref>
-  redress_f: <A ex.redress_f>
+  redress_f: <A ent.redress_f>
   assoc: <B>
   k$ ;;
 
@@ -47,16 +48,16 @@ data <*A! *B! d> :=
 
 data <*A! *B! h> :=
   mon: <<A B d> actu.box_monitor_h>
-  undress_f: <A ex.undress_f>
+  undress_f: <A ent.undress_f>
   h$ ;;
 
-eval <*A! ex.dress_fs> *Dress_fs <*B! dummy> *Assoc create_weak_key_map @public -> <A B shared.shared_map_h> {
+eval <*A! ent.entity_fs> *Entity_fs <*B! dummy> *Assoc create_weak_key_map @public -> <A B shared.shared_map_h> {
   ktab: (&\\ <A B ktab> { int_ord_fs avlmap.new_map })
     count: 0
     d$ = *D,
   D none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
-  mon: Mon undress_f: (Dress_fs ex.undress_f) h$ = *H,
+  mon: Mon undress_f: (Entity_fs ent.undress_f) h$ = *H,
 
   extract_f: \\ <<A B tuple> iter> { H extract }
   empty?_f: \\ <bool> { H empty? }
@@ -279,7 +280,7 @@ eval <*A! *B! d> *D <ex.existence> *Ex d_find -> <<<A B k> maybe> <A B d> tuple>
   }
 } ;;
 
-eval <*A! *B! d> *D <ex.existence> *Ex <A ex.redress_f> *RF <B> *Value <<A B d> actu.box_monitor_h> *Mon d_add -> <A B d> {
+eval <*A! *B! d> *D <ex.existence> *Ex <A ent.redress_f> *RF <B> *Value <<A B d> actu.box_monitor_h> *Mon d_add -> <A B d> {
     # add without duplication check
   D = ktab: *KT count: *Count d$,
   Ex hash = *EH,

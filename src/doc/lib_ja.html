@@ -95,13 +95,15 @@ kbd {
   <a href="#sango.debug.1">オブジェクト情報</a>
   <a href="#sango.debug.2">アサーション</a>
   <a href="#sango.debug.3">例外情報</a>
+<a href="#sango.entity"><code>sango.entity</code></a>
+  <a href="#sango.entity.1">実体機能</a>
 <a href="#sango.entity.box"><code>sango.entity.box</code></a>
   <a href="#sango.entity.box.1">ボックス</a>
   <a href="#sango.entity.box.2">弱参照</a>
 <a href="#sango.entity.existence"><code>sango.entity.existence</code></a>
   <a href="#sango.entity.existence.1">存在</a>
   <a href="#sango.entity.existence.2">弱参照</a>
-  <a href="#sango.entity.existence.3">undress・redress</a>
+  <a href="#sango.entity.existence.3">実体機能</a>
 <a href="#sango.fun"><code>sango.fun</code></a>
   <a href="#sango.fun.1">1引数関数への変換</a>
 <a href="#sango.io"><code>sango.io</code></a>
@@ -1460,9 +1462,30 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 <p>例外情報をダンプします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.entity"><code>sango.entity</code></h1>
+
+<p>「実体」（entity）に関する定義・機能を提供します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.1"><code>sango.entity</code> - 実体機能</h2>
+
+<p>実体は「存在」(existence)にデータが関連づけられているものです。
+実体から存在を取り出すことを「undress」，存在をもとに実体を再構築することを「redress」と呼びます。
+実体を抽象的に扱う場合に，undress，redressが必要となることがあります。</p>
+
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A undress_f&gt; @public := &lt;A &lt;&quot;sango.entity.existence&quot;.existence &lt;A redress_f&gt; tuple&gt; fun&gt; ;;
+alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot;.existence A fun&gt; ;;</code></td></tr></table>
+<p>undress，redress関数を表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A entity_fs&gt; @public :=
+  undress_f: &lt;A undress_f&gt;
+  entity_fs$ ;;</code></td></tr></table>
+<p>実体に関する機能をまとめた関数群を表します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.entity.box"><code>sango.entity.box</code></h1>
 
-<p>特定の型のデータだけを保持する「実体」（entity）を提供します。この「実体」をボックスと呼びます。</p>
+<p>特定の型のデータを保持する「実体」（entity）を提供します。この「実体」をボックスと呼びます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.1"></code>sango.entity.box</code> - ボックス</h2>
@@ -1573,21 +1596,10 @@ eval &lt;existence&gt; *Ex &lt;*A! rw_slot&gt; *Slot mut_peek_assoc | peek_assoc
 <p>弱参照を無効にします。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.existence.3"></code>sango.entity.existence</code> - undress・redress</h2>
-<p>存在が種々の情報をまとっているように実体を見立て，実体から存在を取り出すことを「undress」，存在をもとに実体を再構築することを「redress」と呼びます。</p>
+<h2 id="sango.entity.existence.3"><code>sango.entity.existence</code> - 実体機能</h2>
 
-<table border width="100%"><tr><td class="def"><code>alias type &lt;*A undress_f&gt; @public := &lt;A &lt;existence &lt;A redress_f&gt; tuple&gt; fun&gt; ;;
-alias type &lt;*A redress_f&gt; @public := &lt;existence A fun&gt; ;;</code></td></tr></table>
-<p>undress，redress関数を表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A dress_fs&gt; @public :=
-  undress_f: &lt;A undress_f&gt;
-  dress_fs$ ;;</code></td></tr></table>
-<p>undress，redress機能群を表します。
-  実際に含まれるのはundress関数のみです。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval dress_fs @public -&gt; &lt;existence dress_fs&gt; ;;</code></td></tr></table>
-<p><code>&quot;sango.entity&quot;.existence</code>のundress・redress機能群を返します。</p>
+<table border width="100%"><tr><td class="def"><code>eval entity_fs @public -&gt; &lt;existence &quot;sango.entity&quot;.entity_fs&gt; ;;</code></td></tr></table>
+<p><code>実体機能の関数群を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.fun"><code>sango.fun</code></h1>
@@ -3899,18 +3911,18 @@ eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 g_difference | difference @public 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A! set_h&gt; @opaque ;;</code></td></tr></table>
 <p>セットへのハンドルを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.existence&quot;.dress_fs&gt; *Dress_fs create_weak_set @public -&gt; &lt;A set_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs create_weak_set @public -&gt; &lt;A set_h&gt; ;;</code></td></tr></table>
 <p>セットを生成し，ハンドルを返します。
-  <code>Dress_fs</code>には，要素とする実体のundress・redress機能関数群を指定します。
-  以下に呼び出し例を示します。</p>
+<code>Entity_fs</code>には，要素とする実体の機能関数群を指定します。
+以下に呼び出し例を示します。</p>
 <blockquote class="code-sample">コード例
 <code>import &quot;sango.util.set.shared.weakset&quot; -&gt; ws ;;
-import &quot;sango.entity.existence&quot; -&gt; ex ;;
+import &quot;sango.entity&quot; -&gt; ent ;;
 import &quot;sango.entity.box&quot; -&gt; box ;;
-(&amp;\\ &lt;&lt;int box.box_h&gt; ex.dress_fs&gt; { box.dress_fs })
+(&amp;\\ &lt;&lt;int box.box_h&gt; ent.entity_fs&gt; { box.entity_fs })
   ws.create_weak_set = ...</code></blockquote>
 <p>この例では，要素が<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>のセットを生成しています。
-  引数を具象型にするためcastします。</p>
+引数を具象型にするためcastします。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A! set_h&gt; *Set_h all_elems @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>有効な要素をリストします。</p>
