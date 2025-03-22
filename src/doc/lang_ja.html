@@ -117,7 +117,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#19.3">19.3. メッセージの送信</a>
   <a href="#19.4">19.4. メッセージの受信</a>
   <a href="#19.5">19.5. メッセージがポストされないことの検出</a>
-<a href="#20">20. フィーチャ【Alpha】</a>
+<a href="#20">20. フィーチャ【Beta】</a>
   <a href="#20.1">20.1. 宣言・実行</a>
   <a href="#20.2">20.2. 実装</a>
   <a href="#20.3">20.3. 使用</a>
@@ -724,7 +724,6 @@ book$ ;;</code></blockquote>
 <p>実引数は，その型が仮引数変数の型より狭い<span class="note-ref">*1</span>場合に適合します。</p>
 <blockquote class="note">*1：「より狭い」の詳細は「<a href="B">B. 型について</a>」を参照してください。。</blockquote>
 
-<p>■引数の実際の型を扱う【Alpha】</p>
 <p>ここで，<code>&lt;A foo&gt;</code>とそれを拡張した型<code>&lt;A foo_ext&gt;</code>が定義されているとして，次の関数<code>f1</code>を考えます。</p>
 <blockquote class="code-sample">コード例
 <code>eval &lt;*A foo_ext&gt; *X f1 -&gt; &lt;A foo_ext&gt; { ... } ;;</code></blockquote>
@@ -1527,7 +1526,7 @@ Box act.wait_forever$ act.listen</code></blockquote>
 <blockquote class="note">*2：サーバになっているアクタの要求受付用メッセージボックスで<code>no_post$</code>を受信した場合など。</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h1 id="20">20. フィーチャ【Alpha】</h1>
+<h1 id="20">20. フィーチャ【Beta】</h1>
 <p>「フィーチャ」とは，データの振る舞いのことです。
 データの振る舞いには「型」が関連しますが，型は振る舞いと同時に実装でもあります。
 フィーチャを使うと，振る舞いと実装を分けることができ，振る舞いを異なる複数の方法で実装したり，一つのデータに複数の振る舞いをさせたりすることができます。
@@ -2490,6 +2489,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 
 <p>■　NEXT VERSION</p>
 <ul>
+<li>【Alpha→Beta】フィーチャ</code></li>
 <li>【Alpha→Beta】<code>&quot;sango.util.set.shared&quot;</code>，<code>&quot;sango.util.set.shared.box&quot;</code>，<code>&quot;sango.util.map.shared&quot;</code>，<code>&quot;sango.util.map.shared.box&quot;</code></li>
 <li>【非互換】<code>sango.entity.existence.dress_fs</code>を<code>sango.entity.entity_fs</code>に変更。<code>sango.entity.existence</code>の<code>undress_f</code>，<code>redress_f</code>を<code>sango.entity</code>に移動。</li>
 </ul>
@@ -2497,6 +2497,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="E">E. Known bugs and restrictions</h1>
 <p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
+<p>■　データ定義の型パラメタにフィーチャを指定できません。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 
