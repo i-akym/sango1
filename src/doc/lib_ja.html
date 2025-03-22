@@ -192,6 +192,8 @@ kbd {
   <a href="#sango.util.map.1">フレームワーク</a>
   <a href="#sango.util.map.2">実装者向け情報</a>
 <a href="#sango.util.map.hashmap"><code>sango.util.map.hashmap</code></a>
+<a href="#sango.util.map.shared"><code>sango.util.map.shared</code></a> 【Beta】
+<a href="#sango.util.map.shared.box"><code>sango.util.map.shared.box</code></a> 【Beta】
 <a href="#sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code></a> 【Alpha】
 <a href="#sango.util.map.shared.weakvaluemap"><code>sango.util.map.shared.weakvaluemap</code></a> 【Alpha】
 <a href="#sango.util.map.simplemap"><code>sango.util.map.simplemap</code></a>
@@ -208,6 +210,8 @@ kbd {
   <a href="#sango.util.set.1">フレームワーク</a>
   <a href="#sango.util.set.2">実装者向け情報</a>
 <a href="#sango.util.set.hashset"><code>sango.util.set.hashset</code></a>
+<a href="#sango.util.set.shared"><code>sango.util.set.shared</code></a> 【Beta】
+<a href="#sango.util.set.shared.box"><code>sango.util.set.shared.box</code></a> 【Beta】
 <a href="#sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code></a> 【Alpha】
 <a href="#sango.util.set.simpleset"><code>sango.util.set.simpleset</code></a>
 <a href="#sango.util.shell"><code>sango.util.shell</code></a> 【Alpha】
@@ -3448,6 +3452,63 @@ eval &lt;*A *B map&gt; *Map &lt;A iter&gt; *Iter g_delete_iter | delete_iter @pu
   <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.map.shared"><code>sango.util.map.shared</code> 【Beta】</h1>
+
+<p>複数のアクタから共有可能なマップを提供します。
+データの参照・更新はハンドルを使って行います。
+このモジュールは統一されたインタフェースを提供するもので，ハンドルは<code>&quot;sango.util.map.shared.box&quot;</code>などで生成します。 </p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! *B! shared_map_h&gt; @public :=
+  extract_f: &lt;&lt;&lt;A B tuple&gt; iter&gt; fun&gt;
+  empty?_f: &lt;bool fun&gt;
+  size_f: &lt;int fun&gt;
+  get_f: &lt;A &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
+  assoc_f_: &lt;&lt;A &lt;B maybe&gt; fun&gt; maybe&gt;
+  contain_key?_f_: &lt;&lt;A bool fun&gt; maybe&gt;
+  put_f: &lt;A B &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
+  put_new_f_: &lt;&lt;A B bool fun&gt; maybe&gt;
+  add_f_: &lt;&lt;A B void fun&gt; maybe&gt;
+  remove_f: &lt;A &lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
+  delete_f_: &lt;&lt;A void fun&gt; maybe&gt;
+  take_f: &lt;&lt;&lt;A B tuple&gt; maybe&gt; fun&gt;
+  clear_f: &lt;void fun&gt;
+  shared_map_h$ ;;</code></td></tr></table>
+<p>ハンドルを表します。
+利用者は属性を意識する必要はありません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! shared_map_h&gt; *Map_h extract @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
+<p>その時点でマップに登録されている全ての要素を供給するイテレータを返します。
+この関数の呼出し後にマップが変更されても，この関数の結果は影響を受けません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! shared_map_h&gt; *Map_h empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Assoc put @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Assoc put_new @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key &lt;B&gt; *Assoc add @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A&gt; *Key delete @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h take @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h clear @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A list&gt; *Keys delete_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>それぞれ<code>&quot;sango.util.map&quot;</code>の関数と同じ処理を行います。
+ただし，マップ自体は返り値に含まれません。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.map.shared.box"><code>sango.util.map.shared.box</code> 【Beta】</h1>
+
+<p>複数のアクタから共有可能なマップを提供します。
+データの参照・更新には，<code>&quot;sango.util.map.shared&quot;</code>の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! *B! &quot;sango.util.map&quot;.a'map ]&gt; *FMap create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
+<p>共有されるマップを生成し，そのハンドルを返します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code> 【Alpha】</h1>
 
 <p>実体をキーとするマップです。
@@ -3902,16 +3963,68 @@ eval &lt;*A set&gt; *Set0 &lt;A set&gt; *Set1 g_difference | difference @public 
   <code>Eq</code>に値の等価比較を行う関数群を指定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.set.shared"><code>sango.util.set.shared</code> 【Beta】</h1>
+
+<p>複数のアクタから共有可能なセットを提供します。
+データの参照・更新はハンドルを使って行います。
+このモジュールは統一されたインタフェースを提供するもので，ハンドルは<code>&quot;sango.util.set.shared.box&quot;</code>などで生成します。 </p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! shared_set_h&gt; @public :=
+  extract_f: &lt;&lt;A iter&gt; fun&gt;
+  empty?_f: &lt;bool fun&gt;
+  size_f: &lt;int fun&gt;
+  get_f: &lt;A &lt;A maybe&gt; fun&gt;
+  contain?_f_: &lt;&lt;A bool fun&gt; maybe&gt;
+  put_f: &lt;A &lt;A maybe&gt; fun&gt;
+  put_new_f_: &lt;&lt;A bool fun&gt; maybe&gt;
+  add_f_: &lt;&lt;A void fun&gt;  maybe&gt;
+  remove_f: &lt;A &lt;A maybe&gt; fun&gt;
+  delete_f_: &lt;&lt;A void fun&gt; maybe&gt;
+  take_f: &lt;&lt;A maybe&gt; fun&gt;
+  clear_f: &lt;void fun&gt;
+  shared_set_h$ ;;</code></td></tr></table>
+<p>ハンドルを表します。
+利用者は属性を意識する必要はありません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! shared_set_h&gt; *Set_h extract @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>その時点でセットに登録されている全ての要素を供給するイテレータを返します。
+この関数の呼出し後にセットが変更されても，この関数の結果は影響を受けません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! shared_set_h&gt; *Set_h empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem get @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem contain? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem put @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem put_new @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem add @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem remove @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A&gt; *Elem delete @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h take @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h clear @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A list&gt; *Elems add_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A list&gt; *Elems delete_list @public -&gt; &lt;void&gt; ;;
+eval &lt;*A! shared_set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<p>それぞれ<code>&quot;sango.util.set&quot;</code>の関数と同じ処理を行います。
+ただし，セット自体は返り値に含まれません。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.set.shared.box"><code>sango.util.set.shared.box</code> 【Beta】</h1>
+
+<p>複数のアクタから共有可能なセットを提供します。
+データの参照・更新には，<code>&quot;sango.util.set.shared&quot;</code>の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! &quot;sango.util.set&quot;.a'set ]&gt; *FSet create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
+<p>共有されるセットを生成し，そのハンドルを返します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code> 【Alpha】</h1>
 
 <p>実体を要素とするセットです。
-  要素は弱参照で保持され，これ以外からの参照がなくなると，自動的に削除されます。
-  このセットは複数のアクタから共有可能です。</p>
+要素は弱参照で保持され，これ以外からの参照がなくなると，自動的に削除されます。
+このセットは複数のアクタから共有可能です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! set_h&gt; @opaque ;;</code></td></tr></table>
-<p>セットへのハンドルを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs create_weak_set @public -&gt; &lt;A set_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs create_weak_set @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
 <p>セットを生成し，ハンドルを返します。
 <code>Entity_fs</code>には，要素とする実体の機能関数群を指定します。
 以下に呼び出し例を示します。</p>
@@ -3921,30 +4034,11 @@ import &quot;sango.entity&quot; -&gt; ent ;;
 import &quot;sango.entity.box&quot; -&gt; box ;;
 (&amp;\\ &lt;&lt;int box.box_h&gt; ent.entity_fs&gt; { box.entity_fs })
   ws.create_weak_set = ...</code></blockquote>
-<p>この例では，要素が<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>のセットを生成しています。
-引数を具象型にするためcastします。</p>
+<p>この例では，要素が<code>&lt;int &quot;sango.entity.box&quot;.box_h&gt;</code>のセットを生成します。
+引数を具象型にするためcastしています。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! set_h&gt; *Set_h all_elems @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
-<p>有効な要素をリストします。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A! set_h&gt; *Set_h empty? @public -&gt; &lt;bool&gt;  ;;
-eval &lt;*A! set_h&gt; *Set_h size @public -&gt; &lt;int&gt;  ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X get @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X contain? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X put @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X put_new @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X add @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X remove @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A&gt; *X delete @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h take @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h clear @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A list&gt; *Xs add_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A list&gt; *Xs delete_list @public -&gt; &lt;void&gt; ;;
-eval &lt;*A! set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
-<p>セットの対応する関数の機能を提供します。
-  ただし，セット本体は返り値に含まれません。
-  <code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
+<p>セットを使用するにはハンドルを用いて<code>&quot;sango.util.set.shared&quot;</code>の関数を呼び出します。
+なお，<code>empty?</code>関数，<code>size</code>関数においては，実行効率にまつわる実装上の都合により，無効になった弱参照もカウントされることがあるため，厳密な結果が返されるわけではないことに注意してください。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.set.simpleset"><code>sango.util.set.simpleset</code></h1>
