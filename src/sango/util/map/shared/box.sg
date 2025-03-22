@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.map.shared.box" ;;
+module @beta "sango.util.map.shared.box" ;;
 
 import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;

@@ -21,11 +21,9 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.map.shared" ;;
+module @beta "sango.util.map.shared" ;;
 
 import "sango.list" -> list ;;
-
-feature <*T> [ *A! *B! a'shared_map ] -> <A B shared_map_h> ;;
 
 data <*A! *B! shared_map_h> @public :=
   extract_f: <<<A B tuple> iter> fun>

@@ -21,11 +21,9 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.set.shared" ;;
+module @beta "sango.util.set.shared" ;;
 
 import "sango.list" -> list ;;
-
-feature <*T> [ *A! a'shared_set ] -> <A shared_set_h> ;;
 
 data <*A! shared_set_h> @public :=
   extract_f: <<A iter> fun>
