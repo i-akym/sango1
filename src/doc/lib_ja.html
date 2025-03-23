@@ -304,6 +304,16 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
   値の供給は，値とイテレータのタプルを返すことによって行われます。
   返されたイテレータを使用して，次の供給を要求します。</p>
 
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A col_fs&gt; @public :=
+  empty?_f_: &lt;&lt;D bool fun&gt; maybe&gt;
+  size_f: &lt;D int fun&gt;
+  iter_f: &lt;D &lt;A iter&gt; fun&gt;
+  col_fs$ ;;
+eval &lt;*D *A col_fs&gt; *Fs col_fs_empty?_f | empty?_f @public -&gt; &lt;D bool fun&gt; ;;</code></td></tr></table>
+<p>【Beta】<code>col_fs</code>はコレクションが共通して持つ機能群を表します。
+<code>D</code>はコレクションの型，<code>A</code>は要素の型で，その属性は，空かどうかの判定，要素の数の取得，イテレータの取得を行う関数です。
+<code>col_fs_empty?_f</code>は，<code>col_fs</code>から，コレクションが空かどうかを判定する関数を取得します。</p>
+
 <table border width="100%"><tr><td class="def"><code>data &lt;*A dummy&gt; @public :=
 | &lt;A&gt; dummy_obj$
 | &lt;A void fun&gt; dummy_fun$ ;;</code></td></tr></table></code></td></tr></table>
@@ -758,6 +768,12 @@ eval &lt;*A maybe&gt; *X_ nothing? @public -&gt; &lt;bool&gt; ;;</code></td></tr
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A iter&gt; *I iter_next | next @public -&gt; &lt;A iter_res&gt; ;;</code></td></tr></table>
 <p>イテレータから値を供給します。
   供給する値が無い場合は<code>none$</code>が返ります。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval list_col_fs @public -&gt; &lt;&lt;*A list&gt; A col_fs&gt; ;;</code></td></tr></table>
+<p>【Beta】リストについての<code>col_fs</code>を取得します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval string_col_fs @public -&gt; &lt;&lt;*A string&gt; A col_fs&gt; ;;</code></td></tr></table>
+<p>【Beta】ストリングについての<code>col_fs</code>を取得します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X expose @public -&gt; &lt;_?_&gt; ;;</code></td></tr></table>
 <p>型を文脈から引き離します。</p>

@@ -187,13 +187,13 @@ eval <*A ord_fs> *Funs ord_fs_ge?_f | ge?_f @public -> <A A bool fun> {
   }
 } ;;
 
-data @alpha <*D *A col_fs> @public :=
+data @beta <*D *A col_fs> @public :=
   empty?_f_: <<D bool fun> maybe>
   size_f: <D int fun>
   iter_f: <D <A iter> fun>
   col_fs$ ;;
 
-eval @alpha <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
+eval @beta <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
   Fs empty?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
@@ -799,14 +799,14 @@ eval <*A maybe> *X_ <A *B fun> *F apply_to_something | ats @public -> <B maybe> 
   }
 } ;;
 
-eval list_col_fs @public -> <<*A list> A col_fs> {
+eval @beta list_col_fs @public -> <<*A list> A col_fs> {
   empty?_f_: (\ <*B list> *L -> <bool> { L case { [] -> true$ ; ** -> false$ } } value$)
   size_f: \ <*B list> *L -> <int> { L list_length }
   iter_f: \ <*B list> *L -> <B iter> { L list_iter }
   col_fs$
 } ;;
 
-eval string_col_fs @public -> <<*A string> A col_fs> {
+eval @beta string_col_fs @public -> <<*A string> A col_fs> {
   empty?_f_: (\ <*B string> *S -> <bool> { (S string_length) zero?  } value$)
   size_f: \ <*B string> *S -> <int> { S string_length }
   iter_f: \ <*B string> *S -> <B iter> { S string_iter }
