@@ -61,7 +61,8 @@ kbd {
   <a href="#sango.lang.6">ビット演算</a>
   <a href="#sango.lang.7">大小判定（順序付け）</a>
   <a href="#sango.lang.8">型変換など</a>
-  <a href="#sango.lang.9">その他</a>
+  <a href="#sango.lang.9">フィーチャ定義</a>
+  <a href="#sango.lang.10">その他</a>
 <a href="#sango.actor"><code>sango.actor</code></a>
   <a href="#sango.actor.1">アクタ</a>
   <a href="#sango.actor.2">メッセージ交換</a>
@@ -144,8 +145,7 @@ kbd {
   <a href="#sango.num.bigint.5">文字表現との変換</a>
   <a href="#sango.num.bigint.6">その他</a>
 <a href="#sango.num.int"><code>sango.num.int</code></a>
-  <a href="#sango.num.int.1">列挙</a>
-  <a href="#sango.num.int.2">文字表現との変換</a>
+  <a href="#sango.num.int.1">文字表現との変換</a>
 <a href="#sango.num.real"><code>sango.num.real</code></a>
   <a href="#sango.num.real.1">文字表現との変換</a>
 <a href="#sango.string"><code>sango.string</code></a>
@@ -266,23 +266,29 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>data &lt;bool&gt; @public := true$ | false$ ;;</code></td></tr></table>
 <p>論理的な「真」と「偽」を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;byte&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;byte&gt; @opaque
+++ [ a'ord ] ;;</code></td></tr></table>
 <p>バイト（0～255）を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;int&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;int&gt; @opaque
+++ [ a'ord ] ;;</code></td></tr></table>
 <p>-21474836487（-2<sup>31</sup>）～ 0 ～+2147483647（+2<sup>31</sup>-1）の整数を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;real&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;real&gt; @opaque
+++ [ a'ord ] ;;</code></td></tr></table>
 <p>実数（IEEE754の64ビット浮動小数点数）を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;char&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;char&gt; @opaque
+++ [ a'ord ] ;;</code></td></tr></table>
 <p>文字を表します。
-  内部表現はUnicodeです。</p>
+内部表現はUnicodeで，大小判定もUnicodeで行われます。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A list&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;+*A list&gt; @opaque
+++ [ A a'col ] ;;</code></td></tr></table>
 <p>リストを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A string&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;+*A string&gt; @opaque
+++ [ A a'col ] ;;</code></td></tr></table>
 <p>ストリングを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;bstr&gt; @public := &lt;byte string&gt; ;;</code></td></tr></table>
@@ -723,7 +729,22 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p>実数が整数に変換できるか判定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.lang.9"><code>sango.lang</code> - その他</h2>
+<h2 id="sango.lang.9"><code>sango.lang</code> - フィーチャ定義</h2>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'eq ] @public -&gt; &lt;T eq_fs&gt; ;;</code></td></tr></table>
+<p>【Beta】hardとは限らない等価判定ができることを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'ord ] @public -&gt; &lt;T ord_fs&gt; ;;</code></td></tr></table>
+<p>【Beta】大小判定ができることを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A a'iter ] @public -&gt; &lt;T &lt;A iter&gt; fun&gt; ;;</code></td></tr></table>
+<p>【Beta】イテレータを取得できることを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A a'col ] @public -&gt; &lt;T A col_fs&gt; ;;</code></td></tr></table>
+<p>【Beta】コレクションであることを表します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.lang.10"><code>sango.lang</code> - その他</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs list_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>リストの要素の個数を返します。</p>
@@ -2374,14 +2395,15 @@ data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 <h1 id="sango.num.bigint"><code>sango.num.bigint</code></h1>
 
 <p><code>&lt;&quot;sango.num&quot;.bigint&gt;</code>を提供します。
-  <code>&lt;&quot;sango.num&quot;.bigint&gt;は，</code>範囲の制約が無い整数です。
-  内部表現としては，論理的に2の補数を取ります。
-  処理効率は<code>&lt;int&gt;</code>より落ちますので，必要な場合だけ使用します。</p>
+<code>&lt;&quot;sango.num&quot;.bigint&gt;</code>は，範囲の制約が無い整数です。
+内部表現としては，論理的に2の補数を取ります。
+処理効率は<code>&lt;int&gt;</code>より落ちますので，必要な場合だけ使用します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.num.bigint.1"><code>sango.num.bigint</code> - 生成</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;bigint&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;bigint&gt; @opaque
+++ [ a'ord ] ;;</code></td></tr></table>
 <p><code>&lt;&quot;sango.num&quot;.bigint&gt;</code>を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;int&gt; *I to_bigint | bigint @public -&gt; &lt;bigint&gt; ;;</code></td></tr></table>
@@ -2480,7 +2502,7 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
 <p><code>&lt;int&gt;</code>についてのユーティリティ関数を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.num.int.2"><code>sango.num.int</code> - 文字表現との変換</h2>
+<h2 id="sango.num.int.1"><code>sango.num.int</code> - 文字表現との変換</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Str parse @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>文字列を十進数の整数として解析し<code>&lt;int&gt;</code>に変換します。
