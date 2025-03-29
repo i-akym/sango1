@@ -118,9 +118,10 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#19.4">19.4. メッセージの受信</a>
   <a href="#19.5">19.5. メッセージがポストされないことの検出</a>
 <a href="#20">20. フィーチャ【Beta】</a>
-  <a href="#20.1">20.1. 宣言・実行</a>
+  <a href="#20.1">20.1. 定義</a>
   <a href="#20.2">20.2. 実装</a>
   <a href="#20.3">20.3. 使用</a>
+  <a href="#20.4">20.4. 部分フィーチャ</a>
 <a href="#21">21. コレクションを使う</a>
   <a href="#21.1">21.1. ストリング，文字列</a>
   <a href="#21.2">21.2. セット</a>
@@ -1527,50 +1528,49 @@ Box act.wait_forever$ act.listen</code></blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="20">20. フィーチャ【Beta】</h1>
-<p>「フィーチャ」とは，データの振る舞いのことです。
+<p>「フィーチャ」とは，データ<sup>*1</sup>の振る舞いのことです。
 データの振る舞いには「型」が関連しますが，型は振る舞いと同時に実装でもあります。
-フィーチャを使うと，振る舞いと実装を分けることができ，振る舞いを異なる複数の方法で実装したり，一つのデータに複数の振る舞いをさせたりすることができます。
-フィーチャを使うには，宣言，実行，実装，使用という四つの局面があります。</p>
-<p>ここでは「マップ」を例に解説します。マップは，キーとそれに関連付けられた値の組を複数個保持するデータです。
+フィーチャを使うと，振る舞いと実装を分けることができます。
+フィーチャの使用方法はに主に以下のものがあります。
+<ul>
+<li>セットやマップのように，一つの振る舞いに対して複数の実装がある</li>
+<li>データをもとに別の型のデータを生成する</li>
+<li>同じ型の別のデータと演算したり比較したりする</li>
+</ul></p>
+<p>また，ときには，あるフィーチャの振る舞いが別のフィーチャの振る舞いの一部分になっていることがあります。
+このとき，前者のフィーチャを後者フィーチャの「部分フィーチャ」と呼び，あるフィーチャを持つデータはその部分フィーチャも持っているともいえます。
+</p>
+<p>この章では，フィーチャの実装・使用における局面，すなわち，定義，実装，使用の方法について解説します。
+また，部分フィーチャを持つデータとして扱う方法も解説します。</p>
+<p>ここでは「マップ」を例に説明します。
+マップは，キーとそれに関連付けられた値の組を複数個保持するデータです。
 マップの振る舞いには，保持している組の個数を返す，キーに値を関連づける，キーに関連付けられた値を取得する，などがあります。
-次からの各節にて，マップの宣言，実行，実装，使用について見ていきます<sup>*1</sup>。</p>
+次からの各節にて，マップの定義，実装，使用，また部分フィーチャについて見ていきます<sup>*2</sup>。</p>
 
-<blockquote class="note">*1：Sangoの標準ライブラリで提供されていますが，ここでは簡略化したもので説明します。
+<blockquote class="note">*1：ここでいう「データ」とは，データ定義された型のインスタンスのことであり，関数でないことを強調しているわけではありません。</blockquote>
+<blockquote class="note">*2：Sangoの標準ライブラリで提供されていますが，ここでは簡略化したもので説明します。
 実際のコードは，インストールディレクトリの<code>sample/feature</code>に格納されています。 </blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="20.1">20.1. 宣言・実行</h2>
-<p>まず，フィーチャの定義と，フィーチャを実行するためのオブジェクト（フィーチャ・オブジェクト）の型を宣言します。
-フィーチャ・オブジェクトはフィーチャの実装に使用するもので，使用者が直接使用する場合と，意識する必要がない場合があります。 </p>
-<p>フィーチャの使用方法はに主に以下のものがあります。</p>
-<ul>
-<li>セットやマップのように，一つの振る舞いに対して複数の実装があるとき → フィーチャ・オブジェクトは，振る舞いの実装関数群</li>
-<li>オブジェクトをもとに別の型のオブジェクトを生成するとき → フィーチャ・オブジェクトは，変換関数</li>
-<li>同じ型の別のオブジェクトと演算したり比較したりするとき → フィーチャ・オブジェクトは，演算や比較の関数群</li>
-</ul>
+<h2 id="20.1">20.1. 定義</h2>
+<p>フィーチャについて，そのシグネチャとフィーチャ・オブジェクトの型を宣言します。
+フィーチャ・オブジェクトはフィーチャの実装に使用するデータあるいは関数で，使用者が直接使用する場合と，意識する必要がない場合があります。 </p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map&quot; ;;
 feature &lt;*T&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fs&gt; ;;
-data &lt;*T *A *B map_fs&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
+data &lt;*D *A *B map_fs&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
 
-<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のオブジェクトが「<code>A B a'map</code>」というフィーチャを持つとは，そのオブジェクトが<code>&lt;T A B map_fs&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します。
+<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のインスタンスが「<code>A B a'map</code>」というフィーチャを持つとは，<code>&lt;T&gt;</code>という型が<code>&lt;T A B map_fs&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します。
 <code>[ ]</code>内がフィーチャを表し，「<code>a'map</code>」がフィーチャ名です。
 「<code>a'</code>」はフィーチャ名に慣習的に付けるもので，「abstract」を意味します。
 文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*1</sup>。
 マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています。</p>
 <blockquote class="note">*1：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
 
-<p>この<code>a'map</code>フィーチャをもつオブジェクトの例では，以下のように処理関数が定義されています。
-この関数の呼び出し側は，フィーチャオブジェクトを意識する必要はありません。</p>
-
-<blockquote class="code-sample"><code>eval &lt;*T[ *A *B a'map ]&gt; *FMap f_size | size @public -&gt; &lt;int&gt; {
-  #</code> FMapからマップのサイズを計算する<code>
-} ;;</code></blockquote>
-
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.2">20.2. 実装</h2>
 <p>フィーチャの実装宣言と，フィーチャ・オブジェクトの供給コードを定義します。
-実装宣言は以下のように，<code>data</code>文にて行います。</p>
+実装宣言は以下のように，<code>data</code>文にて行います<sup>*1</sup>。</p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map-impl&quot; ;;
 import &quot;feature.map&quot; -&gt; map ;;
@@ -1583,9 +1583,8 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
 供給関数の名前は自由に付けることができます。
 実装するフィーチャが複数ある場合には「<code>++</code>」からフィーチャの記述までを必要な分だけ繰り返して指定します。</p>
-<p>データの拡張定義（<code>extend</code>文）においては，フィーチャの実装宣言をすることはできません<sup>*1</sup>。</p>
 
-<blockquote class="note">*1：拡張型でフィーチャ実装宣言を許すと型の整合性が保てなくなるためであり，これは仕様です。</blockquote>
+<blockquote class="note">*1：データの拡張定義（<code>extend</code>文）においては，フィーチャの実装宣言をすることはできません。</blockquote>
 
 <p>供給コードの実装は以下のように定義します。</p>
 
@@ -1595,14 +1594,13 @@ data &lt;*A *B map_impl&gt; @opaque :=
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.3">20.3. 使用</h2>
-<p>フィーチャを実装したオブジェクトを受け取る型<sup>*1</sup>は，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*2</sup>。
-例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*3</sup>。
-フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します<sup>*4</sup>。</p>
+<p>フィーチャを持つデータを受け取る型は，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*1</sup>。
+例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*2</sup>。
+フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します<sup>*3</sup>。</p>
 
-<blockquote class="note">*1：データ構築定義の中の型として宣言することもできます。</blockquote>
-<blockquote class="note">*2：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
-<blockquote class="note">*3：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
-<blockquote class="note">*4：この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
+<blockquote class="note">*1：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
+<blockquote class="note">*2：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
+<blockquote class="note">*3：この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
 この例では，フィーチャの実装コードの中で使用しています。</blockquote>
 
 <blockquote class="code-sample"><code>import &quot;feature.map&quot; -&gt; map ;;
@@ -1628,10 +1626,19 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   void$
 } ;;</code></blockquote>
 
-<p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって<code>A</code>と<code>B</code>が未束縛の<code>&lt;A B map_impl.map_impl&gt;</code>のオブジェクトを生成し，それを<code>&lt;int cstr map_impl.map_impl&gt;</code>として変数<code>MI</code>で受け取ります。
-<code>MI</code>は<code>[ int cstr map.a'map ]</code>を実装しているので，関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取ることができます。</p>
-<p>関数<code>f</code>は，<code>map</code>モジュールの関数を使って，オブジェクトを処理していきます。
-<code>map.add</code>では，キーと値の組が追加されたオブジェクトが返されています。</p>
+<p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって<code>&lt;A B map_impl.map_impl&gt;</code>のインスタンスを生成します。
+関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取り，<code>map</code>モジュールの関数を使って，オブジェクトを処理していきます。</p>
+
+<p><code>map</code>モジュールでは，<code>_feature_a'map</code>を呼び出すことによってフィーチャ・オブジェクトを取得し，処理を行っています。</p>
+
+<blockquote class="code-sample"><code>eval &lt;*T[ *A *B a'map ]&gt; *FMap size @public -&gt; &lt;int&gt; {
+  FMap _feature_a'map = *Map_fs,
+  FMap &amp;(Map_fs size_f)
+} ;;</code></blockquote>
+
+<p class="toc-ref"><a href="#toc">［目次］</a></p>
+<h2 id="20.4">20.4. 部分フィーチャ</h2>
+<p>（工事中）</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="21">21. コレクションを使う</h1>
