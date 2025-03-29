@@ -31,17 +31,17 @@ data <*D *A *B map_fs> @public :=
   add_f: <D A B D fun>
   map_fs$ ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_size | size @public -> <int> {
+eval <*T[ *A *B a'map ]> *FMap size @public -> <int> {
   FMap _feature_a'map = *Map_fs,
   FMap &(Map_fs size_f)
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key assoc @public -> <B maybe> {
   FMap _feature_a'map = *Map_fs,
   FMap Key &(Map_fs assoc_f)
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value add @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Key Value &(Map_fs add_f)
 } ;;
