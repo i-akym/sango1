@@ -181,7 +181,7 @@ kbd {
   <a href="#sango.util.datetime.2">判定</a>
   <a href="#sango.util.datetime.3">比較</a>
   <a href="#sango.util.datetime.4">現在時刻取得</a>
-<a href="#sango.util.eq"><code>sango.util.eq</code></a>
+<a href="#sango.util.eq"><code>sango.util.eq</code></a> 【Beta】
   <a href="#sango.util.eq.1">等価判定</a>
   <a href="#sango.util.eq.2">化身</a>
 <a href="#sango.util.iter"><code>sango.util.iter</code></a>
@@ -200,6 +200,9 @@ kbd {
 <a href="#sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code></a> 【Alpha】
 <a href="#sango.util.map.shared.weakvaluemap"><code>sango.util.map.shared.weakvaluemap</code></a> 【Alpha】
 <a href="#sango.util.map.simplemap"><code>sango.util.map.simplemap</code></a>
+<a href="#sango.util.ord"><code>sango.util.ord</code></a> 【Beta】
+  <a href="#sango.util.ord.1">大小判定</a>
+  <a href="#sango.util.ord.2">化身</a>
 <a href="#sango.util.prop"><code>sango.util.prop</code></a> 【Alpha】
 <a href="#sango.util.queue"><code>sango.util.queue</code></a>
   <a href="#sango.util.queue.1">フレームワーク</a>
@@ -3272,7 +3275,7 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 <p>現在の時刻を1970年1月1日00:00:00からのミリ秒で返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.eq"><code>sango.util.eq</code></h1>
+<h1 id="sango.util.eq"><code>sango.util.eq</code> 【Beta】</h1>
 
 <p>オブジェクトの等価判定に関するユーティリティ機能を提供します。</p>
 
@@ -3601,6 +3604,37 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
 <p>simple mapのオブジェクトを生成します。
   <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.ord"><code>sango.util.ord</code> 【Beta】</h1>
+
+<p>オブジェクトの大小判定に関するユーティリティ機能を提供します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.ord.1"><code>sango.util.ord</code> - 大小判定</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_compare | compare @public -&gt; &lt;ordering&gt; ;;
+eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_eq? | eq? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_lt? | lt? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_le? | le? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_gt? | gt? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_ge? | ge? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p><code>a'ord</code>フィーチャにもとづき，<code>X0</code>と<code>X1</code>の大小を判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'ord ]&gt; *X0 f_hash | hash @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p><code>a'ord</code>フィーチャにもとづき，<code>X0</code>のハッシュ値を返します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.ord.2"><code>sango.util.ord</code> - 化身</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*T ord_inc&gt; @protected :=
+  org: &lt;T&gt;
+  fo: &lt;T ord_fs&gt;
+  ord_inc$
+++ [ a'eq ] ;;
+eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code></td></tr></table>
+<p><code>a'ord</code>フィーチャの化身型と，化身型への変換関数です。
+化身型は<code>a'eq</code>フィーチャを実装します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.prop"><code>sango.util.prop</code> 【Alpha】</h1>
