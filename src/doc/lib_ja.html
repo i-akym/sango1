@@ -188,6 +188,7 @@ kbd {
   <a href="#sango.util.iter.1">定数の供給</a>
   <a href="#sango.util.iter.2">連結</a>
   <a href="#sango.util.iter.3">変形</a>
+  <a href="#sango.util.iter.4">化身</a> 【Beta】
 <a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
@@ -3302,7 +3303,7 @@ eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code><
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.iter"><code>sango.util.iter</code></h1>
 
-<p>繰り返しに関する各種オブジェクトを提供します。</p>
+<p>繰り返しに関する各種機能や化身型を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.iter.1"><code>sango.util.iter</code> - 定数の供給</h2>
@@ -3338,6 +3339,16 @@ eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code><
 </code></td></tr></table>
 <p>生成の継続条件を付加します。
 <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 化身 【Beta】</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
+  org: &lt;T&gt;
+  fo: &lt;T &lt;A iter&gt; fun&gt;
+  iter_inc$ ;;
+eval &lt;*T[ *A a'iter ]&gt; *FIter incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
+<p><code>a'iter</code>フィーチャの化身型と，化身型への変換関数です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>
