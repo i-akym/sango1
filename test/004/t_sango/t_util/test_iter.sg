@@ -1,5 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
+import "sango.util.col" -> col ;;
 import "sango.util.iter" -> iter ;;
 
 eval _main_ -> <void> {
@@ -13,6 +14,7 @@ eval test -> <void> {
   test110,
   test120,
   test130,
+  test200,
   void$
 } ;;
 eval test000 -> <void> {
@@ -71,5 +73,11 @@ eval test130 -> <void> {
   I1 next = (| 2, *I2 |) value$,
   I2 next = (| 3, *I3 |) value$,
   I3 next = none$,
+  void$
+} ;;
+eval test200 -> <void> {
+  [ 1, 2, 3, 4, 5 ] col.incarnate = *CI,
+  CI iter.incarnate = *I,
+  I >> iter.org >> col.org = [ 1, 2, 3, 4, 5 ],
   void$
 } ;;
