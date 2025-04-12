@@ -176,6 +176,9 @@ kbd {
   <a href="#sango.util.bag.1">フレームワーク</a>
   <a href="#sango.util.bag.2">実装者向け情報</a>
 <a href="#sango.util.bag.simplebag"><code>sango.util.bag.simplebag</code></a>
+<a href="#sango.util.col"><code>sango.util.col</code></a> 【Beta】
+  <a href="#sango.util.col.1">フレームワーク</a>
+  <a href="#sango.util.col.2">化身</a>
 <a href="#sango.util.datetime"><code>sango.util.datetime</code></a>
   <a href="#sango.util.datetime.1">生成・変換</a>
   <a href="#sango.util.datetime.2">判定</a>
@@ -3168,6 +3171,51 @@ eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter g_delete_all_iter | delete_all_ite
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_bag_eq | new_bag @public -&gt; &lt;A &quot;sango.util.bag&quot;.bag&gt; ;;</code></td></tr></table>
 <p>simple bagのオブジェクトを生成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h1 id="sango.util.col"><code>sango.util.col</code> 【Beta】</h1>
+
+<p>コレクションを抽象的に扱うフレームワークや各種機能を提供します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.col.1"><code>sango.util.col</code> - フレームワーク</h2>
+
+<p>データと機能関数群をカプセル化しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*D *A gcol&gt; @public :=
+  d: &lt;D&gt;
+  fs: &lt;D A col_fs&gt;
+  gcol$
+++ [ A a'col ] ;;
+alias type &lt;*A col_d&gt; @public := &lt;A _1+&gt; ;;
+alias type &lt;*A col&gt; @public := &lt;&lt;A col_d&gt; A gcol&gt; ;;</code></td></tr></table>
+<p>カプセル化されたコレクションオブジェクトを表します。
+&lt;D&gt;は実装のための型，&lt;A&gt;は要素の型です。
+コレクションを使用するには&lt;D&gt;，属性を意識する必要はありません。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'col ]&gt; *FCol f_empty? | empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*D *A gcol&gt; *Col g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<p>コレクションが空かどうかを判定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'col ]&gt; *FCol f_size | size @public -&gt; &lt;int&gt; ;;
+eval &lt;*D *A gcol&gt; *Col g_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<p>コレクションに含まれる要素の数を返します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'col ]&gt; *FCol f_iter | iter @public -&gt; &lt;A iter&gt; ;;
+eval &lt;*D *A gcol&gt; *Col g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<p>コレクションに含まれる要素を順に返すイテレータを生成します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.col.2"><code>sango.util.col</code> - 化身</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A col_inc&gt; @protected :=
+  org: &lt;T&gt;
+  fo: &lt;T A col_fs&gt;
+  col_inc$
+++ [ A a'iter ] ;;
+eval &lt;*T[ *A a'col ]&gt; *FCol incarnate @public -&gt; &lt;T A col_inc&gt; ;;</code></td></tr></table>
+<p>a'colフィーチャの化身型と，化身型への変換関数です。
+化身型はa'iterフィーチャを実装します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.datetime"><code>sango.util.datetime</code></h1>
