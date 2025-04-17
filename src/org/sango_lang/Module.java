@@ -1696,6 +1696,15 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
+    void addIndirectForeignMod(Cstr modName) {
+      if (this.currentForeignModName != null) { throw new IllegalStateException("Foreign mod open."); }
+      this.foreignModList.add(modName);
+      this.foreignDataDefListDict.put(modName, new ArrayList<MDataDef>());
+      this.foreignAliasTypeDefListDict.put(modName, new ArrayList<MAliasTypeDef>());
+      this.foreignFeatureDefListDict.put(modName, new ArrayList<MFeatureDef>());
+      this.foreignFunDefListDict.put(modName, new ArrayList<MFunDef>());
+    }
+
     void startDataDefSpecial(String tcon, Availability availability, Access acc) {
       // for tuple, fun
       this.dataDefBuilder = MDataDef.Builder.newInstance();
