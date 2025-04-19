@@ -31,3 +31,27 @@ alias type <*A redress_f> @public := <ex.existence A fun> ;;
 data <*A entity_fs> @public :=
   undress_f: <A undress_f>
   entity_fs$ ;;
+
+
+### feature
+
+feature @beta <*T> [ a'entity ] @public -> <T entity_fs> ;;
+
+eval @beta <*T[ a'entity ]> *FEntity f_undress | undress @public -> <ex.existence <T redress_f> tuple> {
+  FEntity _feature_a'entity = *UF entity_fs$,
+  FEntity &UF
+} ;;
+
+
+### incarnation
+
+data <*T entity_inc> @protected :=
+  org: <T>
+  fo: <T entity_fs>
+  entity_inc$ ;;
+
+eval <*T[ a'entity ]> *FEntity incarnate @public -> <T entity_inc> {
+  org: FEntity
+  fo: (FEntity _feature_a'entity)
+  entity_inc$
+} ;;

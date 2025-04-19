@@ -26,7 +26,8 @@ module "sango.entity.box" ;;
 import "sango.entity" -> ent ;;
 import "sango.entity.existence" -> ex ;;
 
-data <*A! box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$ ;;
+data <*A! box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$
+++ entity_fs -> [ ent.a'entity ] ;;
 
 data <*A! wbox_h> @opaque := <ex.weak_ref> <A ex.rw_slot> wbox_h$ ;;
 
