@@ -25,7 +25,9 @@ module "sango.entity.existence" ;;
 
 import "sango.entity" -> ent ;;
 
-data <existence> @opaque := @native ;;
+data <existence> @opaque := @native
+++ entity_fs -> [ ent.a'entity ] ;;
+
 data <*A ro_slot> @opaque := @native ;;
 data <*A! rw_slot> @opaque := @native ;;
 

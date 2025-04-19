@@ -1,4 +1,5 @@
 import "sango.debug" -> debug ;;
+import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
@@ -11,6 +12,7 @@ eval _main_ -> <void> {
 eval test -> <void> {
   test000,
   test001,
+  test100,
   void$
 } ;;
 
@@ -33,6 +35,12 @@ eval test001 -> <void> {
   runtime.gc,
   runtime.gc,
   W,  # keep
+  void$
+} ;;
+eval test100 -> <void> {
+  3 none$ box.create_box = *B,
+  B ent.undress = (| *Ex, *RF |),
+  Ex &RF = B,
   void$
 } ;;
 eval test900 -> <int box.box_h> {

@@ -98,6 +98,8 @@ kbd {
   <a href="#sango.debug.3">例外情報</a>
 <a href="#sango.entity"><code>sango.entity</code></a>
   <a href="#sango.entity.1">実体機能</a>
+  <a href="#sango.entity.2">フィーチャ</a>
+  <a href="#sango.entity.3">化身</a>
 <a href="#sango.entity.box"><code>sango.entity.box</code></a>
   <a href="#sango.entity.box.1">ボックス</a>
   <a href="#sango.entity.box.2">弱参照</a>
@@ -1534,6 +1536,25 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <p>実体に関する機能をまとめた関数群を表します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.2"><code>sango.entity</code> - フィーチャ</h2>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'entity ] @public -&gt; &lt;T entity_fs&gt; ;;</code></td></tr></table>
+<p>【Beta】実体であることを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'entity ]&gt; *FEntity f_undress | undress @public -&gt; &lt;&quot;sango.entity.existence&quot;.existence &lt;T redress_f&gt; tuple&gt; ;;</code></td></tr></table>
+<p>【Beta】undressします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.3"><code>sango.entity</code> - 化身</h2>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*T entity_inc&gt; @protected :=
+  org: &lt;T&gt;
+  fo: &lt;T A entity_fs&gt;
+  entity_inc$ ;;
+eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
+<p>a'entityフィーチャの化身型と，化身型への変換関数です。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.entity.box"><code>sango.entity.box</code></h1>
 
 <p>特定の型のデータを保持する「実体」（entity）を提供します。この「実体」をボックスと呼びます。</p>
@@ -1541,7 +1562,8 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.1"></code>sango.entity.box</code> - ボックス</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_h&gt; @opaque
+++ [ &quot;sango.entity&quot;.a'entity ] ;;</code></td></tr></table>
 <p>ボックスへの参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_
@@ -1587,7 +1609,8 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.existence.1"></code>sango.entity.existence</code> - 存在</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;existence&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;existence&gt; @opaque
+++ [ &quot;sango.entity&quot;.a'entity ] ;;</code></td></tr></table>
 <p>「存在」を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A ro_slot&gt; @opaque ;;</code></td></tr></table>
