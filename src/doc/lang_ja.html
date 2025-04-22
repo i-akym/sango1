@@ -1623,6 +1623,8 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   M2 2 &quot;zwei&quot; map.add = *M3,  # M3 = { (2,&quot;zwei&quot;), (3,&quot;three&quot;) }
   M3 map.size = 2,
   M3 2 map.assoc = &quot;zwei&quot; value$,
+  M1 map.take = (| (| 2, &quot;two&quot; |), ** |) value$,
+    ...
   void$
 } ;;</code></blockquote>
 

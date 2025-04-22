@@ -37,6 +37,7 @@ eval map_fs -> <<*A *B map_impl> A B map.map_fs> {
   size_f: ^size
   assoc_f: ^assoc
   add_f: ^add
+  take_f: ^take
   map.map_fs$
 } ;;
 
@@ -70,4 +71,12 @@ eval <*A *B map_impl> *MI <A> *K <B> *V add -> <A B map_impl> {
     }
   } = *Tab',
   tab: Tab' map_impl$
+} ;;
+
+eval <*A *B map_impl> *MI take -> <<<A B tuple> <A B map_impl> tuple> maybe> {
+  MI = tab: *Tab map_impl$,
+  Tab case {
+  ; [ (| *K, *V |) ; *KVs ] -> (| (| K, V |), tab: KVs map_impl$ |) value$
+  ; ** -> none$
+  }
 } ;;
