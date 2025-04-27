@@ -121,7 +121,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#20.1">20.1. 定義</a>
   <a href="#20.2">20.2. 実装</a>
   <a href="#20.3">20.3. 使用</a>
-  <a href="#20.4">20.4. 部分フィーチャ</a>
+  <a href="#20.4">20.4. 部分フィーチャ・拡大フィーチャ，化身</a>
 <a href="#21">21. コレクションを使う</a>
   <a href="#21.1">21.1. ストリング，文字列</a>
   <a href="#21.2">21.2. セット</a>
@@ -1639,8 +1639,50 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
 } ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="20.4">20.4. 部分フィーチャ</h2>
-<p>（工事中）</p>
+<h2 id="20.4">20.4. 部分フィーチャ・拡大フィーチャ，化身</h2>
+<p>フィーチャ<var>F<sub>1</sub></var>のフィーチャ・オブジェクトでできることがフィーチャ<var>F<sub>2</sub></var>のフィーチャ・オブジェクトでできることに含まれている場合，<var>F<sub>1</sub></var>は<var>F<sub>2</sub></var>の部分フィーチャである，<var>F<sub>2</sub></var>は<var>F<sub>1</sub></var>の拡大フィーチャであるといいます。
+例えば，<code>a'col</code>は<code>a'map</code>の部分フィーチャになっています。</p>
+<blockquote class="code-sample">フィーチャ<code>a'col</code>
+<code>module &quot;sango.lang&quot; ;;
+feature &lt;*T&gt; [ *A a'col ] @public -&gt; &lt;T A col_fs&gt; ;;
+data &lt;*D *A col_fs&gt; @public :=
+  empty?_f_: &lt;&lt;D bool fun&gt; maybe&gt;
+  size_f: &lt;D int fun&gt;
+  iter_f: &lt;D &lt;A iter&gt; fun&gt;
+  col_fs$ ;;</code></blockquote>
+<p><var>F<sub>1</sub></var>が<var>F<sub>2</sub></var>の部分フィーチャである（<var>F<sub>2</sub></var>が<var>F<sub>1</sub></var>の拡大フィーチャである）場合，<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱いたくなることがあります。
+しかし，部分フィーチャかどうかはプログラミングで決まり，Sangoが判定するわけではありません。
+<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱うにために，以下の方法が用いられます。</p>
+<p>■方法1 - <code>&lt;T&gt;</code>の定義にて対応：<code>&lt;T&gt;</code>に<var>F<sub>1</sub></var>の実装を宣言</p>
+<p><code>&lt;T&gt;</code>のデータ定義において，<var>F<sub>1</sub></var>の実装宣言を追加します。
+こうすると<code>&lt;T&gt;</code>は<code>&lt;T[ <var>F<sub>1</sub></var>, <var>F<var>2</var></var> ]&gt;</code>となり，<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱えます。
+ただし，この方法は，<var>F<sub>2</sub></var>を実装している型ごとに<var>F<sub>1</sub></var>を追加実装しなければならず，手間がかかります。</p>
+<p>■方法2 - <code>&lt;T&gt;</code>の処理にて対応：<code>&lt;T&gt;</code>の<var>F<sub>2</sub></var>のフィーチャ・オブジェクトを<var>F<sub>1</sub></var>のフィーチャ・オブジェクトに変換</p>
+<p><code>_feature_<var>F<sub>2</sub></var></code>で取得したフィーチャ・オブジェクトを<var>F<sub>1</sub></var>のフィーチャ・オブジェクトに変換して使用します。
+標準ライブラリから提供されている各種変換関数を利用すると便利です。</p>
+<blockquote class="code-sample">例：<code>&lt;D A B map_fs&gt;</code>から<code>&lt;D &lt;A B tuple&gt; col_fs&gt;</code>への変換関数
+<code>module &quot;sango.util.map&quot; ;;
+eval &lt;*D *A *B map_fs&gt; *Fs map_fs_to_col_fs | to_col_fs @public -&gt; &lt;D &lt;A B tuple&gt; col_fs&gt; ;;</code></blockquote>
+<p>■方法3 - <code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を具体的な型に変換して対応：<var>F<sub>2</sub></var>の「化身型」を使用</p>
+<p><code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>は，<var>F<sub>2</sub></var>の振る舞い方をするあらゆる型を意味しています。
+これらを具体的に固定した型を「化身型（incarnation type）」，そのインスタンスを「化身（incarnation）」と呼びます。
+この化身型（ここでは<code>&lt;<var>F<sub>2</sub>_inc</var>&gt;</code>とします）に<var>F<sub>1</sub></var>の実装を宣言し，実行コードの中で<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;<var>F<sub>2</sub>_inc</var> [ <var>F<sub>1</sub></var> ]&gt;</code>に変換することで，<var>F<sub>1</sub></var>として使用することができるようになります。</p>
+<blockquote class="code-sample">化身型
+<code>eval &lt;*T[ *A *B a'map ]&gt; *FMap incarnate @public -&gt; &lt;T A B map_inc&gt; ;;
+data &lt;*T *A *B map_inc&gt; @protected := ...
+++ ... [ &lt;A B tuple&gt; a'col ] ;;</code></blockquote>
+<blockquote class="code-sample">化身型への変換と使用
+<code>eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
+  # M = {}
+  M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
+  ...
+  M1 map.incarnate = *M1_inc,
+  M1_inc col.size = 1,
+  M1_inc col.iter = *M1_inc_iter,
+  M1_inc_iter next = (| (| 2, &quot;two&quot; |), ** |) value$,
+  void$
+} ;;</code></blockquote>
+<p>標準ライブラリでは，このフレームワークを実装しています。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="21">21. コレクションを使う</h1>
