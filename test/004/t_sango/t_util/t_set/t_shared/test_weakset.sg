@@ -1,7 +1,8 @@
 import "sango.actor" -> act ;;
 import "sango.debug" -> debug ;;
-import "sango.entity.existence" -> ex ;;
+import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
+import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
@@ -21,7 +22,7 @@ eval test -> <void> {
 } ;;
 
 eval make -> <<int box.box_h> shset.shared_set_h> {
-  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ws.create_weak_set = *S,
+  (&\\ <<int box.box_h> ent.entity_fs> { box.entity_fs }) ws.create_weak_set = *S,
   1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E1, S E1 shset.add,
   2 (\\ <void> { "2 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E2, S E2 shset.add,
   3 (\\ <void> { "3 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *E3, S E3 shset.add,
@@ -31,7 +32,7 @@ eval make -> <<int box.box_h> shset.shared_set_h> {
 } ;;
 
 eval test000 -> <void> {
-  (&\\ <<int box.box_h> ex.dress_fs> { box.dress_fs }) ws.create_weak_set = *S,
+  (&\\ <<int box.box_h> ent.entity_fs> { box.entity_fs }) ws.create_weak_set = *S,
   1 none$ box.create_box = *E1,
   2 none$ box.create_box = *E2,
   3 none$ box.create_box = *E3,

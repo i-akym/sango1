@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2021 AKIYAMA Isao                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,40 +21,37 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.entity.existence" ;;
+module "sango.entity" ;;
 
-import "sango.entity" -> ent ;;
+import "sango.entity.existence" -> ex ;;
 
-data <existence> @opaque := @native
-++ entity_fs -> [ ent.a'entity ] ;;
+alias type <*A undress_f> @public := <A <ex.existence <A redress_f> tuple> fun> ;;
+alias type <*A redress_f> @public := <ex.existence A fun> ;;
 
-data <*A ro_slot> @opaque := @native ;;
-data <*A! rw_slot> @opaque := @native ;;
-
-eval <*A maybe> *Assoc_ <<void fun> maybe> *Invalidator_ 
-  create_immutable_existence @public -> <existence <<A ro_slot> maybe> tuple> @native ;;
-
-eval <*A!> *Assoc <<void fun> maybe> *Invalidator_
-  create_mutable_existence @public -> <existence <A rw_slot> tuple> @native ;;
-
-eval <existence> *Ex <*A ro_slot> *Slot imut_peek_assoc | peek_assoc @public -> <A> @native ;;
-eval <existence> *Ex <*A! rw_slot> *Slot mut_peek_assoc | peek_assoc @public -> <A> @native ;;
-eval <existence> *Ex <*A! rw_slot> *Slot <A> *New_assoc mut_replace_assoc | replace_assoc @public -> <A> @native ;;
-
-data <weak_ref> @opaque := @native ;;
-
-eval <existence> *Ex <<weak_ref void fun> maybe> *Listener_ create_weak_ref @public -> <weak_ref> @native ;;
-
-eval <weak_ref> *WR get @public -> <existence maybe> @native ;;
-eval <weak_ref> *WR clear @public -> <void> @native ;;
+data <*A entity_fs> @public :=
+  undress_f: <A undress_f>
+  entity_fs$ ;;
 
 
-# -- entity functions ;  This is mainly for weak collections, so use carefully. --
+### feature
 
-eval entity_fs @public -> <existence ent.entity_fs> {
-  undress_f: ^undress ent.entity_fs$
+feature @beta <*T> [ a'entity ] @public -> <T entity_fs> ;;
+
+eval @beta <*T[ a'entity ]> *FEntity f_undress | undress @public -> <ex.existence <T redress_f> tuple> {
+  FEntity _feature_a'entity = *UF entity_fs$,
+  FEntity &UF
 } ;;
 
-eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
-  (| Ex, ^itself |)
+
+### incarnation
+
+data <*T entity_inc> @protected :=
+  org: <T>
+  fo: <T entity_fs>
+  entity_inc$ ;;
+
+eval <*T[ a'entity ]> *FEntity incarnate @public -> <T entity_inc> {
+  org: FEntity
+  fo: (FEntity _feature_a'entity)
+  entity_inc$
 } ;;

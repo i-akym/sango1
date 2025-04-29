@@ -313,7 +313,7 @@ class PDataConstrPtn extends PDefaultExprObj {
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForDataConstrPtn(
-      this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_dconProps.key.modName), this.dcon.name,
+      this.srcInfo, this.scope.theMod.modNameToModRefIndex(false, this._resolved_dconProps.key.modName), this.dcon.name,
       null, 0);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       node.addChild(this.sortedAttrs[i].setupFlow(flow));

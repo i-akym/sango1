@@ -21,7 +21,38 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.ord" ;;
+module @beta "sango.util.ord" ;;
+
+### feature functions
+
+eval <*T[ a'ord ]> *X0 <T> *X1 f_compare | compare @public -> <ordering> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_compare
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 f_eq? | eq? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_eq?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 f_lt? | lt? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_lt?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 f_le? | le? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_le?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 f_gt? | gt? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_gt?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 f_ge? | ge? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_ge?
+} ;;
+
+eval <*T[ a'ord ]> *X0 f_hash | hash @public -> <int> {
+  X0 &(X0 _feature_a'ord >> hash_f)
+} ;;
+
 
 ### incarnation
 

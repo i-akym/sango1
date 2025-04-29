@@ -821,13 +821,13 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
+  public MType toMType(PModule mod, boolean inReferredDef, List<PTypeVarSlot> slotList) {
     MTypeVar tv;
     int index = slotList.indexOf(this.varSlot);
     if (index < 0) {  // definition
       index = slotList.size();
       slotList.add(this.varSlot);
-      MFeature.List fs = (this.features != null)? this.features.toMType(mod, slotList): null;
+      MFeature.List fs = (this.features != null)? this.features.toMType(mod, inReferredDef, slotList): null;
       tv = MTypeVar.create(index, this.varSlot.requiresConcrete, fs);
     } else {  // reference
       tv = MTypeVar.create(index, false, null);  // do not care attributes

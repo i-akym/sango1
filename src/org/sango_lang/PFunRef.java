@@ -152,11 +152,6 @@ class PFunRef extends PDefaultExprObj {
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
-      // try {
-        // callee = (PEid)callee.resolve();
-      // } catch (CompileException ex) {
-        // throw new RuntimeException("Internal error.");
-      // }
       this.typeGraphNode = graph.createFunRefNode(this, callee);
     } else {
       this.typeGraphNode = graph.createSelfRefNode(
@@ -168,13 +163,9 @@ class PFunRef extends PDefaultExprObj {
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForFunRef(this.srcInfo);
-    // List<PVarSlot> nvList = this.typeGraphNode.getNewvarList();
-    // for (int i = 0; i < nvList.size(); i++) {
-      // node.addChild(flow.createNodeForNewTvar(this.srcInfo, nvList.get(i), this.scope));
-    // }
     if (this.official != null) {
       node.addChild(flow.createNodeForFunRefBody(
-        this.srcInfo, this.scope.theMod.modNameToModRefIndex(this._resolved_officialProps.key.modName), this.official.name));
+        this.srcInfo, this.scope.theMod.modNameToModRefIndex(false, this._resolved_officialProps.key.modName), this.official.name));
     } else {
       node.addChild(flow.createNodeForSelfRef(this.srcInfo));
     }

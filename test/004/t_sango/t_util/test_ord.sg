@@ -1,0 +1,29 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.eq" -> eq ;;
+import "sango.util.ord" -> ord ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  test100,
+  void$
+} ;;
+eval test000 -> <void> {
+  3 5 ord.compare = lt$,
+  3 5 ord.eq? = false$,
+  5 5 ord.lt? = false$,
+  5 5 ord.le? = true$,
+  5 5 ord.gt? = false$,
+  5 5 ord.ge? = true$,
+  3 ord.hash >> debug.repr >> stdio.print_and_newline
+} ;;
+eval test100 -> <void> {
+  3 ord.incarnate = *O3,
+  5 ord.incarnate = *O5,
+  O3 O5 eq.ne? = true$,
+  void$
+} ;;

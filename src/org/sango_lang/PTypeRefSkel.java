@@ -724,16 +724,16 @@ if (PTypeGraph.DEBUG > 1) {
 
   public PTypeSkel[] getParams() { return this.params; }
 
-  public MType toMType(PModule mod, List<PTypeVarSlot> slotList) {
+  public MType toMType(PModule mod, boolean inReferredDef, List<PTypeVarSlot> slotList) {
 // /* DEBUG */ System.out.println(this);
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     if (!this.tconKey.modName.equals(mod.name)) {
-      b.setModIndex(mod.modNameToModRefIndex(this.tconKey.modName));
+      b.setModIndex(mod.modNameToModRefIndex(inReferredDef, this.tconKey.modName));
     }
     b.setTcon(this.tconKey.idName);
     b.setExt(this.ext);
     for (int i = 0; i < params.length; i++) {
-      b.addParam(this.params[i].toMType(mod, slotList));
+      b.addParam(this.params[i].toMType(mod, inReferredDef, slotList));
     }
     return b.create();
   }

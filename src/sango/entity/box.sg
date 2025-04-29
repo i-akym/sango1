@@ -23,9 +23,11 @@
 ###########################################################################
 module "sango.entity.box" ;;
 
+import "sango.entity" -> ent ;;
 import "sango.entity.existence" -> ex ;;
 
-data <*A! box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$ ;;
+data <*A! box_h> @opaque := <ex.existence> <A ex.rw_slot> box_h$
+++ entity_fs -> [ ent.a'entity ] ;;
 
 data <*A! wbox_h> @opaque := <ex.weak_ref> <A ex.rw_slot> wbox_h$ ;;
 
@@ -73,13 +75,13 @@ eval <*A! wbox_h> *W clear @public -> <void> {
 } ;;
 
 
-# -- undress/redress --
+# -- entity functions --
 
-eval dress_fs @public -> <<*A! box_h> ex.dress_fs> {
-  undress_f: ^undress ex.dress_fs$
+eval entity_fs @public -> <<*A! box_h> ent.entity_fs> {
+  undress_f: ^undress ent.entity_fs$
 } ;;
 
-eval <*A! box_h> *Box undress -> <ex.existence <<A box_h> ex.redress_f> tuple> {
+eval <*A! box_h> *Box undress -> <ex.existence <<A box_h> ent.redress_f> tuple> {
   Box = *Ex *Slot box_h$,
   (| Ex, \ <ex.existence> *E -> <A box_h> { E Slot box_h$ } |)
 } ;;

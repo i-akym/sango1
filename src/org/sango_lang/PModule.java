@@ -93,6 +93,7 @@ class PModule implements PModDecl {
   Map<String, Cstr> modTab;  // mod id -> mod name
   List<String> referredModIds;  // except @LANG, @HERE, my mod id
   List<Cstr> referredFarMods;  // except sango.lang
+  List<Cstr> referredFarMods2;  // refs from foreign definition
   List<PImportStmt> importStmtList;
   List<PDataStmt> dataStmtList;
   List<PExtendStmt> extendStmtList;
@@ -109,6 +110,7 @@ class PModule implements PModDecl {
     this.modTab = new HashMap<String, Cstr>();
     this.referredModIds = new ArrayList<String>();
     this.referredFarMods = new ArrayList<Cstr>();
+    this.referredFarMods2 = new ArrayList<Cstr>();
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -619,15 +621,6 @@ class PModule implements PModDecl {
     if (this.isLang()) {
       ms = new Cstr[0];
     } else {
-      // this.referredFarMods.clear();
-      // for (int i = 0; i < this.referredModIds.size(); i++) {
-        // Cstr n = this.modTab.get(this.referredModIds.get(i));
-        // if (n.equals(Module.MOD_LANG) || n.equals(this.name)) {
-          // ;  // pass
-        // } else {
-          // this.referredFarMods.add(n);
-        // }
-      // }
       ms = new Cstr[1 + this.referredFarMods.size()];  // sango.lang and others
       ms[0] = Module.MOD_LANG;
       for (int i = 1, j = 0; i < ms.length; i++, j++) {
@@ -637,7 +630,20 @@ class PModule implements PModDecl {
     return ms;
   }
 
-  int modNameToModRefIndex(Cstr modName) {
+  public Cstr[] getForeignMods2() {
+    Cstr[] ms;
+    if (this.isLang()) {
+      ms = new Cstr[0];
+    } else {
+      ms = new Cstr[this.referredFarMods2.size()];
+      for (int i = 0; i < ms.length; i++) {
+        ms[i] = this.referredFarMods2.get(i);
+      }
+    }
+    return ms;
+  }
+
+  int modNameToModRefIndex(boolean inReferredDef, Cstr modName) {
     int index;
     if (modName.equals(this.name)) {
       index = Module.MOD_INDEX_SELF;
@@ -645,7 +651,20 @@ class PModule implements PModDecl {
       index = Module.MOD_INDEX_LANG;
     } else {
       int i = this.referredFarMods.indexOf(modName);
-/* DEBUG */ if (i < 0) { throw new RuntimeException("Unknown mod name. " + modName.repr() + " " + this.referredFarMods); }
+      if (i >= 0) {
+        ;
+      } else if (inReferredDef) {
+        int j = this.referredFarMods2.indexOf(modName);
+        if (j >= 0) {
+          ;
+        } else {
+          j = this.referredFarMods2.size();  // index at new last
+          this.referredFarMods2.add(modName);
+        }
+        i = this.referredFarMods.size() + j;
+      } else {
+        throw new RuntimeException("Unknown mod name. " + modName.repr() + " " + this.referredFarMods);
+      }
       index = 2 + i;
     }
     return index;

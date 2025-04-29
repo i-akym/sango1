@@ -130,6 +130,13 @@ data <*A eq_fs> @public :=
   hash_f: <A int fun>
   eq_fs$ ;;
 
+eval <*A eq_fs> *Funs eq_fs_ne?_f | ne?_f @public -> <A A bool fun> {
+  Funs ne?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs eq?_f) >> not }
+  }
+} ;;
+
 data <ordering> @public :=
 | lt$
 | eq$
@@ -145,13 +152,48 @@ data <*A ord_fs> @public :=
   hash_f: <A int fun>
   ord_fs$ ;;
 
-data @alpha <*D *A col_fs> @public :=
+eval <*A ord_fs> *Funs ord_fs_eq?_f | eq?_f @public -> <A A bool fun> {
+  Funs eq?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> eq? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_lt?_f | lt?_f @public -> <A A bool fun> {
+  Funs lt?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> lt? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_le?_f | le?_f @public -> <A A bool fun> {
+  Funs le?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> le? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_gt?_f | gt?_f @public -> <A A bool fun> {
+  Funs gt?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> gt? }
+  }
+} ;;
+
+eval <*A ord_fs> *Funs ord_fs_ge?_f | ge?_f @public -> <A A bool fun> {
+  Funs ge?_f_ >> case {
+  ; *F value$ -> F
+  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> ge? }
+  }
+} ;;
+
+data @beta <*D *A col_fs> @public :=
   empty?_f_: <<D bool fun> maybe>
   size_f: <D int fun>
   iter_f: <D <A iter> fun>
   col_fs$ ;;
 
-eval @alpha <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
+eval @beta <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun> {
   Fs empty?_f_ >> case {
   ; *F value$ -> F
   ; none$ ->
@@ -174,13 +216,13 @@ data @beta <*A dummy> @public :=
 
 # -- features --
 
-feature @alpha <*T> [ a'eq ] @public -> <T eq_fs> ;;
+feature @beta <*T> [ a'eq ] @public -> <T eq_fs> ;;
 
-feature @alpha <*T> [ a'ord ] @public -> <T ord_fs> ;;
+feature @beta <*T> [ a'ord ] @public -> <T ord_fs> ;;
 
-feature @alpha <*T> [ *A a'iter ] @public -> <T <A iter> fun> ;;
+feature @beta <*T> [ *A a'iter ] @public -> <T <A iter> fun> ;;
 
-feature @alpha <*T> [ *A a'col ] @public -> <T A col_fs> ;;
+feature @beta <*T> [ *A a'col ] @public -> <T A col_fs> ;;
 
 
 # -- functions --
@@ -203,9 +245,9 @@ eval <*A> *X0 <A> *X1 hard_ne? @public -> <bool> {
 
 eval hard_eq_fs @public -> <*A eq_fs> {
   eq?_f: ^hard_eq?
-    ne?_f_: (^hard_ne? value$)
-    hash_f: ^hash
-    eq_fs$
+  ne?_f_: (^hard_ne? value$)
+  hash_f: ^hash
+  eq_fs$
 } ;;
 
 eval <*A> *X0 <A> *X1 <A eq_fs> *Funs eqcmp_eq? | eq? @public -> <bool> {
@@ -216,13 +258,6 @@ eval <*A> *X0 <A> *X1 <A eq_fs> *Funs eqcmp_ne? | ne? @public -> <bool> {
   X0 X1 &(Funs ne?_f)
 } ;;
 
-eval <*A eq_fs> *Funs eq_fs_ne?_f | ne?_f @public -> <A A bool fun> {
-  Funs ne?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs eq?_f) >> not }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_compare | compare @public -> <ordering> {
   X0 X1 &(Funs compare_f)
 } ;;
@@ -230,55 +265,20 @@ eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_eq? | eq? @public -> <bool> {
   X0 X1 &(Funs eq?_f)
 } ;;
 
-eval <*A ord_fs> *Funs ord_fs_eq?_f | eq?_f @public -> <A A bool fun> {
-  Funs eq?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> eq? }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_lt? | lt? @public -> <bool> {
   X0 X1 &(Funs lt?_f)
-} ;;
-
-eval <*A ord_fs> *Funs ord_fs_lt?_f | lt?_f @public -> <A A bool fun> {
-  Funs lt?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> lt? }
-  }
 } ;;
 
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_le? | le? @public -> <bool> {
   X0 X1 &(Funs le?_f)
 } ;;
 
-eval <*A ord_fs> *Funs ord_fs_le?_f | le?_f @public -> <A A bool fun> {
-  Funs le?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> le? }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_gt? | gt? @public -> <bool> {
   X0 X1 &(Funs gt?_f)
 } ;;
 
-eval <*A ord_fs> *Funs ord_fs_gt?_f | gt?_f @public -> <A A bool fun> {
-  Funs gt?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> gt? }
-  }
-} ;;
-
 eval <*A> *X0 <A> *X1 <A ord_fs> *Funs ordcmp_ge? | ge? @public -> <bool> {
   X0 X1 &(Funs ge?_f)
-} ;;
-
-eval <*A ord_fs> *Funs ord_fs_ge?_f | ge?_f @public -> <A A bool fun> {
-  Funs ge?_f_ >> case {
-  ; *F value$ -> F
-  ; none$ -> \ <A> *X0 <A> *X1 -> <bool> { X0 X1 &(Funs compare_f) >> ge? }
-  }
 } ;;
 
 eval <ordering> *O ordering_eq? | eq? @public -> <bool> {
@@ -799,14 +799,14 @@ eval <*A maybe> *X_ <A *B fun> *F apply_to_something | ats @public -> <B maybe> 
   }
 } ;;
 
-eval list_col_fs @public -> <<*A list> A col_fs> {
+eval @beta list_col_fs @public -> <<*A list> A col_fs> {
   empty?_f_: (\ <*B list> *L -> <bool> { L case { [] -> true$ ; ** -> false$ } } value$)
   size_f: \ <*B list> *L -> <int> { L list_length }
   iter_f: \ <*B list> *L -> <B iter> { L list_iter }
   col_fs$
 } ;;
 
-eval string_col_fs @public -> <<*A string> A col_fs> {
+eval @beta string_col_fs @public -> <<*A string> A col_fs> {
   empty?_f_: (\ <*B string> *S -> <bool> { (S string_length) zero?  } value$)
   size_f: \ <*B string> *S -> <int> { S string_length }
   iter_f: \ <*B string> *S -> <B iter> { S string_iter }

@@ -21,7 +21,22 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @alpha "sango.util.eq" ;;
+module @beta "sango.util.eq" ;;
+
+### feature functions
+
+eval <*T[ a'eq ]> *X0 <T> *X1 f_eq? | eq? @public -> <bool> {
+  X0 X1 (X0 _feature_a'eq) eqcmp_eq?
+} ;;
+
+eval <*T[ a'eq ]> *X0 <T> *X1 f_ne? | ne? @public -> <bool> {
+  X0 X1 (X0 _feature_a'eq) eqcmp_ne?
+} ;;
+
+eval <*T[ a'eq ]> *X0 f_hash | hash @public -> <int> {
+  X0 &(X0 _feature_a'eq >> hash_f)
+} ;;
+
 
 ### incarnation
 

@@ -29,7 +29,8 @@ import "sango.num.int" -> int ;;
 import "sango.string" -> str ;;
 import "sango.util.locale" -> lc ;;
 
-data <bigint> @opaque := @native ;;
+data <bigint> @opaque := @native
+++ ord_fs -> [ a'ord ] ;;
 
 eval _init_ -> <void> {
   "sango.num.bigint" ^format fmt.install_formatter
@@ -106,9 +107,9 @@ eval <bigint> *B to_int | int @public -> <int> @native ;;
 
 eval eq_fs @public -> <bigint eq_fs> {
   eq?_f: ^eq?
-    ne?_f_: none$
-    hash_f: ^hash
-    eq_fs$
+  ne?_f_: none$
+  hash_f: ^hash
+  eq_fs$
 } ;;
 
 eval ord_fs @public -> <bigint ord_fs> {

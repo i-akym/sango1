@@ -29,19 +29,67 @@ data <*D *A *B map_fs> @public :=
   size_f: <D int fun>
   assoc_f: <D A <B maybe> fun>
   add_f: <D A B D fun>
+  take_f: <D <<<A B tuple> D tuple> maybe> fun>
   map_fs$ ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_size | size @public -> <int> {
+eval <*T[ *A *B a'map ]> *FMap size @public -> <int> {
   FMap _feature_a'map = *Map_fs,
   FMap &(Map_fs size_f)
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key assoc @public -> <B maybe> {
   FMap _feature_a'map = *Map_fs,
   FMap Key &(Map_fs assoc_f)
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value add @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Key Value &(Map_fs add_f)
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap take @public -> <<<A B tuple> T tuple> maybe> {
+  FMap _feature_a'map = *Map_fs,
+  FMap &(Map_fs take_f)
+} ;;
+
+# incarnation
+
+data <*T *A *B map_inc> @protected :=
+  org: <T>
+  fo: <T A B map_fs>
+  map_inc$
+++ inc_a'col_impl -> [ <A B tuple> a'col ] ;;
+
+eval <*T[ *A *B a'map ]> *FMap incarnate @public -> <T A B map_inc> {
+  org: FMap
+  fo: (FMap _feature_a'map)
+  map_inc$
+} ;;
+
+
+eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
+  empty?_f_: none$
+  size_f:
+    \ <*TT *AA *BB map_inc> *I -> <int> {
+      I = *ID *IFs map_inc$,
+      ID &(IFs size_f)
+    }
+  iter_f:
+    \ <*TT *AA *BB map_inc> *I -> <<AA BB tuple> iter> {
+      I = *ID *IFs map_inc$,
+      ID IFs do_iter
+    }
+  col_fs$
+} ;;
+
+eval <*D> *Z <D *A *B map_fs> *Fs do_iter | iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Z Fs do_iter_next } iter$
+} ;;
+
+eval <*D> *Z <D *A *B map_fs> *Fs do_iter_next -> <<A B tuple> iter_res> {
+  Z &(Fs take_f) >> case {
+  ; (| *KV, *Z' |) value$ ->
+    (| KV, \\ <<A B tuple> iter_res> { Z' Fs do_iter_next } iter$ |) value$
+  ; ** -> none$
+  }
 } ;;
