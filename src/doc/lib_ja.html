@@ -203,7 +203,7 @@ kbd {
 <a href="#sango.util.map.hashmap"><code>sango.util.map.hashmap</code></a>
 <a href="#sango.util.map.shared"><code>sango.util.map.shared</code></a> 【Beta】
 <a href="#sango.util.map.shared.box"><code>sango.util.map.shared.box</code></a> 【Beta】
-<a href="#sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code></a> 【Alpha】
+<a href="#sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code></a> 【Beta】
 <a href="#sango.util.map.shared.weakvaluemap"><code>sango.util.map.shared.weakvaluemap</code></a> 【Alpha】
 <a href="#sango.util.map.simplemap"><code>sango.util.map.simplemap</code></a>
 <a href="#sango.util.ord"><code>sango.util.ord</code></a> 【Beta】
@@ -3663,11 +3663,14 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <p>共有されるマップを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code> 【Alpha】</h1>
+<h1 id="sango.util.map.shared.weakkeymap"><code>sango.util.map.shared.weakkeymap</code> 【Beta】</h1>
 
 <p>実体をキーとするマップです。
 キーは弱参照で保持され，これ以外からの参照がなくなると，当該キーと関連データが自動的に削除されます。
 このマップは複数のアクタから共有可能です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs &lt;*B! dummy&gt; *Assoc create_weak_key_map @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
+<p>共有されるマップを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.map.shared.weakvaluemap"><code>sango.util.map.shared.weakvaluemap</code> 【Alpha】</h1>
