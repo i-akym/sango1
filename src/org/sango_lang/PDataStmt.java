@@ -522,13 +522,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  public void checkConcreteness() throws CompileException {
-    if (this.constrs != null) {
-      for (int i = 0; i < this.constrs.length; i++) {
-        this.constrs[i].checkConcreteness();
-      }
-    }
-  }
+  // public void checkConcreteness() throws CompileException {
+    // if (this.constrs != null) {
+      // for (int i = 0; i < this.constrs.length; i++) {
+        // this.constrs[i].checkConcreteness();
+      // }
+    // }
+  // }
 
   void normalizeTypes() throws CompileException {
     if (this.constrs != null) {

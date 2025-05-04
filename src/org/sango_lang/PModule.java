@@ -1229,39 +1229,6 @@ class PModule implements PModDecl {
     }
   }
 
-
-  // PDefDict.FunSelRes selectFun(String name, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
-    // List<Integer> indices = this.funDict.get(name);
-    // PDefDict.FunSelRes sel = null;
-    // if (indices == null) { return null; }
-    // for (int i = 0; sel == null && i < indices.size(); i++) {
-      // PFunDef fd = this.evalStmtList.get(indices.get(i));
-      // PTypeSkel[] pts = fd.getParamTypes();
-      // if (pts.length != paramTypes.length) { continue; }
-      // PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
-      // boolean b = true;
-      // for (int j = 0; b && j < pts.length; j++) {
-        // b = pts[j].accept(PTypeSkel.NARROWER, paramTypes[j], bindings);
-      // }
-      // if (b) {
-        // for (int j = 0; b && j < pts.length; j++) {
-          // PTypeSkel p = paramTypes[j].resolveBindings(bindings);
-          // b = pts[j].extractAnyInconcreteVar(p /* , givenTVarList */) == null;
-        // }
-      // }
-      // if (b) {
-        // sel = PDefDict.FunSelRes.create(fd, bindings);
-      // }
-    // }
-    // return sel;
-  // }
-
-  // PFunDef getFun(String official) {
-    // Integer index = this.funOfficialDict.get(official);
-    // if (index == null) { return null; }
-    // return this.evalStmtList.get(index);
-  // }
-
   void checkAccInDefs() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.get(i).checkAcc();
@@ -1277,30 +1244,6 @@ class PModule implements PModDecl {
     }
   }
 
-  // void  checkCyclicAlias() throws CompileException {
-    // for (int i = 0; i < this.aliasTypeStmtList.size(); i++) {
-      // this.aliasTypeStmtList.get(i).checkCyclicAlias();
-    // }
-  // }
-
-  // void collectTconProps() throws CompileException {
-    // for (int i = 0; i < this.dataStmtList.size(); i++) {
-      // this.dataStmtList.get(i).collectTconProps();
-    // }
-    // for (int i = 0; i < this.extendStmtList.size(); i++) {
-      // this.extendStmtList.get(i).collectTconProps();
-    // }
-    // for (int i = 0; i < this.evalStmtList.size(); i++) {
-      // this.evalStmtList.get(i).collectTconProps();
-    // }
-  // }
-
-  // void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
-    // for (int i = 0; i < this.extendStmtList.size(); i++) {
-      // this.extendStmtList.get(i).setupExtensionGraph(g);
-    // }
-  // }
-
   void checkVariance() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.get(i).checkVariance();
@@ -1313,14 +1256,14 @@ class PModule implements PModDecl {
     }
   }
 
-  void checkConcreteness() throws CompileException {
-    for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.get(i).checkConcreteness();
-    }
-    for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.get(i).checkConcreteness();
-    }
-  }
+  // void checkConcreteness() throws CompileException {
+    // for (int i = 0; i < this.dataStmtList.size(); i++) {
+      // this.dataStmtList.get(i).checkConcreteness();
+    // }
+    // for (int i = 0; i < this.extendStmtList.size(); i++) {
+      // this.extendStmtList.get(i).checkConcreteness();
+    // }
+  // }
 
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {

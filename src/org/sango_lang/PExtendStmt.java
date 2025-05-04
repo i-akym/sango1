@@ -474,20 +474,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  // void collectTconProps() throws CompileException {
-    // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-    // for (int i = 0; i < this.constrs.length; i++) {
-      // for (int j = 0; j < constrs[i].attrs.length; j++) {
-        // constrs[i].attrs[j].getNormalizedType().collectTconProps(tps);
-      // }
-    // }
-    // this.scope.addReferredTcons(tps);
-  // }
-
-  // public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {
-    // g.addExtension(this.baseTconProps.key, PDefDict.IdKey.create(this.scope.myModName(), this.tcon));
-  // }
-
   public void checkVariance() throws CompileException {
     PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
     Module.Variance[] vs = new Module.Variance[this.tparams.length];
@@ -502,11 +488,11 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  public void checkConcreteness() throws CompileException {
-    for (int i = 0; i < this.constrs.length; i++) {
-      this.constrs[i].checkConcreteness();
-    }
-  }
+  // public void checkConcreteness() throws CompileException {
+    // for (int i = 0; i < this.constrs.length; i++) {
+      // this.constrs[i].checkConcreteness();
+    // }
+  // }
 
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.constrs.length; i++) {

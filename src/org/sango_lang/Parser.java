@@ -50,21 +50,15 @@ abstract class Parser {
   }
 
   void parse4() throws CompileException {
-    // this.mod.collectTconProps();
-    // this.mod.setupExtensionGraph(this.theCompiler.extGraph);
     this.mod.normalizeTypes();
     this.mod.checkVariance();
-    this.mod.checkConcreteness();
+    // this.mod.checkConcreteness();
   }
 
   void parse5() throws CompileException {
     this.mod.checkFeatureImplOnExtension();
     this.mod.makeSureTypeConsistency();
   }
-
-  // PDefDict getDefDict() {
-    // return this.mod;
-  // }
 
   static class SrcInfo {
     Cstr src;

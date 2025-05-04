@@ -219,11 +219,11 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     }
   }
 
-  public void checkConcreteness() throws CompileException {
-    for (int i = 0; i < this.attrs.length; i++) {
-      this.attrs[i].checkConcreteness();
-    }
-  }
+  // public void checkConcreteness() throws CompileException {
+    // for (int i = 0; i < this.attrs.length; i++) {
+      // this.attrs[i].checkConcreteness();
+    // }
+  // }
 
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
