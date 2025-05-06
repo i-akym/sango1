@@ -344,6 +344,16 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
+    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
+    if (baseDef == null) {
+      emsg = new StringBuffer();
+      emsg.append("Base data definition ");
+      emsg.append(this.baseTconKey.repr());
+      emsg.append(" not found at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
     this.sig = this.sig.resolve();
     for (int i = 0; i < this.tparams.length; i++) {
       this.tparams[i].varDef = this.tparams[i].varDef.resolve();
@@ -355,7 +365,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.featureImpls.length; i++) {
       this.featureImpls[i] = this.featureImpls[i].resolve();
     }
-    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
     if (baseDef.getAcc() == Module.ACC_OPAQUE) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend opaque data at ");
