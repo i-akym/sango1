@@ -182,14 +182,14 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       PTypeVarDef varDef = PTypeVarDef.accept(reader, scope);
       DefWithVariance d;
       if (varDef != null) {
-        if (varDef.features != null) {
-          emsg = new StringBuffer();
-          emsg.append("Feature description not allowed at ");
-          emsg.append(varDef.getSrcInfo());
-          emsg.append(". *");
-          emsg.append(varDef.name);
-          throw new CompileException(emsg.toString());
-        }
+        // if (varDef.features != null) {
+          // emsg = new StringBuffer();
+          // emsg.append("Feature description not allowed at ");
+          // emsg.append(varDef.getSrcInfo());
+          // emsg.append(". *");
+          // emsg.append(varDef.name);
+          // throw new CompileException(emsg.toString());
+        // }
         d = create(si, variance, varDef);
       } else if (variance == Module.INVARIANT) {
         d = null;
