@@ -344,15 +344,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
-    // if (this.baseModId != null && this.scope.resolveModId(this.baseModId) == null) {  // refer base mod id in order to register foreign mod
-      // emsg = new StringBuffer();
-      // emsg.append("Module id \"");
-      // emsg.append(this.baseModId);
-      // emsg.append("\" not defined at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
     this.sig = this.sig.resolve();
     for (int i = 0; i < this.tparams.length; i++) {
       this.tparams[i].varDef = this.tparams[i].varDef.resolve();
@@ -364,53 +355,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.featureImpls.length; i++) {
       this.featureImpls[i] = this.featureImpls[i].resolve();
     }
-    // PDefDict.TidProps baseTconProps = this.scope.resolveTcon(this.baseModId, this.baseTcon);
-    // if (baseTconProps == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Base type constructor not found at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString()) ;
-    // }
-    // if ((baseTconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {  // already done in circular check
-      // emsg = new StringBuffer();
-      // emsg.append("Cannot extend type alias at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString()) ;
-    // }
     PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
     if (baseDef.getAcc() == Module.ACC_OPAQUE) {
-    // if (baseTconProps.acc == Module.ACC_OPAQUE) {
       emsg = new StringBuffer();
       emsg.append("Cannot extend opaque data at ");
       emsg.append(this.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString()) ;
-    }
-    PDefDict.TparamProps[] bpps = baseDef.getParamPropss();
-    if (bpps != null && this.tparams.length != bpps.length) {
-      emsg = new StringBuffer();
-      emsg.append("Parameter count of 'extend' definition mismatch at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString()) ;
-    }
-    if (bpps != null) {
-      for (int i = 0; i < this.tparams.length; i++) {
-        if (this.tparams[i].variance != bpps[i].variance) {
-          emsg = new StringBuffer();
-          emsg.append("Variance of *");
-          emsg.append(this.tparams[i].varDef.name);
-          emsg.append(" mismatch with that of base definition at ");
-          emsg.append(this.srcInfo);
-          emsg.append(". ");
-          emsg.append(this.tparams[i].variance);
-          emsg.append(" ");
-          emsg.append(bpps[i].variance);
-          throw new CompileException(emsg.toString()) ;
-        }
-      }
     }
     return this;
   }
@@ -470,6 +421,50 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     if (this.acc != Module.ACC_OPAQUE) {
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i].excludePrivateAcc();
+      }
+    }
+  }
+
+  void checkExtension() throws CompileException {
+    StringBuffer emsg;
+    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
+    PDefDict.TparamProps[] bpps = baseDef.getParamPropss();
+    if (bpps != null && this.tparams.length != bpps.length) {
+      emsg = new StringBuffer();
+      emsg.append("Parameter count of 'extend' definition mismatch at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString()) ;
+    }
+    if (bpps != null) {
+      for (int i = 0; i < this.tparams.length; i++) {
+        if (this.tparams[i].variance != bpps[i].variance) {
+          emsg = new StringBuffer();
+          emsg.append("Variance of *");
+          emsg.append(this.tparams[i].varDef.name);
+          emsg.append(" mismatch with that of base definition at ");
+          emsg.append(this.srcInfo);
+          emsg.append(". ");
+          emsg.append(this.tparams[i].variance);
+          emsg.append(" ");
+          emsg.append(bpps[i].variance);
+          throw new CompileException(emsg.toString()) ;
+        }
+      }
+    }
+    PTypeRefSkel bsigSkel = baseDef.getTypeSig();
+    PTypeRefSkel sigSkel = this.getTypeSig();
+    PTypeSkelBindings bindings = PTypeSkelBindings.create();
+    for (int i = 0; i < sigSkel.params.length; i++) {
+      if (!sigSkel.params[i].accept(PTypeSkel.NARROWER, bsigSkel.params[i], bindings)) {
+        PTypeVarSkel p = (PTypeVarSkel)sigSkel.params[i];
+        emsg = new StringBuffer();
+        emsg.append("Type parameter \"");
+        emsg.append(p.name);
+        emsg.append("\" is not compatible at ");
+        emsg.append(p.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
       }
     }
   }

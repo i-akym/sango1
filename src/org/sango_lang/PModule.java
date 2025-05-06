@@ -1244,6 +1244,12 @@ class PModule implements PModDecl {
     }
   }
 
+  void checkExtension() throws CompileException {
+    for (int i = 0; i < this.extendStmtList.size(); i++) {
+      this.extendStmtList.get(i).checkExtension();
+    }
+  }
+
   void checkVariance() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.get(i).checkVariance();
