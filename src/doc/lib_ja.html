@@ -3468,12 +3468,14 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A *B gmap&gt; @public :=
   d: &lt;D&gt;
   fs: &lt;D A B map_fs&gt;
-  gmap$ ;;
+  gmap$
+++ [ A B a'map ] ;;
 alias type &lt;*A *B d&gt; @public := &lt;A B _2+&gt; ;;
 alias type &lt;*A *B map&gt; @public := &lt;&lt;A B d&gt; A B gmap&gt;;;</code></td></tr></table>
 <p>カプセル化されたマップオブジェクトを表します。
 <code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>はキーの型，<code>&lt;B&gt;</code>は値の型です。
 マップを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
+<code>gmap</code>は<code>a'map</code>フィーチャを実装しています。
 標準ライブラリのマップの実装が生成するオブジェクトは<code>&lt;&lt;A B _2+&gt; A B gmap&gt;</code>型であり，別名によって簡易に<code>&lt;A B map&gt;</code>と書くことができます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
