@@ -224,7 +224,7 @@ kbd {
 <a href="#sango.util.set.hashset"><code>sango.util.set.hashset</code></a>
 <a href="#sango.util.set.shared"><code>sango.util.set.shared</code></a> 【Beta】
 <a href="#sango.util.set.shared.box"><code>sango.util.set.shared.box</code></a> 【Beta】
-<a href="#sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code></a> 【Alpha】
+<a href="#sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code></a> 【Beta】
 <a href="#sango.util.set.simpleset"><code>sango.util.set.simpleset</code></a>
 <a href="#sango.util.shell"><code>sango.util.shell</code></a> 【Alpha】
   <a href="#sango.util.shell.1">プログラム実行環境取得</a>
@@ -4013,12 +4013,14 @@ eval &lt;*A ralist&gt; *List &lt;A iter&gt; *Iter g_append_iter | append_iter @p
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A gset&gt; @public :=
   d: &lt;D&gt;
   fs: &lt;D A set_fs&gt;
-  gset$ ;;
+  gset$
+++ [ A a'set ] ;;
 alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
 alias type &lt;*A set&gt; @public := &lt;&lt;A d&gt; A gset&gt;;;</code></td></tr></table>
 <p>カプセル化されたセットオブジェクトを表します。
 <code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>は要素の型です。
 セットを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
+<code>gset</code>は<code>a'set</code>フィーチャを実装しています。
 標準ライブラリのセットの実装が生成するオブジェクトは<code>&lt;&lt;A _1+&gt; A gset&gt;</code>型であり，別名によって簡易に<code>&lt;A set&gt;</code>と書くことができます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gset&gt; *Set g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
@@ -4212,7 +4214,7 @@ eval &lt;*A! shared_set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&
 <p>共有されるセットを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code> 【Alpha】</h1>
+<h1 id="sango.util.set.shared.weakset"><code>sango.util.set.shared.weakset</code> 【Beta】</h1>
 
 <p>実体を要素とするセットです。
 要素は弱参照で保持され，これ以外からの参照がなくなると，自動的に削除されます。
