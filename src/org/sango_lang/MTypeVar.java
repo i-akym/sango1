@@ -120,48 +120,48 @@ class MTypeVar implements MType {
     return b;
   }
 
-  public static class DefWithVariance {
-    Module.Variance variance;
-    MTypeVar var;
+  // public static class DefWithVariance {
+    // Module.Variance variance;
+    // MTypeVar var;
 
-    static DefWithVariance create(Module.Variance variance, MTypeVar var) {
-      DefWithVariance d = new DefWithVariance();
-      d.variance = variance;
-      d.var = var;
-      return d;
-    }
+    // static DefWithVariance create(Module.Variance variance, MTypeVar var) {
+      // DefWithVariance d = new DefWithVariance();
+      // d.variance = variance;
+      // d.var = var;
+      // return d;
+    // }
 
-    public static DefWithVariance internalize(Node node) throws FormatException {
-      if (!node.getNodeName().equals(Module.TAG_TYPE_VAR)) { return null; }
-      MTypeVar v = MTypeVar.internalize(node);
-      NamedNodeMap attrs = node.getAttributes();
-      Module.Variance variance = Module.NO_VARIANCE;
-      Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
-      if (aVariance != null) {
-        String sVariance = aVariance.getNodeValue();
-        if (sVariance.equals(Module.REPR_INVARIANT)) {
-          variance = Module.INVARIANT;
-        } else if (sVariance.equals(Module.REPR_COVARIANT)) {
-          variance = Module.COVARIANT;
-        } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
-          variance = Module.CONTRAVARIANT;
-        } else {
-          throw new FormatException("Invalid 'variance': " + sVariance);
-        }
-      }
-      return DefWithVariance.create((variance == Module.NO_VARIANCE)? Module.INVARIANT: variance, v);
-    }
+    // public static DefWithVariance internalize(Node node) throws FormatException {
+      // if (!node.getNodeName().equals(Module.TAG_TYPE_VAR)) { return null; }
+      // MTypeVar v = MTypeVar.internalize(node);
+      // NamedNodeMap attrs = node.getAttributes();
+      // Module.Variance variance = Module.NO_VARIANCE;
+      // Node aVariance = attrs.getNamedItem(Module.ATTR_VARIANCE);
+      // if (aVariance != null) {
+        // String sVariance = aVariance.getNodeValue();
+        // if (sVariance.equals(Module.REPR_INVARIANT)) {
+          // variance = Module.INVARIANT;
+        // } else if (sVariance.equals(Module.REPR_COVARIANT)) {
+          // variance = Module.COVARIANT;
+        // } else if (sVariance.equals(Module.REPR_CONTRAVARIANT)) {
+          // variance = Module.CONTRAVARIANT;
+        // } else {
+          // throw new FormatException("Invalid 'variance': " + sVariance);
+        // }
+      // }
+      // return DefWithVariance.create((variance == Module.NO_VARIANCE)? Module.INVARIANT: variance, v);
+    // }
 
-    public Element externalize(Document doc) {
-      Element n = this.var.externalize(doc);
-      if (this.variance == Module.INVARIANT) {
-        ;  // nothing added
-      } else if (this.variance == Module.COVARIANT) {
-        n.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
-      } else if (this.variance == Module.CONTRAVARIANT) {
-        n.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
-      }  // if no variance, nothing added
-      return n;
-    }
-  }
+    // public Element externalize(Document doc) {
+      // Element n = this.var.externalize(doc);
+      // if (this.variance == Module.INVARIANT) {
+        // ;  // nothing added
+      // } else if (this.variance == Module.COVARIANT) {
+        // n.setAttribute(Module.ATTR_VARIANCE, Module.REPR_COVARIANT);
+      // } else if (this.variance == Module.CONTRAVARIANT) {
+        // n.setAttribute(Module.ATTR_VARIANCE, Module.REPR_CONTRAVARIANT);
+      // }  // if no variance, nothing added
+      // return n;
+    // }
+  // }
 }

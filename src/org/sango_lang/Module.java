@@ -43,12 +43,13 @@ import org.w3c.dom.Node;
 
 public class Module {
   // module file format version
-  // static final String CUR_FORMAT_VERSION = "1.0";
+  // * static final String CUR_FORMAT_VERSION = "1.0";
   // initial
-  // static final String CUR_FORMAT_VERSION = "1.1";
-  // add requires_concrete attribute to type var slot, which must be checked for type consistency
-  static final String CUR_FORMAT_VERSION = "1.2";
-  // planned: always use module index on type ref
+  // * static final String CUR_FORMAT_VERSION = "1.1";
+  // add 'requires_concrete' attribute to type var slot, which must be checked for type consistency
+  // * static final String CUR_FORMAT_VERSION = "1.2";
+  // add 'param' envelope node for each parameter in data def, and move variance spec from 'type_var' node to 'param'
+  static final String CUR_FORMAT_VERSION = "1.3";
 
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
   // public static final Cstr MOD_ENTITY = new Cstr("sango.entity");
@@ -83,7 +84,6 @@ public class Module {
   static final String TAG_ALIASES = "aliases";
   static final String TAG_ALIAS = "alias";
   static final String TAG_ATTR = "attr";
-  // static final String TAG_CONSTRAINT = "constraint";
   static final String TAG_CLOSURE_CONSTR = "closure_constr";
   static final String TAG_CLOSURE_CONSTRS = "closure_constrs";
   static final String TAG_CLOSURE_IMPL = "closure_impl";
@@ -520,11 +520,11 @@ public class Module {
 
   static void internalizeDataDefParams(Node node, Builder builder) throws FormatException {
     Node n = node.getFirstChild();
-    MTypeVar.DefWithVariance v;
+    MType.ParamDef v;
     while (n != null) {
       if (isIgnorable(n)) {
         ;
-      } else if ((v = MTypeVar.DefWithVariance.internalize(n)) != null) {
+      } else if ((v = MType.ParamDef.internalize(n)) != null) {
         builder.putDataDefParam(v);
       } else {
         throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
@@ -814,11 +814,11 @@ public class Module {
   static boolean internalizeFeatureParams(Node node, Builder builder, MFeatureDef.Builder featureDefBuilder) throws FormatException {
     if (node == null || !node.getNodeName().equals(TAG_PARAMS)) { return false; }
     Node n = node.getFirstChild();
-    MTypeVar.DefWithVariance v;
+    MType.ParamDef v;
     while (n != null) {
       if (isIgnorable(n)) {
         ;
-      } else if ((v = MTypeVar.DefWithVariance.internalize(n)) != null) {
+      } else if ((v = MType.ParamDef.internalize(n)) != null) {
         featureDefBuilder.addParam(v);
       } else {
         throw new FormatException("Unknown element under '" + TAG_PARAMS + "' element: " + n.getNodeName());
@@ -1729,7 +1729,7 @@ public class Module {
       this.dataDefBuilder.setBaseTcon(baseTcon);
     }
 
-    void putDataDefParam(MTypeVar.DefWithVariance p) {
+    void putDataDefParam(MType.ParamDef p) {
       this.dataDefBuilder.addParam(p);
     }
 
