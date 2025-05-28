@@ -127,7 +127,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     PScope bodyScope = builder.getBodyScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     PType tsig;
-    if ((tsig = PType.acceptSig(reader, defScope, /* false, */ Parser.QUAL_INHIBITED)) == null) {
+    if ((tsig = acceptSig(reader, defScope)) == null) {
       emsg = new StringBuffer();
       emsg.append("Type description missing at ");
       emsg.append(reader.getCurrentSrcInfo());
@@ -160,6 +160,48 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       throw new CompileException(emsg.toString());
     }
     return builder.create();
+  }
+
+  static PTypeRef acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    PType t = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+    if (t instanceof PType.Undet) {
+      PType.Undet u = (PType.Undet)t;
+      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
+    }
+    if (!(t instanceof PTypeRef)) {
+      emsg = new StringBuffer();
+      emsg.append("Invalid signature definition at ");
+      emsg.append(t.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    PTypeRef sig = (PTypeRef)t;
+    for (int i = 0; i < sig.params.length; i++) {
+      if (!(sig.params[i] instanceof PTypeVarDef)) {
+        emsg = new StringBuffer();
+        emsg.append("Type parameter missing at ");
+        emsg.append(sig.params[i].getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      PTypeVarDef v = (PTypeVarDef)sig.params[i];
+    }
+    if (sig.tcon.modId != null) {
+      emsg = new StringBuffer();
+      emsg.append("Module id not allowed at ");
+      emsg.append(sig.tcon.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    if (sig.tcon.ext) {
+      emsg = new StringBuffer();
+      emsg.append("Extension not allowed at ");
+      emsg.append(sig.tcon.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return sig;
   }
 
   static PAliasTypeStmt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {

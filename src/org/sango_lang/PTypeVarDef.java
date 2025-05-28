@@ -163,52 +163,52 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     // return (PTypeVarSkel)this._normalized_typeSkel;
   // }
 
-  static class DefWithVariance {
-    Parser.SrcInfo srcInfo;
-    Module.Variance variance;
-    PTypeVarDef varDef;
+  // static class DefWithVariance {
+    // Parser.SrcInfo srcInfo;
+    // Module.Variance variance;
+    // PTypeVarDef varDef;
 
-    static DefWithVariance accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      StringBuffer emsg;
-      Parser.SrcInfo si = reader.getCurrentSrcInfo();
-      Module.Variance variance;
-      if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        variance = Module.COVARIANT;
-      } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        variance = Module.CONTRAVARIANT;
-      } else {
-        variance = Module.INVARIANT;
-      }
-      PTypeVarDef varDef = PTypeVarDef.accept(reader, scope);
-      DefWithVariance d;
-      if (varDef != null) {
-        // if (varDef.features != null) {
-          // emsg = new StringBuffer();
-          // emsg.append("Feature description not allowed at ");
-          // emsg.append(varDef.getSrcInfo());
-          // emsg.append(". *");
-          // emsg.append(varDef.name);
-          // throw new CompileException(emsg.toString());
-        // }
-        d = create(si, variance, varDef);
-      } else if (variance == Module.INVARIANT) {
-        d = null;
-      } else {
-        emsg = new StringBuffer();
-        emsg.append("Parameter missing at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      return d;
-    }
+    // static DefWithVariance accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+      // StringBuffer emsg;
+      // Parser.SrcInfo si = reader.getCurrentSrcInfo();
+      // Module.Variance variance;
+      // if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
+        // variance = Module.COVARIANT;
+      // } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
+        // variance = Module.CONTRAVARIANT;
+      // } else {
+        // variance = Module.INVARIANT;
+      // }
+      // PTypeVarDef varDef = PTypeVarDef.accept(reader, scope);
+      // DefWithVariance d;
+      // if (varDef != null) {
+        // // if (varDef.features != null) {
+          // // emsg = new StringBuffer();
+          // // emsg.append("Feature description not allowed at ");
+          // // emsg.append(varDef.getSrcInfo());
+          // // emsg.append(". *");
+          // // emsg.append(varDef.name);
+          // // throw new CompileException(emsg.toString());
+        // // }
+        // d = create(si, variance, varDef);
+      // } else if (variance == Module.INVARIANT) {
+        // d = null;
+      // } else {
+        // emsg = new StringBuffer();
+        // emsg.append("Parameter missing at ");
+        // emsg.append(reader.getCurrentSrcInfo());
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+      // return d;
+    // }
 
-    static DefWithVariance create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
-      DefWithVariance d = new DefWithVariance();
-      d.srcInfo = srcInfo;
-      d.variance = variance;
-      d.varDef = varDef;
-      return d;
-    }
-  }
+    // static DefWithVariance create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
+      // DefWithVariance d = new DefWithVariance();
+      // d.srcInfo = srcInfo;
+      // d.variance = variance;
+      // d.varDef = varDef;
+      // return d;
+    // }
+  // }
 }
