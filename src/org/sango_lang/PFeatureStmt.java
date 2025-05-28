@@ -33,7 +33,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Availability availability;
   Module.Access acc;
   PTypeVarDef obj;
-  PTypeVarDef.DefWithVariance[] params;  // variance is used internally
+  PType.ParamDef[] params;  // variance is used internally
   String fname;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
@@ -75,7 +75,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   static class Builder {
     PFeatureStmt feature;
-    List<PTypeVarDef.DefWithVariance> paramList;
+    List<PType.ParamDef> paramList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
       return new Builder(srcInfo, outerScope);
@@ -83,7 +83,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.feature = new PFeatureStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<PTypeVarDef.DefWithVariance>();
+      this.paramList = new ArrayList<PType.ParamDef>();
     }
 
     PScope getDefScope() { return this.feature.scope; }
@@ -100,7 +100,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.feature.obj = t;
     }
 
-    void addParam(PTypeVarDef.DefWithVariance param) {
+    void addParam(PType.ParamDef param) {
       this.paramList.add(param);
     }
 
@@ -117,7 +117,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
 
     PFeatureStmt create() throws CompileException {
-      this.feature.params = this.paramList.toArray(new PTypeVarDef.DefWithVariance[this.paramList.size()]);
+      this.feature.params = this.paramList.toArray(new PType.ParamDef[this.paramList.size()]);
       PFeature.SigBuilder sb = PFeature.SigBuilder.newInstance(this.feature.getSrcInfo(), this.feature.getScope());
       for (int i = 0; i < this.feature.params.length; i++) {
         sb.addParam(this.feature.params[i].varDef);
@@ -169,28 +169,50 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeVarDef.DefWithVariance param;
-    int spc = ParserA.SPACE_DO_NOT_CARE;
-    while ((param = PTypeVarDef.DefWithVariance.accept(reader, defScope)) != null) {
-      if (param.variance != Module.INVARIANT) {
-        emsg = new StringBuffer();
-        emsg.append("Variance specification not allowed at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      builder.addParam(param);
-      spc = ParserA.SPACE_NEEDED;
-    }
-    PTid fname = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
-    if (fname == null) {
+    PType.SigSpec sig = PType.acceptSig(reader, defScope);
+    if (sig == null) {
       emsg = new StringBuffer();
-      emsg.append("Feature name missing at ");
+      emsg.append("Syntex error at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    builder.setFname(fname.name);
+    for (int i = 0; i < sig.params.size(); i++) {
+      builder.addParam(sig.params.get(i));
+    }
+    if (sig.anchor.modId != null) {
+      emsg = new StringBuffer();
+      emsg.append("Module id not allowed at ");
+      emsg.append(sig.anchor.srcInfo);
+      emsg.append(". - ");
+      emsg.append(sig.anchor.repr());
+      throw new CompileException(emsg.toString());
+    }
+    builder.setFname(sig.anchor.name);
+
+    // PType.ParamDef param;
+    // int spc = ParserA.SPACE_DO_NOT_CARE;
+    // while ((param = PType.ParamDef.accept(reader, defScope)) != null) {
+      // if (param.variance != Module.INVARIANT) {
+        // emsg = new StringBuffer();
+        // emsg.append("Variance specification not allowed at ");
+        // emsg.append(reader.getCurrentSrcInfo());
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+      // builder.addParam(param);
+      // spc = ParserA.SPACE_NEEDED;
+    // }
+    // PTid fname = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
+    // if (fname == null) {
+      // emsg = new StringBuffer();
+      // emsg.append("Feature name missing at ");
+      // emsg.append(reader.getCurrentSrcInfo());
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    // builder.setFname(fname.name);
+
     if (ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
       emsg.append("Definition form incomplete at ");
@@ -198,15 +220,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    // PFeature sig;
-    // if ((sig = PFeature.acceptSig(reader, defScope)) == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Feature signature missing at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // builder.setSig(sig);
 
     builder.setAcc(PModule.acceptAcc(reader, PModule.ACC_OPTS_FOR_FEATURE, PModule.ACC_DEFAULT_FOR_FEATURE));
 
@@ -353,7 +366,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
   }
 
-  void checkVariance1(PTypeVarDef.DefWithVariance p) throws CompileException {
+  void checkVariance1(PType.ParamDef p) throws CompileException {
     List<Module.Variance> vs = new ArrayList<Module.Variance>();
     this._normalized_implSkel.collectVarVariances(p.varDef._resolved_varSlot, null, vs);
     Module.Variance v = null;
