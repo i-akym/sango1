@@ -354,6 +354,9 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].excludePrivateAcc();
+    }
     this.impl.excludePrivateAcc();
     return;
   }
