@@ -142,7 +142,11 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return this;
   }
 
-  public void excludePrivateAcc() throws CompileException {}
+  public void excludePrivateAcc() throws CompileException {
+    if (this.features != null) {
+      this.features.excludePrivateAcc();
+    }
+  }
 
   public void normalizeTypes() throws CompileException {
     if (this.type != null && this._normalized_typeSkel == null) {

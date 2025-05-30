@@ -30,7 +30,7 @@ import java.util.List;
 public class PFeature extends PDefaultProgObj {
   PTid fname;
   PType[] params;
-  PDefDict.TidProps featureProps;
+  PDefDict.TidProps _resolved_featureProps;
 
   private PFeature(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -140,7 +140,7 @@ public class PFeature extends PDefaultProgObj {
   public PFeature resolve() throws CompileException {
     StringBuffer emsg;
 
-    if ((this.featureProps = this.scope.resolveFeature(this.fname)) == null) {
+    if ((this._resolved_featureProps = this.scope.resolveFeature(this.fname)) == null) {
       emsg = new StringBuffer();
       emsg.append("Feature name \"");
       emsg.append(this.fname.repr());
@@ -149,7 +149,7 @@ public class PFeature extends PDefaultProgObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PFeatureDef def = this.scope.theMod.theCompiler.defDict.getFeatureDef(this.scope.theMod.name, this.featureProps.key);
+    PFeatureDef def = this.scope.theMod.theCompiler.defDict.getFeatureDef(this.scope.theMod.name, this._resolved_featureProps.key);
     PDefDict.TparamProps[] pss = def.getParamPropss();
     if (pss.length != this.params.length) {
       emsg = new StringBuffer();
@@ -169,6 +169,15 @@ public class PFeature extends PDefaultProgObj {
   }
 
   void excludePrivateAcc() throws CompileException {
+    if (this._resolved_featureProps.acc == Module.ACC_PRIVATE) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("\"");
+      emsg.append(this.fname.repr());
+      emsg.append("\" should not be private at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].excludePrivateAcc();
     }
@@ -179,7 +188,7 @@ public class PFeature extends PDefaultProgObj {
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].toSkel();
     }
-    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps.key, ps);
+    return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_featureProps.key, ps);
   }
 
   // PFeatureSkel getNormalizedSkel() throws CompileException {
@@ -187,7 +196,7 @@ public class PFeature extends PDefaultProgObj {
     // for (int i = 0; i < ps.length; i++) {
       // ps[i] = this.params[i].getNormalizedSkel();
     // }
-    // return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this.featureProps.key, ps);
+    // return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_featureProps.key, ps);
   // }
 
   PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
@@ -269,6 +278,12 @@ public class PFeature extends PDefaultProgObj {
         this.features[i] = this.features[i].resolve();
       }
       return this;
+    }
+
+    void excludePrivateAcc() throws CompileException {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i].excludePrivateAcc();
+      }
     }
 
     PFeatureSkel.List toSkel() {
