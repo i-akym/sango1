@@ -462,7 +462,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
         if (this.tparams[i].variance != bpps[i].variance) {
           emsg = new StringBuffer();
           emsg.append("Variance of *");
-          emsg.append(this.tparams[i].varDef.name);
+          emsg.append(this.tparams[i].getVarName());
           emsg.append(" mismatch with that of base definition at ");
           emsg.append(this.srcInfo);
           emsg.append(". ");
@@ -526,13 +526,13 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   void checkFeatureImpl1(PFeatureImplDef id, PDataDef base) throws CompileException {
     List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < this.tparams.length; i++) {
-      vs.add(this.tparams[i].varDef._resolved_varSlot);
+      vs.add(this.tparams[i].getVarSlot());
     }
     PTypeSkelBindings b = PTypeSkelBindings.create(vs);
 
     PTypeRefSkel bsig = base.getTypeSig();
     for (int i = 0; i < bsig.params.length; i++) {
-      b.bind(((PTypeVarSkel)bsig.params[i]).varSlot, this.tparams[i].varDef.toSkel());
+      b.bind(((PTypeVarSkel)bsig.params[i]).varSlot, this.tparams[i].getTypeSkel());
     }
 
     PFeatureSkel f = id.feature.toSkel();

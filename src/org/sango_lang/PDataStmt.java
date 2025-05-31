@@ -1001,10 +1001,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     // eval @availability GETTER @private -> <<*T0 *T1 .. TCON> ... feature impl type alias> {
     //   impl_provider
     // }
-    // // OLD VERSION
-    // // eval @availability <*T0 *T1 .. TCON> *X GETTER @private -> <feature impl type> {
-    // //   X impl_provider
-    // // }
     Parser.SrcInfo si = srcInfo.appendPostfix("_feature_impl");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
     PScope defScope = evalStmtBuilder.getDefScope();
@@ -1015,14 +1011,15 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.setOfficial(impl.getter);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    PType.Builder retType1Builder = PType.Builder.newInstance(si, retScope);
-    for (int i = 0; i < this.tparams.length; i++) {
-      PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
-        PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
-      retType1Builder.addItem(p);
-    }
-    retType1Builder.addItem(PTid.create(si, defScope, null, this.tcon, false));
-    retTypeBuilder.addItem(retType1Builder.create());
+    retTypeBuilder.addItem(this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+    // PType.Builder retType1Builder = PType.Builder.newInstance(si, retScope);
+    // for (int i = 0; i < this.tparams.length; i++) {
+      // PTypeVarDef p = (PTypeVarDef)this.tparams[i].varDef.unresolvedCopy(si, defScope,
+        // PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP);
+      // retType1Builder.addItem(p);
+    // }
+    // retType1Builder.addItem(PTid.create(si, defScope, null, this.tcon, false));
+    // retTypeBuilder.addItem(retType1Builder.create());
       for (int i = 0; i < impl.feature.params.length; i++) {
         retTypeBuilder.addItem(impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
     }

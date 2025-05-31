@@ -439,10 +439,10 @@ interface PType extends PProgObj {
     Parser.SrcInfo srcInfo;
     Module.Variance variance;
     // either of following is set
-    PTypeVarDef varDef;
-    PTid varRef;
+    private PTypeVarDef varDef;
+    private PTid varRef;
     //
-    PTypeVarRef _resolved_varRef;
+    private PTypeVarRef _resolved_varRef;
 
     void  setupResolved() throws CompileException {
       PTypeVarDef v;
@@ -484,6 +484,10 @@ interface PType extends PProgObj {
       if (this.varDef != null) {
         this.varDef.excludePrivateAcc();
       }
+    }
+
+    PTypeVarSkel getTypeSkel() {
+      return (this.varDef != null)? (PTypeVarSkel)this.varDef.toSkel(): (PTypeVarSkel)this._resolved_varRef.toSkel();
     }
   }
 

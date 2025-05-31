@@ -273,7 +273,7 @@ class Generator {
     b.setAcc(feature.acc);
     b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.theMod, inReferredDef, varSlotList));
     for (int i = 0; i < feature.params.length; i++) {
-      MTypeVar v = (MTypeVar)feature.params[i].varDef.toSkel().toMType(this.theMod, inReferredDef, varSlotList);
+      MTypeVar v = (MTypeVar)feature.params[i].getTypeSkel().toMType(this.theMod, inReferredDef, varSlotList);
       MType.ParamDef d = MType.ParamDef.create(feature.params[i].variance, v);
       b.addParam(d);
     }
