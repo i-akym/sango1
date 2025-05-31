@@ -319,7 +319,7 @@ public class PFeature extends PDefaultProgObj {
 
   static class SigBuilder {
     PFeature feature;
-    java.util.List<PType> params;
+    java.util.List<PProgObj> params;
 
     static SigBuilder newInstance(Parser.SrcInfo srcInfo, PScope scope) {
       return new SigBuilder(srcInfo, scope);
@@ -327,20 +327,24 @@ public class PFeature extends PDefaultProgObj {
 
     SigBuilder(Parser.SrcInfo srcInfo, PScope scope) {
       this.feature = new PFeature(srcInfo, scope);
-      this.params = new ArrayList<PType>();
+      this.params = new ArrayList<PProgObj>();
     }
 
-    void addParam(PTypeVarDef v) {
-      this.params.add(v);
+    void addParam(PProgObj p) {
+      this.params.add(p);
     }
 
     void setName(PTid n) {
       this.feature.fname = n;
     }
 
-    PFeature create() {
-      this.feature.params = this.params.toArray(new PType[this.params.size()]);
-// /* DEBUG */ System.out.println(this.feature);
+    PFeature create() throws CompileException {
+      this.feature.params = new PType[this.params.size()];
+      for (int i = 0; i < this.params.size(); i++) {
+        PType.Builder tb = PType.Builder.newInstance(this.feature.srcInfo, this.feature.scope);
+        tb.addItem(this.params.get(i));
+        this.feature.params[i] = tb.create();
+      }
       return this.feature;
     }
   }
