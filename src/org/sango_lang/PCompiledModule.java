@@ -341,6 +341,10 @@ class PCompiledModule implements PModDecl {
 
     public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
+    public int getParamCount() {
+      return (this.sigParams == null)? -1: this.sigParams.length;
+    }
+
     public PDefDict.TparamProps[] getParamPropss() {
       PDefDict.TparamProps[] tps;
       if (this.sigParams == null) {
@@ -557,6 +561,8 @@ class PCompiledModule implements PModDecl {
 
     public PDefDict.IdKey getNameKey() { return this.nameKey; }
 
+    public int getParamCount() { return this.params.length; }
+
     public PDefDict.TparamProps[] getParamPropss() {
       PDefDict.TparamProps[] pps = new PDefDict.TparamProps[this.paramVariances.length];
       for (int i = 0; i < pps.length; i++) {
@@ -564,8 +570,6 @@ class PCompiledModule implements PModDecl {
       }
       return pps;
     }
-
-    // public int getParamCount() { return this.params.length; }
 
     public PTypeVarSkel getObjType() { return this.obj; }
 

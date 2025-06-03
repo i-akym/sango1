@@ -142,8 +142,9 @@ class PTypeRef extends PDefaultProgObj implements PType {
     if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
       PDataDef dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, this._resolved_tconProps.key);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before
-      PDefDict.TparamProps[] pps = dataDef.getParamPropss();
-      paramCount = (pps == null)? -1: pps.length;
+      paramCount = dataDef.getParamCount();
+      // PDefDict.TparamProps[] pps = dataDef.getParamPropss();
+      // paramCount = (pps == null)? -1: pps.length;
     } else if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
       PAliasTypeDef aliasTypeDef = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.name, this._resolved_tconProps.key);
       if (aliasTypeDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before

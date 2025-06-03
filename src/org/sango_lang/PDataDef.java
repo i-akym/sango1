@@ -33,6 +33,9 @@ public interface PDataDef {
 
   PDefDict.IdKey getBaseTconKey();
 
+  int getParamCount();
+  // -1 for 'tuple', 'fun'
+
   PDefDict.TparamProps[] getParamPropss();
   // null for 'tuple', 'fun'
 
