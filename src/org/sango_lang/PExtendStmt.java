@@ -390,6 +390,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
+  public int getParamCount() { return this.tparams.length; }
+
   public PDefDict.TparamProps[] getParamPropss() {
     PDefDict.TparamProps[] tps = new PDefDict.TparamProps[this.tparams.length];
     for (int i = 0; i < this.tparams.length; i++) {

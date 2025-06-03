@@ -1334,166 +1334,6 @@ class PModule implements PModDecl {
     this.addEvalStmt(evalStmtBuilder.create());
   }
 
-  // PDefDict.TconProps resolveTcon(String modId, String tcon) throws CompileException {
-    // Cstr modName = PModule.this.resolveModId(modId);
-    // Option.Set<Module.Access> as = new Option.Set<Module.Access>();
-    // as = as.add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED).add(Module.ACC_OPAQUE);
-    // PDefDict.TconProps tp = PModule.this.theCompiler.getReferredDefDict(modName).resolveTcon(
-      // tcon, PDefDict.TID_CAT_TCON, as);
-    // if (tp != null) {
-      // this.referredTcon(modName, tcon, tp);
-    // }
-    // return tp;
-  // }
-
-    // PDefDict.FeatureProps resolveFeature(String modId, String fname) throws CompileException {
-      // Cstr modName = PModule.this.resolveModId(modId);
-      // Option.Set<Module.Access> as = new Option.Set<Module.Access>();
-      // as = as.add(Module.ACC_PUBLIC);
-      // PDefDict.FeatureProps fp = PModule.this.theCompiler.getReferredDefDict(modName).resolveFeature(
-        // fname, as);
-      // if (fp != null) {
-        // this.referredFeature(modName, fname, fp.defGetter.getFeatureDef());
-      // }
-      // return fp;
-    // }
-
-    // void referredEid(Cstr modName, String id, int catOpts, PDefDict.EidProps ep) throws CompileException {
-      // PDataDef dd;
-      // PFunDef fd;
-      // switch (catOpts & ep.cat) {
-      // case PDefDict.EID_CAT_DCON_EVAL:
-      // // /* DEBUG */ System.out.println(" >> DCON_EVAL");
-        // dd = ep.defGetter.getDataDef();
-        // if (this.dataDefDictDict.containsKey(modName)) {
-          // Map<String, ForeignDataDef> m = this.dataDefDictDict.get(modName);
-          // if (m.containsKey(dd.getFormalTcon())) {
-      // // /* DEBUG */ System.out.println(" >> DCON_EVAL >> ++ " + dd.getFormalTcon());
-            // ForeignDataDef fdd = m.get(dd.getFormalTcon());
-            // fdd.referredDcon(id);
-            // fdd.requireAcc(Module.ACC_PUBLIC);
-          // } else {
-      // // /* DEBUG */ System.out.println(" >> DCON_EVAL >> new data_def " + dd.getFormalTcon());
-            // ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_PUBLIC);
-            // fdd.referredDcon(id);
-            // m.put(dd.getFormalTcon(), fdd);
-          // }
-        // } else {
-      // // /* DEBUG */ System.out.println(" >> DCON_EVAL >> new module " + dd.getFormalTcon());
-          // Map<String, ForeignDataDef> m = new HashMap<String, ForeignDataDef>();
-          // ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_PUBLIC);
-          // fdd.referredDcon(id);
-          // m.put(dd.getFormalTcon(), fdd);
-          // this.dataDefDictDict.put(modName, m);
-          // PModule.this.maintainFarModRef(modName);
-        // }
-        // break;
-      // case PDefDict.EID_CAT_DCON_PTN:
-      // // /* DEBUG */ System.out.println(" >> DCON_PTN");
-        // dd = ep.defGetter.getDataDef();
-        // if (this.dataDefDictDict.containsKey(modName)) {
-          // Map<String, ForeignDataDef> m = this.dataDefDictDict.get(modName);
-          // if (m.containsKey(dd.getFormalTcon())) {
-      // // /* DEBUG */ System.out.println(" >> DCON_PTN >> ++ " + dd.getFormalTcon());
-            // ForeignDataDef fdd = m.get(dd.getFormalTcon());
-            // fdd.referredDcon(id);
-            // fdd.requireAcc(Module.ACC_PROTECTED);
-          // } else {
-      // // /* DEBUG */ System.out.println(" >> DCON_PTN >> new data_def " + dd.getFormalTcon());
-            // ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_PROTECTED);
-            // fdd.referredDcon(id);
-            // m.put(dd.getFormalTcon(), fdd);
-          // }
-        // } else {
-      // // /* DEBUG */ System.out.println(" >> DCON_PTN >> new module " + dd.getFormalTcon());
-          // Map<String, ForeignDataDef> m = new HashMap<String, ForeignDataDef>();
-          // ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_PROTECTED);
-          // fdd.referredDcon(id);
-          // m.put(dd.getFormalTcon(), fdd);
-          // this.dataDefDictDict.put(modName, m);
-          // PModule.this.maintainFarModRef(modName);
-        // }
-        // break;
-      // default:
-      // // /* DEBUG */ System.out.println(" >> EID_OTHER " + id + Integer.toString(catOpts) + " " + Integer.toString(ep.cat));
-        // break;
-      // }
-    // }
-
-    // void referredFunOfficial(PFunDef fd) {
-      // Cstr modName = fd.getModName();
-      // // PModule.this.addImplicitFarModRef(modName);  // maybe not registered...
-      // String official = fd.getOfficialName();
-// // /* DEBUG */ System.out.println("official " + official);
-      // Map<String, PFunDef> m;
-      // if ((m = this.funDefDictDict.get(modName)) == null) {
-        // m = new HashMap<String, PFunDef>();
-        // m.put(official, fd);
-        // this.funDefDictDict.put(modName, m);
-      // } else if (!m.containsKey(official)) {
-        // m.put(official, fd);
-      // }
-    // }
-
-    // void referredTcon(Cstr modName, String tcon, PDefDict.TconProps tp) {
-      // switch (tp.cat) {
-      // case PDefDict.TID_CAT_TCON_ALIAS:
-      // // /* DEBUG */ System.out.println(" >> ALIAS");
-        // PAliasTypeDef ad = tp.defGetter.getAliasTypeDef();
-        // if (this.aliasDefDictDict.containsKey(modName)) {
-          // Map<String, PAliasTypeDef> m = this.aliasDefDictDict.get(modName);
-          // if (m.containsKey(ad.getTcon())) {
-      // // /* DEBUG */ System.out.println(" >> ALIAS >> already registered " + ad.getTcon());
-          // } else {
-      // // /* DEBUG */ System.out.println(" >> ALIAS >> new alias_def " + ad.getTcon());
-            // m.put(ad.getTcon(), ad);
-          // }
-        // } else {
-      // // /* DEBUG */ System.out.println(" >> ALIAS >> new module " + ad.getTcon());
-          // Map<String, PAliasTypeDef> m = new HashMap<String, PAliasTypeDef>();
-          // m.put(ad.getTcon(), ad);
-          // this.aliasDefDictDict.put(modName, m);
-          // PModule.this.maintainFarModRef(modName);
-        // }
-        // break;
-      // default:
-      // // /* DEBUG */ System.out.println(" >> DATA");
-        // PDataDef dd = tp.defGetter.getDataDef();
-        // if (this.dataDefDictDict.containsKey(modName)) {
-          // Map<String, ForeignDataDef> m = this.dataDefDictDict.get(modName);
-          // if (m.containsKey(dd.getFormalTcon())) {
-      // // /* DEBUG */ System.out.println(" >> DATA >> ++ " + dd.getFormalTcon());
-            // ForeignDataDef fdd = m.get(dd.getFormalTcon());
-            // fdd.requireAcc(Module.ACC_OPAQUE);
-          // } else {
-      // // /* DEBUG */ System.out.println(" >> DATA >> new data_def " + dd.getFormalTcon());
-            // ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
-            // m.put(dd.getFormalTcon(), fdd);
-          // }
-        // } else {
-      // // /* DEBUG */ System.out.println(" >> DATA >> new module " + dd.getFormalTcon());
-          // Map<String, ForeignDataDef> m = new HashMap<String, ForeignDataDef>();
-          // ForeignDataDef fdd = new ForeignDataDef(dd, Module.ACC_OPAQUE);
-          // m.put(dd.getFormalTcon(), fdd);
-          // this.dataDefDictDict.put(modName, m);
-          // PModule.this.maintainFarModRef(modName);
-        // }
-        // break;
-      // }
-    // }
-
-    //void referredFeature(Cstr modName, String fname, PFeatureDef fd) {
-      ///* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Null module name. " + fname); }
-      //Map<String, PFeatureDef> m;
-      //if ((m = this.featureDefDictDict.get(modName)) == null) {
-        //m = new HashMap<String, PFeatureDef>();
-        //m.put(fname, fd);
-        //this.featureDefDictDict.put(modName, m);
-      //} else if (!m.containsKey(fname)) {
-        //m.put(fname, fd);
-      //}
-    //}
-
     List<PDataDef> getForeignDataDefsIn(Cstr modName) {
       return this.theCompiler.defDict.getForeignDataDefsIn(this.name, modName);
     }
@@ -1510,69 +1350,69 @@ class PModule implements PModDecl {
       return this.theCompiler.defDict.getForeignFunDefsIn(this.name, modName);
     }
 
-  class ForeignDataDef implements PDataDef {
-    PDataDef referredDataDef;
-    Module.Access requiredAcc;
-    List<String> referredDconList;
-    List<String> referredFeatureList;
+  // class ForeignDataDef implements PDataDef {
+    // PDataDef referredDataDef;
+    // Module.Access requiredAcc;
+    // List<String> referredDconList;
+    // List<String> referredFeatureList;
 
-    ForeignDataDef(PDataDef dd, Module.Access acc) {
-      this.referredDataDef = dd;
-      this.requiredAcc = acc;
-      this.referredDconList = new ArrayList<String>();
-      this.referredFeatureList = new ArrayList<String>();
-    }
+    // ForeignDataDef(PDataDef dd, Module.Access acc) {
+      // this.referredDataDef = dd;
+      // this.requiredAcc = acc;
+      // this.referredDconList = new ArrayList<String>();
+      // this.referredFeatureList = new ArrayList<String>();
+    // }
 
-    void requireAcc(Module.Access acc) {
-      this.requiredAcc = Module.moreOpenAcc(requiredAcc, this.requiredAcc)? requiredAcc: this.requiredAcc;
-    }
+    // void requireAcc(Module.Access acc) {
+      // this.requiredAcc = Module.moreOpenAcc(requiredAcc, this.requiredAcc)? requiredAcc: this.requiredAcc;
+    // }
 
-    void referredDcon(String dcon) {
-      if (!this.referredDconList.contains(dcon)) {
-        this.referredDconList.add(dcon);
-      }
-    }
+    // void referredDcon(String dcon) {
+      // if (!this.referredDconList.contains(dcon)) {
+        // this.referredDconList.add(dcon);
+      // }
+    // }
 
-    void referredFeature(String fname) {
-      if (!this.referredFeatureList.contains(fname)) {
-        this.referredFeatureList.add(fname);
-      }
-    }
+    // void referredFeature(String fname) {
+      // if (!this.referredFeatureList.contains(fname)) {
+        // this.referredFeatureList.add(fname);
+      // }
+    // }
 
-    public String getFormalTcon() { return this.referredDataDef.getFormalTcon(); }
+    // public String getFormalTcon() { return this.referredDataDef.getFormalTcon(); }
 
-    public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
+    // public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
 
-    public PDefDict.TparamProps[] getParamPropss() { return this.referredDataDef.getParamPropss(); }
+    // public PDefDict.TparamProps[] getParamPropss() { return this.referredDataDef.getParamPropss(); }
 
-    // public int getParamCount() { return this.referredDataDef.getParamCount(); }
+    // // public int getParamCount() { return this.referredDataDef.getParamCount(); }
 
-    public PTypeRefSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
+    // public PTypeRefSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
 
     // public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
 
-    public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
+    // public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
 
-    public Module.Access getAcc() {
-      return this.requiredAcc;
-    }
+    // public Module.Access getAcc() {
+      // return this.requiredAcc;
+    // }
 
-    public int getConstrCount() { return this.referredDconList.size(); }
+    // public int getConstrCount() { return this.referredDconList.size(); }
 
-    public PDataDef.Constr getConstr(String dcon) {
-      return this.referredDconList.contains(dcon)? this.referredDataDef.getConstr(dcon): null;
-    }
+    // public PDataDef.Constr getConstr(String dcon) {
+      // return this.referredDconList.contains(dcon)? this.referredDataDef.getConstr(dcon): null;
+    // }
 
-    public PDataDef.Constr getConstrAt(int index) {
-      return this.referredDataDef.getConstr(this.referredDconList.get(index));
-    }
+    // public PDataDef.Constr getConstrAt(int index) {
+      // return this.referredDataDef.getConstr(this.referredDconList.get(index));
+    // }
 
-    public int getFeatureImplCount() {
-      return this.referredFeatureList.size();
-    }
+    // public int getFeatureImplCount() {
+      // return this.referredFeatureList.size();
+    // }
 
-    public PDataDef.FeatureImpl getFeatureImplAt(int index) {
-      throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplAt() not implemented.");
-    }
-  }
+    // public PDataDef.FeatureImpl getFeatureImplAt(int index) {
+      // throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplAt() not implemented.");
+    // }
+  // }
 }

@@ -150,8 +150,10 @@ public class PFeature extends PDefaultProgObj {
       throw new CompileException(emsg.toString());
     }
     PFeatureDef def = this.scope.theMod.theCompiler.defDict.getFeatureDef(this.scope.theMod.name, this._resolved_featureProps.key);
-    PDefDict.TparamProps[] pss = def.getParamPropss();
-    if (pss.length != this.params.length) {
+    int pc = def.getParamCount();
+    // PDefDict.TparamProps[] pss = def.getParamPropss();
+    if (pc != this.params.length) {
+    // if (pss.length != this.params.length) {
       emsg = new StringBuffer();
       emsg.append("Parameter count of \"");
       emsg.append(this.fname.repr());

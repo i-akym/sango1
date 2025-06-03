@@ -455,6 +455,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   public PDefDict.IdKey getBaseTconKey() { return null; }
 
+  public int getParamCount() {
+    return (this.tparams == null)? -1: this.tparams.length;
+  }
+
   public PDefDict.TparamProps[] getParamPropss() {
     PDefDict.TparamProps[] tps;
     if (this.tparams == null) {  // for tuple, fun

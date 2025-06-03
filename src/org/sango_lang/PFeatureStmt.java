@@ -282,7 +282,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   }
 
   public void collectModRefs() throws CompileException {
-    // this.sig.collectModRefs();
+    this.sig.collectModRefs();
     this.impl.collectModRefs();
   }
 
@@ -324,6 +324,8 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     return PDefDict.IdKey.create(this.scope.myModName(), this.fname);
   }
 
+  public int getParamCount() { return this.params.length; }
+
   public PDefDict.TparamProps[] getParamPropss() {
     PDefDict.TparamProps[] tps = new PDefDict.TparamProps[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
@@ -333,15 +335,9 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     return tps;
   }
 
-  // public int getParamCount() { return this.params.length; }
-
   public PTypeVarSkel getObjType() { return this.objSkel; }
 
-  // public PTypeVarSkel[] getParams() { return this.paramSkels; }
-
   public PFeatureSkel getFeatureSig() { return this.sig.toSkel(); }
-
-  // public Module.Variance getParamVarianceAt(int pos) { return this.params[pos].variance; }
 
   public PTypeRefSkel getImplType() { return this._normalized_implSkel; }
 
