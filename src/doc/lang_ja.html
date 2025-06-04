@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.7.8言語解説</title>
+<title>Sango 1.8.0言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -2550,10 +2550,15 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【非互換】<code>&quot;sango.entity.existence&quot;.dress_fs</code>を<code>&quot;sango.entity&quot;.entity_fs</code>に変更。<code>&quot;sango.entity.existence&quot;</code>の<code>undress_f</code>，<code>redress_f</code>を<code>&quot;sango.entity&quot;</code>に移動。</li>
 </ul>
 
+<p>■　1.8.0</p>
+<ul>
+<li>【非互換】モジュールファイルの形式を変更しました。ライブラリは最新版のものを使い，使用者プログラムは再コンパイルしてください。</li>
+<li>【Alpha→Beta】<code>&quot;sango.util.map.shared.weakkeymap&quot;</code>，<code>&quot;sango.util.map.shared.weakvaluemap&quot;</code>，<code>&quot;sango.util.set.shared.weakset&quot;</code></li>
+</ul>
+
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="E">E. Known bugs and restrictions</h1>
 <p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
-<p>■　データ定義の型パラメタにフィーチャを指定できません。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 

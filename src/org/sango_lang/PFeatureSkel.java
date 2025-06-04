@@ -191,8 +191,9 @@ public class PFeatureSkel {
   }
 
   boolean acceptList(int width, List fs, PTypeSkelBindings bindings) throws CompileException {
+    int len = (fs == null)? 0: fs.features.length;
     boolean b = false;
-    for (int i = 0; !b && i < fs.features.length; i++) {
+    for (int i = 0; !b && i < len; i++) {
       b = this.accept(width, fs.features[i], bindings);
     }
     return b;

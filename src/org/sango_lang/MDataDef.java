@@ -32,7 +32,7 @@ public class MDataDef implements Module.Elem {
   String tcon;
   Module.Availability availability;
   Module.Access acc;
-  MTypeVar.DefWithVariance[] params;
+  MType.ParamDef[] params;
   int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
   String baseTcon;
   MConstrDef[] constrs;
@@ -42,7 +42,7 @@ public class MDataDef implements Module.Elem {
 
   static class Builder {
     MDataDef dataDef;
-    List<MTypeVar.DefWithVariance> paramList;
+    List<MType.ParamDef> paramList;
     List<MConstrDef> constrList;
     List<MFeatureImplDef> featureImplList;
 
@@ -58,7 +58,7 @@ public class MDataDef implements Module.Elem {
     }
 
     void prepareForParams() {
-      this.paramList = new ArrayList<MTypeVar.DefWithVariance>();
+      this.paramList = new ArrayList<MType.ParamDef>();
     }
 
     void setTcon(String tcon) {
@@ -73,7 +73,7 @@ public class MDataDef implements Module.Elem {
       this.dataDef.acc = acc;
     }
 
-    void addParam(MTypeVar.DefWithVariance param) {
+    void addParam(MType.ParamDef param) {
       this.paramList.add(param);
     }
 
@@ -97,7 +97,7 @@ public class MDataDef implements Module.Elem {
 
     MDataDef create() {
       this.dataDef.params = (this.paramList != null)?
-        this.paramList.toArray(new MTypeVar.DefWithVariance[this.paramList.size()]):
+        this.paramList.toArray(new MType.ParamDef[this.paramList.size()]):
         null;
       this.dataDef.constrs = this.constrList.toArray(new MConstrDef[this.constrList.size()]);
       this.dataDef.featureImpls = this.featureImplList.toArray(new MFeatureImplDef[this.featureImplList.size()]);

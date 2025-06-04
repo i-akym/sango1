@@ -22,13 +22,31 @@ eval <d003> *X fun002 -> <void> {} ;;
 alias type <*A d004> := <A list> ;;
 eval <cs d004> *II fun003 -> <void> {} ;;
 
-feature <*T> [ *A *B a'feat ] -> <T <T A B tuple> fun> ;;
-data <*P *Q feat_impl> := <P> <Q> feat_impl$
-++ a'feat_impl -> [ P Q a'feat ] ;;
-eval a'feat_impl -> <<*P *Q feat_impl> <<P Q feat_impl> P Q tuple> fun> {
-  \ <P Q feat_impl> *X -> <<P Q feat_impl> P Q tuple> {
-    X = *Y *Z feat_impl$,
+feature <*T> [ *A *B a'f000 ] -> <T <T A B tuple> fun> ;;
+data <*P *Q f000_impl> := <P> <Q> f000_impl$
+++ a'f000_impl -> [ P Q a'f000 ] ;;
+eval a'f000_impl -> <<*P *Q f000_impl> <<P Q f000_impl> P Q tuple> fun> {
+  \ <P Q f000_impl> *X -> <<P Q f000_impl> P Q tuple> {
+    X = *Y *Z f000_impl$,
     (| X, Y, Z |)
+  }
+} ;;
+
+feature <*T> [ *U a'f010 ] -> <T U fun> ;;
+feature <*T> [ *A[ *B a'f010 ] B a'f011 ] -> <T <A B tuple> fun> ;;
+data <*A d010> :=
+  <A> d010$
+++ d010_as_a'f010 -> [ A a'f010 ] ;;
+eval d010_as_a'f010 -> <<*A d010> A fun> {
+  \ <*Z d010> *X -> <Z> { X = *Y d010$, Y }
+} ;;
+data <*A[ *B a'f010 ] d011> :=
+  <A> d011$
+++ d011_as_a'f011 -> [ A B a'f011 ] ;;
+eval d011_as_a'f011 -> <<*A[ *B a'f010 ] d011> <A B tuple> fun> {
+  \ <*Y[ *Z a'f010 ] d011> *X -> <Y Z tuple> {
+    X = *U d011$,
+    (| U, U &(U _feature_a'f010) |)
   }
 } ;;
 
@@ -322,4 +340,4 @@ eval test731 -> <void> { "(void$ value$) hash " stdio.print, (void$ value$) hash
 eval test732 -> <void> { "(| 1, 1 |) hash " stdio.print, (| 1, 1 |) hash >> debug.repr >> stdio.print_and_newline } ;;
 eval test733 -> <void> { "(| 1, true$, \"abc\" value$ |) hash " stdio.print, (| 1, true$, "abc" value$ |) hash >> debug.repr >> stdio.print_and_newline } ;;
 eval test750 -> <void> { (3 'e' d001$) hash = 123456, void$ } ;;
-eval test800 -> <void> { 5 "ee" feat_impl$ = *FI, FI _feature_a'feat = *G, FI &G = (| FI, 5, "ee" |), void$ } ;;
+eval test800 -> <void> { 5 "ee" f000_impl$ = *FI, FI _feature_a'f000 = *G, FI &G = (| FI, 5, "ee" |), void$ } ;;
