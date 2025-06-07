@@ -31,7 +31,7 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
   PDataDef dataDef;
-  PType dataType;
+  // PType dataType;
 
   PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.enterInner());
@@ -185,13 +185,14 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     this.dataDef = dataDef;
   }
 
-  void setDataType(PType type) {
-    this.dataType = type;
-  }
+  // void setDataType(PType type) {
+    // this.dataType = type;
+  // }
 
   public PTypeSkel getType(PTypeSkelBindings bindings) {
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
-    return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
+    return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
+    // return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
   }
 
   public void collectModRefs() throws CompileException {
