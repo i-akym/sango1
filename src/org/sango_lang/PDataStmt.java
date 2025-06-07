@@ -429,7 +429,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i] = this.constrs[i].resolve();
-        this.constrs[i].setDataType(this._resolved_sig);
+        // this.constrs[i].setDataType(this._resolved_sig);
       }
     }
     if (this.featureImpls != null) {

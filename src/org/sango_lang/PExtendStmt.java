@@ -366,12 +366,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.tparams[i].setupResolved();
     }
     this._resolved_sig = this.sig.resolve();
-    // for (int i = 0; i < this.tparams.length; i++) {
-      // this.tparams[i].varDef = this.tparams[i].varDef.resolve();
-    // }
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i] = this.constrs[i].resolve();
-      this.constrs[i].setDataType(this._resolved_sig);
+      // this.constrs[i].setDataType(this._resolved_sig);
     }
     for (int i = 0; i < this.featureImpls.length; i++) {
       this.featureImpls[i] = this.featureImpls[i].resolve();
