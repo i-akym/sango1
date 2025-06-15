@@ -299,12 +299,13 @@ public class PFeatureSkel {
     return cont? res.add(create(this.theCompiler, this.srcInfo, this.fnameKey, ps), b): null;
   }
 
-  MFeature toMType(PModule mod, boolean inReferredDef, java.util.List<PTypeVarSlot> slotList) {
+  MFeature toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, java.util.List<PTypeVarSlot> slotList) {
     MFeature.Builder builder = MFeature.Builder.newInstance();
-    builder.setModIndex(mod.modNameToModRefIndex(inReferredDef, this.fnameKey.modName));
+    builder.setModIndex(modBuilder.modNameToModIndex(this.fnameKey.modName));
+    // builder.setModIndex(mod.modNameToModRefIndex(inReferredDef, this.fnameKey.modName));
     builder.setName(this.fnameKey.idName);
     for (int i = 0; i < this.params.length; i++) {
-      builder.addParam(this.params[i].toMType(mod, inReferredDef, slotList));
+      builder.addParam(this.params[i].toMType(mod, modBuilder, inReferredDef, slotList));
     }
     return builder.create();
   }
@@ -497,10 +498,10 @@ public class PFeatureSkel {
       return r;
     }
 
-    MFeature.List toMType(PModule mod, boolean inReferredDef, java.util.List<PTypeVarSlot> slotList) {
+    MFeature.List toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, java.util.List<PTypeVarSlot> slotList) {
       java.util.List<MFeature> fs = new ArrayList<MFeature>();
       for (int i = 0; i < this.features.length; i++) {
-        fs.add(this.features[i].toMType(mod, inReferredDef, slotList));
+        fs.add(this.features[i].toMType(mod, modBuilder, inReferredDef, slotList));
       }
       return MFeature.List.create(fs);
     }

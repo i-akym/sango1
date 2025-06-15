@@ -574,7 +574,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs == null) { return null; }
     PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
       null,
-      PDefDict.IdKey.create(mod.name, "_hash_" + this.tcon));
+      PDefDict.IdKey.create(mod.actualName, "_hash_" + this.tcon));
     if (ep == null) { return null; }
     // if (!mod.predefineFunOfficial("_hash_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
     // // if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
@@ -619,7 +619,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     if (this.constrs == null) { return null; }
     PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
       null,
-      PDefDict.IdKey.create(mod.name, "_debug_repr_" + this.tcon));
+      PDefDict.IdKey.create(mod.actualName, "_debug_repr_" + this.tcon));
     if (ep == null) { return null; }
     // if (!mod.predefineFunOfficial("_debug_repr_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
     // // if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
@@ -634,13 +634,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
       "X"));
-    // PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
-    // String[] paramNames = PModule.generateIds("T", this.tparams.length);
-    // for (int i = 0; i < paramNames.length; i++) {
-      // paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], false, /* null, */ null));
-    // }
-    // paramTypeBuilder.addItem(PTid.create(si, defScope, null, this.tcon, false));
-    // evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "cstr", false));
     retDefBuilder.setType(retTypeBuilder.create());

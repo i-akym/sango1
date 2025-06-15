@@ -30,12 +30,12 @@ import java.util.Map;
 abstract class Parser {
 
   Compiler theCompiler;
-  Cstr modName;
+  Cstr actualModName;
   PModule mod;
 
   Parser(Compiler theCompiler, Compiler.CompileEntry ce) throws CompileException, IOException {
     this.theCompiler = theCompiler;
-    this.modName = ce.modName;
+    this.actualModName = ce.actualModName;
   }
 
   abstract void parse1() throws CompileException, IOException;

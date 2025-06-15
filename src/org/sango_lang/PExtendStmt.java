@@ -352,7 +352,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   public PExtendStmt resolve() throws CompileException {
     StringBuffer emsg;
-    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
+    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.actualName, this.baseTconKey);
     if (baseDef == null) {
       emsg = new StringBuffer();
       emsg.append("Base data definition ");
@@ -447,7 +447,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   void checkExtension() throws CompileException {
     StringBuffer emsg;
-    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey);
+    PDataDef baseDef = this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.actualName, this.baseTconKey);
     PDefDict.TparamProps[] bpps = baseDef.getParamPropss();
     if (bpps != null && this.tparams.length != bpps.length) {
       emsg = new StringBuffer();
@@ -517,7 +517,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   void checkFeatureImpl() throws CompileException {
     for (int i = 0; i < this.featureImpls.length; i++) {
-      this.checkFeatureImpl1(this.featureImpls[i], this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.name, this.baseTconKey));
+      this.checkFeatureImpl1(this.featureImpls[i], this.scope.theMod.theCompiler.defDict.getDataDef(this.scope.theMod.actualName, this.baseTconKey));
       // this.checkFeatureImpl1(this.featureImpls[i], this.baseTconProps.defGetter.getDataDef());
     }
   }
@@ -569,7 +569,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // }
     PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
       null,
-      PDefDict.IdKey.create(mod.name, "_hash_" + this.tcon));
+      PDefDict.IdKey.create(mod.actualName, "_hash_" + this.tcon));
     if (ep == null) { return null; }
     // if (!mod.predefineFunOfficial("_hash_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
     // if (!mod.funOfficialDict.containsKey("_hash_" + this.tcon)) { return null; }
@@ -611,7 +611,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     // }
     PDefDict.EidProps ep = this.scope.getCompiler().defDict.resolveFunOfficial(
       null,
-      PDefDict.IdKey.create(mod.name, "_debug_repr_" + this.tcon));
+      PDefDict.IdKey.create(mod.actualName, "_debug_repr_" + this.tcon));
     if (ep == null) { return null; }
     // if (!mod.predefineFunOfficial("_debug_repr_" + this.tcon, Module.ACC_PRIVATE)) { return null; }
     // if (!mod.funOfficialDict.containsKey("_debug_repr_" + this.tcon)) { return null; }
@@ -627,12 +627,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
       this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
       "X"));
-    // String[] paramNames = PModule.generateIds("T", this.tparams.length);
-    // for (int i = 0; i < paramNames.length; i++) {
-      // paramTypeBuilder.addItem(PTypeVarDef.create(si, defScope, paramNames[i], false, /* null, */ null));
-    // }
-    // paramTypeBuilder.addItem(PTid.create(si, defScope, null, this.tcon, false));
-    // evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM, paramTypeBuilder.create(), "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "cstr", false));
     retDefBuilder.setType(retTypeBuilder.create());
