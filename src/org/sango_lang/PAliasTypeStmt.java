@@ -393,7 +393,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       ;  // no check needed
     } else if (t instanceof PTypeRefSkel) {
       PTypeRefSkel tr = (PTypeRefSkel)t;
-      PDefDict.TidProps tp = this.scope.getCompiler().defDict.resolveTcon(this.scope.theMod.name, tr.tconKey);
+      PDefDict.TidProps tp = this.scope.getCompiler().defDict.resolveTcon(this.scope.theMod.actualName, tr.tconKey);
       if (tp == null) {
         StringBuffer emsg = new StringBuffer();
         emsg.append("Type ");
@@ -405,12 +405,12 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       }
       int paramCount = -2;
       if ((tp.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
-        PDataDef dd = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, tr.tconKey);
+        PDataDef dd = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tr.tconKey);
         if (dd == null) { throw new RuntimeException("Def not registered. " + tr.tconKey); }
         PDefDict.TparamProps[] ps = dd.getParamPropss();
         paramCount = (ps != null)? ps.length: -1;
       } else if ((tp.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
-        PAliasTypeDef ad = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.name, tr.tconKey);
+        PAliasTypeDef ad = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.actualName, tr.tconKey);
         if (ad == null) { throw new RuntimeException("Def not registered. " + tr.tconKey); }
         paramCount = ad.getParamVarSlots().length;
       } else {

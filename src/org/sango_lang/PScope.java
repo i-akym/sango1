@@ -261,7 +261,7 @@ class PScope {
   Compiler getCompiler() { return this.theMod.theCompiler; }
 
   Cstr myModName() {
-    return this.theMod.name;
+    return this.theMod.actualName;
   }
 
   void referredModId(Parser.SrcInfo si, String id) throws CompileException {

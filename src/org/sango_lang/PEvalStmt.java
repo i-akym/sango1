@@ -455,7 +455,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   public Module.Access getAcc() { return this.acc; }
 
   public Cstr getModName() {
-    return this.scope.theMod.name;
+    return this.scope.theMod.actualName;
   }
 
   public String getOfficialName() {

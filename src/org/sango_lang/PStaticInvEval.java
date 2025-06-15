@@ -157,7 +157,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
       node.addChild(this.params[i].setupFlow(flow));
     }
     node.addChild(flow.createNodeForFunRefBody(
-      this.srcInfo, this.scope.theMod.modNameToModRefIndex(false, fd.getModName()), fd.getOfficialName()));
+      this.srcInfo, fd.getModName(), fd.getOfficialName()));
     return node;
   }
 }

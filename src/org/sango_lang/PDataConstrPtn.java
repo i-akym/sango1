@@ -203,8 +203,8 @@ class PDataConstrPtn extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForPtn(this.scope.theMod.name, this._resolved_dconProps.key);
-    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, tconKey);
+    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForPtn(this.scope.theMod.actualName, this._resolved_dconProps.key);
+    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tconKey);
     this.sortAttrs();
     return this;
   }
@@ -313,7 +313,7 @@ class PDataConstrPtn extends PDefaultExprObj {
 
   public GFlow.Node setupFlow(GFlow flow) {
     GFlow.SeqNode node = flow.createNodeForDataConstrPtn(
-      this.srcInfo, this.scope.theMod.modNameToModRefIndex(false, this._resolved_dconProps.key.modName), this.dcon.name,
+      this.srcInfo, this._resolved_dconProps.key.modName, this.dcon.name,
       null, 0);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       node.addChild(this.sortedAttrs[i].setupFlow(flow));

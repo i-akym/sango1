@@ -31,7 +31,7 @@ import sni_sango.SNIlang;
 
 public class RModule {
   RuntimeEngine theEngine;
-  Cstr name;
+  Cstr actualName;
   RObjItem[] slots;
   RModule[] modTab;
   RDataConstr[] dataConstrs;
@@ -49,18 +49,18 @@ public class RModule {
 
   private RModule() {}
 
-  public Cstr getName() { return this.name; }
+  public Cstr getName() { return this.actualName; }
 
   static RModule create(RuntimeEngine eng, Module mod) throws IOException, FormatException {
     RModule m = new RModule();
     m.theEngine = eng;
-    m.name = mod.name;
+    m.actualName = mod.actualName;
 
     m.slots = new RObjItem[mod.getSlotCount()];
     for (int i = 0; i < m.slots.length; i++) {
        m.slots[i] = null;
     }
-    m.slots[Module.MSLOT_INDEX_NAME] = eng.memMgr.cstrToArrayItem(m.name);
+    m.slots[Module.MSLOT_INDEX_NAME] = eng.memMgr.cstrToArrayItem(m.actualName);
 
     MDataConstr[] dcs = mod.getDataConstrs();
     m.dataConstrs = new RDataConstr[dcs.length] ;
@@ -157,7 +157,7 @@ public class RModule {
 
   private static RClosureImpl linkNativeMethodGeneric(MClosureImpl ci, RModule m) throws IOException, FormatException {
     if (m.nativeImplClass == null) {
-      String nativeImplClassName = FileSystem.getInstance().moduleNameToNativeClass(m.name);
+      String nativeImplClassName = FileSystem.getInstance().moduleNameToNativeClass(m.actualName);
       try {
         m.nativeImplClass = Class.forName(nativeImplClassName);
         Method instanceGetter = m.nativeImplClass.getMethod("getInstance", new Class[] { m.theEngine.getClass() });
@@ -207,7 +207,7 @@ public class RModule {
 
   void resolveRefs() {
     // /* DEBUG */ System.out.println("resolving module references...");
-    Cstr[] mods = this.theEngine.modMgr.getMod(this.name).getModTab().getAllMods();
+    Cstr[] mods = this.theEngine.modMgr.getMod(this.actualName).getModTab().getAllMods();
     this.modTab = new RModule[mods.length];
     for (int i = 0; i < mods.length; i++) {
       this.modTab[i] = this.theEngine.modMgr.getRMod(mods[i]);
@@ -312,7 +312,7 @@ public class RModule {
       RObjItem obj = generic;
       RClosureItem g = helper.getCore().getFeatureImplGetter(
         obj,
-        this.name,
+        this.actualName,
         self.impl.name.substring(21));  // feature name = after "_builtin_feature_get_"
       if (g == null) {
         throw new RuntimeException("Feature impl not found. " + obj.dump().toJavaString());
@@ -333,7 +333,7 @@ public class RModule {
       for (int i = 0; g == null && i < fis.length; i++) {  // sequential search
         FeatureImplInfo fi = fis[i];
 // /* DEBUG */ System.out.println(fi.featureModIndex); System.out.println(this.modTab[fi.featureModIndex].name.repr());
-        if (this.modTab[fi.featureModIndex].name.equals(featureModName) && fi.featureName.equals(featureName)) {
+        if (this.modTab[fi.featureModIndex].actualName.equals(featureModName) && fi.featureName.equals(featureName)) {
           g = RClosureItem.create(this.theEngine, this.closureImplDict.get(fi.getter), null);
         }
       }

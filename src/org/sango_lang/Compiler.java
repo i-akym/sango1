@@ -452,8 +452,8 @@ public class Compiler {
         this.referMod(ce);
       } else if (!this.modsToStart.isEmpty()) {
         CompileEntry ce = this.modsToStart.remove(0);
-        if (!this.modsStarted.contains(ce.modName)) {
-          this.modsStarted.add(ce.modName);
+        if (!this.modsStarted.contains(ce.actualModName)) {
+          this.modsStarted.add(ce.actualModName);
           try {
             this.determineActionToImport(ce);
           } catch (IOException ex) {
@@ -468,7 +468,7 @@ public class Compiler {
     // phase 2
     while (!this.parse2Queue.isEmpty()) {
       CompileEntry ce = this.parse2Queue.remove(0);
-      if (!this.modsUnavailable.contains(ce.modName)) {
+      if (!this.modsUnavailable.contains(ce.actualModName)) {
         this.parse2(ce);
       }
     }
@@ -485,7 +485,7 @@ public class Compiler {
     }
     while (!this.parse3Queue.isEmpty()) {
       CompileEntry ce = this.parse3Queue.remove(0);
-      if (!this.modsUnavailable.contains(ce.modName)) {
+      if (!this.modsUnavailable.contains(ce.actualModName)) {
         this.parse3(ce);
       }
     }
@@ -493,7 +493,7 @@ public class Compiler {
     // phase 4
     while (!this.parse4Queue.isEmpty()) {
       CompileEntry ce = this.parse4Queue.remove(0);
-      if (!this.modsUnavailable.contains(ce.modName)) {
+      if (!this.modsUnavailable.contains(ce.actualModName)) {
         this.parse4(ce);
       }
     }
@@ -501,7 +501,7 @@ public class Compiler {
     // phase 5
     while (!this.parse5Queue.isEmpty()) {
       CompileEntry ce = this.parse5Queue.remove(0);
-      if (!this.modsUnavailable.contains(ce.modName)) {
+      if (!this.modsUnavailable.contains(ce.actualModName)) {
         this.parse5(ce);
       }
     }
@@ -509,7 +509,7 @@ public class Compiler {
     // generate
     while (!this.generateQueue.isEmpty()) {
       CompileEntry ce = this.generateQueue.remove(0);
-      if (!this.modsUnavailable.contains(ce.modName)) {
+      if (!this.modsUnavailable.contains(ce.actualModName)) {
         this.generate(ce);
       }
     }
@@ -521,7 +521,7 @@ public class Compiler {
       ce.arrangeFilesToParse();
       if (this.verboseModule) {
         this.msgOut.print("Compiling ");
-        this.msgOut.print(ce.modName.repr());
+        this.msgOut.print(ce.actualModName.repr());
         this.msgOut.print(" = ");
       }
       if (this.verboseModule) {
@@ -531,13 +531,13 @@ public class Compiler {
       ce.setupParser();
       ce.parser.parse1();
       this.parse2Queue.add(ce);
-      this.modDeclDict.put(ce.modName, ce.parser.mod.getModDecl());
+      this.modDeclDict.put(ce.actualModName, ce.parser.mod.getModDecl());
       Cstr[] ms = ce.parser.mod.getForeignMods();
       for (int i = 0; i < ms.length; i++) {
-        this.modsToStart.add(new CompileEntry(ce.modName, ms[i], null, null));
+        this.modsToStart.add(new CompileEntry(ce.actualModName, ms[i], null, null));
       }
     } catch (Exception ex) {
-      this.compileErrorDetected(ce.modName, ex);
+      this.compileErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -546,7 +546,7 @@ public class Compiler {
       ce.parser.parse2();
       this.parse3Queue.add(ce);
     } catch (Exception ex) {
-      this.compileErrorDetected(ce.modName, ex);
+      this.compileErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -555,7 +555,7 @@ public class Compiler {
       ce.parser.parse3();
       this.parse4Queue.add(ce);
     } catch (Exception ex) {
-      this.compileErrorDetected(ce.modName, ex);
+      this.compileErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -564,7 +564,7 @@ public class Compiler {
       ce.parser.parse4();
       this.parse5Queue.add(ce);
     } catch (Exception ex) {
-      this.compileErrorDetected(ce.modName, ex);
+      this.compileErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -573,7 +573,7 @@ public class Compiler {
       ce.parser.parse5();
       this.generateQueue.add(ce);
     } catch (Exception ex) {
-      this.compileErrorDetected(ce.modName, ex);
+      this.compileErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -582,7 +582,7 @@ public class Compiler {
       Generator g = new Generator(this, ce);
       g.generate();
     } catch (Exception ex) {
-      this.compileErrorDetected(ce.modName, ex);
+      this.compileErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -590,7 +590,7 @@ public class Compiler {
     try {
       this.performReferMod(ce);
     } catch (Exception ex) {
-      this.importErrorDetected(ce.modName, ex);
+      this.importErrorDetected(ce.actualModName, ex);
     }
   }
 
@@ -598,7 +598,7 @@ public class Compiler {
     StringBuffer emsg;
     if (this.verboseModule) {
       this.msgOut.print("Importing ");
-      this.msgOut.print(ce.modName.repr());
+      this.msgOut.print(ce.actualModName.repr());
       this.msgOut.print(" = ");
       this.msgOut.print(ce.modFile.getCanonicalPath());
       this.msgOut.println(" ...");
@@ -618,7 +618,7 @@ public class Compiler {
       factory.setIgnoringComments(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
       Document doc = builder.parse(zis);
-      PCompiledModule m = PCompiledModule.create(this, Module.internalize(doc, ce.modName));
+      PCompiledModule m = PCompiledModule.create(this, Module.internalize(doc, ce.actualModName));
       this.modDeclDict.put(m.getName(), m.getModDecl());
       Cstr[] foreignMods = m.getForeignMods();
       for (int i = 0; i < foreignMods.length; i++) {
@@ -646,11 +646,11 @@ public class Compiler {
   }
 
   void determineActionToImport(CompileEntry ce) throws IOException {
-    File[] sm = FileSystem.getInstance().findSourceAndModuleFilesForModuleName(ce.modName, this.modPathList);
+    File[] sm = FileSystem.getInstance().findSourceAndModuleFilesForModuleName(ce.actualModName, this.modPathList);
     if (sm == null) {
       StringBuffer emsg = new StringBuffer();
       emsg.append("Cannot get either source file or module for ");
-      emsg.append(ce.modName.repr());
+      emsg.append(ce.actualModName.repr());
       if (ce.referrer != null) {
         emsg.append(" which is referred in ");
         emsg.append(ce.referrer.repr());
@@ -669,7 +669,7 @@ public class Compiler {
     } else {
       long srcFileTime = sm[0].lastModified();
       long modFileTime = sm[1].lastModified();
-      if (modFileTime > srcFileTime && !this.referQueueContains(ce.modName)) {
+      if (modFileTime > srcFileTime && !this.referQueueContains(ce.actualModName)) {
         ce.srcFile = null;
         ce.modFile = sm[1];
         this.referQueue.add(ce);
@@ -826,14 +826,15 @@ public class Compiler {
 
   class CompileEntry {
     Cstr referrer;  // null means target to compile
-    Cstr modName;
+    Cstr actualModName;
     File srcFile;
     File modFile;
     Parser parser;
 
-    CompileEntry(Cstr referrer, Cstr modName, File srcFile, File modFile) {
+    CompileEntry(Cstr referrer, Cstr actualModName, File srcFile, File modFile) {
+      if (actualModName == null) { throw new IllegalArgumentException("Null mod name."); }
       this.referrer = referrer;
-      this.modName = modName;
+      this.actualModName = actualModName;
       this.srcFile = srcFile;
       this.modFile = modFile;
     }
@@ -847,11 +848,11 @@ public class Compiler {
     void arrangeFilesToParse() throws IOException {
       StringBuffer emsg;
       if (this.srcFile == null) {
-        this.srcFile = FileSystem.getInstance().findSourceFileForModuleName(this.modName, Compiler.this.modPathList);
+        this.srcFile = FileSystem.getInstance().findSourceFileForModuleName(this.actualModName, Compiler.this.modPathList);
         if (this.srcFile == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot get source file for ");
-          emsg.append(modName.repr());
+          emsg.append(actualModName.repr());
           if (this.referrer != null) {
             emsg.append(" which is referred in ");
             emsg.append(referrer.repr());
@@ -862,7 +863,7 @@ public class Compiler {
       }
       if (this.modFile == null) {
         this.modFile = (Compiler.this.modOutPath != null)?
-          FileSystem.getInstance().moduleNameToModuleFileObj(Compiler.this.modOutPath, this.modName):
+          FileSystem.getInstance().moduleNameToModuleFileObj(Compiler.this.modOutPath, this.actualModName):
           FileSystem.getInstance().moduleFileInSameDirectoryWithSourceFile(this.srcFile);
       }
     }
@@ -871,7 +872,7 @@ public class Compiler {
   boolean parse1QueueContains(Cstr modName) {
     boolean b = false;
     for (int i = 0; !b && i < this.parse1Queue.size(); i++) {
-      b = modName.equals(parse1Queue.get(i).modName);
+      b = modName.equals(parse1Queue.get(i).actualModName);
     }
     return b;
   }
@@ -887,7 +888,7 @@ public class Compiler {
   boolean referQueueContains(Cstr modName) {
     boolean b = false;
     for (int i = 0; !b && i < this.referQueue.size(); i++) {
-      b = modName.equals(referQueue.get(i).modName);
+      b = modName.equals(referQueue.get(i).actualModName);
     }
     return b;
   }

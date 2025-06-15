@@ -140,13 +140,13 @@ class PTypeRef extends PDefaultProgObj implements PType {
     }
     int paramCount = -2;
     if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
-      PDataDef dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, this._resolved_tconProps.key);
+      PDataDef dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, this._resolved_tconProps.key);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before
       paramCount = dataDef.getParamCount();
       // PDefDict.TparamProps[] pps = dataDef.getParamPropss();
       // paramCount = (pps == null)? -1: pps.length;
     } else if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
-      PAliasTypeDef aliasTypeDef = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.name, this._resolved_tconProps.key);
+      PAliasTypeDef aliasTypeDef = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.actualName, this._resolved_tconProps.key);
       if (aliasTypeDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before
       paramCount = aliasTypeDef.getParamVarSlots().length;
     } else {
@@ -202,7 +202,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
     // if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
     // // if ((a = this._resolved_tconProps.defGetter.getAliasTypeDef()) != null) {
-      // PAliasTypeDef a = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.name, this._resolved_tconProps.key);
+      // PAliasTypeDef a = this.scope.getCompiler().defDict.getAliasTypeDef(this.scope.theMod.actualName, this._resolved_tconProps.key);
       // t = a.unalias(ps);
     // } else {
       // t = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, this.tcon.ext, ps);

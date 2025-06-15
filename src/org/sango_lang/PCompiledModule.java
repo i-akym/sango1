@@ -36,13 +36,6 @@ class PCompiledModule implements PModDecl {
   Module.Availability availability;
   Cstr name;
   Cstr[] foreignMods;
-  // Map<PDefDict.IdKey, PDefDict.TidProps> foreignTconDict;
-  // Map<PDefDict.IdKey, PDefDict.FeatureProps> foreignFnameDict;
-  // Map<String, PDefDict.TidProps> tconDict;
-  // Map<String, PDefDict.FeatureProps> fnameDict;
-  // Map<String, PDefDict.EidProps> eidDict;
-  // HashMap<String, FunDef> funOfficialDict;
-  // HashMap<String, List<FunDef>> funListDict;
 
   private PCompiledModule() {}
 
@@ -57,60 +50,15 @@ class PCompiledModule implements PModDecl {
   static PCompiledModule create(Compiler theCompiler, Module mod) /* throws FormatException */ {
     PCompiledModule cm = new PCompiledModule();
     cm.theCompiler = theCompiler;
-    cm.name = mod.name;
+    cm.name = mod.actualName;
     cm.availability = mod.availability;
     cm.foreignMods = mod.getModTab().getForeignMods();
-
-    // for (int i = 0; i < cm.foreignMods.length; i++) {
-      // MDataDef[] dds = mod.getForeignDataDefs(cm.foreignMods[i]);
-      // for (int j = 0; j < dds.length; j++) {
-        // DataDef dd = cm.convertDataDef(mod, dds[j]);
-        // PDefDict.IdKey ik = PDefDict.IdKey.create(cm.foreignMods[i], dds[j].tcon);
-        // PDefDict.DataDefGetter g = createDataDefGetter(dd);
-        // PDefDict.TparamProps[] paramPropss;
-        // if (dds[j].params != null) {
-          // paramPropss = new PDefDict.TparamProps[dds[j].params.length];
-          // for (int k = 0; k < dds[j].params.length; k++) {
-            // paramPropss[k] = PDefDict.TparamProps.create(dds[j].params[k].variance, dds[j].params[k].var.requiresConcrete);
-          // }
-        // } else {
-          // paramPropss = null;
-        // }
-        // PDefDict.TidProps tp = PDefDict.TidProps.create(ik,
-          // (dds[j].baseModIndex == 0)? PDefDict.TID_CAT_TCON_DATAEXT_DATA: PDefDict.TID_CAT_TCON_DATAEXT_EXTEND,
-          // paramPropss, dds[j].acc, g);
-        // cm.foreignTconDict.put(ik, tp);
-      // }
-
-      // MAliasTypeDef[] ads = mod.getForeignAliasTypeDefs(cm.foreignMods[i]);
-      // for (int j = 0; j < ads.length; j++) {
-        // AliasTypeDef ad = cm.convertAliasTypeDef(mod, ads[j] /* , unresolvedTypeRefList, unresolvedFeatureList */);
-        // PDefDict.IdKey ik = PDefDict.IdKey.create(cm.foreignMods[i], ads[j].tcon);
-        // PDefDict.DataDefGetter g = createDataDefGetter(ad);
-        // PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[ads[j].paramCount];
-        // for (int k = 0; k < paramPropss.length; k++) {
-          // paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
-        // }
-        // PDefDict.TidProps tp = PDefDict.TidProps.create(
-          // ik, PDefDict.TID_CAT_TCON_ALIAS, paramPropss, ads[j].acc, g);
-        // cm.foreignTconDict.put(ik, tp);
-      // }
-      // MFeatureDef[] fds = mod.getForeignFeatureDefs(cm.foreignMods[i]);
-      // for (int j = 0; j < fds.length; j++) {
-        // FeatureDef fd = cm.convertFeatureDef(mod, fds[j] /* , unresolvedTypeRefList, unresolvedFeatureList */);
-        // PDefDict.IdKey ik = PDefDict.IdKey.create(cm.foreignMods[i], fds[j].fname);
-        // PDefDict.FeatureDefGetter g = createFeatureDefGetter(fd);
-        // PDefDict.FeatureProps fp = PDefDict.FeatureProps.create(
-          // ik, fds[j].params.length, fds[j].acc, g);
-        // cm.foreignFnameDict.put(ik, fp);
-      // }
-    // }
 
     MDataDef[] mdds = mod.getDataDefs();
     for (int i = 0; i < mdds.length; i++) {
       MDataDef mdd = mdds[i];
       DataDef dd = cm.convertDataDef(mod, mdd);
-      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.name, mdd.tcon);
+      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, mdd.tcon);
       if (dd.getBaseTconKey() == null) {
         if (!theCompiler.defDict.predefineTconData(ik, dd.acc)) {
           throw new RuntimeException("Unexpected error occurred on prefining " + ik);
@@ -124,130 +72,58 @@ class PCompiledModule implements PModDecl {
       for (int j = 0; j < cc; j++) {
         PDataDef.Constr c = dd.getConstrAt(j);
         String dcon = c.getDcon();
-        PDefDict.IdKey dk = PDefDict.IdKey.create(mod.name, dcon);
+        PDefDict.IdKey dk = PDefDict.IdKey.create(mod.actualName, dcon);
         if (!theCompiler.defDict.predefineDcon(dk, dd.acc)) {
           throw new RuntimeException("Unexpected error occurred on prefining " + dk);
         }
       }
       theCompiler.defDict.putDataDef(ik, dd);
-
-      // PDefDict.DataDefGetter g = createDataDefGetter(dd);
-      // PDefDict.TparamProps[] paramPropss;
-      // if (mdd.params != null) {
-        // paramPropss = new PDefDict.TparamProps[mdd.params.length];
-        // for (int k = 0; k < mdd.params.length; k++) {
-          // paramPropss[k] = PDefDict.TparamProps.create(mdd.params[k].variance, mdd.params[k].var.requiresConcrete);
-        // }
-      // } else {
-        // paramPropss = null;
-      // }
-      // PDefDict.TidProps tp = PDefDict.TidProps.create(
-        // PDefDict.IdKey.create(mod.name, mdd.tcon),
-        // (mdd.baseModIndex == 0)? PDefDict.TID_CAT_TCON_DATAEXT_DATA: PDefDict.TID_CAT_TCON_DATAEXT_EXTEND,
-        // paramPropss, mdd.acc, g);
-      // cm.tconDict.put(mdd.tcon, tp);
-      // for (int j = 0; j < mdd.constrs.length; j++) {
-        // MConstrDef mcd = mdd.constrs[j];
-        // cm.eidDict.put(mcd.dcon, PDefDict.EidProps.create(
-          // mod.name, PDefDict.EID_CAT_DCON, mdd.acc, cm.createExprDefGetter(dd)));
-      // }
     }
 
     MAliasTypeDef[] matds = mod.getAliasTypeDefs();
     for (int i = 0; i < matds.length; i++) {
       MAliasTypeDef matd = matds[i];
       AliasTypeDef atd = cm.convertAliasTypeDef(mod, matd);
-      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.name, matd.tcon);
+      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, matd.tcon);
       if (!theCompiler.defDict.predefineTconAliasType(ik, atd.acc)) {
         throw new RuntimeException("Unexpected error occurred on prefining " + ik);
       }
       theCompiler.defDict.putAliasTypeDef(ik, atd);
-
-      // PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[matd.paramCount];
-      // for (int k = 0; k < matd.paramCount; k++) {
-        // paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
-      // }
-      // cm.tconDict.put(matd.tcon, PDefDict.TidProps.create(
-        // PDefDict.IdKey.create(mod.name, matd.tcon),
-        // PDefDict.TID_CAT_TCON_ALIAS,
-        // paramPropss, matd.acc, createDataDefGetter(cm.convertAliasTypeDef(mod, matd /* , unresolvedTypeRefList, unresolvedFeatureList */))));
     }
 
     MFeatureDef[] mftds = mod.getFeatureDefs();
     for (int i = 0; i < mftds.length; i++) {
       MFeatureDef mftd = mftds[i];
       FeatureDef ftd = cm.convertFeatureDef(mod, mftd);
-      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.name, mftd.fname);
+      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, mftd.fname);
       if (!theCompiler.defDict.predefineFeature(ik, ftd.acc)) {
         throw new RuntimeException("Unexpected error occurred on prefining " + ik);
       }
       theCompiler.defDict.putFeatureDef(ik, ftd);
-
-      // cm.fnameDict.put(mftd.fname, PDefDict.FeatureProps.create(
-        // PDefDict.IdKey.create(mod.name, mftd.fname),
-        // mftd.params.length,
-        // mftd.acc, createFeatureDefGetter(cm.convertFeatureDef(mod, mftd /* , unresolvedTypeRefList, unresolvedFeatureList */))));
     }
 
-    // cm.funOfficialDict = new HashMap<String, FunDef>();
-    // cm.funListDict = new HashMap<String, List<FunDef>>();
     MFunDef[] mfds = mod.getFunDefs();
     for (int i = 0; i < mfds.length; i++) {
       MFunDef mfd = mfds[i];
       FunDef fd = cm.convertFunDef(mod, mfd);
-      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.name, fd.name);
+      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, fd.name);
       if (!theCompiler.defDict.predefineFunOfficial(ik, fd.acc)) {
         throw new RuntimeException("Unexpected error occurred on prefining " + ik);
       }
       for (int j = 0; j < fd.aliases.length; j++) {
-        PDefDict.IdKey a = PDefDict.IdKey.create(mod.name, fd.aliases[j]);
+        PDefDict.IdKey a = PDefDict.IdKey.create(mod.actualName, fd.aliases[j]);
         if (!theCompiler.defDict.predefineFunAlias(a, fd.acc)) {
           throw new RuntimeException("Unexpected error occurred on prefining " + a);
         }
       }
       theCompiler.defDict.putFunDef(ik, fd);
 
-      // cm.funOfficialDict.put(mfd.name, fd);
-      // if (cm.eidDict.containsKey(mfd.name)) {
-        // cm.mergeFunToEidDict(mfd.name, PDefDict.EID_CAT_FUN_OFFICIAL, mfd.acc);
-      // } else {
-        // cm.eidDict.put(mfd.name, PDefDict.EidProps.create(mod.name, PDefDict.EID_CAT_FUN_OFFICIAL, mfd.acc, cm.createExprDefGetter(mfd.name)));
-      // }
-      // List<FunDef> funList;
-      // if (cm.funListDict.containsKey(mfd.name)) {
-        // funList = cm.funListDict.get(mfd.name);
-      // } else {
-        // funList = new ArrayList<FunDef>();
-        // cm.funListDict.put(mfd.name, funList);
-      // }
-      // funList.add(fd);
-      // for (int j = 0; j < mfd.aliases.length; j++) {
-        // String a = mfd.aliases[j];
-        // if (cm.eidDict.containsKey(a)) {
-          // cm.mergeFunToEidDict(a, PDefDict.EID_CAT_FUN_ALIAS, mfd.acc);
-        // } else {
-          // cm.eidDict.put(a, PDefDict.EidProps.create(mod.name, PDefDict.EID_CAT_FUN_ALIAS, mfd.acc, cm.createExprDefGetter(a)));
-        // }
-        // if (cm.funListDict.containsKey(a)) {
-          // funList = cm.funListDict.get(a);
-        // } else {
-          // funList = new ArrayList<FunDef>();
-          // cm.funListDict.put(a, funList);
-        // }
-        // funList.add(fd);
-      // }
     }
 
     return cm;
   }
 
   PModDecl getModDecl() { return this; }
-
-  // private void mergeFunToEidDict(String name, int cat, Module.Access acc) {
-    // PDefDict.EidProps p = this.eidDict.get(name);
-    // p.cat |= cat;
-    // p.acc = Module.moreOpenAcc(acc, p.acc)? acc: p.acc;
-  // }
 
   public Module.Availability getAvailability() { return this.availability; }
 
@@ -257,32 +133,10 @@ class PCompiledModule implements PModDecl {
     return this.foreignMods;
   }
 
-  // public PDefDict.EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) {
-    // PDefDict.EidProps props = this.eidDict.get(id);
-    // return (props != null && (props.cat & catOpts) > 0 && accOpts.contains(props.acc))?
-      // props: null;
-  // }
-
-  // public PDefDict.TidProps resolveTcon(String tcon, int catOpts, Option.Set<Module.Access> accOpts) {
-    // PDefDict.TidProps tp =
-      // ((tp = this.tconDict.get(tcon)) != null
-        // && (tp.cat & catOpts) > 0
-        // && accOpts.contains(tp.acc))?
-      // tp: null;
-    // return tp;
-  // }
-
-  // public PDefDict.FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) {
-    // PDefDict.FeatureProps fp =
-      // ((fp = this.fnameDict.get(fname)) != null && accOpts.contains(fp.acc))?
-      // fp: null;
-    // return fp;
-  // }
-
   DataDef convertDataDef(Module mod, MDataDef dataDef) {
     DataDef dd = new DataDef();
     dd.availability = dataDef.availability;
-    dd.modName = mod.name;
+    dd.modName = mod.actualName;
     dd.sigTcon = dataDef.tcon;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     if (dataDef.params != null) {
@@ -368,9 +222,6 @@ class PCompiledModule implements PModDecl {
           PDefDict.IdKey.create(this.modName, this.sigTcon),
           false,
           this.sigParams);
-
-        // PDefDict.TidProps tp = PCompiledModule.this.tconDict.get(this.sigTcon);
-        // this.sig = PTypeRefSkel.create(PCompiledModule.this.defDictGetter, null, tp, false, this.sigParams);
       }
       return this.sig;
     }
@@ -402,7 +253,7 @@ class PCompiledModule implements PModDecl {
 
   AliasTypeDef convertAliasTypeDef(Module mod, MAliasTypeDef aliasTypeDef) {
     AliasTypeDef ad = new AliasTypeDef();
-    PDefDict.IdKey ik = PDefDict.IdKey.create(mod.name, aliasTypeDef.tcon);
+    PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, aliasTypeDef.tcon);
     // PDefDict.DataDefGetter g = createDataDefGetter(ad);
     PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
@@ -534,7 +385,7 @@ class PCompiledModule implements PModDecl {
     FeatureDef fd = new FeatureDef();
     fd.availability = featureDef.availability;
     fd.acc = featureDef.acc;
-    fd.nameKey = PDefDict.IdKey.create(mod.name, featureDef.fname);
+    fd.nameKey = PDefDict.IdKey.create(mod.actualName, featureDef.fname);
     fd.obj = convertTypeVar(featureDef.obj, mod, varList);
     fd.params = new PTypeVarSkel[featureDef.params.length];
     fd.paramVariances = new Module.Variance[featureDef.params.length];
@@ -588,7 +439,7 @@ class PCompiledModule implements PModDecl {
     FunDef fd = new FunDef();
     fd.availability = funDef.availability;
     fd.acc = funDef.acc;
-    fd.modName = mod.name;
+    fd.modName = mod.actualName;
     fd.name = funDef.name;
     fd.aliases = funDef.aliases;
     fd.paramTypes = new PTypeSkel[funDef.paramTypes.length];
@@ -670,7 +521,7 @@ class PCompiledModule implements PModDecl {
         this.convertFeatures(tv.features, mod, varList):
         null;
     } else {
-      throw new RuntimeException("Slot number is not sequential. " + mod.name.toJavaString() + " " + tv.toString() + " " + varList.size());
+      throw new RuntimeException("Slot number is not sequential. " + mod.actualName.toJavaString() + " " + tv.toString() + " " + varList.size());
     }
     return v;
   }
