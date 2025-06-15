@@ -165,10 +165,6 @@ kbd {
   <a href="#sango.system.runtime.3">その他</a>
 <a href="#sango.tuple"><code>sango.tuple</code></a>
   <a href="#sango.tuple.1">要素取得</a>
-<a href="#sango.util.array"><code>sango.util.array</code></a> 【Alpha】
-  <a href="#sango.util.array.1">フレームワーク</a>
-  <a href="#sango.util.array.2">実装者向け情報</a>
-<a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a> 【Alpha】
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
 <a href="#sango.util.avltree.queue"><code>sango.util.avltree.queue</code></a>
@@ -2953,67 +2949,6 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_third @public -&gt; &lt;C&gt; ;;
 eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_forth @public -&gt; &lt;D&gt; ;;
 eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;</code></td></tr></table>
 <p>タプルの要素を返します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.array"><code>sango.util.array</code> 【Alpha】</h1>
-
-<p>配列は，固定個数の要素を持つコレクションです。
-  指標を使って，個々の要素の参照，更新ができます。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.array.1"><code>sango.util.array</code> - フレームワーク</h2>
-
-<p>データと機能関数群をカプセル化しています。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A array&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A array_fs&gt;
-  array$ ;;</code></td></tr></table>
-<p>カプセル化された配列オブジェクトを表します。
-<code>&lt;A&gt;</code>は要素の型です。
-配列を使用するには属性を意識する必要はありません。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>要素の個数を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array &lt;int&gt; *Index get @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
-<p>指標に対応する要素を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array &lt;int&gt; *Index &lt;A&gt; *Value set @public -&gt; &lt;A array&gt; ;;</code></td></tr></table>
-<p>指標に対応する要素を更新し，配列全体を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>指標の順に要素を供給するイテレータを返します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.array.2"><code>sango.util.array</code> - 実装者向け情報</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A array_fs&gt; @public :=
-  length_f: &lt;int fun&gt;
-  get_f: &lt;&lt;A _1+&gt; int A fun&gt;
-  set_f: &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt;
-  array_fs$ ;;</code></td></tr></table>
-<p>機能関数群を表します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code> 【Alpha】</h1>
-
-<p>AVL木による配列の実装です。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;int&gt; *Length
-  &lt;*A iter&gt; *Init
-  &lt;&lt;A &lt;A bool fun&gt; tuple&gt; maybe&gt; *Compact_ 
-  new_array @public -&gt; &lt;A &quot;sango.util.array&quot;.array&gt; ;;</code></td></tr></table>
-<p>配列を生成します。
-<code>Init</code>には，指標順に要素の初期値を返すイテレータを指定します。
-<code>Init</code>は，<code>Length</code>回，呼び出されます。</p>
-<p><code>Compact_<code>には，配列のメモリサイズを小さくする設定を指定します。
-  本機能は，タプルの第一要素（以降，C）をAVL木の内部データとして作成することを抑制します。
-  Cに配列の中に多く含まれる値を指定すると，効果が増大します。
-  タプルの第二要素は，更新しようとする値がCに等しいかどうか判定する関数を指定します。
-  例えば，<code>&lt;real&gt;</code>の配列においてCを0.0にする場合，0.0とみなす値の絶対値の範囲を1.0eｰ5以下とするといった設定ができます。
-  この場合，更新した要素を参照する場合は0.0が返されます。
-</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.bag"><code>sango.util.avltree.bag</code></h1>
