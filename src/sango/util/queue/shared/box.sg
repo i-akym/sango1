@@ -1,0 +1,113 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.queue.shared.box" ;;
+
+import "sango.actor.util" -> actu ;;
+import "sango.entity.box" -> box ;;
+import "sango.list" -> list ;;
+import "sango.util.queue" -> queue ;;
+import "sango.util.queue.shared" -> shqueue ;;
+
+eval <*T![ *A! queue.a'queue ]> *FQueue f_create_box | create_box @public -> <A shqueue.shared_queue_h> {
+  FQueue (FQueue queue._feature_a'queue) do_create_box
+} ;;
+
+eval <*D!> *Queue_d <D *A! queue.queue_fs> *Queue_fs do_create_box | create_box @public -> <A shqueue.shared_queue_h> {
+  Queue_d none$ box.create_box = *Box,
+  Box actu.create_box_monitor = *Mon,
+
+  extract_f: \\ <A iter> { Mon Queue_fs extract }
+  empty?_f: \\ <bool> { Mon Queue_fs empty? }
+  length_f: \\ <int> { Mon Queue_fs length }
+  enqueue_f: \ <A> *Elem -> <void> { Mon Queue_fs Elem enqueue }
+  head_f: \\ <A maybe> { Mon Queue_fs head }
+  dequeue_f: \\ <A maybe> { Mon Queue_fs dequeue }
+  clear_f:  \\ <void> { Mon Queue_fs clear }
+  shqueue.shared_queue_h$
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs extract -> <A iter> {
+  Mon
+    \ <D box.box_h> *Box -> <D> {
+      Box box.read
+    }
+    actu.run = *Z,
+  Z Queue_fs queue.do_iter
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs empty? -> <bool> {
+  Mon
+    \ <D box.box_h> *Box -> <D> {
+      Box box.read
+    } actu.run = *Z,
+  Z Queue_fs queue.do_empty?
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs length -> <int> {
+  Mon
+    \ <D box.box_h> *Box -> <D> {
+      Box box.read
+    } actu.run = *Z,
+  Z Queue_fs queue.do_length
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs <A> *Elem enqueue -> <void> {
+  Mon
+    \ <D box.box_h> *Box -> <void> {
+      Box box.read = *Z,
+      Z Queue_fs Elem queue.do_enqueue = *Z',
+      Box Z' box.write >> ignore
+    } actu.run
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs head -> <A maybe> {
+  Mon
+    \ <D box.box_h> *Box -> <D> {
+      Box box.read
+    } actu.run = *Z,
+  Z Queue_fs queue.do_head
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs dequeue -> <A maybe> {
+  Mon
+    \ <D box.box_h> *Box -> <A maybe> {
+      Box box.read = *Z,
+      Z Queue_fs queue.do_dequeue >> case {
+      ; (| *Dequeued, *Z' |) value$ ->
+        Box Z' box.write,
+        Dequeued value$
+      ; ** -> 
+        none$
+      }
+    } actu.run
+} ;;
+
+eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs clear -> <void> {
+  Mon
+    \ <D box.box_h> *Box -> <void> {
+      Box box.read = *Z,
+      Z Queue_fs queue.do_clear = *Z',
+      Box Z' box.write >> ignore
+    } actu.run
+} ;;
