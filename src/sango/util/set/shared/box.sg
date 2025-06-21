@@ -29,130 +29,134 @@ import "sango.list" -> list ;;
 import "sango.util.set" -> set ;;
 import "sango.util.set.shared" -> shset ;;
 
-eval <*T![ *A! set.a'set ]> *FSet create_box @public -> <A shset.shared_set_h> {
-  FSet none$ box.create_box = *Box,
+eval <*T![ *A! set.a'set ]> *FSet f_create_box | create_box @public -> <A shset.shared_set_h> {
+  FSet (FSet set._feature_a'set) do_create_box
+} ;;
+
+eval <*D!> *Set_d <D *A! set.set_fs> *Set_fs do_create_box | create_box @public -> <A shset.shared_set_h> {
+  Set_d none$ box.create_box = *Box,
   Box actu.create_box_monitor = *Mon,
 
-  extract_f: \\ <A iter> { Mon extract }
-  empty?_f: \\ <bool> { Mon empty? }
-  size_f: \\ <int> { Mon size }
-  get_f: \ <A> *Elem -> <A maybe> { Mon Elem get }
-  contain?_f_: (\ <A> *Elem -> <bool> { Mon Elem contain? } value$)
-  put_f: \ <A> *Elem -> <A maybe> { Mon Elem put }
-  put_new_f_: (\ <A> *Elem -> <bool> { Mon Elem put_new } value$)
-  add_f_: (\ <A> *Elem -> <void> { Mon Elem add } value$)
-  remove_f: \ <A> *Elem -> <A maybe> { Mon Elem remove }
-  delete_f_: (\ <A> *Elem -> <void> { Mon Elem delete } value$)
-  take_f: \\ <A maybe> { Mon take }
-  clear_f: \\ <void> { Mon clear }
+  extract_f: \\ <A iter> { Mon Set_fs extract }
+  empty?_f: \\ <bool> { Mon Set_fs empty? }
+  size_f: \\ <int> { Mon Set_fs size }
+  get_f: \ <A> *Elem -> <A maybe> { Mon Set_fs Elem get }
+  contain?_f_: (\ <A> *Elem -> <bool> { Mon Set_fs Elem contain? } value$)
+  put_f: \ <A> *Elem -> <A maybe> { Mon Set_fs Elem put }
+  put_new_f_: (\ <A> *Elem -> <bool> { Mon Set_fs Elem put_new } value$)
+  add_f_: (\ <A> *Elem -> <void> { Mon Set_fs Elem add } value$)
+  remove_f: \ <A> *Elem -> <A maybe> { Mon Set_fs Elem remove }
+  delete_f_: (\ <A> *Elem -> <void> { Mon Set_fs Elem delete } value$)
+  take_f: \\ <A maybe> { Mon Set_fs take }
+  clear_f: \\ <void> { Mon Set_fs clear }
   shset.shared_set_h$
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon extract -> <A iter> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs extract -> <A iter> {
   Mon
-    \ <T box.box_h> *Box -> <T> {
+    \ <D box.box_h> *Box -> <D> {
       Box box.read
     }
     actu.run = *Z,
-  Z set.f_iter
+  Z Set_fs set.do_iter
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon empty? -> <bool> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs empty? -> <bool> {
   Mon
-    \ <T box.box_h> *Box -> <T> {
+    \ <D box.box_h> *Box -> <D> {
       Box box.read
     } actu.run = *Z,
-  Z set.f_empty?
+  Z Set_fs set.do_empty?
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon size -> <int> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs size -> <int> {
   Mon
-    \ <T box.box_h> *Box -> <T> {
+    \ <D box.box_h> *Box -> <D> {
       Box box.read
     } actu.run = *Z,
-  Z set.f_size
+  Z Set_fs set.do_size
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem get -> <A maybe> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem get -> <A maybe> {
   Mon
-    \ <T box.box_h> *Box -> <T> {
+    \ <D box.box_h> *Box -> <D> {
       Box box.read
     } actu.run = *Z,
-  Z Elem set.f_get
+  Z Set_fs Elem set.do_get
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem contain? -> <bool> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem contain? -> <bool> {
   Mon
-    \ <T box.box_h> *Box -> <T> {
+    \ <D box.box_h> *Box -> <D> {
       Box box.read
     } actu.run = *Z,
-  Z Elem set.f_contain?
+  Z Set_fs Elem set.do_contain?
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem put -> <A maybe> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem put -> <A maybe> {
   Mon
-    \ <T box.box_h> *Box -> <A maybe> {
+    \ <D box.box_h> *Box -> <A maybe> {
       Box box.read = *Z,
-      Z Elem set.f_put = (| *Z', *Replaced_ |),
+      Z Set_fs Elem set.do_put = (| *Z', *Replaced_ |),
       Box Z' box.write,
       Replaced_
     } actu.run
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem put_new -> <bool> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem put_new -> <bool> {
   Mon
-    \ <T box.box_h> *Box -> <bool> {
+    \ <D box.box_h> *Box -> <bool> {
       Box box.read = *Z,
-      Z Elem set.f_put_new = (| *Z', *Succeeded? |),
+      Z Set_fs Elem set.do_put_new = (| *Z', *Succeeded? |),
       Box Z' box.write,
       Succeeded?
     } actu.run
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem add -> <void> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem add -> <void> {
   Mon
-    \ <T box.box_h> *Box -> <void> {
+    \ <D box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Elem set.f_add = *Z',
+      Z Set_fs Elem set.do_add = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem remove -> <A maybe> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem remove -> <A maybe> {
   Mon
-    \ <T box.box_h> *Box -> <A maybe> {
+    \ <D box.box_h> *Box -> <A maybe> {
       Box box.read = *Z,
-      Z Elem set.f_remove = (| *Z', *Removed_ |),
+      Z Set_fs Elem set.do_remove = (| *Z', *Removed_ |),
       Box Z' box.write,
       Removed_
     } actu.run
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon <A> *Elem delete -> <void> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs <A> *Elem delete -> <void> {
   Mon
-    \ <T box.box_h> *Box -> <void> {
+    \ <D box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Elem set.f_delete = *Z',
+      Z Set_fs Elem set.do_delete = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon take -> <A maybe> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs take -> <A maybe> {
   Mon
-    \ <T box.box_h> *Box -> <A maybe> {
+    \ <D box.box_h> *Box -> <A maybe> {
       Box box.read = *Z,
-      Z set.f_take >> case {
+      Z Set_fs set.do_take >> case {
       ; (| *Elem, *Z' |) value$ -> Box Z' box.write, Elem value$
       ; ** -> none$
       }
     } actu.run
 } ;;
 
-eval <*T![ *A! set.a'set ] actu.box_monitor_h> *Mon clear -> <void> {
+eval <*D! actu.box_monitor_h> *Mon <D *A! set.set_fs> *Set_fs clear -> <void> {
   Mon
-    \ <T box.box_h> *Box -> <void> {
+    \ <D box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z set.f_clear = *Z',
+      Z Set_fs set.do_clear = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
