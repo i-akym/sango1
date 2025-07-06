@@ -32,7 +32,8 @@ class PCasePtnMatch extends PDefaultExprObj {
   PPtnDetail[] details;
 
   private PCasePtnMatch(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope);
+    super(srcInfo, outerScope.startPossiblyParallelSubScope());
+    // super(srcInfo, outerScope);
   }
 
   public String toString() {

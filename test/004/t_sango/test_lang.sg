@@ -26,7 +26,7 @@ feature <*T> [ *A *B a'f000 ] -> <T <T A B tuple> fun> ;;
 data <*P *Q f000_impl> := <P> <Q> f000_impl$
 ++ a'f000_impl -> [ P Q a'f000 ] ;;
 eval a'f000_impl -> <<*P *Q f000_impl> <<P Q f000_impl> P Q tuple> fun> {
-  \ <P Q f000_impl> *X -> <<P Q f000_impl> P Q tuple> {
+  \ <*PP *QQ f000_impl> *X -> <<PP QQ f000_impl> PP QQ tuple> {
     X = *Y *Z f000_impl$,
     (| X, Y, Z |)
   }

@@ -125,6 +125,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   }
 
   public PTypeVarDef resolve() throws CompileException {
+// /* DEBUG */ System.out.print("VARDEF "); System.out.print(this); System.out.println(this.scope);
     StringBuffer emsg;
     if (this._resolved_varSlot != null) { return this; }
     if (!this.scope.canDefineTVar(this)) {

@@ -43,8 +43,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   PDefDict.IdKey baseTconKey;
 
   PExtendStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
-    this.scope.startDef();
+    super(srcInfo, outerScope.startData());
     this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.acc = Module.ACC_PRIVATE;  // default
   }

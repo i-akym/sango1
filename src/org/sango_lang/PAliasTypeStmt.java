@@ -39,8 +39,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   PTypeRefSkel bodySkel;
 
   PAliasTypeStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
-    this.scope.startDef();
+    super(srcInfo, outerScope.startAliasType());
     this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.acc = Module.ACC_PRIVATE;  // default
   }
@@ -69,7 +68,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.alias = new PAliasTypeStmt(srcInfo, outerScope);
-      this.bodyScope = this.alias.scope.enterInner();
+      this.bodyScope = this.alias.scope.startAliasTypeBody();
     }
 
     PScope getDefScope() { return this.alias.scope; }

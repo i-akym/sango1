@@ -33,7 +33,7 @@ extend <*A _1> -> simple_queue_d :=
   simple_queue_d$ ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  [] [] simple_queue_d$ = <A queue.d> *D,
+  [] [] simple_queue_d$ = <*AA queue.d> *D,
   d: D fs: queue_fs
   queue.gqueue$
 } ;;

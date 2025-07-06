@@ -31,10 +31,11 @@ class PCaseClause extends PDefaultExprObj {
   PCasePtnMatch[] ptnMatches;
   PExprList.Seq guard;  // maybe null
   PExprList.Seq action;  // void$ included if no expressions
-  PScope outerScope;
+  // PScope outerScope;
 
   private PCaseClause(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
+    super(srcInfo, outerScope.startInnerScope());
+    this.scope.enableToStartParallelSubScopes();
   }
 
   public String toString() {

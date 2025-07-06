@@ -42,8 +42,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   PTypeRefSkel _normalized_implSkel;
 
   PFeatureStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
-    this.scope.startDef();
+    super(srcInfo, outerScope.startFeature());
     this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.acc = Module.ACC_PRIVATE;  // default
   }
@@ -227,7 +226,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       throw new CompileException(emsg.toString());
     }
 
-    PScope implScope = defScope.enterInner();
+    PScope implScope = defScope.startFeatureImpl();
     PType implType;
     if ((implType = PType.accept(reader, implScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();

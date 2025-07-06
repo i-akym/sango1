@@ -34,7 +34,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   PDefDict.EidProps _resolved_providerProps;
 
   PFeatureImplDef(Parser.SrcInfo srcInfo, PScope defScope) {
-    super(srcInfo, defScope.enterInner());
+    super(srcInfo, defScope.startDataFeatureImpl());
   }
 
   public String toString() {

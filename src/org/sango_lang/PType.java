@@ -509,6 +509,7 @@ interface PType extends PProgObj {
     }
 
     public PType resolve() throws CompileException {
+// /* DEBUG */ System.out.print("UNDET "); System.out.print(this); System.out.println(this.scope);
       StringBuffer emsg;
       /* DEBUG */ if (this.scope == null || this.scope.pos == 0) { System.out.print("Scope is null or inactive. "); System.out.println(this); }
       PType t;
