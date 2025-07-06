@@ -32,7 +32,7 @@ class PIfClause extends PDefaultExprObj {
   PExprList.Seq action;
 
   private PIfClause(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
+    super(srcInfo, outerScope.startInnerScope());
   }
 
   public String toString() {

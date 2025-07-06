@@ -31,10 +31,9 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
   PDataDef dataDef;
-  // PType dataType;
 
   PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
-    super(srcInfo, defScope.enterInner());
+    super(srcInfo, defScope.startDataConstr());
   }
 
   public String toString() {

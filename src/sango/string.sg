@@ -243,7 +243,7 @@ data @alpha <*A ord_string> @public :=
 
 eval ord_string_as_a'ord -> <<*A ord_string> ord_fs> {
   compare_f:
-    \ <A ord_string> *S0 <A ord_string> *S1 -> <ordering> {
+    \ <*AA ord_string> *S0 <AA ord_string> *S1 -> <ordering> {
       S0 = *X0 *Fs ord_string$,
       S1 = *X1 ** ord_string$,
       Fs compare_f = *Compare_f,
@@ -268,7 +268,7 @@ eval ord_string_as_a'ord -> <<*A ord_string> ord_fs> {
   gt?_f_: none$
   ge?_f_: none$
   hash_f:
-    \ <A ord_string> *S0 -> <int> {
+    \ <*AA ord_string> *S0 -> <int> {
       S0 = *X0 *Fs ord_string$,
       Fs hash_f = *Hash_f,
       X0 length = *L,

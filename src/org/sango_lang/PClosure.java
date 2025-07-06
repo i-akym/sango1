@@ -35,7 +35,7 @@ class PClosure extends PDefaultExprObj {
   PScope bodyScope;
 
   private PClosure(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
+    super(srcInfo, outerScope.prepareClosure());
     this.scope.defineClosure(this);
   }
 
@@ -68,7 +68,7 @@ class PClosure extends PDefaultExprObj {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.closure = new PClosure(srcInfo, outerScope);
-      this.bodyScope = this.closure.scope.enterInner();
+      this.bodyScope = this.closure.scope.startInnerScope();
       this.paramList = new ArrayList<PExprVarDef>();
       this.implExprList = new ArrayList<PExpr>();
     }
