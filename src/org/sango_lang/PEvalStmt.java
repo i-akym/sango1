@@ -409,6 +409,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     if (this.implExprs != null) {
       this.implExprs = this.implExprs.resolve();
     }
+    this.retDef.scope.doCopy();
     this.retDef = this.retDef.resolve();
     return this;
   }

@@ -433,6 +433,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
     }
     if (this.featureImpls != null) {
       for (int i = 0; i < this.featureImpls.length; i++) {
+        this.featureImpls[i].scope.doCopy();
         this.featureImpls[i] = this.featureImpls[i].resolve();
         for (int j = 0; j < i; j++) {
           if (this.featureImpls[i].feature.fname.equals(
