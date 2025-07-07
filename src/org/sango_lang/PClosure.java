@@ -279,8 +279,9 @@ class PClosure extends PDefaultExprObj {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
-    this.retDef = this.retDef.resolve();
     this.implExprs = this.implExprs.resolve();
+    this.retDef.scope.doCopy();
+    this.retDef = this.retDef.resolve();
     return this;
   }
 

@@ -71,7 +71,7 @@ class PScope {
     return new PScope(theMod);
   }
 
-  private PScope copy() {
+  private PScope createForDelayedCopy() { 
     PScope s = new PScope(this.theMod);
     s.parent = this.parent;
     s.pos = this.pos;
@@ -84,23 +84,24 @@ class PScope {
     return s;
   }
 
-  private void doCopyIfNecessary() {
-    if (this.copyFrom != null) {
-      this.tvarDict.putAll(this.copyFrom.tvarDict);
-      this.evarDict.putAll(this.copyFrom.evarDict);
-      this.outerTVarDict.putAll(this.copyFrom.outerTVarDict);
-      this.outerEVarDict.putAll(this.copyFrom.outerEVarDict);
-      if (this.copyFrom.envTVarList != null) {
-        this.envTVarList = new ArrayList<PTypeVarSlot>(this.copyFrom.envTVarList);
-      }
-      if (this.copyFrom.envEVarList != null) {
-        this.envEVarList = new ArrayList<PExprVarSlot>(this.copyFrom.envEVarList);
-      }
-      if (this.copyFrom.givenTVarList != null) {
-        this.givenTVarList = new ArrayList<PTypeVarSlot>(this.copyFrom.givenTVarList);
-      }
-      this.copyFrom = null;
+  void doCopy() {
+    if (this.copyFrom == null) {
+      throw new IllegalStateException("Cannot copy scope data.");
     }
+    this.tvarDict.putAll(this.copyFrom.tvarDict);
+    this.evarDict.putAll(this.copyFrom.evarDict);
+    this.outerTVarDict.putAll(this.copyFrom.outerTVarDict);
+    this.outerEVarDict.putAll(this.copyFrom.outerEVarDict);
+    if (this.copyFrom.envTVarList != null) {
+      this.envTVarList = new ArrayList<PTypeVarSlot>(this.copyFrom.envTVarList);
+    }
+    if (this.copyFrom.envEVarList != null) {
+      this.envEVarList = new ArrayList<PExprVarSlot>(this.copyFrom.envEVarList);
+    }
+    if (this.copyFrom.givenTVarList != null) {
+      this.givenTVarList = new ArrayList<PTypeVarSlot>(this.copyFrom.givenTVarList);
+    }
+    this.copyFrom = null;
   }
 
   private PScope createInnerScope() {
@@ -141,11 +142,11 @@ class PScope {
     return s;
   }
 
-  PScope startDataFeatureImpl() {
+  PScope startDataFeatureImpl() {  // delayed copy
     if (this.pos != POS_DATA_HEAD) {
       throw new IllegalStateException("Cannot start definition.");
     }
-    PScope s = this.copy();
+    PScope s = this.createForDelayedCopy();
     s.pos = POS_DATA_FEATURE_IMPL;
     s.canDefineTVar = true;
     s.canDefineEVar = false;
@@ -232,14 +233,14 @@ class PScope {
     this.closure = closure;
   }
 
-  PScope startRetType() {
+  PScope startRetType() {  // delayed copy
     if (this.pos < POS_FUN_BASE) {
       throw new IllegalStateException("Cannot start ret type.");
     }
     if (this.pos == this.parent.pos) {
       throw new IllegalStateException("Cannot start ret type.");
     }
-    PScope s = this.copy();
+    PScope s = this.createForDelayedCopy();
     s.canDefineTVar = true;
     s.canDefineEVar = false;
     return s;
@@ -275,7 +276,9 @@ class PScope {
   }
 
   private boolean canDefineTVarHere() {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     boolean b;
     if (this.inParallel) {
       b = this.canDefineTVar & (this.parent.parallelScopes.size() <= 1);
@@ -286,7 +289,9 @@ class PScope {
   }
 
   private boolean canDefineEVarHere() {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     boolean b;
     if (this.inParallel) {
       b = this.canDefineEVar & (this.parent.parallelScopes.size() <= 1);
@@ -310,10 +315,12 @@ class PScope {
   // }
 
   PTypeVarDef lookupTVar(String var) {
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     if (this.pos == 0) {
       return null;
     }
-    this.doCopyIfNecessary();
     PTypeVarDef v = this.tvarDict.get(var);
     if (v == null) {
       v = this.outerTVarDict.get(var);
@@ -322,11 +329,12 @@ class PScope {
   }
 
   PExprVarDef lookupEVar(String var) {
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     if (this.pos < 1) {
       return null;
-      // throw new IllegalStateException("Not active. " + this.pos);
     }
-    this.doCopyIfNecessary();
     PExprVarDef v = this.evarDict.get(var);
     if (v == null) {
       v = this.outerEVarDict.get(var);
@@ -335,17 +343,20 @@ class PScope {
   }
 
   boolean canDefineTVar(PTypeVarDef varDef) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     return this.canDefineTVarHere()
       && !this.tvarDict.containsKey(varDef.name)
       && !this.evarDict.containsKey(varDef.name)
       && !this.outerTVarDict.containsKey(varDef.name)
       && !this.outerEVarDict.containsKey(varDef.name);
-      // && !(this.parent != null && this.parent.pos < 0);  // prohibit in subscope of data/extend/alias-type def
   }
 
   boolean canDefineEVar(PExprVarDef varDef) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     return this.canDefineEVarHere()
       && !this.tvarDict.containsKey(varDef.name)
       && !this.evarDict.containsKey(varDef.name)
@@ -354,7 +365,9 @@ class PScope {
   }
 
   PTypeVarSlot defineTVar(PTypeVarDef varDef) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     // check if defining var is available
     PTypeVarSlot slot;
     if (this.inParallel) {
@@ -368,7 +381,9 @@ class PScope {
   }
 
   PExprVarSlot defineEVar(PExprVarDef varDef) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     // check if defining var is available
     PExprVarSlot slot;
     if (this.inParallel) {
@@ -382,11 +397,13 @@ class PScope {
   }
 
   PTypeVarDef referSimpleTid(String id) {
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     if (this.pos == 0) {
       return null;
       // throw new IllegalStateException("Not active.");
     }
-    this.doCopyIfNecessary();
     PTypeVarDef v;
     if (this.inParallel) {
       v = this.parent.referSimpleTid(id);  // temporal impl - forward simply
@@ -409,11 +426,13 @@ class PScope {
   }
 
   PExprVarDef referSimpleEid(String id) {
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     if (this.pos < 1) {
       return null;
       // throw new IllegalStateException("Not active.");
     }
-    this.doCopyIfNecessary();
     PExprVarDef v;
     if (this.inParallel) {
       v = this.parent.referSimpleEid(id);  // temporal impl - forward simply
@@ -436,14 +455,18 @@ class PScope {
   }
 
   List<PTypeVarSlot> getEnvTVarList() {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     return this.inParallel?
       this.parent.getEnvTVarList():  // temporal impl - forward simply
       this.envTVarList;
   }
 
   List<PExprVarSlot> getEnvEVarList() {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     return this.inParallel?
       this.parent.getEnvEVarList():  // temporal impl - forward simply
       this.envEVarList;
@@ -456,7 +479,6 @@ class PScope {
   }
 
   void referredModId(Parser.SrcInfo si, String id) throws CompileException {
-    // do not call doCopyIfNecessary here
     if (id != null) {
       if (this.theMod.resolveModId(id) == null) {
         StringBuffer emsg = new StringBuffer();
@@ -484,12 +506,13 @@ class PScope {
   }
 
   PDefDict.TidProps resolveTcon(PTid tcon) throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     PDefDict.TidProps tp;
     if (tcon.maybeVar() && this.lookupTVar(tcon.name) != null) {
       tp = PDefDict.TidProps.create(
         PDefDict.IdKey.create(new Cstr(""), tcon.name),
-        // PDefDict.IdKey.create(this.theMod.resolveModId(tcon.modId), tcon.name),
         PDefDict.TID_CAT_VAR, Module.ACC_PRIVATE);
     } else {
       tcon.cutOffVar();
@@ -499,12 +522,16 @@ class PScope {
   }
 
   PDefDict.TidProps resolveFeature(PTid fname) throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     return this.theMod.resolveFeature(fname);
   }
 
   PDefDict.EidProps resolveEid(PEid id) throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     PDefDict.EidProps ep;
     if (id.maybeVar() && this.lookupEVar(id.name) != null) {
       ep = PDefDict.EidProps.create(
@@ -529,7 +556,6 @@ class PScope {
   // }
 
   PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, String tcon, PType[] paramTypeDescs) {
-    this.doCopyIfNecessary();
     PTypeRef t = null;
     try {
       t = PTypeRef.getLangDefinedType(srcInfo, this, tcon, paramTypeDescs);
@@ -542,30 +568,34 @@ class PScope {
   }
 
   PTypeRef getLangPrimitiveType(Parser.SrcInfo srcInfo, String tcon) {
-    this.doCopyIfNecessary();
     return this.getLangDefinedType(srcInfo, tcon, new PType[0]);
   }
 
   PTypeVarDef getNewTVar(Parser.SrcInfo srcInfo) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     PTypeVarDef v = PTypeVarDef.create(srcInfo, this, this.generateId(), false, /* null, */ null);
     return v;
   }
 
   PTypeSkel getEmptyListType(Parser.SrcInfo srcInfo) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     PTypeVarDef nv = this.getNewTVar(srcInfo);
     return this.getLangDefinedType(srcInfo, "list", new PType[] { nv }).toSkel();
   }
 
   PTypeSkel getEmptyStringType(Parser.SrcInfo srcInfo) {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     PTypeVarDef nv = this.getNewTVar(srcInfo);
     return this.getLangDefinedType(srcInfo, "string", new PType[] { nv }).toSkel();
   }
 
   PTypeRef getCharStringType(Parser.SrcInfo srcInfo) {
-    this.doCopyIfNecessary();
     PType.Builder b = PType.Builder.newInstance(srcInfo, this);
     PType ct;
     try {
@@ -579,7 +609,9 @@ class PScope {
   }
 
   PTypeRefSkel getLangDefinedTypeSkel(Parser.SrcInfo srcInfo, String tcon, PTypeSkel[] paramTypeSkels) throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     PDefDict.IdKey k = PDefDict.IdKey.create(Module.MOD_LANG, tcon);
     PDefDict.TidProps tp = this.theMod.theCompiler.defDict.resolveTcon(this.theMod.getName(), k);
     if (tp == null) {
@@ -589,7 +621,9 @@ class PScope {
   }
 
   List<PTypeVarSlot> getGivenTVarList() throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     if (this.givenTVarList == null) {
       if (this.parent == null || this.parent.pos < 1) {  // function top pos
         this.setupGivenTVarListForFun();
@@ -603,7 +637,9 @@ class PScope {
   }
 
   private void setupGivenTVarListForFun() throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.evalStmt.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
@@ -612,7 +648,9 @@ class PScope {
   }
 
   private void setupGivenTVarListForClosure() throws CompileException {
-    this.doCopyIfNecessary();
+    if (this.copyFrom != null) {
+      throw new IllegalStateException("Not copied yet.");
+    }
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
     this.givenTVarList.addAll(this.parent.getGivenTVarList());
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
@@ -625,7 +663,6 @@ class PScope {
     if (this.pos < 1) {
       throw new IllegalStateException("Out of function.");
     }
-    this.doCopyIfNecessary();
     return (this.pos == 1)? this.evalStmt.official: this.parent.getFunOfficial();
   }
 
