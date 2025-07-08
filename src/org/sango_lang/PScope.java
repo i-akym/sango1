@@ -192,7 +192,7 @@ class PScope {
     }
     PScope s = this.createInnerScope();
     s.pos = POS_FEATURE_IMPL;
-    s.canDefineTVar = false;
+    s.canDefineTVar = true;
     s.canDefineEVar = false;
     return s;
   }
