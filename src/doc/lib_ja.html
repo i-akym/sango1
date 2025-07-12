@@ -189,7 +189,8 @@ kbd {
   <a href="#sango.util.iter.1">定数の供給</a>
   <a href="#sango.util.iter.2">連結</a>
   <a href="#sango.util.iter.3">変形</a>
-  <a href="#sango.util.iter.4">化身</a> 【Beta】
+  <a href="#sango.util.iter.4">要素処理</a>
+  <a href="#sango.util.iter.5">化身</a> 【Beta】
 <a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
@@ -3347,7 +3348,14 @@ eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code><
 <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 化身 【Beta】</h2>
+<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 要素処理</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;*B iter&gt; *I &lt;A B A fun&gt; *F fold @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p><code>I</code>から供給される値を<code><var>Y<sub>0</sub></var></code>，<code><var>Y<sub>1</sub></var></code>，<code><var>Y<sub>2</sub></var></code>，...とするとき，<code>(((X <var>Y<sub>0</sub></var> &amp;F) <var>Y<sub>1</sub></var> &amp;F) <var>Y<sub>2</sub></var> &amp;F)...</code>の結果を返します。
+この関数名は，<code>&quot;sango.list&quot;.fold</code>に由来します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.iter.5"><code>sango.util.iter</code> - 化身 【Beta】</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
   org: &lt;T&gt;

@@ -129,3 +129,10 @@ eval <*A iter> *I <A *B fun> *M modify_next -> <B iter_res> {
   ; ** -> none$
   }
 } ;;
+
+eval <*A> *X <*B iter> *I <A B A fun> *F fold @public -> <A> {
+  I next >> case {
+  ; (| *Y, *I' |) value$ -> (X Y &F) I' F &&
+  ; ** -> X
+  }
+} ;;
