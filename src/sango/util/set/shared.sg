@@ -24,6 +24,7 @@
 module @beta "sango.util.set.shared" ;;
 
 import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
 
 data <*A! shared_set_h> @public :=
   extract_f: <<A iter> fun>
@@ -109,10 +110,10 @@ eval <*A! shared_set_h> *Set_h <A list> *Elems add_list @public -> <void> {
 } ;;
 
 eval <*A! shared_set_h> *Set_h <A iter> *Iter add_iter @public -> <void> {
-  Iter next >> case {
-  ; (| *E, *Iter' |) value$ -> Set_h E add, Set_h Iter' &&
-  ; ** ->
-  }
+  void$
+  Iter
+  \ <void> *Z <A> *E -> <void> { Set_h E add }
+  iter.fold
 } ;;
 
 eval <*A! shared_set_h> *Set_h <A list> *Elems delete_list @public -> <void> {
@@ -120,8 +121,8 @@ eval <*A! shared_set_h> *Set_h <A list> *Elems delete_list @public -> <void> {
 } ;;
 
 eval <*A! shared_set_h> *Set_h <A iter> *Iter delete_iter @public -> <void> {
-  Iter next >> case {
-  ; (| *E, *Iter' |) value$ -> Set_h E delete, Set_h Iter' &&
-  ; ** ->
-  }
+  void$
+  Iter
+  \ <void> *Z <A> *E -> <void> { Set_h E delete }
+  iter.fold
 } ;;

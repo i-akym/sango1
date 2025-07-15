@@ -399,12 +399,10 @@ eval <*D> *Z <D *A *B map_fs> *Fs <<A B tuple> list> *KVs do_add_list | add_list
 } ;;
 
 eval <*D> *Z <D *A *B map_fs> *Fs <<A B tuple> iter> *Iter do_add_iter | add_iter @public -> <D> {
-  Z Iter &\ <D> *Y <<A B tuple> iter> *I -> <D> {
-    I next >> case {
-    ; (| (| *K, *V |), *I' |) value$ -> (Y Fs K V do_add) I' &&
-    ; ** -> Y
-    }
-  }
+  Z
+  Iter
+  \ <D> *Y <A B tuple> *KV -> <D> { KV = (| *K, *V |), Y Fs K V do_add }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A *B map_fs> *Fs <A list> *Ks do_delete_list | delete_list @public -> <D> {
@@ -412,12 +410,10 @@ eval <*D> *Z <D *A *B map_fs> *Fs <A list> *Ks do_delete_list | delete_list @pub
 } ;;
 
 eval <*D> *Z <D *A *B map_fs> *Fs <A iter> *Iter do_delete_iter | delete_iter @public -> <D> {
-  Z Iter &\ <D> *Y <A iter> *I -> <D> {
-    I next >> case {
-    ; (| *K, *I' |) value$ -> (Y Fs K do_delete) I' &&
-    ; ** -> Y
-    }
-  }
+  Z
+  Iter
+  \ <D> *Y <A> *K -> <D> { Y Fs K do_delete }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A *B map_fs> *Fs do_iter | iter @public -> <<A B tuple> iter> {

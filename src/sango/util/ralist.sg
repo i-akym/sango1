@@ -507,10 +507,10 @@ eval <*D> *Z <D *A ralist_fs> *Fs <A list> *Elems do_append_list | append_list @
 } ;;
 
 eval <*D> *Z <D *A ralist_fs> *Fs <A iter> *Iter do_append_iter | append_iter @public -> <D> {
-  Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Z Fs Elem do_append) Fs Iter' &&
-  ; ** -> Z
-  }
+  Z
+  Iter
+  \ <D> *Y <A> *E -> <D> { Y Fs E do_append }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A ralist_fs> *Fs do_iter | iter @public -> <A iter> {
