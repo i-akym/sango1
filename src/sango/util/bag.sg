@@ -376,10 +376,10 @@ eval <*D> *Z <D *A bag_fs> *Fs <A list> *Elems do_add_list | add_list @public ->
 } ;;
 
 eval <*D> *Z <D *A bag_fs> *Fs <A iter> *Iter do_add_iter | add_iter @public -> <D> {
-  Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Z Fs Elem do_add) Fs Iter' &&
-  ; ** -> Z
-  }
+  Z
+  Iter
+  \ <D> *Y <A> *E -> <D> { Y Fs E do_add }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A bag_fs> *Fs <A list> *Elems do_delete_list | delete_list @public -> <D> {
@@ -387,10 +387,10 @@ eval <*D> *Z <D *A bag_fs> *Fs <A list> *Elems do_delete_list | delete_list @pub
 } ;;
 
 eval <*D> *Z <D *A bag_fs> *Fs <A iter> *Iter do_delete_iter | delete_iter @public -> <D> {
-  Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Z Fs Elem do_delete) Fs Iter' &&
-  ; ** -> Z
-  }
+  Z
+  Iter
+  \ <D> *Y <A> *E -> <D> { Y Fs E do_delete }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A bag_fs> *Fs <A list> *Elems do_delete_all_list | delete_all_list @public -> <D> {
@@ -398,10 +398,10 @@ eval <*D> *Z <D *A bag_fs> *Fs <A list> *Elems do_delete_all_list | delete_all_l
 } ;;
 
 eval <*D> *Z <D *A bag_fs> *Fs <A iter> *Iter do_delete_all_iter | delete_all_iter @public -> <D> {
-  Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Z Fs Elem do_delete_all) Fs Iter' &&
-  ; ** -> Z
-  }
+  Z
+  Iter
+  \ <D> *Y <A> *E -> <D> { Y Fs E do_delete_all }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A bag_fs> *Fs do_iter | iter @public -> <A iter> {

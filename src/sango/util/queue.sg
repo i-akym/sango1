@@ -201,10 +201,10 @@ eval <*D> *Z <D *A queue_fs> *Fs <A list> *Elems do_enqueue_list | enqueue_list 
 } ;;
 
 eval <*D> *Z <D *A queue_fs> *Fs <A iter> *Iter do_enqueue_iter | enqueue_iter @public -> <D> {
-  Iter next >> case {
-  ; (| *Elem, *Iter' |) value$ -> (Z Fs Elem do_enqueue) Fs Iter' &&
-  ; ** -> Z
-  }
+  Z
+  Iter
+  \ <D> *Y <A> *E -> <D> { Y Fs E do_enqueue }
+  iter.fold
 } ;;
 
 eval <*D> *Z <D *A queue_fs> *Fs do_iter | iter @public -> <A iter> {

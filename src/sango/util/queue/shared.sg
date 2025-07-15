@@ -24,6 +24,7 @@
 module @alpha "sango.util.queue.shared" ;;
 
 import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
 
 data <*A! shared_queue_h> @public :=
   extract_f: <<A iter> fun>
@@ -68,8 +69,8 @@ eval <*A! shared_queue_h> *Queue_h <A list> *Elems enqueue_list @public -> <void
 } ;;
 
 eval <*A! shared_queue_h> *Queue_h <A iter> *Iter enqueue_iter @public -> <void> {
-  Iter next >> case {
-  ; (| *E, *Iter' |) value$ -> Queue_h E enqueue, Queue_h Iter' &&
-  ; ** ->
-  }
+  void$
+  Iter
+  \ <void> *Z <A> *E -> <void> { Queue_h E enqueue }
+  iter.fold
 } ;;
