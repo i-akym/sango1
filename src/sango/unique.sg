@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2024 AKIYAMA Isao                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,13 +21,28 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.util.unique" ;;
+module @beta "sango.unique" ;;
 
-import "sango.entity.existence" -> ex ;;
+data <u> @opaque := @native ;;
 
-data <u> @opaque := <ex.existence> u$ ;;
+eval new_unique @public -> <u> @native ;;
 
-eval new_unique @public -> <u> {
-  none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
-  Ex u$
+
+### feature
+
+feature <*T> [ a'unique ] @public -> <T u fun> ;;
+
+
+### incarnation
+
+data @beta <*T unique_inc> @protected :=
+  org: <T>
+  fo: <T u fun>
+  unique_inc$ ;;
+
+eval @beta <*T[ a'unique ]> *FUnique incarnate @public -> <T unique_inc> {
+  org: FUnique
+  fo: (FUnique _feature_a'unique)
+  unique_inc$
 } ;;
+

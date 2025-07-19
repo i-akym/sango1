@@ -1,6 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
-import "sango.util.unique" -> uniq ;;
+import "sango.unique" -> uniq ;;
 
 eval _main_ -> <void> {
   test

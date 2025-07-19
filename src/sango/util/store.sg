@@ -26,9 +26,9 @@ module @alpha "sango.util.store" ;;
 import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
+import "sango.unique" -> uniq ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hmap ;;
-import "sango.util.unique" -> uniq ;;
 
 alias type <*A tab> := <uniq.u A map.map> ;;
 
