@@ -228,6 +228,10 @@ public class RMemMgr {
     return r;
   }
 
+  UniqueItem createUnique() {
+    return new UniqueItem(this.theEngine);
+  }
+
   RObjItem[] createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
     ExistenceItem e = new ExistenceItem(this.theEngine);
     SlotItem s = (assoc != null)? new SlotItem(this.theEngine, e, false, assoc): null;
@@ -379,12 +383,35 @@ public class RMemMgr {
     }
   }
 
+  public class UniqueItem extends RObjItem {
+
+    UniqueItem(RuntimeEngine e) {
+      super(e);
+    }
+
+    public boolean objEquals(RFrame frame, RObjItem item) {
+      return item == this;
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.unique"), "u", 0);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
+    public Cstr dumpInside() {
+      return new Cstr(this.toString());
+    }
+  }
+
   public class ExistenceItem extends RObjItem {
-    Object key;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
+    UniqueItem key;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
 
     ExistenceItem(RuntimeEngine e) {
       super(e);
-      this.key = new Object();
+      this.key = RMemMgr.this.createUnique();
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {

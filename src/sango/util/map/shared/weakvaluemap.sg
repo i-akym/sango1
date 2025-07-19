@@ -28,10 +28,10 @@ import "sango.entity" -> ent ;;
 import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
+import "sango.unique" -> uniq ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hmap ;;
 import "sango.util.map.shared" -> shared ;;
-import "sango.util.unique" -> uniq ;;
 
 data <*A! *B! v> :=
   key: <A>
