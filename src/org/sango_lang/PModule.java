@@ -1234,15 +1234,6 @@ class PModule implements PModDecl {
     }
   }
 
-  // void checkConcreteness() throws CompileException {
-    // for (int i = 0; i < this.dataStmtList.size(); i++) {
-      // this.dataStmtList.get(i).checkConcreteness();
-    // }
-    // for (int i = 0; i < this.extendStmtList.size(); i++) {
-      // this.extendStmtList.get(i).checkConcreteness();
-    // }
-  // }
-
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.get(i).normalizeTypes();

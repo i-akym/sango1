@@ -181,10 +181,6 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     this.feature.excludePrivateAcc();
   }
 
-  // public void checkConcreteness() throws CompileException {
-    // // HERE
-  // }
-
   public Cstr getProviderModName() throws CompileException {
     PDefDict.EidProps ep = this.scope.theMod.resolveFunOfficial(this.provider);
     if (ep == null) { throw new RuntimeException("Unknown provider. " + this.provider.repr()); }

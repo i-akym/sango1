@@ -502,12 +502,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
   }
 
-  // public void checkConcreteness() throws CompileException {
-    // for (int i = 0; i < this.constrs.length; i++) {
-      // this.constrs[i].checkConcreteness();
-    // }
-  // }
-
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.constrs.length; i++) {
       this.constrs[i].normalizeTypes();

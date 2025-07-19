@@ -53,7 +53,6 @@ abstract class Parser {
     this.mod.normalizeTypes();
     this.mod.checkExtension();
     this.mod.checkVariance();
-    // this.mod.checkConcreteness();
   }
 
   void parse5() throws CompileException {

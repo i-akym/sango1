@@ -391,28 +391,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-
-    // Module.Variance v = null;
-    // for (int i = 0; i < vs.size(); i++) {
-      // Module.Variance vv = vs.get(i);
-      // if (v == null) {
-        // v = vv;  // replace
-      // } else if (v == Module.INVARIANT) {
-        // // keep
-      // } else if (vv == null) {
-        // // skip
-      // } else if (vv == Module.INVARIANT) {
-        // v = Module.INVARIANT;
-      // } else if (v == vv) {
-        // // keep
-      // } else {
-        // v = Module.INVARIANT;
-      // }
-    // }
-    // p.variance = v;
   }
-
-  public void checkConcreteness() throws CompileException {}
 
   void normalizeTypes() throws CompileException {
     this._normalized_implSkel = (PTypeRefSkel)this.impl.toSkel().normalize();
