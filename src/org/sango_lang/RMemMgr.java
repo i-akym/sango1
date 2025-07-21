@@ -407,11 +407,11 @@ public class RMemMgr {
   }
 
   public class ExistenceItem extends RObjItem {
-    UniqueItem key;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
+    public UniqueItem uniqueness;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
 
     ExistenceItem(RuntimeEngine e) {
       super(e);
-      this.key = RMemMgr.this.createUnique();
+      this.uniqueness = RMemMgr.this.createUnique();
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
@@ -432,13 +432,13 @@ public class RMemMgr {
   }
 
   public class SlotItem extends RObjItem {
-    Object key;
+    Object uniqueness;
     boolean updatable;
     RObjItem assoc;
 
     SlotItem(RuntimeEngine e, ExistenceItem ex, boolean updatable, RObjItem assoc) {
       super(e);
-      this.key = ex.key;
+      this.uniqueness = ex.uniqueness;
       this.updatable = updatable;
       this.assoc = assoc;
     }
@@ -460,7 +460,7 @@ public class RMemMgr {
     }
 
     public RObjItem peekAssoc(ExistenceItem ex) {
-      if (ex.key != this.key) {
+      if (ex.uniqueness != this.uniqueness) {
         throw new IllegalArgumentException("Invalid slot.");
       }
       synchronized (this) {
@@ -469,7 +469,7 @@ public class RMemMgr {
     }
 
     public RObjItem replaceAssoc(ExistenceItem ex, RObjItem item) {
-      if (ex.key != this.key) {
+      if (ex.uniqueness != this.uniqueness) {
         throw new IllegalArgumentException("Invalid slot.");
       }
       synchronized (this) {
