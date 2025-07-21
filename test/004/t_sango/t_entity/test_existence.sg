@@ -10,6 +10,7 @@ eval _main_ -> <void> {
 
 eval test -> <void> {
   test000,
+  test100,
   void$
 } ;;
 
@@ -18,4 +19,8 @@ eval test000 -> <void> {
   E ent.undress = (| E, *RF |),
   E &RF = E,
   void$
+} ;;
+eval test100 -> <void> {
+  none$ none$ ex.create_immutable_existence = (| *E, ** |),
+  E ex.uniqueness >> debug.repr >> stdio.print_and_newline
 } ;;
