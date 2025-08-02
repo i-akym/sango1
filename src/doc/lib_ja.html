@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.8.0　ライブラリ解説</title>
+<title>Sango 1.8.1　ライブラリ解説</title>
 </head>
 
 <body>
@@ -165,10 +165,7 @@ kbd {
   <a href="#sango.system.runtime.3">その他</a>
 <a href="#sango.tuple"><code>sango.tuple</code></a>
   <a href="#sango.tuple.1">要素取得</a>
-<a href="#sango.util.array"><code>sango.util.array</code></a> 【Alpha】
-  <a href="#sango.util.array.1">フレームワーク</a>
-  <a href="#sango.util.array.2">実装者向け情報</a>
-<a href="#sango.util.avltree.array"><code>sango.util.avltree.array</code></a> 【Alpha】
+<a href="#sango.unique"><code>sango.unique</code></a> 【Beta】
 <a href="#sango.util.avltree.bag"><code>sango.util.avltree.bag</code></a>
 <a href="#sango.util.avltree.map"><code>sango.util.avltree.map</code></a>
 <a href="#sango.util.avltree.queue"><code>sango.util.avltree.queue</code></a>
@@ -193,7 +190,8 @@ kbd {
   <a href="#sango.util.iter.1">定数の供給</a>
   <a href="#sango.util.iter.2">連結</a>
   <a href="#sango.util.iter.3">変形</a>
-  <a href="#sango.util.iter.4">化身</a> 【Beta】
+  <a href="#sango.util.iter.4">要素処理</a>
+  <a href="#sango.util.iter.5">化身</a> 【Beta】
 <a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
@@ -242,7 +240,6 @@ kbd {
   <a href="#sango.util.stack.1">フレームワーク</a>
   <a href="#sango.util.stack.2">実装者向け情報</a>
 <a href="#sango.util.stack.liststack"><code>sango.util.stack.liststack</code></a>
-<a href="#sango.util.unique"><code>sango.util.unique</code></a> 【Beta】
 </div>
 
 <hr/>
@@ -2955,65 +2952,16 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>タプルの要素を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.array"><code>sango.util.array</code> 【Alpha】</h1>
+<h1 id="sango.unique"><code>sango.unique</code> 【Beta】</h1>
 
-<p>配列は，固定個数の要素を持つコレクションです。
-  指標を使って，個々の要素の参照，更新ができます。</p>
+<p>プログラム内で唯一となるオブジェクトを供給します。</p>
 
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.array.1"><code>sango.util.array</code> - フレームワーク</h2>
+<table border width="100%"><tr><td class="def"><code>data &lt;u&gt; @opaque ;;</code></td></tr></table>
+<p>プログラム内で唯一となるオブジェクトを表します。
+プログラム実行中，この型の全てのオブジェクトは互いに異なります。</p>
 
-<p>データと機能関数群をカプセル化しています。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A array&gt; @public :=
-  d: &lt;A _1+&gt;
-  fs: &lt;A array_fs&gt;
-  array$ ;;</code></td></tr></table>
-<p>カプセル化された配列オブジェクトを表します。
-<code>&lt;A&gt;</code>は要素の型です。
-配列を使用するには属性を意識する必要はありません。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p>要素の個数を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array &lt;int&gt; *Index get @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
-<p>指標に対応する要素を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array &lt;int&gt; *Index &lt;A&gt; *Value set @public -&gt; &lt;A array&gt; ;;</code></td></tr></table>
-<p>指標に対応する要素を更新し，配列全体を返します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A array&gt; *Array iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
-<p>指標の順に要素を供給するイテレータを返します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.array.2"><code>sango.util.array</code> - 実装者向け情報</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*A array_fs&gt; @public :=
-  length_f: &lt;int fun&gt;
-  get_f: &lt;&lt;A _1+&gt; int A fun&gt;
-  set_f: &lt;&lt;A _1+&gt; int A &lt;A _1+&gt; fun&gt;
-  array_fs$ ;;</code></td></tr></table>
-<p>機能関数群を表します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.avltree.array"><code>sango.util.avltree.array</code> 【Alpha】</h1>
-
-<p>AVL木による配列の実装です。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;int&gt; *Length
-  &lt;*A iter&gt; *Init
-  &lt;&lt;A &lt;A bool fun&gt; tuple&gt; maybe&gt; *Compact_ 
-  new_array @public -&gt; &lt;A &quot;sango.util.array&quot;.array&gt; ;;</code></td></tr></table>
-<p>配列を生成します。
-<code>Init</code>には，指標順に要素の初期値を返すイテレータを指定します。
-<code>Init</code>は，<code>Length</code>回，呼び出されます。</p>
-<p><code>Compact_<code>には，配列のメモリサイズを小さくする設定を指定します。
-  本機能は，タプルの第一要素（以降，C）をAVL木の内部データとして作成することを抑制します。
-  Cに配列の中に多く含まれる値を指定すると，効果が増大します。
-  タプルの第二要素は，更新しようとする値がCに等しいかどうか判定する関数を指定します。
-  例えば，<code>&lt;real&gt;</code>の配列においてCを0.0にする場合，0.0とみなす値の絶対値の範囲を1.0eｰ5以下とするといった設定ができます。
-  この場合，更新した要素を参照する場合は0.0が返されます。
-</p>
+<table border width="100%"><tr><td class="def"><code>eval new_unique @public -&gt; &lt;u&gt; ;;</code></td></tr></table>
+<p><code>&lt;u&gt;</code>のオブジェクトを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.bag"><code>sango.util.avltree.bag</code></h1>
@@ -3412,7 +3360,14 @@ eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code><
 <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 化身 【Beta】</h2>
+<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 要素処理</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;*B iter&gt; *I &lt;A B A fun&gt; *F fold @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
+<p><code>I</code>から供給される値を<code><var>Y<sub>0</sub></var></code>，<code><var>Y<sub>1</sub></var></code>，<code><var>Y<sub>2</sub></var></code>，...とするとき，<code>(((X <var>Y<sub>0</sub></var> &amp;F) <var>Y<sub>1</sub></var> &amp;F) <var>Y<sub>2</sub></var> &amp;F)...</code>の結果を返します。
+この関数名は，<code>&quot;sango.list&quot;.fold</code>に由来します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.iter.5"><code>sango.util.iter</code> - 化身 【Beta】</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
   org: &lt;T&gt;
@@ -3661,7 +3616,8 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <p>複数のアクタから共有可能なマップを提供します。
 データの参照・更新には，<code>&quot;sango.util.map.shared&quot;</code>の関数を使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! *B! &quot;sango.util.map&quot;.a'map ]&gt; *FMap create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! *B! &quot;sango.util.map&quot;.a'map ]&gt; *FMap f_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;
+eval &lt;*D!&gt; *Map_d &lt;D *A! *B! map.map_fs&gt; *Map_fs do_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
 <p>共有されるマップを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3679,7 +3635,7 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <p>実体を関連データとするマップです。
 関連データは弱参照で保持され，これ以外からの参照がなくなると，そのキーと当該データが自動的に削除されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*KM![ *A! &quot;sango.util.unique&quot;.u &quot;sango.util.map&quot;.a'map ]&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs
+<table border width="100%"><tr><td class="def"><code>eval &lt;*KM![ *A! &quot;sango.unique&quot;.u &quot;sango.util.map&quot;.a'map ]&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs
   create_weak_value_map @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
 <p>共有されるマップを生成し，そのハンドルを返します。
 <code>Key_tab</code>にはキーを管理するのに適したマップを指定します。
@@ -4210,7 +4166,8 @@ eval &lt;*A! shared_set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&
 <p>複数のアクタから共有可能なセットを提供します。
 データの参照・更新には，<code>&quot;sango.util.set.shared&quot;</code>の関数を使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! &quot;sango.util.set&quot;.a'set ]&gt; *FSet create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! &quot;sango.util.set&quot;.a'set ]&gt; *FSet f_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;
+eval &lt;*D!&gt; *Set_d &lt;D *A! set.set_fs&gt; *Set_fs do_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
 <p>共有されるセットを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4663,18 +4620,6 @@ eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter g_push_iter | push_iter @publi
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *L to_stack @public -&gt; &lt;A &quot;sango.util.stack&quot;.stack&gt; ;;</code></td></tr></table>
 <p>リストをスタックに変換します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.unique"><code>sango.util.unique</code> 【Beta】</h1>
-
-<p>プログラム内で唯一となるオブジェクトを供給します。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;u&gt; @opaque ;;</code></td></tr></table>
-<p>プログラム内で唯一となるオブジェクトを表します。
-プログラム実行中，この型の全てのオブジェクトは互いに異なります。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval new_unique @public -&gt; &lt;u&gt; ;;</code></td></tr></table>
-<p><code>&lt;u&gt;</code>のオブジェクトを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 

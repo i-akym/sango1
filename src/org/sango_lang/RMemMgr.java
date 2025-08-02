@@ -228,6 +228,10 @@ public class RMemMgr {
     return r;
   }
 
+  UniqueItem createUnique() {
+    return new UniqueItem(this.theEngine);
+  }
+
   RObjItem[] createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {
     ExistenceItem e = new ExistenceItem(this.theEngine);
     SlotItem s = (assoc != null)? new SlotItem(this.theEngine, e, false, assoc): null;
@@ -379,12 +383,35 @@ public class RMemMgr {
     }
   }
 
+  public class UniqueItem extends RObjItem {
+
+    UniqueItem(RuntimeEngine e) {
+      super(e);
+    }
+
+    public boolean objEquals(RFrame frame, RObjItem item) {
+      return item == this;
+    }
+
+    public RType.Sig getTsig() {
+      return RType.createTsig(new Cstr("sango.unique"), "u", 0);
+    }
+
+    public void doHash(RNativeImplHelper helper, RClosureItem self) {
+      helper.setReturnValue(helper.getIntItem(this.hashCode()));
+    }
+
+    public Cstr dumpInside() {
+      return new Cstr(this.toString());
+    }
+  }
+
   public class ExistenceItem extends RObjItem {
-    Object key;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
+    public UniqueItem uniqueness;  // ExistenceItem and SlotItem share this to avoid mutual strong reference
 
     ExistenceItem(RuntimeEngine e) {
       super(e);
-      this.key = new Object();
+      this.uniqueness = RMemMgr.this.createUnique();
     }
 
     public boolean objEquals(RFrame frame, RObjItem item) {
@@ -405,13 +432,13 @@ public class RMemMgr {
   }
 
   public class SlotItem extends RObjItem {
-    Object key;
+    Object uniqueness;
     boolean updatable;
     RObjItem assoc;
 
     SlotItem(RuntimeEngine e, ExistenceItem ex, boolean updatable, RObjItem assoc) {
       super(e);
-      this.key = ex.key;
+      this.uniqueness = ex.uniqueness;
       this.updatable = updatable;
       this.assoc = assoc;
     }
@@ -433,7 +460,7 @@ public class RMemMgr {
     }
 
     public RObjItem peekAssoc(ExistenceItem ex) {
-      if (ex.key != this.key) {
+      if (ex.uniqueness != this.uniqueness) {
         throw new IllegalArgumentException("Invalid slot.");
       }
       synchronized (this) {
@@ -442,7 +469,7 @@ public class RMemMgr {
     }
 
     public RObjItem replaceAssoc(ExistenceItem ex, RObjItem item) {
-      if (ex.key != this.key) {
+      if (ex.uniqueness != this.uniqueness) {
         throw new IllegalArgumentException("Invalid slot.");
       }
       synchronized (this) {

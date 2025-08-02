@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2024 AKIYAMA Isao                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,13 +21,56 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.util.unique" ;;
+module @alpha "sango.util.queue.shared" ;;
 
-import "sango.entity.existence" -> ex ;;
+import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
 
-data <u> @opaque := <ex.existence> u$ ;;
+data <*A! shared_queue_h> @public :=
+  extract_f: <<A iter> fun>
+  empty?_f: <bool fun>
+  length_f: <int fun>
+  enqueue_f: <A void fun>
+  head_f: <<A maybe> fun>
+  dequeue_f: <<A maybe> fun>
+  clear_f: <void fun>
+  shared_queue_h$ ;;
 
-eval new_unique @public -> <u> {
-  none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
-  Ex u$
+eval <*A! shared_queue_h> *Queue_h extract @public -> <A iter> {
+  &(Queue_h extract_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h empty? @public -> <bool> {
+  &(Queue_h empty?_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h length @public -> <int> {
+  &(Queue_h length_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h <A> *Elem enqueue @public -> <void> {
+  Elem &(Queue_h enqueue_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h head @public -> <A maybe> {
+  &(Queue_h head_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h dequeue @public -> <A maybe> {
+  &(Queue_h dequeue_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h clear @public -> <void> {
+  &(Queue_h clear_f)
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h <A list> *Elems enqueue_list @public -> <void> {
+  Queue_h (Elems list.iter) enqueue_iter
+} ;;
+
+eval <*A! shared_queue_h> *Queue_h <A iter> *Iter enqueue_iter @public -> <void> {
+  void$
+  Iter
+  \ <void> *Z <A> *E -> <void> { Queue_h E enqueue }
+  iter.fold
 } ;;

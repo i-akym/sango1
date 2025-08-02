@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2021 AKIYAMA Isao                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,41 +21,33 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @deprecated "sango.entity" ;;
+module @beta "sango.unique" ;;
 
-import "sango.entity.box" -> box ;;
-import "sango.entity.existence" -> ex ;;
+data <u> @opaque := @native
+++ as_a'unique -> [ a'unique ] ;;
 
-extend <_0> -> ent_d @public :=
-| existence$ ;;
+eval new_unique @public -> <u> @native ;;
 
-alias type <eref> @public := <ent_d+ box.box_h> ;;
-alias type <wref> @public := <ent_d+ box.wbox_h> ;;
-
-eval <ent_d+> *X <<void fun> maybe> *Invalidator_ create_entity @public -> <eref> {
-  X Invalidator_ box.create_box
+eval as_a'unique -> <u u fun> {
+  ^itself
 } ;;
 
-eval <eref> *Entity existence @public -> <ex.existence> {
-  Entity box.existence
+
+### feature
+
+feature <*T> [ a'unique ] @public -> <T u fun> ;;
+
+
+### incarnation
+
+data @beta <*T unique_inc> @protected :=
+  org: <T>
+  fo: <T u fun>
+  unique_inc$ ;;
+
+eval @beta <*T[ a'unique ]> *FUnique incarnate @public -> <T unique_inc> {
+  org: FUnique
+  fo: (FUnique _feature_a'unique)
+  unique_inc$
 } ;;
 
-eval <eref> *Entity read @public -> <ent_d+> {
-  Entity box.read
-} ;;
-
-eval <eref> *Entity <ent_d+> *X write | swap @public -> <ent_d+> {
-  Entity X box.write
-} ;;
-
-eval <eref> *Entity <<wref void fun> maybe> *Listener_ create_weak_holder @public -> <wref> {
-  Entity Listener_ box.create_weak_holder
-} ;;
-
-eval <wref> *W get @public -> <eref maybe> {
-  W box.get
-} ;;
-
-eval <wref> *W clear @public -> <void> {
-  W box.clear
-} ;;

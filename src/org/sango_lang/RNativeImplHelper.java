@@ -324,6 +324,12 @@ public class RNativeImplHelper {
 
     Core() {}
 
+    // unique
+
+    public RMemMgr.UniqueItem createUnique() {
+      return RNativeImplHelper.this.theEngine.memMgr.createUnique();
+    }
+
     // existence
 
     public RObjItem[] createImmutableExistence(RObjItem assoc, RClosureItem invalidator) {

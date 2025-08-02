@@ -42,8 +42,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   PTypeRefSkel _normalized_implSkel;
 
   PFeatureStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
-    this.scope.startDef();
+    super(srcInfo, outerScope.startFeature());
     this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.acc = Module.ACC_PRIVATE;  // default
   }
@@ -227,7 +226,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       throw new CompileException(emsg.toString());
     }
 
-    PScope implScope = defScope.enterInner();
+    PScope implScope = defScope.startFeatureImpl();
     PType implType;
     if ((implType = PType.accept(reader, implScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
@@ -392,28 +391,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-
-    // Module.Variance v = null;
-    // for (int i = 0; i < vs.size(); i++) {
-      // Module.Variance vv = vs.get(i);
-      // if (v == null) {
-        // v = vv;  // replace
-      // } else if (v == Module.INVARIANT) {
-        // // keep
-      // } else if (vv == null) {
-        // // skip
-      // } else if (vv == Module.INVARIANT) {
-        // v = Module.INVARIANT;
-      // } else if (v == vv) {
-        // // keep
-      // } else {
-        // v = Module.INVARIANT;
-      // }
-    // }
-    // p.variance = v;
   }
-
-  public void checkConcreteness() throws CompileException {}
 
   void normalizeTypes() throws CompileException {
     this._normalized_implSkel = (PTypeRefSkel)this.impl.toSkel().normalize();

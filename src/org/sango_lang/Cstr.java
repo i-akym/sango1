@@ -56,6 +56,10 @@ public class Cstr {
     return buf.toString();
   }
 
+  public static String repr(Cstr c) {
+    return (c != null)? c.repr(): "\"\"";
+  }
+
   public int hashCode() {
     if (this.hashCodeValue == null) {
       this.hashCodeValue = 0;

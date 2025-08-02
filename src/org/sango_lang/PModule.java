@@ -88,12 +88,12 @@ class PModule implements PModDecl {
   Parser.SrcInfo modDefSrcInfo;
   Module.Availability availability;
   Cstr definedName;  // maybe null
-  Cstr name;
+  Cstr actualName;
   String myId;
   Map<String, Cstr> modTab;  // mod id -> mod name
   List<String> referredModIds;  // except @LANG, @HERE, my mod id
   List<Cstr> referredFarMods;  // except sango.lang
-  List<Cstr> referredFarMods2;  // refs from foreign definition
+  // List<Cstr> referredFarMods2;  // refs from foreign definition
   List<PImportStmt> importStmtList;
   List<PDataStmt> dataStmtList;
   List<PExtendStmt> extendStmtList;
@@ -110,7 +110,7 @@ class PModule implements PModDecl {
     this.modTab = new HashMap<String, Cstr>();
     this.referredModIds = new ArrayList<String>();
     this.referredFarMods = new ArrayList<Cstr>();
-    this.referredFarMods2 = new ArrayList<Cstr>();
+    // this.referredFarMods2 = new ArrayList<Cstr>();
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -124,7 +124,7 @@ class PModule implements PModDecl {
     b.append("module[src=");
     b.append(this.modDefSrcInfo);
     b.append(",name=");
-    b.append(this.name);
+    b.append(this.actualName);
     if (this.myId != null) {
       b.append(",id=");
       b.append(this.myId);
@@ -425,7 +425,7 @@ class PModule implements PModDecl {
   void addDataStmt(PDataStmt dat) throws CompileException {
     StringBuffer emsg;
 
-    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.name, dat.tcon);
+    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.actualName, dat.tcon);
     boolean b = this.theCompiler.defDict.predefineTconData(tconKey, dat.acc);
     if (!b) {
       emsg = new StringBuffer();
@@ -440,7 +440,7 @@ class PModule implements PModDecl {
       for (int i = 0; i < dat.constrs.length; i++) {
         PDataConstrDef constr = dat.constrs[i];
         b = this.theCompiler.defDict.predefineDcon(
-          PDefDict.IdKey.create(this.name, constr.dcon), dat.acc);
+          PDefDict.IdKey.create(this.actualName, constr.dcon), dat.acc);
         if (!b) {
           emsg = new StringBuffer();
           emsg.append("Cannot define data constructor \"");
@@ -461,7 +461,7 @@ class PModule implements PModDecl {
   void addExtendStmt(PExtendStmt ext) throws CompileException {
     StringBuffer emsg;
 
-    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.name, ext.tcon);
+    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.actualName, ext.tcon);
     Cstr baseModName;
     if (ext.baseModId == null) {
       baseModName = Module.MOD_LANG;
@@ -491,7 +491,7 @@ class PModule implements PModDecl {
     for (int i = 0; i < ext.constrs.length; i++) {
       PDataConstrDef constr = ext.constrs[i];
       b = this.theCompiler.defDict.predefineDcon(
-        PDefDict.IdKey.create(this.name, constr.dcon), ext.acc);
+        PDefDict.IdKey.create(this.actualName, constr.dcon), ext.acc);
       if (!b) {
         emsg = new StringBuffer();
         emsg.append("Cannot define data constructor \"");
@@ -511,7 +511,7 @@ class PModule implements PModDecl {
   void addAliasTypeStmt(PAliasTypeStmt alias) throws CompileException {
     StringBuffer emsg;
 
-    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.name, alias.tcon);
+    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.actualName, alias.tcon);
     boolean b = this.theCompiler.defDict.predefineTconAliasType(tconKey, alias.acc);
     if (!b) {
       emsg = new StringBuffer();
@@ -531,7 +531,7 @@ class PModule implements PModDecl {
   void addFeatureStmt(PFeatureStmt feat) throws CompileException {
     StringBuffer emsg;
 
-    PDefDict.IdKey fnameKey = PDefDict.IdKey.create(this.name, feat.fname);
+    PDefDict.IdKey fnameKey = PDefDict.IdKey.create(this.actualName, feat.fname);
     boolean b = this.theCompiler.defDict.predefineFeature(fnameKey, feat.acc);
     if (!b) {
       emsg = new StringBuffer();
@@ -551,7 +551,7 @@ class PModule implements PModDecl {
   void addEvalStmt(PEvalStmt eval) throws CompileException {
     StringBuffer emsg;
 
-    PDefDict.IdKey officialKey = PDefDict.IdKey.create(this.name, eval.official);
+    PDefDict.IdKey officialKey = PDefDict.IdKey.create(this.actualName, eval.official);
     // boolean b = this.theCompiler.defDict.predefineFunOfficial(officialKey, eval.acc);
     if (!this.predefineFunOfficial(officialKey, eval.acc)) {
       emsg = new StringBuffer();
@@ -564,7 +564,7 @@ class PModule implements PModDecl {
     }
     for (int i = 0; i < eval.aliases.length; i++) {
       if (!this.theCompiler.defDict.predefineFunAlias(
-            PDefDict.IdKey.create(this.name, eval.aliases[i]), eval.acc)) {
+            PDefDict.IdKey.create(this.actualName, eval.aliases[i]), eval.acc)) {
         emsg = new StringBuffer();
         emsg.append("Cannot define \"");
         emsg.append(eval.aliases[i]);
@@ -581,11 +581,11 @@ class PModule implements PModDecl {
   }
 
   boolean isLang() {
-    return this.name != null && this.name.equals(Module.MOD_LANG);
+    return this.actualName != null && this.actualName.equals(Module.MOD_LANG);
   }
 
   boolean predefineFunOfficial(String official, Module.Access acc) {
-    PDefDict.IdKey k = PDefDict.IdKey.create(this.name, official);
+    PDefDict.IdKey k = PDefDict.IdKey.create(this.actualName, official);
     return this.predefineFunOfficial(k, acc);
   }
 
@@ -598,9 +598,9 @@ class PModule implements PModDecl {
     if (id == null) {
       ;
     } else if (id.equals(this.myId)) {
-      n = this.name;
+      n = this.actualName;
     } else if (id.equals(MOD_ID_HERE)) {
-      n = this.name;
+      n = this.actualName;
     } else if (id.equals(MOD_ID_LANG)) {
       n = Module.MOD_LANG;
     } else {
@@ -610,7 +610,7 @@ class PModule implements PModDecl {
   }
 
   void addReferredFarMod(Cstr modName) {  // add implicitly referred mod
-    if (modName.equals(Module.MOD_LANG) || modName.equals(this.name)) { return; }  // skip
+    if (modName.equals(Module.MOD_LANG) || modName.equals(this.actualName)) { return; }  // skip
     if (this.referredFarMods.contains(modName)) { return; }  // already included
 // /* DEBUG */ System.out.println(modName);
     this.referredFarMods.add(modName);
@@ -630,45 +630,45 @@ class PModule implements PModDecl {
     return ms;
   }
 
-  public Cstr[] getForeignMods2() {
-    Cstr[] ms;
-    if (this.isLang()) {
-      ms = new Cstr[0];
-    } else {
-      ms = new Cstr[this.referredFarMods2.size()];
-      for (int i = 0; i < ms.length; i++) {
-        ms[i] = this.referredFarMods2.get(i);
-      }
-    }
-    return ms;
-  }
+  // public Cstr[] getForeignMods2() {
+    // Cstr[] ms;
+    // if (this.isLang()) {
+      // ms = new Cstr[0];
+    // } else {
+      // ms = new Cstr[this.referredFarMods2.size()];
+      // for (int i = 0; i < ms.length; i++) {
+        // ms[i] = this.referredFarMods2.get(i);
+      // }
+    // }
+    // return ms;
+  // }
 
-  int modNameToModRefIndex(boolean inReferredDef, Cstr modName) {
-    int index;
-    if (modName.equals(this.name)) {
-      index = Module.MOD_INDEX_SELF;
-    } else if (modName.equals(Module.MOD_LANG)) {
-      index = Module.MOD_INDEX_LANG;
-    } else {
-      int i = this.referredFarMods.indexOf(modName);
-      if (i >= 0) {
-        ;
-      } else if (inReferredDef) {
-        int j = this.referredFarMods2.indexOf(modName);
-        if (j >= 0) {
-          ;
-        } else {
-          j = this.referredFarMods2.size();  // index at new last
-          this.referredFarMods2.add(modName);
-        }
-        i = this.referredFarMods.size() + j;
-      } else {
-        throw new RuntimeException("Unknown mod name. " + modName.repr() + " " + this.referredFarMods);
-      }
-      index = 2 + i;
-    }
-    return index;
-  }
+  // int modNameToModRefIndex(boolean inReferredDef, Cstr modName) {
+    // int index;
+    // if (modName.equals(this.name)) {
+      // index = Module.MOD_INDEX_SELF;
+    // } else if (modName.equals(Module.MOD_LANG)) {
+      // index = Module.MOD_INDEX_LANG;
+    // } else {
+      // int i = this.referredFarMods.indexOf(modName);
+      // if (i >= 0) {
+        // ;
+      // } else if (inReferredDef) {
+        // int j = this.referredFarMods2.indexOf(modName);
+        // if (j >= 0) {
+          // ;
+        // } else {
+          // j = this.referredFarMods2.size();  // index at new last
+          // this.referredFarMods2.add(modName);
+        // }
+        // i = this.referredFarMods.size() + j;
+      // } else {
+        // throw new RuntimeException("Unknown mod name. " + modName.repr() + " " + this.referredFarMods);
+      // }
+      // index = 2 + i;
+    // }
+    // return index;
+  // }
 
   PEvalStmt getInitFunDef() {
     PEvalStmt eval = null;
@@ -736,18 +736,18 @@ class PModule implements PModDecl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return this.doResolveTcon(this.name, tcon.name, tcon.catOpt);
+    return this.doResolveTcon(this.actualName, tcon.name, tcon.catOpt);
   }
 
   private PDefDict.TidProps resolveTconInOther(PTid tcon) throws CompileException {
     PDefDict.TidProps tp;
     if (tcon.modId == null) {
-      tp = this.doResolveTcon(this.name, tcon.name, tcon.catOpt);
+      tp = this.doResolveTcon(this.actualName, tcon.name, tcon.catOpt);
       if (tp == null) {
         tp = this.doResolveTcon(Module.MOD_LANG, tcon.name, tcon.catOpt);
       }
     } else if (tcon.modId.equals(this.myId) || tcon.modId.equals(MOD_ID_HERE)) {
-      tp = this.doResolveTcon(this.name, tcon.name, tcon.catOpt);
+      tp = this.doResolveTcon(this.actualName, tcon.name, tcon.catOpt);
     } else {
       Cstr targetModName = this.modTab.get(tcon.modId);
       if (targetModName == null) {
@@ -766,7 +766,7 @@ class PModule implements PModDecl {
 
   private PDefDict.TidProps doResolveTcon(Cstr modName, String idName, int catOpt) throws CompileException {
     PDefDict.TidProps tp = this.theCompiler.defDict.resolveTcon(
-      this.name,
+      this.actualName,
       PDefDict.IdKey.create(modName, idName));
     if (tp == null) {
       ;  // pass
@@ -792,18 +792,18 @@ class PModule implements PModDecl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return this.doResolveFeature(this.name, fname.name);
+    return this.doResolveFeature(this.actualName, fname.name);
   }
 
   private PDefDict.TidProps resolveFeatureInOther(PTid fname) throws CompileException {
     PDefDict.TidProps tp;
     if (fname.modId == null) {
-      tp = this.doResolveFeature(this.name, fname.name);
+      tp = this.doResolveFeature(this.actualName, fname.name);
       if (tp == null) {
         tp = this.doResolveFeature(Module.MOD_LANG, fname.name);
       }
     } else if (fname.modId.equals(this.myId) || fname.modId.equals(MOD_ID_HERE)) {
-      tp = this.doResolveFeature(this.name, fname.name);
+      tp = this.doResolveFeature(this.actualName, fname.name);
     } else if (fname.modId.equals(MOD_ID_LANG)) {
       tp = this.doResolveFeature(Module.MOD_LANG, fname.name);
     } else {
@@ -824,7 +824,7 @@ class PModule implements PModDecl {
 
   private PDefDict.TidProps doResolveFeature(Cstr modName, String idName) throws CompileException {
     return this.theCompiler.defDict.resolveFeature(
-      this.name,
+      this.actualName,
       PDefDict.IdKey.create(modName, idName));
   }
 
@@ -848,18 +848,18 @@ class PModule implements PModDecl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return this.doResolveAnchor(this.name, eid.name, eid.catOpt);
+    return this.doResolveAnchor(this.actualName, eid.name, eid.catOpt);
   }
 
   PDefDict.EidProps resolveAnchorInOther(PEid eid) throws CompileException {
     PDefDict.EidProps ep;
     if (eid.modId == null) {
-      ep = this.doResolveAnchor(this.name, eid.name, eid.catOpt);
+      ep = this.doResolveAnchor(this.actualName, eid.name, eid.catOpt);
       if (ep == null) {
         ep = this.doResolveAnchor(Module.MOD_LANG, eid.name, eid.catOpt);
       }
     } else if (eid.modId.equals(this.myId) || eid.modId.equals(MOD_ID_HERE)) {
-      ep = this.doResolveAnchor(this.name, eid.name, eid.catOpt);
+      ep = this.doResolveAnchor(this.actualName, eid.name, eid.catOpt);
     } else if (eid.modId.equals(MOD_ID_LANG)) {
       ep = this.doResolveAnchor(Module.MOD_LANG, eid.name, eid.catOpt);
     }  else {
@@ -880,7 +880,7 @@ class PModule implements PModDecl {
 
   PDefDict.EidProps doResolveAnchor(Cstr modName, String idName, int catOpt) throws CompileException {
     PDefDict.EidProps ep = this.theCompiler.defDict.resolveAnchor(
-      this.name,
+      this.actualName,
       PDefDict.IdKey.create(modName, idName));
     if (ep == null) {
       ;  // pass
@@ -894,7 +894,7 @@ class PModule implements PModDecl {
   boolean isFunDefinedHere(String official) {
     PDefDict.EidProps ep = null;
     try {
-      ep = this.doResolveFunOfficial(this.name, official);
+      ep = this.doResolveFunOfficial(this.actualName, official);
     } catch (CompileException ex) {
       throw new RuntimeException("Unexpected exception. " + ex.toString());
     }
@@ -920,18 +920,18 @@ class PModule implements PModDecl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return this.doResolveFunOfficial(this.name, eid.name);
+    return this.doResolveFunOfficial(this.actualName, eid.name);
   }
 
   PDefDict.EidProps resolveFunOfficialInOther(PEid eid) throws CompileException {
     PDefDict.EidProps ep;
     if (eid.modId == null) {
-      ep = this.doResolveFunOfficial(this.name, eid.name);
+      ep = this.doResolveFunOfficial(this.actualName, eid.name);
       if (ep == null) {
         ep = this.doResolveFunOfficial(Module.MOD_LANG, eid.name);
       }
     } else if (eid.modId.equals(this.myId) || eid.modId.equals(MOD_ID_HERE)) {
-      ep = this.doResolveFunOfficial(this.name, eid.name);
+      ep = this.doResolveFunOfficial(this.actualName, eid.name);
     } else if (eid.modId.equals(MOD_ID_LANG)) {
       ep = this.doResolveFunOfficial(Module.MOD_LANG, eid.name);
     }  else {
@@ -952,7 +952,7 @@ class PModule implements PModDecl {
 
   PDefDict.EidProps doResolveFunOfficial(Cstr modName, String idName) throws CompileException {
     PDefDict.EidProps ep = this.theCompiler.defDict.resolveAnchor(
-      this.name,
+      this.actualName,
       PDefDict.IdKey.create(modName, idName));
     if (ep == null) {
       ;  // pass
@@ -981,18 +981,18 @@ class PModule implements PModDecl {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    return this.doSelectFunDef(this.name, eid.name, paramTypes, givenTVarList);
+    return this.doSelectFunDef(this.actualName, eid.name, paramTypes, givenTVarList);
   }
 
   PDefDict.FunSelRes selectFunDefInOther(PEid eid, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
     PDefDict.FunSelRes res = null;
     if (eid.modId == null) {
-      res = this.doSelectFunDef(this.name, eid.name, paramTypes, givenTVarList);
+      res = this.doSelectFunDef(this.actualName, eid.name, paramTypes, givenTVarList);
       if (res == null) {
         res = this.doSelectFunDef(Module.MOD_LANG, eid.name, paramTypes, givenTVarList);
       }
     } else if (eid.modId.equals(this.myId) || eid.modId.equals(MOD_ID_HERE)) {
-      res = this.doSelectFunDef(this.name, eid.name, paramTypes, givenTVarList);
+      res = this.doSelectFunDef(this.actualName, eid.name, paramTypes, givenTVarList);
     } else if (eid.modId.equals(MOD_ID_LANG)) {
       res = this.doSelectFunDef(Module.MOD_LANG, eid.name, paramTypes, givenTVarList);
     }  else {
@@ -1013,7 +1013,7 @@ class PModule implements PModDecl {
 
   PDefDict.FunSelRes doSelectFunDef(Cstr modName, String idName, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
     PDefDict.FunSelRes res = this.theCompiler.defDict.selectFunDef(
-      this.name,
+      this.actualName,
       PDefDict.IdKey.create(modName, idName),
       paramTypes, givenTVarList);
     return res;
@@ -1021,36 +1021,7 @@ class PModule implements PModDecl {
 
   public Module.Availability getAvailability() { return this.availability; }
 
-  public Cstr getName() { return this.name; }
-
-  // PDefDict.TconProps resolveTcon(String modId, String tcon) {
-    // PDefDict.TconProps tp;
-    // return
-      // ((tp = this.tconDict.get(tcon)) != null && (tp.cat & catOpts) > 0 && accOpts.contains(tp.acc))?
-      // tp: null;
-  // }
-
-  // public PDefDict.EidProps resolveEid(String id, int catOpts, Option.Set<Module.Access> accOpts) {
-    // PDefDict.EidProps props = this.eidDict.get(id);
-    // return
-      // (props != null && (props.cat & catOpts) > 0 && accOpts.contains(props.acc))?
-      // props: null;
-  // }
-
-  // public PDefDict.FeatureProps resolveFeature(String fname, Option.Set<Module.Access> accOpts) {
-    // PDefDict.FeatureProps fp;
-    // return
-      // ((fp = this.fnameDict.get(fname)) != null && accOpts.contains(fp.acc))?
-      // fp: null;
-  // }
-
-  // ExprDefGetter createExprDefGetter(PDataDef dataDef) {
-    // return new ExprDefGetter(dataDef, null);
-  // }
-
-  // ExprDefGetter createExprDefGetter(String funName) {
-    // return new ExprDefGetter(null, funName);
-  // }
+  public Cstr getName() { return this.actualName; }
 
   private void generateFeatureAliases() throws CompileException {
     for (int i = 0; i < this.featureStmtList.size(); i++) {
@@ -1115,7 +1086,7 @@ class PModule implements PModDecl {
   }
 
   static class Builder {
-    Cstr requiredName;
+    Cstr actualName;
     PModule mod;
     List<PImportStmt> importStmtList;
     List<PDataStmt> dataStmtList;
@@ -1124,12 +1095,13 @@ class PModule implements PModDecl {
     List<PFeatureStmt> featureStmtList;
     List<PEvalStmt> evalStmtList;
 
-    static Builder newInstance(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
-      return new Builder(theCompiler, srcInfo, requiredName);
+    static Builder newInstance(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr actualName) {
+      return new Builder(theCompiler, srcInfo, actualName);
     }
 
-    Builder(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr requiredName) {
-      this.requiredName = requiredName;
+    Builder(Compiler theCompiler, Parser.SrcInfo srcInfo, Cstr actualName) {
+      if (actualName == null) { throw new IllegalArgumentException("Null mod name."); }
+      this.actualName = actualName;
       this.mod = new PModule(theCompiler, srcInfo);
       this.importStmtList = new ArrayList<PImportStmt>();
       this.dataStmtList = new ArrayList<PDataStmt>();
@@ -1154,11 +1126,11 @@ class PModule implements PModDecl {
         emsg.append(" (Remark: Non-printable characters may be included.)");
         throw new CompileException(emsg.toString());
       }
-      if (this.requiredName != null && !name.equals(this.requiredName)) {
+      if (this.actualName != null && !name.equals(this.actualName)) {
         emsg = new StringBuffer();
         emsg.append("Module name mismatch.");
         emsg.append("\n  required: ");
-        emsg.append(this.requiredName.repr());
+        emsg.append(this.actualName.repr());
         emsg.append("\n  defined: ");
         emsg.append(name.repr());
         throw new CompileException(emsg.toString());
@@ -1196,11 +1168,11 @@ class PModule implements PModDecl {
 
     PModule create() throws CompileException {
       if (this.mod.definedName != null) {
-        this.mod.name = this.mod.definedName;
+        this.mod.actualName = this.mod.definedName;
       } else {
-        this.mod.name = this.requiredName;
+        this.mod.actualName = this.actualName;
       }
-      if (!this.mod.name.equals(Module.MOD_LANG)) {
+      if (!this.mod.actualName.equals(Module.MOD_LANG)) {
         PImportStmt.Builder ib = PImportStmt.Builder.newInstance(
           new Parser.SrcInfo(Module.MOD_LANG,"auto"), this.mod.scope);
         ib.setModName(Module.MOD_LANG);
@@ -1262,15 +1234,6 @@ class PModule implements PModDecl {
     }
   }
 
-  // void checkConcreteness() throws CompileException {
-    // for (int i = 0; i < this.dataStmtList.size(); i++) {
-      // this.dataStmtList.get(i).checkConcreteness();
-    // }
-    // for (int i = 0; i < this.extendStmtList.size(); i++) {
-      // this.extendStmtList.get(i).checkConcreteness();
-    // }
-  // }
-
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.get(i).normalizeTypes();
@@ -1303,7 +1266,7 @@ class PModule implements PModDecl {
 
   private void generateNameFun() throws CompileException {
     // eval _name_ @public -> <cstr> @native
-    Parser.SrcInfo si = new Parser.SrcInfo(this.name, ":name");
+    Parser.SrcInfo si = new Parser.SrcInfo(this.actualName, ":name");
     PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope);
     evalStmtBuilder.setOfficial(Module.FUN_NAME);
     evalStmtBuilder.setAcc(Module.ACC_PUBLIC);
@@ -1333,86 +1296,4 @@ class PModule implements PModDecl {
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
   }
-
-    List<PDataDef> getForeignDataDefsIn(Cstr modName) {
-      return this.theCompiler.defDict.getForeignDataDefsIn(this.name, modName);
-    }
-
-    List<PAliasTypeDef> getForeignAliasTypeDefsIn(Cstr modName) {
-      return this.theCompiler.defDict.getForeignAliasTypeDefsIn(this.name, modName);
-    }
-
-    List<PFeatureDef> getForeignFeatureDefsIn(Cstr modName) {
-      return this.theCompiler.defDict.getForeignFeatureDefsIn(this.name, modName);
-    }
-
-    List<PFunDef> getForeignFunDefsIn(Cstr modName) {
-      return this.theCompiler.defDict.getForeignFunDefsIn(this.name, modName);
-    }
-
-  // class ForeignDataDef implements PDataDef {
-    // PDataDef referredDataDef;
-    // Module.Access requiredAcc;
-    // List<String> referredDconList;
-    // List<String> referredFeatureList;
-
-    // ForeignDataDef(PDataDef dd, Module.Access acc) {
-      // this.referredDataDef = dd;
-      // this.requiredAcc = acc;
-      // this.referredDconList = new ArrayList<String>();
-      // this.referredFeatureList = new ArrayList<String>();
-    // }
-
-    // void requireAcc(Module.Access acc) {
-      // this.requiredAcc = Module.moreOpenAcc(requiredAcc, this.requiredAcc)? requiredAcc: this.requiredAcc;
-    // }
-
-    // void referredDcon(String dcon) {
-      // if (!this.referredDconList.contains(dcon)) {
-        // this.referredDconList.add(dcon);
-      // }
-    // }
-
-    // void referredFeature(String fname) {
-      // if (!this.referredFeatureList.contains(fname)) {
-        // this.referredFeatureList.add(fname);
-      // }
-    // }
-
-    // public String getFormalTcon() { return this.referredDataDef.getFormalTcon(); }
-
-    // public PDefDict.IdKey getBaseTconKey() { return this.referredDataDef.getBaseTconKey(); }
-
-    // public PDefDict.TparamProps[] getParamPropss() { return this.referredDataDef.getParamPropss(); }
-
-    // // public int getParamCount() { return this.referredDataDef.getParamCount(); }
-
-    // public PTypeRefSkel getTypeSig() { return this.referredDataDef.getTypeSig(); }
-
-    // public Module.Variance getParamVarianceAt(int pos) { return this.referredDataDef.getParamVarianceAt(pos); }
-
-    // public Module.Availability getAvailability() { return this.referredDataDef.getAvailability(); }
-
-    // public Module.Access getAcc() {
-      // return this.requiredAcc;
-    // }
-
-    // public int getConstrCount() { return this.referredDconList.size(); }
-
-    // public PDataDef.Constr getConstr(String dcon) {
-      // return this.referredDconList.contains(dcon)? this.referredDataDef.getConstr(dcon): null;
-    // }
-
-    // public PDataDef.Constr getConstrAt(int index) {
-      // return this.referredDataDef.getConstr(this.referredDconList.get(index));
-    // }
-
-    // public int getFeatureImplCount() {
-      // return this.referredFeatureList.size();
-    // }
-
-    // public PDataDef.FeatureImpl getFeatureImplAt(int index) {
-      // throw new RuntimeException("PModule.ForeignDataDef#getFeatureImplAt() not implemented.");
-    // }
-  // }
 }

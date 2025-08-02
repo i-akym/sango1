@@ -24,9 +24,12 @@
 module "sango.entity.existence" ;;
 
 import "sango.entity" -> ent ;;
+import "sango.unique" -> uniq ;;
 
 data <existence> @opaque := @native
-++ entity_fs -> [ ent.a'entity ] ;;
+++ entity_fs -> [ ent.a'entity ]
+++ as_a'unique -> [ uniq.a'unique ]  # @beta
+;;
 
 data <*A ro_slot> @opaque := @native ;;
 data <*A! rw_slot> @opaque := @native ;;
@@ -58,3 +61,12 @@ eval entity_fs @public -> <existence ent.entity_fs> {
 eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
   (| Ex, ^itself |)
 } ;;
+
+
+# -- uniqueness functions --
+
+eval @beta as_a'unique -> <existence uniq.u fun> {
+  ^uniqueness
+} ;;
+
+eval @beta <existence> *Ex uniqueness @public -> <uniq.u> @native ;;

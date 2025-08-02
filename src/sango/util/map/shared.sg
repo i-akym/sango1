@@ -24,6 +24,7 @@
 module @beta "sango.util.map.shared" ;;
 
 import "sango.list" -> list ;;
+import "sango.util.iter" -> iter ;;
 
 data <*A! *B! shared_map_h> @public :=
   extract_f: <<<A B tuple> iter> fun>
@@ -125,12 +126,10 @@ eval <*A! *B! shared_map_h> *Map_h <<A B tuple> list> *KVs add_list @public -> <
 } ;;
 
 eval <*A! *B! shared_map_h> *Map_h <<A B tuple> iter> *Iter add_iter @public -> <void> {
-  Iter next >> case {
-  ; (| (| *K, *V |), *Iter' |) value$ ->
-    Map_h K V add,
-    Map_h Iter' &&
-  ; ** ->
-  }
+  void$
+  Iter
+  \ <void> *Z <A B tuple> *KV -> <void> { KV = (| *K, *V |), Map_h K V add }
+  iter.fold
 } ;;
 
 eval <*A! *B! shared_map_h> *Map_h <A list> *Keys delete_list @public -> <void> {
@@ -138,10 +137,8 @@ eval <*A! *B! shared_map_h> *Map_h <A list> *Keys delete_list @public -> <void> 
 } ;;
 
 eval <*A! *B! shared_map_h> *Map_h <A iter> *Iter delete_iter @public -> <void> {
-  Iter next >> case {
-  ; (| *K, *Iter' |) value$ ->
-    Map_h K delete,
-    Map_h Iter' &&
-  ; ** ->
-  }
+  void$
+  Iter
+  \ <void> *Z <A> *K -> <void> { Map_h K delete }
+  iter.fold
 } ;;

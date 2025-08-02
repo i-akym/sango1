@@ -21,39 +21,24 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       *
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  *
  ***************************************************************************/
-package org.sango_lang;
+package sni_sango;
 
-public class Version {
-  static final int MAJOR = 1;
-  static final int MINOR = 8;
-  static final int MICRO = 1;
-  static final String LEVEL = null;
-  static final int BUILD = 1;
+import org.sango_lang.Cstr;
+import org.sango_lang.Module;
+import org.sango_lang.RClosureItem;
+import org.sango_lang.RDataConstr;
+import org.sango_lang.RMemMgr;
+import org.sango_lang.RNativeImplHelper;
+import org.sango_lang.RObjItem;
+import org.sango_lang.RStructItem;
+import org.sango_lang.RuntimeEngine;
 
-  static final Version instance = new Version(MAJOR, MINOR, MICRO, LEVEL, BUILD);
-
-  public static Version getInstance() { return instance; }
-
-  public int major;
-  public int minor;
-  public int micro;
-  public String level;
-  public int build;
-  public String full;
-
-  private Version(int major, int minor, int micro, String level, int build) {
-    this.major = major;
-    this.minor = minor;
-    this.micro = micro;
-    this.level = (level == null || level.length() == 0)? null: level;
-    this.build = build;
-    String sMajor = Integer.toString(this.major);
-    String sMinor = Integer.toString(this.minor);
-    String sMicro = Integer.toString(this.micro);
-    String sLevel = (this.level != null)? "-" + this.level: "";
-    String sBuild = Integer.toString(this.build);
-    this.full = sMajor + "." + sMinor + "." + sMicro + sLevel + "_" + sBuild;
+public class SNIunique {
+  public static SNIunique getInstance(RuntimeEngine e) {
+    return new SNIunique();
   }
 
-  public String toString() { return this.full; }
+  public void sni_new_unique(RNativeImplHelper helper, RClosureItem self) {
+    helper.setReturnValue(helper.getCore().createUnique());
+  }
 }

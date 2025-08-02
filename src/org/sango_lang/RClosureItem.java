@@ -71,7 +71,7 @@ public class RClosureItem extends RObjItem {
 
   public Cstr dumpInside() {
     Cstr s = new Cstr();
-    s.append(this.impl.mod.name.repr());
+    s.append(this.impl.mod.actualName.repr());
     s.append('.');
     s.append(this.impl.name);
     s.append('/');
@@ -89,7 +89,7 @@ public class RClosureItem extends RObjItem {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
       Cstr r = this.createDumpHeader();
-      r.append(this.impl.mod.name.repr());
+      r.append(this.impl.mod.actualName.repr());
       r.append('.');
       r.append(this.impl.name);
       r.append('/');

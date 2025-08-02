@@ -7,13 +7,13 @@ import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.system.runtime" -> runtime ;;
+import "sango.unique" -> uniq ;;
 import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.shared.box" -> map_box ;;
 import "sango.util.map.shared" -> shm ;;
 import "sango.util.map.shared.weakvaluemap" -> wvm ;;
-import "sango.util.unique" -> uniq ;;
 
 eval _main_ -> <void> {
   test,

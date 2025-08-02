@@ -103,4 +103,9 @@ public class SNIexistence {
     RMemMgr.WeakRefItem wr = (RMemMgr.WeakRefItem)w;
     wr.clear();
   }
+
+  public void sni_uniqueness(RNativeImplHelper helper, RClosureItem self, RObjItem existence) {
+    RMemMgr.ExistenceItem e = (RMemMgr.ExistenceItem)existence;
+    helper.setReturnValue(e.uniqueness);
+  }
 }

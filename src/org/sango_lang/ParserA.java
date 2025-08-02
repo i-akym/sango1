@@ -40,11 +40,11 @@ class ParserA extends Parser {
     super(theCompiler, ce);
     LineNumberReader r = new LineNumberReader(new FileReader(ce.srcFile));
     r.setLineNumber(1);
-    this.tokenReader = new TokenReader(this.modName, new Lex(modName, r));
+    this.tokenReader = new TokenReader(this.actualModName, new Lex(this.actualModName, r));
   }
 
   void parse1() throws CompileException, IOException {
-    this.mod = PModule.accept(this.theCompiler, this.tokenReader, this.modName);
+    this.mod = PModule.accept(this.theCompiler, this.tokenReader, this.actualModName);
     // this.mod.theCompiler = this.theCompiler;
   }
 

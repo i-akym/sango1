@@ -56,7 +56,7 @@ class ParserB extends Parser {
     } catch (SAXException ex) {
       emsg = new StringBuffer();
       emsg.append("Source file format error in ");
-      emsg.append(modName.repr());
+      emsg.append(this.actualModName.repr());
       emsg.append(". - ");
       // emsg.append("Source file format error at line ");
       // emsg.append(Integer.toString(ex.getLineNumber()));
@@ -69,7 +69,7 @@ class ParserB extends Parser {
       System.err.println(ex);
       System.exit(1);
     }
-    this.mod = PModule.acceptX(this.theCompiler, this.rootElem, this.modName);
+    this.mod = PModule.acceptX(this.theCompiler, this.rootElem, this.actualModName);
     // this.mod.theCompiler = this.theCompiler;
   }
 
@@ -86,7 +86,7 @@ class ParserB extends Parser {
     private ElemLoc loc;
 
     Parser.SrcInfo getSrcInfo() {
-      return new Parser.SrcInfo(ParserB.this.modName, this.loc.toString());
+      return new Parser.SrcInfo(ParserB.this.actualModName, this.loc.toString());
     }
 
     String getName() { return this.domNode.getNodeName(); }

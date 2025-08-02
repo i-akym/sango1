@@ -149,7 +149,7 @@ public class PFeature extends PDefaultProgObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PFeatureDef def = this.scope.theMod.theCompiler.defDict.getFeatureDef(this.scope.theMod.name, this._resolved_featureProps.key);
+    PFeatureDef def = this.scope.theMod.theCompiler.defDict.getFeatureDef(this.scope.theMod.actualName, this._resolved_featureProps.key);
     int pc = def.getParamCount();
     // PDefDict.TparamProps[] pss = def.getParamPropss();
     if (pc != this.params.length) {

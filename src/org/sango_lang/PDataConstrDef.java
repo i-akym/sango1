@@ -31,10 +31,9 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
   PDataDef dataDef;
-  PType dataType;
 
   PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
-    super(srcInfo, defScope.enterInner());
+    super(srcInfo, defScope.startDataConstr());
   }
 
   public String toString() {
@@ -185,13 +184,14 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     this.dataDef = dataDef;
   }
 
-  void setDataType(PType type) {
-    this.dataType = type;
-  }
+  // void setDataType(PType type) {
+    // this.dataType = type;
+  // }
 
   public PTypeSkel getType(PTypeSkelBindings bindings) {
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
-    return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
+    return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
+    // return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
   }
 
   public void collectModRefs() throws CompileException {
@@ -218,12 +218,6 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
       this.attrs[i].checkVariance(vt);
     }
   }
-
-  // public void checkConcreteness() throws CompileException {
-    // for (int i = 0; i < this.attrs.length; i++) {
-      // this.attrs[i].checkConcreteness();
-    // }
-  // }
 
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {

@@ -34,7 +34,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
   PDefDict.EidProps _resolved_providerProps;
 
   PFeatureImplDef(Parser.SrcInfo srcInfo, PScope defScope) {
-    super(srcInfo, defScope.enterInner());
+    super(srcInfo, defScope.startDataFeatureImpl());
   }
 
   public String toString() {
@@ -180,10 +180,6 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     // this.provider
     this.feature.excludePrivateAcc();
   }
-
-  // public void checkConcreteness() throws CompileException {
-    // // HERE
-  // }
 
   public Cstr getProviderModName() throws CompileException {
     PDefDict.EidProps ep = this.scope.theMod.resolveFunOfficial(this.provider);

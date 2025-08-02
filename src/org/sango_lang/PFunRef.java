@@ -165,7 +165,7 @@ class PFunRef extends PDefaultExprObj {
     GFlow.SeqNode node = flow.createNodeForFunRef(this.srcInfo);
     if (this.official != null) {
       node.addChild(flow.createNodeForFunRefBody(
-        this.srcInfo, this.scope.theMod.modNameToModRefIndex(false, this._resolved_officialProps.key.modName), this.official.name));
+        this.srcInfo, this._resolved_officialProps.key.modName, this.official.name));
     } else {
       node.addChild(flow.createNodeForSelfRef(this.srcInfo));
     }

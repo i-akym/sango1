@@ -225,8 +225,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForEval(this.scope.theMod.name, this._resolved_dconProps.key);
-    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.name, tconKey);
+    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForEval(this.scope.theMod.actualName, this._resolved_dconProps.key);
+    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tconKey);
     this.breakDown();
     return this;
   }
@@ -516,7 +516,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     PTypeRefSkel type = (PTypeRefSkel)this.typeGraphNode.getFinalizedType();
     // /* DEBUG */ System.out.println(type.tconProps);
     GFlow.DataConstrNode n = flow.createNodeForDataConstrBody(
-      this.srcInfo, this.scope.theMod.modNameToModRefIndex(false, this._resolved_dconProps.key.modName), this.dcon.name,
+      this.srcInfo, this._resolved_dconProps.key.modName, this.dcon.name,
       type.tconKey.idName, type.params.length);
     for (int i = 0; i < this.bdAttrs.length; i++) {
       n.addChild(this.bdAttrs[i].setupFlow(flow));

@@ -208,7 +208,8 @@ public class Module {
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;
 
-  Cstr name;
+  Cstr actualName;
+  Cstr definedName;
   Availability availability;
   int slotCount;
   ModTab modTab;
@@ -264,12 +265,11 @@ public class Module {
 
   MFeatureDef[] getForeignFeatureDefs(Cstr modName) { return this.foreignFeatureDefsDict.get(modName); }
 
-  public static Module internalize(Document doc, Cstr name) throws FormatException {
-    Builder builder = newBuilder();
-    builder.setName(name);
+  public static Module internalize(Document doc, Cstr actualModName) throws FormatException {
+    Builder builder = newBuilder(actualModName);
 
     Node node = doc.getFirstChild();
-    if (!internalizeModule(node, name, builder)) {
+    if (!internalizeModule(node, actualModName, builder)) {
       throw new FormatException("'" + TAG_MODULE + "' element not found.");
     }
     node = skipIgnorableNodes(node.getFirstChild());
@@ -308,7 +308,7 @@ public class Module {
     return builder.create();
   }
 
-  static boolean internalizeModule(Node node, Cstr name, Builder builder) throws FormatException {
+  static boolean internalizeModule(Node node, Cstr actualModName, Builder builder) throws FormatException {
     if ((node != null) && node.getNodeName().equals(TAG_MODULE)) {
       ;
     } else {
@@ -336,7 +336,7 @@ public class Module {
       String modName = aName.getNodeValue();
       // /* DEBUG */ System.out.print("name = ");
       // /* DEBUG */ System.out.println(modName);
-      if (!name.equalsToString(modName)) {
+      if (!actualModName.equalsToString(modName)) {
         throw new FormatException("Invalid module name: " + modName);
       }
     }
@@ -395,7 +395,7 @@ public class Module {
     // /* DEBUG */ System.out.print("mod = ");
     // /* DEBUG */ System.out.println(aMod.getNodeValue());
 
-    builder.startForeignMod(new Cstr(aMod.getNodeValue()));
+    builder.startForeignModFor(new Cstr(aMod.getNodeValue()));
 
     Node n = node.getFirstChild();
     if (n != null) {
@@ -1427,8 +1427,8 @@ public class Module {
     Element moduleNode = doc.createElement(TAG_MODULE);
     doc.appendChild(moduleNode);
     moduleNode.setAttribute(ATTR_FORMAT_VERSION, CUR_FORMAT_VERSION);
-    if (this.name != null) {
-      moduleNode.setAttribute(ATTR_NAME, this.name.toJavaString());
+    if (this.definedName != null) {
+      moduleNode.setAttribute(ATTR_NAME, this.definedName.toJavaString());
     }
     if (this.availability != AVAILABILITY_GENERAL) {
       moduleNode.setAttribute(ATTR_AVAILABILITY, reprOfAvailability(this.availability));
@@ -1606,12 +1606,13 @@ public class Module {
       r);
   }
 
-  public static Builder newBuilder() {
-    return new Builder();
+  public static Builder newBuilder(Cstr actualModName) {
+    return new Builder(actualModName);
   }
 
   public static class Builder {
     Module mod;
+    int nextForeignModIndex;
     Cstr currentForeignModName;
     List<Cstr> foreignModList;
     Map<Cstr, List<MDataDef>> foreignDataDefListDict;
@@ -1638,8 +1639,10 @@ public class Module {
     MClosureConstr curClosureConstr;
     List<ConstElem> constList;
 
-    Builder() {
+    Builder(Cstr actualModName) {
+      if (actualModName == null) { throw new IllegalArgumentException("Null mod name."); }
       this.mod = new Module();
+      this.mod.actualName = actualModName;
       this.foreignDataDefListDict = new HashMap<Cstr, List<MDataDef>>();
       this.foreignAliasTypeDefListDict = new HashMap<Cstr, List<MAliasTypeDef>>();
       this.foreignFeatureDefListDict = new HashMap<Cstr, List<MFeatureDef>>();
@@ -1659,8 +1662,8 @@ public class Module {
       this.constList = new ArrayList<ConstElem>();
     }
 
-    void setName(Cstr name) {
-      this.mod.name = name;
+    void setDefinedName(Cstr definedName) {
+      this.mod.definedName = definedName;
     }
 
     void setAvailability(Availability availability) {
@@ -1671,9 +1674,49 @@ public class Module {
       this.mod.slotCount = n;
     }
 
-    void startForeignMod(Cstr modName) {
+    void reserveForeignMod(Cstr modName) {
+      if (!this.foreignModList.contains(modName)) {
+        this.foreignModList.add(modName);
+      }
+    }
+
+    int modNameToModIndex(Cstr modName) {
+      // unknown name will be added
+      int i;
+      if (modName == null) {
+        throw new IllegalArgumentException("Null mod name.");
+      } else if (modName.equals(this.mod.actualName)) {
+        i = 0;
+      } else {
+        int j = this.foreignModList.indexOf(modName);
+        if (j >= 0) {
+          i = 1 + j;
+        } else {
+          i = 1 + this.foreignModList.size();  // to be added
+          this.foreignModList.add(modName);
+        }
+      }
+      return i;
+    }
+
+    Cstr startReservedForeignMod() {
       if (this.currentForeignModName != null) { throw new IllegalStateException("Foreign mod open."); }
-      this.currentForeignModName = modName;
+      Cstr n;
+      if (this.nextForeignModIndex < this.foreignModList.size()) {
+        n = this.foreignModList.get(this.nextForeignModIndex);
+        this.nextForeignModIndex++;
+        this.currentForeignModName = n;
+      } else {
+        n = null;
+      }
+      return n;
+    }
+
+    void startForeignModFor(Cstr modName) {
+      if (this.currentForeignModName != null) { throw new IllegalStateException("Foreign mod open."); }
+      if (this.nextForeignModIndex < this.foreignModList.size()) { throw new IllegalStateException("Cannot start mod now."); }
+      this.reserveForeignMod(modName);
+      this.startReservedForeignMod();
     }
 
     void endForeignMod() {
@@ -1683,7 +1726,7 @@ public class Module {
         this.startDataDefSpecial(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC);
         this.endDataDef();
       }
-      this.foreignModList.add(this.currentForeignModName);
+      // this.foreignModList.add(this.currentForeignModName);
 // /* DEBUG */ System.out.println("foreign data_def " + this.currentForeignModName.toJavaString() + " " + this.dataDefList);
       this.foreignDataDefListDict.put(this.currentForeignModName, this.dataDefList);
       this.foreignAliasTypeDefListDict.put(this.currentForeignModName, this.aliasTypeDefList);
@@ -1696,14 +1739,14 @@ public class Module {
       this.funDefList = new ArrayList<MFunDef>();
     }
 
-    void addIndirectForeignMod(Cstr modName) {
-      if (this.currentForeignModName != null) { throw new IllegalStateException("Foreign mod open."); }
-      this.foreignModList.add(modName);
-      this.foreignDataDefListDict.put(modName, new ArrayList<MDataDef>());
-      this.foreignAliasTypeDefListDict.put(modName, new ArrayList<MAliasTypeDef>());
-      this.foreignFeatureDefListDict.put(modName, new ArrayList<MFeatureDef>());
-      this.foreignFunDefListDict.put(modName, new ArrayList<MFunDef>());
-    }
+    // void addIndirectForeignMod(Cstr modName) {
+      // if (this.currentForeignModName != null) { throw new IllegalStateException("Foreign mod open."); }
+      // this.foreignModList.add(modName);
+      // this.foreignDataDefListDict.put(modName, new ArrayList<MDataDef>());
+      // this.foreignAliasTypeDefListDict.put(modName, new ArrayList<MAliasTypeDef>());
+      // this.foreignFeatureDefListDict.put(modName, new ArrayList<MFeatureDef>());
+      // this.foreignFunDefListDict.put(modName, new ArrayList<MFunDef>());
+    // }
 
     void startDataDefSpecial(String tcon, Availability availability, Access acc) {
       // for tuple, fun
@@ -1942,11 +1985,11 @@ public class Module {
     }
 
     public Module create() {
-      this.mod.modTab = ModTab.create(this.mod.name);
+      this.mod.modTab = ModTab.create(this.mod.actualName);
       for (int i = 0; i < this.foreignModList.size(); i++) {
         this.mod.modTab.add(this.foreignModList.get(i));
       }
-      if (this.mod.name != null && this.mod.name.equals(MOD_LANG)) {
+      if (/* this.mod.actualName != null && */ this.mod.actualName.equals(MOD_LANG)) {
         this.startDataDefSpecial(TCON_TUPLE, AVAILABILITY_GENERAL, ACC_PUBLIC);
         this.endDataDef();
         this.startDataDefSpecial(TCON_FUN, AVAILABILITY_GENERAL, ACC_PUBLIC);
@@ -1987,8 +2030,9 @@ public class Module {
     }
 
     private ModTab(Cstr ownerModName) {
+      if (ownerModName == null) { throw new IllegalArgumentException("Null mod name."); }
       this.tab = new ArrayList<Cstr>();
-      if (ownerModName == null || !ownerModName.equals(MOD_LANG)) {
+      if (/* ownerModName == null || */ !ownerModName.equals(MOD_LANG)) {
         this.tab.add(ownerModName);
       }
       this.tab.add(MOD_LANG);
@@ -2251,9 +2295,9 @@ public class Module {
         emsg.append("Definition missing - type: ");
         emsg.append(dd.tcon);
         emsg.append(", referred in: ");
-        emsg.append(this.name.repr());
+        emsg.append(this.actualName.repr());
         emsg.append(" defined in: ");
-        emsg.append(defMod.name.repr());
+        emsg.append(defMod.actualName.repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }
@@ -2270,9 +2314,9 @@ public class Module {
         emsg.append("Definition missing - function: ");
         emsg.append(fd.name);
         emsg.append(", referred in: ");
-        emsg.append(this.name.repr());
+        emsg.append(this.actualName.repr());
         emsg.append(" defined in: ");
-        emsg.append(defMod.name.repr());
+        emsg.append(defMod.actualName.repr());
         emsg.append(".");
         throw new FormatException(emsg.toString());
       }

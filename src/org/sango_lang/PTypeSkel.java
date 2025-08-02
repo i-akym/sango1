@@ -70,7 +70,7 @@ public interface PTypeSkel {
     // foward to following method internally
   JoinResult join2(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException;
 
-  MType toMType(PModule mod, boolean inReferredDef, List<PTypeVarSlot> slotList);
+  MType toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, List<PTypeVarSlot> slotList);
 
   void extractVars(List<PTypeVarSlot> extracted);
 

@@ -169,7 +169,6 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
   }
 
   void checkVariance(PTypeSkel.VarianceTab vt) throws CompileException {
-    // this.getNormalizedType();
     if (this._normalized_typeSkel == null) { throw new RuntimeException("No normalized type skel. " + this); }
     if (this._normalized_typeSkel instanceof PTypeVarSkel) {
       ;  // skip
@@ -189,10 +188,6 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
       throw new RuntimeException("Unexpected type. " + this._normalized_typeSkel);
     }
   }
-
-  // public void checkConcreteness() throws CompileException {
-// // HERE: Is check unnecessary here? Checks is to be done for some defferent points...
-  // }
 
   public void normalizeTypes() throws CompileException {
     this._normalized_typeSkel = this.type.toSkel().normalize();

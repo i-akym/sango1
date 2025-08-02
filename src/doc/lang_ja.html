@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.8.0言語解説</title>
+<title>Sango 1.8.1 言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -129,8 +129,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#21.4">21.4. マップ</a>
   <a href="#21.5">21.5. キュー</a>
   <a href="#21.6">21.6. スタック</a>
-  <a href="#21.7">21.7. 配列【Alpha】</a>
-  <a href="#21.8">21.8. ランダム・アクセス・リスト</a>
+  <a href="#21.8">21.7. ランダム・アクセス・リスト</a>
 <a href="#22">22. 表示可能な文字列に変換する</a>
   <a href="#22.1">22.1. フォーマット関数</a>
   <a href="#22.2">22.2. テンプレート</a>
@@ -1864,15 +1863,7 @@ M6 map.size = 4</code></blockquote>
   <code>&quot;sango.util.stack&quot;</code>モジュールからスタックのフレームワークが，<code>&quot;sango.util.stack.liststack&quot;</code>モジュールからリストとの相互変換機能が提供されています。</p>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="21.7">21.7. 配列【Alpha】</h2>
-<p>固定個数の要素を持つコレクションです。
-0以上の整数を指標として使用し，個々の要素の参照と更新ができます。
-ストリングは，要素の参照は低コスト（O(1)）で実行できますが，要素の変更においては他の要素のコピーが発生するため，要素数に比例した（O(n)の）コストがかかります。
-配列は，参照のコストと更新のコストをバランスしています。
-<code>&quot;sango.util.array&quot;</code>モジュールから配列のフレームワークが，<code>&quot;sango.util.avltree.array&quot;</code>モジュールからAVL木による実装が提供されています。</p>
- 
-<p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="21.8">21.8. ランダム・アクセス・リスト</h2>
+<h2 id="21.8">21.7. ランダム・アクセス・リスト</h2>
 <p>指標で要素にアクセスするリスト状のコレクションです。
   リストも指標によって要素アクセスすることは可能ですが，指標に比例したコストがかかります。
   長いリストで指標の大きい要素を頻繁に扱う場合，ランダム・アクセス・リストが実行効率を改善する可能性があります。
@@ -2554,6 +2545,13 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <ul>
 <li>【非互換】モジュールファイルの形式を変更しました。ライブラリは最新版のものを使い，使用者プログラムは再コンパイルしてください。</li>
 <li>【Alpha→Beta】<code>&quot;sango.util.map.shared.weakkeymap&quot;</code>，<code>&quot;sango.util.map.shared.weakvaluemap&quot;</code>，<code>&quot;sango.util.set.shared.weakset&quot;</code></li>
+</ul>
+
+<p>■　1.8.1</p>
+<ul>
+<li><code>&quot;sango.util.iter&quot;.fold</code>を追加</li>
+<li>【非互換】関数，クロージャの結果型の中で定義した型変数は，実行定義の中で参照することはできません。（参照できてしまったことは不具合です）</li>
+<li>【Beta，非互換】<code>&quot;sango.util.unique&quot;</code>を<code>&quot;sango.unique&quot;</code>に変更。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

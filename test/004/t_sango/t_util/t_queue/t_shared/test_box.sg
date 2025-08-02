@@ -1,0 +1,39 @@
+import "sango.actor" -> act ;;
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.list" -> list ;;
+import "sango.system.runtime" -> runtime ;;
+import "sango.util.queue" -> queue ;;
+import "sango.util.queue.shared" -> shqueue ;;
+import "sango.util.queue.shared.box" -> queue_box ;;
+import "sango.util.queue.simplequeue" -> simplequeue ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  void$
+} ;;
+
+eval new_queue -> <int queue.queue> {
+  simplequeue.new_queue
+} ;;
+
+eval test000 -> <void> {
+  new_queue >> queue_box.create_box = *Q,
+  Q shqueue.empty? = true$,
+  Q shqueue.head = none$,
+  Q 1 shqueue.enqueue,
+  Q 2 shqueue.enqueue,
+  Q 3 shqueue.enqueue,
+  Q shqueue.length = 3,
+  Q shqueue.dequeue = 1 value$,
+  Q shqueue.head = 2 value$,
+  Q shqueue.extract >> list.new_list = *Es,
+  Es list.length = 2,
+  Q shqueue.clear,
+  Q shqueue.empty? = true$,
+  void$
+} ;;

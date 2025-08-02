@@ -98,7 +98,7 @@ class PTypeGraph {
     Iterator<PDefDict.IdKey> iter = tconKeys.iterator();
     while (iter.hasNext()) {
       PDefDict.IdKey tk = iter.next();
-      this.theCompiler.defDict.addReferredForeignTcon(this.theMod.name, tk);
+      this.theCompiler.defDict.addReferredForeignTcon(this.theMod.actualName, tk);
       this.theMod.addReferredFarMod(tk.modName);
     }
   }
@@ -366,7 +366,7 @@ class PTypeGraph {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PFunDef def = PTypeGraph.this.theCompiler.defDict.getFunDefByOfficial(PTypeGraph.this.theMod.name, ep.key);
+      PFunDef def = PTypeGraph.this.theCompiler.defDict.getFunDefByOfficial(PTypeGraph.this.theMod.actualName, ep.key);
       if (def == null) { throw new RuntimeException("Cannot get def. " + ep.key); }
       PTypeSkel[] pts = def.getParamTypes();
       PTypeSkel rt = def.getRetType();
@@ -490,7 +490,7 @@ class PTypeGraph {
       this.funDef = sel.funDef;
       this.bindings = sel.bindings;
       // Cstr modName = this.funDef.getModName();
-      // if (!modName.equals(PTypeGraph.this.theMod.name)) {
+      // if (!modName.equals(PTypeGraph.this.theMod.actualName)) {
         // PTypeGraph.this.theMod.foreignIdResolver.referredFunOfficial(this.funDef);
       // }
       PTypeSkel rt = sel.funDef.getRetType();
@@ -897,9 +897,9 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.name, ep.key);
+      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.actualName, ep.key);
       if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.name, tconKey);
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
       if (constr == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
@@ -1149,9 +1149,9 @@ if (DEBUG > 1) {
       if (t == null) { return null; }  // HERE: in case of <_>
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.name, ep.key);
+      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
       if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.name, tconKey);
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
       PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
@@ -1220,9 +1220,9 @@ if (DEBUG > 1) {
       if ((b = ((DataConstrPtnNode)this.inNode).getBindings()) == null) { return null; }
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.name, ep.key);
+      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
       if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.name, tconKey);
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(b);

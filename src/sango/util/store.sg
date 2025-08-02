@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2024 AKIYAMA Isao                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -23,73 +23,39 @@
 ###########################################################################
 module @alpha "sango.util.store" ;;
 
-import "sango.actor.util" -> actu ;;
-import "sango.entity.box" -> box ;;
 import "sango.entity.existence" -> ex ;;
-import "sango.util.map" -> map ;;
-import "sango.util.map.hashmap" -> hmap ;;
-import "sango.util.unique" -> uniq ;;
+import "sango.util.map.shared" -> shmap ;;
+import "sango.util.map.shared.weakkeymap" -> wkmap ;;
 
-alias type <*A tab> := <uniq.u A map.map> ;;
+alias type <*A map_h> := <ex.existence A shmap.shared_map_h> ;;
 
 data <*A! store_h> @opaque :=
-  <<A tab> actu.box_monitor_h>
+  <A map_h>
   store_h$ ;;
 
 data <ref> @opaque :=
-  uniq: <uniq.u>
   ex: <ex.existence>
   ref$ ;;
 
 eval <*A! dummy> *Content create_store @public -> <A store_h> {
-  hmap.new_map = <uniq.u A map.map> *Tab,
-  Tab none$ box.create_box = *Tab_box,
-  (Tab_box actu.create_box_monitor) store_h$
+  (ex.entity_fs Content wkmap.create_weak_key_map) store_h$
 } ;;
 
 eval <*A! store_h> *Store_h <A> *X put @public -> <ref> {
-  uniq.new_unique = *U,
-  \\ <void> { Store_h U _delete } = *Inv,
-  none$ (Inv value$) ex.create_immutable_existence = (| *Ex, ** |),
-  Store_h U X _put,
-  U Ex ref$
-} ;;
-
-eval <*A! store_h> *Store_h <uniq.u> *U <A> *X _put -> <void> {
-  Store_h = *Mon store_h$,
-  Mon
-  \ <<A tab> box.box_h> *B -> <void> {
-    B box.read = *T,
-    T U X map.add = *T',
-    B T' box.write >> ignore
-  } actu.run
+  Store_h = *Map_h store_h$,
+  none$ none$ ex.create_immutable_existence = (| *Ex, ** |),
+  Map_h Ex X shmap.add,
+  Ex ref$
 } ;;
 
 eval <*A! store_h> *Store_h <ref> *Ref get @public -> <A maybe> {
-  Ref = *U *Ex ref$,
-  Store_h U _get
-} ;;
-
-eval <*A! store_h> *Store_h <uniq.u> *U _get -> <A maybe> {
-  Store_h = *Mon store_h$,
-  Mon
-  \ <<A tab> box.box_h> *B -> <A maybe> {
-    B box.read = *T,
-    T U map.assoc
-  } actu.run
+  Store_h = *Map_h store_h$,
+  Ref = *Ex ref$,
+  Map_h Ex shmap.assoc
 } ;;
 
 eval <*A! store_h> *Store_h <ref> *Ref delete @public -> <void> {
-  Ref = *U *Ex ref$,
-  Store_h U _delete
-} ;;
-
-eval <*A! store_h> *Store_h <uniq.u> *U _delete -> <void> {
-  Store_h = *Mon store_h$,
-  Mon
-  \ <<A tab> box.box_h> *B -> <void> {
-    B box.read = *T,
-    T U map.delete = *T',
-    B T' box.write >> ignore
-  } actu.run
+  Store_h = *Map_h store_h$,
+  Ref = *Ex ref$,
+  Map_h Ex shmap.delete
 } ;;

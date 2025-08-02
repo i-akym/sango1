@@ -38,7 +38,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   PExprList.Seq implExprs;  // null means native impl
 
   private PEvalStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
-    super(srcInfo, outerScope.enterInner());
+    super(srcInfo, outerScope.prepareFun());
     this.scope.defineFun(this);
     this.availability = Module.AVAILABILITY_GENERAL;  // default
     this.acc = Module.ACC_PRIVATE;  // default
@@ -78,6 +78,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   static class Builder {
     PEvalStmt eval;
     PScope bodyScope;
+    // PScope retScope;
     List<PExprVarDef> paramList;
     List<String> aliasList;
 
@@ -87,7 +88,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.eval = new PEvalStmt(srcInfo, outerScope);
-      this.bodyScope = this.eval.scope.enterInner();
+      this.bodyScope = this.eval.scope.startInnerScope();
+      // this.retScope = this.eval.scope.startRetType();
       this.paramList = new ArrayList<PExprVarDef>();
       this.aliasList = new ArrayList<String>();
     }
@@ -95,6 +97,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     PScope getDefScope() { return this.eval.scope; }
 
     PScope getBodyScope() { return this.bodyScope; }
+
+    // PScope getRetScope() { return this.retScope; }
 
     void setAvailability(Module.Availability availability) {
       this.eval.availability = availability;
@@ -160,6 +164,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     Builder builder = Builder.newInstance(t.getSrcInfo(), outerScope);
     PScope defScope = builder.getDefScope();
     PScope bodyScope = builder.getBodyScope();
+    // PScope retScope = builder.getRetScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader, defScope));
     PEid official = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
@@ -180,9 +185,8 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(reader.getCurrentSrcInfo(), builder.getDefScope());
-    PScope retScope = retDefBuilder.getScope();
-    PRetDef retDef = PRetDef.accept(reader, retScope);
+    // PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(reader.getCurrentSrcInfo(), defScope);
+    PRetDef retDef = PRetDef.accept(reader, defScope);
     builder.setRetDef(retDef);
     PExprList.Seq impl = acceptImpl(reader, bodyScope);
     if (impl != null) {
@@ -402,10 +406,11 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
     }
-    this.retDef = this.retDef.resolve();
     if (this.implExprs != null) {
       this.implExprs = this.implExprs.resolve();
     }
+    this.retDef.scope.doCopy();
+    this.retDef = this.retDef.resolve();
     return this;
   }
 
@@ -455,7 +460,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   public Module.Access getAcc() { return this.acc; }
 
   public Cstr getModName() {
-    return this.scope.theMod.name;
+    return this.scope.theMod.actualName;
   }
 
   public String getOfficialName() {
