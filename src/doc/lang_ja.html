@@ -1637,6 +1637,9 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   FMap &amp;(Map_fs size_f)
 } ;;</code></blockquote>
 
+<p>「<code>_feature_</code>フィーチャ名」の関数は，引数に渡されたオブジェクトの実際の型に応じたフィーチャ・オブジェクトを返します。
+引数のオブジェクトの値自体は無視されますので，同一の型に対しては同一のフィーチャ・オブジェクトが返されることに注意してください。</p>
+
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.4">20.4. 部分フィーチャ・拡大フィーチャ，化身</h2>
 <p>フィーチャ<var>F<sub>1</sub></var>のフィーチャ・オブジェクトでできることがフィーチャ<var>F<sub>2</sub></var>のフィーチャ・オブジェクトでできることに含まれている場合，<var>F<sub>1</sub></var>は<var>F<sub>2</sub></var>の部分フィーチャである，<var>F<sub>2</sub></var>は<var>F<sub>1</sub></var>の拡大フィーチャであるといいます。
