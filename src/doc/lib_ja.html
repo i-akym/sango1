@@ -61,7 +61,7 @@ kbd {
   <a href="#sango.lang.6">ビット演算</a>
   <a href="#sango.lang.7">大小判定（順序付け）</a>
   <a href="#sango.lang.8">型変換など</a>
-  <a href="#sango.lang.9">フィーチャ定義</a>
+  <a href="#sango.lang.9">データ・フィーチャ定義</a>
   <a href="#sango.lang.10">その他</a>
 <a href="#sango.actor"><code>sango.actor</code></a>
   <a href="#sango.actor.1">アクタ</a>
@@ -98,7 +98,7 @@ kbd {
   <a href="#sango.debug.3">例外情報</a>
 <a href="#sango.entity"><code>sango.entity</code></a>
   <a href="#sango.entity.1">実体機能</a>
-  <a href="#sango.entity.2">フィーチャ</a>
+  <a href="#sango.entity.2">データ・フィーチャ</a>
   <a href="#sango.entity.3">化身</a>
 <a href="#sango.entity.box"><code>sango.entity.box</code></a>
   <a href="#sango.entity.box.1">ボックス</a>
@@ -738,7 +738,7 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p>実数が整数に変換できるか判定します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.lang.9"><code>sango.lang</code> - フィーチャ定義</h2>
+<h2 id="sango.lang.9"><code>sango.lang</code> - データ・フィーチャ定義</h2>
 
 <table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'eq ] @public -&gt; &lt;T eq_fs&gt; ;;</code></td></tr></table>
 <p>【Beta】hardとは限らない等価判定ができることを表します。</p>
@@ -1533,7 +1533,7 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <p>実体に関する機能をまとめた関数群を表します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.2"><code>sango.entity</code> - フィーチャ</h2>
+<h2 id="sango.entity.2"><code>sango.entity</code> - データ・フィーチャ</h2>
 
 <table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'entity ] @public -&gt; &lt;T entity_fs&gt; ;;</code></td></tr></table>
 <p>【Beta】実体であることを表します。</p>
@@ -1549,7 +1549,7 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
   fo: &lt;T A entity_fs&gt;
   entity_inc$ ;;
 eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
-<p>a'entityフィーチャの化身型と，化身型への変換関数です。</p>
+<p>a'entityデータ・フィーチャの化身型と，化身型への変換関数です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.entity.box"><code>sango.entity.box</code></h1>
@@ -3185,8 +3185,8 @@ eval &lt;*D *A gcol&gt; *Col g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code
   col_inc$
 ++ [ A a'iter ] ;;
 eval &lt;*T[ *A a'col ]&gt; *FCol incarnate @public -&gt; &lt;T A col_inc&gt; ;;</code></td></tr></table>
-<p>a'colフィーチャの化身型と，化身型への変換関数です。
-化身型はa'iterフィーチャを実装します。</p>
+<p>a'colデータ・フィーチャの化身型と，化身型への変換関数です。
+化身型はa'iterデータ・フィーチャを実装します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.datetime"><code>sango.util.datetime</code></h1>
@@ -3304,10 +3304,10 @@ eval &lt;date_time&gt; *DT0 &lt;date_time&gt; *DT1 date_time_ge? | ge? @public -
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'eq ]&gt; *X0 &lt;T&gt; *X1 f_eq? | eq? @public -&gt; &lt;bool&gt; ;;
 eval &lt;*T[ a'eq ]&gt; *X0 &lt;T&gt; *X1 f_ne? | ne? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
-<p><code>a'eq</code>フィーチャにもとづき，<code>X0</code>と<code>X1</code>が等価かどうか判定します。</p>
+<p><code>a'eq</code>データ・フィーチャにもとづき，<code>X0</code>と<code>X1</code>が等価かどうか判定します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'eq ]&gt; *X0 f_hash | hash @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p><code>a'eq</code>フィーチャにもとづき，<code>X0</code>のハッシュ値を返します。</p>
+<p><code>a'eq</code>データ・フィーチャにもとづき，<code>X0</code>のハッシュ値を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.eq.2"><code>sango.util.eq</code> - 化身</h2>
@@ -3317,7 +3317,7 @@ eval &lt;*T[ a'eq ]&gt; *X0 &lt;T&gt; *X1 f_ne? | ne? @public -&gt; &lt;bool&gt;
   fo: &lt;T eq_fs&gt;
   eq_inc$ ;;
 eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></td></tr></table>
-<p><code>a'eq</code>フィーチャの化身型と，化身型への変換関数です。</p>
+<p><code>a'eq</code>データ・フィーチャの化身型と，化身型への変換関数です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.iter"><code>sango.util.iter</code></h1>
@@ -3374,7 +3374,7 @@ eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code><
   fo: &lt;T &lt;A iter&gt; fun&gt;
   iter_inc$ ;;
 eval &lt;*T[ *A a'iter ]&gt; *FIter incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
-<p><code>a'iter</code>フィーチャの化身型と，化身型への変換関数です。</p>
+<p><code>a'iter</code>データ・フィーチャの化身型と，化身型への変換関数です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>
@@ -3430,7 +3430,7 @@ alias type &lt;*A *B map&gt; @public := &lt;&lt;A B d&gt; A B gmap&gt;;;</code><
 <p>カプセル化されたマップオブジェクトを表します。
 <code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>はキーの型，<code>&lt;B&gt;</code>は値の型です。
 マップを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
-<code>gmap</code>は<code>a'map</code>フィーチャを実装しています。
+<code>gmap</code>は<code>a'map</code>データ・フィーチャを実装しています。
 標準ライブラリのマップの実装が生成するオブジェクトは<code>&lt;&lt;A B _2+&gt; A B gmap&gt;</code>型であり，別名によって簡易に<code>&lt;A B map&gt;</code>と書くことができます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*D *A *B gmap&gt; *Map g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
@@ -3669,10 +3669,10 @@ eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_lt? | lt? @public -&gt; &lt;bool&gt
 eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_le? | le? @public -&gt; &lt;bool&gt; ;;
 eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_gt? | gt? @public -&gt; &lt;bool&gt; ;;
 eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_ge? | ge? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
-<p><code>a'ord</code>フィーチャにもとづき，<code>X0</code>と<code>X1</code>の大小を判定します。</p>
+<p><code>a'ord</code>データ・フィーチャにもとづき，<code>X0</code>と<code>X1</code>の大小を判定します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'ord ]&gt; *X0 f_hash | hash @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
-<p><code>a'ord</code>フィーチャにもとづき，<code>X0</code>のハッシュ値を返します。</p>
+<p><code>a'ord</code>データ・フィーチャにもとづき，<code>X0</code>のハッシュ値を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.ord.2"><code>sango.util.ord</code> - 化身</h2>
@@ -3683,8 +3683,8 @@ eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 f_ge? | ge? @public -&gt; &lt;bool&gt
   ord_inc$
 ++ [ a'eq ] ;;
 eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code></td></tr></table>
-<p><code>a'ord</code>フィーチャの化身型と，化身型への変換関数です。
-化身型は<code>a'eq</code>フィーチャを実装します。</p>
+<p><code>a'ord</code>データ・フィーチャの化身型と，化身型への変換関数です。
+化身型は<code>a'eq</code>データ・フィーチャを実装します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.prop"><code>sango.util.prop</code> 【Alpha】</h1>
@@ -3976,7 +3976,7 @@ alias type &lt;*A set&gt; @public := &lt;&lt;A d&gt; A gset&gt;;;</code></td></t
 <p>カプセル化されたセットオブジェクトを表します。
 <code>&lt;D&gt;</code>は実装のための型，<code>&lt;A&gt;</code>は要素の型です。
 セットを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
-<code>gset</code>は<code>a'set</code>フィーチャを実装しています。
+<code>gset</code>は<code>a'set</code>データ・フィーチャを実装しています。
 標準ライブラリのセットの実装が生成するオブジェクトは<code>&lt;&lt;A _1+&gt; A gset&gt;</code>型であり，別名によって簡易に<code>&lt;A set&gt;</code>と書くことができます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gset&gt; *Set g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
