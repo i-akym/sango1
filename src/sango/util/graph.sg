@@ -1,0 +1,268 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.graph" ;;
+
+import "sango.list" -> list ;;
+import "sango.unique" -> uniq ;;
+import "sango.util.iter" -> iter ;;
+
+### elements ###
+
+# vertex
+
+data <vertex> @opaque :=
+  u: <uniq.u>
+  vertex$
+++ vertex_as_a'unique -> [ uniq.a'unique ] ;;
+
+eval new_vertex @public -> <vertex> {
+  u: uniq.new_unique vertex$
+} ;;
+
+eval <vertex> *V vertex_uniqueness | uniqueness @public -> <uniq.u> {
+  V u
+} ;;
+
+eval vertex_as_a'unique -> <vertex uniq.u fun> {
+  ^vertex_uniqueness
+} ;;
+
+# edge
+
+data <edge> @opaque :=
+  u: <uniq.u>
+  from: <vertex>
+  to: <vertex>
+  edge$
+++ edge_as_a'unique -> [ uniq.a'unique ] ;;
+
+eval <vertex> *From <vertex> *To new_edge @public -> <edge> {
+  u: uniq.new_unique from: From to: To edge$
+} ;;
+
+eval <edge> *E edge_uniqueness | uniqueness @public -> <uniq.u> {
+  E u
+} ;;
+
+eval edge_as_a'unique -> <edge uniq.u fun> {
+  ^edge_uniqueness
+} ;;
+
+eval <edge> *E vertices @public -> <vertex vertex tuple> {
+  E = u: ** from: *From to: *To edge$,
+  (| From, To |)
+} ;;
+
+
+### conditions ###
+
+data <vertex_sel> @public :=
+| vertex_sel_any$
+| <vertex> vertex_sel_just$
+| <vertex bool fun> vertex_sel_filter$ ;;
+
+data <edge_sel> @public :=
+| edge_sel_any$
+| <edge> edge_sel_just$
+| <vertex_sel> <vertex_sel> edge_sel_vertices$
+| <edge bool fun> edge_sel_filter$ ;;
+
+
+### handling functions ###
+
+data <*D graph_fs> @public :=
+  empty?_f: <D bool fun>
+  vertex_count_f: <D int fun>
+  edge_count_f: <D int fun>
+  vertex_iter_f: <D <vertex iter> fun>
+  edge_iter_f: <D <edge iter> fun>
+  contain_vertex?_f_: <<D vertex bool fun> maybe>
+  contain_edge?_f_: <<D edge bool fun> maybe>
+  add_vertex_f: <D vertex D fun>
+  add_edge_f: <D edge D fun>
+  delete_vertex_f: <D vertex D fun>
+  delete_edge_f: <D edge D fun>
+  select_vertices_f: <D vertex_sel <vertex iter> fun>
+  select_edges_f: <D edge_sel <edge iter> fun>
+  clear_f: <D D fun>
+  graph_fs$ ;;
+
+eval <*D graph_fs> *Fs contain_vertex?_f @public -> <D vertex bool fun> {
+  Fs contain_vertex?_f_ >> case {
+  ; *F value$ -> F
+  ; ** ->
+    \ <D> *Z <vertex> *V -> <bool> {
+      Z (V vertex_sel_just$) &(Fs select_vertices_f) >> next >> something?
+    }
+  }
+} ;;
+
+eval <*D graph_fs> *Fs contain_edge?_f @public -> <D edge bool fun> {
+  Fs contain_edge?_f_ >> case {
+  ; *F value$ -> F
+  ; ** ->
+    \ <D> *Z <edge> *E -> <bool> {
+      Z (E edge_sel_just$) &(Fs select_edges_f) >> next >> something?
+    }
+  }
+} ;;
+
+
+### feature ###
+
+feature <*T> [ a'graph ] @public -> <T graph_fs> ;;
+
+
+### incarnation ###
+
+data <*T graph_inc> @protected :=
+  org: <T>
+  fo: <T graph_fs>
+  graph_inc$ ;;
+
+eval <*T[ a'graph ]> *FGraph incarnate @public -> <T graph_inc> {
+  org: FGraph
+  fo: (FGraph _feature_a'graph)
+  graph_inc$
+} ;;
+
+
+### framework ###
+
+eval <*T[ a'graph ]> *G empty? @public -> <bool> {
+  G _feature_a'graph = *Fs,
+  G &(Fs empty?_f)
+} ;;
+
+eval <*T[ a'graph ]> *G vertex_count @public -> <int> {
+  G _feature_a'graph = *Fs,
+  G &(Fs vertex_count_f)
+} ;;
+
+eval <*T[ a'graph ]> *G edge_count @public -> <int> {
+  G _feature_a'graph = *Fs,
+  G &(Fs edge_count_f)
+} ;;
+
+eval <*T[ a'graph ]> *G vertex_iter @public -> <vertex iter> {
+  G _feature_a'graph = *Fs,
+  G &(Fs vertex_iter_f)
+} ;;
+
+eval <*T[ a'graph ]> *G edge_iter @public -> <edge iter> {
+  G _feature_a'graph = *Fs,
+  G &(Fs edge_iter_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex> *V contain_vertex? @public -> <bool> {
+  G _feature_a'graph = *Fs,
+  G V &(Fs contain_vertex?_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <edge> *E contain_edge? @public -> <bool> {
+  G _feature_a'graph = *Fs,
+  G E &(Fs contain_edge?_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex> *V add_vertex @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G V &(Fs add_vertex_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <edge> *E add_edge @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G E &(Fs add_edge_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex> *V delete_vertex @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G V &(Fs delete_vertex_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <edge> *E delete_edge @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G E &(Fs delete_edge_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex_sel> *Vsel select_vertices @public -> <vertex iter> {
+  G _feature_a'graph = *Fs,
+  G Vsel &(Fs select_vertices_f)
+} ;;
+
+eval <*T[ a'graph ]> *G <edge_sel> *Esel select_edges @public -> <edge iter> {
+  G _feature_a'graph = *Fs,
+  G Esel &(Fs select_edges_f)
+} ;;
+
+eval <*T[ a'graph ]> *G clear @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G &(Fs clear_f)
+} ;;
+
+
+### utility routines ###
+
+eval <*T[ a'graph ]> *G <vertex list> *Vs add_vertex_list @public -> <T> {
+  G (Vs list.iter) add_vertex_iter
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex iter> *VI add_vertex_iter @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G VI (Fs add_vertex_f) iter.fold
+} ;;
+
+eval <*T[ a'graph ]> *G <edge list> *Es add_edge_list @public -> <T> {
+  G (Es list.iter) add_edge_iter
+} ;;
+
+eval <*T[ a'graph ]> *G <edge iter> *EI add_edge_iter @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G EI (Fs add_edge_f) iter.fold
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex list> *Vs delete_vertex_list @public -> <T> {
+  G (Vs list.iter) delete_vertex_iter
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex iter> *VI delete_vertex_iter @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G VI (Fs delete_vertex_f) iter.fold
+} ;;
+
+eval <*T[ a'graph ]> *G <edge list> *Es delete_edge_list @public -> <T> {
+  G (Es list.iter) delete_edge_iter
+} ;;
+
+eval <*T[ a'graph ]> *G <edge iter> *EI delete_edge_iter @public -> <T> {
+  G _feature_a'graph = *Fs,
+  G EI (Fs delete_edge_f) iter.fold
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex> *V outgoing_edges @public -> <edge iter> {
+  G ((V vertex_sel_just$) vertex_sel_any$ edge_sel_vertices$) select_edges
+} ;;
+
+eval <*T[ a'graph ]> *G <vertex> *V incoming_edges @public -> <edge iter> {
+  G (vertex_sel_any$ (V vertex_sel_just$) edge_sel_vertices$) select_edges
+} ;;
