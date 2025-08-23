@@ -36,6 +36,7 @@ public class MAliasTypeDef implements Module.Elem {
   private MAliasTypeDef() {}
 
   static MAliasTypeDef create(String tcon, Module.Availability availability, Module.Access acc, int paramCount) {
+/* DEBUG */ if (tcon == null || tcon.length() == 0) { throw new IllegalArgumentException("Null or empty tcon."); }
 /* DEBUG */ if (availability == null) { throw new IllegalArgumentException("Null availability. " + tcon); }
     MAliasTypeDef atd = new MAliasTypeDef();
     atd.tcon = tcon;
