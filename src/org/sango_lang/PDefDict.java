@@ -212,6 +212,7 @@ class PDefDict {
 
   void putAliasTypeDef(IdKey tid, PAliasTypeDef def) {
     // call predefineXXX and check in advance
+/* TRAP */ if (def.getTcon() == null) { throw new IllegalArgumentException("Null tcon."); }
     TidProps tp = this.tidDict.get(tid);
     if (tp == null || (tp.cat & TID_CAT_TCON_ALIAS) == 0) { throw new IllegalArgumentException("Not predefined. " + tid); }
     this.aliasTypeDefDict.put(tid, def);
@@ -568,6 +569,7 @@ class PDefDict {
   }
 
   void addReferredForeignTcon(Cstr referrer, IdKey tid) throws CompileException {
+/* TRAP */ if (tid.idName == null) { throw new RuntimeException("Null id name."); }
     if (referrer == null) { return; }  // skip if internal ref
     if (referrer.equals(tid.modName)) { return; }  // skip if local ref
     TidProps tp = this.resolveTcon(referrer, tid);
@@ -582,6 +584,7 @@ class PDefDict {
   }
 
   void recordForeignDataDef(Cstr referrer, IdKey tid) {
+/* TRAP */ if (tid.idName == null) { throw new RuntimeException("Null id name."); }
     if (referrer == null) { return; }  // skip if internal ref
     if (referrer.equals(tid.modName)) { return; }  // skip if local ref
     Set<IdKey> referred = this.foreignDataDefs.get(referrer);
@@ -593,6 +596,7 @@ class PDefDict {
   }
 
   void recordForeignAliasTypeDef(Cstr referrer, IdKey tid) {
+/* TRAP */ if (tid.idName == null) { throw new RuntimeException("Null id name."); }
     if (referrer == null) { return; }  // skip if internal ref
     if (referrer.equals(tid.modName)) { return; }  // skip if local ref
     Set<IdKey> referred = this.foreignAliasTypeDefs.get(referrer);
@@ -604,6 +608,7 @@ class PDefDict {
   }
 
   void recordForeignFeatureDef(Cstr referrer, IdKey tid) {
+/* TRAP */ if (tid.idName == null) { throw new RuntimeException("Null id name."); }
     if (referrer == null) { return; }  // skip if internal ref
     if (referrer.equals(tid.modName)) { return; }  // skip if local ref
     Set<IdKey> referred = this.foreignFeatureDefs.get(referrer);
@@ -773,6 +778,7 @@ class PDefDict {
     IdKey(Cstr modName, String idName) {
       /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Mod name is null. " + idName); }
       /* DEBUG */ if (idName == null) { throw new IllegalArgumentException("Name is null. " + modName.repr()); }
+      /* DEBUG */ if (idName.length() == 0) { throw new IllegalArgumentException("Name is empty. " + modName.repr()); }
       this.modName = modName;
       this.idName = idName;
     }

@@ -128,6 +128,7 @@ class Generator {
     for (int i = 0; i < ads.size(); i++) {
       PAliasTypeDef ad = ads.get(i);
       try {
+/* TRAP */ if (ad.getTcon() == null) { throw new RuntimeException("Null tcon. " + ad + this.theMod.actualName.toJavaString()); }
         this.theCompiler.handleTypeAvailability(
           this.theMod.actualName, modName, ad.getTcon(), ad.getAvailability());
         this.generateAliasTypeDefGeneric(true, ad);
