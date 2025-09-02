@@ -28,11 +28,11 @@ import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.simplemap" -> smap ;;
 
-extend <*A *B _2> -> hash_map_d :=
+data <*A *B d> :=
   eq_fs: <A eq_fs>
   tab: <int <A B map.map> map.map>
   count: <int>
-  hash_map_d$ ;;
+  d$ ;;
 
 eval new_map @public -> <*A *B map.map> {
   hard_eq_fs new_map
@@ -40,11 +40,10 @@ eval new_map @public -> <*A *B map.map> {
 
 eval <*A eq_fs> *Eq new_map_eq | new_map @public -> <A *B map.map> {
   int_ord_fs avlmap.new_map = *Tab,
-  Eq Tab 0 hash_map_d$ = <A *BB map.d> *D,
-  d: D fs: map_fs map.gmap$
+  (Eq Tab 0 d$) map_fs map.to_generic_map
 } ;;
 
-eval map_fs -> <<*A *B map.d> A B map.map_fs> {
+eval map_fs -> <<*A *B d> A B map.map_fs> {
   empty?_f: ^empty?
   size_f: ^size
   get_f: ^get
@@ -60,34 +59,34 @@ eval map_fs -> <<*A *B map.d> A B map.map_fs> {
   map.map_fs$
 } ;;
 
-eval <*A *B map.d> *Map_d empty? -> <bool> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
+eval <*A *B d> *Map_d empty? -> <bool> {
+  Map_d = *Eq *Tab *Count d$,
   Count zero?
 } ;;
 
-eval <*A *B map.d> *Map_d size -> <int> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
+eval <*A *B d> *Map_d size -> <int> {
+  Map_d = *Eq *Tab *Count d$,
   Count
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key get -> <<A B tuple> maybe> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
+eval <*A *B d> *Map_d <A> *Key get -> <<A B tuple> maybe> {
+  Map_d = *Eq *Tab *Count d$,
   Tab (Key &(Eq hash_f)) map.assoc >> case {
   ; *M value$ -> M Key map.get
   ; ** -> none$
   }
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key assoc -> <B maybe> {
+eval <*A *B d> *Map_d <A> *Key assoc -> <B maybe> {
   (Map_d Key get) ^tuple.pair_second apply_to_something
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key contain_key? -> <bool> {
+eval <*A *B d> *Map_d <A> *Key contain_key? -> <bool> {
   Map_d Key get >> something?
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key <B> *Value put -> <<A B map.d> <<A B tuple> maybe> tuple> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
+eval <*A *B d> *Map_d <A> *Key <B> *Value put -> <<A B d> <<A B tuple> maybe> tuple> {
+  Map_d = *Eq *Tab *Count d$,
   Key &(Eq hash_f) = *H,
   Tab H map.assoc >> case {
   ; *M value$ ->
@@ -95,29 +94,29 @@ eval <*A *B map.d> *Map_d <A> *Key <B> *Value put -> <<A B map.d> <<A B tuple> m
     ; (| *M', none$ |) -> (| Tab H M' map.add, Count inc, none$ |)
     ; (| *M', *R |) -> (| Tab H M' map.add, Count, R |)
     } = (| *Tab', *Count', *Replaced_ |),
-    (| tab: Tab' count: Count' :: Map_d hash_map_d$, Replaced_ |)
+    (| tab: Tab' count: Count' :: Map_d d$, Replaced_ |)
   ; ** ->
     Eq smap.new_map = *M,
     M Key Value map.add = *M',
     Tab H M' map.add = *Tab',
     Count inc = *Count',
-    (| tab: Tab' count: Count' :: Map_d hash_map_d$, none$ |)
+    (| tab: Tab' count: Count' :: Map_d d$, none$ |)
   }
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key <B> *Value put_new -> <<A B map.d> bool tuple> {
+eval <*A *B d> *Map_d <A> *Key <B> *Value put_new -> <<A B d> bool tuple> {
   Map_d Key get >> case {
   ; ** value$ -> (| Map_d, false$ |)
   ; ** -> (| Map_d Key Value add, true$ |)
   }
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key <B> *Value add -> <A B map.d> {
+eval <*A *B d> *Map_d <A> *Key <B> *Value add -> <A B d> {
   Map_d Key Value put >> tuple.pair_first
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key remove -> <<A B map.d> <<A B tuple> maybe> tuple> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
+eval <*A *B d> *Map_d <A> *Key remove -> <<A B d> <<A B tuple> maybe> tuple> {
+  Map_d = *Eq *Tab *Count d$,
   Key &(Eq hash_f) = *H,
   Tab H map.assoc >> case {
   ; *M value$ ->
@@ -126,17 +125,17 @@ eval <*A *B map.d> *Map_d <A> *Key remove -> <<A B map.d> <<A B tuple> maybe> tu
     ; (| *M', *R |) || M' map.empty? -> (| Tab H map.delete, Count dec, R |)
     ; (| *M', *R |) -> (| Tab H M' map.add, Count dec, R |)
     } = (| *Tab', *Count', *Removed_ |),
-    (| tab: Tab' count: Count' :: Map_d hash_map_d$, Removed_ |)
+    (| tab: Tab' count: Count' :: Map_d d$, Removed_ |)
   ; ** -> (| Map_d, none$ |)
   }
 } ;;
 
-eval <*A *B map.d> *Map_d <A> *Key delete -> <A B map.d> {
+eval <*A *B d> *Map_d <A> *Key delete -> <A B d> {
   Map_d Key remove >> tuple.pair_first
 } ;;
 
-eval <*A *B map.d> *Map_d take -> <<<A B tuple> <A B map.d> tuple> maybe> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
+eval <*A *B d> *Map_d take -> <<<A B tuple> <A B d> tuple> maybe> {
+  Map_d = *Eq *Tab *Count d$,
   Tab map.take >> case {
   ; (| (| *H, *M |), *Tab' |) value$ ->
     M map.take = (| *KV, *M' |) value$,
@@ -145,12 +144,12 @@ eval <*A *B map.d> *Map_d take -> <<<A B tuple> <A B map.d> tuple> maybe> {
     ; true$ -> (| KV, Tab' |)
     ; ** -> (| KV, Tab' H M' map.add |)
     } = (| *Taken, *Tab'' |),
-    (| Taken, tab: Tab'' count: Count' :: Map_d hash_map_d$ |) value$
+    (| Taken, tab: Tab'' count: Count' :: Map_d d$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A *B map.d> *Map_d clear -> <A B map.d> {
-  Map_d = *Eq *Tab *Count hash_map_d$,
-  tab: (Tab map.clear) count: 0 :: Map_d hash_map_d$
+eval <*A *B d> *Map_d clear -> <A B d> {
+  Map_d = *Eq *Tab *Count d$,
+  tab: (Tab map.clear) count: 0 :: Map_d d$
 } ;;
