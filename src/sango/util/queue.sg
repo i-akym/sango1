@@ -48,16 +48,44 @@ eval <*D *A queue_fs> *Fs queue_fs_to_col_fs | to_col_fs @public -> <D A col_fs>
 
 ### generic
 
-data <*D *A gqueue> @public :=
-  d: <D>
-  fs: <D A queue_fs>
-  gqueue$
+data <*A queue> @opaque :=
+  empty?_f: <bool fun>
+  length_f: <int fun>
+  enqueue_f: <A <A queue> fun>
+  head_f: <<A maybe> fun>
+  dequeue_f: <<<A <A queue> tuple> maybe> fun>
+  clear_f: <<A queue> fun>
+  queue$
 ++ a'queue_impl -> [ A a'queue ] ;;
 
-alias type <*A d> @public := <A _1+> ;;
-alias type <*A queue> @public := <<A d> A gqueue> ;;
+eval <*D> *Z <D *A queue_fs> *Fs to_generic_queue @public -> <A queue> {
+  empty?_f:
+    \\ <bool> { Z Fs do_empty? }
+  length_f:
+    \\ <int> { Z Fs do_length }
+  enqueue_f:
+    \ <A> *X -> <A queue> {
+      Z Fs X do_enqueue = *Z',
+      Z' Fs to_generic_queue
+    }
+  head_f:
+    \\ <A maybe> { Z Fs do_head }
+  dequeue_f:
+    \\ <<A <A queue> tuple> maybe> {
+      Z Fs do_dequeue >> case {
+      ; (| *E, *Z' |) value$ -> (| E, Z' Fs to_generic_queue |) value$
+      ; ** -> none$
+      }
+    }
+  clear_f:
+    \\ <A queue> {
+      Z Fs do_clear = *Z',
+      Z' Fs to_generic_queue
+    }
+  queue$
+} ;;
 
-eval a'queue_impl -> <<*D *A gqueue> A queue_fs> {
+eval a'queue_impl -> <<*A queue> A queue_fs> {
   empty?_f: ^g_empty?
   length_f: ^g_length
   enqueue_f: ^g_enqueue
@@ -70,60 +98,61 @@ eval a'queue_impl -> <<*D *A gqueue> A queue_fs> {
 
 ### implementation of common-behavior object
 
-eval <*D *A gqueue> *Queue g_empty? | empty? @public -> <bool> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs do_empty?
+eval <*A queue> *Queue g_empty? | empty? @public -> <bool> {
+  &(Queue empty?_f)
 } ;;
 
-eval <*D *A gqueue> *Queue g_length | length @public -> <int> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs do_length
+eval <*A queue> *Queue g_length | length @public -> <int> {
+  &(Queue length_f)
 } ;;
 
-eval <*D *A gqueue> *Queue <A> *Elem g_enqueue | enqueue @public -> <D A gqueue> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs Elem do_enqueue = *D',
-  d: D' fs: Fs gqueue$
+eval <*A queue> *Queue <A> *Elem g_enqueue | enqueue @public -> <A queue> {
+  Elem &(Queue enqueue_f)
 } ;;
 
-eval <*D *A gqueue> *Queue g_head | head @public -> <A maybe> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs do_head
+eval <*A queue> *Queue g_head | head @public -> <A maybe> {
+  &(Queue head_f)
 } ;;
 
-eval <*D *A gqueue> *Queue g_dequeue | dequeue @public -> <<A <D A gqueue> tuple> maybe> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs do_dequeue >> case {
-  ; (| *Elem, *D' |) value$ -> (| Elem, d: D' fs: Fs gqueue$ |) value$
+eval <*A queue> *Queue g_dequeue | dequeue @public -> <<A <A queue> tuple> maybe> {
+  &(Queue dequeue_f)
+} ;;
+
+eval <*A queue> *Queue g_clear | clear @public -> <A queue> {
+  &(Queue clear_f)
+} ;;
+
+eval <*A queue> *Queue g_iter | iter @public -> <A iter> {
+  \\ <A iter_res> { Queue g_iter_next } iter$
+} ;;
+
+eval <*A queue> *Z g_iter_next -> <A iter_res> {
+  Z g_dequeue >> case {
+  ; (| *E, *Z' |) value$ ->
+    (| E, \\ <A iter_res> { Z' g_iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*D *A gqueue> *Queue g_clear | clear @public -> <D A gqueue> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs do_clear = *D',
-  d: D' fs: Fs gqueue$
-} ;;
-
-eval <*D *A gqueue> *Queue <A list> *Elems g_enqueue_list | enqueue_list @public -> <D A gqueue> {
+eval <*A queue> *Queue <A list> *Elems g_enqueue_list | enqueue_list @public -> <A queue> {
   Queue (Elems list.iter) g_enqueue_iter
 } ;;
 
-eval <*D *A gqueue> *Queue <A iter> *Iter g_enqueue_iter | enqueue_iter @public -> <D A gqueue> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs Iter do_enqueue_iter = *D',
-  d: D' fs: Fs gqueue$
-} ;;
-
-eval <*D *A gqueue> *Queue g_iter | iter @public -> <A iter> {
-  Queue = d: *D fs: *Fs gqueue$,
-  D Fs do_iter
+eval <*A queue> *Queue <A iter> *Iter g_enqueue_iter | enqueue_iter @public -> <A queue> {
+  Queue
+  Iter
+  \ <A queue> *Y <A> *E -> <A queue> { Y E g_enqueue }
+  iter.fold
 } ;;
 
 
-### definition of feature
+### feature
 
 feature <*T> [ *A a'queue ] @public -> <T A queue_fs> ;;
+
+eval <*T[ *A a'queue ]> *FQueue f_to_generic_queue | to_generic_queue @public -> <A queue> {
+  FQueue (FQueue _feature_a'queue) to_generic_queue
+} ;;
 
 eval <*T[ *A a'queue ]> *FQueue f_empty? | empty? @public -> <bool> {
   FQueue _feature_a'queue = *Queue_fs,
