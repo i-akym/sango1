@@ -933,6 +933,8 @@ if (DEBUG > 1) {
           emsg.append("Type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
+          emsg.append("\n  attribute pos: ");
+          emsg.append(i + 1);
           emsg.append("\n  attribute def: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(at));
           emsg.append("\n  attribute def in context: ");

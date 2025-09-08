@@ -26,18 +26,19 @@ module "sango.util.stack.liststack" ;;
 import "sango.list" -> list ;;
 import "sango.util.stack" -> stack ;;
 
-extend <*A _1> -> list_stack_d := <A list> list_stack_d$ ;;
+data <*A d> :=
+  <A list>
+  d$ ;;
 
 eval new_stack @public -> <*A stack.stack> {
   [] to_stack
 } ;;
 
 eval <*A list> *Elems to_stack @public -> <A stack.stack> {
-  Elems list_stack_d$ = <A stack.d> *D,
-  d: D fs: stack_fs stack.gstack$
+  (Elems d$) stack_fs stack.to_generic_stack
 } ;;
 
-eval stack_fs @public -> <<*A stack.d> A stack.stack_fs> {
+eval stack_fs -> <<*A d> A stack.stack_fs> {
   empty?_f: ^empty?
   depth_f: ^depth
   push_f: ^push
@@ -48,39 +49,39 @@ eval stack_fs @public -> <<*A stack.d> A stack.stack_fs> {
   stack.stack_fs$
 } ;;
 
-eval <*A stack.d> *Stack_d empty? -> <bool> {
-  Stack_d = *Elems list_stack_d$,
+eval <*A d> *Stack_d empty? -> <bool> {
+  Stack_d = *Elems d$,
   Elems list.empty?
 } ;;
 
-eval <*A stack.d> *Stack_d depth -> <int> {
-  Stack_d = *Elems list_stack_d$,
+eval <*A d> *Stack_d depth -> <int> {
+  Stack_d = *Elems d$,
   Elems list.length
 } ;;
 
-eval <*A stack.d> *Stack_d <A> *Elem push -> <A stack.d> {
-  Stack_d = *Elems list_stack_d$,
-  [ Elem ; Elems ] list_stack_d$
+eval <*A d> *Stack_d <A> *Elem push -> <A d> {
+  Stack_d = *Elems d$,
+  [ Elem ; Elems ] d$
 } ;;
 
-eval <*A stack.d> *Stack_d top -> <A maybe> {
-  Stack_d = *Elems list_stack_d$,
+eval <*A d> *Stack_d top -> <A maybe> {
+  Stack_d = *Elems d$,
   Elems list.head
 } ;;
 
-eval <*A stack.d> *Stack_d pop -> <<A <A stack.d> tuple> maybe> {
-  Stack_d = *Elems list_stack_d$,
+eval <*A d> *Stack_d pop -> <<A <A d> tuple> maybe> {
+  Stack_d = *Elems d$,
   Elems case {
-  ; [ *Top ; *Others ] -> (| Top, Others list_stack_d$ |) value$
+  ; [ *Top ; *Others ] -> (| Top, Others d$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A stack.d> *Stack_d to_list -> <A list> {
-  Stack_d = *Elems list_stack_d$,
+eval <*A d> *Stack_d to_list -> <A list> {
+  Stack_d = *Elems d$,
   Elems
 } ;;
 
-eval <*A stack.d> *Stack_d clear -> <A stack.d> {
-  [] list_stack_d$
+eval <*A d> *Stack_d clear -> <A d> {
+  [] d$
 } ;;
