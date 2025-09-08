@@ -3746,66 +3746,51 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 
 <p>データと機能関数群をカプセル化しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*D *A gralist&gt; @public :=
-  d: &lt;D&gt;
-  fs: &lt;D A ralist_fs&gt;
-  gralist$ ;;
-alias type &lt;*A d&gt; @public := &lt;A _1+&gt; ;;
-alias type &lt;*A ralist&gt; @public := &lt;&lt;A d&gt; A gralist&gt;;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A ralist&gt; @opaque
+++ [ A a'ralist ] ;;</code></td></tr></table>
 <p>カプセル化されたランダム・アクセス・リストのオブジェクトを表します。
-ランダム・アクセス・リストを使用するには<code>&lt;D&gt;</code>，属性を意識する必要はありません。
-標準ライブラリのランダム・アクセス・リストの実装が生成するオブジェクトは<code>&lt;&lt;A _1+&gt; A gralist&gt;</code>型であり，別名によって簡易に<code>&lt;A ralist&gt;</code>と書くことができます。</p>
+<code>&lt;A&gt;</code>は要素の型です。
+<code>ralist</code>は<code>a'ralist</code>データ・フィーチャを実装しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_empty? | empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A ralist&gt; *List g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>リストが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_non_empty? | non_empty? @public -&gt; &lt;bool&gt; ;;
-eval &lt;*A ralist&gt; *List g_non_empty? | non_empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_non_empty? | non_empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>リストが要素をもつかどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_length | length @public -&gt; &lt;int&gt; ;;
-eval &lt;*A ralist&gt; *List g_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>リストの長さ（要素の個数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;int&gt; *Index g_elem | elem @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_elem | elem @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_elem | elem @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を返します。
 先頭は0番目です。
 該当する要素が無い場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_first | first | head @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A ralist&gt; *List g_first | first | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_first | first | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの先頭要素を返します。
 空リストの場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_last | last @public -&gt; &lt;A maybe&gt; ;;
-eval &lt;*A ralist&gt; *List g_last | last @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_last | last @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>リストの末尾要素を返します。
 空リストの場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_tail | tail @public -&gt; &lt;&lt;D A gralist&gt; maybe&gt; ;;
-eval &lt;*A ralist&gt; *List g_tail | tail @public -&gt; &lt;&lt;A ralist&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_tail | tail @public -&gt; &lt;&lt;A ralist&gt; maybe&gt; ;;</code></td></tr></table>
 <p>リストから先頭要素を取り除いた残りを返します。
 空リストの場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X g_insert_at | insert_at @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X g_insert_at | insert_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X g_insert_at | insert_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素として<code>X</code>を挿入します。
 <code>Index</code>が負の場合は先頭に挿入します。
 <code>Index</code>が要素の個数以上の場合は末尾に挿入します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A ralist&gt; *List &lt;A&gt; *X g_append | append @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;A&gt; *X g_append | append @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A&gt; *X g_append | append @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの末尾に<code>X</code>を挿入します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;int&gt; *Index g_remove_at | remove_at @public -&gt; &lt;&lt;D A gralist&gt; &lt;A maybe&gt; tuple&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_remove_at | remove_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_remove_at | remove_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を削除し，結果のリストと削除された要素の組を返します。
 該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;int&gt; *Index g_delete_at | delete_at @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_delete_at | delete_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_delete_at | delete_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を削除します。
 該当する要素が無い場合は，リストは変化しません。</p>
 
@@ -3813,39 +3798,39 @@ eval &lt;*A ralist&gt; *List &lt;int&gt; *Index g_delete_at | delete_at @public 
 <p>リストの<code>Index</code>番目の要素を<code>X</code>で置換し，結果のリストと置換された要素の組を返します。
 該当する要素が無い場合は，リストは変化せず，タプルの第二要素は<code>none$</code>になります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X g_update_at | update_at @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X g_update_at | update_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Index &lt;A&gt; *X g_update_at | update_at @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの<code>Index</code>番目の要素を<code>X</code>で置換します。
 該当する要素が無い場合は，リストは変化しません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;int&gt; *Count g_take | take @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Count g_take | take @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count g_take | take @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの先頭から<code>Count</code>個の要素をリストとして返します。
 要素の個数が<code>Count</code>個に満たない場合は，リストの全体が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;int&gt; *Count g_drop | drop @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;int&gt; *Count g_drop | drop @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;int&gt; *Count g_drop | drop @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストの先頭から<code>Count</code>個の要素を取り除いたリストを返します。
 要素の個数が<code>Count</code>個に満たない場合は，空リストが返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_clear | clear @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List g_clear | clear @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_clear | clear @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>リストを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List g_iter | iter @public -&gt; &lt;A iter&gt; ;;
-eval &lt;*A ralist&gt; *List g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;A list&gt; *Xs g_append_list | append_list @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;A list&gt; *Xs g_append_list | append_list @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A list&gt; *Xs g_append_list | append_list @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p><code>Xs</code>の要素を順に末尾に追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A gralist&gt; *List &lt;A iter&gt; *Iter g_append_iter | append_iter @public -&gt; &lt;D A gralist&gt; ;;
-eval &lt;*A ralist&gt; *List &lt;A iter&gt; *Iter g_append_iter | append_iter @public -&gt; &lt;A ralist&gt; ;; </code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *List &lt;A iter&gt; *Iter g_append_iter | append_iter @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を順に末尾に追加します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.ralist.2"><code>sango.util.ralist</code> - 実装者向け情報</h2>
+
+<p>ランダム・アクセス・リストは，実装のための内部データと機能関数群からなります。
+内部データは，自由に定義することができます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A ralist_fs&gt; *Fs to_generic_ralist @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p>ランダム・アクセス・リストを生成します。
+<code>Z</code>が内部データです。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A ralist_fs&gt; @public :=
   empty?_f: &lt;D bool fun&gt;

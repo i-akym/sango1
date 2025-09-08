@@ -171,16 +171,80 @@ eval <*D *A ralist_fs> *Fs ralist_fs_to_col_fs | to_col_fs @public -> <D A col_f
 
 ### generic
 
-data <*D *A gralist> @public :=
-  d: <D>
-  fs: <D A ralist_fs>
-  gralist$
+data <*A ralist> @opaque :=
+  empty?_f: <bool fun>
+  length_f: <int fun>
+  elem_f: <int <A maybe> fun>
+  first_f: <<A maybe> fun>
+  last_f: <<A maybe> fun>
+  tail_f: <<<A ralist> maybe> fun>
+  insert_at_f: <int A <A ralist> fun>
+  append_f: <A <A ralist> fun>
+  remove_at_f: <int <<A ralist> <A maybe> tuple> fun>
+  replace_at_f: <int A <<A ralist> <A maybe> tuple> fun>
+  take_f: <int <A ralist> fun>
+  drop_f: <int <A ralist> fun>
+  clear_f: <<A ralist> fun>
+  ralist$
 ++ a'ralist_impl -> [ A a'ralist ] ;;
 
-alias type <*A d> @public := <A _1+> ;;
-alias type <*A ralist> @public := <<A d> A gralist> ;;
+eval <*D> *Z <D *A ralist_fs> *Fs to_generic_ralist @public -> <A ralist> {
+  empty?_f:
+    \\ <bool> { Z Fs do_empty? }
+  length_f:
+    \\ <int> { Z Fs do_length }
+  elem_f:
+    \ <int> *I -> <A maybe> { Z Fs I do_elem }
+  first_f:
+    \\ <A maybe> { Z Fs do_first }
+  last_f:
+    \\ <A maybe> { Z Fs do_last }
+  tail_f:
+    \\ <<A ralist> maybe> {
+      Z Fs do_tail >> case {
+      ; *Z' value$ -> (Z' Fs to_generic_ralist) value$
+      ; ** -> none$
+      }
+    }
+  insert_at_f:
+    \ <int> *I <A> *X -> <A ralist> {
+      Z Fs I X do_insert_at = *Z',
+      Z' Fs to_generic_ralist
+    }
+  append_f:
+    \ <A> *X -> <A ralist> {
+      Z Fs X do_append = *Z',
+      Z' Fs to_generic_ralist
+    }
+  remove_at_f:
+    \ <int> *I -> <<A ralist> <A maybe> tuple> {
+      Z Fs I do_remove_at = (| *Z', *Removed_ |),
+      (| Z' Fs to_generic_ralist, Removed_ |)
+    }
+  replace_at_f:
+    \ <int> *I <A> *X -> <<A ralist> <A maybe> tuple> {
+      Z Fs I X do_replace_at = (| *Z', *Replaced_ |),
+      (| Z' Fs to_generic_ralist, Replaced_ |)
+    }
+  take_f:
+    \ <int> *C -> <A ralist> {
+      Z Fs C do_take = *Z',
+      Z' Fs to_generic_ralist
+    }
+  drop_f:
+    \ <int> *C -> <A ralist> {
+      Z Fs C do_drop = *Z',
+      Z' Fs to_generic_ralist
+    }
+  clear_f:
+    \\ <A ralist>  {
+      Z Fs do_clear = *Z',
+      Z' Fs to_generic_ralist
+    }
+  ralist$
+} ;;
 
-eval a'ralist_impl -> <<*D *A gralist> A ralist_fs> {
+eval a'ralist_impl -> <<*A ralist> A ralist_fs> {
   empty?_f: ^g_empty?
   length_f: ^g_length
   elem_f: ^g_elem
@@ -197,120 +261,101 @@ eval a'ralist_impl -> <<*D *A gralist> A ralist_fs> {
   ralist_fs$
 } ;;
 
-eval <*D *A gralist> *Ralist g_empty? | empty? @public -> <bool> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_empty?
+eval <*A ralist> *Ralist g_empty? | empty? @public -> <bool> {
+  &(Ralist empty?_f)
 } ;;
 
-eval <*D *A gralist> *Ralist g_non_empty? | non_empty? @public -> <bool> {
+eval <*A ralist> *Ralist g_non_empty? | non_empty? @public -> <bool> {
   Ralist g_empty? >> not
 } ;;
 
-eval <*D *A gralist> *Ralist g_length | length @public -> <int> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_length
+eval <*A ralist> *Ralist g_length | length @public -> <int> {
+  &(Ralist length_f)
 } ;;
 
-eval <*D *A gralist> *Ralist <int> *Index g_elem | elem @public -> <A maybe> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Index do_elem
+eval <*A ralist> *Ralist <int> *Index g_elem | elem @public -> <A maybe> {
+  Index &(Ralist elem_f)
 } ;;
 
-eval <*D *A gralist> *Ralist g_first | first | head @public -> <A maybe> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_first
+eval <*A ralist> *Ralist g_first | first | head @public -> <A maybe> {
+  &(Ralist first_f)
 } ;;
 
-eval <*D *A gralist> *Ralist g_last | last @public -> <A maybe> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_last
+eval <*A ralist> *Ralist g_last | last @public -> <A maybe> {
+  &(Ralist last_f)
 } ;;
 
-eval <*D *A gralist> *Ralist g_tail | tail @public -> <<D A gralist> maybe> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_tail >> case {
-  ; *D' value$ -> (d: D' fs: Fs gralist$) value$
+eval <*A ralist> *Ralist g_tail | tail @public -> <<A ralist> maybe> {
+  &(Ralist tail_f)
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index <A> *Elem g_insert_at | insert_at @public -> <A ralist> {
+  Index Elem &(Ralist insert_at_f)
+} ;;
+
+eval <*A ralist> *Ralist <A> *Elem g_append | append @public -> <A ralist> {
+  Elem &(Ralist append_f)
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index g_remove_at | remove_at @public -> <<A ralist> <A maybe> tuple> {
+  Index &(Ralist remove_at_f)
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index g_delete_at | delete_at @public -> <A ralist> {
+  Index &(Ralist remove_at_f) >> tuple.pair_first
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index <A> *Elem g_replace_at | replace_at @public -> <<A ralist> <A maybe> tuple> {
+  Index Elem &(Ralist replace_at_f)
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index <A> *Elem g_update_at | update_at @public -> <A ralist> {
+  Index Elem &(Ralist replace_at_f) >> tuple.pair_first
+} ;;
+
+eval <*A ralist> *Ralist <int> *Count g_take | take @public -> <A ralist> {
+  Count &(Ralist take_f)
+} ;;
+
+eval <*A ralist> *Ralist <int> *Count g_drop | drop @public -> <A ralist> {
+  Count &(Ralist drop_f)
+} ;;
+
+eval <*A ralist> *Ralist g_clear | clear @public -> <A ralist> {
+  &(Ralist clear_f)
+} ;;
+
+eval <*A ralist> *Ralist g_iter | iter @public -> <A iter> {
+  \\ <A iter_res> { Ralist g_iter_next } iter$
+} ;;
+
+eval <*A ralist> *Z g_iter_next -> <A iter_res> {
+  Z g_first >> case {
+  ; *E value$ ->
+    (| E, \\ <A iter_res> { (Z 1 g_drop) g_iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*D *A gralist> *Ralist <int> *Index <A> *Elem g_insert_at | insert_at @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Index Elem do_insert_at = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist <A> *Elem g_append | append @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Elem do_append = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist <int> *Index g_remove_at | remove_at @public -> <<D A gralist> <A maybe> tuple> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Index do_remove_at >> case {
-  ; (| *D', *Removed value$ |) -> (| d: D' fs: Fs gralist$, Removed value$ |)
-  ; ** -> (| Ralist, none$ |)
-  }
-} ;;
-
-eval <*D *A gralist> *Ralist <int> *Index g_delete_at | delete_at @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Index do_delete_at = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist <int> *Index <A> *Elem g_replace_at | replace_at @public -> <<D A gralist> <A maybe> tuple> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Index Elem do_replace_at >> case {
-  ; (| *D', *Replaced value$ |) -> (| d: D' fs: Fs gralist$, Replaced value$ |)
-  ; ** -> (| Ralist, none$ |)
-  }
-} ;;
-
-eval <*D *A gralist> *Ralist <int> *Index <A> *Elem g_update_at | update_at @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Index Elem do_update_at = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist <int> *Count g_take | take @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Count do_take = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist <int> *Count g_drop | drop @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Count do_drop = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist g_clear | clear @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_clear = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist <A list> *Elems g_append_list | append_list @public -> <D A gralist> {
+eval <*A ralist> *Ralist <A list> *Elems g_append_list | append_list @public -> <A ralist> {
   Ralist (Elems list.iter) g_append_iter
 } ;;
 
-eval <*D *A gralist> *Ralist <A iter> *Iter g_append_iter | append_iter @public -> <D A gralist> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs Iter do_append_iter = *D',
-  d: D' fs: Fs gralist$
-} ;;
-
-eval <*D *A gralist> *Ralist g_iter | iter @public -> <A iter> {
-  Ralist = d: *D fs: *Fs gralist$,
-  D Fs do_iter
+eval <*A ralist> *Ralist <A iter> *Iter g_append_iter | append_iter @public -> <A ralist> {
+  Ralist
+  Iter
+  \ <A ralist> *Y <A> *E -> <A ralist> { Y E g_append }
+  iter.fold
 } ;;
 
 
 ### feature
 
 feature <*T> [ *A a'ralist ] @public -> <T A ralist_fs> ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_to_generic_ralist | to_generic_ralist @public -> <A ralist> {
+  FRalist (FRalist _feature_a'ralist) to_generic_ralist
+} ;;
 
 eval <*T[ *A a'ralist ]> *FRalist f_empty? | empty? @public -> <bool> {
   FRalist _feature_a'ralist = *Ralist_fs,
