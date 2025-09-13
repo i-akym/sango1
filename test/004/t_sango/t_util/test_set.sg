@@ -1,6 +1,7 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.set" -> set ;;
+import "sango.util.set.feature" -> setf ;;
 import "sango.util.set.simpleset" -> sset ;;
 
 eval _main_ -> <void> {
@@ -13,7 +14,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   sset.new_set [ 1, 2, 3 ] set.add_list = *S3,
-  S3 set._feature_a'set = *SF,
+  S3 setf._feature_a'set = *SF,
   SF set.set_fs_to_col_fs = *CF,
   S3 &(CF empty?_f) = false$,
   S3 &(CF size_f) = 3,

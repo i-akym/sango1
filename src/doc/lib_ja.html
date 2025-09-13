@@ -3912,10 +3912,10 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A set&gt; @opaque
-++ [ A a'set ] ;;</td></tr></table>
+++ [ A &quot;sango.util.set.feature&quot;.a'set ] ;;</td></tr></table>
 <p>カプセル化されたセットオブジェクトを表します。
 <code>&lt;A&gt;</code>は要素の型です。
-<code>set</code>は<code>a'set</code>データ・フィーチャを実装しています。</p>
+<code>set</code>は<code>&quot;sango.util.set.feature&quot;.a'set</code>データ・フィーチャを実装しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A set&gt; *Set g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>セットが空かどうかを判定します。</p>
@@ -4090,7 +4090,7 @@ eval &lt;*A! shared_set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&
 <p>複数のアクタから共有可能なセットを提供します。
 データの参照・更新には，<code>&quot;sango.util.set.shared&quot;</code>の関数を使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! &quot;sango.util.set&quot;.a'set ]&gt; *FSet f_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! &quot;sango.util.set.featue&quot;.a'set ]&gt; *FSet f_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;
 eval &lt;*D!&gt; *Set_d &lt;D *A! set.set_fs&gt; *Set_fs do_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
 <p>共有されるセットを生成し，そのハンドルを返します。</p>
 

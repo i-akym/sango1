@@ -27,10 +27,11 @@ import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
 import "sango.list" -> list ;;
 import "sango.util.set" -> set ;;
+import "sango.util.set.feature" -> setf ;;
 import "sango.util.set.shared" -> shset ;;
 
-eval <*T![ *A! set.a'set ]> *FSet f_create_box | create_box @public -> <A shset.shared_set_h> {
-  FSet (FSet set._feature_a'set) do_create_box
+eval <*T![ *A! setf.a'set ]> *FSet f_create_box | create_box @public -> <A shset.shared_set_h> {
+  FSet (FSet setf._feature_a'set) do_create_box
 } ;;
 
 eval <*D!> *Set_d <D *A! set.set_fs> *Set_fs do_create_box | create_box @public -> <A shset.shared_set_h> {

@@ -25,6 +25,7 @@ module "sango.util.set" ;;
 
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
+import "sango.util.set.feature" -> feat ;;
 
 ### function set
 
@@ -111,7 +112,7 @@ data <*A set> @opaque :=
   take_f: <<<A <A set> tuple> maybe> fun>
   clear_f: <<A set> fun>
   set$
-++ a'set_impl -> [ A a'set ] ;;
+++ a'set_impl -> [ A feat.a'set ] ;;
 
 eval <*D> *Z <D *A set_fs> *Fs to_generic_set @public -> <A set> {
   empty?_f:
@@ -286,136 +287,6 @@ eval <*A set> *Set0 <A set> *Set1 g_difference | difference @public -> <A set> {
   Set0
   \ <A> *X -> <bool> { Set1 X g_contain? >> not }
   g_filter
-} ;;
-
-
-### faeture
-
-feature <*T> [ *A a'set ] @public -> <T A set_fs> ;;
-
-eval <*T[ *A a'set ]> *FSet f_to_generic_set | to_generic_set @public -> <A set> {
-  FSet (FSet _feature_a'set) to_generic_set
-} ;;
-
-eval <*T[ *A a'set ]> *FSet f_empty? | empty? @public -> <bool> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs do_empty?
-} ;;
-
-eval <*T[ *A a'set ]> *FSet f_size | size @public -> <int> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs do_size
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_get | get @public -> <A maybe> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_get
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_contain? | contain? @public -> <bool> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_contain?
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_put | put @public -> <T <A maybe> tuple> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_put
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_put_new | put_new @public -> <T bool tuple> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_put_new
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_add | add @public -> <T> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_add
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_remove | remove @public -> <T <A maybe> tuple> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_remove
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A> *Elem f_delete | delete @public -> <T> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Elem do_delete
-} ;;
-
-eval <*T[ *A a'set ]> *FSet f_take | take @public -> <<A T tuple> maybe> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs do_take
-} ;;
-
-eval <*T[ *A a'set ]> *FSet f_clear | clear @public -> <T> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs do_clear
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A list> *Elems f_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
-  FSet (Elems list.iter) f_contain_just_iter?
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A iter> *Iter f_contain_just_iter? | contain_just_iter? | contain_just? @public -> <bool> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Iter do_contain_just_iter?
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A list> *Elems f_add_list | add_list @public -> <T> {
-  FSet (Elems list.iter) f_add_iter
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A iter> *Iter f_add_iter | add_iter @public -> <T> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Iter do_add_iter
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A list> *Elems f_delete_list | delete_list @public -> <T> {
-  FSet (Elems list.iter) f_delete_iter
-} ;;
-
-eval <*T[ *A a'set ]> *FSet <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs Iter do_delete_iter
-} ;;
-
-eval <*T[ *A a'set ]> *FSet f_iter | iter @public -> <A iter> {
-  FSet _feature_a'set = *Set_fs,
-  FSet Set_fs do_iter
-} ;;
-
-
-### incarnation
-
-data <*T *A set_inc> @protected :=
-  org: <T>
-  fo: <T A set_fs>
-  set_inc$
-++ inc_a'col_impl -> [ A a'col ] ;;
-
-eval <*T[ *A a'set ]> *FSet incarnate @public -> <T A set_inc> {
-  org: FSet
-  fo: (FSet _feature_a'set)
-  set_inc$
-} ;;
-
-eval inc_a'col_impl -> <<*T *A set_inc> A col_fs> {
-  empty?_f_:
-    (\ <*TT *AA set_inc> *I -> <bool> {
-       I = *ID *IFs set_inc$,
-       ID IFs do_empty?
-     } value$)
-  size_f:
-    \ <*TT *AA set_inc> *I -> <int> {
-      I = *ID *IFs set_inc$,
-      ID IFs do_size
-    }
-  iter_f:
-    \ <*TT *AA set_inc> *I -> <AA iter> {
-      I = *ID *IFs set_inc$,
-      ID IFs do_iter
-    }
-  col_fs$
 } ;;
 
 
