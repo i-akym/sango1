@@ -27,10 +27,11 @@ import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
 import "sango.list" -> list ;;
 import "sango.util.map" -> map ;;
+import "sango.util.map.feature" -> mapf ;;
 import "sango.util.map.shared" -> shmap ;;
 
-eval <*T![ *A! *B! map.a'map ]> *FMap f_create_box | create_box @public -> <A B shmap.shared_map_h> {
-  FMap (FMap map._feature_a'map) do_create_box
+eval <*T![ *A! *B! mapf.a'map ]> *FMap f_create_box | create_box @public -> <A B shmap.shared_map_h> {
+  FMap (FMap mapf._feature_a'map) do_create_box
 } ;;
 
 eval <*D!> *Map_d <D *A! *B! map.map_fs> *Map_fs do_create_box | create_box @public -> <A B shmap.shared_map_h> {
