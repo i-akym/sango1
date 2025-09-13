@@ -1,6 +1,7 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.map" -> map ;;
+import "sango.util.map.feature" -> mapf ;;
 import "sango.util.map.simplemap" -> smap ;;
 
 eval _main_ -> <void> {
@@ -13,7 +14,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   smap.new_map [ (| 1, "A" |), (| 2, "B" |), (| 3, "C" |) ] map.add_list = *M3,
-  M3 map._feature_a'map = *MF,
+  M3 mapf._feature_a'map = *MF,
   MF map.map_fs_to_col_fs = *CF,
   M3 &(CF empty?_f) = false$,
   M3 &(CF size_f) = 3,

@@ -3405,10 +3405,10 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @opaque
-++ [ A B a'map ] ;;</code></td></tr></table>
+++ [ A B &quot;sango.util.map.feature&quot;.a'map ] ;;</code></td></tr></table>
 <p>カプセル化されたマップオブジェクトを表します。
 <code><code>&lt;A&gt;</code>はキーの型，<code>&lt;B&gt;</code>は値の型です。
-<code>map</code>は<code>a'map</code>データ・フィーチャを実装しています。</p>
+<code>map</code>は<code>&quot;sango.util.map.feature&quot;.a'map</code>データ・フィーチャを実装しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>マップが空かどうかを判定します。</p>
@@ -3583,7 +3583,7 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <p>複数のアクタから共有可能なマップを提供します。
 データの参照・更新には，<code>&quot;sango.util.map.shared&quot;</code>の関数を使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! *B! &quot;sango.util.map&quot;.a'map ]&gt; *FMap f_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! *B! &quot;sango.util.map.feature&quot;.a'map ]&gt; *FMap f_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;
 eval &lt;*D!&gt; *Map_d &lt;D *A! *B! map.map_fs&gt; *Map_fs do_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
 <p>共有されるマップを生成し，そのハンドルを返します。</p>
 
@@ -3602,7 +3602,7 @@ eval &lt;*D!&gt; *Map_d &lt;D *A! *B! map.map_fs&gt; *Map_fs do_create_box | cre
 <p>実体を関連データとするマップです。
 関連データは弱参照で保持され，これ以外からの参照がなくなると，そのキーと当該データが自動的に削除されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*KM![ *A! &quot;sango.unique&quot;.u &quot;sango.util.map&quot;.a'map ]&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs
+<table border width="100%"><tr><td class="def"><code>eval &lt;*KM![ *A! &quot;sango.unique&quot;.u &quot;sango.util.map.feature&quot;.a'map ]&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs
   create_weak_value_map @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
 <p>共有されるマップを生成し，そのハンドルを返します。
 <code>Key_tab</code>にはキーを管理するのに適したマップを指定します。

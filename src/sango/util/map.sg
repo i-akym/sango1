@@ -26,6 +26,7 @@ module "sango.util.map" ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.iter" -> iter ;;
+import "sango.util.map.feature" -> feat ;;
 
 ### function set
 
@@ -122,7 +123,7 @@ data <*A *B map> @public :=
   take_f: <<<<A B tuple> <A B map> tuple> maybe> fun>
   clear_f: <<A B map> fun>
   map$
-++ a'map_impl -> [ A B a'map ] ;;
+++ a'map_impl -> [ A B feat.a'map ] ;;
 
 eval <*D> *Z <D *A *B map_fs> *Fs to_generic_map @public -> <A B map> {
   empty?_f:
@@ -271,126 +272,6 @@ eval <*A *B map> *Map <A iter> *Iter g_delete_iter | delete_iter @public -> <A B
   Iter
   \ <A B map> *M <A> *K -> <A B map> { M K g_delete }
   iter.fold
-} ;;
-
-
-### feature
-
-feature <*T> [ *A *B a'map ] @public -> <T A B map_fs> ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_to_generic_map | to_generic_map @public -> <A B map> {
-  FMap (FMap _feature_a'map) to_generic_map
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_empty? | empty? @public -> <bool> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_empty?
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_size | size @public -> <int> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_size
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_get | get @public -> <<A B tuple> maybe> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_get
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_assoc
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_contain_key? | contain_key? @public -> <bool> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_contain_key?
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put | put @public -> <T <<A B tuple> maybe> tuple> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key Value do_put
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put_new | put_new @public -> <T bool tuple> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key Value do_put_new
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key Value do_add
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_remove | remove @public -> <T <<A B tuple> maybe> tuple> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_remove
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_delete | delete @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_delete
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_take | take @public -> <<<A B tuple> T tuple> maybe> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_take
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_clear | clear @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_clear
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <<A B tuple> list> *KVs f_add_list | add_list @public -> <T> {
-  FMap (KVs list.iter) f_add_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <<A B tuple> iter> *Iter f_add_iter | add_iter @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Iter do_add_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A list> *Ks f_delete_list | delete_list @public -> <T> {
-  FMap (Ks list.iter) f_delete_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Iter do_delete_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_iter | iter @public -> <<A B tuple> iter> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_iter
-} ;;
-
-
-### incarnation
-
-data <*T *A *B map_inc> @protected :=
-  org: <T>
-  fo: <T A B map_fs>
-  map_inc$
-++ inc_a'col_impl -> [ <A B tuple> a'col ] ;;
-
-eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
-  empty?_f_:
-    (\ <*TT *AA *BB map_inc> *I -> <bool> {
-       I = *ID *IFs map_inc$,
-       ID IFs do_empty?
-     } value$)
-  size_f:
-    \ <*TT *AA *BB map_inc> *I -> <int> {
-      I = *ID *IFs map_inc$,
-      ID IFs do_size
-    }
-  iter_f:
-    \ <*TT *AA *BB map_inc> *I -> <<AA BB tuple> iter> {
-      I = *ID *IFs map_inc$,
-      ID IFs do_iter
-    }
-  col_fs$
 } ;;
 
 

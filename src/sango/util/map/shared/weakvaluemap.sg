@@ -30,6 +30,7 @@ import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.unique" -> uniq ;;
 import "sango.util.map" -> map ;;
+import "sango.util.map.feature" -> mapf ;;
 import "sango.util.map.hashmap" -> hmap ;;
 import "sango.util.map.shared" -> shared ;;
 
@@ -50,9 +51,9 @@ data <*KM! *A! *B! h> @opaque :=
   undress_f: <B ent.undress_f>
   h$ ;;
 
-eval <*KM![ *A! uniq.u map.a'map ]> *Key_tab <*B! ent.entity_fs> *Entity_fs
+eval <*KM![ *A! uniq.u mapf.a'map ]> *Key_tab <*B! ent.entity_fs> *Entity_fs
     create_weak_value_map @public -> <A B shared.shared_map_h> {
-  Key_tab map._feature_a'map = *KTfs,
+  Key_tab mapf._feature_a'map = *KTfs,
   hmap.new_map = <uniq.u <A B v> map.map> *Value_tab,
   (key_tab_d: (Key_tab KTfs map.do_clear) key_tab_fs: KTfs value_tab: Value_tab d$)
     none$ box.create_box = *Box,
