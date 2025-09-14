@@ -1,6 +1,7 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.bag" -> bag ;;
+import "sango.util.bag.feature" -> bagf ;;
 import "sango.util.bag.simplebag" -> sbag ;;
 
 eval _main_ -> <void> {
@@ -13,7 +14,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   sbag.new_bag [ 1, 2, 3 ] bag.add_list = *B3,
-  B3 bag._feature_a'bag = *BF,
+  B3 bagf._feature_a'bag = *BF,
   BF bag.bag_fs_to_col_fs = *CF,
   B3 &(CF empty?_f) = false$,
   B3 &(CF size_f) = 3,
