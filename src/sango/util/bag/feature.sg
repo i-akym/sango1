@@ -1,0 +1,156 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.bag.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.bag" -> bag ;;
+
+### feature
+
+feature <*T> [ *A a'bag ] @public -> <T A bag.bag_fs> ;;
+
+eval <*T[ *A a'bag ]> *FBag f_to_generic_bag | to_generic_bag @public -> <A bag.bag> {
+  FBag (FBag _feature_a'bag) bag.to_generic_bag
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag f_empty? | empty? @public -> <bool> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs bag.do_empty?
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag f_size | size @public -> <int> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs bag.do_size
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_contain? | contain? @public -> <bool> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_contain?
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_get_all | get_all @public -> <A list> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_get_all
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_add | add @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_add
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_remove | remove @public -> <T <A maybe> tuple> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_remove
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_remove_all | remove_all @public -> <T <A list> tuple> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_remove_all
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_delete | delete @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_delete
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A> *Elem f_delete_all | delete_all @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Elem bag.do_delete_all
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag f_take | take @public -> <<A T tuple> maybe> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs bag.do_take
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag f_clear | clear @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs bag.do_clear
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A list> *Elems f_add_list | add_list @public -> <T> {
+  FBag (Elems list.iter) f_add_iter
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A iter> *Iter f_add_iter | add_iter @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Iter bag.do_add_iter
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A list> *Elems f_delete_list | delete_list @public -> <T> {
+  FBag (Elems list.iter) f_delete_iter
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Iter bag.do_delete_iter
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A list> *Elems f_delete_all_list | delete_all_list @public -> <T> {
+  FBag (Elems list.iter) f_delete_all_iter
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag <A iter> *Iter f_delete_all_iter | delete_all_iter @public -> <T> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs Iter bag.do_delete_all_iter
+} ;;
+
+eval <*T[ *A a'bag ]> *FBag f_iter | iter @public -> <A iter> {
+  FBag _feature_a'bag = *Bag_fs,
+  FBag Bag_fs bag.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A bag_inc> @protected :=
+  org: <T>
+  fo: <T A bag.bag_fs>
+  bag_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'bag ]> *FBag incarnate @public -> <T A bag_inc> {
+  org: FBag
+  fo: (FBag _feature_a'bag)
+  bag_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A bag_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA bag_inc> *I -> <bool> {
+       I = *ID *IFs bag_inc$,
+       ID IFs bag.do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA bag_inc> *I -> <int> {
+      I = *ID *IFs bag_inc$,
+      ID IFs bag.do_size
+    }
+  iter_f:
+    \ <*TT *AA bag_inc> *I -> <AA iter> {
+      I = *ID *IFs bag_inc$,
+      ID IFs bag.do_iter
+    }
+  col_fs$
+} ;;
