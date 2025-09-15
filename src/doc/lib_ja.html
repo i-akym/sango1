@@ -4463,10 +4463,10 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A stack&gt; @opaque
-++ [ A a'stack ] ;;</code></td></tr></table>
+++ [ A &quot;sango.util.stack.feature&quot;.a'stack ] ;;</code></td></tr></table>
 <p>カプセル化されたスタックオブジェクトを表します。
 <code>&lt;A&gt;</code>は要素の型です。
-<code>stack</code>は<code>a'stack</code>データ・フィーチャを実装しています。</p>
+<code>stack</code>は<code>&quot;sango.util.stack.feature&quot;.a'stack</code>データ・フィーチャを実装しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>スタックが空かどうかを判定します。</p>

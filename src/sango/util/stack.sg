@@ -25,6 +25,7 @@ module "sango.util.stack" ;;
 
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
+import "sango.util.stack.feature" -> feat ;;
 
 ### function set
 
@@ -73,7 +74,7 @@ data <*A stack> @opaque :=
   to_list_f: <<A list> fun>
   clear_f: <<A stack> fun>
   stack$
-++ a'stack_impl -> [ A a'stack ] ;;
+++ a'stack_impl -> [ A feat.a'stack ] ;;
 
 eval <*D> *Z <D *A stack_fs> *Fs to_generic_stack @public -> <A stack> {
   empty?_f:
@@ -164,64 +165,6 @@ eval <*A stack> *Stack <A iter> *Iter g_push_iter | push_iter @public -> <A stac
   Iter
   \ <A stack> *Y <A> *E -> <A stack> { Y E g_push }
   iter.fold
-} ;;
-
-
-### feature
-
-feature <*T> [ *A a'stack ] @public -> <T A stack_fs> ;;
-
-eval <*T[ *A a'stack ]> *FStack f_to_generic_stack | to_generic_stack @public -> <A stack> {
-  FStack (FStack _feature_a'stack) to_generic_stack
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_empty? | empty? @public -> <bool> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_empty?
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_depth | depth @public -> <int> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_depth
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack <A> *Elem f_push | push @public -> <T> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs Elem do_push
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_top | top @public -> <A maybe> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_top
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_pop | pop @public -> <<A T tuple> maybe> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_pop
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_to_list | to_list @public -> <A list> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_to_list
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_clear | clear @public -> <T> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_clear
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack <A list> *Elems f_push_list | push_list @public -> <T> {
-  FStack (Elems list.iter) f_push_iter
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack <A iter> *Iter f_push_iter | push_iter @public -> <T> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs Iter do_push_iter
-} ;;
-
-eval <*T[ *A a'stack ]> *FStack f_iter | iter @public -> <A iter> {
-  FStack _feature_a'stack = *Stack_fs,
-  FStack Stack_fs do_iter
 } ;;
 
 

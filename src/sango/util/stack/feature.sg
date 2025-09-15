@@ -1,0 +1,84 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.stack.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.stack" -> stack ;;
+
+### feature
+
+feature <*T> [ *A a'stack ] @public -> <T A stack.stack_fs> ;;
+
+eval <*T[ *A a'stack ]> *FStack f_to_generic_stack | to_generic_stack @public -> <A stack.stack> {
+  FStack (FStack _feature_a'stack) stack.to_generic_stack
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_empty? | empty? @public -> <bool> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_empty?
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_depth | depth @public -> <int> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_depth
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack <A> *Elem f_push | push @public -> <T> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs Elem stack.do_push
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_top | top @public -> <A maybe> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_top
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_pop | pop @public -> <<A T tuple> maybe> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_pop
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_to_list | to_list @public -> <A list> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_to_list
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_clear | clear @public -> <T> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_clear
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack <A list> *Elems f_push_list | push_list @public -> <T> {
+  FStack (Elems list.iter) f_push_iter
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack <A iter> *Iter f_push_iter | push_iter @public -> <T> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs Iter stack.do_push_iter
+} ;;
+
+eval <*T[ *A a'stack ]> *FStack f_iter | iter @public -> <A iter> {
+  FStack _feature_a'stack = *Stack_fs,
+  FStack Stack_fs stack.do_iter
+} ;;
