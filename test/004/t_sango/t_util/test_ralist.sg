@@ -1,6 +1,7 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.ralist" -> ral ;;
+import "sango.util.ralist.feature" -> ralf ;;
 import "sango.util.avltree.ralist" -> avlral ;;
 
 eval _main_ -> <void> {
@@ -13,7 +14,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   avlral.new_ralist [ 1, 2, 3 ] ral.append_list = *L3,
-  L3 ral._feature_a'ralist = *LF,
+  L3 ralf._feature_a'ralist = *LF,
   LF ral.ralist_fs_to_col_fs = *CF,
   L3 &(CF empty?_f) = false$,
   L3 &(CF size_f) = 3,
