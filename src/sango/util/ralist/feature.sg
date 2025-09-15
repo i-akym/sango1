@@ -1,0 +1,162 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.ralist.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.ralist" -> ral ;;
+
+### feature
+
+feature <*T> [ *A a'ralist ] @public -> <T A ral.ralist_fs> ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_to_generic_ralist | to_generic_ralist @public -> <A ral.ralist> {
+  FRalist (FRalist _feature_a'ralist) ral.to_generic_ralist
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_empty? | empty? @public -> <bool> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_empty?
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_non_empty? | non_empty? @public -> <bool> {
+  FRalist f_empty? >> not
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_length | length @public -> <int> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_length
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index f_elem | elem @public -> <A maybe> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Index ral.do_elem
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index f_first | first | head @public -> <A maybe> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_first
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index f_last | last @public -> <A maybe> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_last
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_tail | tail @public -> <T maybe> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_tail
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index <A> *Elem f_insert_at | insert_at @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Index Elem ral.do_insert_at
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <A> *Elem f_append | append @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Elem ral.do_append
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index f_remove_at | remove_at @public -> <T <A maybe> tuple> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Index ral.do_remove_at
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index f_delete_at | delete_at @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Index ral.do_delete_at
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index <A> *Elem f_replace_at | replace_at @public -> <T <A maybe> tuple> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Index Elem ral.do_replace_at
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Index <A> *Elem f_update_at | update_at @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Index Elem ral.do_update_at
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Count f_take | take @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Count ral.do_take
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <int> *Count f_drop | drop @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Count ral.do_drop
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_clear | clear @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_clear
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <A list> *Elems f_append_list | append_list @public -> <T> {
+  FRalist (Elems list.iter) f_append_iter
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist <A iter> *Iter f_append_iter | append_iter @public -> <T> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs Iter ral.do_append_iter
+} ;;
+
+eval <*T[ *A a'ralist ]> *FRalist f_iter | iter @public -> <A iter> {
+  FRalist _feature_a'ralist = *Ralist_fs,
+  FRalist Ralist_fs ral.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A ralist_inc> @protected :=
+  org: <T>
+  fo: <T A ral.ralist_fs>
+  ralist_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'ralist ]> *FRalist incarnate @public -> <T A ralist_inc> {
+  org: FRalist
+  fo: (FRalist _feature_a'ralist)
+  ralist_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A ralist_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA ralist_inc> *I -> <bool> {
+       I = *ID *IFs ralist_inc$,
+       ID IFs ral.do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA ralist_inc> *I -> <int> {
+      I = *ID *IFs ralist_inc$,
+      ID IFs ral.do_length
+    }
+  iter_f:
+    \ <*TT *AA ralist_inc> *I -> <AA iter> {
+      I = *ID *IFs ralist_inc$,
+      ID IFs ral.do_iter
+    }
+  col_fs$
+} ;;
