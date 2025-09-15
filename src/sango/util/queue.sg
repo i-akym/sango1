@@ -25,6 +25,7 @@ module "sango.util.queue" ;;
 
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
+import "sango.util.queue.feature" -> feat ;;
 
 ### function set
 
@@ -56,7 +57,7 @@ data <*A queue> @opaque :=
   dequeue_f: <<<A <A queue> tuple> maybe> fun>
   clear_f: <<A queue> fun>
   queue$
-++ a'queue_impl -> [ A a'queue ] ;;
+++ a'queue_impl -> [ A feat.a'queue ] ;;
 
 eval <*D> *Z <D *A queue_fs> *Fs to_generic_queue @public -> <A queue> {
   empty?_f:
@@ -143,59 +144,6 @@ eval <*A queue> *Queue <A iter> *Iter g_enqueue_iter | enqueue_iter @public -> <
   Iter
   \ <A queue> *Y <A> *E -> <A queue> { Y E g_enqueue }
   iter.fold
-} ;;
-
-
-### feature
-
-feature <*T> [ *A a'queue ] @public -> <T A queue_fs> ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_to_generic_queue | to_generic_queue @public -> <A queue> {
-  FQueue (FQueue _feature_a'queue) to_generic_queue
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_empty? | empty? @public -> <bool> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs do_empty?
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_length | length @public -> <int> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs do_length
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue <A> *Elem f_enqueue | enqueue @public -> <T> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs Elem do_enqueue
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_head | head @public -> <A maybe> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs do_head
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_dequeue | dequeue @public -> <<A T tuple> maybe> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs do_dequeue
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_clear | clear @public -> <T> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs do_clear
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue <A list> *Elems f_enqueue_list | enqueue_list @public -> <T> {
-  FQueue (Elems list.iter) f_enqueue_iter
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue <A iter> *Iter f_enqueue_iter | enqueue_iter @public -> <T> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs Iter do_enqueue_iter
-} ;;
-
-eval <*T[ *A a'queue ]> *FQueue f_iter | iter @public -> <A iter> {
-  FQueue _feature_a'queue = *Queue_fs,
-  FQueue Queue_fs do_iter
 } ;;
 
 

@@ -3672,10 +3672,10 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 <p>データと機能関数群をカプセル化しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @opaque
-++ [ A a'queue ] ;;</code></td></tr></table>
+++ [ A &quot;sango.util.queue.feature&quot;.a'queue ] ;;</code></td></tr></table>
 <p>カプセル化されたキューオブジェクトを表します。
 <code>&lt;A&gt;</code>は要素の型です。
-<code>queue</code>は<code>a'queue</code>データ・フィーチャを実装しています。</p>
+<code>queue</code>は<code>&quot;sango.util.queue.feature&quot;.a'queue</code>データ・フィーチャを実装しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キューが空かどうかを判定します。</p>
