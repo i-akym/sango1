@@ -27,10 +27,11 @@ import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
 import "sango.list" -> list ;;
 import "sango.util.queue" -> queue ;;
+import "sango.util.queue.feature" -> queuef ;;
 import "sango.util.queue.shared" -> shqueue ;;
 
-eval <*T![ *A! queue.a'queue ]> *FQueue f_create_box | create_box @public -> <A shqueue.shared_queue_h> {
-  FQueue (FQueue queue._feature_a'queue) do_create_box
+eval <*T![ *A! queuef.a'queue ]> *FQueue f_create_box | create_box @public -> <A shqueue.shared_queue_h> {
+  FQueue (FQueue queuef._feature_a'queue) do_create_box
 } ;;
 
 eval <*D!> *Queue_d <D *A! queue.queue_fs> *Queue_fs do_create_box | create_box @public -> <A shqueue.shared_queue_h> {
