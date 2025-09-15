@@ -3583,8 +3583,7 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <p>複数のアクタから共有可能なマップを提供します。
 データの参照・更新には，<code>&quot;sango.util.map.shared&quot;</code>の関数を使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! *B! &quot;sango.util.map.feature&quot;.a'map ]&gt; *FMap f_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;
-eval &lt;*D!&gt; *Map_d &lt;D *A! *B! map.map_fs&gt; *Map_fs do_create_box | create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! *B! &quot;sango.util.map&quot;.map&gt; *Map create_box @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
 <p>共有されるマップを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4090,8 +4089,7 @@ eval &lt;*A! shared_set_h&gt; *Set_h &lt;A iter&gt; *Iter delete_iter @public -&
 <p>複数のアクタから共有可能なセットを提供します。
 データの参照・更新には，<code>&quot;sango.util.set.shared&quot;</code>の関数を使用します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T![ *A! &quot;sango.util.set.featue&quot;.a'set ]&gt; *FSet f_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;
-eval &lt;*D!&gt; *Set_d &lt;D *A! set.set_fs&gt; *Set_fs do_create_box | create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.util.set&quot;.set&gt; *Set create_box @public -&gt; &lt;A &quot;sango.util.set.shared&quot;.shared_set_h&gt; ;;</code></td></tr></table>
 <p>共有されるセットを生成し，そのハンドルを返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
