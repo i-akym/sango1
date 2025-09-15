@@ -27,74 +27,69 @@ import "sango.actor.util" -> actu ;;
 import "sango.entity.box" -> box ;;
 import "sango.list" -> list ;;
 import "sango.util.queue" -> queue ;;
-import "sango.util.queue.feature" -> queuef ;;
 import "sango.util.queue.shared" -> shqueue ;;
 
-eval <*T![ *A! queuef.a'queue ]> *FQueue f_create_box | create_box @public -> <A shqueue.shared_queue_h> {
-  FQueue (FQueue queuef._feature_a'queue) do_create_box
-} ;;
-
-eval <*D!> *Queue_d <D *A! queue.queue_fs> *Queue_fs do_create_box | create_box @public -> <A shqueue.shared_queue_h> {
-  Queue_d none$ box.create_box = *Box,
+eval <*A! queue.queue> *Queue create_box @public -> <A shqueue.shared_queue_h> {
+  Queue none$ box.create_box = *Box,
   Box actu.create_box_monitor = *Mon,
 
-  extract_f: \\ <A iter> { Mon Queue_fs extract }
-  empty?_f: \\ <bool> { Mon Queue_fs empty? }
-  length_f: \\ <int> { Mon Queue_fs length }
-  enqueue_f: \ <A> *Elem -> <void> { Mon Queue_fs Elem enqueue }
-  head_f: \\ <A maybe> { Mon Queue_fs head }
-  dequeue_f: \\ <A maybe> { Mon Queue_fs dequeue }
-  clear_f:  \\ <void> { Mon Queue_fs clear }
+  extract_f: \\ <A iter> { Mon extract }
+  empty?_f: \\ <bool> { Mon empty? }
+  length_f: \\ <int> { Mon length }
+  enqueue_f: \ <A> *Elem -> <void> { Mon Elem enqueue }
+  head_f: \\ <A maybe> { Mon head }
+  dequeue_f: \\ <A maybe> { Mon dequeue }
+  clear_f:  \\ <void> { Mon clear }
   shqueue.shared_queue_h$
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs extract -> <A iter> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon extract -> <A iter> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A queue.queue> box.box_h> *Box -> <A queue.queue> {
       Box box.read
     }
     actu.run = *Z,
-  Z Queue_fs queue.do_iter
+  Z queue.iter
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs empty? -> <bool> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon empty? -> <bool> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A queue.queue> box.box_h> *Box -> <A queue.queue> {
       Box box.read
     } actu.run = *Z,
-  Z Queue_fs queue.do_empty?
+  Z queue.empty?
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs length -> <int> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon length -> <int> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A queue.queue> box.box_h> *Box -> <A queue.queue> {
       Box box.read
     } actu.run = *Z,
-  Z Queue_fs queue.do_length
+  Z queue.length
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs <A> *Elem enqueue -> <void> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon <A> *Elem enqueue -> <void> {
   Mon
-    \ <D box.box_h> *Box -> <void> {
+    \ <<A queue.queue> box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Queue_fs Elem queue.do_enqueue = *Z',
+      Z Elem queue.enqueue = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs head -> <A maybe> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon head -> <A maybe> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A queue.queue> box.box_h> *Box -> <A queue.queue> {
       Box box.read
     } actu.run = *Z,
-  Z Queue_fs queue.do_head
+  Z queue.head
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs dequeue -> <A maybe> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon dequeue -> <A maybe> {
   Mon
-    \ <D box.box_h> *Box -> <A maybe> {
+    \ <<A queue.queue> box.box_h> *Box -> <A maybe> {
       Box box.read = *Z,
-      Z Queue_fs queue.do_dequeue >> case {
+      Z queue.dequeue >> case {
       ; (| *Dequeued, *Z' |) value$ ->
         Box Z' box.write,
         Dequeued value$
@@ -104,11 +99,11 @@ eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs dequeue -> <
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! queue.queue_fs> *Queue_fs clear -> <void> {
+eval <<*A! queue.queue> actu.box_monitor_h> *Mon clear -> <void> {
   Mon
-    \ <D box.box_h> *Box -> <void> {
+    \ <<A queue.queue> box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Queue_fs queue.do_clear = *Z',
+      Z queue.clear = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
