@@ -3601,7 +3601,8 @@ eval &lt;*A! *B! shared_map_h&gt; *Map_h &lt;A iter&gt; *Iter delete_iter @publi
 <p>実体を関連データとするマップです。
 関連データは弱参照で保持され，これ以外からの参照がなくなると，そのキーと当該データが自動的に削除されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*KM![ *A! &quot;sango.unique&quot;.u &quot;sango.util.map.feature&quot;.a'map ]&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A! kt&gt; @public := &lt;A &quot;sango.unique&quot;.u &quot;sango.util.map&quot;.map&gt; ;;
+eval &lt;*A! kt&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Entity_fs
   create_weak_value_map @public -&gt; &lt;A B &quot;sango.util.map.shared&quot;.shared_map_h&gt; ;;</code></td></tr></table>
 <p>共有されるマップを生成し，そのハンドルを返します。
 <code>Key_tab</code>にはキーを管理するのに適したマップを指定します。

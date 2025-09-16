@@ -27,7 +27,7 @@ eval test -> <void> {
 } ;;
 
 eval make -> <cstr <int box.box_h> shm.shared_map_h> {
-  cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
+  cstr.ord_fs avlmap.new_map = <cstr wvm.kt> *KT,
   box.entity_fs = <<int box.box_h> ent.entity_fs> *Dfs,
   KT Dfs wvm.create_weak_value_map = *M,
   1 (\\ <void> { "1 box purged." stdio.print_and_newline, stdio.flush } value$) box.create_box = *V1, M "a" V1 shm.add,
@@ -39,7 +39,7 @@ eval make -> <cstr <int box.box_h> shm.shared_map_h> {
 } ;;
 
 eval test000 -> <void> {
-  cstr.ord_fs avlmap.new_map = <cstr uniq.u map.map> *KT,
+  cstr.ord_fs avlmap.new_map = <cstr wvm.kt> *KT,
   box.entity_fs = <<int box.box_h> ent.entity_fs> *Dfs,
   KT Dfs wvm.create_weak_value_map = *M,
   1 none$ box.create_box = *V1,
