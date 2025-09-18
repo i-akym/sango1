@@ -21,7 +21,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.util.queue.feature" ;;
+module @beta "sango.util.queue.feature" ;;
 
 import "sango.list" -> list ;;
 import "sango.util.queue" -> queue ;;
@@ -76,4 +76,38 @@ eval <*T[ *A a'queue ]> *FQueue <A iter> *Iter f_enqueue_iter | enqueue_iter @pu
 eval <*T[ *A a'queue ]> *FQueue f_iter | iter @public -> <A iter> {
   FQueue _feature_a'queue = *Queue_fs,
   FQueue Queue_fs queue.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A queue_inc> @protected :=
+  org: <T>
+  fo: <T A queue.queue_fs>
+  queue_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'queue ]> *FQueue incarnate @public -> <T A queue_inc> {
+  org: FQueue
+  fo: (FQueue _feature_a'queue)
+  queue_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A queue_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA queue_inc> *I -> <bool> {
+       I = *ID *IFs queue_inc$,
+       ID IFs queue.do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA queue_inc> *I -> <int> {
+      I = *ID *IFs queue_inc$,
+      ID IFs queue.do_length
+    }
+  iter_f:
+    \ <*TT *AA queue_inc> *I -> <AA iter> {
+      I = *ID *IFs queue_inc$,
+      ID IFs queue.do_iter
+    }
+  col_fs$
 } ;;
