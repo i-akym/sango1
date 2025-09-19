@@ -53,7 +53,7 @@ eval <*A ord_fs> *Ord <A> *X put_new_locator -> <<A avl.node> <A avl.locate> fun
 } ;;
 
 eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
-  (ord: Ord body: avl.new_tree d$) set_fs set.to_generic_set
+  (ord: Ord body: avl.new_tree d$) set_fs set.combine
 } ;;
 
 eval set_fs -> <<*A d> A set.set_fs> {

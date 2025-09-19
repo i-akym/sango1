@@ -97,7 +97,7 @@ eval <*D *A set_fs> *Fs set_fs_to_col_fs | to_col_fs @public -> <D A col_fs> {
 } ;;
 
 
-### generic
+### combined object
 
 data <*A set> @opaque :=
   empty?_f: <bool fun>
@@ -114,7 +114,7 @@ data <*A set> @opaque :=
   set$
 ++ a'set_impl -> [ A feat.a'set ] ;;
 
-eval <*D> *Z <D *A set_fs> *Fs to_generic_set @public -> <A set> {
+eval <*D> *Z <D *A set_fs> *Fs combine @public -> <A set> {
   empty?_f:
     \\ <bool> { Z Fs do_empty? }
   size_f:
@@ -126,167 +126,167 @@ eval <*D> *Z <D *A set_fs> *Fs to_generic_set @public -> <A set> {
   put_f:
     \ <A> *X -> <<A set> <A maybe> tuple> {
       Z Fs X do_put = (| *Z', *Replaced_ |),
-      (| Z' Fs to_generic_set, Replaced_ |)
+      (| Z' Fs combine, Replaced_ |)
     }
   put_new_f:
     \ <A> *X -> <<A set> bool tuple> {
       Z Fs X do_put_new = (| *Z', *Succeeded? |),
-      (| Z' Fs to_generic_set, Succeeded? |)
+      (| Z' Fs combine, Succeeded? |)
     }
   add_f:
     \ <A> *X -> <A set> {
       Z Fs X do_add = *Z',
-      Z' Fs to_generic_set
+      Z' Fs combine
     }
   remove_f:
     \ <A> *X -> <<A set> <A maybe> tuple> {
       Z Fs X do_remove = (| *Z', *Removed_ |),
-      (| Z' Fs to_generic_set, Removed_ |)
+      (| Z' Fs combine, Removed_ |)
     }
   delete_f:
     \ <A> *X -> <A set> {
       Z Fs X do_delete = *Z',
-      Z' Fs to_generic_set
+      Z' Fs combine
     }
   take_f:
     \\ <<A <A set> tuple> maybe> {
       Z Fs do_take >> case {
-      ; (| *E, *Z' |) value$ -> (| E, Z' Fs to_generic_set |) value$
+      ; (| *E, *Z' |) value$ -> (| E, Z' Fs combine |) value$
       ; ** -> none$
       }
     }
   clear_f:
     \\ <A set> {
       Z Fs do_clear = *Z', 
-      Z' Fs to_generic_set
+      Z' Fs combine
     }
   set$
 } ;;
 
 eval a'set_impl -> <<*A set> A set_fs> {
-  empty?_f: ^g_empty?
-  size_f: ^g_size
-  get_f: ^g_get
-  contain?_f_: (^g_contain? value$)
-  put_f: ^g_put
-  put_new_f_: (^g_put_new value$)
-  add_f_: (^g_add value$)
-  remove_f: ^g_remove
-  delete_f_: (^g_delete value$)
-  take_f: ^g_take
-  clear_f: ^g_clear
+  empty?_f: ^empty?
+  size_f: ^size
+  get_f: ^get
+  contain?_f_: (^contain? value$)
+  put_f: ^put
+  put_new_f_: (^put_new value$)
+  add_f_: (^add value$)
+  remove_f: ^remove
+  delete_f_: (^delete value$)
+  take_f: ^take
+  clear_f: ^clear
   set_fs$
 } ;;
 
-eval <*A set> *Set g_empty? | empty? @public -> <bool> {
+eval <*A set> *Set empty? @public -> <bool> {
   &(Set empty?_f)
 } ;;
 
-eval <*A set> *Set g_size | size @public -> <int> {
+eval <*A set> *Set size @public -> <int> {
   &(Set size_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_get | get @public -> <A maybe> {
+eval <*A set> *Set <A> *Elem get @public -> <A maybe> {
   Elem &(Set get_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_contain? | contain? @public -> <bool> {
+eval <*A set> *Set <A> *Elem contain? @public -> <bool> {
   Elem &(Set contain?_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_put | put @public -> <<A set> <A maybe> tuple> {
+eval <*A set> *Set <A> *Elem put @public -> <<A set> <A maybe> tuple> {
   Elem &(Set put_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_put_new | put_new @public -> <<A set> bool tuple> {
+eval <*A set> *Set <A> *Elem put_new @public -> <<A set> bool tuple> {
   Elem &(Set put_new_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_add | add @public -> <A set> {
+eval <*A set> *Set <A> *Elem add @public -> <A set> {
   Elem &(Set add_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_remove | remove @public -> <<A set> <A maybe> tuple> {
+eval <*A set> *Set <A> *Elem remove @public -> <<A set> <A maybe> tuple> {
   Elem &(Set remove_f)
 } ;;
 
-eval <*A set> *Set <A> *Elem g_delete | delete @public -> <A set> {
+eval <*A set> *Set <A> *Elem delete @public -> <A set> {
   Elem &(Set delete_f)
 } ;;
 
-eval <*A set> *Set g_take | take @public -> <<A <A set> tuple> maybe> {
+eval <*A set> *Set take @public -> <<A <A set> tuple> maybe> {
   &(Set take_f)
 } ;;
 
-eval <*A set> *Set g_clear | clear @public -> <A set> {
+eval <*A set> *Set clear @public -> <A set> {
   &(Set clear_f)
 } ;;
 
-eval <*A set> *Set g_iter | iter @public -> <A iter> {
-  \\ <A iter_res> { Set g_iter_next } iter$
+eval <*A set> *Set iter @public -> <A iter> {
+  \\ <A iter_res> { Set iter_next } iter$
 } ;;
 
-eval <*A set> *Z g_iter_next -> <A iter_res> {
-  Z g_take >> case {
+eval <*A set> *Z iter_next -> <A iter_res> {
+  Z take >> case {
   ; (| *E, *Z' |) value$ ->
-    (| E, \\ <A iter_res> { Z' g_iter_next } iter$ |) value$
+    (| E, \\ <A iter_res> { Z' iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A set> *Set <A list> *Elems g_contain_just_list? | contain_just_list? | contain_just? @public -> <bool> {
-  Set (Elems list.iter) g_contain_just_iter?
+eval <*A set> *Set <A list> *Elems contain_just_list? | contain_just? @public -> <bool> {
+  Set (Elems list.iter) contain_just_iter?
 } ;;
 
-eval <*A set> *Set <A iter> *Iter g_contain_just_iter? | contain_just_iter? | contain_just? @public -> <bool> {
+eval <*A set> *Set <A iter> *Iter contain_just_iter? | contain_just? @public -> <bool> {
   Iter Set &\ <A iter> *I <A set> *Y -> <bool> {
     I next >> case {
     ; (| *E, *I' |) value$ ->
-      Y E g_remove >> case {
+      Y E remove >> case {
       ; (| *Y', ** value$ |) -> I' Y' &&
       ; ** -> false$
       }
-    ; none$ -> Y g_empty?
+    ; none$ -> Y empty?
     }
   }
 } ;;
 
-eval <*A set> *Set <A list> *Elems g_add_list | add_list @public -> <A set> {
-  Set (Elems list.iter) g_add_iter
+eval <*A set> *Set <A list> *Elems add_list @public -> <A set> {
+  Set (Elems list.iter) add_iter
 } ;;
 
-eval <*A set> *Set <A iter> *Iter g_add_iter | add_iter @public -> <A set> {
+eval <*A set> *Set <A iter> *Iter add_iter @public -> <A set> {
   Set
   Iter
-  \ <A set> *Y <A> *E -> <A set> { Y E g_add }
+  \ <A set> *Y <A> *E -> <A set> { Y E add }
   iter.fold
 } ;;
 
-eval <*A set> *Set <A list> *Elems g_delete_list | delete_list @public -> <A set> {
-  Set (Elems list.iter) g_delete_iter
+eval <*A set> *Set <A list> *Elems delete_list @public -> <A set> {
+  Set (Elems list.iter) delete_iter
 } ;;
 
-eval <*A set> *Set <A iter> *Iter g_delete_iter | delete_iter @public -> <A set> {
+eval <*A set> *Set <A iter> *Iter delete_iter | delete_iter @public -> <A set> {
   Set
   Iter
-  \ <A set> *Y <A> *E -> <A set> { Y E g_delete }
+  \ <A set> *Y <A> *E -> <A set> { Y E delete }
   iter.fold
 } ;;
 
-eval <*A set> *Set <A bool fun> *Filter g_filter | filter @public -> <A set> {
-  (Set g_clear) ((Set g_iter) Filter iter.add_filter) g_add_iter
+eval <*A set> *Set <A bool fun> *Filter filter | filter @public -> <A set> {
+  (Set clear) ((Set iter) Filter iter.add_filter) add_iter
 } ;;
 
-eval <*A set> *Set0 <A set> *Set1 g_intersection | intersection @public -> <A set> {
+eval <*A set> *Set0 <A set> *Set1 intersection @public -> <A set> {
   Set0 
-  \ <A> *X -> <bool> { Set1 X g_contain? }
-  g_filter
+  \ <A> *X -> <bool> { Set1 X contain? }
+  filter
 } ;;
 
-eval <*A set> *Set0 <A set> *Set1 g_difference | difference @public -> <A set> {
+eval <*A set> *Set0 <A set> *Set1 difference @public -> <A set> {
   Set0
-  \ <A> *X -> <bool> { Set1 X g_contain? >> not }
-  g_filter
+  \ <A> *X -> <bool> { Set1 X contain? >> not }
+  filter
 } ;;
 
 
