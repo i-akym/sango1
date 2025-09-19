@@ -37,7 +37,7 @@ eval new_set @public -> <*A set.set> {
 } ;;
 
 eval <*A eq_fs> *Eq new_set_eq | new_set @public -> <A set.set> {
-  (Eq [] d$) set_fs set.to_generic_set
+  (Eq [] d$) set_fs set.combine
 } ;;
 
 eval set_fs -> <<*A d> A set.set_fs> {
