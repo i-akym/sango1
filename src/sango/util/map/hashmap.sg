@@ -40,7 +40,7 @@ eval new_map @public -> <*A *B map.map> {
 
 eval <*A eq_fs> *Eq new_map_eq | new_map @public -> <A *B map.map> {
   int_ord_fs avlmap.new_map = *Tab,
-  (Eq Tab 0 d$) map_fs map.to_generic_map
+  (Eq Tab 0 d$) map_fs map.combine
 } ;;
 
 eval map_fs -> <<*A *B d> A B map.map_fs> {

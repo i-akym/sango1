@@ -37,7 +37,7 @@ eval new_map @public -> <*A *B map.map> {
 } ;;
 
 eval <*A eq_fs> *Eq new_map_eq | new_map @public -> <A *B map.map> {
-  (eq_fs: Eq tab: [] d$) map_fs map.to_generic_map
+  (eq_fs: Eq tab: [] d$) map_fs map.combine
 } ;;
 
 eval map_fs -> <<*A *B d> A B map.map_fs> {

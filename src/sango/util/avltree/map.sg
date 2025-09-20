@@ -70,7 +70,7 @@ eval map_fs -> <<*A *B d> A B map.map_fs> {
 } ;;
 
 eval <*A ord_fs> *Ord new_map @public -> <A *B map.map> {
-  (ord: Ord body: avl.new_tree d$) map_fs map.to_generic_map
+  (ord: Ord body: avl.new_tree d$) map_fs map.combine
 } ;;
 
 eval <*A *B d> *Map_d empty? -> <bool> {

@@ -107,7 +107,7 @@ eval <*D *A *B map_fs> *Fs map_fs_to_col_fs | to_col_fs @public -> <D <A B tuple
 } ;;
 
 
-### generic
+### combined object
 
 data <*A *B map> @public :=
   empty?_f: <bool fun>
@@ -125,7 +125,7 @@ data <*A *B map> @public :=
   map$
 ++ a'map_impl -> [ A B feat.a'map ] ;;
 
-eval <*D> *Z <D *A *B map_fs> *Fs to_generic_map @public -> <A B map> {
+eval <*D> *Z <D *A *B map_fs> *Fs combine @public -> <A B map> {
   empty?_f:
     \\ <bool> { Z Fs do_empty? }
   size_f:
@@ -139,138 +139,138 @@ eval <*D> *Z <D *A *B map_fs> *Fs to_generic_map @public -> <A B map> {
   put_f:
     \ <A> *X <B> *Y -> <<A B map> <<A B tuple> maybe> tuple> {
       Z Fs X Y do_put = (| *Z', *Replaced_ |),
-      (| Z' Fs to_generic_map, Replaced_ |)
+      (| Z' Fs combine, Replaced_ |)
     }
   put_new_f:
     \ <A> *X <B> *Y -> <<A B map> bool tuple> {
       Z Fs X Y do_put_new = (| *Z', *Succeeded? |),
-      (| Z' Fs to_generic_map, Succeeded? |)
+      (| Z' Fs combine, Succeeded? |)
     }
   add_f:
     \ <A> *X <B> *Y -> <A B map> {
       Z Fs X Y do_add = *Z',
-      Z' Fs to_generic_map
+      Z' Fs combine
     }
   remove_f:
     \ <A> *X -> <<A B map> <<A B tuple> maybe> tuple> {
       Z Fs X do_remove = (| *Z', *Removed_ |),
-      (| Z' Fs to_generic_map, Removed_ |)
+      (| Z' Fs combine, Removed_ |)
     }
   delete_f:
     \ <A> *X -> <A B map> {
       Z Fs X do_delete = *Z',
-      Z' Fs to_generic_map
+      Z' Fs combine
     }
   take_f:
     \\ <<<A B tuple> <A B map> tuple> maybe> {
       Z Fs do_take >> case {
-      ; (| *KV, *Z' |) value$ -> (| KV, Z' Fs to_generic_map |) value$
+      ; (| *KV, *Z' |) value$ -> (| KV, Z' Fs combine |) value$
       ; ** -> none$
       }
     }
   clear_f:
     \\ <A B map> {
       Z Fs do_clear = *Z',
-      Z' Fs to_generic_map
+      Z' Fs combine
     }
   map$
 } ;;
 
 eval a'map_impl -> <<*A *B map> A B map_fs> {
-  empty?_f: ^g_empty?
-  size_f: ^g_size
-  get_f: ^g_get
-  assoc_f_: (^g_assoc value$)
-  contain_key?_f_: (^g_contain_key? value$)
-  put_f: ^g_put
-  put_new_f_: (^g_put_new value$)
-  add_f_: (^g_add value$)
-  remove_f: ^g_remove
-  delete_f_: (^g_delete value$)
-  take_f: ^g_take
-  clear_f: ^g_clear
+  empty?_f: ^empty?
+  size_f: ^size
+  get_f: ^get
+  assoc_f_: (^assoc value$)
+  contain_key?_f_: (^contain_key? value$)
+  put_f: ^put
+  put_new_f_: (^put_new value$)
+  add_f_: (^add value$)
+  remove_f: ^remove
+  delete_f_: (^delete value$)
+  take_f: ^take
+  clear_f: ^clear
   map_fs$
 } ;;
 
-eval <*A *B map> *Map g_empty? | empty? @public -> <bool> {
+eval <*A *B map> *Map empty? @public -> <bool> {
   &(Map empty?_f)
 } ;;
 
-eval <*A *B map> *Map g_size | size @public -> <int> {
+eval <*A *B map> *Map size @public -> <int> {
   &(Map size_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key g_get | get @public -> <<A B tuple> maybe> {
+eval <*A *B map> *Map <A> *Key get @public -> <<A B tuple> maybe> {
   Key &(Map get_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key g_assoc | assoc @public -> <B maybe> {
+eval <*A *B map> *Map <A> *Key assoc @public -> <B maybe> {
   Key &(Map assoc_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key g_contain_key? | contain_key? @public -> <bool> {
+eval <*A *B map> *Map <A> *Key contain_key? @public -> <bool> {
   Key &(Map contain_key?_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key <B> *Value g_put | put @public -> <<A B map> <<A B tuple> maybe> tuple> {
+eval <*A *B map> *Map <A> *Key <B> *Value  put @public -> <<A B map> <<A B tuple> maybe> tuple> {
   Key Value &(Map put_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key <B> *Value g_put_new | put_new @public -> <<A B map> bool tuple> {
+eval <*A *B map> *Map <A> *Key <B> *Value put_new @public -> <<A B map> bool tuple> {
   Key Value &(Map put_new_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key <B> *Value g_add | add @public -> <A B map> {
+eval <*A *B map> *Map <A> *Key <B> *Value add @public -> <A B map> {
   Key Value &(Map add_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key g_remove | remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
+eval <*A *B map> *Map <A> *Key remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
   Key &(Map remove_f)
 } ;;
 
-eval <*A *B map> *Map <A> *Key g_delete | delete @public -> <A B map> {
+eval <*A *B map> *Map <A> *Key delete @public -> <A B map> {
   Key &(Map delete_f)
 } ;;
 
-eval <*A *B map> *Map g_take | take @public -> <<<A B tuple> <A B map> tuple> maybe> {
+eval <*A *B map> *Map take @public -> <<<A B tuple> <A B map> tuple> maybe> {
   &(Map take_f)
 } ;;
 
-eval <*A *B map> *Map g_clear | clear @public -> <A B map> {
+eval <*A *B map> *Map clear @public -> <A B map> {
   &(Map clear_f)
 } ;;
 
-eval <*A *B map> *Map g_iter | iter @public -> <<A B tuple> iter> {
-  \\ <<A B tuple> iter_res> { Map g_iter_next } iter$
+eval <*A *B map> *Map iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Map iter_next } iter$
 } ;;
 
-eval <*A *B map> *Z g_iter_next -> <<A B tuple> iter_res> {
-  Z g_take >> case {
+eval <*A *B map> *Z iter_next -> <<A B tuple> iter_res> {
+  Z take >> case {
   ; (| *KV, *Z' |) value$ ->
-    (| KV, \\ <<A B tuple> iter_res> { Z' g_iter_next } iter$ |) value$
+    (| KV, \\ <<A B tuple> iter_res> { Z' iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A *B map> *Map <<A B tuple> list> *KVs g_add_list | add_list @public -> <A B map> {
-  Map (KVs list.iter) g_add_iter
+eval <*A *B map> *Map <<A B tuple> list> *KVs add_list @public -> <A B map> {
+  Map (KVs list.iter) add_iter
 } ;;
 
-eval <*A *B map> *Map <<A B tuple> iter> *Iter g_add_iter | add_iter @public -> <A B map> {
+eval <*A *B map> *Map <<A B tuple> iter> *Iter add_iter @public -> <A B map> {
   Map
   Iter
-  \ <A B map> *M <A B tuple> *KV -> <A B map> { KV = (| *K, *V |), M K V g_add }
+  \ <A B map> *M <A B tuple> *KV -> <A B map> { KV = (| *K, *V |), M K V add }
   iter.fold
 } ;;
 
-eval <*A *B map> *Map <A list> *Ks g_delete_list | delete_list @public -> <A B map> {
-  Map (Ks list.iter) g_delete_iter
+eval <*A *B map> *Map <A list> *Ks delete_list @public -> <A B map> {
+  Map (Ks list.iter) delete_iter
 } ;;
 
-eval <*A *B map> *Map <A iter> *Iter g_delete_iter | delete_iter @public -> <A B map> {
+eval <*A *B map> *Map <A iter> *Iter delete_iter @public -> <A B map> {
   Map
   Iter
-  \ <A B map> *M <A> *K -> <A B map> { M K g_delete }
+  \ <A B map> *M <A> *K -> <A B map> { M K delete }
   iter.fold
 } ;;
 
