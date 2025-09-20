@@ -30,89 +30,89 @@ import "sango.util.map" -> map ;;
 
 feature <*T> [ *A *B a'map ] @public -> <T A B map.map_fs> ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_to_generic_map | to_generic_map @public -> <A B map.map> {
-  FMap (FMap _feature_a'map) map.to_generic_map
+eval <*T[ *A *B a'map ]> *FMap combine @public -> <A B map.map> {
+  FMap (FMap _feature_a'map) map.combine
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_empty? | empty? @public -> <bool> {
+eval <*T[ *A *B a'map ]> *FMap empty? @public -> <bool> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs map.do_empty?
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_size | size @public -> <int> {
+eval <*T[ *A *B a'map ]> *FMap size @public -> <int> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs map.do_size
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_get | get @public -> <<A B tuple> maybe> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key get @public -> <<A B tuple> maybe> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key map.do_get
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key assoc @public -> <B maybe> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key map.do_assoc
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_contain_key? | contain_key? @public -> <bool> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key contain_key? @public -> <bool> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key map.do_contain_key?
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put | put @public -> <T <<A B tuple> maybe> tuple> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value put @public -> <T <<A B tuple> maybe> tuple> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key Value map.do_put
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put_new | put_new @public -> <T bool tuple> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value put_new @public -> <T bool tuple> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key Value map.do_put_new
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value add @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key Value map.do_add
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_remove | remove @public -> <T <<A B tuple> maybe> tuple> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key remove @public -> <T <<A B tuple> maybe> tuple> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key map.do_remove
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_delete | delete @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap <A> *Key delete @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Key map.do_delete
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_take | take @public -> <<<A B tuple> T tuple> maybe> {
+eval <*T[ *A *B a'map ]> *FMap take @public -> <<<A B tuple> T tuple> maybe> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs map.do_take
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_clear | clear @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap clear @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs map.do_clear
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <<A B tuple> list> *KVs f_add_list | add_list @public -> <T> {
-  FMap (KVs list.iter) f_add_iter
+eval <*T[ *A *B a'map ]> *FMap <<A B tuple> list> *KVs add_list @public -> <T> {
+  FMap (KVs list.iter) add_iter
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <<A B tuple> iter> *Iter f_add_iter | add_iter @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap <<A B tuple> iter> *Iter add_iter @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Iter map.do_add_iter
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A list> *Ks f_delete_list | delete_list @public -> <T> {
-  FMap (Ks list.iter) f_delete_iter
+eval <*T[ *A *B a'map ]> *FMap <A list> *Ks delete_list @public -> <T> {
+  FMap (Ks list.iter) delete_iter
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
+eval <*T[ *A *B a'map ]> *FMap <A iter> *Iter delete_iter @public -> <T> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs Iter map.do_delete_iter
 } ;;
 
-eval <*T[ *A *B a'map ]> *FMap f_iter | iter @public -> <<A B tuple> iter> {
+eval <*T[ *A *B a'map ]> *FMap iter @public -> <<A B tuple> iter> {
   FMap _feature_a'map = *Map_fs,
   FMap Map_fs map.do_iter
 } ;;
