@@ -3010,8 +3010,8 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <h1 id="sango.util.bag"><code>sango.util.bag</code></h1>
 
 <p>バッグは，重複を許す値の集合です。
-  バッグを実装するには，さまざまなデータ構造が用いられます。
-  それらを統一的に扱えるようにしたフレームワークを提供します。</p>
+バッグを実装するには，さまざまなデータ構造が用いられます。
+それらを統一的に扱えるようにしたフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.bag.1"><code>sango.util.bag</code> - フレームワーク</h2>
@@ -3024,62 +3024,62 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <code>&lt;A&gt;</code>は要素の型です。
 <code>bag</code>は<code>&quot;sango.util.bag.feature&quot;.a'bag</code>データ・フィーチャを実装しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>バッグが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag g_size | size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>バッグの大きさ（要素の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_contain? | contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem contain? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>値がバッグに登録されているかどうか判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_get_all | get_all @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem get_all @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>バッグに登録されている等価な要素を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_add | add @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem add @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>値をバッグに追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_remove | remove @public -&gt; &lt;&lt;A bag&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem remove @public -&gt; &lt;&lt;A bag&gt; &lt;A maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な一つの要素をバッグから削除します。
 処理後のバッグと，実際に削除された（事前に含まれていた）要素が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_remove_all | remove_all @public -&gt; &lt;&lt;A bag&gt; &lt;A list&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem remove_all @public -&gt; &lt;&lt;A bag&gt; &lt;A list&gt; tuple&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な全ての要素をバッグから削除します。
 処理後のバッグと，実際に削除された（事前に含まれていた）要素が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_delete | delete @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem delete @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な一つの要素をバッグから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem g_delete_all | delete_all @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A&gt; *Elem delete_all @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p><code>Elem</code>に等価な全ての要素をバッグから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag g_take | take @public -&gt; &lt;&lt;A &lt;A bag&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag take @public -&gt; &lt;&lt;A &lt;A bag&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>要素をバッグから一個取り出します。
 取り出された要素と，残りのバッグが返されます。
 バッグが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag g_clear | clear @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag clear @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>バッグを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems g_add_list | add_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems add_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter g_add_iter | add_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter add_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て追加します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems g_delete_list | delete_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems delete_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値をそれぞれ削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter g_delete_iter | delete_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値をそれぞれ削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems g_delete_all_list | delete_all_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A list&gt; *Elems delete_all_list @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter g_delete_all_iter | delete_all_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A bag&gt; *Bag &lt;A iter&gt; *Iter delete_all_iter @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て削除します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3088,7 +3088,7 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <p>バッグは，実装のための内部データと機能関数群からなります。
 内部データは，自由に定義することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A bag_fs&gt; *Fs to_generic_bag @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A bag_fs&gt; *Fs combine @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
 <p>バッグを生成します。
 <code>Z</code>が内部データです。</p>
 

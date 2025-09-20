@@ -38,7 +38,7 @@ eval new_bag @public -> <*A bag.bag> {
 } ;;
 
 eval <*A eq_fs> *Eq new_bag_eq | new_bag @public -> <A bag.bag> {
-  (Eq [] d$) bag_fs bag.to_generic_bag
+  (Eq [] d$) bag_fs bag.combine
 } ;;
 
 eval bag_fs -> <<*A d> A bag.bag_fs> {
