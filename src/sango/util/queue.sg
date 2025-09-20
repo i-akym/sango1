@@ -47,7 +47,7 @@ eval <*D *A queue_fs> *Fs queue_fs_to_col_fs | to_col_fs @public -> <D A col_fs>
 } ;;
 
 
-### generic
+### combined object
 
 data <*A queue> @opaque :=
   empty?_f: <bool fun>
@@ -59,7 +59,7 @@ data <*A queue> @opaque :=
   queue$
 ++ a'queue_impl -> [ A feat.a'queue ] ;;
 
-eval <*D> *Z <D *A queue_fs> *Fs to_generic_queue @public -> <A queue> {
+eval <*D> *Z <D *A queue_fs> *Fs combine @public -> <A queue> {
   empty?_f:
     \\ <bool> { Z Fs do_empty? }
   length_f:
@@ -67,82 +67,82 @@ eval <*D> *Z <D *A queue_fs> *Fs to_generic_queue @public -> <A queue> {
   enqueue_f:
     \ <A> *X -> <A queue> {
       Z Fs X do_enqueue = *Z',
-      Z' Fs to_generic_queue
+      Z' Fs combine
     }
   head_f:
     \\ <A maybe> { Z Fs do_head }
   dequeue_f:
     \\ <<A <A queue> tuple> maybe> {
       Z Fs do_dequeue >> case {
-      ; (| *E, *Z' |) value$ -> (| E, Z' Fs to_generic_queue |) value$
+      ; (| *E, *Z' |) value$ -> (| E, Z' Fs combine |) value$
       ; ** -> none$
       }
     }
   clear_f:
     \\ <A queue> {
       Z Fs do_clear = *Z',
-      Z' Fs to_generic_queue
+      Z' Fs combine
     }
   queue$
 } ;;
 
 eval a'queue_impl -> <<*A queue> A queue_fs> {
-  empty?_f: ^g_empty?
-  length_f: ^g_length
-  enqueue_f: ^g_enqueue
-  head_f: ^g_head
-  dequeue_f: ^g_dequeue
-  clear_f: ^g_clear
+  empty?_f: ^empty?
+  length_f: ^length
+  enqueue_f: ^enqueue
+  head_f: ^head
+  dequeue_f: ^dequeue
+  clear_f: ^clear
   queue_fs$
 } ;;
 
 
 ### implementation of common-behavior object
 
-eval <*A queue> *Queue g_empty? | empty? @public -> <bool> {
+eval <*A queue> *Queue empty? @public -> <bool> {
   &(Queue empty?_f)
 } ;;
 
-eval <*A queue> *Queue g_length | length @public -> <int> {
+eval <*A queue> *Queue length @public -> <int> {
   &(Queue length_f)
 } ;;
 
-eval <*A queue> *Queue <A> *Elem g_enqueue | enqueue @public -> <A queue> {
+eval <*A queue> *Queue <A> *Elem enqueue @public -> <A queue> {
   Elem &(Queue enqueue_f)
 } ;;
 
-eval <*A queue> *Queue g_head | head @public -> <A maybe> {
+eval <*A queue> *Queue head @public -> <A maybe> {
   &(Queue head_f)
 } ;;
 
-eval <*A queue> *Queue g_dequeue | dequeue @public -> <<A <A queue> tuple> maybe> {
+eval <*A queue> *Queue dequeue @public -> <<A <A queue> tuple> maybe> {
   &(Queue dequeue_f)
 } ;;
 
-eval <*A queue> *Queue g_clear | clear @public -> <A queue> {
+eval <*A queue> *Queue clear @public -> <A queue> {
   &(Queue clear_f)
 } ;;
 
-eval <*A queue> *Queue g_iter | iter @public -> <A iter> {
-  \\ <A iter_res> { Queue g_iter_next } iter$
+eval <*A queue> *Queue iter @public -> <A iter> {
+  \\ <A iter_res> { Queue iter_next } iter$
 } ;;
 
-eval <*A queue> *Z g_iter_next -> <A iter_res> {
-  Z g_dequeue >> case {
+eval <*A queue> *Z iter_next -> <A iter_res> {
+  Z dequeue >> case {
   ; (| *E, *Z' |) value$ ->
-    (| E, \\ <A iter_res> { Z' g_iter_next } iter$ |) value$
+    (| E, \\ <A iter_res> { Z' iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A queue> *Queue <A list> *Elems g_enqueue_list | enqueue_list @public -> <A queue> {
-  Queue (Elems list.iter) g_enqueue_iter
+eval <*A queue> *Queue <A list> *Elems enqueue_list @public -> <A queue> {
+  Queue (Elems list.iter) enqueue_iter
 } ;;
 
-eval <*A queue> *Queue <A iter> *Iter g_enqueue_iter | enqueue_iter @public -> <A queue> {
+eval <*A queue> *Queue <A iter> *Iter enqueue_iter @public -> <A queue> {
   Queue
   Iter
-  \ <A queue> *Y <A> *E -> <A queue> { Y E g_enqueue }
+  \ <A queue> *Y <A> *E -> <A queue> { Y E enqueue }
   iter.fold
 } ;;
 

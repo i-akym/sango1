@@ -42,7 +42,7 @@ eval <*A avl.node> *Node locate_enqueue -> <A avl.locate> {
 } ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  (body: avl.new_tree d$) queue_fs queue.to_generic_queue
+  (body: avl.new_tree d$) queue_fs queue.combine
 } ;;
 
 eval queue_fs -> <<*A d> A queue.queue_fs> {

@@ -3663,8 +3663,8 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 <h1 id="sango.util.queue"><code>sango.util.queue</code></h1>
 
 <p>キューは，先入れ先出し（First in First Out，FIFO）のコレクションです。
-  キューを実装するには，さまざまなデータ構造が用いられます。
-  それらを統一的に扱えるようにしたフレームワークを提供します。</p>
+キューを実装するには，さまざまなデータ構造が用いられます。
+それらを統一的に扱えるようにしたフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.queue.1"><code>sango.util.queue</code> - フレームワーク</h2>
@@ -3677,34 +3677,34 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 <code>&lt;A&gt;</code>は要素の型です。
 <code>queue</code>は<code>&quot;sango.util.queue.feature&quot;.a'queue</code>データ・フィーチャを実装しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キューが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>キューの長さを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A&gt; *Elem g_enqueue | enqueue @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A&gt; *Elem enqueue @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>値をキューに登録します。
 登録された値はキューの末尾に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_head | head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue head @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>キューの先頭の値を返します。
 キューが空の場合は，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_dequeue | dequeue @public -&gt; &lt;&lt;A &lt;A queue&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue dequeue @public -&gt; &lt;&lt;A &lt;A queue&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キューの先頭の値を取り出し，残りのキューと共に返します。
 キューが空の場合は，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_clear | clear @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue clear @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>キューを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素を先頭から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A list&gt; *Elems g_enqueue_list | enqueue_list @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A list&gt; *Elems enqueue_list @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を順に登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A iter&gt; *Iter g_enqueue_iter | enqueue_iter @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue &lt;A iter&gt; *Iter enqueue_iter @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を順に登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3713,7 +3713,7 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 <p>キューは，実装のための内部データと機能関数群からなります。
 内部データは，自由に定義することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A queue_fs&gt; *Fs to_generic_queue @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A queue_fs&gt; *Fs combine @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
 <p>キューを生成します。
 <code>Z</code>が内部データです。</p>
 

@@ -33,7 +33,7 @@ data <*A d> :=
   d$ ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  ([] [] d$) queue_fs queue.to_generic_queue
+  ([] [] d$) queue_fs queue.combine
 } ;;
 
 eval queue_fs -> <<*A d> A queue.queue_fs> {
