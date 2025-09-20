@@ -93,7 +93,7 @@ eval bag_fs -> <<*A d> A bag.bag_fs> {
 
 eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
   ord: Ord body: (^build_aux avl.new_tree) d$ = *D,
-  D bag_fs bag.to_generic_bag
+  D bag_fs bag.combine
 } ;;
 
 eval <*A d> *Bag_d empty? -> <bool> {
