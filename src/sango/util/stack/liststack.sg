@@ -35,7 +35,7 @@ eval new_stack @public -> <*A stack.stack> {
 } ;;
 
 eval <*A list> *Elems to_stack @public -> <A stack.stack> {
-  (Elems d$) stack_fs stack.to_generic_stack
+  (Elems d$) stack_fs stack.combine
 } ;;
 
 eval stack_fs -> <<*A d> A stack.stack_fs> {

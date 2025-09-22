@@ -63,7 +63,7 @@ eval <*D *A stack_fs> *Fs stack_fs_to_col_fs | to_col_fs @public -> <D A col_fs>
 } ;;
 
 
-### generic
+### combined object
 
 data <*A stack> @opaque :=
   empty?_f: <bool fun>
@@ -76,7 +76,7 @@ data <*A stack> @opaque :=
   stack$
 ++ a'stack_impl -> [ A feat.a'stack ] ;;
 
-eval <*D> *Z <D *A stack_fs> *Fs to_generic_stack @public -> <A stack> {
+eval <*D> *Z <D *A stack_fs> *Fs combine @public -> <A stack> {
   empty?_f:
     \\ <bool> { Z Fs do_empty? }
   depth_f:
@@ -84,14 +84,14 @@ eval <*D> *Z <D *A stack_fs> *Fs to_generic_stack @public -> <A stack> {
   push_f:
     \ <A> *X -> <A stack> {
       Z Fs X do_push = *Z',
-      Z' Fs to_generic_stack
+      Z' Fs combine
     }
   top_f:
     \\ <A maybe> { Z Fs do_top }
   pop_f:
     \\ <<A <A stack> tuple> maybe> {
       Z Fs do_pop >> case {
-      ; (| *E, *Z' |) value$ -> (| E, Z' Fs to_generic_stack |) value$
+      ; (| *E, *Z' |) value$ -> (| E, Z' Fs combine |) value$
       ; ** -> none$
       }
     }
@@ -100,70 +100,70 @@ eval <*D> *Z <D *A stack_fs> *Fs to_generic_stack @public -> <A stack> {
   clear_f:
     \\ <A stack> {
       Z Fs do_clear = *Z',
-      Z' Fs to_generic_stack
+      Z' Fs combine
     }
   stack$
 } ;;
 
 eval a'stack_impl -> <<*A stack> A stack_fs> {
-  empty?_f: ^g_empty?
-  depth_f: ^g_depth
-  push_f: ^g_push
-  top_f: ^g_top
-  pop_f: ^g_pop
-  to_list_f_: (^g_to_list value$)
-  clear_f: ^g_clear
+  empty?_f: ^empty?
+  depth_f: ^depth
+  push_f: ^push
+  top_f: ^top
+  pop_f: ^pop
+  to_list_f_: (^to_list value$)
+  clear_f: ^clear
   stack_fs$
 } ;;
 
-eval <*A stack> *Stack g_empty? | empty? @public -> <bool> {
+eval <*A stack> *Stack empty? @public -> <bool> {
   &(Stack empty?_f)
 } ;;
 
-eval <*A stack> *Stack g_depth | depth @public -> <int> {
+eval <*A stack> *Stack depth @public -> <int> {
   &(Stack depth_f)
 } ;;
 
-eval <*A stack> *Stack <A> *Elem g_push | push @public -> <A stack> {
+eval <*A stack> *Stack <A> *Elem push @public -> <A stack> {
   Elem &(Stack push_f)
 } ;;
 
-eval <*A stack> *Stack g_top | top @public -> <A maybe> {
+eval <*A stack> *Stack top @public -> <A maybe> {
   &(Stack top_f)
 } ;;
 
-eval <*A stack> *Stack g_pop | pop @public -> <<A <A stack> tuple> maybe> {
+eval <*A stack> *Stack pop @public -> <<A <A stack> tuple> maybe> {
   &(Stack pop_f)
 } ;;
 
-eval <*A stack> *Stack g_to_list | to_list @public -> <A list> {
+eval <*A stack> *Stack to_list @public -> <A list> {
   &(Stack to_list_f)
 } ;;
 
-eval <*A stack> *Stack g_clear | clear @public -> <A stack> {
+eval <*A stack> *Stack clear @public -> <A stack> {
   &(Stack clear_f)
 } ;;
 
-eval <*A stack> *Stack g_iter | iter @public -> <A iter> {
-  \\ <A iter_res> { Stack g_iter_next } iter$
+eval <*A stack> *Stack iter @public -> <A iter> {
+  \\ <A iter_res> { Stack iter_next } iter$
 } ;;
 
-eval <*A stack> *Z g_iter_next -> <A iter_res> {
-  Z g_pop >> case {
+eval <*A stack> *Z iter_next -> <A iter_res> {
+  Z pop >> case {
   ; (| *E, *Z' |) value$ ->
-    (| E, \\ <A iter_res> { Z' g_iter_next } iter$ |) value$
+    (| E, \\ <A iter_res> { Z' iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A stack> *Stack <A list> *Elems g_push_list | push_list @public -> <A stack> {
-  Stack (Elems list.iter) g_push_iter
+eval <*A stack> *Stack <A list> *Elems push_list @public -> <A stack> {
+  Stack (Elems list.iter) push_iter
 } ;;
 
-eval <*A stack> *Stack <A iter> *Iter g_push_iter | push_iter @public -> <A stack> {
+eval <*A stack> *Stack <A iter> *Iter push_iter @public -> <A stack> {
   Stack
   Iter
-  \ <A stack> *Y <A> *E -> <A stack> { Y E g_push }
+  \ <A stack> *Y <A> *E -> <A stack> { Y E push }
   iter.fold
 } ;;
 

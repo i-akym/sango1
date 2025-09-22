@@ -4453,8 +4453,8 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 <h1 id="sango.util.stack"><code>sango.util.stack</code></h1>
 
 <p>スタックは，後入れ先出し（Last In First Out，LIFO）のコレクションです。
-  スタックを実装するにはリストを使うのが一般的ですが，それ以外の実装もありえます。
-  それらを統一的に扱えるようにしたフレームワークを提供します。</p>
+スタックを実装するにはリストを使うのが一般的ですが，それ以外の実装もありえます。
+それらを統一的に扱えるようにしたフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.stack.1"><code>sango.util.stack</code> - フレームワーク</h2>
@@ -4467,37 +4467,37 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 <code>&lt;A&gt;</code>は要素の型です。
 <code>stack</code>は<code>&quot;sango.util.stack.feature&quot;.a'stack</code>データ・フィーチャを実装しています。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_empty? | empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>スタックが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_depth | depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>スタックの深さ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem g_push | push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>値をスタックに登録します。
 登録された値はスタックの一番上に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_top | top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を返します。
 スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_pop | pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を取り出し，残りのスタックと共に返します。
 スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_to_list | to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
 <p>スタックをリストに変換します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_clear | clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>スタックを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack g_iter | iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素をスタックの上から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems g_push_list | push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter g_push_iter | push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4506,7 +4506,7 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 <p>スタックは，実装のための内部データと機能関数群からなります。
 内部データは，自由に定義することができます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A stack_fs&gt; *Fs to_generic_stack @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A stack_fs&gt; *Fs combine @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>スタックを生成します。
 <code>Z</code>が内部データです。</p>
 
