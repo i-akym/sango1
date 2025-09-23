@@ -21,35 +21,35 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.util.ord" ;;
+module @beta "sango.util.ord.feature" ;;
 
 ### feature functions
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_compare | compare @public -> <ordering> {
+eval <*T[ a'ord ]> *X0 <T> *X1 compare @public -> <ordering> {
   X0 X1 (X0 _feature_a'ord) ordcmp_compare
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_eq? | eq? @public -> <bool> {
+eval <*T[ a'ord ]> *X0 <T> *X1 eq? @public -> <bool> {
   X0 X1 (X0 _feature_a'ord) ordcmp_eq?
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_lt? | lt? @public -> <bool> {
+eval <*T[ a'ord ]> *X0 <T> *X1 lt? @public -> <bool> {
   X0 X1 (X0 _feature_a'ord) ordcmp_lt?
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_le? | le? @public -> <bool> {
+eval <*T[ a'ord ]> *X0 <T> *X1 le? @public -> <bool> {
   X0 X1 (X0 _feature_a'ord) ordcmp_le?
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_gt? | gt? @public -> <bool> {
+eval <*T[ a'ord ]> *X0 <T> *X1 gt? @public -> <bool> {
   X0 X1 (X0 _feature_a'ord) ordcmp_gt?
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_ge? | ge? @public -> <bool> {
+eval <*T[ a'ord ]> *X0 <T> *X1 ge? @public -> <bool> {
   X0 X1 (X0 _feature_a'ord) ordcmp_ge?
 } ;;
 
-eval <*T[ a'ord ]> *X0 f_hash | hash @public -> <int> {
+eval <*T[ a'ord ]> *X0 hash @public -> <int> {
   X0 &(X0 _feature_a'ord >> hash_f)
 } ;;
 
