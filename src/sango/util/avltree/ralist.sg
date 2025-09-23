@@ -52,7 +52,7 @@ eval <int> *Index insert_locator -> <<*A avl.node> <A avl.locate> fun> {
 } ;;
 
 eval new_ralist @public -> <*A ral.ralist> {
-  (body: avl.new_tree d$) ralist_fs ral.to_generic_ralist
+  (body: avl.new_tree d$) ralist_fs ral.combine
 } ;;
 
 eval ralist_fs -> <<*A d> A ral.ralist_fs> {
