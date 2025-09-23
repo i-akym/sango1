@@ -21,15 +21,25 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.unique" ;;
+module @beta "sango.unique.feature" ;;
 
-import "sango.unique.feature" -> feat ;;
+import "sango.unique" -> uniq ;;
 
-data <u> @opaque := @native
-++ as_a'unique -> [ feat.a'unique ] ;;
+### feature
 
-eval new_unique @public -> <u> @native ;;
+feature <*T> [ a'unique ] @public -> <T uniq.u fun> ;;
 
-eval as_a'unique -> <u u fun> {
-  ^itself
+
+### incarnation
+
+data @beta <*T unique_inc> @protected :=
+  org: <T>
+  fo: <T uniq.u fun>
+  unique_inc$ ;;
+
+eval @beta <*T[ a'unique ]> *FUnique incarnate @public -> <T unique_inc> {
+  org: FUnique
+  fo: (FUnique _feature_a'unique)
+  unique_inc$
 } ;;
+

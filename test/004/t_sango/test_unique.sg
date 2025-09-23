@@ -8,7 +8,6 @@ eval _main_ -> <void> {
 
 eval test -> <void> {
   test000,
-  test100,
   void$
 } ;;
 
@@ -25,9 +24,4 @@ eval test000 -> <void> {
   ; U4 -> assertion_error$ "Not unique." new_exception >> throw
   ; ** ->
   }
-} ;;
-eval test100 -> <void> {
-  uniq.new_unique = *U,
-  U &(U uniq._feature_a'unique) = U,
-  void$
 } ;;
