@@ -25,6 +25,7 @@ module @alpha "sango.util.graph" ;;
 
 import "sango.list" -> list ;;
 import "sango.unique" -> uniq ;;
+import "sango.unique.feature" -> uniqf ;;
 import "sango.util.iter" -> iter ;;
 
 ### elements ###
@@ -35,7 +36,7 @@ data <*A vertex> @protected :=
   u: <uniq.u>
   assoc: <A>
   vertex$
-++ vertex_as_a'unique -> [ uniq.a'unique ] ;;
+++ vertex_as_a'unique -> [ uniqf.a'unique ] ;;
 
 eval <*A> *Assoc new_vertex @public -> <A vertex> {
   u: uniq.new_unique
@@ -55,7 +56,7 @@ data <*A *B edge> @protected :=
   to: <A vertex>
   assoc: <B>
   edge$
-++ edge_as_a'unique -> [ uniq.a'unique ] ;;
+++ edge_as_a'unique -> [ uniqf.a'unique ] ;;
 
 eval <*A vertex> *From <A vertex> *To <*B> *Assoc new_edge @public -> <A B edge> {
   u: uniq.new_unique
