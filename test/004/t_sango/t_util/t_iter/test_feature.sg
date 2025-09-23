@@ -1,0 +1,19 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.col" -> col ;;
+import "sango.util.iter.feature" -> iterf ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test100,
+  void$
+} ;;
+eval test100 -> <void> {
+  [ 1, 2, 3, 4, 5 ] col.incarnate = *CI,
+  CI iterf.incarnate = *I,
+  I >> iterf.org >> col.org = [ 1, 2, 3, 4, 5 ],
+  void$
+} ;;

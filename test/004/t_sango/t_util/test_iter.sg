@@ -14,7 +14,6 @@ eval test -> <void> {
   test110,
   test120,
   test130,
-  test200,
   test300,
   void$
 } ;;
@@ -74,12 +73,6 @@ eval test130 -> <void> {
   I1 next = (| 2, *I2 |) value$,
   I2 next = (| 3, *I3 |) value$,
   I3 next = none$,
-  void$
-} ;;
-eval test200 -> <void> {
-  [ 1, 2, 3, 4, 5 ] col.incarnate = *CI,
-  CI iter.incarnate = *I,
-  I >> iter.org >> col.org = [ 1, 2, 3, 4, 5 ],
   void$
 } ;;
 eval test300 -> <void> {
