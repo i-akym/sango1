@@ -98,8 +98,9 @@ kbd {
   <a href="#sango.debug.3">例外情報</a>
 <a href="#sango.entity"><code>sango.entity</code></a>
   <a href="#sango.entity.1">実体機能</a>
-  <a href="#sango.entity.2">データ・フィーチャ</a>
-  <a href="#sango.entity.3">化身</a>
+<a href="#sango.entity.feature"><code>sango.entity.feature</code></a> 【Beta】
+  <a href="#sango.entity.feature.1">データ・フィーチャ</a>
+  <a href="#sango.entity.feature.2">化身</a>
 <a href="#sango.entity.box"><code>sango.entity.box</code></a>
   <a href="#sango.entity.box.1">ボックス</a>
   <a href="#sango.entity.box.2">弱参照</a>
@@ -1534,20 +1535,25 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <p>実体に関する機能をまとめた関数群を表します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.2"><code>sango.entity</code> - データ・フィーチャ</h2>
+<h1 id="sango.entity.feature"><code>sango.entity.feature</code> 【Beta】</h1>
 
-<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'entity ] @public -&gt; &lt;T entity_fs&gt; ;;</code></td></tr></table>
-<p>【Beta】実体であることを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'entity ]&gt; *FEntity f_undress | undress @public -&gt; &lt;&quot;sango.entity.existence&quot;.existence &lt;T redress_f&gt; tuple&gt; ;;</code></td></tr></table>
-<p>【Beta】undressします。</p>
+<p>「実体」（entity）のデータ・フィーチャに関する定義・機能を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.3"><code>sango.entity</code> - 化身</h2>
+<h2 id="sango.entity.feature.1"><code>sango.entity.feature</code> - データ・フィーチャ</h2>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'entity ] @public -&gt; &lt;T &quot;sango.entity&quot;.entity_fs&gt; ;;</code></td></tr></table>
+<p>実体であることを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'entity ]&gt; *FEntity undress @public -&gt; &lt;&quot;sango.entity.existence&quot;.existence &lt;T &quot;sango.entity&quot;.redress_f&gt; tuple&gt; ;;</code></td></tr></table>
+<p>undressします。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.feature.2"><code>sango.entity.feature</code> - 化身</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T entity_inc&gt; @protected :=
   org: &lt;T&gt;
-  fo: &lt;T A entity_fs&gt;
+  fo: &lt;T &quot;sango.entity&quot;.entity_fs&gt;
   entity_inc$ ;;
 eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
 <p>a'entityデータ・フィーチャの化身型と，化身型への変換関数です。</p>
