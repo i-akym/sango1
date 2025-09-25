@@ -21,13 +21,41 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module "sango.entity" ;;
+module @beta "sango.entity.feature" ;;
 
+import "sango.entity" -> ent ;;
 import "sango.entity.existence" -> ex ;;
+import "sango.unique" -> uniq ;;
+import "sango.unique.feature" -> uniqf ;;
 
-alias type <*A undress_f> @public := <A <ex.existence <A redress_f> tuple> fun> ;;
-alias type <*A redress_f> @public := <ex.existence A fun> ;;
+### feature
 
-data <*A entity_fs> @public :=
-  undress_f: <A undress_f>
-  entity_fs$ ;;
+feature <*T> [ a'entity ] @public -> <T ent.entity_fs> ;;
+
+eval <*T[ a'entity ]> *FEntity undress @public -> <ex.existence <T ent.redress_f> tuple> {
+  FEntity _feature_a'entity = *UF ent.entity_fs$,
+  FEntity &UF
+} ;;
+
+
+### incarnation
+
+data <*T entity_inc> @protected :=
+  org: <T>
+  fo: <T ent.entity_fs>
+  entity_inc$
+++ as_a'unique -> [ uniqf.a'unique ] ;;
+
+eval <*T[ a'entity ]> *FEntity incarnate @public -> <T entity_inc> {
+  org: FEntity
+  fo: (FEntity _feature_a'entity)
+  entity_inc$
+} ;;
+
+eval as_a'unique -> <<*T entity_inc> uniq.u fun> {
+  \ <*TT entity_inc> *I -> <uniq.u> {
+    I = org: *E fo: *Fs entity_inc$,
+    E &(Fs ent.undress_f) = (| *Ex, ** |),
+    Ex ex.uniqueness
+  }
+} ;;

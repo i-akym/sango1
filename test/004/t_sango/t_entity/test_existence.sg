@@ -1,6 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.feature" -> entf ;;
 import "sango.entity.existence" -> ex ;;
 
 eval _main_ -> <void> {
@@ -16,7 +16,7 @@ eval test -> <void> {
 
 eval test000 -> <void> {
   none$ none$ ex.create_immutable_existence = (| *E, ** |),
-  E ent.undress = (| E, *RF |),
+  E entf.undress = (| E, *RF |),
   E &RF = E,
   void$
 } ;;

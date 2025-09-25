@@ -1,6 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
-import "sango.entity" -> ent ;;
+import "sango.entity.feature" -> entf ;;
 import "sango.entity.box" -> box ;;
 import "sango.unique.feature" -> uniqf ;;
 
@@ -15,6 +15,6 @@ eval test -> <void> {
 
 eval test000 -> <void> {
   3 none$ box.create_box = *B,
-  B ent.incarnate = *BI,
+  B entf.incarnate = *BI,
   BI &(BI uniqf._feature_a'unique) >> debug.repr >> stdio.print_and_newline
 } ;;
