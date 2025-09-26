@@ -1,6 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
-import "sango.util.eq" -> eq ;;
+import "sango.util.eq.feature" -> eqf ;;
 import "sango.util.ord.feature" -> ordf ;;
 
 eval _main_ -> <void> {
@@ -24,6 +24,6 @@ eval test000 -> <void> {
 eval test100 -> <void> {
   3 ordf.incarnate = *O3,
   5 ordf.incarnate = *O5,
-  O3 O5 eq.ne? = true$,
+  O3 O5 eqf.ne? = true$,
   void$
 } ;;
