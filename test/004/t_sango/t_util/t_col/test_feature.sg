@@ -1,0 +1,33 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.col.feature" -> colf ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  test100,
+  void$
+} ;;
+eval test000 -> <void> {
+  [ 1, 2, 3 ] = *L,
+  L colf.empty? = false$,
+  L colf.size = 3,
+  L colf.iter = *I,
+  I next = (| 1, *I1 |) value$,
+  I1 next = (| 2, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  I3 next = none$,
+  void$
+} ;;
+eval test100 -> <void> {
+  [ 1, 2, 3 ] colf.incarnate = *CI,
+  CI &(CI _feature_a'iter) = *I,
+  I next = (| 1, *I1 |) value$,
+  I1 next = (| 2, *I2 |) value$,
+  I2 next = (| 3, *I3 |) value$,
+  I3 next = none$,
+  void$
+} ;;
