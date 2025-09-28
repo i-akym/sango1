@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.8.1 言語解説</title>
+<title>Sango 1.8.2 言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -117,11 +117,11 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#19.3">19.3. メッセージの送信</a>
   <a href="#19.4">19.4. メッセージの受信</a>
   <a href="#19.5">19.5. メッセージがポストされないことの検出</a>
-<a href="#20">20. フィーチャ【Beta】</a>
+<a href="#20">20. データ・フィーチャ【Beta】</a>
   <a href="#20.1">20.1. 定義</a>
   <a href="#20.2">20.2. 実装</a>
   <a href="#20.3">20.3. 使用</a>
-  <a href="#20.4">20.4. 部分フィーチャ・拡大フィーチャ，化身</a>
+  <a href="#20.4">20.4. 部分データ・フィーチャ・拡大データ・フィーチャ，化身</a>
 <a href="#21">21. コレクションを使う</a>
   <a href="#21.1">21.1. ストリング，文字列</a>
   <a href="#21.2">21.2. セット</a>
@@ -1526,25 +1526,25 @@ Box act.wait_forever$ act.listen</code></blockquote>
 <blockquote class="note">*2：サーバになっているアクタの要求受付用メッセージボックスで<code>no_post$</code>を受信した場合など。</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h1 id="20">20. フィーチャ【Beta】</h1>
-<p>「フィーチャ」とは，データ<sup>*1</sup>の振る舞いのことです。
+<h1 id="20">20. データ・フィーチャ【Beta】</h1>
+<p>「データ・フィーチャ」とは，データ<sup>*1</sup>の振る舞いのことです。
 データの振る舞いには「型」が関連しますが，型は振る舞いと同時に実装でもあります。
-フィーチャを使うと，振る舞いと実装を分けることができます。
-フィーチャの使用方法はに主に以下のものがあります。
+データ・フィーチャを使うと，振る舞いと実装を分けることができます。
+データ・フィーチャの使用方法はに主に以下のものがあります。
 <ul>
 <li>セットやマップのように，一つの振る舞いに対して複数の実装がある</li>
 <li>データをもとに別の型のデータを生成する</li>
 <li>同じ型の別のデータと演算したり比較したりする</li>
 </ul></p>
-<p>また，ときには，あるフィーチャの振る舞いが別のフィーチャの振る舞いの一部分になっていることがあります。
-このとき，前者のフィーチャを後者フィーチャの「部分フィーチャ」と呼び，あるフィーチャを持つデータはその部分フィーチャも持っているともいえます。
+<p>また，ときには，あるデータ・フィーチャの振る舞いが別のデータ・フィーチャの振る舞いの一部分になっていることがあります。
+このとき，前者のデータ・フィーチャを後者データ・フィーチャの「部分データ・フィーチャ」と呼び，あるデータ・フィーチャを持つデータはその部分データ・フィーチャも持っているともいえます。
 </p>
-<p>この章では，フィーチャの実装・使用における局面，すなわち，定義，実装，使用の方法について解説します。
-また，部分フィーチャを持つデータとして扱う方法も解説します。</p>
+<p>この章では，データ・フィーチャの実装・使用における局面，すなわち，定義，実装，使用の方法について解説します。
+また，部分データ・フィーチャを持つデータとして扱う方法も解説します。</p>
 <p>ここでは「マップ」を例に説明します。
 マップは，キーとそれに関連付けられた値の組を複数個保持するデータです。
 マップの振る舞いには，保持している組の個数を返す，キーに値を関連づける，キーに関連付けられた値を取得する，などがあります。
-次からの各節にて，マップの定義，実装，使用，また部分フィーチャについて見ていきます<sup>*2</sup>。</p>
+次からの各節にて，マップの定義，実装，使用，また部分データ・フィーチャについて見ていきます<sup>*2</sup>。</p>
 
 <blockquote class="note">*1：ここでいう「データ」とは，データ定義された型のインスタンスのことであり，関数でないことを強調しているわけではありません。</blockquote>
 <blockquote class="note">*2：Sangoの標準ライブラリで提供されていますが，ここでは簡略化したもので説明します。
@@ -1552,23 +1552,23 @@ Box act.wait_forever$ act.listen</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.1">20.1. 定義</h2>
-<p>フィーチャについて，そのシグネチャとフィーチャ・オブジェクトの型を宣言します。
-フィーチャ・オブジェクトはフィーチャの実装に使用するデータあるいは関数で，使用者が直接使用する場合と，意識する必要がない場合があります。 </p>
+<p>データ・フィーチャについて，そのシグネチャとデータ・フィーチャ・オブジェクトの型を宣言します。
+データ・フィーチャ・オブジェクトはデータ・フィーチャの実装に使用するデータあるいは関数で，使用者が直接使用する場合と，意識する必要がない場合があります。 </p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map&quot; ;;
 feature &lt;*T&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fs&gt; ;;
 data &lt;*D *A *B map_fs&gt; @public := ... ;;  #</code> 具体的定義は省略</blockquote>
 
-<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のインスタンスが「<code>A B a'map</code>」というフィーチャを持つとは，<code>&lt;T&gt;</code>という型が<code>&lt;T A B map_fs&gt;</code>というフィーチャ・オブジェクトを供給できること』を意味します。
-<code>[ ]</code>内がフィーチャを表し，「<code>a'map</code>」がフィーチャ名です。
-「<code>a'</code>」はフィーチャ名に慣習的に付けるもので，「abstract」を意味します。
-文法的には不要ですが，フィーチャ名であることをわかりやすくするために付けます<sup>*1</sup>。
-マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がフィーチャのパラメタになっています。</p>
-<blockquote class="note">*1：フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
+<p><code>feature</code>定義文は，『<code>&lt;T&gt;</code>のインスタンスが「<code>A B a'map</code>」というデータ・フィーチャを持つとは，<code>&lt;T&gt;</code>という型が<code>&lt;T A B map_fs&gt;</code>というデータ・フィーチャ・オブジェクトを供給できること』を意味します。
+<code>[ ]</code>内がデータ・フィーチャを表し，「<code>a'map</code>」がデータ・フィーチャ名です。
+「<code>a'</code>」はデータ・フィーチャ名に慣習的に付けるもので，「abstract」を意味します。
+文法的には不要ですが，データ・フィーチャ名であることをわかりやすくするために付けます<sup>*1</sup>。
+マップではキーと値の型を意識する必要があるのでそれぞれの型<code>&lt;A&gt;</code>，<code>&lt;B&gt;</code>がデータ・フィーチャのパラメタになっています。</p>
+<blockquote class="note">*1：データ・フィーチャ名は型識別子と同じ名前空間を使用するため，型識別子と衝突させないという理由もあります。</blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.2">20.2. 実装</h2>
-<p>フィーチャの実装宣言と，フィーチャ・オブジェクトの供給コードを定義します。
+<p>データ・フィーチャの実装宣言と，データ・フィーチャ・オブジェクトの供給コードを定義します。
 実装宣言は以下のように，<code>data</code>文にて行います<sup>*1</sup>。</p>
 
 <blockquote class="code-sample"><code>module &quot;feature.map-impl&quot; ;;
@@ -1579,28 +1579,28 @@ data &lt;*A *B map_impl&gt; @opaque :=
   map_impl$  #</code> データ構築子<code>
 ++ map_fs -&gt; [ A B map.a'map ] ;;</code></blockquote>
 
-<p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するフィーチャを書きます。
+<p>データ構築定義に引き続き，「<code>++</code>」の次に供給関数の公式名を置き，「<code>-&gt;</code>」の右辺に実装するデータ・フィーチャを書きます。
 供給関数の名前は自由に付けることができます。
-実装するフィーチャが複数ある場合には「<code>++</code>」からフィーチャの記述までを必要な分だけ繰り返して指定します。</p>
+実装するデータ・フィーチャが複数ある場合には「<code>++</code>」からデータ・フィーチャの記述までを必要な分だけ繰り返して指定します。</p>
 
-<blockquote class="note">*1：データの拡張定義（<code>extend</code>文）においては，フィーチャの実装宣言をすることはできません。</blockquote>
+<blockquote class="note">*1：データの拡張定義（<code>extend</code>文）においては，データ・フィーチャの実装宣言をすることはできません。</blockquote>
 
 <p>供給コードの実装は以下のように定義します。</p>
 
 <blockquote class="code-sample"><code>eval map_fs -&gt; &lt;&lt;*A *B map_impl&gt; A B map.map_fs&gt; {
-  #</code>フィーチャ・オブジェクトを生成<code>
+  #</code>データ・フィーチャ・オブジェクトを生成<code>
 } ;;</code></blockquote>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.3">20.3. 使用</h2>
-<p>フィーチャを持つデータを受け取る型は，型変数の後に<code>[ ]</code>で囲んでフィーチャを記述します<sup>*1</sup>。
+<p>データ・フィーチャを持つデータを受け取る型は，型変数の後に<code>[ ]</code>で囲んでデータ・フィーチャを記述します<sup>*1</sup>。
 例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*2</sup>。
-フィーチャ・オブジェクトを取得するには「<code>_feature_</code>フィーチャ名」の関数を使用します<sup>*3</sup>。</p>
+データ・フィーチャ・オブジェクトを取得するには「<code>_feature_</code>データ・フィーチャ名」の関数を使用します<sup>*3</sup>。</p>
 
-<blockquote class="note">*1：複数のフィーチャを実装している場合は，フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
+<blockquote class="note">*1：複数のデータ・フィーチャを実装している場合は，データ・フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
 <blockquote class="note">*2：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
-<blockquote class="note">*3：この関数はフィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
-この例では，フィーチャの実装コードの中で使用しています。</blockquote>
+<blockquote class="note">*3：この関数はデータ・フィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
+この例では，データ・フィーチャの実装コードの中で使用しています。</blockquote>
 
 <blockquote class="code-sample"><code>import &quot;feature.map&quot; -&gt; map ;;
 import &quot;feature.map-impl&quot; -&gt; map_impl ;;
@@ -1630,18 +1630,21 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
 <p>関数<code>_main_</code>は，<code>map_impl.new_map</code>によって<code>&lt;A B map_impl.map_impl&gt;</code>のインスタンスを生成します。
 関数<code>f</code>は実装の型を意識せず，<code>&lt;T[ int cstr map.a'map ]&gt;</code>として受け取り，<code>map</code>モジュールの関数を使って，オブジェクトを処理していきます。</p>
 
-<p><code>map</code>モジュールでは，<code>_feature_a'map</code>を呼び出すことによってフィーチャ・オブジェクトを取得し，処理を行っています。</p>
+<p><code>map</code>モジュールでは，<code>_feature_a'map</code>を呼び出すことによってデータ・フィーチャ・オブジェクトを取得し，処理を行っています。</p>
 
 <blockquote class="code-sample"><code>eval &lt;*T[ *A *B a'map ]&gt; *FMap size @public -&gt; &lt;int&gt; {
   FMap _feature_a'map = *Map_fs,
   FMap &amp;(Map_fs size_f)
 } ;;</code></blockquote>
 
+<p>「<code>_feature_</code>データ・フィーチャ名」の関数は，引数に渡されたオブジェクトの実際の型に応じたデータ・フィーチャ・オブジェクトを返します。
+引数のオブジェクトの値自体は無視されますので，同一の型に対しては同一のデータ・フィーチャ・オブジェクトが返されることに注意してください。</p>
+
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="20.4">20.4. 部分フィーチャ・拡大フィーチャ，化身</h2>
-<p>フィーチャ<var>F<sub>1</sub></var>のフィーチャ・オブジェクトでできることがフィーチャ<var>F<sub>2</sub></var>のフィーチャ・オブジェクトでできることに含まれている場合，<var>F<sub>1</sub></var>は<var>F<sub>2</sub></var>の部分フィーチャである，<var>F<sub>2</sub></var>は<var>F<sub>1</sub></var>の拡大フィーチャであるといいます。
-例えば，<code>a'col</code>は<code>a'map</code>の部分フィーチャになっています。</p>
-<blockquote class="code-sample">フィーチャ<code>a'col</code>
+<h2 id="20.4">20.4. 部分データ・フィーチャ・拡大データ・フィーチャ，化身</h2>
+<p>データ・フィーチャ<var>F<sub>1</sub></var>のデータ・フィーチャ・オブジェクトでできることがデータ・フィーチャ<var>F<sub>2</sub></var>のデータ・フィーチャ・オブジェクトでできることに含まれている場合，<var>F<sub>1</sub></var>は<var>F<sub>2</sub></var>の部分データ・フィーチャである，<var>F<sub>2</sub></var>は<var>F<sub>1</sub></var>の拡大データ・フィーチャであるといいます。
+例えば，<code>a'col</code>は<code>a'map</code>の部分データ・フィーチャになっています。</p>
+<blockquote class="code-sample">データ・フィーチャ<code>a'col</code>
 <code>module &quot;sango.lang&quot; ;;
 feature &lt;*T&gt; [ *A a'col ] @public -&gt; &lt;T A col_fs&gt; ;;
 data &lt;*D *A col_fs&gt; @public :=
@@ -1649,15 +1652,15 @@ data &lt;*D *A col_fs&gt; @public :=
   size_f: &lt;D int fun&gt;
   iter_f: &lt;D &lt;A iter&gt; fun&gt;
   col_fs$ ;;</code></blockquote>
-<p><var>F<sub>1</sub></var>が<var>F<sub>2</sub></var>の部分フィーチャである（<var>F<sub>2</sub></var>が<var>F<sub>1</sub></var>の拡大フィーチャである）場合，<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱いたくなることがあります。
-しかし，部分フィーチャかどうかはプログラミングで決まり，Sangoが判定するわけではありません。
+<p><var>F<sub>1</sub></var>が<var>F<sub>2</sub></var>の部分データ・フィーチャである（<var>F<sub>2</sub></var>が<var>F<sub>1</sub></var>の拡大データ・フィーチャである）場合，<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱いたくなることがあります。
+しかし，部分データ・フィーチャかどうかはプログラミングで決まり，Sangoが判定するわけではありません。
 <code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱うにために，以下の方法が用いられます。</p>
 <p>■方法1 - <code>&lt;T&gt;</code>の定義にて対応：<code>&lt;T&gt;</code>に<var>F<sub>1</sub></var>の実装を宣言</p>
 <p><code>&lt;T&gt;</code>のデータ定義において，<var>F<sub>1</sub></var>の実装宣言を追加します。
 こうすると<code>&lt;T&gt;</code>は<code>&lt;T[ <var>F<sub>1</sub></var>, <var>F<var>2</var></var> ]&gt;</code>となり，<code>&lt;T [ <var>F<sub>1</sub></var> ]&gt;</code>として扱えます。
 ただし，この方法は，<var>F<sub>2</sub></var>を実装している型ごとに<var>F<sub>1</sub></var>を追加実装しなければならず，手間がかかります。</p>
-<p>■方法2 - <code>&lt;T&gt;</code>の処理にて対応：<code>&lt;T&gt;</code>の<var>F<sub>2</sub></var>のフィーチャ・オブジェクトを<var>F<sub>1</sub></var>のフィーチャ・オブジェクトに変換</p>
-<p><code>_feature_<var>F<sub>2</sub></var></code>で取得したフィーチャ・オブジェクトを<var>F<sub>1</sub></var>のフィーチャ・オブジェクトに変換して使用します。
+<p>■方法2 - <code>&lt;T&gt;</code>の処理にて対応：<code>&lt;T&gt;</code>の<var>F<sub>2</sub></var>のデータ・フィーチャ・オブジェクトを<var>F<sub>1</sub></var>のデータ・フィーチャ・オブジェクトに変換</p>
+<p><code>_feature_<var>F<sub>2</sub></var></code>で取得したデータ・フィーチャ・オブジェクトを<var>F<sub>1</sub></var>のデータ・フィーチャ・オブジェクトに変換して使用します。
 標準ライブラリから提供されている各種変換関数を利用すると便利です。</p>
 <blockquote class="code-sample">例：<code>&lt;D A B map_fs&gt;</code>から<code>&lt;D &lt;A B tuple&gt; col_fs&gt;</code>への変換関数
 <code>module &quot;sango.util.map&quot; ;;
@@ -1671,13 +1674,14 @@ eval &lt;*D *A *B map_fs&gt; *Fs map_fs_to_col_fs | to_col_fs @public -&gt; &lt;
 data &lt;*T *A *B map_inc&gt; @protected := ...
 ++ ... [ &lt;A B tuple&gt; a'col ] ;;</code></blockquote>
 <blockquote class="code-sample">化身型への変換と使用
-<code>eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
+<code>import &quot;sango.util.col.feature&quot; -&gt; colf ;;
+eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
   M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
   ...
   M1 map.incarnate = *M1_inc,
-  M1_inc col.size = 1,
-  M1_inc col.iter = *M1_inc_iter,
+  M1_inc colf.size = 1,
+  M1_inc colf.iter = *M1_inc_iter,
   M1_inc_iter next = (| (| 2, &quot;two&quot; |), ** |) value$,
   void$
 } ;;</code></blockquote>
@@ -2554,9 +2558,28 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【Beta，非互換】<code>&quot;sango.util.unique&quot;</code>を<code>&quot;sango.unique&quot;</code>に変更。</li>
 </ul>
 
+<p>■　1.8.2</p>
+<ul>
+<li>用語「フィーチャ」を「データ・フィーチャ」に変更。ドキュメント上だけの変更であり，プログラミングに影響はありません。</li>
+<li>【非互換】<code>&quot;sango.util.set&quot;</code>にて，関数の公式名を変更，<code>gset</code>を<code>set</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.set.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.bag&quot;</code>にて，関数の公式名を変更，<code>gbag</code>を<code>bag</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.bag.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.map&quot;</code>にて，関数の公式名を変更，<code>gmap</code>を<code>map</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.map.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.queue&quot;</code>にて，関数の公式名を変更，<code>gqueue</code>を<code>queue</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.queue.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.stack&quot;</code>にて，関数の公式名を変更，<code>gstack</code>を<code>stack</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.stack.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.ralist&quot;</code>にて，関数の公式名を変更，<code>gralist</code>を<code>ralist</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.ralist.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.col&quot;</code>にて，関数の公式名を変更，<code>gcol</code>を<code>col</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.col.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.eq&quot;</code>を<code>&quot;sango.util.eq.feature&quot;</code>に変更。また，関数の公式名を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.ord&quot;</code>を<code>&quot;sango.util.ord.feature&quot;</code>に変更。また，関数の公式名を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.unique&quot;</code>について，オブジェクト・フィーチャに関する定義，処理関数を<code>&quot;sango.unique.feature&quot;</code>に移動。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.iter&quot;</code>について，オブジェクト・フィーチャに関する定義，処理関数を<code>&quot;sango.util.iter.feature&quot;</code>に移動。</li>
+<li>【Beta，非互換】<code>&quot;sango.entity&quot;</code>について，オブジェクト・フィーチャに関する定義，処理関数を<code>&quot;sango.entity.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.set.shared.box&quot;</code>，<code>&quot;sango.util.map.shared.box&quot;</code>を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.map.shared.weakvaluemap&quot;</code>を変更。</li>
+</ul>
+
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="E">E. Known bugs and restrictions</h1>
-<p>■　コンパイルエラーが発生した際，コンパイラが<code>NullPointerException</code>で終了することがあります。</p>
+<p>■　コンパイルエラーが発生した際，コンパイラが例外で終了することがあります。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 

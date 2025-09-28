@@ -1,0 +1,238 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.graph.simplegraph" ;;
+
+### This is a simple implementation of a'graph not an implementation for 'simple graph'.
+
+import "sango.list" -> list ;;
+import "sango.unique" -> uniq ;;
+import "sango.util.graph" -> graph ;;
+import "sango.util.iter" -> iter ;;
+import "sango.util.map" -> map ;;
+import "sango.util.map.hashmap" -> hmap ;;
+import "sango.util.set" -> set ;;
+import "sango.util.set.hashset" -> hset ;;
+import "sango.util.set.simpleset" -> sset ;;
+import "sango.tuple" -> tuple ;;
+
+alias type <*A *B vertex_d> := <<<A B graph.edge> set.set> <<A B graph.edge> set.set> tuple> ;;
+  # outgoing edges, incoming edges
+
+data <*A *B simple_graph> @opaque :=
+  vtab: <<A graph.vertex> <A B vertex_d> map.map>
+  eset: <<A B graph.edge> set.set>
+  simple_graph$
+++ as_a'graph -> [ A B graph.a'graph ] ;;
+
+eval as_a'graph -> <<*A *B simple_graph> A B graph.graph_fs> {
+  empty?_f: ^empty?
+  vertex_count_f: ^vertex_count
+  edge_count_f: ^edge_count
+  vertex_iter_f: ^vertex_iter
+  edge_iter_f: ^edge_iter
+  contain_vertex?_f_: (^contain_vertex? value$)
+  contain_edge?_f_: (^contain_edge? value$)
+  add_vertex_f: ^add_vertex
+  add_edge_f: ^add_edge
+  delete_vertex_f: ^delete_vertex
+  delete_edge_f: ^delete_edge
+  select_vertices_f: ^select_vertices
+  select_edges_f: ^select_edges
+  clear_f: ^clear
+  graph.graph_fs$
+} ;;
+
+eval <*A *B simple_graph> *G empty? -> <bool> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vtab map.empty?
+} ;;
+
+eval <*A *B simple_graph> *G vertex_count -> <int> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vtab map.size
+} ;;
+
+eval <*A *B simple_graph> *G edge_count -> <int> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Eset set.size
+} ;;
+
+eval <*A *B simple_graph> *G vertex_iter -> <<A graph.vertex> iter> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  (Vtab map.iter) ^tuple.pair_first iter.add_modifier
+} ;;
+
+eval <*A *B simple_graph> *G edge_iter -> <<A B graph.edge> iter> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Eset set.iter
+} ;;
+
+eval <*A *B simple_graph> *G <A graph.vertex> *V contain_vertex? -> <bool> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vtab V map.contain_key?
+} ;;
+
+eval <*A *B simple_graph> *G <A B graph.edge> *E contain_edge? -> <bool> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Eset E set.contain?
+} ;;
+
+eval <*A *B simple_graph> *G <A graph.vertex> *V add_vertex -> <A B simple_graph> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vtab V map.contain_key? >> case {
+  ; true$ -> Vtab  # already added
+  ; ** -> Vtab V (| sset.new_set, sset.new_set |) map.add
+  } = *Vtab',
+  vtab: Vtab' :: G simple_graph$
+} ;;
+
+eval <*A *B simple_graph> *G <A B graph.edge> *E add_edge -> <A B simple_graph> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Eset E set.contain? >> case {
+  ; true$ -> G  # already added
+  ; ** ->
+    E = ** *FV *TV ** graph.edge$,
+    Vtab FV map.assoc >> case {
+    ; (| *OEs, *IEs |) value$ ->
+      OEs E set.add = *OEs',
+      Vtab FV (| OEs', IEs |) map.add
+    ; ** -> bad_arg$ "Unknown start vertex." new_exception >> throw
+    } = *Vtab',
+    Vtab' TV map.assoc >> case {
+    ; (| *OEs, *IEs |) value$ ->
+      IEs E set.add = *IEs',
+      Vtab' TV (| OEs, IEs' |) map.add
+    ; ** -> bad_arg$ "Unknown end vertex." new_exception >> throw
+    } = *Vtab'',
+    Eset E set.add = *Eset',
+    vtab: Vtab'' eset: Eset' :: G simple_graph$
+  }
+} ;;
+
+eval <*A *B simple_graph> *G <A graph.vertex> *V delete_vertex -> <A B simple_graph> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vtab V map.remove >> case {
+  ; (| *Vtab', (| **, (| *OEs, *IEs |) |) value$ |) ->
+    Eset (OEs set.iter) set.delete_iter = *Eset',
+    Eset' (IEs set.iter) set.delete_iter = *Eset'',
+    vtab: Vtab' eset: Eset'' :: G simple_graph$
+  ; ** -> G
+  }
+} ;;
+
+eval <*A *B simple_graph> *G <A B graph.edge> *E delete_edge -> <A B simple_graph> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Eset E set.delete = *Eset',
+  eset: Eset' :: G simple_graph$
+} ;;
+
+eval <*A *B simple_graph> *G <A graph.vertex_sel> *Vsel select_vertices -> <<A graph.vertex> iter> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vsel case {
+  ; graph.vertex_sel_any$ ->
+    (Vtab map.iter) ^tuple.pair_first iter.add_modifier
+  ; *V graph.vertex_sel_just$ ->
+    Vtab V map.contain_key? >> case {
+    ; true$ -> [ V ]
+    ; ** -> []
+    } >> list.iter
+  ; *F graph.vertex_sel_filter$ ->
+    ((Vtab map.iter) ^tuple.pair_first iter.add_modifier) F iter.add_filter
+  }
+} ;;
+
+eval <*A *B simple_graph> *G <A B graph.edge_sel> *Esel select_edges -> <<A B graph.edge> iter> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Esel case {
+  ; graph.edge_sel_any$ ->
+    Eset set.iter
+  ; *E graph.edge_sel_just$ ->
+    Eset E set.contain? >> case {
+    ; true$ -> [ E ]
+    ; ** -> []
+    } >> list.iter
+  ; *FVsel *TVsel graph.edge_sel_vertices$ ->
+    (| FVsel, TVsel |) case {
+    ; (| graph.vertex_sel_any$, graph.vertex_sel_any$ |) ->
+      Eset set.iter
+    ; (| graph.vertex_sel_any$, *TV graph.vertex_sel_just$ |) ->
+      Vtab TV map.assoc >> case {
+      ; (| **, *IEs |) value$ -> IEs set.iter
+      ; ** -> [] list.iter
+      }
+    ; (| graph.vertex_sel_any$, *TVF graph.vertex_sel_filter$ |) ->
+      (Eset set.iter)
+      \ <A B graph.edge> *X -> <bool> { (X graph.to) &TVF }
+      iter.add_filter
+    ; (| *FV graph.vertex_sel_just$, graph.vertex_sel_any$ |) ->
+      Vtab FV map.assoc >> case {
+      ; (| *OEs, ** |) value$ -> OEs set.iter
+      ; ** -> [] list.iter
+      }
+    ; (| *FV graph.vertex_sel_just$, *TV graph.vertex_sel_just$ |) ->
+      Vtab FV map.assoc >> case {
+      ; (| *OEs, *IEs |) value$ ->
+        (OEs set.iter)
+        \ <A B graph.edge> *X -> <bool> { X case { to: TV *** graph.edge$ -> true$ ; ** -> false$ } }
+        iter.add_filter
+      ; ** -> [] list.iter
+      }
+    ; (| *FV graph.vertex_sel_just$, *TVF graph.vertex_sel_filter$ |) ->
+      Vtab FV map.assoc >> case {
+      ; (| *OEs, ** |) value$ ->
+        (OEs set.iter)
+        \ <A B graph.edge> *X -> <bool> { (X graph.to) &TVF }
+        iter.add_filter
+      ; ** -> [] list.iter
+      }
+    ; (| *FVF graph.vertex_sel_filter$, graph.vertex_sel_any$ |) ->
+      (Eset set.iter)
+      \ <A B graph.edge> *X -> <bool> { (X graph.from) &FVF }
+      iter.add_filter
+    ; (| *FVF graph.vertex_sel_filter$, *TV graph.vertex_sel_just$ |) ->
+      Vtab TV map.assoc >> case {
+      ; (| **, *IEs |) value$ ->
+        (IEs set.iter)
+        \ <A B graph.edge> *X -> <bool> { (X graph.from) &FVF }
+        iter.add_filter
+      ; ** -> [] list.iter
+      }
+    ; (| *FVF graph.vertex_sel_filter$, *TVF graph.vertex_sel_filter$ |) ->
+      ((Eset set.iter)
+       \ <A B graph.edge> *X -> <bool> { (X graph.from) &FVF }
+       iter.add_filter)
+      \ <A B graph.edge> *X -> <bool> { (X graph.to) &TVF }
+      iter.add_filter
+    }
+  ; *F graph.edge_sel_filter$ ->
+    (Eset set.iter) F iter.add_filter
+  }
+} ;;
+
+eval <*A *B simple_graph> *G clear -> <A B simple_graph> {
+  G = vtab: *Vtab eset: *Eset simple_graph$,
+  Vtab map.clear = *Vtab',
+  Eset set.clear = *Eset',
+  vtab: Vtab' eset: Eset' :: G simple_graph$
+} ;;

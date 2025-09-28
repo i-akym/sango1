@@ -26,7 +26,7 @@ package org.sango_lang;
 public class Version {
   static final int MAJOR = 1;
   static final int MINOR = 8;
-  static final int MICRO = 1;
+  static final int MICRO = 2;
   static final String LEVEL = null;
   static final int BUILD = 1;
 

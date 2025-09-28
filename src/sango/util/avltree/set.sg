@@ -27,7 +27,7 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.set" -> set ;;
 
-extend <*A _1> -> my1 :=
+data <*A d> :=
   ord: <A ord_fs>
   body: <A avl.tree>
   d$ ;;
@@ -53,11 +53,10 @@ eval <*A ord_fs> *Ord <A> *X put_new_locator -> <<A avl.node> <A avl.locate> fun
 } ;;
 
 eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
-  ord: Ord body: avl.new_tree d$ = <A set.d> *D,
-  d: D fs: set_fs set.gset$
+  (ord: Ord body: avl.new_tree d$) set_fs set.combine
 } ;;
 
-eval set_fs -> <<*A set.d> A set.set_fs> {
+eval set_fs -> <<*A d> A set.set_fs> {
   empty?_f: ^empty?
   size_f: ^size
   get_f: ^get
@@ -72,16 +71,16 @@ eval set_fs -> <<*A set.d> A set.set_fs> {
   set.set_fs$
 } ;;
 
-eval <*A set.d> *Set_d empty? -> <bool> {
+eval <*A d> *Set_d empty? -> <bool> {
   Set_d size >> zero?
 } ;;
 
-eval <*A set.d> *Set_d size -> <int> {
+eval <*A d> *Set_d size -> <int> {
   Set_d = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem get -> <A maybe> {
+eval <*A d> *Set_d <A> *Elem get -> <A maybe> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
   ; *E avl.get_done$ -> E value$
@@ -89,11 +88,11 @@ eval <*A set.d> *Set_d <A> *Elem get -> <A maybe> {
   }
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem contain? -> <bool> {
+eval <*A d> *Set_d <A> *Elem contain? -> <bool> {
   Set_d Elem get >> something?
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem put -> <<A set.d> <A maybe> tuple> {
+eval <*A d> *Set_d <A> *Elem put -> <<A d> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) Elem avl.put >> case {
   ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, none$ |)
@@ -101,7 +100,7 @@ eval <*A set.d> *Set_d <A> *Elem put -> <<A set.d> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem put_new -> <<A set.d> bool tuple> {
+eval <*A d> *Set_d <A> *Elem put_new -> <<A d> bool tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem put_new_locator) Elem avl.put >> case {
   ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, true$ |)
@@ -109,11 +108,11 @@ eval <*A set.d> *Set_d <A> *Elem put_new -> <<A set.d> bool tuple> {
   }
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem add -> <A set.d> {
+eval <*A d> *Set_d <A> *Elem add -> <A d> {
   Set_d Elem put >> tuple.pair_first
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem remove -> <<A set.d> <A maybe> tuple> {
+eval <*A d> *Set_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
   Set_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Set_d d$, Removed value$ |)
@@ -121,11 +120,11 @@ eval <*A set.d> *Set_d <A> *Elem remove -> <<A set.d> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A set.d> *Set_d <A> *Elem delete -> <A set.d> {
+eval <*A d> *Set_d <A> *Elem delete -> <A d> {
   Set_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A set.d> *Set_d take -> <<A <A set.d> tuple> maybe> {
+eval <*A d> *Set_d take -> <<A <A d> tuple> maybe> {
   Set_d = body: *Body *** d$,
   Body avl.take >> case {
   ; (| *E, *Body' |) value$ -> (| E, body: Body' :: Set_d d$ |) value$
@@ -133,6 +132,6 @@ eval <*A set.d> *Set_d take -> <<A <A set.d> tuple> maybe> {
   }
 } ;;
 
-eval <*A set.d> *Set_d clear -> <A set.d> {
+eval <*A d> *Set_d clear -> <A d> {
   body: avl.new_tree :: Set_d d$
 } ;;

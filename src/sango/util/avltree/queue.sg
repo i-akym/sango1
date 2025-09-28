@@ -26,7 +26,7 @@ module "sango.util.avltree.queue" ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.queue" -> queue ;;
 
-extend <*A _1> -> my1 :=
+data <*A d> :=
   body: <A avl.tree>
   d$ ;;
 
@@ -42,11 +42,10 @@ eval <*A avl.node> *Node locate_enqueue -> <A avl.locate> {
 } ;;
 
 eval new_queue @public -> <*A queue.queue> {
-  body: avl.new_tree d$ = <*AA queue.d> *D,
-  d: D fs: queue_fs queue.gqueue$
+  (body: avl.new_tree d$) queue_fs queue.combine
 } ;;
 
-eval queue_fs -> <<*A queue.d> A queue.queue_fs> {
+eval queue_fs -> <<*A d> A queue.queue_fs> {
   empty?_f: ^empty?
   length_f: ^length
   enqueue_f: ^enqueue
@@ -56,22 +55,22 @@ eval queue_fs -> <<*A queue.d> A queue.queue_fs> {
   queue.queue_fs$
 } ;;
 
-eval <*A queue.d> *Queue_d empty? -> <bool> {
+eval <*A d> *Queue_d empty? -> <bool> {
   Queue_d length >> zero?
 } ;;
 
-eval <*A queue.d> *Queue_d length -> <int> {
+eval <*A d> *Queue_d length -> <int> {
   Queue_d = body: *Body *** d$,
   Body avl.size
 } ;;
 
-eval <*A queue.d> *Queue_d <A> *Elem enqueue -> <A queue.d> {
+eval <*A d> *Queue_d <A> *Elem enqueue -> <A d> {
   Queue_d = body: *Body *** d$,
   Body ^locate_enqueue Elem avl.put = *Body' avl.put_new_done$,
   body: Body' :: Queue_d d$
 } ;;
 
-eval <*A queue.d> *Queue_d head -> <A maybe> {
+eval <*A d> *Queue_d head -> <A maybe> {
   Queue_d = body: *Body *** d$,
   Body ^locate_head avl.get >> case {
   ; *E avl.get_done$ -> E value$
@@ -79,7 +78,7 @@ eval <*A queue.d> *Queue_d head -> <A maybe> {
   }
 } ;;
 
-eval <*A queue.d> *Queue_d dequeue -> <<A <A queue.d> tuple> maybe> {
+eval <*A d> *Queue_d dequeue -> <<A <A d> tuple> maybe> {
   Queue_d = body: *Body *** d$,
   Body avl.take >> case {
   ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue_d d$ |) value$
@@ -87,6 +86,6 @@ eval <*A queue.d> *Queue_d dequeue -> <<A <A queue.d> tuple> maybe> {
   }
 } ;;
 
-eval <*A queue.d> *Queue_d clear -> <A queue.d> {
+eval <*A d> *Queue_d clear -> <A d> {
   body: avl.new_tree d$
 } ;;

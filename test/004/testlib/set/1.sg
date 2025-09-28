@@ -1,4 +1,5 @@
 import "sango.util.set" -> set ;;
+import "sango.util.set.feature" -> setf ;;
 
 eval <int set.set> *S0 testA00 @public -> <void> {
   S0 set.empty? = true$,
@@ -47,34 +48,34 @@ eval <int set.set> *S0 testA20 @public -> <void> {
   (Sa Sb set.difference) [ 2, 4, 6 ] set.contain_just? = true$,
   void$
 } ;;
-eval <*T![ int set.a'set ]> *S0 testB00 @public -> <void> {
-  S0 set.empty? = true$,
-  S0 1 set.put = (| *S1, none$ |),
-  S1 1 set.put_new = (| S1, false$ |),
-  S1 2 set.put_new = (| *S2, true$ |),
-  S2 2 set.put = (| *S3, 2 value$ |),
-  S3 set.size = 2,
-  S3 2 set.contain? = true$,
-  S3 3 set.contain? = false$,
-  S3 3 set.put = (| *S4, none$ |),
-  S4 2 set.remove = (| *S5, 2 value$ |),
-  S5 set.take >> case {
+eval <*T![ int setf.a'set ]> *S0 testB00 @public -> <void> {
+  S0 setf.empty? = true$,
+  S0 1 setf.put = (| *S1, none$ |),
+  S1 1 setf.put_new = (| S1, false$ |),
+  S1 2 setf.put_new = (| *S2, true$ |),
+  S2 2 setf.put = (| *S3, 2 value$ |),
+  S3 setf.size = 2,
+  S3 2 setf.contain? = true$,
+  S3 3 setf.contain? = false$,
+  S3 3 setf.put = (| *S4, none$ |),
+  S4 2 setf.remove = (| *S5, 2 value$ |),
+  S5 setf.take >> case {
   ; (| 1, *S5' |) value$ ->
-    S5' set.take = (| 3, *S5'' |) value$,
-    S5'' set.take = none$
+    S5' setf.take = (| 3, *S5'' |) value$,
+    S5'' setf.take = none$
   ; (| 3, *S5' |) value$ ->
-    S5' set.take = (| 1, *S5'' |) value$,
-    S5'' set.take = none$
+    S5' setf.take = (| 1, *S5'' |) value$,
+    S5'' setf.take = none$
   },
-  S5 set.clear >> set.empty? = true$,
-  S5 [ 4, 5 ] set.add_list = *S6,
-  S6 set.size = 4,
-  S6 set.iter = *I,
+  S5 setf.clear >> setf.empty? = true$,
+  S5 [ 4, 5 ] setf.add_list = *S6,
+  S6 setf.size = 4,
+  S6 setf.iter = *I,
   I next = (| **, *I' |) value$,
   I' next = (| **, *I'' |) value$,
   I'' next = (| **, *I''' |) value$,
   I''' next = (| **, *I'''' |) value$,
   I'''' next = none$,
-  S6 [ 4, 5 ] set.delete_list >> set.size = 2,
+  S6 [ 4, 5 ] setf.delete_list >> setf.size = 2,
   void$
 } ;;

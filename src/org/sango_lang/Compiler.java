@@ -774,6 +774,7 @@ public class Compiler {
   static String typeAvailabilityMsg(Cstr referrerModName, Cstr referredModName, Module.Availability modAv, String id, Module.Availability featureAv) {
     String ma = (modAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(modAv) + "]";
     String fa = (featureAv == Module.AVAILABILITY_GENERAL)? "": "[" + availabilityRepr(featureAv) + "]";
+/* TRAP */ if (id == null) { throw new RuntimeException("TRAP: null id. "); }
     return
       referrerModName.repr() + " refers type "
       + "\"" + id + "\"" + fa

@@ -26,6 +26,7 @@ module "sango.util.map" ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
 import "sango.util.iter" -> iter ;;
+import "sango.util.map.feature" -> feat ;;
 
 ### function set
 
@@ -106,241 +107,171 @@ eval <*D *A *B map_fs> *Fs map_fs_to_col_fs | to_col_fs @public -> <D <A B tuple
 } ;;
 
 
-### generic
+### combined object
 
-data <*D *A *B gmap> @public :=
-  d: <D>
-  fs: <D A B map_fs>
-  gmap$
-++ a'map_impl -> [ A B a'map ] ;;
+data <*A *B map> @public :=
+  empty?_f: <bool fun>
+  size_f: <int fun>
+  get_f: <A <<A B tuple> maybe> fun>
+  assoc_f: <A <B maybe> fun>
+  contain_key?_f: <A bool fun>
+  put_f: <A B <<A B map> <<A B tuple> maybe> tuple> fun>
+  put_new_f: <A B <<A B map> bool tuple> fun>
+  add_f: <A B <A B map> fun>
+  remove_f: <A <<A B map> <<A B tuple> maybe> tuple> fun>
+  delete_f: <A <A B map> fun>
+  take_f: <<<<A B tuple> <A B map> tuple> maybe> fun>
+  clear_f: <<A B map> fun>
+  map$
+++ a'map_impl -> [ A B feat.a'map ] ;;
 
-alias type <*A *B d> @public := <A B _2+> ;;
-alias type <*A *B map> @public := <<A B d> A B gmap> ;;
+eval <*D> *Z <D *A *B map_fs> *Fs combine @public -> <A B map> {
+  empty?_f:
+    \\ <bool> { Z Fs do_empty? }
+  size_f:
+    \\ <int> { Z Fs do_size }
+  get_f:
+    \ <A> *X -> <<A B tuple> maybe> { Z Fs X do_get }
+  assoc_f:
+    \ <A> *X -> <B maybe> { Z Fs X do_assoc }
+  contain_key?_f:
+    \ <A> *X -> <bool> { Z Fs X do_contain_key? }
+  put_f:
+    \ <A> *X <B> *Y -> <<A B map> <<A B tuple> maybe> tuple> {
+      Z Fs X Y do_put = (| *Z', *Replaced_ |),
+      (| Z' Fs combine, Replaced_ |)
+    }
+  put_new_f:
+    \ <A> *X <B> *Y -> <<A B map> bool tuple> {
+      Z Fs X Y do_put_new = (| *Z', *Succeeded? |),
+      (| Z' Fs combine, Succeeded? |)
+    }
+  add_f:
+    \ <A> *X <B> *Y -> <A B map> {
+      Z Fs X Y do_add = *Z',
+      Z' Fs combine
+    }
+  remove_f:
+    \ <A> *X -> <<A B map> <<A B tuple> maybe> tuple> {
+      Z Fs X do_remove = (| *Z', *Removed_ |),
+      (| Z' Fs combine, Removed_ |)
+    }
+  delete_f:
+    \ <A> *X -> <A B map> {
+      Z Fs X do_delete = *Z',
+      Z' Fs combine
+    }
+  take_f:
+    \\ <<<A B tuple> <A B map> tuple> maybe> {
+      Z Fs do_take >> case {
+      ; (| *KV, *Z' |) value$ -> (| KV, Z' Fs combine |) value$
+      ; ** -> none$
+      }
+    }
+  clear_f:
+    \\ <A B map> {
+      Z Fs do_clear = *Z',
+      Z' Fs combine
+    }
+  map$
+} ;;
 
-eval a'map_impl -> <<*D *A *B gmap> A B map_fs> {
-  empty?_f: ^g_empty?
-  size_f: ^g_size
-  get_f: ^g_get
-  assoc_f_: (^g_assoc value$)
-  contain_key?_f_: (^g_contain_key? value$)
-  put_f: ^g_put
-  put_new_f_: (^g_put_new value$)
-  add_f_: (^g_add value$)
-  remove_f: ^g_remove
-  delete_f_: (^g_delete value$)
-  take_f: ^g_take
-  clear_f: ^g_clear
+eval a'map_impl -> <<*A *B map> A B map_fs> {
+  empty?_f: ^empty?
+  size_f: ^size
+  get_f: ^get
+  assoc_f_: (^assoc value$)
+  contain_key?_f_: (^contain_key? value$)
+  put_f: ^put
+  put_new_f_: (^put_new value$)
+  add_f_: (^add value$)
+  remove_f: ^remove
+  delete_f_: (^delete value$)
+  take_f: ^take
+  clear_f: ^clear
   map_fs$
 } ;;
 
-eval <*D *A *B gmap> *Map g_empty? | empty? @public -> <bool> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs do_empty?
+eval <*A *B map> *Map empty? @public -> <bool> {
+  &(Map empty?_f)
 } ;;
 
-eval <*D *A *B gmap> *Map g_size | size @public -> <int> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs do_size
+eval <*A *B map> *Map size @public -> <int> {
+  &(Map size_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key g_get | get @public -> <<A B tuple> maybe> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key do_get
+eval <*A *B map> *Map <A> *Key get @public -> <<A B tuple> maybe> {
+  Key &(Map get_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key g_assoc | assoc @public -> <B maybe> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key do_assoc
+eval <*A *B map> *Map <A> *Key assoc @public -> <B maybe> {
+  Key &(Map assoc_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key g_contain_key? | contain_key? @public -> <bool> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key do_contain_key?
+eval <*A *B map> *Map <A> *Key contain_key? @public -> <bool> {
+  Key &(Map contain_key?_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key <B> *Value g_put | put @public -> <<D A B gmap> <<A B tuple> maybe> tuple> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key Value do_put = (| *D', *Replaced_kv_ |),
-  (| d: D' fs: Fs gmap$, Replaced_kv_ |)
+eval <*A *B map> *Map <A> *Key <B> *Value  put @public -> <<A B map> <<A B tuple> maybe> tuple> {
+  Key Value &(Map put_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key <B> *Value g_put_new | put_new @public -> <<D A B gmap> bool tuple> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key Value do_put_new = (| *D', *Succeeded? |),
-  (| d: D' fs: Fs gmap$, Succeeded? |)
+eval <*A *B map> *Map <A> *Key <B> *Value put_new @public -> <<A B map> bool tuple> {
+  Key Value &(Map put_new_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key <B> *Value g_add | add @public -> <D A B gmap> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key Value do_add = *D',
-  D' fs: Fs gmap$
+eval <*A *B map> *Map <A> *Key <B> *Value add @public -> <A B map> {
+  Key Value &(Map add_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key g_remove | remove @public -> <<D A B gmap> <<A B tuple> maybe> tuple> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key do_remove = (| *D', *Removed_kv_ |),
-  (| D' fs: Fs gmap$, Removed_kv_ |)
+eval <*A *B map> *Map <A> *Key remove @public -> <<A B map> <<A B tuple> maybe> tuple> {
+  Key &(Map remove_f)
 } ;;
 
-eval <*D *A *B gmap> *Map <A> *Key g_delete | delete @public -> <D A B gmap> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Key do_delete = *D',
-  D' fs: Fs gmap$
+eval <*A *B map> *Map <A> *Key delete @public -> <A B map> {
+  Key &(Map delete_f)
 } ;;
 
-eval <*D *A *B gmap> *Map g_take | take @public -> <<<A B tuple> <D A B gmap> tuple> maybe> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs do_take >> case {
-  ; (| *KV, *D' |) value$ -> (| KV, D' Fs gmap$ |) value$
+eval <*A *B map> *Map take @public -> <<<A B tuple> <A B map> tuple> maybe> {
+  &(Map take_f)
+} ;;
+
+eval <*A *B map> *Map clear @public -> <A B map> {
+  &(Map clear_f)
+} ;;
+
+eval <*A *B map> *Map iter @public -> <<A B tuple> iter> {
+  \\ <<A B tuple> iter_res> { Map iter_next } iter$
+} ;;
+
+eval <*A *B map> *Z iter_next -> <<A B tuple> iter_res> {
+  Z take >> case {
+  ; (| *KV, *Z' |) value$ ->
+    (| KV, \\ <<A B tuple> iter_res> { Z' iter_next } iter$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*D *A *B gmap> *Map g_clear | clear @public -> <D A B gmap> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs do_clear = *D',
-  D' Fs gmap$
+eval <*A *B map> *Map <<A B tuple> list> *KVs add_list @public -> <A B map> {
+  Map (KVs list.iter) add_iter
 } ;;
 
-eval <*D *A *B gmap> *Map <<A B tuple> list> *KVs g_add_list | add_list @public -> <D A B gmap> {
-  Map (KVs list.iter) g_add_iter
+eval <*A *B map> *Map <<A B tuple> iter> *Iter add_iter @public -> <A B map> {
+  Map
+  Iter
+  \ <A B map> *M <A B tuple> *KV -> <A B map> { KV = (| *K, *V |), M K V add }
+  iter.fold
 } ;;
 
-eval <*D *A *B gmap> *Map <<A B tuple> iter> *Iter g_add_iter | add_iter @public -> <D A B gmap> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Iter do_add_iter = *D',
-  D' Fs gmap$
+eval <*A *B map> *Map <A list> *Ks delete_list @public -> <A B map> {
+  Map (Ks list.iter) delete_iter
 } ;;
 
-eval <*D *A *B gmap> *Map <A list> *Ks g_delete_list | delete_list @public -> <D A B gmap> {
-  Map (Ks list.iter) g_delete_iter
-} ;;
-
-eval <*D *A *B gmap> *Map <A iter> *Iter g_delete_iter | delete_iter @public -> <D A B gmap> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs Iter do_delete_iter = *D',
-  D' Fs gmap$
-} ;;
-
-eval <*D *A *B gmap> *Map g_iter | iter @public -> <<A B tuple> iter> {
-  Map = d: *D fs: *Fs gmap$,
-  D Fs do_iter
-} ;;
-
-
-### feature
-
-feature <*T> [ *A *B a'map ] @public -> <T A B map_fs> ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_empty? | empty? @public -> <bool> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_empty?
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_size | size @public -> <int> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_size
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_get | get @public -> <<A B tuple> maybe> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_get
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_assoc | assoc @public -> <B maybe> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_assoc
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_contain_key? | contain_key? @public -> <bool> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_contain_key?
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put | put @public -> <T <<A B tuple> maybe> tuple> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key Value do_put
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_put_new | put_new @public -> <T bool tuple> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key Value do_put_new
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value f_add | add @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key Value do_add
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_remove | remove @public -> <T <<A B tuple> maybe> tuple> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_remove
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A> *Key f_delete | delete @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Key do_delete
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_take | take @public -> <<<A B tuple> T tuple> maybe> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_take
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_clear | clear @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_clear
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <<A B tuple> list> *KVs f_add_list | add_list @public -> <T> {
-  FMap (KVs list.iter) f_add_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <<A B tuple> iter> *Iter f_add_iter | add_iter @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Iter do_add_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A list> *Ks f_delete_list | delete_list @public -> <T> {
-  FMap (Ks list.iter) f_delete_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap <A iter> *Iter f_delete_iter | delete_iter @public -> <T> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs Iter do_delete_iter
-} ;;
-
-eval <*T[ *A *B a'map ]> *FMap f_iter | iter @public -> <<A B tuple> iter> {
-  FMap _feature_a'map = *Map_fs,
-  FMap Map_fs do_iter
-} ;;
-
-
-### incarnation
-
-data <*T *A *B map_inc> @protected :=
-  org: <T>
-  fo: <T A B map_fs>
-  map_inc$
-++ inc_a'col_impl -> [ <A B tuple> a'col ] ;;
-
-eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
-  empty?_f_:
-    (\ <*TT *AA *BB map_inc> *I -> <bool> {
-       I = *ID *IFs map_inc$,
-       ID IFs do_empty?
-     } value$)
-  size_f:
-    \ <*TT *AA *BB map_inc> *I -> <int> {
-      I = *ID *IFs map_inc$,
-      ID IFs do_size
-    }
-  iter_f:
-    \ <*TT *AA *BB map_inc> *I -> <<AA BB tuple> iter> {
-      I = *ID *IFs map_inc$,
-      ID IFs do_iter
-    }
-  col_fs$
+eval <*A *B map> *Map <A iter> *Iter delete_iter @public -> <A B map> {
+  Map
+  Iter
+  \ <A B map> *M <A> *K -> <A B map> { M K delete }
+  iter.fold
 } ;;
 
 

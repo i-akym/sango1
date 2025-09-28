@@ -1,6 +1,7 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.stack" -> stack ;;
+import "sango.util.stack.feature" -> stackf ;;
 import "sango.util.stack.liststack" -> lstack ;;
 
 eval _main_ -> <void> {
@@ -13,7 +14,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   lstack.new_stack [ 1, 2, 3 ] stack.push_list = *S3,
-  S3 stack._feature_a'stack = *SF,
+  S3 stackf._feature_a'stack = *SF,
   SF stack.stack_fs_to_col_fs = *CF,
   S3 &(CF empty?_f) = false$,
   S3 &(CF size_f) = 3,

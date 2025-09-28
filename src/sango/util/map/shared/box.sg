@@ -29,142 +29,138 @@ import "sango.list" -> list ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.shared" -> shmap ;;
 
-eval <*T![ *A! *B! map.a'map ]> *FMap f_create_box | create_box @public -> <A B shmap.shared_map_h> {
-  FMap (FMap map._feature_a'map) do_create_box
-} ;;
-
-eval <*D!> *Map_d <D *A! *B! map.map_fs> *Map_fs do_create_box | create_box @public -> <A B shmap.shared_map_h> {
-  Map_d none$ box.create_box = *Box,
+eval <*A! *B! map.map> *Map create_box @public -> <A B shmap.shared_map_h> {
+  Map none$ box.create_box = *Box,
   Box actu.create_box_monitor = *Mon,
 
-  extract_f: \\ <<A B tuple> iter> { Mon Map_fs extract }
-  empty?_f: \\ <bool> { Mon Map_fs empty? }
-  size_f: \\ <int> { Mon Map_fs size }
-  get_f: \ <A> *Key -> <<A B tuple> maybe> { Mon Map_fs Key get }
-  assoc_f_: (\ <A> *Key -> <B maybe> { Mon Map_fs Key assoc } value$)
-  contain_key?_f_: (\ <A> *Key -> <bool> { Mon Map_fs Key contain_key? } value$)
-  put_f: \ <A> *Key <B> *Assoc -> <<A B tuple> maybe> { Mon Map_fs Key Assoc put }
-  put_new_f_: (\ <A> *Key <B> *Assoc -> <bool> { Mon Map_fs Key Assoc put_new } value$)
-  add_f_: (\ <A> *Key <B> *Assoc -> <void> { Mon Map_fs Key Assoc add } value$)
-  remove_f: \ <A> *Key -> <<A B tuple> maybe> { Mon Map_fs Key remove }
-  delete_f_: (\ <A> *Key -> <void> { Mon Map_fs Key delete } value$)
-  take_f: \\ <<A B tuple> maybe> { Mon Map_fs take }
-  clear_f: \\ <void> { Mon Map_fs clear }
+  extract_f: \\ <<A B tuple> iter> { Mon extract }
+  empty?_f: \\ <bool> { Mon empty? }
+  size_f: \\ <int> { Mon size }
+  get_f: \ <A> *Key -> <<A B tuple> maybe> { Mon Key get }
+  assoc_f_: (\ <A> *Key -> <B maybe> { Mon Key assoc } value$)
+  contain_key?_f_: (\ <A> *Key -> <bool> { Mon Key contain_key? } value$)
+  put_f: \ <A> *Key <B> *Assoc -> <<A B tuple> maybe> { Mon Key Assoc put }
+  put_new_f_: (\ <A> *Key <B> *Assoc -> <bool> { Mon Key Assoc put_new } value$)
+  add_f_: (\ <A> *Key <B> *Assoc -> <void> { Mon Key Assoc add } value$)
+  remove_f: \ <A> *Key -> <<A B tuple> maybe> { Mon Key remove }
+  delete_f_: (\ <A> *Key -> <void> { Mon Key delete } value$)
+  take_f: \\ <<A B tuple> maybe> { Mon take }
+  clear_f: \\ <void> { Mon clear }
   shmap.shared_map_h$
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs extract -> <<A B tuple> iter> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon extract -> <<A B tuple> iter> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A B map.map> box.box_h> *Box -> <A B map.map> {
       Box box.read
     } actu.run = *Z,
-  Z Map_fs map.do_iter
+  Z map.iter
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs empty? -> <bool> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon empty? -> <bool> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A B map.map> box.box_h> *Box -> <A B map.map> {
       Box box.read
     } actu.run = *Z,
-  Z Map_fs map.do_empty?
+  Z map.empty?
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs size -> <int> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon size -> <int> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A B map.map> box.box_h> *Box -> <A B map.map> {
       Box box.read
     } actu.run = *Z,
-  Z Map_fs map.do_size
+  Z map.size
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key get -> <<A B tuple> maybe> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key get -> <<A B tuple> maybe> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A B map.map> box.box_h> *Box -> <A B map.map> {
       Box box.read
     } actu.run = *Z,
-  Z Map_fs Key map.do_get
+  Z Key map.get
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key assoc -> <B maybe> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key assoc -> <B maybe> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A B map.map> box.box_h> *Box -> <A B map.map> {
       Box box.read
     } actu.run = *Z,
-  Z Map_fs Key map.do_assoc
+  Z Key map.assoc
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key contain_key? -> <bool> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key contain_key? -> <bool> {
   Mon
-    \ <D box.box_h> *Box -> <D> {
+    \ <<A B map.map> box.box_h> *Box -> <A B map.map> {
       Box box.read
     } actu.run = *Z,
-  Z Map_fs Key map.do_contain_key?
+  Z Key map.contain_key?
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key <B> *Assoc put -> <<A B tuple> maybe> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key <B> *Assoc put -> <<A B tuple> maybe> {
   Mon
-    \ <D box.box_h> *Box -> <<A B tuple> maybe> {
+    \ <<A B map.map> box.box_h> *Box -> <<A B tuple> maybe> {
       Box box.read = *Z,
-      Z Map_fs Key Assoc map.do_put = (| *Z', *Replaced_kv_ |),
+      Z Key Assoc map.put = (| *Z', *Replaced_kv_ |),
       Box Z' box.write,
       Replaced_kv_
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key <B> *Assoc put_new -> <bool> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key <B> *Assoc put_new -> <bool> {
   Mon
-    \ <D box.box_h> *Box -> <bool> {
+    \ <<A B map.map> box.box_h> *Box -> <bool> {
       Box box.read = *Z,
-      Z Map_fs Key Assoc map.do_put_new = (| *Z', *Succeeded? |),
+      Z Key Assoc map.put_new = (| *Z', *Succeeded? |),
       Box Z' box.write,
       Succeeded?
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key <B> *Assoc add -> <void> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key <B> *Assoc add -> <void> {
   Mon
-    \ <D box.box_h> *Box -> <void> {
+    \ <<A B map.map> box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Map_fs Key Assoc map.do_add = *Z',
+      Z Key Assoc map.add = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key remove -> <<A B tuple> maybe> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key remove -> <<A B tuple> maybe> {
   Mon
-    \ <D box.box_h> *Box -> <<A B tuple> maybe> {
+    \ <<A B map.map> box.box_h> *Box -> <<A B tuple> maybe> {
       Box box.read = *Z,
-      Z Map_fs Key map.do_remove = (| *Z', *Removed_kv_ |),
+      Z Key map.remove = (| *Z', *Removed_kv_ |),
       Box Z' box.write,
       Removed_kv_
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs <A> *Key delete -> <void> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon <A> *Key delete -> <void> {
   Mon
-    \ <D box.box_h> *Box -> <void> {
+    \ <<A B map.map> box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Map_fs Key map.do_delete = *Z',
+      Z Key map.delete = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs take -> <<A B tuple> maybe> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon take -> <<A B tuple> maybe> {
   Mon
-    \ <D box.box_h> *Box -> <<A B tuple> maybe> {
+    \ <<A B map.map> box.box_h> *Box -> <<A B tuple> maybe> {
       Box box.read = *Z,
-      Z Map_fs map.do_take >> case {
+      Z map.take >> case {
       ; (| *KV, *Z' |) value$ -> Box Z' box.write, KV value$
       ; ** -> none$
       }
     } actu.run
 } ;;
 
-eval <*D! actu.box_monitor_h> *Mon <D *A! *B! map.map_fs> *Map_fs clear -> <void> {
+eval <<*A! *B! map.map> actu.box_monitor_h> *Mon clear -> <void> {
   Mon
-    \ <D box.box_h> *Box -> <void> {
+    \ <<A B map.map> box.box_h> *Box -> <void> {
       Box box.read = *Z,
-      Z Map_fs map.do_clear = *Z',
+      Z map.clear = *Z',
       Box Z' box.write >> ignore
     } actu.run
 } ;;

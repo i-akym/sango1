@@ -148,7 +148,7 @@ cp src/etc/README*.txt $RELEASE_DIR/ || copy_error
 
 echo "cp src/etc/win/win_configure.bat $RELEASE_DIR/"
 cp src/etc/win/win_configure.bat $RELEASE_DIR/ || copy_error
-echo "copy src/etc/unix/unix-configure.sh $RELEASE_DIR/"
+echo "cp src/etc/unix/unix-configure.sh $RELEASE_DIR/"
 cp src/etc/unix/unix-configure.sh $RELEASE_DIR/ || copy_error
 
 # set permission

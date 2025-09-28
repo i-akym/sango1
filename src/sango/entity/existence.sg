@@ -24,11 +24,13 @@
 module "sango.entity.existence" ;;
 
 import "sango.entity" -> ent ;;
+import "sango.entity.feature" -> entf ;;
 import "sango.unique" -> uniq ;;
+import "sango.unique.feature" -> uniqf ;;
 
 data <existence> @opaque := @native
-++ entity_fs -> [ ent.a'entity ]
-++ as_a'unique -> [ uniq.a'unique ]  # @beta
+++ entity_fs -> [ entf.a'entity ]
+++ as_a'unique -> [ uniqf.a'unique ]  # @beta
 ;;
 
 data <*A ro_slot> @opaque := @native ;;

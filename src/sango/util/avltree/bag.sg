@@ -29,7 +29,7 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.bag" -> bag ;;
 
-extend <*A _1> -> my1 :=
+data <*A d> :=
   ord: <A ord_fs>
   body: <<A list> avl.tree>
   d$ ;;
@@ -69,19 +69,19 @@ eval <*A list> *Assoc <<<A list> avl.node> maybe> *Left_ <<<A list> avl.node> ma
   count: Count mins: Mins aux$
 } ;;
 
-eval bag_fs @public -> <<*A bag.d> A bag.bag_fs> {
+eval bag_fs -> <<*A d> A bag.bag_fs> {
   empty?_f: ^empty?
-    size_f: ^size
-    contain?_f: ^contain?
-    get_all_f: ^get_all
-    add_f: ^add
-    remove_f: ^remove
-    remove_all_f: ^remove_all
-    delete_f_: (^delete value$)
-    delete_all_f_: (^delete_all value$)
-    take_f: ^take
-    clear_f: ^clear
-    bag.bag_fs$
+  size_f: ^size
+  contain?_f: ^contain?
+  get_all_f: ^get_all
+  add_f: ^add
+  remove_f: ^remove
+  remove_all_f: ^remove_all
+  delete_f_: (^delete value$)
+  delete_all_f_: (^delete_all value$)
+  take_f: ^take
+  clear_f: ^clear
+  bag.bag_fs$
 } ;;
 
 # eval <<<*A list> avl.node> maybe> *Node_ subtree_count -> <int> {
@@ -92,15 +92,15 @@ eval bag_fs @public -> <<*A bag.d> A bag.bag_fs> {
 # } ;;
 
 eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
-  ord: Ord body: (^build_aux avl.new_tree) d$ = <A bag.d> *D,
-  d: D fs: bag_fs bag.gbag$
+  ord: Ord body: (^build_aux avl.new_tree) d$ = *D,
+  D bag_fs bag.combine
 } ;;
 
-eval <*A bag.d> *Bag_d empty? -> <bool> {
+eval <*A d> *Bag_d empty? -> <bool> {
   Bag_d size >> zero?
 } ;;
 
-eval <*A bag.d> *Bag_d size -> <int> {
+eval <*A d> *Bag_d size -> <int> {
   Bag_d = body: *Body *** d$,
   Body avl.node_ >> case {
   ; *Node value$ -> Node avl.aux = count: *Count *** aux$, Count
@@ -108,11 +108,11 @@ eval <*A bag.d> *Bag_d size -> <int> {
   }
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem contain? -> <bool> {
+eval <*A d> *Bag_d <A> *Elem contain? -> <bool> {
   Bag_d Elem get_all >> list.non_empty?
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem get_all -> <A list> {
+eval <*A d> *Bag_d <A> *Elem get_all -> <A list> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.get >> case {
   ; *Elems avl.get_done$ -> Elems
@@ -120,7 +120,7 @@ eval <*A bag.d> *Bag_d <A> *Elem get_all -> <A list> {
   }
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem add -> <A bag.d> {
+eval <*A d> *Bag_d <A> *Elem add -> <A d> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put >> case {
   ; *Body' avl.put_new_done$ -> body: Body' :: Bag_d d$
@@ -128,7 +128,7 @@ eval <*A bag.d> *Bag_d <A> *Elem add -> <A bag.d> {
   }
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem remove -> <<A bag.d> <A maybe> tuple> {
+eval <*A d> *Bag_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Bag_d Elem get_all >> case {
   ; [] ->
@@ -142,7 +142,7 @@ eval <*A bag.d> *Bag_d <A> *Elem remove -> <<A bag.d> <A maybe> tuple> {
   }
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem remove_all -> <<A bag.d> <A list> tuple> {
+eval <*A d> *Bag_d <A> *Elem remove_all -> <<A d> <A list> tuple> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body (Ord Elem locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Bag_d d$, Removed |)
@@ -150,15 +150,15 @@ eval <*A bag.d> *Bag_d <A> *Elem remove_all -> <<A bag.d> <A list> tuple> {
   }
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem delete -> <A bag.d> {
+eval <*A d> *Bag_d <A> *Elem delete -> <A d> {
   Bag_d Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A bag.d> *Bag_d <A> *Elem delete_all -> <A bag.d> {
+eval <*A d> *Bag_d <A> *Elem delete_all -> <A d> {
   Bag_d Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A bag.d> *Bag_d take -> <<A <A bag.d> tuple> maybe> {
+eval <*A d> *Bag_d take -> <<A <A d> tuple> maybe> {
   Bag_d = ord: *Ord body: *Body *** d$,
   Body avl.node_ >> case {
   ; *Node value$ ->
@@ -169,6 +169,6 @@ eval <*A bag.d> *Bag_d take -> <<A <A bag.d> tuple> maybe> {
   }
 } ;;
 
-eval <*A bag.d> *Bag_d clear -> <A bag.d> {
+eval <*A d> *Bag_d clear -> <A d> {
   body: (^build_aux avl.new_tree) :: Bag_d d$
 } ;;

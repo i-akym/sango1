@@ -1,6 +1,7 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.queue" -> queue ;;
+import "sango.util.queue.feature" -> queuef ;;
 import "sango.util.queue.simplequeue" -> squeue ;;
 
 eval _main_ -> <void> {
@@ -13,7 +14,7 @@ eval test -> <void> {
 } ;;
 eval test000 -> <void> {
   squeue.new_queue [ 1, 2, 3 ] queue.enqueue_list = *Q3,
-  Q3 queue._feature_a'queue = *QF,
+  Q3 queuef._feature_a'queue = *QF,
   QF queue.queue_fs_to_col_fs = *CF,
   Q3 &(CF empty?_f) = false$,
   Q3 &(CF size_f) = 3,

@@ -263,6 +263,7 @@ class PCompiledModule implements PModDecl {
       // ik, PDefDict.TID_CAT_TCON_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.availability = aliasTypeDef.availability;
     ad.acc = aliasTypeDef.acc;
+    ad.tcon = aliasTypeDef.tcon;
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {

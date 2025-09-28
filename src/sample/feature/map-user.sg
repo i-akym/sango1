@@ -23,7 +23,7 @@
 ###########################################################################
 import "feature.map" -> map ;;
 import "feature.map-impl" -> map_impl ;;
-import "sango.util.col" -> col ;;
+import "sango.util.col.feature" -> colf ;;
 
 eval _main_ -> <void> {
   map_impl.new_map = *MI,
@@ -44,8 +44,8 @@ eval <*T[ int cstr map.a'map ]> *M f -> <void> {
   M3 2 map.assoc = "zwei" value$,
   M1 map.take = (| (| 2, "two" |), ** |) value$,
   M1 map.incarnate = *M1_inc,
-  M1_inc col.size = 1,
-  M1_inc col.iter = *M1_inc_iter,
+  M1_inc colf.size = 1,
+  M1_inc colf.iter = *M1_inc_iter,
   M1_inc_iter next = (| (| 2, "two" |), ** |) value$,
   void$
 } ;;

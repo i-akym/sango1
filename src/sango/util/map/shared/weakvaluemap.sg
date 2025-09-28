@@ -30,8 +30,13 @@ import "sango.entity.existence" -> ex ;;
 import "sango.list" -> list ;;
 import "sango.unique" -> uniq ;;
 import "sango.util.map" -> map ;;
+import "sango.util.map.feature" -> mapf ;;
 import "sango.util.map.hashmap" -> hmap ;;
 import "sango.util.map.shared" -> shared ;;
+
+alias type <*A! kt> @public := <A uniq.u map.map> ;;
+
+alias type <*A! *B! vt> := <uniq.u <A B v> map.map> ;;
 
 data <*A! *B! v> :=
   key: <A>
@@ -39,22 +44,20 @@ data <*A! *B! v> :=
   redress_f: <B ent.redress_f>
   v$ ;;
 
-data <*KM! *A! *B! d> :=
-  key_tab_d: <KM>
-  key_tab_fs: <KM A uniq.u map.map_fs>
-  value_tab: <uniq.u <A B v> map.map>
+data <*A! *B! d> :=
+  key_tab: <A kt>
+  value_tab: <A B vt>
   d$ ;;
 
-data <*KM! *A! *B! h> @opaque :=
-  mon: <<KM A B d> actu.box_monitor_h>
+data <*A! *B! h> @opaque :=
+  mon: <<A B d> actu.box_monitor_h>
   undress_f: <B ent.undress_f>
   h$ ;;
 
-eval <*KM![ *A! uniq.u map.a'map ]> *Key_tab <*B! ent.entity_fs> *Entity_fs
+eval <*A! kt> *Key_tab <*B! ent.entity_fs> *Entity_fs
     create_weak_value_map @public -> <A B shared.shared_map_h> {
-  Key_tab map._feature_a'map = *KTfs,
-  hmap.new_map = <uniq.u <A B v> map.map> *Value_tab,
-  (key_tab_d: (Key_tab KTfs map.do_clear) key_tab_fs: KTfs value_tab: Value_tab d$)
+  hmap.new_map = <A B vt> *Value_tab,
+  (key_tab: (Key_tab map.clear) value_tab: Value_tab d$)
     none$ box.create_box = *Box,
   Box actu.create_monitor = *Mon,
   mon: Mon undress_f: (Entity_fs ent.undress_f) h$ = *H,
@@ -75,10 +78,10 @@ eval <*KM![ *A! uniq.u map.a'map ]> *Key_tab <*B! ent.entity_fs> *Entity_fs
   shared.shared_map_h$
 } ;;
 
-eval <*KM! *A! *B! h> *H extract -> <<A B tuple> iter> {
+eval <*A! *B! h> *H extract -> <<A B tuple> iter> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> list> {
+    \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> list> {
       Box box.read = *D,
       D d_lives = (| *Ls, *D' |),
       Box D' box.write,
@@ -93,30 +96,30 @@ eval <*KM! *A! *B! h> *H extract -> <<A B tuple> iter> {
     list.map >> list.iter
 } ;;
 
-eval <*KM! *A! *B! h> *H empty? -> <bool> {
+eval <*A! *B! h> *H empty? -> <bool> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <bool> {
+    \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
-      (D key_tab_d) (D key_tab_fs) map.do_empty?
+      (D key_tab) map.empty?
     }
     actu.run
 } ;;
 
-eval <*KM! *A! *B! h> *H size -> <int> {
+eval <*A! *B! h> *H size -> <int> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <int> {
+    \ <<A B d> box.box_h> *Box -> <int> {
       Box box.read = *D,
-      (D key_tab_d) (D key_tab_fs) map.do_size
+      (D key_tab) map.size
     }
     actu.run
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key get -> <<A B tuple> maybe> {
+eval <*A! *B! h> *H <A> *Key get -> <<A B tuple> maybe> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
       Box box.read = *D,
       D Key d_get = (| *KER_, *D' |),
       Box D' box.write,
@@ -129,21 +132,21 @@ eval <*KM! *A! *B! h> *H <A> *Key get -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key assoc -> <B maybe> {
+eval <*A! *B! h> *H <A> *Key assoc -> <B maybe> {
   H Key get >> case {
   ; (| **, *Assoc |) value$ -> Assoc value$
   ; ** -> none$
   }
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key contain_key? -> <bool> {
+eval <*A! *B! h> *H <A> *Key contain_key? -> <bool> {
   H Key get >> something?
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key <B> *Value put -> <<A B tuple> maybe> {
+eval <*A! *B! h> *H <A> *Key <B> *Value put -> <<A B tuple> maybe> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
       Box box.read = *D,
       D Key d_remove = (| *Replaced_, *D' |),
       D' Key Value Uf Mon d_add = *D'',
@@ -157,10 +160,10 @@ eval <*KM! *A! *B! h> *H <A> *Key <B> *Value put -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key <B> *Value put_new -> <bool> {
+eval <*A! *B! h> *H <A> *Key <B> *Value put_new -> <bool> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <bool> {
+    \ <<A B d> box.box_h> *Box -> <bool> {
       Box box.read = *D,
       D Key d_get = (| *Found_, *D' |),
       Found_ case {
@@ -173,14 +176,14 @@ eval <*KM! *A! *B! h> *H <A> *Key <B> *Value put_new -> <bool> {
     actu.run
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key <B> *Value add -> <void> {
+eval <*A! *B! h> *H <A> *Key <B> *Value add -> <void> {
   H Key Value put >> ignore
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key remove -> <<A B tuple> maybe> {
+eval <*A! *B! h> *H <A> *Key remove -> <<A B tuple> maybe> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
       Box box.read = *D,
       D Key d_remove = (| *Removed_, *D' |),
       Box D' box.write,
@@ -193,14 +196,14 @@ eval <*KM! *A! *B! h> *H <A> *Key remove -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*KM! *A! *B! h> *H <A> *Key delete -> <void> {
+eval <*A! *B! h> *H <A> *Key delete -> <void> {
   H Key remove >> ignore
 } ;;
 
-eval <*KM! *A! *B! h> *H take -> <<A B tuple> maybe> {
+eval <*A! *B! h> *H take -> <<A B tuple> maybe> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
+    \ <<A B d> box.box_h> *Box -> <<A ex.existence <B ent.redress_f> tuple> maybe> {
       Box box.read = *D,
       D d_take = (| *KER_, *D' |),
       Box D' box.write,
@@ -213,10 +216,10 @@ eval <*KM! *A! *B! h> *H take -> <<A B tuple> maybe> {
   }
 } ;;
 
-eval <*KM! *A! *B! h> *H clear -> <void> {
+eval <*A! *B! h> *H clear -> <void> {
   H = mon: *Mon undress_f: *Uf *** h$,
   Mon
-    \ <<KM A B d> box.box_h> *Box -> <void> {
+    \ <<A B d> box.box_h> *Box -> <void> {
       Box box.read = *D,
       D d_clear = *D',
       Box D' box.write >> ignore
@@ -227,49 +230,49 @@ eval <*KM! *A! *B! h> *H clear -> <void> {
 
 # -- data manipulation routines --
 
-eval <*KM! *A! *B! d> *D d_lives -> <<<A ex.existence <B ent.redress_f> tuple> list> <KM A B d> tuple> {
-  D = key_tab_d: *KTd key_tab_fs: *KTfs value_tab: *VT d$,
+eval <*A! *B! d> *D d_lives -> <<<A ex.existence <B ent.redress_f> tuple> list> <A B d> tuple> {
+  D = key_tab: *KT value_tab: *VT d$,
   [] = <<A ex.existence <B ent.redress_f> tuple> list> *ERL,
-  KTd VT ERL (KTd KTfs map.do_clear) (VT map.clear) &\
-      <KM> *KTd1  # current
-      <uniq.u <A B v> map.map> *VT1  # current
+  KT VT ERL (KT map.clear) (VT map.clear) &\
+      <A kt> *KT1  # current
+      <A B vt> *VT1  # current
       <<A ex.existence <B ent.redress_f> tuple> list> *Ls  # result in reverse order
-      <KM> *KTd2  # for new D
-      <uniq.u <A B v> map.map> *VT2  # for new D
-      -> <<<A ex.existence <B ent.redress_f> tuple> list> <KM A B d> tuple> {
-    KTd1 KTfs map.do_take >> case {
-    ; (| (| *K, *U |), *KTd1' |) value$ ->
+      <A kt> *KT2  # for new D
+      <A B vt> *VT2  # for new D
+      -> <<<A ex.existence <B ent.redress_f> tuple> list> <A B d> tuple> {
+    KT1 map.take >> case {
+    ; (| (| *K, *U |), *KT1' |) value$ ->
       VT1 U map.remove = (| *VT1', (| **, key: ** weak_ref: *W redress_f: *Rf v$ |) value$ |),
       W ex.get >> case {
-      ; *E value$ ->  KTd1' VT1' [ (| K, E, Rf |) ; Ls ] (KTd2 KTfs K U map.do_add) (VT2 U (K W Rf v$) map.add) &&
-      ; none$ -> KTd1' VT1' Ls KTd2 VT2 &&
+      ; *E value$ ->  KT1' VT1' [ (| K, E, Rf |) ; Ls ] (KT2 K U map.add) (VT2 U (K W Rf v$) map.add) &&
+      ; none$ -> KT1' VT1' Ls KT2 VT2 &&
       }
-    ; none$ -> (| Ls list.reverse, key_tab_d: KTd2 key_tab_fs: KTfs value_tab: VT2 d$ |)
+    ; none$ -> (| Ls list.reverse, key_tab: KT2 value_tab: VT2 d$ |)
     }
   }
 } ;;
 
-eval <*KM! *A! *B! d> *D <A> *Key d_get -> <<<A ex.existence <B ent.redress_f> tuple> maybe> <KM A B d> tuple> {
-  D = key_tab_d: *KTd key_tab_fs: *KTfs value_tab: *VT d$,
-  KTd KTfs Key map.do_get >> case {
+eval <*A! *B! d> *D <A> *Key d_get -> <<<A ex.existence <B ent.redress_f> tuple> maybe> <A B d> tuple> {
+  D = key_tab: *KT value_tab: *VT d$,
+  KT Key map.get >> case {
   ; (| *K, *U |) value$ ->
     VT U map.assoc = (key: K weak_ref: *W redress_f: *Rf v$) value$,
     W ex.get >> case {
     ; *E value$ -> (| (| K, E, Rf |) value$, D |)
-    ; none$ -> (| none$, key_tab_d: (KTd KTfs Key map.do_delete) key_tab_fs: KTfs value_tab: (VT U map.delete) d$ |)
+    ; none$ -> (| none$, key_tab: (KT Key map.delete) value_tab: (VT U map.delete) d$ |)
     }
   ; none$ -> (| none$, D |)
   }
 } ;;
 
-eval <*KM! *A! *B! d> *D <A> *Key <B> *Value <B ent.undress_f> *Uf <<KM A B d> actu.box_monitor_h> *Mon d_add -> <KM A B d> {
+eval <*A! *B! d> *D <A> *Key <B> *Value <B ent.undress_f> *Uf <<A B d> actu.box_monitor_h> *Mon d_add -> <A B d> {
     # add without duplication check
-  D = key_tab_d: *KTd key_tab_fs: *KTfs value_tab: *VT d$,
+  D = key_tab: *KT value_tab: *VT d$,
   uniq.new_unique = *U,
   Value &Uf = (| *E, *Rf |),
   \ <ex.weak_ref> *Cleared -> <void> {
     Mon
-      \ <<KM A B d> box.box_h> *BB -> <void> {
+      \ <<A B d> box.box_h> *BB -> <void> {
         BB box.read = *DD,
         DD Key d_get = (| **, *DD' |),  # delete KV internally if weak ref is cleared
         BB DD' box.write >> ignore
@@ -277,17 +280,17 @@ eval <*KM! *A! *B! d> *D <A> *Key <B> *Value <B ent.undress_f> *Uf <<KM A B d> a
       actu.run
   } = *Lis,
   E (Lis value$) ex.create_weak_ref = *W,
-  KTd KTfs Key U map.do_add = *KTd',
+  KT Key U map.add = *KT',
   VT U (key: Key weak_ref: W redress_f: Rf v$) map.add = *VT',
-  key_tab_d: KTd' key_tab_fs: KTfs value_tab: VT' d$
+  key_tab: KT' value_tab: VT' d$
 } ;;
 
-eval <*KM! *A! *B! d> *D <A> *Key d_remove -> <<<A ex.existence <B ent.redress_f> tuple> maybe> <KM A B d> tuple> {
-  D = key_tab_d: *KTd key_tab_fs: *KTfs value_tab: *VT d$,
-  KTd KTfs Key map.do_remove >> case {
-  ; (| *KTd', (| *K, *U |) value$ |) ->
+eval <*A! *B! d> *D <A> *Key d_remove -> <<<A ex.existence <B ent.redress_f> tuple> maybe> <A B d> tuple> {
+  D = key_tab: *KT value_tab: *VT d$,
+  KT Key map.remove >> case {
+  ; (| *KT', (| *K, *U |) value$ |) ->
     VT U map.remove = (| *VT', (| **, key: ** weak_ref: *W redress_f: *Rf v$ |) value$ |),
-    key_tab_d: KTd' key_tab_fs: KTfs value_tab: VT' d$ = *D',
+    key_tab: KT' value_tab: VT' d$ = *D',
     W ex.get >> case {
     ; *E value$ -> W ex.clear, (| (| K, E, Rf |) value$, D' |)
     ; none$ -> (| none$, D' |)
@@ -296,12 +299,12 @@ eval <*KM! *A! *B! d> *D <A> *Key d_remove -> <<<A ex.existence <B ent.redress_f
   }
 } ;;
 
-eval <*KM! *A! *B! d> *D d_take -> <<<A ex.existence <B ent.redress_f> tuple> maybe> <KM A B d> tuple> {
-  D = key_tab_d: *KTd key_tab_fs: *KTfs value_tab: *VT d$,
-  KTd KTfs map.do_take >> case {
-  ; (| (| *K, *U |), *KTd' |) value$ ->
+eval <*A! *B! d> *D d_take -> <<<A ex.existence <B ent.redress_f> tuple> maybe> <A B d> tuple> {
+  D = key_tab: *KT value_tab: *VT d$,
+  KT map.take >> case {
+  ; (| (| *K, *U |), *KT' |) value$ ->
     VT U map.remove = (| *VT', (| **, key: ** weak_ref: *W redress_f: *Rf v$ |) value$ |),
-    key_tab_d: KTd' key_tab_fs: KTfs value_tab: VT' d$ = *D',
+    key_tab: KT' value_tab: VT' d$ = *D',
     W ex.get >> case {
     ; *E value$ -> W ex.clear, (| (| K, E, Rf |) value$, D' |)
     ; none$ -> D' &&
@@ -310,7 +313,7 @@ eval <*KM! *A! *B! d> *D d_take -> <<<A ex.existence <B ent.redress_f> tuple> ma
   }
 } ;;
 
-eval <*KM! *A! *B! d> *D d_clear -> <KM A B d> {
-  D = key_tab_d: *KTd key_tab_fs: *KTfs value_tab: *VT d$,
-  key_tab_d: (KTd KTfs map.do_clear) key_tab_fs: KTfs value_tab: (VT map.clear) d$
+eval <*A! *B! d> *D d_clear -> <A B d> {
+  D = key_tab: *KT value_tab: *VT d$,
+  key_tab: (KT map.clear) value_tab: (VT map.clear) d$
 } ;;

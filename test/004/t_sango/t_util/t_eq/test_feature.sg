@@ -1,0 +1,26 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.util.eq.feature" -> eqf ;;
+import "sango.util.ord.feature" -> ordf ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test000,
+  test100,
+  void$
+} ;;
+eval test000 -> <void> {
+  3 ordf.incarnate = *O3,
+  5 ordf.incarnate = *O5,
+  O3 O5 eqf.eq? = false$,
+  O3 O5 eqf.ne? = true$,
+  O3 eqf.hash >> debug.repr >> stdio.print_and_newline
+} ;;
+eval test100 -> <void> {
+  3 ordf.incarnate >> eqf.incarnate = *E3,
+  E3 eqf.org >> ordf.org = 3,
+  void$
+} ;;

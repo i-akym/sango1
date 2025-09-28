@@ -1,0 +1,156 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.set.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.set" -> set ;;
+
+### feature
+
+feature <*T> [ *A a'set ] @public -> <T A set.set_fs> ;;
+
+eval <*T[ *A a'set ]> *FSet combine @public -> <A set.set> {
+  FSet (FSet _feature_a'set) set.combine
+} ;;
+
+eval <*T[ *A a'set ]> *FSet empty? @public -> <bool> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs set.do_empty?
+} ;;
+
+eval <*T[ *A a'set ]> *FSet size @public -> <int> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs set.do_size
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem get @public -> <A maybe> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_get
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem contain? @public -> <bool> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_contain?
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem put @public -> <T <A maybe> tuple> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_put
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem put_new @public -> <T bool tuple> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_put_new
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem add @public -> <T> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_add
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem remove @public -> <T <A maybe> tuple> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_remove
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A> *Elem delete @public -> <T> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Elem set.do_delete
+} ;;
+
+eval <*T[ *A a'set ]> *FSet take @public -> <<A T tuple> maybe> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs set.do_take
+} ;;
+
+eval <*T[ *A a'set ]> *FSet clear @public -> <T> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs set.do_clear
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A list> *Elems contain_just_list? | contain_just? @public -> <bool> {
+  FSet (Elems list.iter) contain_just_iter?
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A iter> *Iter contain_just_iter? | contain_just? @public -> <bool> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Iter set.do_contain_just_iter?
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A list> *Elems add_list @public -> <T> {
+  FSet (Elems list.iter) add_iter
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A iter> *Iter add_iter @public -> <T> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Iter set.do_add_iter
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A list> *Elems delete_list @public -> <T> {
+  FSet (Elems list.iter) delete_iter
+} ;;
+
+eval <*T[ *A a'set ]> *FSet <A iter> *Iter delete_iter @public -> <T> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs Iter set.do_delete_iter
+} ;;
+
+eval <*T[ *A a'set ]> *FSet iter @public -> <A iter> {
+  FSet _feature_a'set = *Set_fs,
+  FSet Set_fs set.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A set_inc> @protected :=
+  org: <T>
+  fo: <T A set.set_fs>
+  set_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'set ]> *FSet incarnate @public -> <T A set_inc> {
+  org: FSet
+  fo: (FSet _feature_a'set)
+  set_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A set_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA set_inc> *I -> <bool> {
+       I = *ID *IFs set_inc$,
+       ID IFs set.do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA set_inc> *I -> <int> {
+      I = *ID *IFs set_inc$,
+      ID IFs set.do_size
+    }
+  iter_f:
+    \ <*TT *AA set_inc> *I -> <AA iter> {
+      I = *ID *IFs set_inc$,
+      ID IFs set.do_iter
+    }
+  col_fs$
+} ;;

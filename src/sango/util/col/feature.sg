@@ -1,0 +1,62 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.col.feature" ;;
+
+import "sango.util.col" -> col ;;
+
+### faeture
+
+eval <*T[ *A a'col ]> *FCol empty? @public -> <bool> {
+  FCol (FCol _feature_a'col) col.do_empty?
+} ;;
+
+eval <*T[ *A a'col ]> *FCol size @public -> <int> {
+  FCol (FCol _feature_a'col) col.do_size
+} ;;
+
+eval <*T[ *A a'col ]> *FCol iter @public -> <A iter> {
+  FCol (FCol _feature_a'col) col.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A col_inc> @protected :=
+  org: <T>
+  fo: <T A col_fs>
+  col_inc$
+++ inc_as_a'iter -> [ A a'iter ] ;;
+
+eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A col_inc> {
+  org: FCol
+  fo: (FCol _feature_a'col)
+  col_inc$
+} ;;
+
+eval inc_as_a'iter -> <<*T *A col_inc> <A iter> fun> {
+  \ <*TT *AA col_inc> *I -> <AA iter> {
+    I = *ID *IFs col_inc$,
+    ID IFs col.do_iter
+  }
+} ;;

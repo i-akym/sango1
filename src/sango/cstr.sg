@@ -27,7 +27,7 @@ import "sango.char" -> char ;;
 import "sango.string" -> str ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.locale" -> loc ;;
-import "sango.util.ord" -> ord ;;
+import "sango.util.ord.feature" -> ordf ;;
 
 data <line> @public := line_text: <cstr> line_term: <cstr> line$ ;;
 
@@ -149,57 +149,8 @@ eval <cstr> *S <cstr> *Seq <cstr> *New replace_all_cstr @public -> <cstr> {
   S Seq New str.replace_all_seq
 } ;;
 
-# data @alpha <ocstr> @opaque :=
-  # <cstr> ocstr$
-# ++ as_a'ord -> [ a'ord ] ;;
-
-# eval <cstr> *S as_ocstr @public -> <ocstr> {
-  # S ocstr$
-# } ;;
-
-# eval <ocstr> *OS as_cstr @public -> <cstr> {
-  # OS = *S ocstr$, S
-# } ;;
-
-# eval as_a'ord -> <ocstr ord_fs> {
-  # ocstr_ord_fs
-# } ;;
-
-# eval ocstr_ord_fs -> <ocstr ord_fs> {
-  # compare_f:
-    # \ <ocstr> *OS0 <ocstr> *OS1 -> <ordering> { (OS0 as_cstr) (OS1 as_cstr) compare }
-  # eq?_f_:
-    # (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) eq? } value$)
-  # lt?_f_:
-    # (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) lt? } value$)
-  # le?_f_:
-    # (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) le? } value$)
-  # gt?_f_:
-    # (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) gt? } value$)
-  # ge?_f_:
-    # (\ <ocstr> *OS0 <ocstr> *OS1 -> <bool> { (OS0 as_cstr) (OS1 as_cstr) ge? } value$)
-  # hash_f:
-    # \ <ocstr> *OS -> <int> { OS as_cstr >> hash }
-  # ord_fs$
-# } ;;
-
 eval <cstr> *S0 <cstr> *S1 compare @public -> <ordering> {
-  (S0 char_ord_fs str.ord_string$) (S1 char_ord_fs str.ord_string$) ord.compare
-
-  # S0 length = *L0,
-  # S1 length = *L1,
-  # 0 &\ <int> *Pos -> <ordering> {
-    # (| L0, L1 |) case {
-    # ; (| Pos, Pos |) -> eq$
-    # ; (| Pos, ** |) -> lt$
-    # ; (| **, Pos |) -> gt$
-    # ; ** ->
-      # (S0 Pos char) (S1 Pos char) compare >> case {
-      # ; eq$ -> (Pos inc) &&
-      # ; *R -> R
-      # }
-    # }
-  # }
+  (S0 char_ord_fs str.ord_string$) (S1 char_ord_fs str.ord_string$) ordf.compare
 } ;;
 
 eval <cstr> *S0 <cstr> *S1 eq? @public -> <bool> {

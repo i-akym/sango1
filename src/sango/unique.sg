@@ -23,31 +23,13 @@
 ###########################################################################
 module @beta "sango.unique" ;;
 
+import "sango.unique.feature" -> feat ;;
+
 data <u> @opaque := @native
-++ as_a'unique -> [ a'unique ] ;;
+++ as_a'unique -> [ feat.a'unique ] ;;
 
 eval new_unique @public -> <u> @native ;;
 
 eval as_a'unique -> <u u fun> {
   ^itself
 } ;;
-
-
-### feature
-
-feature <*T> [ a'unique ] @public -> <T u fun> ;;
-
-
-### incarnation
-
-data @beta <*T unique_inc> @protected :=
-  org: <T>
-  fo: <T u fun>
-  unique_inc$ ;;
-
-eval @beta <*T[ a'unique ]> *FUnique incarnate @public -> <T unique_inc> {
-  org: FUnique
-  fo: (FUnique _feature_a'unique)
-  unique_inc$
-} ;;
-

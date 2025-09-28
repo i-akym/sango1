@@ -1,0 +1,113 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.queue.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.queue" -> queue ;;
+
+### feature
+
+feature <*T> [ *A a'queue ] @public -> <T A queue.queue_fs> ;;
+
+eval <*T[ *A a'queue ]> *FQueue combine @public -> <A queue.queue> {
+  FQueue (FQueue _feature_a'queue) queue.combine
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue empty? @public -> <bool> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs queue.do_empty?
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue length @public -> <int> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs queue.do_length
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue <A> *Elem enqueue @public -> <T> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs Elem queue.do_enqueue
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue head @public -> <A maybe> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs queue.do_head
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue dequeue @public -> <<A T tuple> maybe> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs queue.do_dequeue
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue clear @public -> <T> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs queue.do_clear
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue <A list> *Elems enqueue_list @public -> <T> {
+  FQueue (Elems list.iter) enqueue_iter
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue <A iter> *Iter enqueue_iter @public -> <T> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs Iter queue.do_enqueue_iter
+} ;;
+
+eval <*T[ *A a'queue ]> *FQueue iter @public -> <A iter> {
+  FQueue _feature_a'queue = *Queue_fs,
+  FQueue Queue_fs queue.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A queue_inc> @protected :=
+  org: <T>
+  fo: <T A queue.queue_fs>
+  queue_inc$
+++ inc_a'col_impl -> [ A a'col ] ;;
+
+eval <*T[ *A a'queue ]> *FQueue incarnate @public -> <T A queue_inc> {
+  org: FQueue
+  fo: (FQueue _feature_a'queue)
+  queue_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A queue_inc> A col_fs> {
+  empty?_f_:
+    (\ <*TT *AA queue_inc> *I -> <bool> {
+       I = *ID *IFs queue_inc$,
+       ID IFs queue.do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA queue_inc> *I -> <int> {
+      I = *ID *IFs queue_inc$,
+      ID IFs queue.do_length
+    }
+  iter_f:
+    \ <*TT *AA queue_inc> *I -> <AA iter> {
+      I = *ID *IFs queue_inc$,
+      ID IFs queue.do_iter
+    }
+  col_fs$
+} ;;

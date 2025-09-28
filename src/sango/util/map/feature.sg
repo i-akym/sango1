@@ -1,0 +1,146 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @beta "sango.util.map.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.map" -> map ;;
+
+### feature
+
+feature <*T> [ *A *B a'map ] @public -> <T A B map.map_fs> ;;
+
+eval <*T[ *A *B a'map ]> *FMap combine @public -> <A B map.map> {
+  FMap (FMap _feature_a'map) map.combine
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap empty? @public -> <bool> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs map.do_empty?
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap size @public -> <int> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs map.do_size
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key get @public -> <<A B tuple> maybe> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key map.do_get
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key assoc @public -> <B maybe> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key map.do_assoc
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key contain_key? @public -> <bool> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key map.do_contain_key?
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value put @public -> <T <<A B tuple> maybe> tuple> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key Value map.do_put
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value put_new @public -> <T bool tuple> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key Value map.do_put_new
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key <B> *Value add @public -> <T> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key Value map.do_add
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key remove @public -> <T <<A B tuple> maybe> tuple> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key map.do_remove
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A> *Key delete @public -> <T> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Key map.do_delete
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap take @public -> <<<A B tuple> T tuple> maybe> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs map.do_take
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap clear @public -> <T> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs map.do_clear
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <<A B tuple> list> *KVs add_list @public -> <T> {
+  FMap (KVs list.iter) add_iter
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <<A B tuple> iter> *Iter add_iter @public -> <T> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Iter map.do_add_iter
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A list> *Ks delete_list @public -> <T> {
+  FMap (Ks list.iter) delete_iter
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap <A iter> *Iter delete_iter @public -> <T> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs Iter map.do_delete_iter
+} ;;
+
+eval <*T[ *A *B a'map ]> *FMap iter @public -> <<A B tuple> iter> {
+  FMap _feature_a'map = *Map_fs,
+  FMap Map_fs map.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A *B map_inc> @protected :=
+  org: <T>
+  fo: <T A B map.map_fs>
+  map_inc$
+++ inc_a'col_impl -> [ <A B tuple> a'col ] ;;
+
+eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
+  empty?_f_:
+    (\ <*TT *AA *BB map_inc> *I -> <bool> {
+       I = *ID *IFs map_inc$,
+       ID IFs map.do_empty?
+     } value$)
+  size_f:
+    \ <*TT *AA *BB map_inc> *I -> <int> {
+      I = *ID *IFs map_inc$,
+      ID IFs map.do_size
+    }
+  iter_f:
+    \ <*TT *AA *BB map_inc> *I -> <<AA BB tuple> iter> {
+      I = *ID *IFs map_inc$,
+      ID IFs map.do_iter
+    }
+  col_fs$
+} ;;

@@ -21,65 +21,32 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.util.ord" ;;
+module @beta "sango.util.eq.feature" ;;
 
 ### feature functions
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_compare | compare @public -> <ordering> {
-  X0 X1 (X0 _feature_a'ord) ordcmp_compare
+eval <*T[ a'eq ]> *X0 <T> *X1 eq? @public -> <bool> {
+  X0 X1 (X0 _feature_a'eq) eqcmp_eq?
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_eq? | eq? @public -> <bool> {
-  X0 X1 (X0 _feature_a'ord) ordcmp_eq?
+eval <*T[ a'eq ]> *X0 <T> *X1 ne? @public -> <bool> {
+  X0 X1 (X0 _feature_a'eq) eqcmp_ne?
 } ;;
 
-eval <*T[ a'ord ]> *X0 <T> *X1 f_lt? | lt? @public -> <bool> {
-  X0 X1 (X0 _feature_a'ord) ordcmp_lt?
-} ;;
-
-eval <*T[ a'ord ]> *X0 <T> *X1 f_le? | le? @public -> <bool> {
-  X0 X1 (X0 _feature_a'ord) ordcmp_le?
-} ;;
-
-eval <*T[ a'ord ]> *X0 <T> *X1 f_gt? | gt? @public -> <bool> {
-  X0 X1 (X0 _feature_a'ord) ordcmp_gt?
-} ;;
-
-eval <*T[ a'ord ]> *X0 <T> *X1 f_ge? | ge? @public -> <bool> {
-  X0 X1 (X0 _feature_a'ord) ordcmp_ge?
-} ;;
-
-eval <*T[ a'ord ]> *X0 f_hash | hash @public -> <int> {
-  X0 &(X0 _feature_a'ord >> hash_f)
+eval <*T[ a'eq ]> *X0 hash @public -> <int> {
+  X0 &(X0 _feature_a'eq >> hash_f)
 } ;;
 
 
 ### incarnation
 
-data <*T ord_inc> @protected :=
+data <*T eq_inc> @protected :=
   org: <T>
-  fo: <T ord_fs>
-  ord_inc$
-++ as_a'eq -> [ a'eq ] ;;
+  fo: <T eq_fs>
+  eq_inc$ ;;
 
-eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
-  org: FOrd
-  fo: (FOrd _feature_a'ord)
-  ord_inc$
-} ;;
-
-eval as_a'eq -> <<*T ord_inc> eq_fs> {
-  eq?_f:
-    \ <*TT ord_inc> *X0 <TT ord_inc> *X1 -> <bool> {
-      X0 = *D0 *Fs ord_inc$,
-      X1 = *D1 ** ord_inc$,
-      D0 D1 Fs ordcmp_eq?
-    }
-  ne?_f_: none$
-  hash_f:
-    \ <*TT ord_inc> *X0 -> <int> {
-      X0 = *D0 *Fs ord_inc$,
-      D0 &(Fs hash_f)
-    }
-  eq_fs$
+eval <*T[ a'eq ]> *FEq incarnate @public -> <T eq_inc> {
+  org: FEq
+  fo: (FEq _feature_a'eq)
+  eq_inc$
 } ;;

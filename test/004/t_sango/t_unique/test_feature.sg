@@ -1,0 +1,19 @@
+import "sango.debug" -> debug ;;
+import "sango.io.stdio" -> stdio ;;
+import "sango.unique" -> uniq ;;
+import "sango.unique.feature" -> uniqf ;;
+
+eval _main_ -> <void> {
+  test
+} ;;
+
+eval test -> <void> {
+  test100,
+  void$
+} ;;
+
+eval test100 -> <void> {
+  uniq.new_unique = *U,
+  U &(U uniqf._feature_a'unique) = U,
+  void$
+} ;;
