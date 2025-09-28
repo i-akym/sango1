@@ -1674,13 +1674,14 @@ eval &lt;*D *A *B map_fs&gt; *Fs map_fs_to_col_fs | to_col_fs @public -&gt; &lt;
 data &lt;*T *A *B map_inc&gt; @protected := ...
 ++ ... [ &lt;A B tuple&gt; a'col ] ;;</code></blockquote>
 <blockquote class="code-sample">化身型への変換と使用
-<code>eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
+<code>import &quot;sango.util.col.feature&quot; -&gt; colf ;;
+eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
   M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
   ...
   M1 map.incarnate = *M1_inc,
-  M1_inc col.size = 1,
-  M1_inc col.iter = *M1_inc_iter,
+  M1_inc colf.size = 1,
+  M1_inc colf.iter = *M1_inc_iter,
   M1_inc_iter next = (| (| 2, &quot;two&quot; |), ** |) value$,
   void$
 } ;;</code></blockquote>
@@ -2560,12 +2561,13 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <p>■　NEXT VERSION</p>
 <ul>
 <li>用語「フィーチャ」を「データ・フィーチャ」に変更。ドキュメント上だけの変更であり，プログラミングに影響はありません。</li>
-<li>【非互換】<code>&quot;sango.util.set&quot;</code>にて，関数の公式名を変更，<code>gset</code>を<code>set</code>に変更，<code>d</code>を削除。また，データ・フィーチャの定義と処理関数を<code>&quot;sango.util.set.feature&quot;</code>に移動し，関数の公式名を変更。</li>
-<li>【非互換】<code>&quot;sango.util.bag&quot;</code>にて，関数の公式名を変更，<code>gbag</code>を<code>bag</code>に変更，<code>d</code>を削除。また，データ・フィーチャの定義と処理関数を<code>&quot;sango.util.bag.feature&quot;</code>に移動し，関数の公式名を変更。</li>
-<li>【非互換】<code>&quot;sango.util.map&quot;</code>にて，関数の公式名を変更，<code>gmap</code>を<code>map</code>に変更，<code>d</code>を削除。また，データ・フィーチャの定義と処理関数を<code>&quot;sango.util.map.feature&quot;</code>に移動し，関数の公式名を変更。</li>
-<li>【非互換】<code>&quot;sango.util.queue&quot;</code>にて，関数の公式名を変更，<code>gqueue</code>を<code>queue</code>に変更，<code>d</code>を削除。また，データ・フィーチャの定義と処理関数を<code>&quot;sango.util.queue.feature&quot;</code>に移動し，関数の公式名を変更。</li>
-<li>【非互換】<code>&quot;sango.util.stack&quot;</code>にて，関数の公式名を変更，<code>gstack</code>を<code>stack</code>に変更，<code>d</code>を削除。また，データ・フィーチャの定義と処理関数を<code>&quot;sango.util.stack.feature&quot;</code>に移動し，関数の公式名を変更。</li>
-<li>【非互換】<code>&quot;sango.util.ralist&quot;</code>にて，関数の公式名を変更，<code>gralist</code>を<code>ralist</code>に変更，<code>d</code>を削除。また，データ・フィーチャの定義と処理関数を<code>&quot;sango.util.ralist.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.set&quot;</code>にて，関数の公式名を変更，<code>gset</code>を<code>set</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.set.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.bag&quot;</code>にて，関数の公式名を変更，<code>gbag</code>を<code>bag</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.bag.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.map&quot;</code>にて，関数の公式名を変更，<code>gmap</code>を<code>map</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.map.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.queue&quot;</code>にて，関数の公式名を変更，<code>gqueue</code>を<code>queue</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.queue.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.stack&quot;</code>にて，関数の公式名を変更，<code>gstack</code>を<code>stack</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.stack.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【非互換】<code>&quot;sango.util.ralist&quot;</code>にて，関数の公式名を変更，<code>gralist</code>を<code>ralist</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.ralist.feature&quot;</code>に移動し，関数の公式名を変更。</li>
+<li>【Beta，非互換】<code>&quot;sango.util.col&quot;</code>にて，関数の公式名を変更，<code>gcol</code>を<code>col</code>に変更，<code>d</code>を削除。また，データ・フィーチャに関する定義，処理関数を<code>&quot;sango.util.col.feature&quot;</code>に移動し，関数の公式名を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.eq&quot;</code>を<code>&quot;sango.util.eq.feature&quot;</code>に変更。また，関数の公式名を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.ord&quot;</code>を<code>&quot;sango.util.ord.feature&quot;</code>に変更。また，関数の公式名を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.unique&quot;</code>について，オブジェクト・フィーチャに関する定義，処理関数を<code>&quot;sango.unique.feature&quot;</code>に移動。</li>

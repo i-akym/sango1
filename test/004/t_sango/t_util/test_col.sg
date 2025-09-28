@@ -1,7 +1,6 @@
 import "sango.debug" -> debug ;;
 import "sango.io.stdio" -> stdio ;;
 import "sango.util.col" -> col ;;
-import "sango.util.iter" -> iter ;;
 
 eval _main_ -> <void> {
   test
@@ -9,35 +8,13 @@ eval _main_ -> <void> {
 
 eval test -> <void> {
   test000,
-  test100,
-  test200,
   void$
 } ;;
 eval test000 -> <void> {
-  [ 1, 2, 3 ] = *L,
-  L col.empty? = false$,
-  L col.size = 3,
-  L col.iter = *I,
-  I next = (| 1, *I1 |) value$,
-  I1 next = (| 2, *I2 |) value$,
-  I2 next = (| 3, *I3 |) value$,
-  I3 next = none$,
-  void$
-} ;;
-eval test100 -> <void> {
-  [ 1, 2, 3 ] list_col_fs col.gcol$ = *C,
+  [ 1, 2, 3 ] list_col_fs col.combine = *C,
   C col.empty? = false$,
   C col.size = 3,
   C col.iter = *I,
-  I next = (| 1, *I1 |) value$,
-  I1 next = (| 2, *I2 |) value$,
-  I2 next = (| 3, *I3 |) value$,
-  I3 next = none$,
-  void$
-} ;;
-eval test200 -> <void> {
-  [ 1, 2, 3 ] col.incarnate = *CI,
-  CI &(CI _feature_a'iter) = *I,
   I next = (| 1, *I1 |) value$,
   I1 next = (| 2, *I2 |) value$,
   I2 next = (| 3, *I3 |) value$,

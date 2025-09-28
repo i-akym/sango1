@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2023 AKIYAMA Isao                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -21,31 +21,42 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-import "feature.map" -> map ;;
-import "feature.map-impl" -> map_impl ;;
-import "sango.util.col.feature" -> colf ;;
+module @beta "sango.util.col.feature" ;;
 
-eval _main_ -> <void> {
-  map_impl.new_map = *MI,
-  MI f
+import "sango.util.col" -> col ;;
+
+### faeture
+
+eval <*T[ *A a'col ]> *FCol empty? @public -> <bool> {
+  FCol (FCol _feature_a'col) col.do_empty?
 } ;;
 
-eval <*T[ int cstr map.a'map ]> *M f -> <void> {
-  # M = {}
-  M map.size = 0,
-  M 2 "two" map.add = *M1,  # M1 = { (2,"two") }
-  M1 map.size = 1,
-  M1 2 map.assoc = "two" value$,
-  M1 3 map.assoc = none$,
-  M1 3 "three" map.add = *M2,  # M2 = { (2,"two"), (3,"three") }
-  M2 map.size = 2,
-  M2 2 "zwei" map.add = *M3,  # M3 = { (2,"zwei"), (3,"three") }
-  M3 map.size = 2,
-  M3 2 map.assoc = "zwei" value$,
-  M1 map.take = (| (| 2, "two" |), ** |) value$,
-  M1 map.incarnate = *M1_inc,
-  M1_inc colf.size = 1,
-  M1_inc colf.iter = *M1_inc_iter,
-  M1_inc_iter next = (| (| 2, "two" |), ** |) value$,
-  void$
+eval <*T[ *A a'col ]> *FCol size @public -> <int> {
+  FCol (FCol _feature_a'col) col.do_size
+} ;;
+
+eval <*T[ *A a'col ]> *FCol iter @public -> <A iter> {
+  FCol (FCol _feature_a'col) col.do_iter
+} ;;
+
+
+### incarnation
+
+data <*T *A col_inc> @protected :=
+  org: <T>
+  fo: <T A col_fs>
+  col_inc$
+++ inc_as_a'iter -> [ A a'iter ] ;;
+
+eval <*T[ *A a'col ]> *FCol incarnate @public -> <T A col_inc> {
+  org: FCol
+  fo: (FCol _feature_a'col)
+  col_inc$
+} ;;
+
+eval inc_as_a'iter -> <<*T *A col_inc> <A iter> fun> {
+  \ <*TT *AA col_inc> *I -> <AA iter> {
+    I = *ID *IFs col_inc$,
+    ID IFs col.do_iter
+  }
 } ;;
