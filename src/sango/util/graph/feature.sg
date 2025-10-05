@@ -1,0 +1,163 @@
+###########################################################################
+# MIT License                                                             #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
+#                                                                         #
+# Permission is hereby granted, free of charge, to any person obtaining   #
+# a copy of this software and associated documentation files (the         #
+# "Software"), to deal in the Software without restriction, including     #
+# without limitation the rights to use, copy, modify, merge, publish,     #
+# distribute, sublicense, and/or sell copies of the Software, and to      #
+# permit persons to whom the Software is furnished to do so, subject to   #
+# the following conditions:                                               #
+#                                                                         #
+# The above copyright notice and this permission notice shall be          #
+# included in all copies or substantial portions of the Software.         #
+#                                                                         #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,         #
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF      #
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  #
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY    #
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,    #
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
+###########################################################################
+module @alpha "sango.util.graph.feature" ;;
+
+import "sango.list" -> list ;;
+import "sango.util.graph" -> graph ;;
+
+### feature ###
+
+feature <*T> [ *A *B a'graph ] @public -> <T A B graph.graph_fs> ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph combine @public -> <A B graph.graph> {
+  FGraph (FGraph _feature_a'graph) graph.combine
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph empty? @public -> <bool> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs graph.do_empty?
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph vertex_count @public -> <int> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs graph.do_vertex_count
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph edge_count @public -> <int> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs graph.do_edge_count
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph vertex_iter @public -> <<A graph.vertex> iter> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs graph.do_vertex_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph edge_iter @public -> <<A B graph.edge> iter> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs graph.do_edge_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex> *Vertex contain_vertex? @public -> <bool> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Vertex graph.do_contain_vertex?
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A B graph.edge> *Edge contain_edge? @public -> <bool> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Edge graph.do_contain_edge?
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex> *Vertex add_vertex @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Vertex graph.do_add_vertex
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A B graph.edge> *Edge add_edge @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Edge graph.do_add_edge
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex> *Vertex delete_vertex @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Vertex graph.do_delete_vertex
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A B graph.edge> *Edge delete_edge @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Edge graph.do_delete_edge
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex_sel> *Vsel select_vertices @public -> <<A graph.vertex> iter> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Vsel graph.do_select_vertices
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A B graph.edge_sel> *Esel select_edges @public -> <<A B graph.edge> iter> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs Esel graph.do_select_edges
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph clear @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs graph.do_clear
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A graph.vertex> list> *Vs add_vertex_list @public -> <T> {
+  FGraph (Vs list.iter) add_vertex_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A graph.vertex> iter> *VI add_vertex_iter @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs VI graph.do_add_vertex_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A B graph.edge> list> *Es add_edge_list @public -> <T> {
+  FGraph (Es list.iter) add_edge_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A B graph.edge> iter> *EI add_edge_iter @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs EI graph.do_add_edge_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A graph.vertex> list> *Vs delete_vertex_list @public -> <T> {
+  FGraph (Vs list.iter) delete_vertex_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A graph.vertex> iter> *VI delete_vertex_iter @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs VI graph.do_delete_vertex_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A B graph.edge> list> *Es delete_edge_list @public -> <T> {
+  FGraph (Es list.iter) delete_edge_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <<A B graph.edge> iter> *EI delete_edge_iter @public -> <T> {
+  FGraph _feature_a'graph = *Graph_fs,
+  FGraph Graph_fs EI graph.do_delete_edge_iter
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex> *Vertex outgoing_edges @public -> <<A B graph.edge> iter> {
+  FGraph ((Vertex graph.vertex_sel_just$) graph.vertex_sel_any$ graph.edge_sel_vertices$) select_edges
+} ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex> *Vertex incoming_edges @public -> <<A B graph.edge> iter> {
+  FGraph (graph.vertex_sel_any$ (Vertex graph.vertex_sel_just$) graph.edge_sel_vertices$) select_edges
+} ;;
+
+
+### incarnation ###
+
+data <*T *A *B graph_inc> @protected :=
+  org: <T>
+  fo: <T A B graph.graph_fs>
+  graph_inc$ ;;
+
+eval <*T[ *A *B a'graph ]> *FGraph incarnate @public -> <T A B graph_inc> {
+  org: FGraph
+  fo: (FGraph _feature_a'graph)
+  graph_inc$
+} ;;
