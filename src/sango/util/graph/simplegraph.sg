@@ -28,6 +28,7 @@ module @alpha "sango.util.graph.simplegraph" ;;
 import "sango.list" -> list ;;
 import "sango.unique" -> uniq ;;
 import "sango.util.graph" -> graph ;;
+import "sango.util.graph.feature" -> graphf ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hmap ;;
@@ -43,7 +44,7 @@ data <*A *B simple_graph> @opaque :=
   vtab: <<A graph.vertex> <A B vertex_d> map.map>
   eset: <<A B graph.edge> set.set>
   simple_graph$
-++ as_a'graph -> [ A B graph.a'graph ] ;;
+++ as_a'graph -> [ A B graphf.a'graph ] ;;
 
 eval as_a'graph -> <<*A *B simple_graph> A B graph.graph_fs> {
   empty?_f: ^empty?
