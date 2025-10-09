@@ -68,8 +68,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
     <a href="#8.d">例：ストリングの要素を取り出す</a>
     <a href="#8.e">例：被構築データの属性を取り出す</a>
     <a href="#8.f">例：パターンの入れ子</a>
-    <a href="#8.g">例：文脈外オブジェクトの取り込み</a>
-    <a href="#8.h">パターンマッチの留意点</a>
+    <a href="#8.g">パターンマッチの留意点</a>
 <a href="#9">9. 関数を定義する</a>
   <a href="#9.1">9.1. パラメタ定義</a>
   <a href="#9.2">9.2. 関数名</a>
@@ -687,17 +686,7 @@ book$ ;;</code></blockquote>
   # <code>[ *First_author ; ** ]</code>とすると，著者データが1個以上のとき成功</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h3 id="8.g">例：文脈外オブジェクトの取り込み</h3>
-<p>文脈外から取り込まれ<code>&lt;_?_&gt;</code>になっているオブジェクトは型構築子の情報を持っており，これとパターンマッチすることにより，文脈内の型を復元することができます。</p>
-<blockquote class="code-sample">コード例
-<code>Some_object case {</code>
-<code>; &lt;foo&gt; == *X -&gt; X do_something_foo</code>  # <code>X</code>は<code>&lt;foo&gt;</code>
-<code>; &lt;_?_ _?_ bar&gt; == *X -&gt; X do_something_bar</code>  # <code>X</code>は<code>&lt;_?_ _?_ bar&gt;</code>
-<code>}</code></blockquote>
-<p>パターンの前に，マッチさせる型と「<code>==</code>」を置きます。型パラメタに指定できるのは<code>_?_</code>のみです。</p>
-
-<p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h3 id="8.h">パターンマッチの留意点</h3>
+<h3 id="8.g">パターンマッチの留意点</h3>
 <ul>
   <li>実数型のリテラル（<code>1.25e-3</code>など）はパターンとして記述できません。
     実数は内部表現上の誤差を生じるため，同値かどうかは，誤差を意識して比較することにより判定するものだからです<span class="note-ref">*1</span>。</li>
@@ -2575,6 +2564,11 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【Beta，非互換】<code>&quot;sango.entity&quot;</code>について，オブジェクト・フィーチャに関する定義，処理関数を<code>&quot;sango.entity.feature&quot;</code>に移動し，関数の公式名を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.set.shared.box&quot;</code>，<code>&quot;sango.util.map.shared.box&quot;</code>を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.map.shared.weakvaluemap&quot;</code>を変更。</li>
+</ul>
+
+<p>■　NEXT VERSION</p>
+<ul>
+<li>【Limited】<code>&quot;sango.lang&quot;.&lt;_?_&gt;</code>，<code>&quot;sango.lang&quot;.expose</code></li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

@@ -27,7 +27,7 @@ module "sango.lang" ;;
 
 # special types
 
-data <_?_> @opaque := @native ;;  # exposed (out of program context)
+data @limited <_?_> @opaque := @native ;;  # exposed (out of program context)
 
 data <_> @opaque := @native ;;  # bottom (= narrowest) type,
                                 # which also means 'will not return' when specified at function's return value
@@ -754,7 +754,7 @@ eval <exception> *E catchable @public -> <exception> {
 
 # miscellaneous functions
 
-eval <*A> *X expose @public -> <_?_> @native ;;
+eval @limited <*A> *X expose @public -> <_?_> @native ;;
 
 eval <*A> *X itself | id @public -> <A> { X } ;;
 eval <*A> *X to_fun @public -> <A fun> { \\ <A> { X } } ;;
