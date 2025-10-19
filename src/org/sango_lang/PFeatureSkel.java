@@ -397,6 +397,14 @@ public class PFeatureSkel {
       return b;
     }
 
+    List resolveBindings(PTypeSkelBindings bindings) {
+      PFeatureSkel[] fs = new PFeatureSkel[this.features.length];
+      for (int i = 0; i < this.features.length; i++) {
+        fs[i] = this.features[i].resolveBindings(bindings);
+      }
+      return create(this.srcInfo, fs);
+    }
+
     List instanciate(PTypeSkel.InstanciationContext context) {
       PFeatureSkel[] fs = new PFeatureSkel[this.features.length];
       for (int i = 0; i < this.features.length; i++) {
