@@ -403,7 +403,7 @@ interface PType extends PProgObj {
       PTypeVarDef varDef;
       PTid varRefOrAnchor;
       SigItem i = null;
-      if ((varDef = PTypeVarDef.accept(reader, scope)) != null) {
+      if ((varDef = PTypeVarDef.acceptSig(reader, scope)) != null) {
         i = create(si, variance, varDef);
       } else if ((varRefOrAnchor = PTid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) != null) {
         i = create(si, variance, varRefOrAnchor);
