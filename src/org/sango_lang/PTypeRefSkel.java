@@ -60,10 +60,18 @@ public class PTypeRefSkel implements PTypeSkel {
     PFeatureSkel[] fs = new PFeatureSkel[dd.getFeatureImplCount()];
     for (int i = 0; i < fs.length; i++) {
       PTypeSkelBindings bindings = PTypeSkelBindings.create(new ArrayList<PTypeVarSlot>());
-      PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
       for (int j = 0; j < sig.params.length; j++) {
-        bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
+        // sig param does not include type ref, so width does not mean; only to cause binding of var actually
+        if (!sig.params[j].accept(PTypeSkel.EQUAL, this.params[j], bindings)) {
+          StringBuffer emsg = new StringBuffer();
+          emsg.append("Does not suit type definition at ");
+          emsg.append(this.params[j].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        // bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
       }
+      PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
       fs[i] = f.resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
     }
     this.features = PFeatureSkel.List.create(this.srcInfo, fs);
