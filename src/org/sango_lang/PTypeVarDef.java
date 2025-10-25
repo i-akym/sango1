@@ -104,6 +104,24 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return create(si, scope, varId.value.token, requiresConcrete, fs);
   }
 
+  static PTypeVarDef acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    Parser.SrcInfo si = reader.getCurrentSrcInfo();
+    ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
+    if (varSym == null) { return null; }
+    ParserA.Token varId;
+    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Variable/parameter name missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+    PFeature.List fs = PFeature.List.acceptSig(reader, scope);
+    return create(si, scope, varId.value.token, requiresConcrete, fs);
+  }
+
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
     StringBuffer emsg;
     if (!elem.getName().equals("newvar")) { return null; }

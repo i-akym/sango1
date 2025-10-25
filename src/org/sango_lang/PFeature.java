@@ -107,7 +107,7 @@ public class PFeature extends PDefaultProgObj {
     while (state >= 0) {
       PTypeVarDef p;
       PTid n;
-      if (state == 0 && (p = PTypeVarDef.accept(reader, scope)) != null) {
+      if (state == 0 && (p = PTypeVarDef.acceptSig(reader, scope)) != null) {
         builder.addParam(p);
       } else if (state == 0 && (n = PTid.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
         builder.setName(n);
@@ -126,6 +126,27 @@ public class PFeature extends PDefaultProgObj {
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
+    }
+    return builder.create();
+  }
+
+  static PFeature acceptSigDesc(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    StringBuffer emsg;
+    ParserA.Token t;
+    Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), scope);
+    int state = 0;
+    int spc = ParserA.SPACE_DO_NOT_CARE;
+    while (state >= 0) {
+      PProgObj item;
+      if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+        builder.addItem(item);
+        state = -1;
+      } else if ((item = PTypeVarDef.acceptSig(reader, scope)) != null) {
+        builder.addItem(item);
+        spc = ParserA.SPACE_NEEDED;
+      } else {
+        state = -1;
+      }
     }
     return builder.create();
   }
@@ -232,6 +253,33 @@ public class PFeature extends PDefaultProgObj {
       int state = 0;
       while (state >= 0) {
         if (state == 0 && (f = acceptDesc(reader, scope)) != null) {
+          builder.addFeature(f);
+          state = 1;
+        } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
+          state = 0;
+        } else {
+          state = -1;
+        }
+      }
+      if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        emsg = new StringBuffer();
+        emsg.append("] missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      return builder.create();
+    }
+
+    static List acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+      StringBuffer emsg;
+      ParserA.Token t;
+      if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
+      ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
+      PFeature f;
+      int state = 0;
+      while (state >= 0) {
+        if (state == 0 && (f = acceptSigDesc(reader, scope)) != null) {
           builder.addFeature(f);
           state = 1;
         } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
