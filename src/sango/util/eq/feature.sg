@@ -40,13 +40,6 @@ eval <*T[ a'eq ]> *X0 hash @public -> <int> {
 
 ### incarnation
 
-data <*T eq_inc> @protected :=
-  org: <T>
-  fo: <T eq_fs>
+data <*T[ a'eq ] eq_inc> @public :=
+  fx: <T>
   eq_inc$ ;;
-
-eval <*T[ a'eq ]> *FEq incarnate @public -> <T eq_inc> {
-  org: FEq
-  fo: (FEq _feature_a'eq)
-  eq_inc$
-} ;;

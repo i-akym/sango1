@@ -1659,8 +1659,9 @@ eval &lt;*D *A *B map_fs&gt; *Fs map_fs_to_col_fs | to_col_fs @public -&gt; &lt;
 これらを具体的に固定した型を「化身型（incarnation type）」，そのインスタンスを「化身（incarnation）」と呼びます。
 この化身型（ここでは<code>&lt;<var>F<sub>2</sub>_inc</var>&gt;</code>とします）に<var>F<sub>1</sub></var>の実装を宣言し，実行コードの中で<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;<var>F<sub>2</sub>_inc</var> [ <var>F<sub>1</sub></var> ]&gt;</code>に変換することで，<var>F<sub>1</sub></var>として使用することができるようになります。</p>
 <blockquote class="code-sample">化身型
-<code>eval &lt;*T[ *A *B a'map ]&gt; *FMap incarnate @public -&gt; &lt;T A B map_inc&gt; ;;
-data &lt;*T *A *B map_inc&gt; @protected := ...
+<code>data &lt;*T[ *A *B a'map ] map_inc&gt; @public :=
+  fx: &lt;T&gt;
+  map_inc$
 ++ ... [ &lt;A B tuple&gt; a'col ] ;;</code></blockquote>
 <blockquote class="code-sample">化身型への変換と使用
 <code>import &quot;sango.util.col.feature&quot; -&gt; colf ;;
@@ -1668,7 +1669,7 @@ eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
   M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
   ...
-  M1 map.incarnate = *M1_inc,
+  M1 map.map_inc$ = *M1_inc,
   M1_inc colf.size = 1,
   M1_inc colf.iter = *M1_inc_iter,
   M1_inc_iter next = (| (| 2, &quot;two&quot; |), ** |) value$,
@@ -2569,6 +2570,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <p>■　NEXT VERSION</p>
 <ul>
 <li>【Limited】<code>&quot;sango.lang&quot;.&lt;_?_&gt;</code>，<code>&quot;sango.lang&quot;.expose</code></li>
+<li>【Beta，非互換】それぞれの化身型の定義を変更。<code>incarnate</code>を削除。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

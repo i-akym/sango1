@@ -12,8 +12,8 @@ eval test -> <void> {
   void$
 } ;;
 eval test100 -> <void> {
-  [ 1, 2, 3, 4, 5 ] colf.incarnate = *CI,
-  CI iterf.incarnate = *I,
-  I >> iterf.org >> colf.org = [ 1, 2, 3, 4, 5 ],
+  [ 1, 2, 3, 4, 5 ] colf.col_inc$ = *CI,
+  CI iterf.iter_inc$ = *I,
+  I >> iterf.fx >> colf.fx = [ 1, 2, 3, 4, 5 ],
   void$
 } ;;

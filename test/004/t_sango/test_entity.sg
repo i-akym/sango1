@@ -15,6 +15,6 @@ eval test -> <void> {
 
 eval test000 -> <void> {
   3 none$ box.create_box = *B,
-  B entf.incarnate = *BI,
+  B entf.entity_inc$ = *BI,
   BI &(BI uniqf._feature_a'unique) >> debug.repr >> stdio.print_and_newline
 } ;;
