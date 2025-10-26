@@ -25,13 +25,6 @@ module @beta "sango.util.iter.feature" ;;
 
 ### incarnation
 
-data <*T *A iter_inc> @protected :=
-  org: <T>
-  fo: <T <A iter> fun>
+data <*T[ *A a'iter ] iter_inc> @public :=
+  fx: <T>
   iter_inc$ ;;
-
-eval <*T[ *A a'iter ]> *FIter incarnate @public -> <T A iter_inc> {
-  org: FIter
-  fo: (FIter _feature_a'iter)
-  iter_inc$
-} ;;

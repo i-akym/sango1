@@ -43,7 +43,7 @@ eval <*T[ int cstr map.a'map ]> *M f -> <void> {
   M3 map.size = 2,
   M3 2 map.assoc = "zwei" value$,
   M1 map.take = (| (| 2, "two" |), ** |) value$,
-  M1 map.incarnate = *M1_inc,
+  M1 map.map_inc$ = *M1_inc,
   M1_inc colf.size = 1,
   M1_inc colf.iter = *M1_inc_iter,
   M1_inc_iter next = (| (| 2, "two" |), ** |) value$,

@@ -56,30 +56,23 @@ eval <*T[ a'ord ]> *X0 hash @public -> <int> {
 
 ### incarnation
 
-data <*T ord_inc> @protected :=
-  org: <T>
-  fo: <T ord_fs>
+data <*T[ a'ord ] ord_inc> @public :=
+  fx: <T>
   ord_inc$
 ++ as_a'eq -> [ a'eq ] ;;
 
-eval <*T[ a'ord ]> *FOrd incarnate @public -> <T ord_inc> {
-  org: FOrd
-  fo: (FOrd _feature_a'ord)
-  ord_inc$
-} ;;
-
-eval as_a'eq -> <<*T ord_inc> eq_fs> {
+eval as_a'eq -> <<*T[ a'ord ] ord_inc> eq_fs> {
   eq?_f:
-    \ <*TT ord_inc> *X0 <TT ord_inc> *X1 -> <bool> {
-      X0 = *D0 *Fs ord_inc$,
-      X1 = *D1 ** ord_inc$,
-      D0 D1 Fs ordcmp_eq?
+    \ <*TT[ a'ord ] ord_inc> *X0 <TT ord_inc> *X1 -> <bool> {
+      X0 fx = *Y0,
+      X1 fx = *Y1,
+      Y0 Y1 (Y0 _feature_a'ord) ordcmp_eq?
     }
   ne?_f_: none$
   hash_f:
-    \ <*TT ord_inc> *X0 -> <int> {
-      X0 = *D0 *Fs ord_inc$,
-      D0 &(Fs hash_f)
+    \ <*TT[ a'ord ] ord_inc> *X0 -> <int> {
+      X0 fx = *Y0,
+      Y0 &(Y0 _feature_a'ord >> hash_f)
     }
   eq_fs$
 } ;;

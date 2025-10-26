@@ -130,33 +130,26 @@ eval <*T[ *A a'ralist ]> *FRalist iter @public -> <A iter> {
 
 ### incarnation
 
-data <*T *A ralist_inc> @protected :=
-  org: <T>
-  fo: <T A ral.ralist_fs>
+data <*T [ *A a'ralist ] ralist_inc> @public :=
+  fx: <T>
   ralist_inc$
 ++ inc_a'col_impl -> [ A a'col ] ;;
 
-eval <*T[ *A a'ralist ]> *FRalist incarnate @public -> <T A ralist_inc> {
-  org: FRalist
-  fo: (FRalist _feature_a'ralist)
-  ralist_inc$
-} ;;
-
-eval inc_a'col_impl -> <<*T *A ralist_inc> A col_fs> {
+eval inc_a'col_impl -> <<*T[ *A a'ralist ] ralist_inc> A col_fs> {
   empty?_f_:
-    (\ <*TT *AA ralist_inc> *I -> <bool> {
-       I = *ID *IFs ralist_inc$,
-       ID IFs ral.do_empty?
+    (\ <*TT[ *AA a'ralist ] ralist_inc> *I -> <bool> {
+       I fx = *X,
+       X (X _feature_a'ralist) ral.do_empty?
      } value$)
   size_f:
-    \ <*TT *AA ralist_inc> *I -> <int> {
-      I = *ID *IFs ralist_inc$,
-      ID IFs ral.do_length
+    \ <*TT[ *AA a'ralist ] ralist_inc> *I -> <int> {
+      I fx = *X,
+      X (X _feature_a'ralist) ral.do_length
     }
   iter_f:
-    \ <*TT *AA ralist_inc> *I -> <AA iter> {
-      I = *ID *IFs ralist_inc$,
-      ID IFs ral.do_iter
+    \ <*TT[ *AA a'ralist ] ralist_inc> *I -> <AA iter> {
+      I fx = *X,
+      X (X _feature_a'ralist) ral.do_iter
     }
   col_fs$
 } ;;
