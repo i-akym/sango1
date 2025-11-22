@@ -1,6 +1,6 @@
 ###########################################################################
 # MIT License                                                             #
-# Copyright (c) 2018 Isao Akiyama                                         #
+# Copyright (c) 2025 AKIYAMA Isao                                         #
 #                                                                         #
 # Permission is hereby granted, free of charge, to any person obtaining   #
 # a copy of this software and associated documentation files (the         #
@@ -25,418 +25,518 @@
 # This is a sample code for object-oriented programming.
 
 import "sango.io.stdio" -> stdio ;;
-import "sango.cstr" -> cstr ;;
 
 eval _main_ -> <void> {
-  "This is a sample code for object-oriented programming." stdio.print_and_newline,
-  "Please read my source code." stdio.print_and_newline,
-  "----" stdio.print_and_newline,
-  "Alice" "0003" new_officer = *Alice,
-  Alice greeting >> stdio.print_and_newline,
-  Alice work,
-  "Bob" "1007" "sales division" new_employee = *Bob,
-  Bob as_company_person >> as_person >> greeting >> stdio.print_and_newline,
-  Bob work,
-  Bob "trading divrsion" set_org = *Bob',
-  Bob' as_company_person >> work,
-  stdio.flush
+  "Alice" "AAA street 8" new_just_person >> to_person = *Alice_person,
+  Alice_person name >> stdio.print, " - " stdio.print,
+  Alice_person greet,
+  stdio.newline,
+
+  ("Bob" "BBB street 5" new_just_person) "E001" ("R003" value$) new_just_company_officer >> to_company_officer = *Bob_officer,
+  Bob_officer name >> stdio.print, " - " stdio.print,
+  Bob_officer greet,
+  stdio.newline,
+  Bob_officer to_company_person = *Bob_company_person,  # upcast
+  "id: " stdio.print, Bob_company_person id >> stdio.print_and_newline,
+  Bob_company_person name >> stdio.print, " - " stdio.print,
+  Bob_company_person work,
+  stdio.newline,
+  Bob_company_person to_person = *Bob_person,  # upcast
+  Bob_person "YYY street 7" set_home_addr = *Bob_person',
+  Bob_person' impl = *Bob_company_person',  # actually downcast
+  "Bob moved.  new addr: " stdio.print,
+  Bob_company_person' home_addr >> stdio.print_and_newline,
+
+  ("Carol" "CCC street 11" new_just_person) "G007" "marketing devision" new_just_company_employee >> to_company_employee = *Carol_employee,
+  Carol_employee name >> stdio.print, " - " stdio.print,
+  Carol_employee greet,
+  stdio.newline,
+  Carol_employee to_company_person = *Carol_company_person,  # upcast
+  "id: " stdio.print, Carol_company_person id >> stdio.print_and_newline,
+  Carol_company_person name >> stdio.print, " - " stdio.print,
+  Carol_company_person work,
+  stdio.newline,
+  Carol_employee "human resource division" set_org = *Carol_employee',
+  "Carol is transferred to the human resource division..." stdio.print_and_newline,
+  Carol_employee' name >> stdio.print, " - " stdio.print,
+  Carol_employee' work,
+  stdio.newline
 } ;;
 
-###
-### class person 
-###
+# ---------------------------------------------------------
 
-eval <cstr> *Name new_person @public -> <person> {
-  Name init_person = *Person_impl,
-  i: Person_impl
-    person_ms: (Person_impl person_sms)
-    x: just_person$
-    person$
-} ;;
+### person class
 
-eval <person> *Person person_greeting | greeting @public -> <cstr> {
-  Person &(Person person_ms >> greeting_f_ >> value)
-} ;;
-
-## implementation
-
-data <person> @public :=
-  i: <person_impl>  # impl
-  person_ms: <person_fs>  # instance methods
-  x: <person_x+>  # derived class
+data <*D person> :=
+  impl_f: <D fun>
+  name_f: <cstr fun>
+  home_addr_f: <cstr fun>
+  set_home_addr_f: <cstr <D person> fun>
+  greet_f: <void fun>
   person$ ;;
 
-data <person_impl> @protected :=
-  person_sms: <person_fs>  # super methods for derived classes
-  d: <person_d>  # data
-  person_impl$ ;;
-
-data <person_x> @public :=
-| just_person$
-| <company_person> person_x_company_person$ ;;  # extension when in another file
-
-data <person_fs> @public :=
-  greeting_f_: <<person cstr fun> maybe>
-  person_fs$ ;;
-
-eval person_person_ms -> <person_fs> {
-  greeting_f_: (^person_impl_greeting value$)
-    person_fs$
+feature <*T> [ a'person_impl ] -> <T <T person> fun> ;;
+  
+eval <*T[ a'person_impl ]> *Impl to_person -> <T person> {
+  Impl &(Impl _feature_a'person_impl)
 } ;;
 
-eval <person_fs> *Ms0 <person_fs> *Ms1 override_person_ms @public -> <person_fs> {
-  Ms1 greeting_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 greeting_f_ } = *Greeting_f_,
-  greeting_f_: Greeting_f_
-    person_fs$
+eval <*D person> *Person person_impl | impl -> <D> {
+  &(Person impl_f)
 } ;;
 
-data <person_d> @protected :=
+eval <*D person> *Person person_name | name -> <cstr> {
+  &(Person name_f)
+} ;;
+
+eval <*D person> *Person person_home_addr | home_addr -> <cstr> {
+  &(Person home_addr_f)
+} ;;
+
+eval <*D person> *Person <cstr> *Addr person_set_home_addr | set_home_addr -> <D person> {
+  Addr &(Person set_home_addr_f)
+} ;;
+
+eval <*D person> *Person person_greet | greet -> <void> {
+  &(Person greet_f)
+} ;;
+
+# implementation -- just_person
+
+data <just_person> :=
   name: <cstr>
-  person_d$ ;;
+  home_addr: <cstr>
+  just_person$
+++ just_person_as_a'person_impl -> [ a'person_impl ] ;;
 
-eval <cstr> *Name init_person @public -> <person_impl> {
-  person_sms: person_person_ms
-    d: (Name person_d$)
-    person_impl$
-} ;;
-
-eval <person> *Person person_impl_greeting -> <cstr> {
-  Person i >> d = *D,
-  [ "Hi, I'm ", D name, "." ] cstr.concat
-} ;;
-
-eval <person> *Person person_super_greeting @public -> <cstr> {
-  Person &(Person i >> person_sms >> greeting_f_ >> value)
-} ;;
-
-###
-### abstract class company_person which inherits person
-###
-
-# no public constructor because this class is abstract
-# eval <cstr> *Name <cstr> *Id new_company_person -> <company_person> ;;
-
-eval <company_person> *Company_person company_person_as_person | as_person @public -> <person> {
-  Company_person = i: *I person_ms: *Person_ms *** company_person$,
-  i: (I >> s)
-    person_ms: Person_ms
-    x: (Company_person person_x_company_person$)
+eval just_person_as_a'person_impl -> <just_person <just_person person> fun> {
+  \ <just_person> *Z -> <just_person person> {
+    impl_f:
+      \\ <just_person> { Z }
+    name_f:
+      \\ <cstr> { Z just_person_name }
+    home_addr_f:
+      \\ <cstr> { Z just_person_home_addr }
+    set_home_addr_f:
+      \ <cstr> *H -> <just_person person> { Z H just_person_set_home_addr >> to_person }
+    greet_f:
+      \\ <void> { Z just_person_greet }
     person$
-} ;;
-
-eval <person> *Person cast_to_company_person @public -> <company_person maybe> {
-  Person x >> case {
-  ; *X person_x_company_person$ -> X value$
-  ; ** -> none$
   }
 } ;;
 
-eval <company_person> *Company_person company_person_work | work @public -> <void> {
-  Company_person &(Company_person company_person_ms >> work_f_ >> value)
+eval <cstr> *Name <cstr> *Home_addr new_just_person -> <just_person> {
+  name: Name
+  home_addr: Home_addr
+  just_person$
 } ;;
 
-eval <company_person> *Company_person company_person_greeting | greeting @public -> <cstr> {
-  (Company_person as_person) greeting
+eval <just_person> *JPerson just_person_name -> <cstr> {
+  JPerson name
 } ;;
 
-## implementation
-
-data <company_person> @public :=
-  i: <company_person_impl>
-  person_ms: <person_fs>
-  company_person_ms: <company_person_fs>
-  x: <company_person_x+>
-  company_person$ ;;
-
-data <company_person_impl> @protected :=
-  s: <person_impl>  # super class
-  person_sms: <person_fs>
-  company_person_sms: <company_person_fs>
-  d: <company_person_d>
-  company_person_impl$ ;;
-
-data <company_person_x> @public :=
-| just_company_person$
-| <officer> company_person_x_officer$  # extension when in another file
-| <employee> company_person_x_employee$ ;;  # extension when in another file
-
-eval company_person_person_ms -> <person_fs> {
-  greeting_f_: none$
-    person_fs$
+eval <just_person> *JPerson just_person_home_addr -> <cstr> {
+  JPerson home_addr
 } ;;
 
-data <company_person_fs> @public :=
-  work_f_: <<company_person void fun> maybe>
-  company_person_fs$ ;;
-
-eval company_perso_company_person_ms -> <company_person_fs> {
-  work_f_: (^company_person_work value$)
-    company_person_fs$
+eval <just_person> *JPerson <cstr> *Home_addr just_person_set_home_addr -> <just_person> {
+  home_addr: Home_addr :: JPerson just_person$
 } ;;
 
-eval <company_person_fs> *Ms0 <company_person_fs> *Ms1 override_company_person_ms @public -> <company_person_fs> {
-  Ms1 work_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 work_f_ } = *Work_f_,
-  work_f_: Work_f_
-    company_person_fs$
+eval <just_person> *JPerson just_person_greet -> <void> {
+  "Hi. I'm " stdio.print,
+  JPerson name >> stdio.print,
+  "." stdio.print
 } ;;
 
-data <company_person_d> @protected :=
+
+### company_person class (abstract)
+
+data <*D company_person> :=
+  impl_f: <D fun>
+  # inherited from person
+  name_f: <cstr fun>
+  home_addr_f: <cstr fun>
+  set_home_addr_f: <cstr <D company_person> fun>
+  greet_f: <void fun>
+  # added
+  id_f: <cstr fun>
+  work_f: <void fun>
+  company_person$
+++ company_person_as_a'person_impl -> [ a'person_impl ] ;;
+
+eval company_person_as_a'person_impl -> <<*D company_person> <<D company_person> person> fun> {
+  \ <*DD company_person> *Z -> <<DD company_person> person> {
+    impl_f:
+      \\ <DD company_person> { Z }
+    name_f:
+      \\ <cstr> { Z company_person_name }
+    home_addr_f:
+      \\ <cstr> { Z company_person_home_addr }
+    set_home_addr_f:
+      \ <cstr> *H -> <<DD company_person> person> { Z H company_person_set_home_addr >> to_person }
+    greet_f:
+      \\ <void> { Z company_person_greet }
+    person$
+  }
+} ;;
+
+feature <*T> [ a'company_person_impl ] -> <T <T company_person> fun> ;;
+
+eval <*T[ a'company_person_impl ]> *Impl to_company_person -> <T company_person> {
+  Impl &(Impl _feature_a'company_person_impl)
+} ;;
+
+eval <*D company_person> *Company_person company_person_impl | impl -> <D> {
+  &(Company_person impl_f)
+} ;;
+
+eval <*D company_person> *Company_person company_person_name | name -> <cstr> {
+  &(Company_person name_f)
+} ;;
+
+eval <*D company_person> *Company_person company_person_home_addr | home_addr -> <cstr> {
+  &(Company_person home_addr_f)
+} ;;
+
+eval <*D company_person> *Company_person <cstr> *Addr company_person_set_home_addr | set_home_addr -> <D company_person> {
+  Addr &(Company_person set_home_addr_f)
+} ;;
+
+eval <*D company_person> *Company_person company_person_greet | greet -> <void> {
+  &(Company_person greet_f)
+} ;;
+
+eval <*D company_person> *Company_person company_person_id | id -> <cstr> {
+  &(Company_person id_f)
+} ;;
+
+eval <*D company_person> *Company_person company_person_work | work -> <void> {
+  &(Company_person work_f)
+} ;;
+
+
+# implementation -- none
+
+
+### company_officer
+
+data <*D company_officer> :=
+  impl_f: <D fun>
+  # inherited from company_person
+  name_f: <cstr fun>
+  home_addr_f: <cstr fun>
+  set_home_addr_f: <cstr <D company_officer> fun>
+  greet_f: <void fun>
+  id_f: <cstr fun>
+  work_f: <void fun>
+  # added
+  room_f: <<cstr maybe> fun>
+  set_room_f: <<cstr maybe> <D company_officer> fun>
+  company_officer$
+++ company_officer_as_a'company_person_impl -> [ a'company_person_impl ] ;;
+
+eval company_officer_as_a'company_person_impl -> <<*D company_officer> <<D company_officer> company_person> fun> {
+  \ <*DD company_officer> *Z -> <<DD company_officer> company_person> {
+    impl_f:
+      \\ <DD company_officer> { Z }
+    name_f:
+      \\ <cstr> { Z company_officer_name }
+    home_addr_f:
+      \\ <cstr> { Z company_officer_home_addr }
+    set_home_addr_f:
+      \ <cstr> *H -> <<DD company_officer> company_person> { Z H company_officer_set_home_addr >> to_company_person }
+    greet_f: 
+      \\ <void> { Z company_officer_greet }
+    id_f:
+      \\ <cstr> { Z company_officer_id }
+    work_f:
+      \\ <void> { Z company_officer_work }
+    company_person$
+  }
+} ;;
+
+feature <*T> [ a'company_officer_impl ] -> <T <T company_officer> fun> ;;
+
+eval <*T[ a'company_officer_impl ]> *Impl to_company_officer -> <T company_officer> {
+  Impl &(Impl _feature_a'company_officer_impl)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_impl | impl -> <D> {
+  &(Company_officer impl_f)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_name | name -> <cstr> {
+  &(Company_officer name_f)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_home_addr | home_addr -> <cstr> {
+  &(Company_officer home_addr_f)
+} ;;
+
+eval <*D company_officer> *Company_officer <cstr> *Home_addr company_officer_set_home_addr | set_home_addr -> <D company_officer> {
+  Home_addr &(Company_officer set_home_addr_f)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_greet | greet -> <void> {
+  &(Company_officer greet_f)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_id | id -> <cstr> {
+  &(Company_officer id_f)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_work | work -> <void> {
+  &(Company_officer work_f)
+} ;;
+
+eval <*D company_officer> *Company_officer company_officer_room | room -> <cstr maybe> {
+  &(Company_officer room_f)
+} ;;
+
+# -- implementation
+
+data <just_company_officer> :=
+  person: <just_person>
   id: <cstr>
-  company_person_d$ ;;
+  room_: <cstr maybe>
+  just_company_officer$
+++ just_company_officer_as_a'company_officer_impl -> [ a'company_officer_impl ] ;;
 
-eval <cstr> *Name <cstr> *Id init_company_person @public -> <company_person_impl> {
-  Name init_person = *Person_impl,
-  s: Person_impl
-    person_sms: ((Person_impl person_sms) company_person_person_ms override_person_ms)
-    company_person_sms: company_person_company_person_ms
-    d: (Id company_person_d$)
-    company_person_impl$
-} ;;
-
-eval company_person_company_person_ms -> <company_person_fs> {
-  work_f_: (^company_person_impl_work value$)
-    company_person_fs$ = *Company_person_sms,
-} ;;
-
-eval <company_person> *Company_person company_person_super_greeting @public -> <cstr> {
-  (Company_person as_person) person_super_greeting
-} ;;
-
-eval <company_person> *Company_person company_person_impl_work -> <void> {
-  "Working..." stdio.print_and_newline
-} ;;
-
-eval <company_person> *Company_person company_person_super_work @public -> <void> {
-  Company_person &(Company_person i >> company_person_sms >> work_f_ >> value)
-} ;;
-
-###
-###  class officer which inherits company_person
-###
-
-eval <cstr> *Name <cstr> *Id new_officer @public -> <officer> {
-  Name Id init_officer = *Officer_impl,
-  i: Officer_impl
-    person_ms: (Officer_impl person_sms)
-    company_person_ms: (Officer_impl company_person_sms)
-    x: just_officer$
-    officer$
-} ;;
-
-data <officer> @public :=
-  i: <officer_impl>
-  person_ms: <person_fs>
-  company_person_ms: <company_person_fs>
-  # officer_ms: <officer_ms>  # no additional methods
-  x: <officer_x+>
-  officer$ ;;
-
-eval <officer> *Officer officer_as_company_person | as_company_person @public -> <company_person> {
-  Officer = i: *I person_ms: *Person_ms company_person_ms: *Company_person_ms *** officer$,
-  i: (I s)
-    person_ms: Person_ms
-    company_person_ms: Company_person_ms
-    x: (Officer company_person_x_officer$)
-    company_person$
-} ;;
-
-eval <company_person> *Company_person cast_to_officer @public -> <officer maybe> {
-  Company_person x >> case {
-  ; *X company_person_x_officer$ -> X value$
-  ; ** -> none$
+eval just_company_officer_as_a'company_officer_impl -> <just_company_officer <just_company_officer company_officer> fun> {
+  \ <just_company_officer> *Z -> <just_company_officer company_officer> {
+    impl_f: 
+      \\ <just_company_officer> { Z }
+    name_f:
+      \\ <cstr> { Z just_company_officer_name }
+    home_addr_f:
+      \\ <cstr> { Z just_company_officer_home_addr }
+    set_home_addr_f:
+      \ <cstr> *H -> <just_company_officer company_officer> { Z H just_company_officer_set_home_addr >> to_company_officer }
+    greet_f:
+      \\ <void> { Z just_company_officer_greet }
+    id_f:
+      \\ <cstr> { Z just_company_officer_id }
+    work_f:
+      \\ <void> { Z just_company_officer_work }
+    room_f:
+      \\ <cstr maybe> { Z just_company_officer_room }
+    set_room_f:
+      \ <cstr maybe> *R_ -> <just_company_officer company_officer> { Z R_ just_company_officer_set_room >> to_company_officer }
+    company_officer$
   }
 } ;;
 
-eval <officer> *Officer officer_greeting | greeting @public -> <cstr> {
-  (Officer as_company_person >> as_person) greeting
+eval <just_person> *Person <cstr> *Id <cstr maybe> *Room_ new_just_company_officer -> <just_company_officer> {
+  person: Person
+  id: Id
+  room_: Room_
+  just_company_officer$
 } ;;
 
-eval <officer> *Officer officer_work | work @public -> <void> {
-  (Officer as_company_person) work
+eval <just_company_officer> *JOfficer just_company_officer_name -> <cstr> {
+  JOfficer = person: *Person *** just_company_officer$,
+  Person just_person_name
 } ;;
 
-## implementation
-
-data <officer_impl> @protected :=
-  s: <company_person_impl>
-  person_sms: <person_fs>
-  company_person_sms: <company_person_fs>
-  # officer_sms: <officer_fs>  # no additional methods
-  # d: <officer_d>  # no data
-  officer_impl$ ;;
-
-data <officer_x> @public :=
-| just_officer$ ;;
-
-eval <cstr> *Name <cstr> *Id init_officer @public -> <officer_impl> {
-  Name Id init_company_person = *Company_person_impl,
-  s: Company_person_impl
-    person_sms: ((Company_person_impl person_sms) officer_person_ms override_person_ms)
-    company_person_sms: ((Company_person_impl company_person_sms) officer_company_person_ms override_company_person_ms)
-    # officer_sms: <officer_ms>  # no additional methods
-    # d: <officer_d>  # no data
-    officer_impl$
+eval <just_company_officer> *JOfficer just_company_officer_home_addr -> <cstr> {
+  JOfficer = person: *Person *** just_company_officer$,
+  Person just_person_home_addr
 } ;;
 
-eval officer_person_ms -> <person_fs> {
-  greeting_f_: (^officer_impl_greeting value$)
-    person_fs$
+eval <just_company_officer> *JOfficer <cstr> *Home_addr just_company_officer_set_home_addr -> <just_company_officer> {
+  JOfficer = person: *Person *** just_company_officer$,
+  Person Home_addr just_person_set_home_addr = *Person',
+  person: Person' :: JOfficer just_company_officer$
 } ;;
 
-eval officer_company_person_ms -> <company_person_fs> {
-  work_f_: none$
-    company_person_fs$
+eval <just_company_officer> *JOfficer just_company_officer_greet -> <void> {
+  JOfficer = person: *Person *** just_company_officer$,
+  Person just_person_greet,
+  " I work for XYZ company as an officer." stdio.print
 } ;;
 
-eval <person> *Person officer_impl_greeting -> <cstr> {
-  [ Person person_super_greeting, " I'm an officer." ] cstr.concat
+eval <just_company_officer> *JOfficer just_company_officer_id -> <cstr> {
+  JOfficer = id: *Id *** just_company_officer$,
+  Id
 } ;;
 
-eval <officer> *Officer officer_super_greeting @public -> <cstr> {
-  (Officer as_company_person >> as_person) &(Officer i >> person_sms >> greeting_f_ >> value)
+eval <just_company_officer> *JOfficer just_company_officer_work -> <void> {
+  "I'm working " stdio.print,
+  JOfficer room_ >> case {
+  ; *R value$ -> "in room " stdio.print, R stdio.print
+  ; ** -> " at the company's office" stdio.print
+  },
+  "." stdio.print
 } ;;
 
-eval <officer> *Officer officer_super_work @public -> <void> {
-  (Officer as_company_person) &(Officer i >> company_person_sms >> work_f_ >> value)
+eval <just_company_officer> *JOfficer just_company_officer_room -> <cstr maybe> {
+  JOfficer = room_: *Room_ *** just_company_officer$,
+  Room_
 } ;;
 
-###
-### class employee which inherits company_person
-###
-
-eval <cstr> *Name <cstr> *Id <cstr> *Org new_employee @public -> <employee> {
-  Name Id Org init_employee = *Employee_impl,
-  i: Employee_impl
-    person_ms: (Employee_impl person_sms)
-    company_person_ms: (Employee_impl company_person_sms)
-    employee_ms: employee_employee_ms
-    x: just_employee$
-    employee$
+eval <just_company_officer> *JOfficer <cstr maybe> *Room_ just_company_officer_set_room -> <just_company_officer> {
+  room_: Room_ :: JOfficer just_company_officer$
 } ;;
 
-data <employee> @public :=
-  i: <employee_impl>
-  person_ms: <person_fs>
-  company_person_ms: <company_person_fs>
-  employee_ms: <employee_fs>
-  x: <employee_x>
-  employee$ ;;
 
-eval <employee> *Employee employee_as_company_person | as_company_person @public -> <company_person> {
-  Employee = i: *I person_ms: *Person_ms company_person_ms: *Company_person_ms *** employee$,
-  i: (I s)
-    person_ms: Person_ms
-    company_person_ms: Company_person_ms
-    x: (Employee company_person_x_employee$)
+### company_employee
+
+data <*D company_employee> :=
+  impl_f: <D fun>
+  # inherited from company_person
+  name_f: <cstr fun>
+  home_addr_f: <cstr fun>
+  set_home_addr_f: <cstr <D company_employee> fun>
+  greet_f: <void fun>
+  id_f: <cstr fun>
+  work_f: <void fun>
+  # added
+  org_f: <cstr fun>
+  set_org_f: <cstr <D company_employee> fun>
+  company_employee$
+++ company_employee_as_a'company_person_impl -> [ a'company_person_impl ] ;;
+
+eval company_employee_as_a'company_person_impl -> <<*D company_employee> <<D company_employee> company_person> fun> {
+  \ <*DD company_employee> *Z -> <<DD company_employee> company_person> {
+    impl_f:
+      \\ <DD company_employee> { Z }
+    name_f:
+      \\ <cstr> { Z company_employee_name }
+    home_addr_f:
+      \\ <cstr> { Z company_employee_home_addr }
+    set_home_addr_f:
+      \ <cstr> *H -> <<DD company_employee> company_person> { Z H company_employee_set_home_addr >> to_company_person }
+    greet_f: 
+      \\ <void> { Z company_employee_greet }
+    id_f:
+      \\ <cstr> { Z company_employee_id }
+    work_f:
+      \\ <void> { Z company_employee_work }
     company_person$
-} ;;
-
-eval <company_person> *Company_person cast_to_employee @public -> <employee maybe> {
-  Company_person x >> case {
-  ; *X company_person_x_employee$ -> X value$
-  ; ** -> none$
   }
 } ;;
 
-eval <employee> *Employee employee_greeting | greeting @public -> <cstr> {
-  (Employee as_company_person >> as_person) greeting
+feature <*T> [ a'company_employee_impl ] -> <T <T company_employee> fun> ;;
+
+eval <*T[ a'company_employee_impl ]> *Impl to_company_employee -> <T company_employee> {
+  Impl &(Impl _feature_a'company_employee_impl)
 } ;;
 
-eval <employee> *Employee employee_work | work @public -> <void> {
-  (Employee as_company_person) work
+eval <*D company_employee> *Company_employee company_employee_impl | impl -> <D> {
+  &(Company_employee impl_f)
 } ;;
 
-eval <employee> *Employee employee_org | org @public -> <cstr> {
-  Employee &(Employee employee_ms >> org_f_ >> value)
+eval <*D company_employee> *Company_employee company_employee_name | name -> <cstr> {
+  &(Company_employee name_f)
 } ;;
 
-eval <employee> *Employee <cstr> *New_org employee_set_org | set_org @public -> <employee> {
-  Employee New_org &(Employee employee_ms >> set_org_f_ >> value)
+eval <*D company_employee> *Company_employee company_employee_home_addr | home_addr -> <cstr> {
+  &(Company_employee home_addr_f)
 } ;;
 
-## implementation
-
-data <employee_impl> @protected :=
-  s: <company_person_impl>
-  person_sms: <person_fs>
-  company_person_sms: <company_person_fs>
-  employee_sms: <employee_fs>
-  d: <employee_d>
-  employee_impl$ ;;
-
-data <employee_x> @public :=
-| just_employee$ ;;
-
-eval employee_person_ms -> <person_fs> {
-  greeting_f_: none$
-    person_fs$
+eval <*D company_employee> *Company_employee <cstr> *Home_addr company_employee_set_home_addr | set_home_addr -> <D company_employee> {
+  Home_addr &(Company_employee set_home_addr_f)
 } ;;
 
-eval employee_company_person_ms -> <company_person_fs> {
-  work_f_: (^employee_impl_work value$)
-    company_person_fs$
+eval <*D company_employee> *Company_employee company_employee_greet | greet -> <void> {
+  &(Company_employee greet_f)
 } ;;
 
-data <employee_d> @protected :=
+eval <*D company_employee> *Company_employee company_employee_id | id -> <cstr> {
+  &(Company_employee id_f)
+} ;;
+
+eval <*D company_employee> *Company_employee company_employee_work | work -> <void> {
+  &(Company_employee work_f)
+} ;;
+
+eval <*D company_employee> *Company_employee company_employee_org | org -> <cstr> {
+  &(Company_employee org_f)
+} ;;
+
+eval <*D company_employee> *Company_employee <cstr> *Org company_employee_set_org | set_org -> <D company_employee> {
+  Org &(Company_employee set_org_f)
+} ;;
+
+# -- implementation
+
+data <just_company_employee> :=
+  person: <just_person>
+  id: <cstr>
   org: <cstr>
-  employee_d$ ;;
+  just_company_employee$
+++ just_company_employee_as_a'company_employee_impl -> [ a'company_employee_impl ] ;;
 
-data <employee_fs> @public :=
-  org_f_: <<employee cstr fun> maybe>
-  set_org_f_: <<employee cstr employee fun> maybe>
-  employee_fs$ ;;
-
-eval employee_employee_ms -> <employee_fs> {
-  org_f_: (^employee_impl_org value$)
-    set_org_f_: (^employee_impl_set_org value$)
-    employee_fs$
+eval just_company_employee_as_a'company_employee_impl -> <just_company_employee <just_company_employee company_employee> fun> {
+  \ <just_company_employee> *Z -> <just_company_employee company_employee> {
+    impl_f: 
+      \\ <just_company_employee> { Z }
+    name_f:
+      \\ <cstr> { Z just_company_employee_name }
+    home_addr_f:
+      \\ <cstr> { Z just_company_employee_home_addr }
+    set_home_addr_f:
+      \ <cstr> *H -> <just_company_employee company_employee> { Z H just_company_employee_set_home_addr >> to_company_employee }
+    greet_f:
+      \\ <void> { Z just_company_employee_greet }
+    id_f:
+      \\ <cstr> { Z just_company_employee_id }
+    work_f:
+      \\ <void> { Z just_company_employee_work }
+    org_f:
+      \\ <cstr> { Z just_company_employee_org }
+    set_org_f:
+      \ <cstr> *O -> <just_company_employee company_employee> { Z O just_company_employee_set_org >> to_company_employee }
+    company_employee$
+  }
 } ;;
 
-eval <employee_fs> *Ms0 <employee_fs> *Ms1 override_employee_ms @public -> <employee_fs> {
-  Ms1 org_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 org_f_ } = *Org_f_,
-  Ms1 set_org_f_ >> case { *F value$ -> F value$ ; ** -> Ms0 set_org_f_ } = *Set_org_f_,
-  org_f_: Org_f_
-    set_org_f_: Set_org_f_
-    employee_fs$
+eval <just_person> *Person <cstr> *Id <cstr> *Org new_just_company_employee -> <just_company_employee> {
+  person: Person
+  id: Id
+  org: Org
+  just_company_employee$
 } ;;
 
-eval <cstr> *Name <cstr> *Id <cstr> *Org init_employee @public -> <employee_impl> {
-  Name Id init_company_person = *Company_person_impl,
-  s: Company_person_impl
-    person_sms: ((Company_person_impl person_sms) employee_person_ms override_person_ms)
-    company_person_sms: ((Company_person_impl company_person_sms) employee_company_person_ms override_company_person_ms)
-    employee_sms: employee_employee_ms
-    d: (Org employee_d$)
-    employee_impl$
+eval <just_company_employee> *JEmployee just_company_employee_name -> <cstr> {
+  JEmployee = person: *Person *** just_company_employee$,
+  Person just_person_name
 } ;;
 
-eval <employee> *Employee employee_super_greeting @public -> <cstr> {
-  (Employee as_company_person >> as_person) &(Employee i >> person_sms >> greeting_f_ >> value)
+eval <just_company_employee> *JEmployee just_company_employee_home_addr -> <cstr> {
+  JEmployee = person: *Person *** just_company_employee$,
+  Person just_person_home_addr
 } ;;
 
-eval <company_person> *Company_person employee_impl_work -> <void> {
-  Company_person x = *Employee company_person_x_employee$,
-  [ "Working in ", Employee i >> d >> org, "..." ] cstr.concat >> stdio.print_and_newline
+eval <just_company_employee> *JEmployee <cstr> *Home_addr just_company_employee_set_home_addr -> <just_company_employee> {
+  JEmployee = person: *Person *** just_company_employee$,
+  Person Home_addr just_person_set_home_addr = *Person',
+  person: Person' :: JEmployee just_company_employee$
 } ;;
 
-eval <employee> *Employee employee_super_work -> <void> {
-  (Employee as_company_person) &(Employee i >> company_person_sms >> work_f_ >> value)
+eval <just_company_employee> *JEmployee just_company_employee_greet -> <void> {
+  JEmployee = person: *Person *** just_company_employee$,
+  Person just_person_greet,
+  " I work for XYZ company." stdio.print
 } ;;
 
-eval <employee> *Employee employee_impl_org -> <cstr> {
-  Employee i >> d >> org
+eval <just_company_employee> *JEmployee just_company_employee_id -> <cstr> {
+  JEmployee = id: *Id *** just_company_employee$,
+  Id
 } ;;
 
-eval <employee> *Employee employee_super_org -> <cstr> {
-  Employee &(Employee i >> employee_sms >> org_f_ >> value)
+eval <just_company_employee> *JEmployee just_company_employee_work -> <void> {
+  "I'm working with coworkers in the " stdio.print,
+  JEmployee just_company_employee_org >> stdio.print,
+  "." stdio.print
 } ;;
 
-eval <employee> *Employee <cstr> *New_org employee_impl_set_org -> <employee> {
-  d: (org: New_org employee_d$) :: (Employee i) employee_impl$ = *Employee_impl',
-  i: Employee_impl' :: Employee employee$
+eval <just_company_employee> *JEmployee just_company_employee_org -> <cstr> {
+  JEmployee = org: *Org *** just_company_employee$,
+  Org
 } ;;
 
-eval <employee> *Employee <cstr> *New_org employee_super_set_org -> <employee> {
-  Employee New_org &(Employee i >> employee_sms >> set_org_f_ >> value)
+eval <just_company_employee> *JEmployee <cstr> *Org just_company_employee_set_org -> <just_company_employee> {
+  org: Org :: JEmployee just_company_employee$
 } ;;
-
