@@ -27,18 +27,12 @@ public class PTypeVarSlot {
   static int idValue = 0;
 
   int id;
-  public boolean requiresConcrete;  // public for native impl of sango.lang.module
 
   private PTypeVarSlot() {}
 
-  static PTypeVarSlot create(PTypeVarDef varDef) {
-    return createInternal(varDef.requiresConcrete);
-  }
-
-  public static PTypeVarSlot createInternal(boolean requiresConcrete) {
+  public static PTypeVarSlot create() {
     PTypeVarSlot s = new PTypeVarSlot();
     s.id = idValue++;
-    s.requiresConcrete = requiresConcrete;
     return s;
   }
 
@@ -46,9 +40,6 @@ public class PTypeVarSlot {
     StringBuffer buf = new StringBuffer();
     buf.append("$");
     buf.append(this.id);
-    if (this.requiresConcrete) {
-      buf.append("!");
-    }
     return buf.toString();
   }
 
@@ -56,9 +47,6 @@ public class PTypeVarSlot {
     StringBuffer buf = new StringBuffer();
     buf.append("$");
     buf.append(this.id);
-    if (this.requiresConcrete) {
-      buf.append("!");
-    }
     return buf.toString();
   }
 }

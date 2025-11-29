@@ -206,7 +206,7 @@ class PCompiledModule implements PModDecl {
       } else {
         tps = new PDefDict.TparamProps[this.sigParams.length];
         for (int i = 0; i < this.sigParams.length; i++) {
-          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i], this.sigParams[i].varSlot.requiresConcrete);
+          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i], this.sigParams[i].requiresConcrete);
         }
       }
       return tps;
@@ -267,7 +267,7 @@ class PCompiledModule implements PModDecl {
     ad.tparams = new PTypeVarSkel[aliasTypeDef.paramCount];
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     for (int i = 0; i < ad.tparams.length; i++) {
-      ad.tparams[i] = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null, PTypeVarSlot.createInternal(false), null);
+      ad.tparams[i] = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null, PTypeVarSlot.create(), false, null);
       varList.add(ad.tparams[i]);
     }
     ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList /* , unresolvedTypeRefList, unresolvedFeatureList */);
@@ -516,7 +516,7 @@ class PCompiledModule implements PModDecl {
 // /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
       v = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null,
-        PTypeVarSlot.createInternal(tv.requiresConcrete), /* null, */ null);
+        PTypeVarSlot.create(), tv.requiresConcrete, null);
       varList.add(v);
       v.features = (tv.features != null)?
         this.convertFeatures(tv.features, mod, varList):

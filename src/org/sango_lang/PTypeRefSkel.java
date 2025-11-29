@@ -576,20 +576,12 @@ public class PTypeRefSkel implements PTypeSkel {
     t.params = new PTypeSkel[this.params.length];
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
-        PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.theCompiler, this.srcInfo, null, s, null);
+        PTypeVarSlot s = PTypeVarSlot.create();
+        v = PTypeVarSkel.create(this.theCompiler, this.srcInfo, null, s, var.requiresConcrete, null);
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);
   }
-
-  // static PDefDict.TconProps resolveTcon(PDefDict.IdKey tconKey, PDefDict.DefDictGetter defDictGetter) throws CompileException {
-    // Option.Set<Module.Access> as = (new Option.Set<Module.Access>())
-      // .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
-      // .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
-    // return defDictGetter.getReferredDefDict(tconKey.modName).resolveTcon(
-      // tconKey.idName, PDefDict.TID_CAT_TCON, as);
-  // }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;

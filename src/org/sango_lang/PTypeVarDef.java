@@ -177,7 +177,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   public PTypeVarSkel toSkel() {
     if (this._once_skel == null) {
       PFeatureSkel.List fs = (this.features != null)?  this.features.toSkel(): null;
-      this._once_skel = PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, fs);
+      this._once_skel = PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, this.requiresConcrete, fs);
     }
     return this._once_skel;
   }
