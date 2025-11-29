@@ -27,6 +27,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
   PTid tcon;
   PType[] params;  // empty array if no params
   PDefDict.TidProps _resolved_tconProps;
+  PTypeRefSkel _once_skel;
 
   private PTypeRef(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -185,12 +186,15 @@ class PTypeRef extends PDefaultProgObj implements PType {
   }
 
   public PTypeRefSkel toSkel() {
-    PTypeSkel t;
-    PTypeSkel[] ps = new PTypeSkel[this.params.length];
-    for (int i = 0; i < ps.length; i++) {
-      ps[i] = this.params[i].toSkel();
+    if (this._once_skel == null) {
+      PTypeSkel t;
+      PTypeSkel[] ps = new PTypeSkel[this.params.length];
+      for (int i = 0; i < ps.length; i++) {
+        ps[i] = this.params[i].toSkel();
+      }
+      this._once_skel = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, this.tcon.ext, ps);
     }
-    return PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, this.tcon.ext, ps);
+    return this._once_skel;
   }
 
   // public PTypeSkel getNormalizedSkel() throws CompileException {
