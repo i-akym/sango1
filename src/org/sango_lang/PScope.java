@@ -373,7 +373,7 @@ class PScope {
     if (this.inParallel) {
       slot = this.parent.defineTVar(varDef);  // temporal impl - forward simply
     } else {
-      slot = PTypeVarSlot.create(varDef);
+      slot = PTypeVarSlot.create();
       varDef._resolved_varSlot = slot;
       this.tvarDict.put(varDef.name, varDef);
     }
