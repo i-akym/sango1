@@ -29,8 +29,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
   boolean requiresConcrete;
   PFeature.List features;  // maybe null
-  PFeatureSkel.List nFeatures;  // maybe null
+  // PFeatureSkel.List nFeatures;  // maybe null
   PTypeVarSlot _resolved_varSlot;
+  PTypeVarSkel _once_skel;
 
   private PTypeVarDef(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -174,8 +175,11 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   }
 
   public PTypeVarSkel toSkel() {
-    PFeatureSkel.List fs = (this.features != null)?  this.features.toSkel(): null;
-    return PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, fs);
+    if (this._once_skel == null) {
+      PFeatureSkel.List fs = (this.features != null)?  this.features.toSkel(): null;
+      this._once_skel = PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, fs);
+    }
+    return this._once_skel;
   }
 
   // public PTypeVarSkel getNormalizedSkel() throws CompileException {
