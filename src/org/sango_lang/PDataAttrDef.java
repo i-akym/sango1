@@ -98,7 +98,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
           ParserA.acceptToken(reader, LToken.COL, ParserA.SPACE_DO_NOT_CARE);
           spc = ParserA.SPACE_DO_NOT_CARE;
           state = 1;
-        } else if ((type = PType.accept(reader, builder.getScope(), ParserA.SPACE_DO_NOT_CARE)) != null) {
+        } else if ((type = PType.accept(reader, builder.getScope(), ParserA.SPACE_DO_NOT_CARE, false)) != null) {
           builder.setType(type);
           attrList.add(builder.create());
           builder = null;
@@ -109,7 +109,7 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
         }
         break;
       case 1:  // name:
-        if ((type = PType.accept(reader, builder.getScope(), ParserA.SPACE_DO_NOT_CARE)) != null) {
+        if ((type = PType.accept(reader, builder.getScope(), ParserA.SPACE_DO_NOT_CARE, false)) != null) {
           builder.setType(type);
           attrList.add(builder.create());
           builder = null;

@@ -48,7 +48,7 @@ class PRetDef extends PDefaultExprObj {
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     Builder builder = Builder.newInstance(si, defScope);
     PScope scope = builder.getScope();
-    PType type = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+    PType type = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE, true);
     if (type == null) {
       type = PType.voidType(si, scope);
     }

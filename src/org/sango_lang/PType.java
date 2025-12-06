@@ -62,24 +62,18 @@ interface PType extends PProgObj {
     return tr;
   }
 
-  static final int INHIBIT_REQUIRE_CONCRETE = 0;
-  static final int ALLOW_REQUIRE_CONCRETE = 1;
-
   // internal
   static final int ACCEPTABLE_NONE = 0;
   static final int ACCEPTABLE_ID = 1;
   static final int ACCEPTABLE_VARDEF = 2;
   static final int ACCEPTABLE_TYPE = 4;
-  static final int ACCEPTABLE_BOUND = 8;
 
   static class Builder {
 
     private static final int[] acceptable_tab = new int[] {
       /* 0 */ ACCEPTABLE_NONE,  // no more
-      /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
-      /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
-      /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE /* + ACCEPTABLE_BOUND, */  // -> 3; 4 if constrained var
-      // /* 4 */ ACCEPTABLE_VARDEF  // -> 0
+      /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,
+      /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE
     };
 
     Parser.SrcInfo srcInfo;
@@ -99,10 +93,6 @@ interface PType extends PProgObj {
     void addItem(PProgObj item) {
       this.itemList.add(item);
     }
-
-    // void setConstrainedVar(PTypeVarDef var) {
-      // this.constrainedVar = var;
-    // }
 
     PType create() throws CompileException {
       StringBuffer emsg;
@@ -154,10 +144,6 @@ interface PType extends PProgObj {
     }
   }
 
-  static PType accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
-    return accept(reader, scope, spc, true);
-  }
-
   static PType accept(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
@@ -170,23 +156,8 @@ interface PType extends PProgObj {
     int sp = ParserA.SPACE_DO_NOT_CARE;
     while (state > 0) {
       if ((item = acceptItem(reader, scope, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
-        switch (state) {
-        case 1:
-          builder.addItem(item);
-          state = 3;
-          sp = ParserA.SPACE_NEEDED;
-          break;
-        case 2:
-          builder.addItem(item);
-          sp = ParserA.SPACE_NEEDED;
-          break;
-        case 3:
-          builder.addItem(item);
-          sp = ParserA.SPACE_NEEDED;
-          break;
-        default:
-          throw new RuntimeException("Should not reach here.");
-        }
+        builder.addItem(item);
+        sp = ParserA.SPACE_NEEDED;
       } else {
         state = 0;
       }
