@@ -228,7 +228,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
     PScope implScope = defScope.startFeatureImpl();
     PType implType;
-    if ((implType = PType.accept(reader, implScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
+    if ((implType = PType.accept(reader, implScope, ParserA.SPACE_DO_NOT_CARE, false)) == null) {
       emsg = new StringBuffer();
       emsg.append("Implementation type missing at ");
       emsg.append(reader.getCurrentSrcInfo());

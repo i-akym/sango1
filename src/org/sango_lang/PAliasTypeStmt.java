@@ -163,7 +163,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   static PTypeRef acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
-    PType t = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE);
+    PType t = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE, true);
     if (t instanceof PType.Undet) {
       PType.Undet u = (PType.Undet)t;
       t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
@@ -280,7 +280,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   }
 
   private static PType acceptAliasBodyDef(ParserA.TokenReader reader, PScope bodyScope) throws CompileException, IOException {
-    return PType.accept(reader, bodyScope, ParserA.SPACE_DO_NOT_CARE);  // normal var def will be guarded
+    return PType.accept(reader, bodyScope, ParserA.SPACE_DO_NOT_CARE, false);  // normal var def will be guarded
   }
 
   public void collectModRefs() throws CompileException {

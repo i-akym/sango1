@@ -67,7 +67,7 @@ class PPtnMatch extends PDefaultExprObj {
     PType type;
     PType imposingType = null;
     PType cast = null;
-    if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE)) != null) {
+    if ((type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE, true)) != null) {
       if (ParserA.acceptToken(reader, LToken.EQ_EQ, ParserA.SPACE_DO_NOT_CARE) != null) {
         imposingType = type;
       } else {

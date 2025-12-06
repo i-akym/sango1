@@ -75,7 +75,7 @@ class PExprVarDef extends PDefaultExprObj {
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     PType type = null;
     if (typeSpec == TYPE_MAYBE_SPECIFIED || typeSpec == TYPE_NEEDED) {
-      type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE);
+      type = PType.accept(reader, outerScope, ParserA.SPACE_DO_NOT_CARE, true);
     }
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
     if (type == null && varSym == null) {
