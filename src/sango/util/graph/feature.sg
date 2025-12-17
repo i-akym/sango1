@@ -151,6 +151,11 @@ eval <*T[ *A *B a'graph ]> *FGraph <A graph.vertex> *Vertex incoming_edges @publ
 
 ### incarnation ###
 
-data <*T[ *A *B a'graph ] graph_inc> @public :=
+data <*T *A *B graph_inc> @protected :=
   fx: <T>
+  fo: <T A B graph.graph_fs>
   graph_inc$ ;;
+
+eval <*T[ *A *B a'graph ]> *FX incarnate @public -> <T A B graph_inc> {
+  FX (FX _feature_a'graph) graph_inc$
+} ;;

@@ -23,7 +23,7 @@ eval test000 -> <void> {
   void$
 } ;;
 eval test100 -> <void> {
-  [ 1, 2, 3 ] colf.col_inc$ = *CI,
+  [ 1, 2, 3 ] colf.incarnate = *CI,
   CI &(CI _feature_a'iter) = *I,
   I next = (| 1, *I1 |) value$,
   I1 next = (| 2, *I2 |) value$,

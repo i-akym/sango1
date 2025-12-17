@@ -40,15 +40,15 @@ data <*A d010> :=
 eval d010_as_a'f010 -> <<*A d010> A fun> {
   \ <*Z d010> *X -> <Z> { X = *Y d010$, Y }
 } ;;
-data <*A[ *B a'f010 ] d011> :=
-  <A> d011$
-++ d011_as_a'f011 -> [ A B a'f011 ] ;;
-eval d011_as_a'f011 -> <<*A[ *B a'f010 ] d011> <A B tuple> fun> {
-  \ <*Y[ *Z a'f010 ] d011> *X -> <Y Z tuple> {
-    X = *U d011$,
-    (| U, U &(U _feature_a'f010) |)
-  }
-} ;;
+# data <*A[ *B a'f010 ] d011> :=
+  # <A> d011$
+# ++ d011_as_a'f011 -> [ A B a'f011 ] ;;
+# eval d011_as_a'f011 -> <<*A[ *B a'f010 ] d011> <A B tuple> fun> {
+  # \ <*Y[ *Z a'f010 ] d011> *X -> <Y Z tuple> {
+    # X = *U d011$,
+    # (| U, U &(U _feature_a'f010) |)
+  # }
+# } ;;
 
 eval _main_ -> <void> {
   test,

@@ -81,26 +81,31 @@ eval <*T[ *A a'queue ]> *FQueue iter @public -> <A iter> {
 
 ### incarnation
 
-data <*T[ *A a'queue ] queue_inc> @public :=
+data <*T *A queue_inc> @protected :=
   fx: <T>
+  fo: <T A queue.queue_fs>
   queue_inc$
 ++ inc_a'col_impl -> [ A a'col ] ;;
 
-eval inc_a'col_impl -> <<*T[ *A a'queue ] queue_inc> A col_fs> {
+eval <*T[ *A a'queue ]> *FX incarnate @public -> <T A queue_inc> {
+  FX (FX _feature_a'queue) queue_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A queue_inc> A col_fs> {
   empty?_f_:
-    (\ <*TT[ *AA a'queue] queue_inc> *I -> <bool> {
-       I fx = *X,
-       X (X _feature_a'queue) queue.do_empty?
+    (\ <*TT *AA queue_inc> *I -> <bool> {
+       I = *FX *Fo queue_inc$,
+       FX Fo queue.do_empty?
      } value$)
   size_f:
-    \ <*TT[ *AA a'queue] queue_inc> *I -> <int> {
-      I fx = *X,
-      X (X _feature_a'queue) queue.do_length
+    \ <*TT *AA queue_inc> *I -> <int> {
+      I = *FX *Fo queue_inc$,
+      FX Fo queue.do_length
     }
   iter_f:
-    \ <*TT[ *AA a'queue] queue_inc> *I -> <AA iter> {
-      I fx = *X,
-      X (X _feature_a'queue) queue.do_iter
+    \ <*TT *AA queue_inc> *I -> <AA iter> {
+      I = *FX *Fo queue_inc$,
+      FX Fo queue.do_iter
     }
   col_fs$
 } ;;
