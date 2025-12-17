@@ -22,8 +22,8 @@ eval test000 -> <void> {
   3 ordf.hash >> debug.repr >> stdio.print_and_newline
 } ;;
 eval test100 -> <void> {
-  3 ordf.ord_inc$ = *O3,
-  5 ordf.ord_inc$ = *O5,
+  3 ordf.incarnate = *O3,
+  5 ordf.incarnate = *O5,
   O3 O5 eqf.ne? = true$,
   void$
 } ;;

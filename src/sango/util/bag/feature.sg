@@ -124,26 +124,31 @@ eval <*T[ *A a'bag ]> *FBag iter @public -> <A iter> {
 
 ### incarnation
 
-data <*T[ *A a'bag ] bag_inc> @public :=
+data <*T *A bag_inc> @protected :=
   fx: <T>
+  fo: <T A bag.bag_fs>
   bag_inc$
 ++ inc_a'col_impl -> [ A a'col ] ;;
 
-eval inc_a'col_impl -> <<*T[ *A a'bag ] bag_inc> A col_fs> {
+eval <*T[ *A a'bag ]> *FX incarnate @public -> <T A bag_inc> {
+  FX (FX _feature_a'bag) bag_inc$
+} ;;
+
+eval inc_a'col_impl -> <<*T *A bag_inc> A col_fs> {
   empty?_f_:
-    (\ <*TT[ *AA a'bag ] bag_inc> *I -> <bool> {
-       I fx = *X,
-       X (X _feature_a'bag) bag.do_empty?
+    (\ <*TT *AA bag_inc> *I -> <bool> {
+       I = *FX *Fo bag_inc$,
+       FX Fo bag.do_empty?
      } value$)
   size_f:
-    \ <*TT[ *AA a'bag ] bag_inc> *I -> <int> {
-      I fx = *X,
-      X (X _feature_a'bag) bag.do_size
+    \ <*TT *AA bag_inc> *I -> <int> {
+      I = *FX *Fo bag_inc$,
+      FX Fo bag.do_size
     }
   iter_f:
-    \ <*TT[ *AA a'bag ] bag_inc> *I -> <AA iter> {
-      I fx = *X,
-      X (X _feature_a'bag) bag.do_iter
+    \ <*TT *AA bag_inc> *I -> <AA iter> {
+      I = *FX *Fo bag_inc$,
+      FX Fo bag.do_iter
     }
   col_fs$
 } ;;

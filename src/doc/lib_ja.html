@@ -1545,10 +1545,11 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.feature.2"><code>sango.entity.feature</code> - 化身</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*T[ a'entity ] entity_inc&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*T entity_inc&gt; @protected :=
   fx: &lt;T&gt;
+  fo: &lt;T &quot;sango.entity&quot;.entity_fs&gt;
   entity_inc$ ;;
-</code></td></tr></table>
+eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
 <p>a'entityデータ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3286,9 +3287,11 @@ eval &lt;*T[ a'eq ]&gt; *X0 &lt;T&gt; *X1 ne? @public -&gt; &lt;bool&gt; ;;</cod
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.eq.feature.2"><code>sango.util.eq.feature</code> - 化身</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*T[ a'eq ] eq_inc&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*T eq_inc&gt; @protected :=
   fx: &lt;T&gt;
-  eq_inc$ ;;</code></td></tr></table>
+  fo: &lt;T eq_fs&gt;
+  eq_inc$ ;;
+eval &lt;*T[ a'eq ]&gt; *FX incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></td></tr></table>
 <p><code>a'eq</code>データ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3346,9 +3349,11 @@ eval &lt;*T[ a'eq ]&gt; *X0 &lt;T&gt; *X1 ne? @public -&gt; &lt;bool&gt; ;;</cod
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.iter.feature.1"><code>sango.util.iter.feature</code> - 化身</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*T[ *A a'iter ] iter_inc&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
   fx: &lt;T&gt;
-  iter_inc$ ;;</code></td></tr></table>
+  fo: &lt;T &lt;A iter&gt; fun&gt;
+  iter_inc$ ;;
+eval &lt;*T[ *A a'iter ]&gt; *FX incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
 <p><code>a'iter</code>データ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -3635,10 +3640,12 @@ eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 ge? @public -&gt; &lt;bool&gt; ;;</co
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.ord.feature.2"><code>sango.util.ord.feature</code> - 化身</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*T[ a'ord ] ord_inc&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*T ord_inc&gt; @protected :=
   fx: &lt;T&gt;
+  fo: &lt;T ord_fs&gt;
   ord_inc$
-++ [ a'eq ] ;;</code></td></tr></table>
+++ [ a'eq ] ;;
+eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code></td></tr></table>
 <p><code>a'ord</code>データ・フィーチャの化身型です。
 化身型は<code>a'eq</code>データ・フィーチャを実装します。</p>
 
