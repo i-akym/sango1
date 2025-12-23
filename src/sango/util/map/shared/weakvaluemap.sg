@@ -34,9 +34,9 @@ import "sango.util.map.feature" -> mapf ;;
 import "sango.util.map.hashmap" -> hmap ;;
 import "sango.util.map.shared" -> shared ;;
 
-alias type <*A! kt> @public := <A uniq.u map.map> ;;
+alias type <*A kt> @public := <A uniq.u map.map> ;;
 
-alias type <*A! *B! vt> := <uniq.u <A B v> map.map> ;;
+alias type <*A *B vt> := <uniq.u <A B v> map.map> ;;
 
 data <*A! *B! v> :=
   key: <A>
