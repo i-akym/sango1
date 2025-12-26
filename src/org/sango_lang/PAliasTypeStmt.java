@@ -185,6 +185,20 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
         throw new CompileException(emsg.toString());
       }
       PTypeVarDef v = (PTypeVarDef)sig.params[i];
+      if (v.requiresConcrete) {
+        emsg = new StringBuffer();
+        emsg.append("Concreteness specification not allowed at ");
+        emsg.append(sig.params[i].getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      if (v.features != null) {
+        emsg = new StringBuffer();
+        emsg.append("Feature specification not allowed at ");
+        emsg.append(sig.params[i].getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
     }
     if (sig.tcon.modId != null) {
       emsg = new StringBuffer();
