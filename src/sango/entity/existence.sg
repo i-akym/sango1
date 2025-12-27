@@ -34,7 +34,7 @@ data <existence> @opaque := @native
 ;;
 
 data <*A ro_slot> @opaque := @native ;;
-data <*A! rw_slot> @opaque := @native ;;
+data <*A rw_slot> @opaque := @native ;;
 
 eval <*A maybe> *Assoc_ <<void fun> maybe> *Invalidator_ 
   create_immutable_existence @public -> <existence <<A ro_slot> maybe> tuple> @native ;;

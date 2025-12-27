@@ -33,7 +33,7 @@ import "sango.util.map" -> map ;;
 import "sango.util.map.hashmap" -> hashmap ;;
 import "sango.util.map.shared" -> shared ;;
 
-data <*A! *B! k> :=
+data <*A *B k> :=
   weak_ref: <ex.weak_ref>
   redress_f: <A ent.redress_f>
   assoc: <B>
@@ -41,12 +41,12 @@ data <*A! *B! k> :=
 
 alias type <*A *B ktab> := <int <<A B k> list> map.map> ;;  # existence's hash -> key info list
 
-data <*A! *B! d> :=
+data <*A *B d> :=
   ktab: <A B ktab>
   count: <int>
   d$ ;;
 
-data <*A! *B! h> :=
+data <*A *B h> :=
   mon: <<A B d> actu.box_monitor_h>
   undress_f: <A ent.undress_f>
   h$ ;;
