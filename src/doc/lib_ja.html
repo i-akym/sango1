@@ -1047,7 +1047,7 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
   「実体」に対する一連の処理に原子性を持たせるために，entity monitorが提供されています。
   「実体」単位にentity monitorを生成し，それ経由でタスクを実行します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_monitor_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A box_monitor_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;A! &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;</code></td></tr></table>
@@ -1560,7 +1560,7 @@ eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;<
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.1"></code>sango.entity.box</code> - ボックス</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_h&gt; @opaque
+<table border width="100%"><tr><td class="def"><code>data &lt;*A box_h&gt; @opaque
 ++ [ &quot;sango.entity&quot;.a'entity ] ;;</code></td></tr></table>
 <p>ボックスへの参照を表します。</p>
 
@@ -1581,7 +1581,7 @@ eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;<
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.2"></code>sango.entity.box</code> - 弱参照</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! wbox_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A wbox_h&gt; @opaque ;;</code></td></tr></table>
 <p>ボックスへの弱参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A! box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
@@ -1615,7 +1615,7 @@ eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;<
 <p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
   この格納場所からは読み出しのみが可能です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! rw_slot&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A rw_slot&gt; @opaque ;;</code></td></tr></table>
 <p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
   この格納場所は同一の型のオブジェクトで更新可能です。</p>
 
@@ -3532,7 +3532,7 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 データの参照・更新はハンドルを使って行います。
 このモジュールは統一されたインタフェースを提供するもので，ハンドルは<code>&quot;sango.util.map.shared.box&quot;</code>などで生成します。 </p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! *B! shared_map_h&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*A *B shared_map_h&gt; @public :=
   extract_f: &lt;&lt;&lt;A B tuple&gt; iter&gt; fun&gt;
   empty?_f: &lt;bool fun&gt;
   size_f: &lt;int fun&gt;
@@ -4041,7 +4041,7 @@ eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code>
 データの参照・更新はハンドルを使って行います。
 このモジュールは統一されたインタフェースを提供するもので，ハンドルは<code>&quot;sango.util.set.shared.box&quot;</code>などで生成します。 </p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! shared_set_h&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*A shared_set_h&gt; @public :=
   extract_f: &lt;&lt;A iter&gt; fun&gt;
   empty?_f: &lt;bool fun&gt;
   size_f: &lt;int fun&gt;

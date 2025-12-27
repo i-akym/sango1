@@ -29,7 +29,7 @@ import "sango.util.map.shared.weakkeymap" -> wkmap ;;
 
 alias type <*A map_h> := <ex.existence A shmap.shared_map_h> ;;
 
-data <*A! store_h> @opaque :=
+data <*A store_h> @opaque :=
   <A map_h>
   store_h$ ;;
 

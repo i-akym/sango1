@@ -26,7 +26,7 @@ module @beta "sango.util.set.shared" ;;
 import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 
-data <*A! shared_set_h> @public :=
+data <*A shared_set_h> @public :=
   extract_f: <<A iter> fun>
   empty?_f: <bool fun>
   size_f: <int fun>

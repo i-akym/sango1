@@ -38,18 +38,18 @@ alias type <*A kt> @public := <A uniq.u map.map> ;;
 
 alias type <*A *B vt> := <uniq.u <A B v> map.map> ;;
 
-data <*A! *B! v> :=
+data <*A *B v> :=
   key: <A>
   weak_ref: <ex.weak_ref>
   redress_f: <B ent.redress_f>
   v$ ;;
 
-data <*A! *B! d> :=
+data <*A *B d> :=
   key_tab: <A kt>
   value_tab: <A B vt>
   d$ ;;
 
-data <*A! *B! h> @opaque :=
+data <*A *B h> @opaque :=
   mon: <<A B d> actu.box_monitor_h>
   undress_f: <B ent.undress_f>
   h$ ;;
