@@ -302,27 +302,34 @@ interface PType extends PProgObj {
       sig.params = new ArrayList<ParamDef>();
       for (int i = 0; i < this.items.size() - 1; i++) {
         SigItem item = this.items.get(i);
-        if (item.varRefOrAnchor != null && item.varRefOrAnchor.modId != null) {
+        if (item.anchor != null) {
           emsg = new StringBuffer();
           emsg.append("Invalid parameter at ");
           emsg.append(item.srcInfo);
           emsg.append(". - ");
-          emsg.append(item.varRefOrAnchor.repr());
+          emsg.append(item.anchor.repr());
           throw new CompileException(emsg.toString());
         }
-        if (item.varRefOrAnchor != null && item.varRefOrAnchor.ext) {
+        if (item.varDef.requiresConcrete) {
           emsg = new StringBuffer();
-          emsg.append("Extension not allowed at ");
+          emsg.append("Concreteness not allowed at ");
           emsg.append(item.srcInfo);
-          emsg.append(". - ");
-          emsg.append(item.varRefOrAnchor.repr());
+          emsg.append(". - *");
+          emsg.append(item.varDef.name);
+          throw new CompileException(emsg.toString());
+        }
+        if (item.varDef.features != null) {
+          emsg = new StringBuffer();
+          emsg.append("Feature specification not allowed at ");
+          emsg.append(item.srcInfo);
+          emsg.append(". - *");
+          emsg.append(item.varDef.name);
           throw new CompileException(emsg.toString());
         }
         ParamDef p = new ParamDef();
         p.srcInfo = item.srcInfo;
         p.variance = item.variance;
         p.varDef = item.varDef;
-        p.varRef = item.varRefOrAnchor;
         sig.params.add(p);
       }
       SigItem last = this.items.get(this.items.size() - 1);
@@ -340,15 +347,15 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PTid anchor = last.varRefOrAnchor;
-      if (anchor.ext) {
+      PTid anc = last.anchor;
+      if (anc.ext) {
         emsg = new StringBuffer();
         emsg.append("Extension not allowed at ");
         emsg.append(last.srcInfo);
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      sig.anchor = anchor;
+      sig.anchor = anc;
       return sig;
     }
   }
@@ -358,7 +365,7 @@ interface PType extends PProgObj {
     Module.Variance variance;
     // either of following is set
     PTypeVarDef varDef;
-    PTid varRefOrAnchor;
+    PTid anchor;
 
     static SigItem accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
       StringBuffer emsg;
@@ -372,12 +379,12 @@ interface PType extends PProgObj {
         variance = Module.INVARIANT;
       }
       PTypeVarDef varDef;
-      PTid varRefOrAnchor;
+      PTid anchor;
       SigItem i = null;
       if ((varDef = PTypeVarDef.acceptSig(reader, scope)) != null) {
         i = create(si, variance, varDef);
-      } else if ((varRefOrAnchor = PTid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) != null) {
-        i = create(si, variance, varRefOrAnchor);
+      } else if ((anchor = PTid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) != null) {
+        i = create(si, variance, anchor);
       }
       return i;
     }
@@ -390,11 +397,11 @@ interface PType extends PProgObj {
       return i;
     }
 
-    static SigItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTid varRefOrAnchor) {
+    static SigItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTid anchor) {
       SigItem i = new SigItem();
       i.srcInfo = srcInfo;
       i.variance = variance;
-      i.varRefOrAnchor = varRefOrAnchor;
+      i.anchor = anchor;
       return i;
     }
   }
@@ -409,56 +416,34 @@ interface PType extends PProgObj {
   static class ParamDef {
     Parser.SrcInfo srcInfo;
     Module.Variance variance;
-    // either of following is set
     private PTypeVarDef varDef;
-    private PTid varRef;
-    //
-    private PTypeVarRef _resolved_varRef;
 
     void  setupResolved() throws CompileException {
-      PTypeVarDef v;
-      if (this.varDef != null) {
-        this.varDef = this.varDef.resolve();
-      } else if ((v = this.varRef.scope.lookupTVar(this.varRef.name)) != null) {
-        this._resolved_varRef = PTypeVarRef.create(this.varRef.srcInfo, this.varRef.scope, v);
-        this._resolved_varRef = this._resolved_varRef.resolve();
-      } else {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Type variable \"");
-        emsg.append(this.varRef.name);
-        emsg.append("\" not defined at ");
-        emsg.append(this.varRef.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      this.varDef = this.varDef.resolve();
     }
 
     PDefDict.TparamProps getProps() {
-      return PDefDict.TparamProps.create(
-        this.variance,
-        (this.varDef != null)? this.varDef.requiresConcrete: this._resolved_varRef.def.requiresConcrete);
+      return PDefDict.TparamProps.create(this.variance, this.varDef.requiresConcrete);
     }
 
     PTypeVarSlot getVarSlot() {
-        return (this.varDef != null)? this.varDef._resolved_varSlot: this._resolved_varRef.def._resolved_varSlot;
+        return this.varDef._resolved_varSlot;
     }
 
     PProgObj getItem() {
-      return (this.varDef != null)? this.varDef: this.varRef;
+      return this.varDef;
     }
 
     String getVarName() {
-      return (this.varDef != null)? this.varDef.name: this.varRef.name;
+      return this.varDef.name;
     }
 
     void excludePrivateAcc() throws CompileException {
-      if (this.varDef != null) {
-        this.varDef.excludePrivateAcc();
-      }
+      // this.varDef.excludePrivateAcc();
     }
 
     PTypeVarSkel getTypeSkel() {
-      return (this.varDef != null)? (PTypeVarSkel)this.varDef.toSkel(): (PTypeVarSkel)this._resolved_varRef.toSkel();
+      return (PTypeVarSkel)this.varDef.toSkel();
     }
   }
 

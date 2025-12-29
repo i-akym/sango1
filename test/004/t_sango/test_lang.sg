@@ -33,7 +33,7 @@ eval a'f000_impl -> <<*P *Q f000_impl> <<P Q f000_impl> P Q tuple> fun> {
 } ;;
 
 feature <*T> [ *U a'f010 ] -> <T U fun> ;;
-feature <*T> [ *A[ *B a'f010 ] B a'f011 ] -> <T <A B tuple> fun> ;;
+# feature <*T> [ *A[ *B a'f010 ] B a'f011 ] -> <T <A B tuple> fun> ;;
 data <*A d010> :=
   <A> d010$
 ++ d010_as_a'f010 -> [ A a'f010 ] ;;
