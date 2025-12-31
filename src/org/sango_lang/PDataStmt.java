@@ -199,49 +199,26 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.SigSpec sig = PType.acceptSig(reader, defScope);
-    if (sig == null) {
+    PType.DefHeaderSpec dh = PType.acceptDefHeader(reader, defScope);
+    if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    for (int i = 0; i < sig.params.size(); i++) {
-      builder.addParam(sig.params.get(i));
+    for (int i = 0; i < dh.params.size(); i++) {
+      builder.addParam(dh.params.get(i));
     }
-    if (sig.anchor.modId != null) {
+    if (dh.anchor.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
-      emsg.append(sig.anchor.srcInfo);
+      emsg.append(dh.anchor.srcInfo);
       emsg.append(". - ");
-      emsg.append(sig.anchor.repr());
+      emsg.append(dh.anchor.repr());
       throw new CompileException(emsg.toString());
     }
-    builder.setTcon(sig.anchor);
-
-    // PType.ParamDef param;
-    // int spc = ParserA.SPACE_DO_NOT_CARE;
-    // while ((param = PType.ParamDef.accept(reader, defScope)) != null) {
-      // builder.addParam(param);
-      // spc = ParserA.SPACE_NEEDED;
-    // }
-    // PTid tcon = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
-    // if (tcon == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Type constructor missing at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // if (tcon.ext) {
-      // emsg = new StringBuffer();
-      // emsg.append("Attempt to define extended type at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // builder.setTcon(tcon);
+    builder.setTcon(dh.anchor);
 
     if (ParserA.acceptToken(reader, LToken.GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();

@@ -105,7 +105,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return create(si, scope, varId.value.token, requiresConcrete, fs);
   }
 
-  static PTypeVarDef acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+  static PTypeVarDef acceptForDefHeader(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
@@ -118,9 +118,10 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    PFeature.List fs = PFeature.List.acceptSig(reader, scope);
-    return create(si, scope, varId.value.token, requiresConcrete, fs);
+    return create(si, scope, varId.value.token, false, null);
+    // boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+    // PFeature.List fs = PFeature.List.acceptSig(reader, scope);
+    // return create(si, scope, varId.value.token, requiresConcrete, fs);
   }
 
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {

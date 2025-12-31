@@ -164,26 +164,26 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.SigSpec sig = PType.acceptSig(reader, defScope);
-    if (sig == null) {
+    PType.DefHeaderSpec hd = PType.acceptDefHeader(reader, defScope);
+    if (hd == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    for (int i = 0; i < sig.params.size(); i++) {
-      builder.addParam(sig.params.get(i));
+    for (int i = 0; i < hd.params.size(); i++) {
+      builder.addParam(hd.params.get(i));
     }
-    if (sig.anchor.modId != null) {
+    if (hd.anchor.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
-      emsg.append(sig.anchor.srcInfo);
+      emsg.append(hd.anchor.srcInfo);
       emsg.append(". - ");
-      emsg.append(sig.anchor.repr());
+      emsg.append(hd.anchor.repr());
       throw new CompileException(emsg.toString());
     }
-    builder.setFname(sig.anchor.name);
+    builder.setFname(hd.anchor.name);
 
     // PType.ParamDef param;
     // int spc = ParserA.SPACE_DO_NOT_CARE;
