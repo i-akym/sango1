@@ -33,7 +33,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
   Module.Availability availability;
   Module.Access acc;
   PTypeVarDef obj;
-  PType.ParamDef[] params;  // variance is used internally
+  PType.DefHeaderParam[] params;  // variance is used internally
   String fname;
   PFeature sig;
   PType impl;  // guaranteed to be PTypeRef later
@@ -74,7 +74,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   static class Builder {
     PFeatureStmt feature;
-    List<PType.ParamDef> paramList;
+    List<PType.DefHeaderParam> paramList;
 
     static Builder newInstance(Parser.SrcInfo srcInfo, PScope outerScope) {
       return new Builder(srcInfo, outerScope);
@@ -82,7 +82,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.feature = new PFeatureStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<PType.ParamDef>();
+      this.paramList = new ArrayList<PType.DefHeaderParam>();
     }
 
     PScope getDefScope() { return this.feature.scope; }
@@ -99,7 +99,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.feature.obj = t;
     }
 
-    void addParam(PType.ParamDef param) {
+    void addParam(PType.DefHeaderParam param) {
       this.paramList.add(param);
     }
 
@@ -112,7 +112,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
 
     PFeatureStmt create() throws CompileException {
-      this.feature.params = this.paramList.toArray(new PType.ParamDef[this.paramList.size()]);
+      this.feature.params = this.paramList.toArray(new PType.DefHeaderParam[this.paramList.size()]);
       PFeature.SigBuilder sb = PFeature.SigBuilder.newInstance(this.feature.getSrcInfo(), this.feature.getScope());
       for (int i = 0; i < this.feature.params.length; i++) {
         sb.addParam(this.feature.params[i].getItem());
@@ -164,7 +164,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeaderSpec hd = PType.acceptDefHeader(reader, defScope);
+    PType.DefHeader hd = PType.acceptDefHeader(reader, defScope);
     if (hd == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -172,8 +172,8 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    for (int i = 0; i < hd.params.size(); i++) {
-      builder.addParam(hd.params.get(i));
+    for (int i = 0; i < hd.params.length; i++) {
+      builder.addParam(hd.params[i]);
     }
     if (hd.anchor.modId != null) {
       emsg = new StringBuffer();
@@ -184,29 +184,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       throw new CompileException(emsg.toString());
     }
     builder.setFname(hd.anchor.name);
-
-    // PType.ParamDef param;
-    // int spc = ParserA.SPACE_DO_NOT_CARE;
-    // while ((param = PType.ParamDef.accept(reader, defScope)) != null) {
-      // if (param.variance != Module.INVARIANT) {
-        // emsg = new StringBuffer();
-        // emsg.append("Variance specification not allowed at ");
-        // emsg.append(reader.getCurrentSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // builder.addParam(param);
-      // spc = ParserA.SPACE_NEEDED;
-    // }
-    // PTid fname = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
-    // if (fname == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Feature name missing at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // builder.setFname(fname.name);
 
     if (ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
@@ -357,7 +334,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
   }
 
-  void checkVariance1(PType.ParamDef p) throws CompileException {
+  void checkVariance1(PType.DefHeaderParam p) throws CompileException {
     StringBuffer emsg;
     List<Module.Variance> vs = new ArrayList<Module.Variance>();
     this._normalized_implSkel.collectVarVariances(p.getVarSlot(), null, vs);
