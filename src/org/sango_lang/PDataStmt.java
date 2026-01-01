@@ -32,7 +32,7 @@ import java.util.Set;
 class PDataStmt extends PDefaultProgObj implements PDataDef {
   Module.Availability availability;
   Module.Access acc;
-  PType.ParamDef[] tparams;  // null means variable params
+  PType.DefHeaderParam[] tparams;  // null means variable params
   String tcon;
   PDataConstrDef[] constrs;  // null means native impl
   PFeatureImplDef[] featureImpls;
@@ -75,7 +75,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   static class Builder {
     PDataStmt dat;
-    List<PType.ParamDef> paramList;
+    List<PType.DefHeaderParam> paramList;
     PTid tcon;
     List<PDataConstrDef> constrList;
     List<PFeatureImplDef> featureImplList;
@@ -87,7 +87,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.dat = new PDataStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<PType.ParamDef>();
+      this.paramList = new ArrayList<PType.DefHeaderParam>();
       this.constrList = new ArrayList<PDataConstrDef>();
       this.featureImplList = new ArrayList<PFeatureImplDef>();
       this.nameSet = new HashSet<String>();
@@ -99,7 +99,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.dat.availability = availability;
     }
 
-    void addParam(PType.ParamDef param) {
+    void addParam(PType.DefHeaderParam param) {
       this.paramList.add(param);
     }
 
@@ -146,7 +146,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     PDataStmt create() throws CompileException {
       StringBuffer emsg;
-      this.dat.tparams = this.paramList.toArray(new PType.ParamDef[this.paramList.size()]);
+      this.dat.tparams = this.paramList.toArray(new PType.DefHeaderParam[this.paramList.size()]);
       this.dat.tcon = this.tcon.name;
       PType.Builder tb = PType.Builder.newInstance(this.dat.srcInfo, this.getDefScope());
       for (int i = 0; i < this.dat.tparams.length; i++) {
@@ -199,7 +199,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeaderSpec dh = PType.acceptDefHeader(reader, defScope);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -207,8 +207,8 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    for (int i = 0; i < dh.params.size(); i++) {
-      builder.addParam(dh.params.get(i));
+    for (int i = 0; i < dh.params.length; i++) {
+      builder.addParam(dh.params[i]);
     }
     if (dh.anchor.modId != null) {
       emsg = new StringBuffer();

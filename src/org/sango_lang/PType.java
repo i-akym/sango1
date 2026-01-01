@@ -262,112 +262,66 @@ interface PType extends PProgObj {
     return t;
   }
 
-  static DefHeaderSpec acceptDefHeader(ParserA.TokenReader reader, PScope scope) throws IOException, CompileException {
-    DefHeaderBuilder builder = DefHeaderBuilder.create(reader.getCurrentSrcInfo());
-    DefHeaderItem item;
-    while ((item = DefHeaderItem.accept(reader, scope)) != null) {
-      builder.addItem(item);
-    }
-    return builder.create();
-  } 
-
-  static class DefHeaderBuilder {
-    Parser.SrcInfo srcInfo;
-    List<DefHeaderItem> items;
-
-    static DefHeaderBuilder create(Parser.SrcInfo srcInfo) {
-      DefHeaderBuilder b = new DefHeaderBuilder();
-      b.srcInfo = srcInfo;
-      b.items = new ArrayList<DefHeaderItem>();
-      return b;
-    }
-
-    private DefHeaderBuilder() {}
-
-    void addItem(DefHeaderItem item) {
-      this.items.add(item);
-    }
-
-    DefHeaderSpec create() throws CompileException {
-      StringBuffer emsg;
-      if (this.items.size() == 0) {
+  static DefHeader acceptDefHeader(ParserA.TokenReader reader, PScope scope) throws IOException, CompileException {
+    StringBuffer emsg;
+    Parser.SrcInfo si = reader.getCurrentSrcInfo();
+    List<DefHeaderParam> params = new ArrayList<DefHeaderParam>();
+    DefHeaderParam p;
+    PTid anc = null;
+    int spc = ParserA.SPACE_DO_NOT_CARE;
+    int state = 0;
+    while (state >= 0) {
+      if ((p = DefHeaderParam.accept(reader, scope)) != null) {
+        params.add(p);
+      } else if ((anc = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+        if (anc.ext) {
+          emsg = new StringBuffer();
+          emsg.append("Extension not allowed at ");
+          emsg.append(anc.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        state = -1;
+      } else {
         emsg = new StringBuffer();
         emsg.append("Syntex error at ");
-        emsg.append(this.srcInfo);
+        emsg.append(reader.getCurrentSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      DefHeaderSpec dh = new DefHeaderSpec();
-      dh.srcInfo = this.srcInfo;
-      dh.params = new ArrayList<ParamDef>();
-      for (int i = 0; i < this.items.size() - 1; i++) {
-        DefHeaderItem item = this.items.get(i);
-        if (item.anchor != null) {
-          emsg = new StringBuffer();
-          emsg.append("Invalid parameter at ");
-          emsg.append(item.srcInfo);
-          emsg.append(". - ");
-          emsg.append(item.anchor.repr());
-          throw new CompileException(emsg.toString());
-        }
-        if (item.varDef.requiresConcrete) {
-          emsg = new StringBuffer();
-          emsg.append("Concreteness not allowed at ");
-          emsg.append(item.srcInfo);
-          emsg.append(". - *");
-          emsg.append(item.varDef.name);
-          throw new CompileException(emsg.toString());
-        }
-        if (item.varDef.features != null) {
-          emsg = new StringBuffer();
-          emsg.append("Feature specification not allowed at ");
-          emsg.append(item.srcInfo);
-          emsg.append(". - *");
-          emsg.append(item.varDef.name);
-          throw new CompileException(emsg.toString());
-        }
-        ParamDef p = new ParamDef();
-        p.srcInfo = item.srcInfo;
-        p.variance = item.variance;
-        p.varDef = item.varDef;
-        dh.params.add(p);
-      }
-      DefHeaderItem last = this.items.get(this.items.size() - 1);
-      if (last.variance != Module.INVARIANT) {
-        emsg = new StringBuffer();
-        emsg.append("Name missing at ");
-        emsg.append(last.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      if (last.varDef != null) {
-        emsg = new StringBuffer();
-        emsg.append("Name missing at ");
-        emsg.append(last.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      PTid anc = last.anchor;
-      if (anc.ext) {
-        emsg = new StringBuffer();
-        emsg.append("Extension not allowed at ");
-        emsg.append(last.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      dh.anchor = anc;
-      return dh;
+      spc = ParserA.SPACE_NEEDED;
     }
+
+    DefHeader dh = new DefHeader();
+    dh.srcInfo = si;
+    dh.params = new DefHeaderParam[params.size()];
+    for (int i = 0; i < dh.params.length; i++) {
+      dh.params[i] = params.get(i);
+    }
+    dh.anchor = anc;
+    return dh;
+  } 
+
+  static class DefHeader {
+    Parser.SrcInfo srcInfo;
+    DefHeaderParam[] params;
+    PTid anchor;
   }
 
-  static class DefHeaderItem {
+  static class DefHeaderParam {
     Parser.SrcInfo srcInfo;
     Module.Variance variance;
-    // either of following is set
-    PTypeVarDef varDef;
-    PTid anchor;
+    private PTypeVarDef varDef;
 
-    static DefHeaderItem accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    static DefHeaderParam create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
+      DefHeaderParam p = new DefHeaderParam();
+      p.srcInfo = srcInfo;
+      p.variance = variance;
+      p.varDef = varDef;
+      return p;
+    }
+
+    static DefHeaderParam accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
       StringBuffer emsg;
       Parser.SrcInfo si = reader.getCurrentSrcInfo();
       Module.Variance variance;
@@ -379,43 +333,20 @@ interface PType extends PProgObj {
         variance = Module.INVARIANT;
       }
       PTypeVarDef varDef;
-      PTid anchor;
-      DefHeaderItem i = null;
+      DefHeaderParam p;
       if ((varDef = PTypeVarDef.acceptForDefHeader(reader, scope)) != null) {
-        i = create(si, variance, varDef);
-      } else if ((anchor = PTid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) != null) {
-        i = create(si, variance, anchor);
+        p = create(si, variance, varDef);
+      } else if (variance != Module.INVARIANT) {
+        emsg = new StringBuffer();
+        emsg.append("Parameter missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      } else {
+        p = null;
       }
-      return i;
+      return p;
     }
-
-    static DefHeaderItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
-      DefHeaderItem i = new DefHeaderItem();
-      i.srcInfo = srcInfo;
-      i.variance = variance;
-      i.varDef = varDef;
-      return i;
-    }
-
-    static DefHeaderItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTid anchor) {
-      DefHeaderItem i = new DefHeaderItem();
-      i.srcInfo = srcInfo;
-      i.variance = variance;
-      i.anchor = anchor;
-      return i;
-    }
-  }
-
-  static class DefHeaderSpec {
-    Parser.SrcInfo srcInfo;
-    List<ParamDef> params;
-    PTid anchor;
-  }
-
-  static class ParamDef {
-    Parser.SrcInfo srcInfo;
-    Module.Variance variance;
-    private PTypeVarDef varDef;
 
     void  setupResolved() throws CompileException {
       this.varDef = this.varDef.resolve();

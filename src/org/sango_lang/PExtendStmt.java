@@ -35,7 +35,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
   String baseModId;
   String baseTcon;
   String tcon;
-  PType.ParamDef[] tparams;
+  PType.DefHeaderParam[] tparams;
   PDataConstrDef[] constrs;
   PFeatureImplDef[] featureImpls;
   PTypeRef sig;
@@ -71,7 +71,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
   static class Builder {
     PExtendStmt ext;
-    List<PType.ParamDef> paramList;
+    List<PType.DefHeaderParam> paramList;
     PTid baseTcon;
     String rename;
     List<PDataConstrDef> constrList;
@@ -84,7 +84,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.ext = new PExtendStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<PType.ParamDef>();
+      this.paramList = new ArrayList<PType.DefHeaderParam>();
       this.constrList = new ArrayList<PDataConstrDef>();
       this.featureImplList = new ArrayList<PFeatureImplDef>();
       this.nameSet = new HashSet<String>();
@@ -96,7 +96,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       this.ext.availability = availability;
     }
 
-    void addParam(PType.ParamDef param) {
+    void addParam(PType.DefHeaderParam param) {
       this.paramList.add(param);
     }
 
@@ -145,7 +145,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     PExtendStmt create() throws CompileException {
       StringBuffer emsg;
-      this.ext.tparams = this.paramList.toArray(new PType.ParamDef[this.paramList.size()]);
+      this.ext.tparams = this.paramList.toArray(new PType.DefHeaderParam[this.paramList.size()]);
       this.ext.baseModId = (this.baseTcon.modId != null)? this.baseTcon.modId: PModule.MOD_ID_LANG;
       this.ext.baseTcon = this.baseTcon.name;
       this.ext.tcon = (this.rename != null)? this.rename: this.ext.baseTcon;
@@ -178,7 +178,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeaderSpec dh = PType.acceptDefHeader(reader, defScope);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -186,8 +186,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    for (int i = 0; i < dh.params.size(); i++) {
-      builder.addParam(dh.params.get(i));
+    for (int i = 0; i < dh.params.length; i++) {
+      builder.addParam(dh.params[i]);
     }
     builder.setBaseTcon(dh.anchor);
 
