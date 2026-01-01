@@ -107,7 +107,7 @@ public class PFeature extends PDefaultProgObj {
     while (state >= 0) {
       PTypeVarDef p;
       PTid n;
-      if (state == 0 && (p = PTypeVarDef.acceptSig(reader, scope)) != null) {
+      if (state == 0 && (p = PTypeVarDef.acceptForDefHeader(reader, scope)) != null) {
         builder.addParam(p);
       } else if (state == 0 && (n = PTid.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
         builder.setName(n);
@@ -141,7 +141,7 @@ public class PFeature extends PDefaultProgObj {
       if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
         builder.addItem(item);
         state = -1;
-      } else if ((item = PTypeVarDef.acceptSig(reader, scope)) != null) {
+      } else if ((item = PTypeVarDef.acceptForDefHeader(reader, scope)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
       } else {

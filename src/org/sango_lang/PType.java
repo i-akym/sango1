@@ -262,33 +262,33 @@ interface PType extends PProgObj {
     return t;
   }
 
-  static SigSpec acceptSig(ParserA.TokenReader reader, PScope scope) throws IOException, CompileException {
-    SigBuilder builder = SigBuilder.create(reader.getCurrentSrcInfo());
-    SigItem item;
-    while ((item = SigItem.accept(reader, scope)) != null) {
+  static DefHeaderSpec acceptDefHeader(ParserA.TokenReader reader, PScope scope) throws IOException, CompileException {
+    DefHeaderBuilder builder = DefHeaderBuilder.create(reader.getCurrentSrcInfo());
+    DefHeaderItem item;
+    while ((item = DefHeaderItem.accept(reader, scope)) != null) {
       builder.addItem(item);
     }
     return builder.create();
   } 
 
-  static class SigBuilder {
+  static class DefHeaderBuilder {
     Parser.SrcInfo srcInfo;
-    List<SigItem> items;
+    List<DefHeaderItem> items;
 
-    static SigBuilder create(Parser.SrcInfo srcInfo) {
-      SigBuilder b = new SigBuilder();
+    static DefHeaderBuilder create(Parser.SrcInfo srcInfo) {
+      DefHeaderBuilder b = new DefHeaderBuilder();
       b.srcInfo = srcInfo;
-      b.items = new ArrayList<SigItem>();
+      b.items = new ArrayList<DefHeaderItem>();
       return b;
     }
 
-    private SigBuilder() {}
+    private DefHeaderBuilder() {}
 
-    void addItem(SigItem item) {
+    void addItem(DefHeaderItem item) {
       this.items.add(item);
     }
 
-    SigSpec create() throws CompileException {
+    DefHeaderSpec create() throws CompileException {
       StringBuffer emsg;
       if (this.items.size() == 0) {
         emsg = new StringBuffer();
@@ -297,11 +297,11 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      SigSpec sig = new SigSpec();
-      sig.srcInfo = this.srcInfo;
-      sig.params = new ArrayList<ParamDef>();
+      DefHeaderSpec dh = new DefHeaderSpec();
+      dh.srcInfo = this.srcInfo;
+      dh.params = new ArrayList<ParamDef>();
       for (int i = 0; i < this.items.size() - 1; i++) {
-        SigItem item = this.items.get(i);
+        DefHeaderItem item = this.items.get(i);
         if (item.anchor != null) {
           emsg = new StringBuffer();
           emsg.append("Invalid parameter at ");
@@ -330,9 +330,9 @@ interface PType extends PProgObj {
         p.srcInfo = item.srcInfo;
         p.variance = item.variance;
         p.varDef = item.varDef;
-        sig.params.add(p);
+        dh.params.add(p);
       }
-      SigItem last = this.items.get(this.items.size() - 1);
+      DefHeaderItem last = this.items.get(this.items.size() - 1);
       if (last.variance != Module.INVARIANT) {
         emsg = new StringBuffer();
         emsg.append("Name missing at ");
@@ -355,19 +355,19 @@ interface PType extends PProgObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      sig.anchor = anc;
-      return sig;
+      dh.anchor = anc;
+      return dh;
     }
   }
 
-  static class SigItem {
+  static class DefHeaderItem {
     Parser.SrcInfo srcInfo;
     Module.Variance variance;
     // either of following is set
     PTypeVarDef varDef;
     PTid anchor;
 
-    static SigItem accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    static DefHeaderItem accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
       StringBuffer emsg;
       Parser.SrcInfo si = reader.getCurrentSrcInfo();
       Module.Variance variance;
@@ -380,8 +380,8 @@ interface PType extends PProgObj {
       }
       PTypeVarDef varDef;
       PTid anchor;
-      SigItem i = null;
-      if ((varDef = PTypeVarDef.acceptSig(reader, scope)) != null) {
+      DefHeaderItem i = null;
+      if ((varDef = PTypeVarDef.acceptForDefHeader(reader, scope)) != null) {
         i = create(si, variance, varDef);
       } else if ((anchor = PTid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) != null) {
         i = create(si, variance, anchor);
@@ -389,16 +389,16 @@ interface PType extends PProgObj {
       return i;
     }
 
-    static SigItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
-      SigItem i = new SigItem();
+    static DefHeaderItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
+      DefHeaderItem i = new DefHeaderItem();
       i.srcInfo = srcInfo;
       i.variance = variance;
       i.varDef = varDef;
       return i;
     }
 
-    static SigItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTid anchor) {
-      SigItem i = new SigItem();
+    static DefHeaderItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTid anchor) {
+      DefHeaderItem i = new DefHeaderItem();
       i.srcInfo = srcInfo;
       i.variance = variance;
       i.anchor = anchor;
@@ -406,9 +406,8 @@ interface PType extends PProgObj {
     }
   }
 
-  static class SigSpec {
+  static class DefHeaderSpec {
     Parser.SrcInfo srcInfo;
-    Module.Variance variance;
     List<ParamDef> params;
     PTid anchor;
   }
