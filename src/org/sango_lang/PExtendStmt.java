@@ -178,7 +178,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_MAYBE);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -201,7 +201,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     if (ParserA.acceptToken(reader, LToken.HYPH_GT, ParserA.SPACE_DO_NOT_CARE) != null) {
       PTid rename;
-      if ((rename = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      if ((rename = PTid.accept(reader, defScope, Parser.QUAL_PROHIBITED, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
         emsg.append("New name missing at ");
         emsg.append(reader.getCurrentSrcInfo());

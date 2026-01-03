@@ -96,61 +96,6 @@ public class PFeature extends PDefaultProgObj {
     return builder.create();
   }
 
-  static PFeature acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-    StringBuffer emsg;
-    ParserA.Token t;
-    if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      return null;
-    }
-    SigBuilder builder = SigBuilder.newInstance(t.getSrcInfo(), scope);
-    int state = 0;
-    while (state >= 0) {
-      PTypeVarDef p;
-      PTid n;
-      if (state == 0 && (p = PTypeVarDef.acceptForDefHeader(reader, scope)) != null) {
-        builder.addParam(p);
-      } else if (state == 0 && (n = PTid.accept(reader, scope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED)) != null) {
-        builder.setName(n);
-        state = -1;
-      } else {
-        emsg = new StringBuffer();
-        emsg.append("Syntax error in feature signature at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    }
-    if (ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE) == null) {
-      emsg = new StringBuffer();
-      emsg.append("] missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    return builder.create();
-  }
-
-  static PFeature acceptSigDesc(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-    StringBuffer emsg;
-    ParserA.Token t;
-    Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), scope);
-    int state = 0;
-    int spc = ParserA.SPACE_DO_NOT_CARE;
-    while (state >= 0) {
-      PProgObj item;
-      if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
-        builder.addItem(item);
-        state = -1;
-      } else if ((item = PTypeVarDef.acceptForDefHeader(reader, scope)) != null) {
-        builder.addItem(item);
-        spc = ParserA.SPACE_NEEDED;
-      } else {
-        state = -1;
-      }
-    }
-    return builder.create();
-  }
-
   public void collectModRefs() throws CompileException {
     this.scope.referredModId(this.srcInfo, this.fname.modId);
     for (int i = 0; i < this.params.length; i++) {
@@ -271,32 +216,32 @@ public class PFeature extends PDefaultProgObj {
       return builder.create();
     }
 
-    static List acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      StringBuffer emsg;
-      ParserA.Token t;
-      if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
-      ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
-      PFeature f;
-      int state = 0;
-      while (state >= 0) {
-        if (state == 0 && (f = acceptSigDesc(reader, scope)) != null) {
-          builder.addFeature(f);
-          state = 1;
-        } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
-          state = 0;
-        } else {
-          state = -1;
-        }
-      }
-      if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
-        emsg = new StringBuffer();
-        emsg.append("] missing at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      return builder.create();
-    }
+    // static List acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+      // StringBuffer emsg;
+      // ParserA.Token t;
+      // if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
+      // ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
+      // PFeature f;
+      // int state = 0;
+      // while (state >= 0) {
+        // if (state == 0 && (f = acceptSigDesc(reader, scope)) != null) {
+          // builder.addFeature(f);
+          // state = 1;
+        // } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
+          // state = 0;
+        // } else {
+          // state = -1;
+        // }
+      // }
+      // if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        // emsg = new StringBuffer();
+        // emsg.append("] missing at ");
+        // emsg.append(reader.getCurrentSrcInfo());
+        // emsg.append(".");
+        // throw new CompileException(emsg.toString());
+      // }
+      // return builder.create();
+    // }
 
     public String toString() {
       StringBuffer buf = new StringBuffer();

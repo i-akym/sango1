@@ -128,7 +128,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     PType tsig;
     if ((tsig = acceptSig(reader, defScope)) == null) {
       emsg = new StringBuffer();
-      emsg.append("Type description missing at ");
+      emsg.append("Template missing at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
@@ -163,58 +163,31 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   static PTypeRef acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
     StringBuffer emsg;
-    PType t = PType.accept(reader, scope, ParserA.SPACE_DO_NOT_CARE, true);
-    if (t instanceof PType.Undet) {
-      PType.Undet u = (PType.Undet)t;
-      t = PTypeRef.create(u.srcInfo, scope, u.id, new PType[0]);
-    }
-    if (!(t instanceof PTypeRef)) {
+
+    if (ParserA.acceptToken(reader, LToken.LT, ParserA.SPACE_DO_NOT_CARE) == null) { return null; }
+
+    PType.DefHeader dh = PType.acceptDefHeader(reader, scope, false, Parser.QUAL_PROHIBITED);
+    if (dh == null) {
       emsg = new StringBuffer();
-      emsg.append("Invalid signature definition at ");
-      emsg.append(t.getSrcInfo());
+      emsg.append("Template missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTypeRef sig = (PTypeRef)t;
-    for (int i = 0; i < sig.params.length; i++) {
-      if (!(sig.params[i] instanceof PTypeVarDef)) {
-        emsg = new StringBuffer();
-        emsg.append("Type parameter missing at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      PTypeVarDef v = (PTypeVarDef)sig.params[i];
-      if (v.requiresConcrete) {
-        emsg = new StringBuffer();
-        emsg.append("Concreteness specification not allowed at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      if (v.features != null) {
-        emsg = new StringBuffer();
-        emsg.append("Feature specification not allowed at ");
-        emsg.append(sig.params[i].getSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    }
-    if (sig.tcon.modId != null) {
+
+    if (ParserA.acceptToken(reader, LToken.GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();
-      emsg.append("Module id not allowed at ");
-      emsg.append(sig.tcon.srcInfo);
+      emsg.append("Syntax error at ");
+      emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if (sig.tcon.ext) {
-      emsg = new StringBuffer();
-      emsg.append("Extension not allowed at ");
-      emsg.append(sig.tcon.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
+
+    PTypeVarDef[] ps = new PTypeVarDef[dh.params.length];
+    for (int i = 0; i < ps.length; i++) {
+      ps[i] = dh.params[i].varDef;
     }
-    return sig;
+    return PTypeRef.create(dh.srcInfo, scope, dh.anchor, ps);
   }
 
   static PAliasTypeStmt acceptX(ParserB.Elem elem, PScope outerScope) throws CompileException {
