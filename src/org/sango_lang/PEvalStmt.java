@@ -167,7 +167,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     // PScope retScope = builder.getRetScope();
     builder.setAvailability(PModule.acceptAvailability(reader));
     builder.addParamList(acceptParamList(reader, defScope));
-    PEid official = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_NEEDED);
+    PEid official = PEid.accept(reader, defScope, Parser.QUAL_PROHIBITED, ParserA.SPACE_NEEDED);
     if (official == null) {
       emsg = new StringBuffer();
       emsg.append("Function official name missing at ");
@@ -329,7 +329,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     while (state >= 0) {
       if (ParserA.acceptToken(reader, LToken.VBAR, ParserA.SPACE_DO_NOT_CARE) != null) {
         state = 1;
-      } else if (state == 1 && (a = PEid.accept(reader, defScope, Parser.QUAL_INHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
+      } else if (state == 1 && (a = PEid.accept(reader, defScope, Parser.QUAL_PROHIBITED, ParserA.SPACE_DO_NOT_CARE)) != null) {
         if (aliasList.contains(a.name)) {
           StringBuffer emsg = new StringBuffer();
           emsg.append("Function's alias \"");

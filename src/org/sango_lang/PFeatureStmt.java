@@ -164,7 +164,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeader hd = PType.acceptDefHeader(reader, defScope);
+    PType.DefHeader hd = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_PROHIBITED);
     if (hd == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");

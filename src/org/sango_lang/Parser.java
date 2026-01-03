@@ -100,7 +100,7 @@ abstract class Parser {
   public static final QualState WITHOUT_QUAL = new QualState();
   public static final Option.Set<QualState> QUAL_NEEDED
     = new Option.Set<QualState>().add(WITH_QUAL);
-  public static final Option.Set<QualState> QUAL_INHIBITED
+  public static final Option.Set<QualState> QUAL_PROHIBITED
     = new Option.Set<QualState>().add(WITHOUT_QUAL);
   public static final Option.Set<QualState> QUAL_MAYBE
     = new Option.Set<QualState>().add(WITH_QUAL).add(WITHOUT_QUAL);

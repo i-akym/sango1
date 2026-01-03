@@ -154,11 +154,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       }
       tb.addItem(PTid.create(this.dat.srcInfo, this.getDefScope(), null, this.tcon.name, false));
       this.dat.sig = PType.asRef(tb.create());
-      // PType[] ps = new PType[this.dat.tparams.length];
-      // for (int i = 0; i < this.dat.tparams.length; i++) {
-        // ps[i] = this.dat.tparams[i].varDef;
-      // }
-      // this.dat.sig = PTypeRef.create(this.dat.srcInfo, this.dat.scope, this.tcon, ps);
       if (!this.constrList.isEmpty()) {
         this.dat.constrs = this.constrList.toArray(new PDataConstrDef[this.constrList.size()]);
       } else if (dat.acc == Module.ACC_OPAQUE || dat.acc == Module.ACC_PRIVATE) {
@@ -199,7 +194,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_PROHIBITED);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
