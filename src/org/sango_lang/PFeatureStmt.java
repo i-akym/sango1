@@ -141,7 +141,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    if ((objType = PTypeVarDef.accept(reader, defScope)) == null) {
+    if ((objType = PTypeVarDef.acceptForDefHeader(reader, defScope, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("Invalid object type at ");
       emsg.append(reader.getCurrentSrcInfo());
