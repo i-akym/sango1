@@ -208,7 +208,7 @@ interface PType extends PProgObj {
         && (item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTypeVarDef.accept(reader, scope)) != null) {
+        && (item = PTypeVarDef.accept(reader, scope, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
         && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {

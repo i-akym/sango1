@@ -83,7 +83,7 @@ public class PFeature extends PDefaultProgObj {
       if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
-      } else if ((item = PTypeVarDef.accept(reader, scope)) != null) {
+      } else if ((item = PTypeVarDef.accept(reader, scope, spc)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
       } else if ((item = PType.accept(reader, scope, spc, true)) != null) {
