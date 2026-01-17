@@ -20,7 +20,7 @@ eval test000 -> <void> {
   O3 eqf.hash >> debug.repr >> stdio.print_and_newline
 } ;;
 eval test100 -> <void> {
-  3 ordf.incarnate >> eqf.incarnate = *E3,
-  E3 eqf.org >> ordf.org = 3,
+  (3 ordf.incarnate) eqf.incarnate= *E3,
+  E3 eqf.fx >> ordf.fx = 3,
   void$
 } ;;

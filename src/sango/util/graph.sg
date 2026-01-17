@@ -26,9 +26,10 @@ module @alpha "sango.util.graph" ;;
 import "sango.list" -> list ;;
 import "sango.unique" -> uniq ;;
 import "sango.unique.feature" -> uniqf ;;
+import "sango.util.graph.feature" -> feat ;;
 import "sango.util.iter" -> iter ;;
 
-### elements ###
+### elements
 
 # vertex
 
@@ -71,7 +72,7 @@ eval edge_as_a'unique -> <<*A *B edge> uniq.u fun> {
 } ;;
 
 
-### conditions ###
+### conditions
 
 data <*A vertex_sel> @public :=
 | vertex_sel_any$
@@ -85,7 +86,7 @@ data <*A *B edge_sel> @public :=
 | <<A B edge> bool fun> edge_sel_filter$ ;;
 
 
-### handling functions ###
+### function set
 
 data <*D *A *B graph_fs> @public :=
   empty?_f: <D bool fun>
@@ -125,140 +126,267 @@ eval <*D *A *B graph_fs> *Fs contain_edge?_f @public -> <D <A B edge> bool fun> 
 } ;;
 
 
-### feature ###
+### combined object
 
-feature <*T> [ *A *B a'graph ] @public -> <T A B graph_fs> ;;
+data <*A *B graph> @opaque :=
+  empty?_f: <bool fun>
+  vertex_count_f: <int fun>
+  edge_count_f: <int fun>
+  vertex_iter_f: <<<A vertex> iter> fun>
+  edge_iter_f: <<<A B edge> iter> fun>
+  contain_vertex?_f: <<A vertex> bool fun>
+  contain_edge?_f: <<A B edge> bool fun>
+  add_vertex_f: <<A vertex> <A B graph> fun>
+  add_edge_f: <<A B edge> <A B graph> fun>
+  delete_vertex_f: <<A vertex> <A B graph> fun>
+  delete_edge_f: <<A B edge> <A B graph> fun>
+  select_vertices_f: <<A vertex_sel> <<A vertex> iter> fun>
+  select_edges_f: <<A B edge_sel> <<A B edge> iter> fun>
+  clear_f: <<A B graph> fun>
+  graph$
+++ a'graph_impl -> [ A B feat.a'graph ] ;;
 
+eval <*D> *Z <D *A *B graph_fs> *Fs combine @public -> <A B graph> {
+  empty?_f:
+    \\ <bool> { Z Fs do_empty? }
+  vertex_count_f:
+    \\ <int> { Z Fs do_vertex_count }
+  edge_count_f:
+    \\ <int> { Z Fs do_edge_count }
+  vertex_iter_f:
+    \\ <<A vertex> iter> { Z Fs do_vertex_iter }
+  edge_iter_f:
+    \\ <<A B edge> iter> { Z Fs do_edge_iter }
+  contain_vertex?_f:
+    \ <A vertex> *V -> <bool> { Z Fs V do_contain_vertex? }
+  contain_edge?_f:
+    \ <A B edge> *E -> <bool> { Z Fs E do_contain_edge? }
+  add_vertex_f:
+    \ <A vertex> *V -> <A B graph> { Z Fs V do_add_vertex = *Z', Z' Fs combine }
+  add_edge_f:
+    \ <A B edge> *E -> <A B graph> { Z Fs E do_add_edge = *Z', Z' Fs combine }
+  delete_vertex_f:
+    \ <A vertex> *V -> <A B graph> { Z Fs V do_delete_vertex = *Z', Z' Fs combine }
+  delete_edge_f:
+    \ <A B edge> *E -> <A B graph> { Z Fs E do_delete_edge = *Z', Z' Fs combine }
+  select_vertices_f:
+    \ <A vertex_sel> *VS -> <<A vertex> iter> { Z Fs VS do_select_vertices }
+  select_edges_f:
+    \ <A B edge_sel> *ES -> <<A B edge> iter> { Z Fs ES do_select_edges }
+  clear_f:
+    \\ <A B graph> { Z Fs do_clear = *Z', Z' Fs combine }
+  graph$
+} ;;
 
-### incarnation ###
+eval a'graph_impl -> <<*A *B graph> A B graph_fs> {
+  empty?_f: ^empty?
+  vertex_count_f: ^vertex_count
+  edge_count_f: ^edge_count
+  vertex_iter_f: ^vertex_iter
+  edge_iter_f: ^edge_iter
+  contain_vertex?_f_: (^contain_vertex? value$)
+  contain_edge?_f_: (^contain_edge? value$)
+  add_vertex_f: ^add_vertex
+  add_edge_f: ^add_edge
+  delete_vertex_f: ^delete_vertex
+  delete_edge_f: ^delete_edge
+  select_vertices_f: ^select_vertices
+  select_edges_f: ^select_edges
+  clear_f: ^clear
+  graph_fs$
+} ;;
 
-data <*T *A *B graph_inc> @protected :=
-  org: <T>
-  fo: <T A B graph_fs>
-  graph_inc$ ;;
+eval <*A *B graph> *Graph empty? @public -> <bool> {
+  &(Graph empty?_f)
+} ;;
 
-eval <*T[ *A *B a'graph ]> *FGraph incarnate @public -> <T A B graph_inc> {
-  org: FGraph
-  fo: (FGraph _feature_a'graph)
-  graph_inc$
+eval <*A *B graph> *Graph vertex_count @public -> <int> {
+  &(Graph vertex_count_f)
+} ;;
+
+eval <*A *B graph> *Graph edge_count @public -> <int> {
+  &(Graph edge_count_f)
+} ;;
+
+eval <*A *B graph> *Graph vertex_iter @public -> <<A vertex> iter> {
+  &(Graph vertex_iter_f)
+} ;;
+
+eval <*A *B graph> *Graph edge_iter @public -> <<A B edge> iter> {
+  &(Graph edge_iter_f)
+} ;;
+
+eval <*A *B graph> *Graph <A vertex> *Vertex contain_vertex? @public -> <bool> {
+  Vertex &(Graph contain_vertex?_f)
+} ;;
+
+eval <*A *B graph> *Graph <A B edge> *Edge contain_edge? @public -> <bool> {
+  Edge &(Graph contain_edge?_f)
+} ;;
+
+eval <*A *B graph> *Graph <A vertex> *Vertex add_vertex @public -> <A B graph> {
+  Vertex &(Graph add_vertex_f)
+} ;;
+
+eval <*A *B graph> *Graph <A B edge> *Edge add_edge @public -> <A B graph> {
+  Edge &(Graph add_edge_f)
+} ;;
+
+eval <*A *B graph> *Graph <A vertex> *Vertex delete_vertex @public -> <A B graph> {
+  Vertex &(Graph delete_vertex_f)
+} ;;
+
+eval <*A *B graph> *Graph <A B edge> *Edge delete_edge @public -> <A B graph> {
+  Edge &(Graph delete_edge_f)
+} ;;
+
+eval <*A *B graph> *Graph <A vertex_sel> *Vsel select_vertices @public -> <<A vertex> iter> {
+  Vsel &(Graph select_vertices_f)
+} ;;
+
+eval <*A *B graph> *Graph <A B edge_sel> *Esel select_edges @public -> <<A B edge> iter> {
+  Esel &(Graph select_edges_f)
+} ;;
+
+eval <*A *B graph> *Graph clear @public -> <A B graph> {
+  &(Graph clear_f)
+} ;;
+
+eval <*A *B graph> *Graph <<A vertex> list> *Vertex_list add_vertex_list @public -> <A B graph> {
+  Graph (Vertex_list list.iter) add_vertex_iter
+} ;;
+
+eval <*A *B graph> *Graph <<A vertex> iter> *Vertex_iter add_vertex_iter @public -> <A B graph> {
+  Graph
+  Vertex_iter
+  \ <A B graph> *Y <A vertex> *V -> <A B graph> { Y V add_vertex }
+  iter.fold
+} ;;
+
+eval <*A *B graph> *Graph <<A B edge> list> *Edge_list add_edge_list @public -> <A B graph> {
+  Graph (Edge_list list.iter) add_edge_iter
+} ;;
+
+eval <*A *B graph> *Graph <<A B edge> iter> *Edge_iter add_edge_iter @public -> <A B graph> {
+  Graph
+  Edge_iter
+  \ <A B graph> *Y <A B edge> *E -> <A B graph> { Y E add_edge }
+  iter.fold
+} ;;
+
+eval <*A *B graph> *Graph <<A vertex> list> *Vertex_list delete_vertex_list @public -> <A B graph> {
+  Graph (Vertex_list list.iter) delete_vertex_iter
+} ;;
+
+eval <*A *B graph> *Graph <<A vertex> iter> *Vertex_iter delete_vertex_iter @public -> <A B graph> {
+  Graph
+  Vertex_iter
+  \ <A B graph> *Y <A vertex> *V -> <A B graph> { Y V delete_vertex }
+  iter.fold
+} ;;
+
+eval <*A *B graph> *Graph <<A B edge> list> *Edge_list delete_edge_list @public -> <A B graph> {
+  Graph (Edge_list list.iter) delete_edge_iter
+} ;;
+
+eval <*A *B graph> *Graph <<A B edge> iter> *Edge_iter delete_edge_iter @public -> <A B graph> {
+  Graph
+  Edge_iter
+  \ <A B graph> *Y <A B edge> *E -> <A B graph> { Y E delete_edge }
+  iter.fold
+} ;;
+
+eval <*A *B graph> *Graph <A vertex> *Vertex outgoing_edges @public -> <<A B edge> iter> {
+  Graph ((Vertex vertex_sel_just$) vertex_sel_any$ edge_sel_vertices$) select_edges
+} ;;
+
+eval <*A *B graph> *Graph <A vertex> *Vertex incoming_edges @public -> <<A B edge> iter> {
+  Graph (vertex_sel_any$ (Vertex vertex_sel_just$) edge_sel_vertices$) select_edges
 } ;;
 
 
-### framework ###
+### subroutines
 
-eval <*T[ *A *B a'graph ]> *G empty? @public -> <bool> {
-  G _feature_a'graph = *Fs,
-  G &(Fs empty?_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs do_empty? | empty? @public -> <bool> {
+  Z &(Fs empty?_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G vertex_count @public -> <int> {
-  G _feature_a'graph = *Fs,
-  G &(Fs vertex_count_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs do_vertex_count | vertex_count @public -> <int> {
+  Z &(Fs vertex_count_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G edge_count @public -> <int> {
-  G _feature_a'graph = *Fs,
-  G &(Fs edge_count_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs do_edge_count | edge_count @public -> <int> {
+  Z &(Fs edge_count_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G vertex_iter @public -> <<A vertex> iter> {
-  G _feature_a'graph = *Fs,
-  G &(Fs vertex_iter_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs do_vertex_iter | vertex_iter @public -> <<A vertex> iter> {
+  Z &(Fs vertex_iter_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G edge_iter @public -> <<A B edge> iter> {
-  G _feature_a'graph = *Fs,
-  G &(Fs edge_iter_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs do_edge_iter | edge_iter @public -> <<A B edge> iter> {
+  Z &(Fs edge_iter_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A vertex> *V contain_vertex? @public -> <bool> {
-  G _feature_a'graph = *Fs,
-  G V &(Fs contain_vertex?_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A vertex> *Vertex do_contain_vertex? | contain_vertex? @public -> <bool> {
+  Z Vertex &(Fs contain_vertex?_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A B edge> *E contain_edge? @public -> <bool> {
-  G _feature_a'graph = *Fs,
-  G E &(Fs contain_edge?_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A B edge> *Edge do_contain_edge? | contain_edge? @public -> <bool> {
+  Z Edge &(Fs contain_edge?_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A vertex> *V add_vertex @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G V &(Fs add_vertex_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A vertex> *Vertex do_add_vertex | add_vertex @public -> <D> {
+  Z Vertex &(Fs add_vertex_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A B edge> *E add_edge @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G E &(Fs add_edge_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A B edge> *Edge do_add_edge | add_edge @public -> <D> {
+  Z Edge &(Fs add_edge_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A vertex> *V delete_vertex @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G V &(Fs delete_vertex_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A vertex> *Vertex do_delete_vertex | delete_vertex @public -> <D> {
+  Z Vertex &(Fs delete_vertex_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A B edge> *E delete_edge @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G E &(Fs delete_edge_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A B edge> *Edge do_delete_edge | delete_edge @public -> <D> {
+  Z Edge &(Fs delete_edge_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A vertex_sel> *Vsel select_vertices @public -> <<A vertex> iter> {
-  G _feature_a'graph = *Fs,
-  G Vsel &(Fs select_vertices_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A vertex_sel> *Vsel do_select_vertices | select_vertices @public -> <<A vertex> iter> {
+  Z Vsel &(Fs select_vertices_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <A B edge_sel> *Esel select_edges @public -> <<A B edge> iter> {
-  G _feature_a'graph = *Fs,
-  G Esel &(Fs select_edges_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs <A B edge_sel> *Esel do_select_edges | select_edges @public -> <<A B edge> iter> {
+  Z Esel &(Fs select_edges_f)
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G clear @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G &(Fs clear_f)
+eval <*D> *Z <D *A *B graph_fs> *Fs do_clear | clear @public -> <D> {
+  Z &(Fs clear_f)
 } ;;
 
-
-### utility routines ###
-
-eval <*T[ *A *B a'graph ]> *G <<A vertex> list> *Vs add_vertex_list @public -> <T> {
-  G (Vs list.iter) add_vertex_iter
+eval <*D> *Z <D *A *B graph_fs> *Fs <<A vertex> iter> *VI do_add_vertex_iter | add_vertex_iter @public -> <D> {
+  Z
+  VI
+  \ <D> *Y <A vertex> *V -> <D> { Y Fs V do_add_vertex }
+  iter.fold
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <<A vertex> iter> *VI add_vertex_iter @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G VI (Fs add_vertex_f) iter.fold
+eval <*D> *Z <D *A *B graph_fs> *Fs <<A B edge> iter> *EI do_add_edge_iter | add_edge_iter @public -> <D> {
+  Z
+  EI
+  \ <D> *Y <A B edge> *E -> <D> { Y Fs E do_add_edge }
+  iter.fold
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <<A B edge> list> *Es add_edge_list @public -> <T> {
-  G (Es list.iter) add_edge_iter
+eval <*D> *Z <D *A *B graph_fs> *Fs <<A vertex> iter> *VI do_delete_vertex_iter | delete_vertex_iter @public -> <D> {
+  Z
+  VI
+  \ <D> *Y <A vertex> *V -> <D> { Y Fs V do_delete_vertex }
+  iter.fold
 } ;;
 
-eval <*T[ *A *B a'graph ]> *G <<A B edge> iter> *EI add_edge_iter @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G EI (Fs add_edge_f) iter.fold
-} ;;
-
-eval <*T[ *A *B a'graph ]> *G <<A vertex> list> *Vs delete_vertex_list @public -> <T> {
-  G (Vs list.iter) delete_vertex_iter
-} ;;
-
-eval <*T[ *A *B a'graph ]> *G <<A vertex> iter> *VI delete_vertex_iter @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G VI (Fs delete_vertex_f) iter.fold
-} ;;
-
-eval <*T[ *A *B a'graph ]> *G <<A B edge> list> *Es delete_edge_list @public -> <T> {
-  G (Es list.iter) delete_edge_iter
-} ;;
-
-eval <*T[ *A *B a'graph ]> *G <<A B edge> iter> *EI delete_edge_iter @public -> <T> {
-  G _feature_a'graph = *Fs,
-  G EI (Fs delete_edge_f) iter.fold
-} ;;
-
-eval <*T[ *A *B a'graph ]> *G <A vertex> *V outgoing_edges @public -> <<A B edge> iter> {
-  G ((V vertex_sel_just$) vertex_sel_any$ edge_sel_vertices$) select_edges
-} ;;
-
-eval <*T[ *A *B a'graph ]> *G <A vertex> *V incoming_edges @public -> <<A B edge> iter> {
-  G (vertex_sel_any$ (V vertex_sel_just$) edge_sel_vertices$) select_edges
+eval <*D> *Z <D *A *B graph_fs> *Fs <<A B edge> iter> *EI do_delete_edge_iter | delete_edge_iter @public -> <D> {
+  Z
+  EI
+  \ <D> *Y <A B edge> *E -> <D> { Y Fs E do_delete_edge }
+  iter.fold
 } ;;

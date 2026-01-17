@@ -32,14 +32,12 @@ feature <*T> [ a'unique ] @public -> <T uniq.u fun> ;;
 
 ### incarnation
 
-data @beta <*T unique_inc> @protected :=
-  org: <T>
+data <*T unique_inc> @protected :=
+  fx: <T>
   fo: <T uniq.u fun>
   unique_inc$ ;;
 
-eval @beta <*T[ a'unique ]> *FUnique incarnate @public -> <T unique_inc> {
-  org: FUnique
-  fo: (FUnique _feature_a'unique)
-  unique_inc$
+eval <*T[ a'unique ]> *FX incarnate @public -> <T unique_inc> {
+  FX (FX _feature_a'unique) unique_inc$
 } ;;
 

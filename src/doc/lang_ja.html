@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.8.2 言語解説</title>
+<title>Sango 1.8.3 言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -68,8 +68,7 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
     <a href="#8.d">例：ストリングの要素を取り出す</a>
     <a href="#8.e">例：被構築データの属性を取り出す</a>
     <a href="#8.f">例：パターンの入れ子</a>
-    <a href="#8.g">例：文脈外オブジェクトの取り込み</a>
-    <a href="#8.h">パターンマッチの留意点</a>
+    <a href="#8.g">パターンマッチの留意点</a>
 <a href="#9">9. 関数を定義する</a>
   <a href="#9.1">9.1. パラメタ定義</a>
   <a href="#9.2">9.2. 関数名</a>
@@ -687,17 +686,7 @@ book$ ;;</code></blockquote>
   # <code>[ *First_author ; ** ]</code>とすると，著者データが1個以上のとき成功</blockquote>
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h3 id="8.g">例：文脈外オブジェクトの取り込み</h3>
-<p>文脈外から取り込まれ<code>&lt;_?_&gt;</code>になっているオブジェクトは型構築子の情報を持っており，これとパターンマッチすることにより，文脈内の型を復元することができます。</p>
-<blockquote class="code-sample">コード例
-<code>Some_object case {</code>
-<code>; &lt;foo&gt; == *X -&gt; X do_something_foo</code>  # <code>X</code>は<code>&lt;foo&gt;</code>
-<code>; &lt;_?_ _?_ bar&gt; == *X -&gt; X do_something_bar</code>  # <code>X</code>は<code>&lt;_?_ _?_ bar&gt;</code>
-<code>}</code></blockquote>
-<p>パターンの前に，マッチさせる型と「<code>==</code>」を置きます。型パラメタに指定できるのは<code>_?_</code>のみです。</p>
-
-<p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h3 id="8.h">パターンマッチの留意点</h3>
+<h3 id="8.g">パターンマッチの留意点</h3>
 <ul>
   <li>実数型のリテラル（<code>1.25e-3</code>など）はパターンとして記述できません。
     実数は内部表現上の誤差を生じるため，同値かどうかは，誤差を意識して比較することにより判定するものだからです<span class="note-ref">*1</span>。</li>
@@ -1670,10 +1659,14 @@ eval &lt;*D *A *B map_fs&gt; *Fs map_fs_to_col_fs | to_col_fs @public -&gt; &lt;
 これらを具体的に固定した型を「化身型（incarnation type）」，そのインスタンスを「化身（incarnation）」と呼びます。
 この化身型（ここでは<code>&lt;<var>F<sub>2</sub>_inc</var>&gt;</code>とします）に<var>F<sub>1</sub></var>の実装を宣言し，実行コードの中で<code>&lt;T [ <var>F<sub>2</sub></var> ]&gt;</code>を<code>&lt;<var>F<sub>2</sub>_inc</var> [ <var>F<sub>1</sub></var> ]&gt;</code>に変換することで，<var>F<sub>1</sub></var>として使用することができるようになります。</p>
 <blockquote class="code-sample">化身型
-<code>eval &lt;*T[ *A *B a'map ]&gt; *FMap incarnate @public -&gt; &lt;T A B map_inc&gt; ;;
-data &lt;*T *A *B map_inc&gt; @protected := ...
-++ ... [ &lt;A B tuple&gt; a'col ] ;;</code></blockquote>
-<blockquote class="code-sample">化身型への変換と使用
+<code>data &lt;*T *A *B map_inc&gt; @protected :=
+  fx: &lt;T&gt;
+  fo: &lt;T A B map_fs&gt;
+  map_inc$
+++ ... [ &lt;A B tuple&gt; a'col ] ;;
+eval &lt;*T[ *A *B a'map ] *FX incarnate @public -&gt; &lt;T A B map_inc&gt; ;;
+</code></blockquote>
+<blockquote class="code-sample">化身型の使用
 <code>import &quot;sango.util.col.feature&quot; -&gt; colf ;;
 eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
@@ -2331,12 +2324,12 @@ eval &lt;... <var>t</var>+&gt; *X _narrow_<var>t</var> | narrow @public -&gt; &l
 <p>型パラメタを持っていない型，または，全ての型パラメタが（再帰的に）決定している型を具象型（concrete type）と呼びます。
   例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
   一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
-<p>関数のパラメタやデータ構築時の属性の型として具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。</p>
+<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。</p>
 <blockquote class="code-sample">コード例<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ create_box @public -&gt; &lt;A box_h&gt; ...</code></blockquote>
 <blockquote class="code-sample">コード例<code>
-module &quot;sango.util.map.box&quot; ;;
+module &quot;sango.util.map.shared.box&quot; ;;
 import &quot;sango.util.map&quot; -&gt; map ;;
 eval &lt;*A! *B! map.map&gt; *Map create_box @public -&gt; &lt;A B map_h&gt;  ...</code></blockquote>
 
@@ -2575,6 +2568,12 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【Beta，非互換】<code>&quot;sango.entity&quot;</code>について，オブジェクト・フィーチャに関する定義，処理関数を<code>&quot;sango.entity.feature&quot;</code>に移動し，関数の公式名を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.set.shared.box&quot;</code>，<code>&quot;sango.util.map.shared.box&quot;</code>を変更。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.map.shared.weakvaluemap&quot;</code>を変更。</li>
+</ul>
+
+<p>■　1.8.3</p>
+<ul>
+<li>【非互換】データ定義に具象型の型変数を指定できなくした。
+<li>【Limited】<code>&quot;sango.lang&quot;.&lt;_?_&gt;</code>，<code>&quot;sango.lang&quot;.expose</code></li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

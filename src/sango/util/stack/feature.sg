@@ -87,32 +87,30 @@ eval <*T[ *A a'stack ]> *FStack iter @public -> <A iter> {
 ### incarnation
 
 data <*T *A stack_inc> @protected :=
-  org: <T>
+  fx: <T>
   fo: <T A stack.stack_fs>
   stack_inc$
 ++ inc_a'col_impl -> [ A a'col ] ;;
 
-eval <*T[ *A a'stack ]> *FStack incarnate @public -> <T A stack_inc> {
-  org: FStack
-  fo: (FStack _feature_a'stack)
-  stack_inc$
+eval <*T[ *A a'stack ]> *FX incarnate @public -> <T A stack_inc> {
+  FX (FX _feature_a'stack) stack_inc$
 } ;;
 
 eval inc_a'col_impl -> <<*T *A stack_inc> A col_fs> {
   empty?_f_:
     (\ <*TT *AA stack_inc> *I -> <bool> {
-       I = *ID *IFs stack_inc$,
-       ID IFs stack.do_empty?
+       I = *FX *Fo stack_inc$,
+       FX Fo stack.do_empty?
      } value$)
   size_f:
     \ <*TT *AA stack_inc> *I -> <int> {
-      I = *ID *IFs stack_inc$,
-      ID IFs stack.do_depth
+      I = *FX *Fo stack_inc$,
+      FX Fo stack.do_depth
     }
   iter_f:
     \ <*TT *AA stack_inc> *I -> <AA iter> {
-      I = *ID *IFs stack_inc$,
-      ID IFs stack.do_iter
+      I = *FX *Fo stack_inc$,
+      FX Fo stack.do_iter
     }
   col_fs$
 } ;;

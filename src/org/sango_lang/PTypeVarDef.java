@@ -29,8 +29,9 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   String name;
   boolean requiresConcrete;
   PFeature.List features;  // maybe null
-  PFeatureSkel.List nFeatures;  // maybe null
+  // PFeatureSkel.List nFeatures;  // maybe null
   PTypeVarSlot _resolved_varSlot;
+  PTypeVarSkel _once_skel;
 
   private PTypeVarDef(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
@@ -86,10 +87,10 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+  static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, ParserA.SPACE_DO_NOT_CARE);
+    ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, spc);
     if (varSym == null) { return null; }
     ParserA.Token varId;
     if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
@@ -102,6 +103,25 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
     PFeature.List fs = PFeature.List.accept(reader, scope);
     return create(si, scope, varId.value.token, requiresConcrete, fs);
+  }
+
+  static PTypeVarDef acceptForDefHeader(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
+    StringBuffer emsg;
+    Parser.SrcInfo si = reader.getCurrentSrcInfo();
+    ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, spc);
+    if (varSym == null) { return null; }
+    ParserA.Token varId;
+    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
+      emsg = new StringBuffer();
+      emsg.append("Variable/parameter name missing at ");
+      emsg.append(reader.getCurrentSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    return create(si, scope, varId.value.token, false, null);
+    // boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+    // PFeature.List fs = PFeature.List.acceptSig(reader, scope);
+    // return create(si, scope, varId.value.token, requiresConcrete, fs);
   }
 
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
@@ -156,8 +176,11 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   }
 
   public PTypeVarSkel toSkel() {
-    PFeatureSkel.List fs = (this.features != null)?  this.features.toSkel(): null;
-    return PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, fs);
+    if (this._once_skel == null) {
+      PFeatureSkel.List fs = (this.features != null)?  this.features.toSkel(): null;
+      this._once_skel = PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, this.requiresConcrete, fs);
+    }
+    return this._once_skel;
   }
 
   // public PTypeVarSkel getNormalizedSkel() throws CompileException {

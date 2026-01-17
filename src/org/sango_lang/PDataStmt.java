@@ -32,7 +32,7 @@ import java.util.Set;
 class PDataStmt extends PDefaultProgObj implements PDataDef {
   Module.Availability availability;
   Module.Access acc;
-  PType.ParamDef[] tparams;  // null means variable params
+  PType.DefHeaderParam[] tparams;  // null means variable params
   String tcon;
   PDataConstrDef[] constrs;  // null means native impl
   PFeatureImplDef[] featureImpls;
@@ -75,7 +75,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
   static class Builder {
     PDataStmt dat;
-    List<PType.ParamDef> paramList;
+    List<PType.DefHeaderParam> paramList;
     PTid tcon;
     List<PDataConstrDef> constrList;
     List<PFeatureImplDef> featureImplList;
@@ -87,7 +87,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.dat = new PDataStmt(srcInfo, outerScope);
-      this.paramList = new ArrayList<PType.ParamDef>();
+      this.paramList = new ArrayList<PType.DefHeaderParam>();
       this.constrList = new ArrayList<PDataConstrDef>();
       this.featureImplList = new ArrayList<PFeatureImplDef>();
       this.nameSet = new HashSet<String>();
@@ -99,7 +99,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       this.dat.availability = availability;
     }
 
-    void addParam(PType.ParamDef param) {
+    void addParam(PType.DefHeaderParam param) {
       this.paramList.add(param);
     }
 
@@ -146,7 +146,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
 
     PDataStmt create() throws CompileException {
       StringBuffer emsg;
-      this.dat.tparams = this.paramList.toArray(new PType.ParamDef[this.paramList.size()]);
+      this.dat.tparams = this.paramList.toArray(new PType.DefHeaderParam[this.paramList.size()]);
       this.dat.tcon = this.tcon.name;
       PType.Builder tb = PType.Builder.newInstance(this.dat.srcInfo, this.getDefScope());
       for (int i = 0; i < this.dat.tparams.length; i++) {
@@ -154,11 +154,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       }
       tb.addItem(PTid.create(this.dat.srcInfo, this.getDefScope(), null, this.tcon.name, false));
       this.dat.sig = PType.asRef(tb.create());
-      // PType[] ps = new PType[this.dat.tparams.length];
-      // for (int i = 0; i < this.dat.tparams.length; i++) {
-        // ps[i] = this.dat.tparams[i].varDef;
-      // }
-      // this.dat.sig = PTypeRef.create(this.dat.srcInfo, this.dat.scope, this.tcon, ps);
       if (!this.constrList.isEmpty()) {
         this.dat.constrs = this.constrList.toArray(new PDataConstrDef[this.constrList.size()]);
       } else if (dat.acc == Module.ACC_OPAQUE || dat.acc == Module.ACC_PRIVATE) {
@@ -199,49 +194,26 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.SigSpec sig = PType.acceptSig(reader, defScope);
-    if (sig == null) {
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_PROHIBITED);
+    if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
       emsg.append(reader.getCurrentSrcInfo());
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    for (int i = 0; i < sig.params.size(); i++) {
-      builder.addParam(sig.params.get(i));
+    for (int i = 0; i < dh.params.length; i++) {
+      builder.addParam(dh.params[i]);
     }
-    if (sig.anchor.modId != null) {
+    if (dh.anchor.modId != null) {
       emsg = new StringBuffer();
       emsg.append("Module id not allowed at ");
-      emsg.append(sig.anchor.srcInfo);
+      emsg.append(dh.anchor.srcInfo);
       emsg.append(". - ");
-      emsg.append(sig.anchor.repr());
+      emsg.append(dh.anchor.repr());
       throw new CompileException(emsg.toString());
     }
-    builder.setTcon(sig.anchor);
-
-    // PType.ParamDef param;
-    // int spc = ParserA.SPACE_DO_NOT_CARE;
-    // while ((param = PType.ParamDef.accept(reader, defScope)) != null) {
-      // builder.addParam(param);
-      // spc = ParserA.SPACE_NEEDED;
-    // }
-    // PTid tcon = PTid.accept(reader, defScope, Parser.QUAL_INHIBITED, spc);
-    // if (tcon == null) {
-      // emsg = new StringBuffer();
-      // emsg.append("Type constructor missing at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // if (tcon.ext) {
-      // emsg = new StringBuffer();
-      // emsg.append("Attempt to define extended type at ");
-      // emsg.append(reader.getCurrentSrcInfo());
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString());
-    // }
-    // builder.setTcon(tcon);
+    builder.setTcon(dh.anchor);
 
     if (ParserA.acceptToken(reader, LToken.GT, ParserA.SPACE_DO_NOT_CARE) == null) {
       emsg = new StringBuffer();

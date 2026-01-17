@@ -55,34 +55,31 @@ eval <*T[ *A *B a'map ]> *FMap take @public -> <<<A B tuple> T tuple> maybe> {
 # incarnation
 
 data <*T *A *B map_inc> @protected :=
-  org: <T>
+  fx: <T>
   fo: <T A B map_fs>
   map_inc$
 ++ inc_a'col_impl -> [ <A B tuple> a'col ] ;;
 
-eval <*T[ *A *B a'map ]> *FMap incarnate @public -> <T A B map_inc> {
-  org: FMap
-  fo: (FMap _feature_a'map)
-  map_inc$
+eval <*T[ *A *B a'map ]> *FX incarnate @public -> <T A B map_inc> {
+  FX (FX _feature_a'map) map_inc$
 } ;;
-
 
 eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
   empty?_f_: none$
   size_f:
     \ <*TT *AA *BB map_inc> *I -> <int> {
-      I = *ID *IFs map_inc$,
-      ID &(IFs size_f)
+      I = *FX *Fo map_inc$,
+      FX &(Fo >> size_f)
     }
   iter_f:
     \ <*TT *AA *BB map_inc> *I -> <<AA BB tuple> iter> {
-      I = *ID *IFs map_inc$,
-      ID IFs do_iter
+      I = *FX *Fo map_inc$,
+      FX Fo do_iter
     }
   col_fs$
 } ;;
 
-eval <*D> *Z <D *A *B map_fs> *Fs do_iter | iter @public -> <<A B tuple> iter> {
+eval <*D> *Z <D *A *B map_fs> *Fs do_iter -> <<A B tuple> iter> {
   \\ <<A B tuple> iter_res> { Z Fs do_iter_next } iter$
 } ;;
 

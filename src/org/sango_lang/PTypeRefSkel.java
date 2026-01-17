@@ -60,10 +60,18 @@ public class PTypeRefSkel implements PTypeSkel {
     PFeatureSkel[] fs = new PFeatureSkel[dd.getFeatureImplCount()];
     for (int i = 0; i < fs.length; i++) {
       PTypeSkelBindings bindings = PTypeSkelBindings.create(new ArrayList<PTypeVarSlot>());
-      PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
       for (int j = 0; j < sig.params.length; j++) {
-        bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
+        // sig param does not include type ref, so width does not mean; only to cause binding of var actually
+        if (!sig.params[j].accept(PTypeSkel.EQUAL, this.params[j], bindings)) {
+          StringBuffer emsg = new StringBuffer();
+          emsg.append("Does not suit type definition at ");
+          emsg.append(this.params[j].getSrcInfo());
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+        // bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
       }
+      PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
       fs[i] = f.resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
     }
     this.features = PFeatureSkel.List.create(this.srcInfo, fs);
@@ -568,20 +576,12 @@ public class PTypeRefSkel implements PTypeSkel {
     t.params = new PTypeSkel[this.params.length];
     for (int i = 0; i < t.params.length; i++) {
       PTypeVarSkel v;
-        PTypeVarSlot s = PTypeVarSlot.createInternal(var.varSlot.requiresConcrete);
-        v = PTypeVarSkel.create(this.theCompiler, this.srcInfo, null, s, null);
+        PTypeVarSlot s = PTypeVarSlot.create();
+        v = PTypeVarSkel.create(this.theCompiler, this.srcInfo, null, s, var.requiresConcrete, null);
       t.params[i] = v;
     }
     bindings.bind(var.varSlot, t);
   }
-
-  // static PDefDict.TconProps resolveTcon(PDefDict.IdKey tconKey, PDefDict.DefDictGetter defDictGetter) throws CompileException {
-    // Option.Set<Module.Access> as = (new Option.Set<Module.Access>())
-      // .add(Module.ACC_PUBLIC).add(Module.ACC_PROTECTED)
-      // .add(Module.ACC_OPAQUE).add(Module.ACC_PRIVATE);
-    // return defDictGetter.getReferredDefDict(tconKey.modName).resolveTcon(
-      // tconKey.idName, PDefDict.TID_CAT_TCON, as);
-  // }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
     boolean b = false;

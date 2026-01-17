@@ -125,32 +125,30 @@ eval <*T[ *A a'set ]> *FSet iter @public -> <A iter> {
 ### incarnation
 
 data <*T *A set_inc> @protected :=
-  org: <T>
+  fx: <T>
   fo: <T A set.set_fs>
   set_inc$
 ++ inc_a'col_impl -> [ A a'col ] ;;
 
-eval <*T[ *A a'set ]> *FSet incarnate @public -> <T A set_inc> {
-  org: FSet
-  fo: (FSet _feature_a'set)
-  set_inc$
+eval <*T[ *A a'set ]> *FX incarnate @public -> <T A set_inc> {
+  FX (FX _feature_a'set) set_inc$
 } ;;
 
 eval inc_a'col_impl -> <<*T *A set_inc> A col_fs> {
   empty?_f_:
     (\ <*TT *AA set_inc> *I -> <bool> {
-       I = *ID *IFs set_inc$,
-       ID IFs set.do_empty?
+       I = *FX *Fo set_inc$,
+       FX Fo set.do_empty?
      } value$)
   size_f:
     \ <*TT *AA set_inc> *I -> <int> {
-      I = *ID *IFs set_inc$,
-      ID IFs set.do_size
+      I = *FX *Fo set_inc$,
+      FX Fo set.do_size
     }
   iter_f:
     \ <*TT *AA set_inc> *I -> <AA iter> {
-      I = *ID *IFs set_inc$,
-      ID IFs set.do_iter
+      I = *FX *Fo set_inc$,
+      FX Fo set.do_iter
     }
   col_fs$
 } ;;

@@ -41,21 +41,19 @@ eval <*T[ a'entity ]> *FEntity undress @public -> <ex.existence <T ent.redress_f
 ### incarnation
 
 data <*T entity_inc> @protected :=
-  org: <T>
+  fx: <T>
   fo: <T ent.entity_fs>
   entity_inc$
 ++ as_a'unique -> [ uniqf.a'unique ] ;;
 
-eval <*T[ a'entity ]> *FEntity incarnate @public -> <T entity_inc> {
-  org: FEntity
-  fo: (FEntity _feature_a'entity)
-  entity_inc$
+eval <*T[ a'entity ]> *FX incarnate @public -> <T entity_inc> {
+  FX (FX _feature_a'entity) entity_inc$
 } ;;
 
 eval as_a'unique -> <<*T entity_inc> uniq.u fun> {
   \ <*TT entity_inc> *I -> <uniq.u> {
-    I = org: *E fo: *Fs entity_inc$,
-    E &(Fs ent.undress_f) = (| *Ex, ** |),
+    I = *FX *Fo entity_inc$,
+    FX &(Fo ent.undress_f) = (| *Ex, ** |),
     Ex ex.uniqueness
   }
 } ;;

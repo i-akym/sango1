@@ -62,24 +62,18 @@ interface PType extends PProgObj {
     return tr;
   }
 
-  static final int INHIBIT_REQUIRE_CONCRETE = 0;
-  static final int ALLOW_REQUIRE_CONCRETE = 1;
-
   // internal
   static final int ACCEPTABLE_NONE = 0;
   static final int ACCEPTABLE_ID = 1;
   static final int ACCEPTABLE_VARDEF = 2;
   static final int ACCEPTABLE_TYPE = 4;
-  static final int ACCEPTABLE_BOUND = 8;
 
   static class Builder {
 
     private static final int[] acceptable_tab = new int[] {
       /* 0 */ ACCEPTABLE_NONE,  // no more
-      /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,  // -> 3
-      /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE,  // -> 2
-      /* 3 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE /* + ACCEPTABLE_BOUND, */  // -> 3; 4 if constrained var
-      // /* 4 */ ACCEPTABLE_VARDEF  // -> 0
+      /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,
+      /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE
     };
 
     Parser.SrcInfo srcInfo;
@@ -99,10 +93,6 @@ interface PType extends PProgObj {
     void addItem(PProgObj item) {
       this.itemList.add(item);
     }
-
-    // void setConstrainedVar(PTypeVarDef var) {
-      // this.constrainedVar = var;
-    // }
 
     PType create() throws CompileException {
       StringBuffer emsg;
@@ -154,10 +144,6 @@ interface PType extends PProgObj {
     }
   }
 
-  static PType accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
-    return accept(reader, scope, spc, true);
-  }
-
   static PType accept(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
@@ -170,23 +156,8 @@ interface PType extends PProgObj {
     int sp = ParserA.SPACE_DO_NOT_CARE;
     while (state > 0) {
       if ((item = acceptItem(reader, scope, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
-        switch (state) {
-        case 1:
-          builder.addItem(item);
-          state = 3;
-          sp = ParserA.SPACE_NEEDED;
-          break;
-        case 2:
-          builder.addItem(item);
-          sp = ParserA.SPACE_NEEDED;
-          break;
-        case 3:
-          builder.addItem(item);
-          sp = ParserA.SPACE_NEEDED;
-          break;
-        default:
-          throw new RuntimeException("Should not reach here.");
-        }
+        builder.addItem(item);
+        sp = ParserA.SPACE_NEEDED;
       } else {
         state = 0;
       }
@@ -237,7 +208,7 @@ interface PType extends PProgObj {
         && (item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTypeVarDef.accept(reader, scope)) != null) {
+        && (item = PTypeVarDef.accept(reader, scope, spc)) != null) {
       ;
     } else if ((acceptables & ACCEPTABLE_TYPE) > 0
         && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
@@ -291,203 +262,126 @@ interface PType extends PProgObj {
     return t;
   }
 
-  static SigSpec acceptSig(ParserA.TokenReader reader, PScope scope) throws IOException, CompileException {
-    SigBuilder builder = SigBuilder.create(reader.getCurrentSrcInfo());
-    SigItem item;
-    while ((item = SigItem.accept(reader, scope)) != null) {
-      builder.addItem(item);
-    }
-    return builder.create();
-  } 
-
-  static class SigBuilder {
-    Parser.SrcInfo srcInfo;
-    List<SigItem> items;
-
-    static SigBuilder create(Parser.SrcInfo srcInfo) {
-      SigBuilder b = new SigBuilder();
-      b.srcInfo = srcInfo;
-      b.items = new ArrayList<SigItem>();
-      return b;
-    }
-
-    private SigBuilder() {}
-
-    void addItem(SigItem item) {
-      this.items.add(item);
-    }
-
-    SigSpec create() throws CompileException {
-      StringBuffer emsg;
-      if (this.items.size() == 0) {
-        emsg = new StringBuffer();
-        emsg.append("Syntex error at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      SigSpec sig = new SigSpec();
-      sig.srcInfo = this.srcInfo;
-      sig.params = new ArrayList<ParamDef>();
-      for (int i = 0; i < this.items.size() - 1; i++) {
-        SigItem item = this.items.get(i);
-        if (item.varRefOrAnchor != null && item.varRefOrAnchor.modId != null) {
-          emsg = new StringBuffer();
-          emsg.append("Invalid parameter at ");
-          emsg.append(item.srcInfo);
-          emsg.append(". - ");
-          emsg.append(item.varRefOrAnchor.repr());
-          throw new CompileException(emsg.toString());
-        }
-        if (item.varRefOrAnchor != null && item.varRefOrAnchor.ext) {
+  static DefHeader acceptDefHeader(ParserA.TokenReader reader, PScope scope, boolean acceptsVariance, Option.Set<Parser.QualState> anchorQual) throws IOException, CompileException {
+    StringBuffer emsg;
+    Parser.SrcInfo si = reader.getCurrentSrcInfo();
+    DefHeader dh = null;
+    Module.Variance v = null;
+    Parser.SrcInfo vsi = null;
+    PTypeVarDef p = null;
+    List<DefHeaderParam> params = new ArrayList<DefHeaderParam>();
+    PTid anc = null;
+    int state = 0;
+      // 0: idle
+      // 1: accept variance maybe
+      // 2: accept vardef or anchor
+      // 3: must accept vardef
+    int spc = ParserA.SPACE_DO_NOT_CARE;
+    while (state >= 0) {
+      if (state == 0 && acceptsVariance) {
+        vsi = reader.getCurrentSrcInfo();
+        state = 1;
+      } else if (state == 0) {
+        v = Module.NO_VARIANCE;
+        vsi = null;
+        state = 2;
+      } else if (state == 1 && ParserA.acceptToken(reader, LToken.PLUS, spc) != null) {
+        v = Module.COVARIANT;
+        spc = ParserA.SPACE_DO_NOT_CARE;
+        state = 3;
+      } else if (state == 1 && ParserA.acceptToken(reader, LToken.MINUS, spc) != null) {
+        v = Module.CONTRAVARIANT;
+        spc = ParserA.SPACE_DO_NOT_CARE;
+        state = 3;
+      } else if (state == 1) {
+        v = Module.INVARIANT;
+        state = 2;
+      } else if (state == 2 && (p = PTypeVarDef.acceptForDefHeader(reader, scope, spc)) != null) {
+        params.add(DefHeaderParam.create((vsi != null)? vsi: p.srcInfo, v, p));
+        spc = ParserA.SPACE_NEEDED;
+        state = 0;
+      } else if (state == 2 && (anc = PTid.accept(reader, scope, anchorQual, spc)) != null) {
+        if (anc.ext) {
           emsg = new StringBuffer();
           emsg.append("Extension not allowed at ");
-          emsg.append(item.srcInfo);
-          emsg.append(". - ");
-          emsg.append(item.varRefOrAnchor.repr());
+          emsg.append(anc.srcInfo);
+          emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        ParamDef p = new ParamDef();
-        p.srcInfo = item.srcInfo;
-        p.variance = item.variance;
-        p.varDef = item.varDef;
-        p.varRef = item.varRefOrAnchor;
-        sig.params.add(p);
-      }
-      SigItem last = this.items.get(this.items.size() - 1);
-      if (last.variance != Module.INVARIANT) {
+        dh = new DefHeader();
+        dh.srcInfo = si;
+        dh.params = new DefHeaderParam[params.size()];
+        for (int i = 0; i < dh.params.length; i++) {
+          dh.params[i] = params.get(i);
+        }
+        dh.anchor = anc;
+        state = -1;
+      } else if (state == 2) {
         emsg = new StringBuffer();
-        emsg.append("Name missing at ");
-        emsg.append(last.srcInfo);
+        emsg.append("Incomplete specification at ");
+        emsg.append(reader.getCurrentSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
-      }
-      if (last.varDef != null) {
-        emsg = new StringBuffer();
-        emsg.append("Name missing at ");
-        emsg.append(last.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      PTid anchor = last.varRefOrAnchor;
-      if (anchor.ext) {
-        emsg = new StringBuffer();
-        emsg.append("Extension not allowed at ");
-        emsg.append(last.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      sig.anchor = anchor;
-      return sig;
-    }
-  }
-
-  static class SigItem {
-    Parser.SrcInfo srcInfo;
-    Module.Variance variance;
-    // either of following is set
-    PTypeVarDef varDef;
-    PTid varRefOrAnchor;
-
-    static SigItem accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      StringBuffer emsg;
-      Parser.SrcInfo si = reader.getCurrentSrcInfo();
-      Module.Variance variance;
-      if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        variance = Module.COVARIANT;
-      } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        variance = Module.CONTRAVARIANT;
+      } else if (state == 3 && (p = PTypeVarDef.acceptForDefHeader(reader, scope, spc)) != null) {
+        params.add(DefHeaderParam.create((vsi != null)? vsi: p.srcInfo, v, p));
+        spc = ParserA.SPACE_NEEDED;
+        state = 0;
       } else {
-        variance = Module.INVARIANT;
+        emsg = new StringBuffer();
+        emsg.append("Variable missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
       }
-      PTypeVarDef varDef;
-      PTid varRefOrAnchor;
-      SigItem i = null;
-      if ((varDef = PTypeVarDef.accept(reader, scope)) != null) {
-        i = create(si, variance, varDef);
-      } else if ((varRefOrAnchor = PTid.accept(reader, scope, Parser.QUAL_MAYBE, ParserA.SPACE_DO_NOT_CARE)) != null) {
-        i = create(si, variance, varRefOrAnchor);
-      }
-      return i;
     }
+    return dh;
+  } 
 
-    static SigItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
-      SigItem i = new SigItem();
-      i.srcInfo = srcInfo;
-      i.variance = variance;
-      i.varDef = varDef;
-      return i;
-    }
-
-    static SigItem create(Parser.SrcInfo srcInfo, Module.Variance variance, PTid varRefOrAnchor) {
-      SigItem i = new SigItem();
-      i.srcInfo = srcInfo;
-      i.variance = variance;
-      i.varRefOrAnchor = varRefOrAnchor;
-      return i;
-    }
-  }
-
-  static class SigSpec {
+  static class DefHeader {
     Parser.SrcInfo srcInfo;
-    Module.Variance variance;
-    List<ParamDef> params;
+    DefHeaderParam[] params;
     PTid anchor;
   }
 
-  static class ParamDef {
+  static class DefHeaderParam {
     Parser.SrcInfo srcInfo;
     Module.Variance variance;
-    // either of following is set
-    private PTypeVarDef varDef;
-    private PTid varRef;
-    //
-    private PTypeVarRef _resolved_varRef;
+    PTypeVarDef varDef;
+
+    static DefHeaderParam create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
+      DefHeaderParam p = new DefHeaderParam();
+      p.srcInfo = srcInfo;
+      p.variance = variance;
+      p.varDef = varDef;
+      return p;
+    }
 
     void  setupResolved() throws CompileException {
-      PTypeVarDef v;
-      if (this.varDef != null) {
-        this.varDef = this.varDef.resolve();
-      } else if ((v = this.varRef.scope.lookupTVar(this.varRef.name)) != null) {
-        this._resolved_varRef = PTypeVarRef.create(this.varRef.srcInfo, this.varRef.scope, v);
-        this._resolved_varRef = this._resolved_varRef.resolve();
-      } else {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Type variable \"");
-        emsg.append(this.varRef.name);
-        emsg.append("\" not defined at ");
-        emsg.append(this.varRef.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      this.varDef = this.varDef.resolve();
     }
 
     PDefDict.TparamProps getProps() {
-      return PDefDict.TparamProps.create(
-        this.variance,
-        (this.varDef != null)? this.varDef.requiresConcrete: this._resolved_varRef.def.requiresConcrete);
+      return PDefDict.TparamProps.create(this.variance, this.varDef.requiresConcrete);
     }
 
     PTypeVarSlot getVarSlot() {
-        return (this.varDef != null)? this.varDef._resolved_varSlot: this._resolved_varRef.def._resolved_varSlot;
+        return this.varDef._resolved_varSlot;
     }
 
     PProgObj getItem() {
-      return (this.varDef != null)? this.varDef: this.varRef;
+      return this.varDef;
     }
 
     String getVarName() {
-      return (this.varDef != null)? this.varDef.name: this.varRef.name;
+      return this.varDef.name;
     }
 
     void excludePrivateAcc() throws CompileException {
-      if (this.varDef != null) {
-        this.varDef.excludePrivateAcc();
-      }
+      // this.varDef.excludePrivateAcc();
     }
 
     PTypeVarSkel getTypeSkel() {
-      return (this.varDef != null)? (PTypeVarSkel)this.varDef.toSkel(): (PTypeVarSkel)this._resolved_varRef.toSkel();
+      return (PTypeVarSkel)this.varDef.toSkel();
     }
   }
 

@@ -121,26 +121,30 @@ eval <*T[ *A *B a'map ]> *FMap iter @public -> <<A B tuple> iter> {
 ### incarnation
 
 data <*T *A *B map_inc> @protected :=
-  org: <T>
+  fx: <T>
   fo: <T A B map.map_fs>
   map_inc$
 ++ inc_a'col_impl -> [ <A B tuple> a'col ] ;;
 
+eval <*T[ *A *B a'map ]> *FX incarnate @public -> <T A B map_inc> {
+  FX (FX _feature_a'map) map_inc$
+} ;;
+
 eval inc_a'col_impl -> <<*T *A *B map_inc> <A B tuple> col_fs> {
   empty?_f_:
     (\ <*TT *AA *BB map_inc> *I -> <bool> {
-       I = *ID *IFs map_inc$,
-       ID IFs map.do_empty?
+       I = *FX *Fo map_inc$,
+       FX Fo map.do_empty?
      } value$)
   size_f:
     \ <*TT *AA *BB map_inc> *I -> <int> {
-      I = *ID *IFs map_inc$,
-      ID IFs map.do_size
+      I = *FX *Fo map_inc$,
+      FX Fo map.do_size
     }
   iter_f:
     \ <*TT *AA *BB map_inc> *I -> <<AA BB tuple> iter> {
-      I = *ID *IFs map_inc$,
-      ID IFs map.do_iter
+      I = *FX *Fo map_inc$,
+      FX Fo map.do_iter
     }
   col_fs$
 } ;;

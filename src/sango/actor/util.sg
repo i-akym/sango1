@@ -139,7 +139,7 @@ eval <serialize_svr_d> *SD serialize_svr_end -> <void> {} ;;
 
 # -- entity box monitor --
 
-data <*A! box_monitor_h> @opaque := <A box.box_h> <serializer_h> box_monitor_h$ ;;
+data <*A box_monitor_h> @opaque := <A box.box_h> <serializer_h> box_monitor_h$ ;;
 
 eval <*A! box.box_h> *Box create_box_monitor | create_monitor @public -> <A box_monitor_h> {
   Box start_serializer box_monitor_h$

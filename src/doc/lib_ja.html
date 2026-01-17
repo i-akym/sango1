@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.8.2　ライブラリ解説</title>
+<title>Sango 1.8.3　ライブラリ解説</title>
 </head>
 
 <body>
@@ -254,9 +254,6 @@ kbd {
 <h2 id="sango.lang.1"><code>sango.lang</code> - 型と定数</h2>
 <p>基本的な型，多用される型，および関連する定数を示します。
   定数は関数の返り値として提供されます。</p>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;_?_&gt; @opaque ;;</code></td></tr></table>
-<p>プログラム文脈から離れているため，型が不明になっていることを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;_&gt; @opaque ;;</code></td></tr></table>
 <p>Sangoの全ての型の基底である型を表します（すべての型はこの型を拡張した型とみなします）。
@@ -807,9 +804,6 @@ eval &lt;*A maybe&gt; *X_ nothing? @public -&gt; &lt;bool&gt; ;;</code></td></tr
 <table border width="100%"><tr><td class="def"><code>eval string_col_fs @public -&gt; &lt;&lt;*A string&gt; A col_fs&gt; ;;</code></td></tr></table>
 <p>【Beta】ストリングについての<code>col_fs</code>を取得します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X expose @public -&gt; &lt;_?_&gt; ;;</code></td></tr></table>
-<p>型を文脈から引き離します。</p>
-
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.actor"><code>sango.actor</code></h1>
 
@@ -1053,7 +1047,7 @@ eval lowest_priority @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
   「実体」に対する一連の処理に原子性を持たせるために，entity monitorが提供されています。
   「実体」単位にentity monitorを生成し，それ経由でタスクを実行します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_monitor_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A box_monitor_h&gt; @opaque ;;</code></td></tr></table>
 <p><code>&lt;A! &quot;sango.entity.box&quot;.box_h&gt;</code>に対するentity monitorのハンドルを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A! &quot;sango.entity.box&quot;.box_h&gt; *Box create_box_monitor | create_monitor @public -&gt; &lt;A box_monitor_h&gt; ;;</code></td></tr></table>
@@ -1552,11 +1546,11 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
 <h2 id="sango.entity.feature.2"><code>sango.entity.feature</code> - 化身</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T entity_inc&gt; @protected :=
-  org: &lt;T&gt;
+  fx: &lt;T&gt;
   fo: &lt;T &quot;sango.entity&quot;.entity_fs&gt;
   entity_inc$ ;;
-eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
-<p>a'entityデータ・フィーチャの化身型と，化身型への変換関数です。</p>
+eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
+<p>a'entityデータ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.entity.box"><code>sango.entity.box</code></h1>
@@ -1566,7 +1560,7 @@ eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.1"></code>sango.entity.box</code> - ボックス</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! box_h&gt; @opaque
+<table border width="100%"><tr><td class="def"><code>data &lt;*A box_h&gt; @opaque
 ++ [ &quot;sango.entity&quot;.a'entity ] ;;</code></td></tr></table>
 <p>ボックスへの参照を表します。</p>
 
@@ -1587,7 +1581,7 @@ eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.entity.box.2"></code>sango.entity.box</code> - 弱参照</h2>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! wbox_h&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A wbox_h&gt; @opaque ;;</code></td></tr></table>
 <p>ボックスへの弱参照を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A! box_h&gt; *Box &lt;&lt;&lt;A wbox_h&gt; void fun&gt; maybe&gt; *Listener_
@@ -1621,7 +1615,7 @@ eval &lt;*T[ a'entity ]&gt; *FEntity incarnate @public -&gt; &lt;T entity_inc&gt
 <p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
   この格納場所からは読み出しのみが可能です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! rw_slot&gt; @opaque ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A rw_slot&gt; @opaque ;;</code></td></tr></table>
 <p>存在に結び付けられるデータ（関連データ）の格納場所を表します。
   この格納場所は同一の型のオブジェクトで更新可能です。</p>
 
@@ -3294,11 +3288,11 @@ eval &lt;*T[ a'eq ]&gt; *X0 &lt;T&gt; *X1 ne? @public -&gt; &lt;bool&gt; ;;</cod
 <h2 id="sango.util.eq.feature.2"><code>sango.util.eq.feature</code> - 化身</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T eq_inc&gt; @protected :=
-  org: &lt;T&gt;
+  fx: &lt;T&gt;
   fo: &lt;T eq_fs&gt;
   eq_inc$ ;;
-eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></td></tr></table>
-<p><code>a'eq</code>データ・フィーチャの化身型と，化身型への変換関数です。</p>
+eval &lt;*T[ a'eq ]&gt; *FX incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></td></tr></table>
+<p><code>a'eq</code>データ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.iter"><code>sango.util.iter</code></h1>
@@ -3356,11 +3350,11 @@ eval &lt;*T[ a'eq ]&gt; *FEq incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code><
 <h2 id="sango.util.iter.feature.1"><code>sango.util.iter.feature</code> - 化身</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
-  org: &lt;T&gt;
+  fx: &lt;T&gt;
   fo: &lt;T &lt;A iter&gt; fun&gt;
   iter_inc$ ;;
-eval &lt;*T[ *A a'iter ]&gt; *FIter incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
-<p><code>a'iter</code>データ・フィーチャの化身型と，化身型への変換関数です。</p>
+eval &lt;*T[ *A a'iter ]&gt; *FX incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
+<p><code>a'iter</code>データ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>
@@ -3538,7 +3532,7 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 データの参照・更新はハンドルを使って行います。
 このモジュールは統一されたインタフェースを提供するもので，ハンドルは<code>&quot;sango.util.map.shared.box&quot;</code>などで生成します。 </p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! *B! shared_map_h&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*A *B shared_map_h&gt; @public :=
   extract_f: &lt;&lt;&lt;A B tuple&gt; iter&gt; fun&gt;
   empty?_f: &lt;bool fun&gt;
   size_f: &lt;int fun&gt;
@@ -3647,12 +3641,12 @@ eval &lt;*T[ a'ord ]&gt; *X0 &lt;T&gt; *X1 ge? @public -&gt; &lt;bool&gt; ;;</co
 <h2 id="sango.util.ord.feature.2"><code>sango.util.ord.feature</code> - 化身</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*T ord_inc&gt; @protected :=
-  org: &lt;T&gt;
+  fx: &lt;T&gt;
   fo: &lt;T ord_fs&gt;
   ord_inc$
 ++ [ a'eq ] ;;
-eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code></td></tr></table>
-<p><code>a'ord</code>データ・フィーチャの化身型と，化身型への変換関数です。
+eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code></td></tr></table>
+<p><code>a'ord</code>データ・フィーチャの化身型です。
 化身型は<code>a'eq</code>データ・フィーチャを実装します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
@@ -4047,7 +4041,7 @@ eval &lt;*T[ a'ord ]&gt; *FOrd incarnate @public -&gt; &lt;T ord_inc&gt; ;;</cod
 データの参照・更新はハンドルを使って行います。
 このモジュールは統一されたインタフェースを提供するもので，ハンドルは<code>&quot;sango.util.set.shared.box&quot;</code>などで生成します。 </p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A! shared_set_h&gt; @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;*A shared_set_h&gt; @public :=
   extract_f: &lt;&lt;A iter&gt; fun&gt;
   empty?_f: &lt;bool fun&gt;
   size_f: &lt;int fun&gt;
