@@ -26,10 +26,9 @@ package org.sango_lang;
 import java.io.IOException;
 
 class PTypeVarDef extends PDefaultTypedObj implements PType {
-  String name;
+  String name;  // null if anonymous
   boolean requiresConcrete;
   PFeature.List features;  // maybe null
-  // PFeatureSkel.List nFeatures;  // maybe null
   PTypeVarSlot _resolved_varSlot;
   PTypeVarSkel _once_skel;
 
@@ -52,7 +51,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     buf.append("src=");
     buf.append(this.srcInfo);
     buf.append(",name=");
-    buf.append(this.name);
+    buf.append((this.name != null)? this.name: "(ANONYM)");
     if (this.requiresConcrete) {
       buf.append("!");
     }
@@ -90,19 +89,37 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
   static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
-    ParserA.Token varSym = ParserA.acceptToken(reader, LToken.AST, spc);
-    if (varSym == null) { return null; }
-    ParserA.Token varId;
-    if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
-      emsg = new StringBuffer();
-      emsg.append("Variable/parameter name missing at ");
-      emsg.append(reader.getCurrentSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
+    ParserA.Token varSym;
+    String name;
+    boolean requiresConcrete;
+    PFeature.List fs;
+    if ((varSym  = ParserA.acceptToken(reader, LToken.AST, spc)) != null) {
+      ParserA.Token varId;
+      if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
+        emsg = new StringBuffer();
+        emsg.append("Variable/parameter name missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      name = varId.value.token;
+      requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
+      fs = PFeature.List.accept(reader, scope);
+    } else if ((varSym  = ParserA.acceptToken(reader, LToken.AST_AST, spc)) != null) {
+      name = null;
+      requiresConcrete = false;
+      fs = PFeature.List.accept(reader, scope);
+      if (fs == null) {
+        emsg = new StringBuffer();
+        emsg.append("Feature(s) missing at ");
+        emsg.append(reader.getCurrentSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    } else {
+      return null;
     }
-    boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    PFeature.List fs = PFeature.List.accept(reader, scope);
-    return create(si, scope, varId.value.token, requiresConcrete, fs);
+    return create(si, scope, name, requiresConcrete, fs);
   }
 
   static PTypeVarDef acceptForDefHeader(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
@@ -119,9 +136,6 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       throw new CompileException(emsg.toString());
     }
     return create(si, scope, varId.value.token, false, null);
-    // boolean requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-    // PFeature.List fs = PFeature.List.acceptSig(reader, scope);
-    // return create(si, scope, varId.value.token, requiresConcrete, fs);
   }
 
   static PTypeVarDef acceptX(ParserB.Elem elem, PScope scope) throws CompileException {
@@ -148,7 +162,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 // /* DEBUG */ System.out.print("VARDEF "); System.out.print(this); System.out.println(this.scope);
     StringBuffer emsg;
     if (this._resolved_varSlot != null) { return this; }
-    if (!this.scope.canDefineTVar(this)) {
+    if (!this.scope.canDefineTVar(this)) {  // successful if name == null
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
@@ -182,61 +196,4 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     }
     return this._once_skel;
   }
-
-  // public PTypeVarSkel getNormalizedSkel() throws CompileException {
-    // if (this._normalized_typeSkel == null) {
-      // this.nFeatures = (this.features != null)?  this.features.getNormalizedSkel(): null;
-      // this._normalized_typeSkel = PTypeVarSkel.create(this.scope.theMod.theCompiler, this.srcInfo, this.name, this._resolved_varSlot, this.nFeatures);
-    // }
-    // return (PTypeVarSkel)this._normalized_typeSkel;
-  // }
-
-  // static class DefWithVariance {
-    // Parser.SrcInfo srcInfo;
-    // Module.Variance variance;
-    // PTypeVarDef varDef;
-
-    // static DefWithVariance accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      // StringBuffer emsg;
-      // Parser.SrcInfo si = reader.getCurrentSrcInfo();
-      // Module.Variance variance;
-      // if (ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        // variance = Module.COVARIANT;
-      // } else if (ParserA.acceptToken(reader, LToken.MINUS, ParserA.SPACE_DO_NOT_CARE) != null) {
-        // variance = Module.CONTRAVARIANT;
-      // } else {
-        // variance = Module.INVARIANT;
-      // }
-      // PTypeVarDef varDef = PTypeVarDef.accept(reader, scope);
-      // DefWithVariance d;
-      // if (varDef != null) {
-        // // if (varDef.features != null) {
-          // // emsg = new StringBuffer();
-          // // emsg.append("Feature description not allowed at ");
-          // // emsg.append(varDef.getSrcInfo());
-          // // emsg.append(". *");
-          // // emsg.append(varDef.name);
-          // // throw new CompileException(emsg.toString());
-        // // }
-        // d = create(si, variance, varDef);
-      // } else if (variance == Module.INVARIANT) {
-        // d = null;
-      // } else {
-        // emsg = new StringBuffer();
-        // emsg.append("Parameter missing at ");
-        // emsg.append(reader.getCurrentSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // return d;
-    // }
-
-    // static DefWithVariance create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
-      // DefWithVariance d = new DefWithVariance();
-      // d.srcInfo = srcInfo;
-      // d.variance = variance;
-      // d.varDef = varDef;
-      // return d;
-    // }
-  // }
 }

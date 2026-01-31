@@ -54,6 +54,7 @@ class PScope {
   Map<String, PExprVarDef> evarDict;
   Map<String, PTypeVarDef> outerTVarDict;
   Map<String, PExprVarDef> outerEVarDict;
+  List<PTypeVarSlot> anonymTVarList;
   List<PTypeVarSlot> envTVarList;  // null when created
   List<PExprVarSlot> envEVarList;  // null when created
   List<PTypeVarSlot> givenTVarList;  // null when created
@@ -65,6 +66,7 @@ class PScope {
     this.evarDict = new HashMap<String, PExprVarDef>();
     this.outerTVarDict = new HashMap<String, PTypeVarDef>();
     this.outerEVarDict = new HashMap<String, PExprVarDef>();
+    this.anonymTVarList = new ArrayList<PTypeVarSlot>();
   }
 
   static PScope create(PModule theMod) {
@@ -346,6 +348,7 @@ class PScope {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
+    if (varDef.name == null) { return true; }
     return this.canDefineTVarHere()
       && !this.tvarDict.containsKey(varDef.name)
       && !this.evarDict.containsKey(varDef.name)
@@ -375,7 +378,11 @@ class PScope {
     } else {
       slot = PTypeVarSlot.create();
       varDef._resolved_varSlot = slot;
-      this.tvarDict.put(varDef.name, varDef);
+      if (varDef.name != null) {
+        this.tvarDict.put(varDef.name, varDef);
+      } else {
+        this.anonymTVarList.add(slot);
+      }
     }
     return slot;
   }
@@ -640,10 +647,17 @@ class PScope {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
-    this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.evalStmt.getParamTypes();
     for (int i = 0; i < pts.length; i++) {
-      pts[i].extractVars(this.givenTVarList);
+      pts[i].extractVars(vs);
+    }
+    this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    for (int i = 0; i < vs.size(); i++) {
+      PTypeVarSlot s = vs.get(i);
+      if (!this.anonymTVarList.contains(s)) {
+        this.givenTVarList.add(s);
+      }
     }
   }
 
@@ -651,11 +665,18 @@ class PScope {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
-    this.givenTVarList = new ArrayList<PTypeVarSlot>();
-    this.givenTVarList.addAll(this.parent.getGivenTVarList());
+    List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
     PTypeSkel[] pts = this.closure.getParamDefinedTypes();
     for (int i = 0; i < pts.length; i++) {
-      pts[i].extractVars(this.givenTVarList);
+      pts[i].extractVars(vs);
+    }
+    this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    this.givenTVarList.addAll(this.parent.getGivenTVarList());
+    for (int i = 0; i < vs.size(); i++) {
+      PTypeVarSlot s = vs.get(i);
+      if (!this.anonymTVarList.contains(s)) {
+        this.givenTVarList.add(s);
+      }
     }
   }
 
