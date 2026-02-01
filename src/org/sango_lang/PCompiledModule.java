@@ -270,17 +270,16 @@ class PCompiledModule implements PModDecl {
       ad.tparams[i] = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null, PTypeVarSlot.create(), false, null);
       varList.add(ad.tparams[i]);
     }
-    ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList /* , unresolvedTypeRefList, unresolvedFeatureList */);
+    ad.body = this.convertType(aliasTypeDef.body, mod, varList);
     return ad;
   }
 
   class AliasTypeDef implements PAliasTypeDef {
-    // PDefDict.TidProps tconProps;
     Module.Availability availability;
     Module.Access acc;
     String tcon;
     PTypeVarSkel[] tparams;
-    PTypeRefSkel body;
+    PTypeSkel body;
 
     public String getTcon() { return this.tcon; }
 
@@ -296,10 +295,7 @@ class PCompiledModule implements PModDecl {
 
     public Module.Access getAcc() { return this.acc; }
 
-    // public void collectUnaliasTconProps(List<PDefDict.TidProps> list) { this.body.collectTconProps(list); }
-    // public PDefDict.TidProps unaliasTconProps() { return this.body.tconProps; }
-
-    public PTypeRefSkel getBody() { return this.body; }
+    public PTypeSkel getBody() { return this.body; }
 
     public PTypeSkel unalias(PTypeSkel[] params) throws CompileException {
       if (params.length != this.tparams.length) {
