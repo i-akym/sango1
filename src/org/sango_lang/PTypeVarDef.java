@@ -86,14 +86,14 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return v;
   }
 
-  static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope, int spc) throws CompileException, IOException {
+  static PTypeVarDef accept(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     Parser.SrcInfo si = reader.getCurrentSrcInfo();
     ParserA.Token varSym;
     String name;
     boolean requiresConcrete;
     PFeature.List fs;
-    if ((varSym  = ParserA.acceptToken(reader, LToken.AST, spc)) != null) {
+    if (acceptsVarDef && (varSym  = ParserA.acceptToken(reader, LToken.AST, spc)) != null) {
       ParserA.Token varId;
       if ((varId = ParserA.acceptNormalWord(reader, ParserA.SPACE_DO_NOT_CARE)) == null) {
         emsg = new StringBuffer();
@@ -104,11 +104,11 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       }
       name = varId.value.token;
       requiresConcrete = ParserA.acceptToken(reader, LToken.EXCLA, ParserA.SPACE_DO_NOT_CARE) != null;
-      fs = PFeature.List.accept(reader, scope);
+      fs = PFeature.List.accept(reader, scope, acceptsVarDef);
     } else if ((varSym  = ParserA.acceptToken(reader, LToken.AST_AST, spc)) != null) {
       name = null;
       requiresConcrete = false;
-      fs = PFeature.List.accept(reader, scope);
+      fs = PFeature.List.accept(reader, scope, acceptsVarDef);
       if (fs == null) {
         emsg = new StringBuffer();
         emsg.append("Feature(s) missing at ");

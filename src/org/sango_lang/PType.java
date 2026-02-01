@@ -70,11 +70,11 @@ interface PType extends PProgObj {
 
   static class Builder {
 
-    private static final int[] acceptable_tab = new int[] {
-      /* 0 */ ACCEPTABLE_NONE,  // no more
-      /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,
-      /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE
-    };
+    // private static final int[] acceptable_tab = new int[] {
+      // /* 0 */ ACCEPTABLE_NONE,  // no more
+      // /* 1 */ ACCEPTABLE_ID + ACCEPTABLE_VARDEF + ACCEPTABLE_TYPE,
+      // /* 2 */ ACCEPTABLE_ID + ACCEPTABLE_TYPE
+    // };
 
     Parser.SrcInfo srcInfo;
     PScope scope;
@@ -152,10 +152,12 @@ interface PType extends PProgObj {
     }
     Builder builder = Builder.newInstance(t.getSrcInfo(), scope);
     PProgObj item;
-    int state = acceptsVarDef? 1: 2;
+    // int state = acceptsVarDef? 1: 2;
+    int state = 1;
     int sp = ParserA.SPACE_DO_NOT_CARE;
     while (state > 0) {
-      if ((item = acceptItem(reader, scope, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
+      if ((item = acceptItem(reader, scope, sp, acceptsVarDef)) != null) {
+      // if ((item = acceptItem(reader, scope, sp, acceptsVarDef, Builder.acceptable_tab[state])) != null) {
         builder.addItem(item);
         sp = ParserA.SPACE_NEEDED;
       } else {
@@ -202,20 +204,30 @@ interface PType extends PProgObj {
     return builder.create();
   }
 
-  static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
+  static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef) throws CompileException, IOException {
+  // static PProgObj acceptItem(ParserA.TokenReader reader, PScope scope, int spc, boolean acceptsVarDef, int acceptables) throws CompileException, IOException {
     PProgObj item;
-    if ((acceptables & ACCEPTABLE_ID) > 0
-        && (item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+    if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
       ;
-    } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
-        && (item = PTypeVarDef.accept(reader, scope, spc)) != null) {
+    } else if ((item = PTypeVarDef.accept(reader, scope, spc, acceptsVarDef)) != null) {
       ;
-    } else if ((acceptables & ACCEPTABLE_TYPE) > 0
-        && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
+    } else if ((item = accept(reader, scope, spc, acceptsVarDef)) != null) {
       ;
     } else {
       item = null;
     }
+    // if ((acceptables & ACCEPTABLE_ID) > 0
+        // && (item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
+      // ;
+    // } else if ((acceptables & ACCEPTABLE_VARDEF) > 0
+        // && (item = PTypeVarDef.accept(reader, scope, spc, acceptsVarDef)) != null) {
+      // ;
+    // } else if ((acceptables & ACCEPTABLE_TYPE) > 0
+        // && (item = accept(reader, scope, spc, acceptsVarDef)) != null) {
+      // ;
+    // } else {
+      // item = null;
+    // }
     return item;
   }
 

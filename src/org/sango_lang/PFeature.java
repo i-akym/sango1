@@ -57,11 +57,11 @@ public class PFeature extends PDefaultProgObj {
     return buf.toString();
   }
 
-  static PFeature accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+  static PFeature accept(ParserA.TokenReader reader, PScope scope, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
-    PFeature f = acceptDesc(reader, scope);
+    PFeature f = acceptDesc(reader, scope, acceptsVarDef);
     if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
       emsg = new StringBuffer();
       emsg.append("] missing at ");
@@ -72,7 +72,7 @@ public class PFeature extends PDefaultProgObj {
     return f;
   }
 
-  static PFeature acceptDesc(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+  static PFeature acceptDesc(ParserA.TokenReader reader, PScope scope, boolean acceptsVarDef) throws CompileException, IOException {
     StringBuffer emsg;
     ParserA.Token t;
     Builder builder = Builder.newInstance(reader.getCurrentSrcInfo(), scope);
@@ -83,10 +83,10 @@ public class PFeature extends PDefaultProgObj {
       if ((item = PTid.accept(reader, scope, Parser.QUAL_MAYBE, spc)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
-      } else if ((item = PTypeVarDef.accept(reader, scope, spc)) != null) {
+      } else if ((item = PTypeVarDef.accept(reader, scope, spc, acceptsVarDef)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
-      } else if ((item = PType.accept(reader, scope, spc, true)) != null) {
+      } else if ((item = PType.accept(reader, scope, spc, acceptsVarDef)) != null) {
         builder.addItem(item);
         spc = ParserA.SPACE_NEEDED;
       } else {
@@ -189,7 +189,7 @@ public class PFeature extends PDefaultProgObj {
       super(srcInfo, scope);
     }
 
-    static List accept(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
+    static List accept(ParserA.TokenReader reader, PScope scope, boolean acceptsVarDef) throws CompileException, IOException {
       StringBuffer emsg;
       ParserA.Token t;
       if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
@@ -197,7 +197,7 @@ public class PFeature extends PDefaultProgObj {
       PFeature f;
       int state = 0;
       while (state >= 0) {
-        if (state == 0 && (f = acceptDesc(reader, scope)) != null) {
+        if (state == 0 && (f = acceptDesc(reader, scope, acceptsVarDef)) != null) {
           builder.addFeature(f);
           state = 1;
         } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
