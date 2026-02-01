@@ -192,8 +192,8 @@ public class PTypeRefSkel implements PTypeSkel {
     return ww;
   }
 
-  public PTypeRefSkel normalize() throws CompileException {
-    PTypeRefSkel n;
+  public PTypeSkel normalize() throws CompileException {
+    PTypeSkel n;
     PDefDict.TidProps tp = this.theCompiler.defDict.resolveTcon(null, this.tconKey);
     if ((tp.cat & PDefDict.TID_CAT_TCON_ALIAS) > 0) {
       PAliasTypeDef ad = this.theCompiler.defDict.getAliasTypeDef(null, this.tconKey);

@@ -301,7 +301,7 @@ class PCompiledModule implements PModDecl {
 
     public PTypeRefSkel getBody() { return this.body; }
 
-    public PTypeRefSkel unalias(PTypeSkel[] params) throws CompileException {
+    public PTypeSkel unalias(PTypeSkel[] params) throws CompileException {
       if (params.length != this.tparams.length) {
         throw new IllegalArgumentException("Length of unaliasing params mismatch.");
       }
@@ -310,8 +310,8 @@ class PCompiledModule implements PModDecl {
       for (int i = 0; i < params.length; i++) {
         bindings.bind(((PTypeVarSkel)this.tparams[i].instanciate(ic)).varSlot, params[i]);
       }
-      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(ic).resolveBindings(bindings);
-      return tr.normalize();
+      PTypeSkel u = this.body.instanciate(ic).resolveBindings(bindings);
+      return u.normalize();
     }
   }
 
