@@ -54,7 +54,7 @@ class PScope {
   Map<String, PExprVarDef> evarDict;
   Map<String, PTypeVarDef> outerTVarDict;
   Map<String, PExprVarDef> outerEVarDict;
-  List<PTypeVarSlot> anonymTVarList;
+  // List<PTypeVarSlot> anonymTVarList;
   List<PTypeVarSlot> envTVarList;  // null when created
   List<PExprVarSlot> envEVarList;  // null when created
   List<PTypeVarSlot> givenTVarList;  // null when created
@@ -66,7 +66,7 @@ class PScope {
     this.evarDict = new HashMap<String, PExprVarDef>();
     this.outerTVarDict = new HashMap<String, PTypeVarDef>();
     this.outerEVarDict = new HashMap<String, PExprVarDef>();
-    this.anonymTVarList = new ArrayList<PTypeVarSlot>();
+    // this.anonymTVarList = new ArrayList<PTypeVarSlot>();
   }
 
   static PScope create(PModule theMod) {
@@ -367,40 +367,32 @@ class PScope {
       && !this.outerEVarDict.containsKey(varDef.name);
   }
 
-  PTypeVarSlot defineTVar(PTypeVarDef varDef) {
+  void defineTVar(PTypeVarDef varDef) {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
     // check if defining var is available
-    PTypeVarSlot slot;
     if (this.inParallel) {
-      slot = this.parent.defineTVar(varDef);  // temporal impl - forward simply
-    } else {
-      slot = PTypeVarSlot.create();
-      varDef._resolved_varSlot = slot;
-      if (varDef.name != null) {
-        this.tvarDict.put(varDef.name, varDef);
-      } else {
-        this.anonymTVarList.add(slot);
-      }
+      this.parent.defineTVar(varDef);  // temporal impl - forward simply
+    } else if (varDef.name != null) {
+      varDef._resolved_varSlot = PTypeVarSlot.create();
+      this.tvarDict.put(varDef.name, varDef);
+    } else {  // anonymous
+      ;
     }
-    return slot;
   }
 
-  PExprVarSlot defineEVar(PExprVarDef varDef) {
+  void defineEVar(PExprVarDef varDef) {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
     // check if defining var is available
-    PExprVarSlot slot;
     if (this.inParallel) {
-      slot = this.parent.defineEVar(varDef);  // temporal impl - forward simply
+      this.parent.defineEVar(varDef);  // temporal impl - forward simply
     } else {
-      slot = PExprVarSlot.create(varDef);
-      varDef._resolved_varSlot = slot;
+      varDef._resolved_varSlot = PExprVarSlot.create(varDef);
       this.evarDict.put(varDef.name, varDef);
     }
-    return slot;
   }
 
   PTypeVarDef referSimpleTid(String id) {
@@ -655,9 +647,9 @@ class PScope {
     this.givenTVarList = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < vs.size(); i++) {
       PTypeVarSlot s = vs.get(i);
-      if (!this.anonymTVarList.contains(s)) {
+      // if (!this.anonymTVarList.contains(s)) {
         this.givenTVarList.add(s);
-      }
+      // }
     }
   }
 
@@ -674,9 +666,9 @@ class PScope {
     this.givenTVarList.addAll(this.parent.getGivenTVarList());
     for (int i = 0; i < vs.size(); i++) {
       PTypeVarSlot s = vs.get(i);
-      if (!this.anonymTVarList.contains(s)) {
+      // if (!this.anonymTVarList.contains(s)) {
         this.givenTVarList.add(s);
-      }
+      // }
     }
   }
 

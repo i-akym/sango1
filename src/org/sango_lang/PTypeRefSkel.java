@@ -591,9 +591,9 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  public PTypeVarSlot getVarSlot() {
-    return null;
-  }
+  // public PTypeVarSlot getVarSlot() {
+    // return null;
+  // }
 
   public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList)  throws CompileException{
 if (PTypeGraph.DEBUG > 1) {

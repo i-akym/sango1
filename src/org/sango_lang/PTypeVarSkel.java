@@ -30,8 +30,8 @@ import java.util.Set;
 public class PTypeVarSkel implements PTypeSkel {
   Compiler theCompiler;
   Parser.SrcInfo srcInfo;
-  String name;
-  public PTypeVarSlot varSlot;  // public for native impl of sango.lang.module
+  String name;  // maybe null
+  PTypeVarSlot varSlot;  // null if anonymous
   boolean requiresConcrete;
   PFeatureSkel.List features;  // maybe null
 
@@ -41,7 +41,11 @@ public class PTypeVarSkel implements PTypeSkel {
     PTypeVarSkel var = new PTypeVarSkel();
     var.theCompiler = theCompiler;
     var.srcInfo = srcInfo;
-    var.name = ((name != null)? name + ":": "") + varSlot.toString();
+    if (varSlot != null) {
+      var.name = ((name != null)? name: "?") + ":" + varSlot.toString();
+    } else {
+      var.name = "(ANONYM)";
+    }
     var.varSlot = varSlot;
     var.requiresConcrete = requiresConcrete;
     var.features = features;
@@ -49,6 +53,7 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   PTypeVarSkel cast(boolean newRequiresConcrete, PFeatureSkel.List newFeatures, PTypeSkelBindings bindings) {
+    if (this.varSlot == null) { throw new RuntimeException("Unexpected " + this); }
     PTypeVarSlot s = PTypeVarSlot.create();
     String n = this.name + ":" + s.toString();
     PTypeVarSkel v = create(this.theCompiler, this.srcInfo, n, s, newRequiresConcrete, newFeatures);
@@ -64,7 +69,7 @@ public class PTypeVarSkel implements PTypeSkel {
       b = false;
     } else {
       PTypeVarSkel v = (PTypeVarSkel)o;
-      b = v.varSlot.equals(this.varSlot);
+      b = (this.varSlot != null) & (v.varSlot == this.varSlot);  // ok?
     }
     return b;
   }
@@ -157,48 +162,33 @@ public class PTypeVarSkel implements PTypeSkel {
     PTypeSkel ttt = type.resolveBindings(bindings);
     if (tt instanceof PTypeVarSkel) {
       PTypeVarSkel ttv = (PTypeVarSkel)tt;
-      if (ttv.varSlot == ttt.getVarSlot()) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        b = true;
-      } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        b = ttv.accept1(width, ttt, bindings);
-      }
+      b = ttv.accept1(width, ttt, bindings);
     } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
       b = tt.accept(width, ttt, bindings);  // forward
     }
     return b;
   }
 
   boolean accept1(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    // type != this
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(this.varSlot)) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1 A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
+    if (this.varSlot == null) {
+      b = this.accept1Anonym(width, type, bindings);
+    } else if (bindings.isGivenTVar(this.varSlot)) {
       b = this.accept1Given(width, type, bindings);
     } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1 B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
       b = this.accept1Free(width, type, bindings);
     }
     return b;
   }
 
+  boolean accept1Anonym(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+    throw new RuntimeException("PTypeVarSkel#accept1Anonym not implemented.");
+  }
+
   boolean accept1Given(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    // type != this
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Given "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -231,14 +221,21 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1GivenVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot)) {
+    if (tv.varSlot == null) {
+      throw new RuntimeException("PTypeVarSkel#accept1GivenVar (anonymous tv) not implemented.");
+    } else if (this.varSlot == tv.varSlot) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1GivenVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#accept1GivenVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = true;
+    } else if (bindings.isGivenTVar(tv.varSlot)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1GivenVar C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.accept1GivenGiven(width, tv, bindings);
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1GivenVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#accept1GivenVar D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.accept1GivenFree(width, tv, bindings);
     }
@@ -302,7 +299,6 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   boolean accept1Free(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    // type != this
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -360,7 +356,11 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot)) {
+    if (tv.varSlot == null) {
+      throw new RuntimeException("PTypeVarSkel#accept1GivenVar (anonymous tv) not implemented.");
+    } else if (this.varSlot == tv.varSlot) {
+      b = true;
+    } else if (bindings.isGivenTVar(tv.varSlot)) {
       b = this.accept1FreeGiven(width, tv, bindings);
     } else {
       b = this.accept1FreeFree(width, tv, bindings);
@@ -448,48 +448,33 @@ public class PTypeVarSkel implements PTypeSkel {
     PTypeSkel ttt = type.resolveBindings(bindings);
     if (tt instanceof PTypeVarSkel) {
       PTypeVarSkel ttv = (PTypeVarSkel)tt;
-      if (ttv.varSlot == ttt.getVarSlot()) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        b = true;
-      } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        b = ttv.require1(width, ttt, bindings);
-      }
+      b = ttv.require1(width, ttt, bindings);
     } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
       b = tt.require(width, ttt, bindings);  // forward
     }
     return b;
   }
 
   boolean require1(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    // type != this
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(this.varSlot)) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require1 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
+    if (this.varSlot == null) {
+      b = this.require1Anonym(width, type, bindings);
+    } else if (bindings.isGivenTVar(this.varSlot)) {
       b = this.require1Given(width, type, bindings);
     } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require1 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
       b = this.require1Free(width, type, bindings);
     }
     return b;
   }
 
+  boolean require1Anonym(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+    throw new RuntimeException("PTypeVarSkel#require1Anonym not implemented.");
+  }
+
   boolean require1Given(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    // type != this
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Given "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -522,14 +507,21 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#require1GivenVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot) /* || bindings.getGivenBound(tv.varSlot) != null */) {
+    if (tv.varSlot == null) {
+      throw new RuntimeException("PTypeVarSkel#requireGivenVar (anonymous tv) not implemented.");
+    } else if (this.varSlot == tv.varSlot) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require1GivenVar A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#require1GivenVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = true;
+    } else if (bindings.isGivenTVar(tv.varSlot) /* || bindings.getGivenBound(tv.varSlot) != null */) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#require1GivenVar C "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.require1GivenGiven(width, tv, bindings);
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#require1GivenVar B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#require1GivenVar D "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = this.require1GivenFree(width, tv, bindings);
     }
@@ -583,7 +575,6 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   boolean require1Free(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    // type != this
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Free "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -625,7 +616,11 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#require1FreeVar "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot)) {
+    if (tv.varSlot == null) {
+      throw new RuntimeException("PTypeVarSkel#require1FreeVar (anonymous tv) not implemented.");
+    } else if (this.varSlot == tv.varSlot) {
+      b = true;
+    } else if (bindings.isGivenTVar(tv.varSlot)) {
       b = this.require1FreeGiven(width, tv, bindings);
     } else {
       b = this.require1FreeFree(width, tv, bindings);
@@ -690,7 +685,7 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
-  public PTypeVarSlot getVarSlot() { return this.varSlot; }
+  // public PTypeVarSlot getVarSlot() { return this.varSlot; }
 
   public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
@@ -713,165 +708,158 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel.JoinResult r;
     PTypeSkel t = this.resolveBindings(bindings);
     if (t instanceof PTypeVarSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 A "); System.out.print(t); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      PTypeVarSkel tv = (PTypeVarSkel)t;
-      if (type.getCat() == PTypeSkel.CAT_BOTTOM) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 A1 "); System.out.print(tv); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        r = PTypeSkel.JoinResult.create(tv, bindings);
-      } else if (bindings.isGivenTVar(tv.varSlot)) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 A2 "); System.out.print(tv); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        r = tv.join2Given(width, type, bindings);
-      } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 A3 "); System.out.print(tv); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        r = tv.join2Free(width, type, bindings);
-      }
+      r = this.join3(width, type, bindings);
     } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2 B "); System.out.print(t); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      r = t.join2(width, type, bindings);
+      r = t.join2(width, type, bindings);  // forward
     }
     return r;
-
-    // if (t != this) {
-      // r = t.join2(width, /* bindsRef, */ type, bindings);
-    // } else if (type.getCat() == PTypeSkel.CAT_BOTTOM) {
-      // r = PTypeSkel.JoinResult.create(this, bindings);
-    // } else if (bindings.isGivenTVar(this.varSlot)) {
-      // r = this.join2Given(width, /* bindsRef, */ type, bindings);
-    // } else {
-      // r = this.join2Free(width, /* bindsRef, */ type, bindings);
-    // }
   }
 
-  PTypeSkel.JoinResult join2Given(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) {
+  public PTypeSkel.JoinResult join3(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     PTypeSkel.JoinResult r;
-    if (type instanceof PTypeVarSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      PTypeVarSkel tv = (PTypeVarSkel)type;
-      PTypeSkel t = tv.resolveBindings(bindings);
-      if (t instanceof PTypeVarSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given A1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        PTypeVarSkel tv2 = (PTypeVarSkel)t;
-        if (this.varSlot == tv2.varSlot) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given A11 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-          r = PTypeSkel.JoinResult.create(this, bindings);
-        } else if (bindings.isGivenTVar(tv2.varSlot))  {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given A12 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-          r = null;
-        } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given A13 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-          r = this.join2GivenFree(width, tv2, bindings);
-        }
-      } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given A2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        r = null;
-      }
-    } else if (type instanceof PTypeRefSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Given B "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      r = null;
-    }  else {
-      throw new IllegalArgumentException("Unknown type. " + type.toString());
+    if (this.varSlot == null) {
+      r = this.join3Anonym(width, type, bindings);
+    } else if (bindings.isGivenTVar(this.varSlot)) {
+      r = this.join3Given(width, type, bindings);
+    } else {
+      r = this.join3Free(width, type, bindings);
     }
     return r;
+  }
 
-      // if (t != tv) {
-        // r = this.join2Given(width, /* bindsRef, */ t, bindings);
-      // } else if (this.varSlot == tv.varSlot)  {
-        // r = PTypeSkel.JoinResult.create(this, bindings);
-      // } else if (bindings.isGivenTVar(tv.varSlot))  {
-        // r = null;
+  public PTypeSkel.JoinResult join3Anonym(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+    throw new RuntimeException("PTypeVarSkel#join3Anonym not implemented.");
+  }
+
+
+    // PTypeSkel t = this.resolveBindings(bindings);
+    // if (t instanceof PTypeVarSkel) {
+      // PTypeVarSkel tv = (PTypeVarSkel)t;
+      // if (type.getCat() == PTypeSkel.CAT_BOTTOM) {
+        // r = PTypeSkel.JoinResult.create(tv, bindings);
+      // } else if (bindings.isGivenTVar(tv.varSlot)) {
+        // r = tv.join3Given(width, type, bindings);
       // } else {
-        // r = this.join2GivenFree(width, /* bindsRef, */ tv, bindings);
+        // r = tv.join3Free(width, type, bindings);
       // }
     // } else {
-      // throw new IllegalArgumentException("Unknown type. " + type.toString());
+      // r = t.join3(width, type, bindings);
     // }
-  }
 
-  PTypeSkel.JoinResult join2GivenFree(int width, /* boolean bindsRef, */ PTypeVarSkel tv, PTypeSkelBindings bindings) {
+  PTypeSkel.JoinResult join3Given(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) {
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Given "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+}
     PTypeSkel.JoinResult r;
-    r = tv.join2FreeGiven(width, /* bindsRef, */ this, bindings);
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      r = PTypeSkel.JoinResult.create(this, bindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
+      r = null;
+    } else if (cat == PTypeSkel.CAT_VAR) {
+      r = this.join3GivenVar(width, (PTypeVarSkel)type, bindings);
+    } else {
+      throw new RuntimeException("Unexspected type. " + type.toString());
+    }
     return r;
   }
 
-  PTypeSkel.JoinResult join2Free(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  PTypeSkel.JoinResult join3GivenVar(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    PTypeSkel.JoinResult r;
+    if (tv.varSlot == null) {
+      throw new RuntimeException("PTypeVarSkel#accept1GivenVar (anonymous tv) not implemented.");
+    } else if (this.varSlot == tv.varSlot) {
+      r = PTypeSkel.JoinResult.create(this, bindings);
+    } else if (bindings.isGivenTVar(tv.varSlot)) {
+      r = null;
+    } else {
+      r = this.join3GivenFree(width, tv, bindings);
+    }
+    return r;
+  }
+
+    // if (type instanceof PTypeVarSkel) {
+      // PTypeVarSkel tv = (PTypeVarSkel)type;
+      // PTypeSkel t = tv.resolveBindings(bindings);
+      // if (t instanceof PTypeVarSkel) {
+        // PTypeVarSkel tv2 = (PTypeVarSkel)t;
+        // if (this.varSlot == tv2.varSlot) {
+          // r = PTypeSkel.JoinResult.create(this, bindings);
+        // } else if (bindings.isGivenTVar(tv2.varSlot))  {
+          // r = null;
+        // } else {
+          // r = this.join3GivenFree(width, tv2, bindings);
+        // }
+      // } else {
+        // r = null;
+      // }
+    // } else if (type instanceof PTypeRefSkel) {
+      // r = null;
+    // }  else {
+      // throw new IllegalArgumentException("Unknown type. " + type.toString());
+    // }
+
+  PTypeSkel.JoinResult join3GivenFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+    PTypeSkel.JoinResult r;
+    r = tv.join3FreeGiven(width, this, bindings);  // swap and forward
+    return r;
+  }
+
+  PTypeSkel.JoinResult join3Free(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     PTypeSkel.JoinResult r;
     if (type instanceof PTypeVarSkel) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       PTypeVarSkel tv = (PTypeVarSkel)type;
       PTypeSkel t = tv.resolveBindings(bindings);
       if (t instanceof PTypeVarSkel) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free A1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
         PTypeVarSkel tv2 = (PTypeVarSkel)t;
         if (this.varSlot == tv2.varSlot)  {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free A11 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A11 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
           r = PTypeSkel.JoinResult.create(this, bindings);
         } else if (bindings.isGivenTVar(tv2.varSlot))  {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free A12 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A12 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-          r = this.join2FreeGiven(width, tv2, bindings);
+          r = this.join3FreeGiven(width, tv2, bindings);
         } else {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free A13 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A13 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-          r = this.join2FreeFree(width, tv2, bindings);
+          r = this.join3FreeFree(width, tv2, bindings);
         }
       } else if (t instanceof PTypeRefSkel) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free A2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-        r = this.join2FreeTypeRef(width, (PTypeRefSkel)t, bindings);
+        r = this.join3FreeTypeRef(width, (PTypeRefSkel)t, bindings);
       } else {
         throw new IllegalArgumentException("Unknown type. " + type.toString());
       }
     } else if (type instanceof PTypeRefSkel) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join2Free B "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free B "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      r = this.join2FreeTypeRef(width, (PTypeRefSkel)type, bindings);
+      r = this.join3FreeTypeRef(width, (PTypeRefSkel)type, bindings);
     } else {
       throw new IllegalArgumentException("Unknown type. " + type.toString());
     }
     return r;
   }
 
-  PTypeSkel.JoinResult join2FreeGiven(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
+  PTypeSkel.JoinResult join3FreeGiven(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) {
     // this.varSlot != tv.varSlot
     PTypeSkel.JoinResult r;
     PTypeSkelBindings b = bindings.copy();
@@ -880,7 +868,7 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  PTypeSkel.JoinResult join2FreeTypeRef(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+  PTypeSkel.JoinResult join3FreeTypeRef(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
     PTypeSkel.JoinResult r;
     if (tr.includesVar(this.varSlot, bindings)) {
       r = null;
@@ -894,7 +882,7 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  PTypeSkel.JoinResult join2FreeFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+  PTypeSkel.JoinResult join3FreeFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
     PTypeSkel.JoinResult r;
     PFeatureSkel.JoinResult fr;
     PTypeSkelBindings b = bindings.copy();
@@ -922,20 +910,27 @@ if (PTypeGraph.DEBUG > 1) {
 
   public MType toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, List<PTypeVarSlot> slotList) {
     MTypeVar tv;
-    int index = slotList.indexOf(this.varSlot);
-    if (index < 0) {  // definition
+    int index;
+    boolean conc;
+    MFeature.List fs;
+    if (this.varSlot == null) {
+      index = -1;
+      conc = this.requiresConcrete;
+      fs = (this.features != null)? this.features.toMType(mod, modBuilder, inReferredDef, slotList): null;
+    } else if ((index = slotList.indexOf(this.varSlot)) < 0) {  // new def
       index = slotList.size();
       slotList.add(this.varSlot);
-      MFeature.List fs = (this.features != null)? this.features.toMType(mod, modBuilder, inReferredDef, slotList): null;
-      tv = MTypeVar.create(index, this.requiresConcrete, fs);
+      conc = this.requiresConcrete;
+      fs = (this.features != null)? this.features.toMType(mod, modBuilder, inReferredDef, slotList): null;
     } else {  // reference
-      tv = MTypeVar.create(index, false, null);  // do not care attributes
+      conc = false;  // do not care
+      fs = null;  // do not coare
     }
-    return tv;
+    return MTypeVar.create(index, conc, fs);
   }
 
   public void extractVars(List<PTypeVarSlot> extracted) {
-    if (!extracted.contains(this.varSlot)) {
+    if (this.varSlot != null && !extracted.contains(this.varSlot)) {
       extracted.add(this.varSlot);
     }
     if (this.features != null) {
@@ -948,8 +943,6 @@ if (PTypeGraph.DEBUG > 1) {
       variances.add(contextVariance);
     }
   }
-
-  // public void collectTconProps(List<PDefDict.TconProps> list) {}
 
   public PTypeSkel unalias(PTypeSkelBindings bindings) {
     PTypeSkel t;

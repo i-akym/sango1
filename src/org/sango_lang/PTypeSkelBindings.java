@@ -60,40 +60,60 @@ public class PTypeSkelBindings {
   }
 
   boolean isBound(PTypeVarSlot var) {
+    if (var == null) {
+      throw new IllegalArgumentException("No slot. " + " " + this.toString());
+    }
     return this.bindingDict.containsKey(var);
   }
 
   void bind(PTypeVarSlot var, PTypeSkel typeSkel) {
-/* DEBUG */ if (this.isBound(var) || this.isGivenTVar(var)) {
+    if (var == null) {
+      throw new IllegalArgumentException("No slot. " + " " + this.toString());
+    }
+    if (this.isBound(var) || this.isGivenTVar(var)) {
       throw new IllegalArgumentException("Cannot bind. " + var.toString() + " " + this.toString());
     }
     this.bindingDict.put(var, typeSkel);
   }
 
   PTypeSkel lookup(PTypeVarSlot var) {
-// /* DEBUG */ System.out.println("PTypeSkelBindings#lookup called " + var);
+    if (var == null) {
+      throw new IllegalArgumentException("No slot. " + " " + this.toString());
+    }
+    PTypeSkel r = null;
     PTypeSkel t = this.bindingDict.get(var);
-    if (t != null) {
-      PTypeVarSlot varSlot = t.getVarSlot();
-      while (varSlot != null) {
-        PTypeSkel t2 = this.bindingDict.get(varSlot);
-        if (t2 != null) {
-          varSlot = t.getVarSlot();
-          t = t2;
+    while (t != null) {
+      r = t;
+      if (t instanceof PTypeVarSkel) {
+        PTypeVarSkel tv = (PTypeVarSkel)t;
+        if (tv.varSlot != null) {
+          t = this.bindingDict.get(tv.varSlot);
         } else {
-          varSlot = null;
+          t = null;
         }
+      } else {
+        t = null;
       }
     }
-// /* DEBUG */ System.out.println("PTypeSkelBindings#lookup returns " + t);
-    return t;
+    return r;
+
+    // if (t != null) {
+      // PTypeVarSlot varSlot = t.getVarSlot();
+      // while (varSlot != null) {
+        // PTypeSkel t2 = this.bindingDict.get(varSlot);
+        // if (t2 != null) {
+          // varSlot = t.getVarSlot();
+          // t = t2;
+        // } else {
+          // varSlot = null;
+        // }
+      // }
+    // }
   }
 
   boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
 
-  void addGivenTVar(PTypeVarSlot var) {
-/* DEBUG */ if (this.isGivenTVar(var) ) { throw new IllegalArgumentException("Already listed as given. " + var.toString() + " " + this.toString()); }
-/* DEBUG */ if (this.isBound(var)) { throw new IllegalArgumentException("Not free. " + var.toString() + " " + this.toString()); }
-    this.givenTVarList.add(var);
-  }
+  // void addGivenTVar(PTypeVarSlot var) {
+    // this.givenTVarList.add(var);
+  // }
 }

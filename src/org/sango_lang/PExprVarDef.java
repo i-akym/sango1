@@ -150,7 +150,8 @@ class PExprVarDef extends PDefaultExprObj {
       /* DEBUG */ // throw new RuntimeException(emsg.toString());
       throw new CompileException(emsg.toString());
     }
-    this._resolved_varSlot = this.scope.defineEVar(this);
+    this.scope.defineEVar(this);
+    // this._resolved_varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
       this.type = (PType)this.type.resolve();
     }

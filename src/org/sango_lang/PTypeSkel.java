@@ -64,7 +64,7 @@ public interface PTypeSkel {
 
   boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings);
 
-  PTypeVarSlot getVarSlot();
+  // PTypeVarSlot getVarSlot();
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
     // foward to following method internally
@@ -137,14 +137,11 @@ public interface PTypeSkel {
 
     boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
 
-    // boolean isInFeatureImpl(PTypeVarSlot var) { return this.applBindings.isInFeatureImpl(var); }
-
     boolean isBound(PTypeVarSlot var) {
       return this.bindingDict.containsKey(var);
     }
 
     void bind(PTypeVarSlot var, PTypeVarSkel vs) {
-      PTypeVarSlot s = vs.getVarSlot();
       if (this.bindingDict.containsKey(var)) {
         throw new IllegalArgumentException("Already added. " + var);
       }
@@ -154,14 +151,6 @@ public interface PTypeSkel {
     PTypeVarSkel lookup(PTypeVarSlot var) {
       return this.bindingDict.get(var);
     }
-
-    // boolean isBoundAppl(PTypeVarSlot var) {
-      // return this.applBindings.isBound(var);
-    // }
-
-    // PTypeSkel lookupAppl(PTypeVarSlot var) {
-      // return this.applBindings.lookup(var);
-    // }
   }
 
   static class VarianceTab {
