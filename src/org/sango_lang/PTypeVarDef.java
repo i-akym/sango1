@@ -170,7 +170,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(this.name);
       throw new CompileException(emsg.toString());
     }
-    this._resolved_varSlot = this.scope.defineTVar(this);
+    this.scope.defineTVar(this);
     if (this.features != null) {
       this.features = this.features.resolve();
     }

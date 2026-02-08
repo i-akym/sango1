@@ -29,7 +29,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 class MTypeVar implements MType {
-  int slot;
+  int slot;  // -1 if no slot (anonymous)
   boolean requiresConcrete;
   MFeature.List features;  // maybe null
 
@@ -46,8 +46,12 @@ class MTypeVar implements MType {
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("<");
-    buf.append("_");
-    buf.append(this.slot);
+    if (this.slot >= 0) {
+      buf.append("_");
+      buf.append(this.slot);
+    } else {
+      buf.append("*");
+    }
     if (this.requiresConcrete) {
       buf.append("!");
     }
@@ -61,7 +65,9 @@ class MTypeVar implements MType {
   public Element externalize(Document doc) {
 // /* DEBUG */ System.out.println(this);
     Element node = doc.createElement(Module.TAG_TYPE_VAR);
-    node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
+    if (this.slot >= 0) {
+      node.setAttribute(Module.ATTR_SLOT, Integer.toString(this.slot));
+    }
     if (this.requiresConcrete) {
       node.setAttribute(Module.ATTR_REQUIRES_CONCRETE, Module.REPR_YES);
     }
@@ -76,10 +82,7 @@ class MTypeVar implements MType {
 
     NamedNodeMap attrs = node.getAttributes();
     Node aSlot = attrs.getNamedItem(Module.ATTR_SLOT);
-    if (aSlot == null) {
-      throw new FormatException("'slot' attribute not found.");
-    }
-    int slot = Module.parseInt(aSlot.getNodeValue()); 
+    int slot = (aSlot != null)? Module.parseInt(aSlot.getNodeValue()): -1; 
     boolean requiresConcrete = false;
     Node aRequiresConcrete = attrs.getNamedItem(Module.ATTR_REQUIRES_CONCRETE);
     if (aRequiresConcrete != null) {

@@ -507,9 +507,15 @@ class PCompiledModule implements PModDecl {
 
   PTypeVarSkel convertTypeVar(MTypeVar tv, Module mod, List<PTypeVarSkel> varList) {
     PTypeVarSkel v;
-    if (tv.slot < varList.size()) {
+    if (tv.slot < 0) {
+      v = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null,
+        null, tv.requiresConcrete, null);
+      // varList.add(v);  // do no add
+      v.features = (tv.features != null)?
+        this.convertFeatures(tv.features, mod, varList):
+        null;
+    } else if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
-// /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
       v = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null,
         PTypeVarSlot.create(), tv.requiresConcrete, null);
