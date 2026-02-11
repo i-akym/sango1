@@ -123,7 +123,9 @@ public class PTypeVarSkel implements PTypeSkel {
   public PTypeSkel resolveBindings(PTypeSkelBindings bindings) {
     PTypeSkel t;
     PFeatureSkel.List fs = (this.features != null)? this.features.resolveBindings(bindings): null;
-    if (bindings.isBound(this.varSlot)) {
+    if (this.varSlot == null) {
+      t = create(this.theCompiler, this.srcInfo, this.name, this.varSlot, this.requiresConcrete, fs);
+    } else if (bindings.isBound(this.varSlot)) {
       t = bindings.lookup(this.varSlot).resolveBindings(bindings);
     } else if (fs != null) {
       t = create(this.theCompiler, this.srcInfo, this.name, this.varSlot, this.requiresConcrete, fs);
@@ -135,7 +137,15 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public PTypeSkel instanciate(PTypeSkel.InstanciationContext context) {
     PTypeSkel t;
-    if (context.isGivenTVar(this.varSlot)) {
+    if (this.varSlot == null) {
+      PTypeVarSkel v = new PTypeVarSkel();
+      v.srcInfo = this.srcInfo;
+      v.varSlot = null;
+      v.name = this.name /* + "." + v.varSlot.id */ ;
+      v.requiresConcrete = this.requiresConcrete;
+      v.features = (this.features != null)? this.features.instanciate(context): null;
+      t = v;
+    } else if (context.isGivenTVar(this.varSlot)) {
       t = this;
     } else if (context.isBound(this.varSlot)) {
       t = context.lookup(this.varSlot);  // created before
