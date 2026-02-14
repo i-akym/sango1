@@ -339,17 +339,22 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeSome 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (this.features != null && !this.features.acceptObj(width, tr, bindings)) {
+    } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeSome 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
-      b = false;
-    } else {
+      bindings.bind(this.varSlot, tr);  // this.varSlot might be bound in accepting features, so bind this.varSlot first
+      if (this.features == null || this.features.acceptObj(width, tr, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeSome F "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#accept1FreeSome 2a "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
-      bindings.bind(this.varSlot, tr);
-      b = true;
+        b = true;
+      } else {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeSome 2b "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+}
+        b = false;
+      }
     }
     return b;
   }
