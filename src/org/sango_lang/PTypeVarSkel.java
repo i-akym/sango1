@@ -42,7 +42,7 @@ public class PTypeVarSkel implements PTypeSkel {
     var.theCompiler = theCompiler;
     var.srcInfo = srcInfo;
     if (varSlot != null) {
-      var.name = ((name != null)? name: "?") + ":" + varSlot.toString();
+      var.name = ((name != null)? name + ":": "") + varSlot.toString();
     } else {
       var.name = "(ANONYM)";
     }
@@ -381,22 +381,17 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeGiven "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (this.features != null && !this.features.acceptList(width, tv.features, bindings)) {
+    bindings.bind(this.varSlot, tv);
+    if (this.features == null || this.features.acceptList(width, tv.features, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeGiven 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#accept1FreeGiven A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
-      b = false;
-    } else if (this.requiresConcrete && !tv.requiresConcrete) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeGiven 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-      b = false;
+      b = true;
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeGiven 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeVarSkel#accept1FreeGiven B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
-      bindings.bind(this.varSlot, tv);
-      b = true;
+      b = false;
     }
     return b;
   }
@@ -406,38 +401,12 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeFree "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    PTypeVarSkel tv2;
-    if (this.requiresConcrete == tv.requiresConcrete || !this.requiresConcrete) {
+    bindings.bind(this.varSlot, tv);
+    if (this.features == null || this.features.acceptList(width, tv.features, bindings)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeFree A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
-      if (this.features == null) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeFree A1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-        tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
-        bindings.bind(this.varSlot, tv2);
-        b = true;
-      } else if (tv.features == null) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeFree A2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-        tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
-        bindings.bind(this.varSlot, tv2);
-        b = true;
-      } else if (this.features.acceptList(width, tv.features, bindings)) {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeFree A3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-        tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
-        bindings.bind(this.varSlot, tv2);
-        b = true;
-      } else {
-/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeVarSkel#accept1FreeFree A4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
-}
-        b = false;
-      }
+      b = true;
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeFree B "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
@@ -445,6 +414,27 @@ public class PTypeVarSkel implements PTypeSkel {
       b = false;
     }
     return b;
+
+    // PTypeVarSkel tv2;
+    // if (this.requiresConcrete == tv.requiresConcrete || !this.requiresConcrete) {
+      // if (this.features == null) {
+        // tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
+        // bindings.bind(this.varSlot, tv2);
+        // b = true;
+      // } else if (tv.features == null) {
+        // tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
+        // bindings.bind(this.varSlot, tv2);
+        // b = true;
+      // } else if (this.features.acceptList(width, tv.features, bindings)) {
+        // tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
+        // bindings.bind(this.varSlot, tv2);
+        // b = true;
+      // } else {
+        // b = false;
+      // }
+    // } else {
+      // b = false;
+    // }
   }
 
   public boolean require(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
