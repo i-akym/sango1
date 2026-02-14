@@ -481,7 +481,12 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   boolean require1Anonym(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    throw new RuntimeException("PTypeVarSkel#require1Anonym not implemented.");
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#require1Anonym "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+}
+    boolean b;
+    b = this.features.requireObj(width, type, bindings);
+    return b;
   }
 
   boolean require1Given(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
