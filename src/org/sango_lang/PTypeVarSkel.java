@@ -524,7 +524,63 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#require1Anonym "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    b = this.features.requireObj(width, type, bindings);
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      b = true;
+    } else if (cat == PTypeSkel.CAT_SOME) {
+      PTypeRefSkel tr = (PTypeRefSkel)type;
+      b = this.require1AnonymSome(width, tr, bindings);
+    } else if (cat == PTypeSkel.CAT_VAR) {
+      PTypeVarSkel tv = (PTypeVarSkel)type;
+      if (bindings.isGivenTVar(tv.varSlot)) {
+        b = this.require1AnonymGiven(width, tv, bindings);
+      } else {
+        b = this.require1AnonymFree(width, tv, bindings);
+      }
+    } else {
+      PTypeVarSkel tv = (PTypeVarSkel)type;
+      b = this.require1AnonymAnonym(width, tv, bindings);
+    }
+    return b;
+  }
+
+  boolean require1AnonymSome(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (this.features.requireObj(width, tr, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  boolean require1AnonymGiven(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (tv.features == null || this.features.requireList(width, tv.features, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  boolean require1AnonymFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (tv.features == null || this.features.requireList(width, tv.features, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  boolean require1AnonymAnonym(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (tv.features == null || this.features.requireList(width, tv.features, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
     return b;
   }
 
