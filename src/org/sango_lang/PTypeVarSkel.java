@@ -188,7 +188,65 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   boolean accept1Anonym(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
-    throw new RuntimeException("PTypeVarSkel#accept1Anonym not implemented.");
+    boolean b;
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      b = true;
+    } else if (cat == PTypeSkel.CAT_SOME) {
+      PTypeRefSkel tr = (PTypeRefSkel)type;
+      b = this.accept1AnonymSome(width, tr, bindings);
+    } else if (cat == PTypeSkel.CAT_VAR) {
+      PTypeVarSkel tv = (PTypeVarSkel)type;
+      if (bindings.isGivenTVar(tv.varSlot)) {
+        b = this.accept1AnonymGiven(width, tv, bindings);
+      } else {
+        b = this.accept1AnonymFree(width, tv, bindings);
+      }
+    } else {
+      PTypeVarSkel tv = (PTypeVarSkel)type;
+      b = this.accept1AnonymAnonym(width, tv, bindings);
+    }
+    return b;
+  }
+
+  boolean accept1AnonymSome(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (this.features.acceptObj(width, tr, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  boolean accept1AnonymGiven(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (tv.features == null || this.features.acceptList(width, tv.features, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  boolean accept1AnonymFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (tv.features == null || this.features.acceptList(width, tv.features, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  boolean accept1AnonymAnonym(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+    boolean b;
+    if (tv.features == null || this.features.acceptList(width, tv.features, bindings)) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
   }
 
   boolean accept1Given(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
