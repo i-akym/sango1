@@ -954,27 +954,39 @@ if (PTypeGraph.DEBUG > 1) {
   PTypeSkel.JoinResult join3FreeFree(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
     PTypeSkel.JoinResult r;
     PFeatureSkel.JoinResult fr;
-    PTypeSkelBindings b = bindings.copy();
-    if (this.features == null) {
+    if (this.features == null && tv.features == null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null, bindings);
+      bindings.bind(tv.varSlot, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else if (tv.features == null && tv.features != null) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
       bindings.bind(tv.varSlot, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features == null) {
+    } else if (tv.features != null && tv.features == null) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
       bindings.bind(tv.varSlot, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if ((fr = this.features.joinList(width, tv.features, b)) == null) {
-      r = null;
     } else {
-      String n = this.name /* + "." + s.id */;
-      PTypeVarSlot s = PTypeVarSlot.create();
-      PTypeVarSkel v = create(this.theCompiler, fr.srcInfo, n, s, this.requiresConcrete | tv.requiresConcrete, fr.pack());
-      PTypeSkelBindings bb = fr.bindings.copy();
-      bb.bind(this.varSlot, v);
-      bb.bind(tv.varSlot, v);
-      r = PTypeSkel.JoinResult.create(v, bb);
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null /* dummy */, bindings);
+      bindings.bind(tv.varSlot, v);
+      if ((fr = this.features.joinList(width, tv.features, bindings)) != null) {
+        v.features = fr.pack();
+        r = PTypeSkel.JoinResult.create(v, fr.bindings);
+      } else {
+        r = null;
+      }
     }
     return r;
+
+    // } else {
+      // String n = this.name /* + "." + s.id */;
+      // PTypeVarSlot s = PTypeVarSlot.create();
+      // PTypeVarSkel v = create(this.theCompiler, fr.srcInfo, n, s, this.requiresConcrete | tv.requiresConcrete, fr.pack());
+      // PTypeSkelBindings bb = fr.bindings.copy();
+      // bb.bind(this.varSlot, v);
+      // bb.bind(tv.varSlot, v);
+      // r = PTypeSkel.JoinResult.create(v, bb);
+    // }
   }
 
   public MType toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, List<PTypeVarSlot> slotList) {
