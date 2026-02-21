@@ -457,38 +457,38 @@ public class PFeatureSkel {
       return b;
     }
 
-    List merge(int width, List fs2, PTypeSkelBindings bindings) throws CompileException {
-      java.util.List<PFeatureSkel> ff = new ArrayList<PFeatureSkel>();
-      for (int i = 0; i < fs2.features.length; i++) {
-        ff.add(fs2.features[i]);
-      }
-      ListBuilder builder = ListBuilder.newInstance(this.srcInfo);
-      for (int i = 0; bindings != null && i < this.features.length; i++) {
-        PFeatureSkel f = this.features[i];
-        boolean stop = false;
-        for (int j = 0; !stop && j < ff.size(); j++) {  // search target
-          PFeatureSkel f2 = ff.get(j);
-          if (f.fnameKey.equals(f2.fnameKey)) {
-            if (f.accept(width, f2, bindings)) {
-              builder.add(f);
-              ff.remove(j);
-            } else {
-              bindings = null;
-            }
-            stop = true;
-          }
-        }
-        if (bindings != null && !stop) {
-          builder.add(f);
-        }
-      }
-      if (bindings != null) {
-        for (int j = 0; j < ff.size(); j++) {
-          builder.add(ff.get(j));
-        }
-      }
-      return (bindings != null)? builder.create(): null;
-    }
+    // List merge(int width, List fs2, PTypeSkelBindings bindings) throws CompileException {
+      // java.util.List<PFeatureSkel> ff = new ArrayList<PFeatureSkel>();
+      // for (int i = 0; i < fs2.features.length; i++) {
+        // ff.add(fs2.features[i]);
+      // }
+      // ListBuilder builder = ListBuilder.newInstance(this.srcInfo);
+      // for (int i = 0; bindings != null && i < this.features.length; i++) {
+        // PFeatureSkel f = this.features[i];
+        // boolean stop = false;
+        // for (int j = 0; !stop && j < ff.size(); j++) {  // search target
+          // PFeatureSkel f2 = ff.get(j);
+          // if (f.fnameKey.equals(f2.fnameKey)) {
+            // if (f.accept(width, f2, bindings)) {
+              // builder.add(f);
+              // ff.remove(j);
+            // } else {
+              // bindings = null;
+            // }
+            // stop = true;
+          // }
+        // }
+        // if (bindings != null && !stop) {
+          // builder.add(f);
+        // }
+      // }
+      // if (bindings != null) {
+        // for (int j = 0; j < ff.size(); j++) {
+          // builder.add(ff.get(j));
+        // }
+      // }
+      // return (bindings != null)? builder.create(): null;
+    // }
 
     JoinResult joinList(int width, List fs2, PTypeSkelBindings bindings) throws CompileException {
       JoinResult r = JoinResult.create(this.srcInfo, bindings);
@@ -537,7 +537,11 @@ public class PFeatureSkel {
     }
 
     List pack() {
-      return List.create(this.srcInfo, this.staged.toArray(new PFeatureSkel[this.staged.size()]));
+      return (this.staged.size() > 0)? 
+        List.create(this.srcInfo, this.staged.toArray(new PFeatureSkel[this.staged.size()])):
+        null;
+
+      // return List.create(this.srcInfo, this.staged.toArray(new PFeatureSkel[this.staged.size()]));
     }
   }
 
