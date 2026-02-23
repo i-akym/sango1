@@ -82,6 +82,7 @@ public class Compiler {
   Action onAvBeta;
   Action onAvLimited;
   Action onAvDeprecated;
+  boolean reportsType;
 
   public static void main(String[] args) {
     LauncherControl lc = new LauncherControl();
@@ -209,7 +210,8 @@ public class Compiler {
           s.equals("-quiet") ||
           s.equals("-ignore") ||
           s.equals("-warn") ||
-          s.equals("-error")) {
+          s.equals("-error") ||
+          s.equals("-report")) {
         opt = new String[] { s, null };
       } else if (s.startsWith("-")) {
         lc.msgOut.print("Unknown option. ");
@@ -255,6 +257,8 @@ public class Compiler {
       processWarnOpt(lc, c, optParam);
     } else if (optName.equals("-error")) {
       processErrorOpt(lc, c, optParam);
+    } else if (optName.equals("-report")) {
+      processReportOpt(lc, c, optParam);
     } else if (optName.equals("-L")) {  // system lib path, which is used internally
       processLOpt(lc, c, optParam);
     } else {
@@ -382,6 +386,20 @@ public class Compiler {
       c.onAvDeprecated = action;
     } else {
       lc.msgOut.println("Unknown parameter to -ignore/-warn/-error option.");
+      System.exit(1);
+    }
+  }
+
+  // -report type | type=on | type=off
+  static void processReportOpt(LauncherControl lc, Compiler c, String optParam) {
+    if(optParam.equals("type")) {
+      c.reportsType = true;
+    } else if (optParam.equals("type=on")) {
+      c.reportsType = true;
+    } else if (optParam.equals("type=off")) {
+      c.reportsType = false;
+    } else {
+      lc.msgOut.println("Unknown parameter to -report option.");
       System.exit(1);
     }
   }
@@ -914,6 +932,9 @@ public class Compiler {
     out.println("  -warn <switches2> : Display if detected.");
     out.println("  -error <switches2> : Handle as an error if detected.");
     out.println("  -ignore <switches2> : Clear -warn/-error switches.");
+    out.println("  -report type=on: Show type inference.");
+    out.println("  -report type: Same as above.");
+    out.println("  -report type=off: Suppress type inference.");
     out.println();
     out.println("  <switches1> -- one or more switches concatenated with '+'. Switches are...");
     out.println("    help : help message");

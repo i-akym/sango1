@@ -66,6 +66,15 @@ class PTypeGraph {
           PTypeSkel t = n.infer();
           if (t != null) {
             n.type = t;
+            StringBuffer r;
+            if (this.theCompiler.reportsType && (r = n.getTypeReportDesc()) != null) {
+              System.out.print("# type # ");
+              System.out.print(n.exprObj.getSrcInfo());
+              System.out.print(" ");
+              System.out.print(r);
+              System.out.print(" -> ");
+              System.out.println(PTypeSkel.Repr.topLevelRepr(n.type));
+            }
             if (DEBUG > 0) {
             /* DEBUG */ System.out.print("Inferred ");
             /* DEBUG */ System.out.print(n.exprObj);
@@ -134,6 +143,8 @@ class PTypeGraph {
 
     abstract PTypeSkel infer() throws CompileException;
 
+    abstract StringBuffer getTypeReportDesc();  // maybe null
+
     void check() throws CompileException {}
 
     // void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
@@ -158,6 +169,10 @@ class PTypeGraph {
 
     PTypeSkel infer() throws CompileException {
       throw new RuntimeException("PTypeGraph.DetNode#infer must not be called.");
+    }
+
+    StringBuffer getTypeReportDesc() {
+      return null;  // not be called, so dummy 
     }
 
     void check() throws CompileException {
@@ -197,6 +212,10 @@ class PTypeGraph {
     PTypeSkel infer() throws CompileException {
       return this.getTypeOf(this.inNode);
     }
+
+    StringBuffer getTypeReportDesc() {
+      return null;
+    }
   }
 
   VarNode createVarNode(PExprObj exprObj, String name, int cat) throws CompileException {
@@ -216,6 +235,13 @@ class PTypeGraph {
 
     PTypeSkel infer() throws CompileException {
       return this.getTypeOf(this.inNode);  // called only when this.type == null
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(var def) ");
+      buf.append(this.name);
+      return buf;
     }
 
     void check() throws CompileException {
@@ -276,6 +302,13 @@ class PTypeGraph {
       return this.getTypeOf(this.defNode);
     }
 
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(var ref) ");
+      buf.append(this.name);
+      return buf;
+    }
+
     void check() throws CompileException {
       StringBuffer emsg;
       if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
@@ -315,6 +348,12 @@ class PTypeGraph {
     PTypeSkel infer() throws CompileException {
       throw new RuntimeException("PTypeGraph.RetNode#infer must not be called.");
       // return this.getTypeOf(this.inNode);  // called only when this.type == null
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(ret)");
+      return buf;
     }
 
     void check() throws CompileException {
@@ -378,6 +417,13 @@ class PTypeGraph {
       ts[ts.length - 1] = rt.instanciate(ic);  // resolving is not needed
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "fun", ts);
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(fun ref) ");
+      buf.append(this.official.repr());
+      return buf;
+    }
   }
 
   SelfRefNode createSelfRefNode(PExprObj exprObj, ClosureNode closureNode) {
@@ -395,6 +441,12 @@ class PTypeGraph {
 
     PTypeSkel infer() throws CompileException {
       return this.getTypeOf(this.inNode);
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(self ref)");
+      return buf;
     }
   }
 
@@ -436,6 +488,12 @@ class PTypeGraph {
       if (t == null) { return null; }
       ts[ts.length - 1] = t;
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "fun", ts);
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(closure)");
+      return buf;
     }
   }
 
@@ -498,14 +556,12 @@ class PTypeGraph {
       return rt.resolveBindings(this.bindings).instanciate(ic);
     }
 
-    // void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
-      // super.collectTconProps(tps);
-      // PTypeSkel[] pts = this.funDef.getParamTypes();
-      // for (int i = 0; i < pts.length; i++) {
-        // pts[i].collectTconProps(tps);
-      // }
-      // this.funDef.getRetType().collectTconProps(tps);
-    // }
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(static invocation) ");
+      buf.append(this.funId.repr());
+      return buf;
+    }
   }
 
   DynamicInvNode createDynamicInvNode(PExprObj exprObj, int paramCount) {
@@ -613,6 +669,12 @@ if (DEBUG > 1) {
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(this.bindings);
       return ctr.params[ctr.params.length - 1].resolveBindings(this.bindings).instanciate(ic);
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(dynamic invocation)");
+      return buf;
+    }
   }
 
   SeqNode createSeqNode(PExprObj exprObj) {
@@ -655,6 +717,10 @@ if (DEBUG > 1) {
         ;  // wait for leading and following
       }
       return t;
+    }
+
+    StringBuffer getTypeReportDesc() {
+      return null;
     }
   }
 
@@ -721,6 +787,12 @@ if (DEBUG > 1) {
       }
       return t;
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(joined)");
+      return buf;
+    }
   }
 
   TupleNode createTupleNode(PExprObj exprObj, int elemCount) {
@@ -754,6 +826,10 @@ if (DEBUG > 1) {
       }
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "tuple", ts);
     }
+
+    StringBuffer getTypeReportDesc() {
+      return null;
+    }
   }
 
   EmptyListNode createEmptyListNode(PExprObj exprObj) {
@@ -767,6 +843,12 @@ if (DEBUG > 1) {
 
     PTypeSkel infer() throws CompileException {
       return this.exprObj.getScope().getEmptyListType(this.exprObj.getSrcInfo());
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(empty list)");
+      return buf;
     }
   }
 
@@ -822,6 +904,12 @@ if (DEBUG > 1) {
       }
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "list", new PTypeSkel[] { t });
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(list)");
+      return buf;
+    }
   }
 
   StringNode createStringNode(PExprObj exprObj, int elemCount) {
@@ -868,6 +956,12 @@ if (DEBUG > 1) {
         }
       }
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "string", new PTypeSkel[] { t });
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(string)");
+      return buf;
     }
   }
 
@@ -968,6 +1062,13 @@ if (DEBUG > 1) {
 
       return dt;
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(data constr) ");
+      buf.append(this.dcon.repr());
+      return buf;
+    }
   }
 
   TuplePtnNode createTuplePtnNode(PExprObj exprObj, int elemCount) {
@@ -1006,6 +1107,10 @@ if (DEBUG > 1) {
       }
       return t;
     }
+
+    StringBuffer getTypeReportDesc() {
+      return null;
+    }
   }
 
   TuplePtnElemNode createTuplePtnElemNode(PExprObj exprObj, int index) {
@@ -1026,6 +1131,13 @@ if (DEBUG > 1) {
       if (t == null) { return null; }
       if (PTypeRefSkel.willNotReturn(t)) { return t; }
       return ((PTypeRefSkel)t).params[this.index];  // type is guaranteed in in-node
+    }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(tuple pattern elem) ");
+      buf.append(Integer.toString(this.index + 1));
+      return buf;
     }
   }
 
@@ -1055,6 +1167,12 @@ if (DEBUG > 1) {
       }
       return t;
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(list pattern)");
+      return buf;
+    }
   }
 
   ListPtnElemNode createListPtnElemNode(PExprObj exprObj) {
@@ -1075,7 +1193,13 @@ if (DEBUG > 1) {
       if (PTypeRefSkel.willNotReturn(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
     }
-  }
+ 
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(list pattern elem)");
+      return buf;
+   }
+ }
 
   StringPtnNode createStringPtnNode(PExprObj exprObj) {
     return new StringPtnNode(exprObj);
@@ -1103,7 +1227,13 @@ if (DEBUG > 1) {
       }
       return t;
     }
-  }
+  
+    StringBuffer getTypeReportDesc() {
+     StringBuffer buf = new StringBuffer();
+     buf.append("(string pattern)");
+     return buf;
+   }
+ }
 
   StringPtnElemNode createStringPtnElemNode(PExprObj exprObj) {
     return new StringPtnElemNode(exprObj);
@@ -1122,7 +1252,13 @@ if (DEBUG > 1) {
       if (PTypeRefSkel.willNotReturn(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
     }
-  }
+   
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(string pattern elem)");
+      return buf;
+    }
+}
 
   DataConstrPtnNode createDataConstrPtnNode(PExprObj exprObj, int context, PEid dcon) {
     DataConstrPtnNode n = new DataConstrPtnNode(exprObj, context, dcon);
@@ -1200,6 +1336,13 @@ if (DEBUG > 1) {
 }
       return this.bindings;
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(data pattern) ");
+      buf.append(this.dcon.repr());
+      return buf;
+    }
   }
 
   DataConstrPtnAttrNode createDataConstrPtnAttrNode(PExprObj exprObj, PEid dcon, int index) {
@@ -1230,6 +1373,15 @@ if (DEBUG > 1) {
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(b);
       return attr.getNormalizedType().resolveBindings(b).instanciate(ic);
     }
+
+    StringBuffer getTypeReportDesc() {
+      StringBuffer buf = new StringBuffer();
+      buf.append("(data pattern attr) ");
+      buf.append(this.dcon.repr());
+      buf.append(" ");
+      buf.append(Integer.toString(this.index + 1));
+      return buf;
+    }
   }
 
   CondNode createCondNode(PExprObj exprObj) {
@@ -1244,6 +1396,10 @@ if (DEBUG > 1) {
 
     PTypeSkel infer() throws CompileException {
       return this.getTypeOf(this.inNode);
+    }
+
+    StringBuffer getTypeReportDesc() {
+      return null;
     }
 
     void check() throws CompileException {

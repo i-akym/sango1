@@ -30,6 +30,7 @@
 #   ./build.sh -sys  -> compiler and runtime engine
 #   ./build.sh -lib  -> all library programs
 #   ./build.sh -misc  -> miscellaneous programs, eg. installation tool
+#   ./build.sh -detail src/sango/util/map.sg  -> library program with report
 #   ./build.sh src/sango/util/map.sg ...  -> library programs
 
 compile_all() {
@@ -69,11 +70,14 @@ compile_misc() {
 
 compile_targets() {
   $SANGOC -m src $* || build_error
-#  $SANGOC -m src -quiet all $* || build_error
   IMPLS=`tool/nativeimpl.sh $*`
   if [ "$IMPLS" != "" ]; then
     $JAVAC -cp src $IMPLS || build_error
   fi
+}
+
+compile_target_with_report() {
+  $SANGOC -m src -verbose all -quiet help -report type $* || build_error
 }
 
 print_usage() {
@@ -83,6 +87,7 @@ print_usage() {
   echo "  ./build.sh -lib  -- all library programs"
   echo "  ./build.sh -sample  -- all sample programs"
   echo "  ./build.sh -misc  -- miscellaneous programs"
+  echo "  ./build.sh -detail src/sango/util/map.sg  -- library program with report"
   echo "  ./build.sh src/sango/util/map.sg ...  -- library programs"
   exit 1
 }
@@ -121,6 +126,8 @@ elif [ $1 = "-sample" ]; then
   compile_sample
 elif [ $1 = "-misc" ]; then
   compile_misc
+elif [ $1 = "-detail" ]; then
+  compile_target_with_report $2
 else
   compile_targets $*
 fi
