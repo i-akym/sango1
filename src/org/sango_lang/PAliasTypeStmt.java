@@ -321,7 +321,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
     PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
     for (int i = 0; i < this.tparamSkels.length; i++) {
-       bindings.bind(((PTypeVarSkel)this.tparamSkels[i].instanciate(ic)).varSlot, params[i]);
+       bindings.bind((PTypeVarSkel)this.tparamSkels[i].instanciate(ic), params[i]);
     }
     PTypeSkel u = this.bodySkel.instanciate(ic).resolveBindings(bindings);
     return u.normalize();

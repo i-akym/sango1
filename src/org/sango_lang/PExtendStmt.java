@@ -493,7 +493,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
 
     PTypeRefSkel bsig = base.getTypeSig();
     for (int i = 0; i < bsig.params.length; i++) {
-      b.bind(((PTypeVarSkel)bsig.params[i]).varSlot, this.tparams[i].getTypeSkel());
+      b.bind((PTypeVarSkel)bsig.params[i], this.tparams[i].getTypeSkel());
     }
 
     PFeatureSkel f = id.feature.toSkel();

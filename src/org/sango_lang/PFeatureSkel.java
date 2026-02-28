@@ -123,13 +123,10 @@ public class PFeatureSkel {
   PTypeRefSkel getImplTypeSkel(PTypeSkel obj, PTypeSkel.Bindings bindings) {
     PFeatureDef fd = this.getMyFeatureDef();
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
-    bindings.bind(((PTypeVarSkel)fd.getObjType().instanciate(ic)).varSlot, obj);
+    bindings.bind((PTypeVarSkel)fd.getObjType().instanciate(ic), obj);
     PFeatureSkel sig = fd.getFeatureSig();
-    // PTypeVarSkel[] ps = fd.getParams();
     for (int i = 0; i < sig.params.length; i++) {
-    // for (int i = 0; i < ps.length; i++) {
-      bindings.bind(((PTypeVarSkel)sig.params[i].instanciate(ic)).varSlot, this.params[i]);
-      // bindings.bind(((PTypeVarSkel)ps[i].instanciate(ic)).varSlot, this.params[i]);
+      bindings.bind((PTypeVarSkel)sig.params[i].instanciate(ic), this.params[i]);
     }
     return (PTypeRefSkel)fd.getImplType().resolveBindings(bindings);
   }

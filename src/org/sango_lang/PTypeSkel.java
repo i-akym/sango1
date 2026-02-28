@@ -132,29 +132,29 @@ public interface PTypeSkel {
         + " G" + this.givenTVarList.toString();
     }
 
-    boolean isBound(PTypeVarSlot var) {
-      if (var == null) {
-        throw new IllegalArgumentException("No slot. " + " " + this.toString());
+    boolean isBound(PTypeVarSkel var) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
       }
-      return this.bindingDict.containsKey(var);
+      return this.bindingDict.containsKey(var.varSlot);
     }
 
-    void bind(PTypeVarSlot var, PTypeSkel typeSkel) {
-      if (var == null) {
-        throw new IllegalArgumentException("No slot. " + " " + this.toString());
+    void bind(PTypeVarSkel var, PTypeSkel typeSkel) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
       }
       if (this.isBound(var) || this.isGivenTVar(var)) {
         throw new IllegalArgumentException("Cannot bind. " + var.toString() + " " + this.toString());
       }
-      this.bindingDict.put(var, typeSkel);
+      this.bindingDict.put(var.varSlot, typeSkel);
     }
 
-    PTypeSkel lookup(PTypeVarSlot var) {
-      if (var == null) {
-        throw new IllegalArgumentException("No slot. " + " " + this.toString());
+    PTypeSkel lookup(PTypeVarSkel var) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
       }
       PTypeSkel r = null;
-      PTypeSkel t = this.bindingDict.get(var);
+      PTypeSkel t = this.bindingDict.get(var.varSlot);
       while (t != null) {
         r = t;
         if (t instanceof PTypeVarSkel) {
@@ -171,7 +171,12 @@ public interface PTypeSkel {
       return r;
     }
 
-    boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
+    boolean isGivenTVar(PTypeVarSkel var) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
+      }
+      return this.givenTVarList.contains(var.varSlot);
+    }
   }
 
   public static class JoinResult {
@@ -209,21 +214,35 @@ public interface PTypeSkel {
 
     private InstanciationContext() {}
 
-    boolean isGivenTVar(PTypeVarSlot var) { return this.givenTVarList.contains(var); }
-
-    boolean isBound(PTypeVarSlot var) {
-      return this.bindingDict.containsKey(var);
+    boolean isGivenTVar(PTypeVarSkel var) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
+      }
+      return this.givenTVarList.contains(var.varSlot);
     }
 
-    void bind(PTypeVarSlot var, PTypeVarSkel vs) {
-      if (this.bindingDict.containsKey(var)) {
+    boolean isBound(PTypeVarSkel var) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
+      }
+      return this.bindingDict.containsKey(var.varSlot);
+    }
+
+    void bind(PTypeVarSkel var, PTypeVarSkel vs) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
+      }
+      if (this.bindingDict.containsKey(var.varSlot)) {
         throw new IllegalArgumentException("Already added. " + var);
       }
-      this.bindingDict.put(var, vs);
+      this.bindingDict.put(var.varSlot, vs);
     }
 
-    PTypeVarSkel lookup(PTypeVarSlot var) {
-      return this.bindingDict.get(var);
+    PTypeVarSkel lookup(PTypeVarSkel var) {
+      if (var.varSlot == null) {
+        throw new IllegalArgumentException("No slot. " + " " + var.toString());
+      }
+      return this.bindingDict.get(var.varSlot);
     }
   }
 
