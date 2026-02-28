@@ -69,7 +69,6 @@ public class PTypeRefSkel implements PTypeSkel {
           emsg.append(".");
           throw new CompileException(emsg.toString());
         }
-        // bindings.bind(((PTypeVarSkel)sig.params[j]).varSlot, this.params[j]);
       }
       PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
       fs[i] = f.resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
@@ -322,7 +321,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#acceptGenericVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot)) {
+    if (bindings.isGivenTVar(tv)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericVar 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -439,7 +438,7 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#requireGenericVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (bindings.isGivenTVar(tv.varSlot)) {
+    if (bindings.isGivenTVar(tv)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireGenericVar 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -580,7 +579,7 @@ public class PTypeRefSkel implements PTypeSkel {
         v = PTypeVarSkel.create(this.theCompiler, this.srcInfo, null, s, var.requiresConcrete, null);
       t.params[i] = v;
     }
-    bindings.bind(var.varSlot, t);
+    bindings.bind(var, t);
   }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
@@ -590,10 +589,6 @@ public class PTypeRefSkel implements PTypeSkel {
     }
     return b;
   }
-
-  // public PTypeVarSlot getVarSlot() {
-    // return null;
-  // }
 
   public PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList)  throws CompileException{
 if (PTypeGraph.DEBUG > 1) {
