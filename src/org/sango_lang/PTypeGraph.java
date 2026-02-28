@@ -183,7 +183,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
+        } else if (!this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -253,7 +253,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
+        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -265,7 +265,7 @@ class PTypeGraph {
           emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
-        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
+        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -317,7 +317,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.inNode.type.accept(PTypeSkel.NARROWER, this.type, PTypeSkelBindings.create(this.getGivenTvarList()))) {
+        } else if (!this.inNode.type.accept(PTypeSkel.NARROWER, this.type, PTypeSkel.Bindings.create(this.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -364,7 +364,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkelBindings.create(this.inNode.getGivenTvarList()))) {
+        } else if (!this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.inNode.getGivenTvarList()))) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -506,7 +506,7 @@ class PTypeGraph {
     PEid funId;
     Node[] paramNodes;
     PFunDef funDef;
-    PTypeSkelBindings bindings;
+    PTypeSkel.Bindings bindings;
 
     StaticInvNode(PExprObj exprObj, PEid funId, int paramCount) {
       super(exprObj);
@@ -572,7 +572,7 @@ class PTypeGraph {
   class DynamicInvNode extends Node {
     Node[] paramNodes;
     Node closureNode;
-    PTypeSkelBindings bindings;
+    PTypeSkel.Bindings bindings;
 
     DynamicInvNode(PExprObj exprObj, int paramCount) {
       super(exprObj);
@@ -592,7 +592,7 @@ class PTypeGraph {
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      this.bindings = PTypeSkelBindings.create(this.getGivenTvarList());
+      this.bindings = PTypeSkel.Bindings.create(this.getGivenTvarList());
       PTypeSkel ct = this.getTypeOf(this.closureNode);
       if (ct == null) { return null; }
 if (DEBUG > 1) {
@@ -632,7 +632,7 @@ if (DEBUG > 1) {
 /* DEBUG */ if (this.paramNodes[i] == null) { System.out.println(this.exprObj); }
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
-        PTypeSkelBindings bb = this.bindings;  // before looks for debug
+        PTypeSkel.Bindings bb = this.bindings;  // before looks for debug
         boolean b = ctr.params[i].accept(PTypeSkel.NARROWER, t, this.bindings);
         if (!b) {
           emsg = new StringBuffer();
@@ -1006,14 +1006,14 @@ if (DEBUG > 1) {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
+      PTypeSkel.Bindings b = PTypeSkel.Bindings.create(this.getGivenTvarList());
       for (int i = 0; i < constr.getAttrCount(); i++) {
         PTypeSkel t = this.getTypeOf(this.attrNodes[i]);
         if (t == null) { return null; }
         if (PTypeRefSkel.willNotReturn(t)) { return t; }
         PDataDef.Attr a = constr.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
-        PTypeSkelBindings bb = b;
+        PTypeSkel.Bindings bb = b;
 if (DEBUG > 1) {
           /* DEBUG */ System.out.print("attribute def: ");
           /* DEBUG */ System.out.println(at);
@@ -1268,7 +1268,7 @@ if (DEBUG > 1) {
   class DataConstrPtnNode extends RefNode {
     int context;  // PPtnMatch.CONTEXT_*
     PEid dcon;
-    PTypeSkelBindings bindings;
+    PTypeSkel.Bindings bindings;
 
     DataConstrPtnNode(PExprObj exprObj, int context, PEid dcon) {
       super(exprObj);
@@ -1280,7 +1280,7 @@ if (DEBUG > 1) {
       this.dcon = dcon;
     }
 
-    PTypeSkelBindings getBindings() throws CompileException {
+    PTypeSkel.Bindings getBindings() throws CompileException {
       StringBuffer emsg;
       if (this.bindings != null) { return this.bindings; }
       PTypeSkel t = this.getTypeOf(this.inNode);
@@ -1292,7 +1292,7 @@ if (DEBUG > 1) {
       PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
-      PTypeSkelBindings b = PTypeSkelBindings.create(this.getGivenTvarList());
+      PTypeSkel.Bindings b = PTypeSkel.Bindings.create(this.getGivenTvarList());
       int width = PTypeSkel.WIDER;  // may strengthen check; warning?
       if (!sig.accept(width, t, b)) {
         emsg = new StringBuffer();
@@ -1361,7 +1361,7 @@ if (DEBUG > 1) {
     }
 
     PTypeSkel infer() throws CompileException {
-      PTypeSkelBindings b;
+      PTypeSkel.Bindings b;
       if ((b = ((DataConstrPtnNode)this.inNode).getBindings()) == null) { return null; }
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
