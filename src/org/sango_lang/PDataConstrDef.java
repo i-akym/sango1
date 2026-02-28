@@ -188,7 +188,7 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     // this.dataType = type;
   // }
 
-  public PTypeSkel getType(PTypeSkelBindings bindings) {
+  public PTypeSkel getType(PTypeSkel.Bindings bindings) {
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
     return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
     // return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);

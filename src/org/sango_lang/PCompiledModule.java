@@ -302,7 +302,7 @@ class PCompiledModule implements PModDecl {
         throw new IllegalArgumentException("Length of unaliasing params mismatch.");
       }
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
-      PTypeSkelBindings bindings = PTypeSkelBindings.create();
+      PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
       for (int i = 0; i < params.length; i++) {
         bindings.bind(((PTypeVarSkel)this.tparams[i].instanciate(ic)).varSlot, params[i]);
       }
@@ -337,7 +337,7 @@ class PCompiledModule implements PModDecl {
       return index;
     }
 
-    public PTypeSkel getType(PTypeSkelBindings bindings) {
+    public PTypeSkel getType(PTypeSkel.Bindings bindings) {
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
       return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
     }

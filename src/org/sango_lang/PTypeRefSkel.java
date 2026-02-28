@@ -59,7 +59,7 @@ public class PTypeRefSkel implements PTypeSkel {
     PTypeRefSkel sig = dd.getTypeSig();
     PFeatureSkel[] fs = new PFeatureSkel[dd.getFeatureImplCount()];
     for (int i = 0; i < fs.length; i++) {
-      PTypeSkelBindings bindings = PTypeSkelBindings.create(new ArrayList<PTypeVarSlot>());
+      PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create(new ArrayList<PTypeVarSlot>());
       for (int j = 0; j < sig.params.length; j++) {
         // sig param does not include type ref, so width does not mean; only to cause binding of var actually
         if (!sig.params[j].accept(PTypeSkel.EQUAL, this.params[j], bindings)) {
@@ -208,7 +208,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return n;
   }
 
-  public PTypeRefSkel resolveBindings(PTypeSkelBindings bindings) {
+  public PTypeRefSkel resolveBindings(PTypeSkel.Bindings bindings) {
     PTypeRefSkel tr;
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
@@ -227,7 +227,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return create(this.theCompiler, this.srcInfo, this.tconKey, this.ext, ps);
   }
 
-  public boolean accept(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  public boolean accept(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     PTypeSkel t = type.resolveBindings(bindings);
     if (this.getCat() == PTypeSkel.CAT_BOTTOM) {
@@ -238,7 +238,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean acceptBottom(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  boolean acceptBottom(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -265,7 +265,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean acceptSome(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  boolean acceptSome(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
@@ -289,7 +289,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean acceptSomeSome(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+  boolean acceptSomeSome(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptTypeRef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -317,7 +317,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean acceptGenericVar(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+  boolean acceptGenericVar(int width, PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -344,7 +344,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  public boolean require(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  public boolean require(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     PTypeSkel t = type.resolveBindings(bindings);
     if (this.getCat() == PTypeSkel.CAT_BOTTOM) {
@@ -355,7 +355,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean requireBottom(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  boolean requireBottom(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -382,7 +382,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean requireSome(int width, PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  boolean requireSome(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
@@ -406,7 +406,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean requireSomeSome(int width, PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+  boolean requireSomeSome(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireTypeRef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
@@ -434,7 +434,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  boolean requireGenericVar(int width, PTypeVarSkel tv, PTypeSkelBindings bindings) throws CompileException {
+  boolean requireGenericVar(int width, PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireGenericVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -564,7 +564,7 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  void castVarToMe(PTypeVarSkel var, PTypeSkelBindings bindings) {
+  void castVarToMe(PTypeVarSkel var, PTypeSkel.Bindings bindings) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#castVarToMe "); System.out.print(this); System.out.print(" "); System.out.print(var); System.out.print(" "); System.out.println(bindings);
 }
@@ -583,7 +583,7 @@ public class PTypeRefSkel implements PTypeSkel {
     bindings.bind(var.varSlot, t);
   }
 
-  public boolean includesVar(PTypeVarSlot varSlot, PTypeSkelBindings bindings) {
+  public boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
     boolean b = false;
     for (int i = 0; !b && i < this.params.length; i++) {
       b = this.params[i].includesVar(varSlot, bindings);
@@ -601,7 +601,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
     PTypeSkel t;
     PTypeSkel.JoinResult r;
-    if ((r = this.join2(PTypeSkel.WIDER, /* true, */ type, PTypeSkelBindings.create(givenTVarList))) != null) {
+    if ((r = this.join2(PTypeSkel.WIDER, /* true, */ type, PTypeSkel.Bindings.create(givenTVarList))) != null) {
       t = r.joined.instanciate(PTypeSkel.InstanciationContext.create(r.bindings));
     } else {
       t = null;
@@ -609,7 +609,7 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public PTypeSkel.JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkelBindings bindings) throws CompileException {
+  public PTypeSkel.JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#join2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
@@ -628,7 +628,7 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  PTypeSkel.JoinResult join2TypeRef(int width, /* boolean bindsRef, */ PTypeRefSkel tr, PTypeSkelBindings bindings) throws CompileException {
+  PTypeSkel.JoinResult join2TypeRef(int width, /* boolean bindsRef, */ PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 0 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
@@ -656,7 +656,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
       int[] ww = paramWidths(width, this.paramVariances());
-      PTypeSkelBindings b = bindings;
+      PTypeSkel.Bindings b = bindings;
       boolean c = true;
       for (int i = 0; c && i < this.params.length; i++) {
         PTypeSkel.JoinResult r2;
@@ -769,7 +769,7 @@ if (PTypeGraph.DEBUG > 1) {
     // }
   // }
 
-  public PTypeSkel unalias(PTypeSkelBindings bindings) throws CompileException {
+  public PTypeSkel unalias(PTypeSkel.Bindings bindings) throws CompileException {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
     for (int i = 0; i < ps.length; i++) {
       ps[i] = this.params[i].unalias(bindings);

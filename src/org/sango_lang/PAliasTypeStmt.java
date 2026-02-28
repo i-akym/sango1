@@ -319,7 +319,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       throw new IllegalArgumentException("Length of unaliasing params mismatch.");
     }
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
-    PTypeSkelBindings bindings = PTypeSkelBindings.create();
+    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
     for (int i = 0; i < this.tparamSkels.length; i++) {
        bindings.bind(((PTypeVarSkel)this.tparamSkels[i].instanciate(ic)).varSlot, params[i]);
     }

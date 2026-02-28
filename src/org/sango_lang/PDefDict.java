@@ -531,7 +531,7 @@ class PDefDict {
       for (int i = 0; sel == null && i < fds.size(); i++) {
         PFunDef def = fds.get(i);
         String[] aliases = def.getAliases();
-        PTypeSkelBindings bindings = null;
+        PTypeSkel.Bindings bindings = null;
         if (def.getOfficialName().equals(eid.idName)) {
           bindings = tryApply(def, paramTypes, givenTVarList);
         }
@@ -549,11 +549,11 @@ class PDefDict {
     return sel;
   }
 
-  private static PTypeSkelBindings tryApply(PFunDef def, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
+  private static PTypeSkel.Bindings tryApply(PFunDef def, PTypeSkel[] paramTypes, List<PTypeVarSlot> givenTVarList) throws CompileException {
     // PFunDef#getParamTypes maybe throw CompileException current implementation...
     PTypeSkel[] pts = def.getParamTypes();
     if (pts.length != paramTypes.length) { return null; }
-    PTypeSkelBindings bindings = PTypeSkelBindings.create(givenTVarList);
+    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create(givenTVarList);
     boolean b = true;
     for (int i = 0; b && i < pts.length; i++) {
 // /* DEBUG */ System.out.print(pts[i]); System.out.println(paramTypes[i]);
@@ -909,13 +909,13 @@ class PDefDict {
 
   static class FunSelRes {
     PFunDef funDef;
-    PTypeSkelBindings bindings;
+    PTypeSkel.Bindings bindings;
 
-    static FunSelRes create(PFunDef funDef, PTypeSkelBindings bindings) {
+    static FunSelRes create(PFunDef funDef, PTypeSkel.Bindings bindings) {
       return new FunSelRes(funDef, bindings);
     }
 
-    private FunSelRes(PFunDef funDef, PTypeSkelBindings bindings) {
+    private FunSelRes(PFunDef funDef, PTypeSkel.Bindings bindings) {
       this.funDef = funDef;
       this.bindings = bindings;
     }

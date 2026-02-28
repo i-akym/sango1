@@ -442,7 +442,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
     PTypeRefSkel bsigSkel = baseDef.getTypeSig();
     PTypeRefSkel sigSkel = this.getTypeSig();
-    PTypeSkelBindings bindings = PTypeSkelBindings.create();
+    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
     for (int i = 0; i < sigSkel.params.length; i++) {
       if (!sigSkel.params[i].accept(PTypeSkel.NARROWER, bsigSkel.params[i], bindings)) {
         PTypeVarSkel p = (PTypeVarSkel)sigSkel.params[i];
@@ -489,7 +489,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.tparams.length; i++) {
       vs.add(this.tparams[i].getVarSlot());
     }
-    PTypeSkelBindings b = PTypeSkelBindings.create(vs);
+    PTypeSkel.Bindings b = PTypeSkel.Bindings.create(vs);
 
     PTypeRefSkel bsig = base.getTypeSig();
     for (int i = 0; i < bsig.params.length; i++) {
