@@ -649,23 +649,34 @@ if (DEBUG > 1) {
           emsg.append(PTypeSkel.Repr.topLevelRepr(t));
           throw new CompileException(emsg.toString());
         }
-        PTypeSkel p = t.resolveBindings(this.bindings);
-        if (ctr.params[i].extractAnyInconcreteVar(p /* , this.bindings.givenTVarList */) != null) {
-          emsg = new StringBuffer();
-          emsg.append("Inconcrete parameter at ");
-          emsg.append(this.exprObj.getSrcInfo());
-          emsg.append(".");
-          emsg.append("\n  required: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i]));
-          emsg.append("\n  actual: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(p));
-          throw new CompileException(emsg.toString());
-        }
+        // stop checking concreteness for each param
+        // PTypeSkel p = t.resolveBindings(this.bindings);
+        // if (ctr.params[i].extractAnyInconcreteVar(p /* , this.bindings.givenTVarList */) != null) {
+          // emsg = new StringBuffer();
+          // emsg.append("Inconcrete parameter at ");
+          // emsg.append(this.exprObj.getSrcInfo());
+          // emsg.append(".");
+          // emsg.append("\n  required: ");
+          // emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i]));
+          // emsg.append("\n  actual: ");
+          // emsg.append(PTypeSkel.Repr.topLevelRepr(p));
+          // throw new CompileException(emsg.toString());
+        // }
       }
 if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
       /* DEBUG */ System.out.println(this.bindings);
 }
+      PTypeVarSkel iv;
+      if ((iv = this.bindings.getAnyInconcreteVar()) != null) {
+        emsg = new StringBuffer();
+        emsg.append("Inconcrete type parameter specified for ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(iv));
+        emsg.append(" at ");
+        emsg.append(this.exprObj.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(this.bindings);
       return ctr.params[ctr.params.length - 1].resolveBindings(this.bindings).instanciate(ic);
     }
@@ -1047,18 +1058,19 @@ if (DEBUG > 1) {
       /* DEBUG */ System.out.println(b);
 }
       PTypeSkel dt = constr.getType(b);
-      PTypeRefSkel sig = dataDef.getTypeSig();
-      if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {
-        emsg = new StringBuffer();
-        emsg.append("Attempt to construct data including inconcrete type parameter at ");
-        emsg.append(this.exprObj.getSrcInfo());
-        emsg.append(".");
-        emsg.append("\n  required: ");
-        emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
-        emsg.append("\n  actual: ");
-        emsg.append(PTypeSkel.Repr.topLevelRepr(dt));
-        throw new CompileException(emsg.toString());
-      }
+      // sig param does not require concreteness now
+      // PTypeRefSkel sig = dataDef.getTypeSig();
+      // if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {
+        // emsg = new StringBuffer();
+        // emsg.append("Attempt to construct data including inconcrete type parameter at ");
+        // emsg.append(this.exprObj.getSrcInfo());
+        // emsg.append(".");
+        // emsg.append("\n  required: ");
+        // emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
+        // emsg.append("\n  actual: ");
+        // emsg.append(PTypeSkel.Repr.topLevelRepr(dt));
+        // throw new CompileException(emsg.toString());
+      // }
 
       return dt;
     }

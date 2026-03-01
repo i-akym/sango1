@@ -146,15 +146,15 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
-    if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
-    PTypeRefSkel tt = (PTypeRefSkel)type;
-    PTypeSkel t = null;
-    for (int i = 0; t == null && i < this.params.length; i++) {
-      t = this.params[i].extractAnyInconcreteVar(tt.params[i]);
-    }
-    return t;
-  }
+  // public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
+    // if (!(type instanceof PTypeRefSkel)) { throw new IllegalArgumentException("Not typeref"); }
+    // PTypeRefSkel tt = (PTypeRefSkel)type;
+    // PTypeSkel t = null;
+    // for (int i = 0; t == null && i < this.params.length; i++) {
+      // t = this.params[i].extractAnyInconcreteVar(tt.params[i]);
+    // }
+    // return t;
+  // }
 
   // public PDefDict.TconProps getTconInfo() {
     // if (this.tconProps == null) {

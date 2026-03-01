@@ -560,10 +560,11 @@ class PDefDict {
       b = pts[i].accept(PTypeSkel.NARROWER, paramTypes[i], bindings);
     }
     if (b) {
-      for (int i = 0; b && i < pts.length; i++) {
-        PTypeSkel p = paramTypes[i].resolveBindings(bindings);
-        b = pts[i].extractAnyInconcreteVar(p) == null;
-      }
+      b = bindings.getAnyInconcreteVar() == null;
+      // for (int i = 0; b && i < pts.length; i++) {
+        // PTypeSkel p = paramTypes[i].resolveBindings(bindings);
+        // b = pts[i].extractAnyInconcreteVar(p) == null;
+      // }
     }
    return b? bindings: null;
   }

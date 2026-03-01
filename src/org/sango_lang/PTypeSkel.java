@@ -42,11 +42,8 @@ public interface PTypeSkel {
   boolean isLiteralNaked();
 
   boolean isConcrete();
-  // boolean isConcrete(List<PTypeVarSlot> givenTVarList);
-  // boolean isConcrete(Bindings bindings);
 
-  PTypeSkel extractAnyInconcreteVar(PTypeSkel type);
-  // PTypeSkel extractAnyInconcreteVar(PTypeSkel type, List<PTypeVarSlot> givenTVarList);
+  // PTypeSkel extractAnyInconcreteVar(PTypeSkel type);
 
   PTypeSkel normalize() throws CompileException;
 
@@ -103,6 +100,7 @@ public interface PTypeSkel {
 
   static public class Bindings {
     Map<PTypeVarSlot, PTypeSkel> bindingDict;
+    List<PTypeVarSkel> concreteVarList;
     List<PTypeVarSlot> givenTVarList;
 
     private Bindings() {}
@@ -114,6 +112,7 @@ public interface PTypeSkel {
     static Bindings create(List<PTypeVarSlot> givenTVarList) {
       Bindings b = new Bindings();
       b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
+      b.concreteVarList = new ArrayList<PTypeVarSkel>();
       b.givenTVarList = givenTVarList;
       return b;
     }
@@ -122,6 +121,8 @@ public interface PTypeSkel {
       Bindings b = new Bindings();
       b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
       b.bindingDict.putAll(this.bindingDict);
+      b.concreteVarList = new ArrayList<PTypeVarSkel>();
+      b.concreteVarList.addAll(this.concreteVarList);
       b.givenTVarList = new ArrayList<PTypeVarSlot>();
       b.givenTVarList.addAll(this.givenTVarList);
       return b;
@@ -129,6 +130,7 @@ public interface PTypeSkel {
 
     public String toString() {
       return this.bindingDict.toString()
+        + " C" + this.concreteVarList.toString()
         + " G" + this.givenTVarList.toString();
     }
 
@@ -147,6 +149,9 @@ public interface PTypeSkel {
         throw new IllegalArgumentException("Cannot bind. " + var.toString() + " " + this.toString());
       }
       this.bindingDict.put(var.varSlot, typeSkel);
+      if (var.requiresConcrete) {
+        this.addConcreteVar(var);
+      }
     }
 
     PTypeSkel lookup(PTypeVarSkel var) {
@@ -169,6 +174,23 @@ public interface PTypeSkel {
         }
       }
       return r;
+    }
+
+    private void addConcreteVar(PTypeVarSkel var) {
+      if (!this.concreteVarList.contains(var)) {
+        this.concreteVarList.add(var);
+      }
+    }
+
+    PTypeVarSkel getAnyInconcreteVar() {
+      PTypeVarSkel iv = null;
+      for (int i = 0; iv == null && i < this.concreteVarList.size(); i++) {
+        PTypeVarSkel v = this.concreteVarList.get(i);
+        if (!v.resolveBindings(this).isConcrete()) {
+          iv = v;
+        }
+      }
+      return iv;
     }
 
     boolean isGivenTVar(PTypeVarSkel var) {
