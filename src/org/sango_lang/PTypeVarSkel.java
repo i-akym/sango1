@@ -1005,6 +1005,9 @@ if (PTypeGraph.DEBUG > 1) {
     PTypeSkel.Repr r = PTypeSkel.Repr.create();
     StringBuffer buf = new StringBuffer();
     buf.append(name);
+    if (this.requiresConcrete) {
+      buf.append("!");
+    }
     if (this.features != null) {
       buf.append(this.features.repr());
     }
