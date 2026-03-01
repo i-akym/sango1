@@ -103,17 +103,17 @@ public class PTypeVarSkel implements PTypeSkel {
     return this.requiresConcrete;
   }
 
-  public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
-    PTypeSkel t = null;
-    if (!this.requiresConcrete) {
-      ; 
-    } else if (!type.isConcrete()) {
-      t = type;
-    } else if (this.features != null) {
-      t = this.features.extractAnyInconcreteVar();
-    }
-    return t;
-  }
+  // public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
+    // PTypeSkel t = null;
+    // if (!this.requiresConcrete) {
+      // ; 
+    // } else if (!type.isConcrete()) {
+      // t = type;
+    // } else if (this.features != null) {
+      // t = this.features.extractAnyInconcreteVar();
+    // }
+    // return t;
+  // }
 
   public PTypeVarSkel normalize() throws CompileException {
     PFeatureSkel.List fs = (this.features != null)? this.features.normalize(): null;
