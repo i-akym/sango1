@@ -43,8 +43,6 @@ public interface PTypeSkel {
 
   boolean isConcrete();
 
-  // PTypeSkel extractAnyInconcreteVar(PTypeSkel type);
-
   PTypeSkel normalize() throws CompileException;
 
   PTypeSkel resolveBindings(Bindings bindings);
@@ -62,8 +60,6 @@ public interface PTypeSkel {
 
   boolean includesVar(PTypeVarSlot varSlot, Bindings bindings);
 
-  // PTypeVarSlot getVarSlot();
-
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
     // foward to following method internally
   JoinResult join2(int width, PTypeSkel type, Bindings bindings) throws CompileException;
@@ -74,9 +70,9 @@ public interface PTypeSkel {
 
   void collectVarVariances(PTypeVarSlot slot, Module.Variance contextVariance, List<Module.Variance> variances) throws CompileException;
 
-  // void collectTconProps(List<PDefDict.TconProps> list);
-
   PTypeSkel unalias(Bindings bindings) throws CompileException;
+
+  void makeSureConcretenessSpec(boolean inRet, List<PTypeVarSlot> checked) throws CompileException;
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 

@@ -426,9 +426,12 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].normalizeTypes();
     }
-    if (this.retDef != null) {
-      this.retDef.normalizeTypes();
+    this.retDef.normalizeTypes();
+    List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i]._normalized_typeSkel.makeSureConcretenessSpec(false, checked);
     }
+    this.retDef._normalized_typeSkel.makeSureConcretenessSpec(true, checked);
     if (this.implExprs != null) {
       this.implExprs.normalizeTypes();
     }

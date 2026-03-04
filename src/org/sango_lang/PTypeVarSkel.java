@@ -999,6 +999,28 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
+  public void makeSureConcretenessSpec(boolean inRet, List<PTypeVarSlot> checked) throws CompileException {
+    if (!requiresConcrete) {
+      ;
+    } else if (this.varSlot == null) {
+      ;
+    } else if (checked.contains(this.varSlot)) {
+      ;
+    } else if (!inRet) {
+      checked.add(this.varSlot);
+    } else {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append("Concreteness not allowed for ");
+      emsg.append(PTypeSkel.Repr.topLevelRepr(this));
+      if (this.srcInfo != null) {
+        emsg.append(" at ");
+        emsg.append(this.srcInfo);
+      }
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+  }
+
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {}
 
   public PTypeSkel.Repr repr() {

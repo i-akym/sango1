@@ -2324,7 +2324,8 @@ eval &lt;... <var>t</var>+&gt; *X _narrow_<var>t</var> | narrow @public -&gt; &l
 <p>型パラメタを持っていない型，または，全ての型パラメタが（再帰的に）決定している型を具象型（concrete type）と呼びます。
   例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
   一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
-<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。</p>
+<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。
+関数，クロージャの返り値に含まれる型変数の宣言にて具象型を指定することはできません。</p>
 <blockquote class="code-sample">コード例<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ create_box @public -&gt; &lt;A box_h&gt; ...</code></blockquote>

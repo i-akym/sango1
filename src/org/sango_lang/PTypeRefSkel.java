@@ -779,6 +779,19 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
+  public void makeSureConcretenessSpec(boolean inRet, List<PTypeVarSlot> checked) throws CompileException {
+    if (isFun(this)) {
+      for (int i = 0; i < this.params.length - 1; i++) {
+        this.params[i].makeSureConcretenessSpec(false, checked);
+      }
+      this.params[this.params.length - 1].makeSureConcretenessSpec(true, checked);
+    } else {
+      for (int i = 0; i < this.params.length; i++) {
+        this.params[i].makeSureConcretenessSpec(inRet, checked);
+      }
+    }
+  }
+
   PTypeVarSkel varIncompatVariance(PTypeSkel.VarianceTab vt) throws CompileException {
     PTypeVarSkel x = null;
     Module.Variance[] vs = this.paramVariances();
