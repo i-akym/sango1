@@ -289,8 +289,14 @@ class PClosure extends PDefaultExprObj {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].normalizeTypes();
     }
+    this.retDef.normalizeTypes();
+    List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
+    checked.addAll(this.scope.getGivenTVarList());  // too many added...
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i]._normalized_typeSkel.makeSureConcretenessSpec(false, checked);
+    }
+    this.retDef._normalized_typeSkel.makeSureConcretenessSpec(true, checked);
     this.implExprs.normalizeTypes();
-    retDef.normalizeTypes();
   }
 
   public PTypeSkel[] getParamDefinedTypes() throws CompileException {

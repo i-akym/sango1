@@ -78,7 +78,7 @@ eval <*A! wbox_h> *W clear @public -> <void> {
 
 # -- entity functions --
 
-eval entity_fs @public -> <<*A! box_h> ent.entity_fs> {
+eval entity_fs @public -> <<*A box_h> ent.entity_fs> {
   undress_f: ^undress ent.entity_fs$
 } ;;
 
