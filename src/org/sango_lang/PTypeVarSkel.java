@@ -999,7 +999,7 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
-  public void makeSureConcretenessSpec(boolean inRet, List<PTypeVarSlot> checked) throws CompileException {
+  public void makeSureConcretenessSpec(Parser.SrcInfo si, boolean inRet, List<PTypeVarSlot> checked) throws CompileException {
     if (!requiresConcrete) {
       ;
     } else if (this.varSlot == null) {
@@ -1010,11 +1010,14 @@ if (PTypeGraph.DEBUG > 1) {
       checked.add(this.varSlot);
     } else {
       StringBuffer emsg = new StringBuffer();
-      emsg.append("Concreteness not allowed for ");
-      emsg.append(PTypeSkel.Repr.topLevelRepr(this));
-      if (this.srcInfo != null) {
+      emsg.append("Concreteness not allowed");
+      if (this.name != null) {
+        emsg.append(" to ");
+        emsg.append(this.name);
+      }
+      if (si != null) {
         emsg.append(" at ");
-        emsg.append(this.srcInfo);
+        emsg.append(si);
       }
       emsg.append(".");
       throw new CompileException(emsg.toString());

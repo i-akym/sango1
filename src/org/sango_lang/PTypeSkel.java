@@ -72,7 +72,7 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(Bindings bindings) throws CompileException;
 
-  void makeSureConcretenessSpec(boolean inRet, List<PTypeVarSlot> checked) throws CompileException;
+  void makeSureConcretenessSpec(Parser.SrcInfo si, boolean inRet, List<PTypeVarSlot> checked) throws CompileException;
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 
