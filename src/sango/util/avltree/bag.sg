@@ -26,48 +26,14 @@ module "sango.util.avltree.bag" ;;
 import "sango.arith" -> arith ;;
 import "sango.list" -> list ;;
 import "sango.tuple" -> tuple ;;
-import "sango.util.avltree.base" -> avl ;;
+import "sango.util.avltree.map" -> amap ;;
 import "sango.util.bag" -> bag ;;
+import "sango.util.map" -> map ;;
 
 data <*A d> :=
-  ord: <A ord_fs>
-  body: <<A list> avl.tree>
-  d$ ;;
-
-eval <*A ord_fs> *Ord <A> *X locator -> <<<A list> avl.node> <<A list> avl.locate> fun> {
-  \ <<A list> avl.node> *N -> <<A list> avl.locate> { 
-    X (N avl.assoc >> list.head >> value) Ord compare >> case {
-    ; lt$ -> ^^ avl.left$
-    ; eq$ -> avl.just$
-    ; gt$ -> ^^ avl.right$
-    }
-  }
-} ;;
-
-extend <*A avl.aux> :=  # actually <A> is <Z list>
+  body: <A <A list> map.map>
   count: <int>
-  mins: <A>
-  aux$ ;;
-
-eval <*A list> *Assoc <<<A list> avl.node> maybe> *Left_ <<<A list> avl.node> maybe> *Right_
-    build_aux -> <<A list> aux> {
-  Assoc list.length = *My_count,
-  (| Left_, Right_ |) case {
-  ; (| *Left value$, *Right value$ |) ->
-    Left avl.aux = count: *L_count mins: *L_mins aux$,
-    Right avl.aux = count: *R_count mins: ** aux$,
-    (| [ L_count, R_count, My_count ] arith.sum, L_mins |)
-  ; (| *Left value$, none$ |) ->
-    Left avl.aux = count: *L_count mins: *L_mins aux$,
-    (| L_count My_count sum, L_mins |)
-  ; (| none$, *Right value$ |) ->
-    Right avl.aux = count: *R_count mins: ** aux$,
-    (| R_count My_count sum, Assoc |)
-  ; (| none$, none$ |) ->
-    (| My_count, Assoc |)
-  } = (| *Count, *Mins |),
-  count: Count mins: Mins aux$
-} ;;
+  d$ ;;
 
 eval bag_fs -> <<*A d> A bag.bag_fs> {
   empty?_f: ^empty?
@@ -84,70 +50,62 @@ eval bag_fs -> <<*A d> A bag.bag_fs> {
   bag.bag_fs$
 } ;;
 
-# eval <<<*A list> avl.node> maybe> *Node_ subtree_count -> <int> {
-  # Node_ case {
-  # ; *Node value$ -> Node avl.aux = count: *Count aux$, Count
-  # ; none$ -> 0
-  # }
-# } ;;
-
 eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
-  ord: Ord body: (^build_aux avl.new_tree) d$ = *D,
-  D bag_fs bag.combine
+  body: (Ord amap.new_map)
+  count: 0
+  d$ = *Bag_d,
+  Bag_d bag_fs bag.combine
 } ;;
 
 eval <*A d> *Bag_d empty? -> <bool> {
-  Bag_d size >> zero?
+  Bag_d = body: *Map count: *Count d$,
+  Count zero?
 } ;;
 
 eval <*A d> *Bag_d size -> <int> {
-  Bag_d = body: *Body *** d$,
-  Body avl.node_ >> case {
-  ; *Node value$ -> Node avl.aux = count: *Count *** aux$, Count
-  ; none$ -> 0
-  }
+  Bag_d = body: *Map count: *Count d$,
+  Count
 } ;;
 
 eval <*A d> *Bag_d <A> *Elem contain? -> <bool> {
-  Bag_d Elem get_all >> list.non_empty?
+  Bag_d = body: *Map count: *Count d$,
+  Map Elem map.contain_key?
 } ;;
 
 eval <*A d> *Bag_d <A> *Elem get_all -> <A list> {
-  Bag_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) avl.get >> case {
-  ; *Elems avl.get_done$ -> Elems
+  Bag_d = body: *Map count: *Count d$,
+  Map Elem map.get >> case {
+  ; (| *E, *Es |) value$ -> [ E ; Es ]
   ; ** -> []
   }
 } ;;
 
 eval <*A d> *Bag_d <A> *Elem add -> <A d> {
-  Bag_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) [ Elem ; Bag_d Elem get_all ] avl.put >> case {
-  ; *Body' avl.put_new_done$ -> body: Body' :: Bag_d d$
-  ; *Body' ** avl.put_replace_done$ -> body: Body' :: Bag_d d$
-  }
+  Bag_d = body: *Map count: *Count d$,
+  Map Elem map.remove >> case {
+  ; (| *M, (| *E, *Es |) value$ |) -> M Elem [ E ; Es ] map.add
+  ; (| *M, ** |) -> M Elem [] map.add
+  } = *Map',
+  body: Map' count: (Count inc) d$
 } ;;
 
 eval <*A d> *Bag_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
-  Bag_d = ord: *Ord body: *Body *** d$,
-  Bag_d Elem get_all >> case {
-  ; [] ->
-    (| Bag_d, none$ |)
-  ; [ *E ] ->
-    Body (Ord Elem locator) avl.remove = *Body' ** avl.remove_done$,
-    (| body: Body' :: Bag_d d$, E value$ |)
-  ; [ *E ; *Es ] -> 
-    Body (Ord Elem locator) Es avl.put = *Body' ** avl.put_replace_done$,
-    (| body: Body' :: Bag_d d$, E value$ |)
-  }
+  Bag_d = body: *Map count: *Count d$,
+  Map Elem map.remove >> case {
+  ; (| *M, (| *E, [] |) value$ |) -> (| M, E value$, Count dec |)
+  ; (| *M, (| *E, [ *EE ; *Es ] |) value$ |) -> (| M EE Es map.add, E value$, Count dec |)
+  ; (| *M, ** |) -> (| M, none$, Count |)
+  } = (| *Map', *Removed_, *Count' |),
+  (| body: Map' count: Count' d$, Removed_ |)
 } ;;
 
 eval <*A d> *Bag_d <A> *Elem remove_all -> <<A d> <A list> tuple> {
-  Bag_d = ord: *Ord body: *Body *** d$,
-  Body (Ord Elem locator) avl.remove >> case {
-  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Bag_d d$, Removed |)
-  ; avl.remove_not_found$ -> (| Bag_d, [] |)
-  }
+  Bag_d = body: *Map count: *Count d$,
+  Map Elem map.remove >> case {
+  ; (| *M, (| *E, *Es |) value$ |) -> (| M, [ E ; Es ], Count (Es list.length >> inc) diff |)
+  ; (| *M, ** |) -> (| M, [], Count |)
+  } = (| *Map', *Removed, *Count' |),
+  (| body: Map' count: Count' d$, Removed |)
 } ;;
 
 eval <*A d> *Bag_d <A> *Elem delete -> <A d> {
@@ -159,16 +117,20 @@ eval <*A d> *Bag_d <A> *Elem delete_all -> <A d> {
 } ;;
 
 eval <*A d> *Bag_d take -> <<A <A d> tuple> maybe> {
-  Bag_d = ord: *Ord body: *Body *** d$,
-  Body avl.node_ >> case {
-  ; *Node value$ ->
-    Node avl.aux = mins: *Mins *** aux$, 
-    Bag_d (Mins list.head >> value) remove = (| *Bag_d', *Removed value$ |),
-    (| Removed, Bag_d' |) value$
-  ; none$ -> none$
+  Bag_d = body: *Map count: *Count d$,
+  Map map.take >> case {
+  ; (| (| *E, [] |), *M |) value$ ->
+    (| E, body: M count: (Count dec) d$ |) value$
+  ; (| (| *E, [ *EE ; *Es ] |), *M |) value$ ->
+    M EE Es map.add = *M',
+    (| E, body: M' count: (Count dec) d$ |) value$
+  ; ** -> none$
   }
 } ;;
 
 eval <*A d> *Bag_d clear -> <A d> {
-  body: (^build_aux avl.new_tree) :: Bag_d d$
+  Bag_d = body: *Map count: *Count d$,
+  body: (Map map.clear)
+  count: 0
+  d$
 } ;;
