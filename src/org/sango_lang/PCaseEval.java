@@ -117,9 +117,9 @@ class PCaseEval extends PDefaultExprObj implements PEval {
     this.caseBlock.collectModRefs();
   }
 
-  public PCaseEval resolve() throws CompileException {
+  public PCaseEval doResolve() throws CompileException {
     this.obj = this.obj.resolve();
-    this.caseBlock = this.caseBlock.resolve();
+    this.caseBlock = (PCaseBlock)this.caseBlock.resolve();
     return this;
   }
 

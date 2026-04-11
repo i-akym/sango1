@@ -115,9 +115,9 @@ class PCaseBlock extends PDefaultExprObj {
     }
   }
 
-  public PCaseBlock resolve() throws CompileException {
+  public PCaseBlock doResolve() throws CompileException {
     for (int i = 0; i < this.clauses.length; i++) {
-      this.clauses[i] = this.clauses[i].resolve();
+      this.clauses[i] = (PCaseClause)this.clauses[i].resolve();
     }
     return this;
   }
@@ -129,7 +129,7 @@ class PCaseBlock extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createJoinNode(this, this.clauses.length);
+    this.typeGraphNode = graph.createJoinNode(this, this.alreadyDefinedTVarList, this.clauses.length);
     for (int i = 0; i < this.clauses.length; i++) {
       ((PTypeGraph.JoinNode)this.typeGraphNode).setBranchNode(i, this.clauses[i].setupTypeGraph(graph));
     }

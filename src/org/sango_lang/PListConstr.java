@@ -57,7 +57,7 @@ class PListConstr extends PList {
     this.tail.collectModRefs();
   }
 
-  public PListConstr resolve() throws CompileException {
+  public PListConstr doResolve() throws CompileException {
     this.elem = this.elem.resolve();
     this.tail = this.tail.resolve();
     return this;
@@ -69,7 +69,7 @@ class PListConstr extends PList {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createListNode(this);
+    this.typeGraphNode = graph.createListNode(this, this.alreadyDefinedTVarList);
     ((PTypeGraph.ListNode)this.typeGraphNode).setElemNode(this.elem.setupTypeGraph(graph));
     ((PTypeGraph.ListNode)this.typeGraphNode).setTailNode(this.tail.setupTypeGraph(graph));
     return this.typeGraphNode;

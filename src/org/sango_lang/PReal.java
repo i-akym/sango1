@@ -78,7 +78,7 @@ class PReal extends PDefaultExprObj {
 
   public void collectModRefs() throws CompileException {}
 
-  public PReal resolve() throws CompileException {
+  public PReal doResolve() throws CompileException {
     return this;
   }
 
@@ -87,7 +87,7 @@ class PReal extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDetNode(this);
+    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

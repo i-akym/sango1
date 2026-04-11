@@ -63,7 +63,7 @@ class PUndetEval extends PDefaultExprObj implements PEval {
     this.anchor.collectModRefs();
   }
 
-  public PEval resolve() throws CompileException {
+  public PEval doResolve() throws CompileException {
     PEval e;
     PDefDict.EidProps ep = this.scope.resolveEid(this.anchor);
     if (ep == null) {
@@ -86,13 +86,13 @@ class PUndetEval extends PDefaultExprObj implements PEval {
       }
       this.anchor.setVar();
       PExprVarDef v = this.scope.lookupEVar(this.anchor.name);
-      e = PExprVarRef.create(this.anchor.srcInfo, this.scope, this.anchor.name, v._resolved_varSlot);
+      e = (PEval)PExprVarRef.create(this.anchor.srcInfo, this.scope, this.anchor.name, v._resolved_varSlot).resolve();
     } else if ((ep.cat & PDefDict.EID_CAT_DCON_EVAL) > 0) {
       this.anchor.setDconEval();
-      e = PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, this.anchor, this.params).resolve();
+      e = (PEval)PDataConstrEval.convertFromResolvedUndet(this.srcInfo, this.scope, this.anchor, this.params).resolve();
     } else if ((ep.cat & PDefDict.EID_CAT_FUN) > 0) {
       this.anchor.setFun();
-      e = PStaticInvEval.create(this.srcInfo, this.scope, this.anchor, this.params).resolve();
+      e = (PEval)PStaticInvEval.create(this.srcInfo, this.scope, this.anchor, this.params).resolve();
     } else {
       throw new RuntimeException("Unknown item. " + this.anchor);
     }

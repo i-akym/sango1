@@ -50,7 +50,7 @@ class PObjEval extends PDefaultExprObj implements PEval {
     this.obj.collectModRefs();
   }
 
-  public PObjEval resolve() throws CompileException {
+  public PObjEval doResolve() throws CompileException {
     this.obj = this.obj.resolve();
     return this;
   }

@@ -96,7 +96,7 @@ class PInt extends PDefaultExprObj {
 
   public void collectModRefs() throws CompileException {}
 
-  public PInt resolve() throws CompileException {
+  public PInt doResolve() throws CompileException {
     return this;
   }
 
@@ -105,7 +105,7 @@ class PInt extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDetNode(this);
+    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

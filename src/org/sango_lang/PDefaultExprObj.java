@@ -23,10 +23,28 @@
  ***************************************************************************/
 package org.sango_lang;
 
+import java.util.List;
+
 abstract class PDefaultExprObj extends PDefaultTypedObj implements PExprObj {
+  List<PTypeVarSlot> alreadyDefinedTVarList;
 
   PDefaultExprObj(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
+  }
+
+  public final PExprObj resolve() throws CompileException {
+// /* DEBUG */ System.out.println(this);
+// /* DEBUG */ System.out.println(this.scope);
+    if (this.alreadyDefinedTVarList == null) {
+      this.alreadyDefinedTVarList = this.scope.getDefinedTVarList();
+    }
+    return this.doResolve();
+  }
+
+  abstract PExprObj doResolve() throws CompileException;
+
+  public List<PTypeVarSlot> getAlreadyDefinedTVarList() {
+    return this.alreadyDefinedTVarList;
   }
 
   public GFlow.Node setupFlow(GFlow flow) {

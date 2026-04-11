@@ -25,6 +25,7 @@ package org.sango_lang;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,7 @@ class PScope {
   // List<PTypeVarSlot> anonymTVarList;
   List<PTypeVarSlot> envTVarList;  // null when created
   List<PExprVarSlot> envEVarList;  // null when created
-  List<PTypeVarSlot> givenTVarList;  // null when created
+  // List<PTypeVarSlot> givenTVarList;  // null when created
 
   private PScope(PModule theMod) {
     this.theMod = theMod;
@@ -100,9 +101,9 @@ class PScope {
     if (this.copyFrom.envEVarList != null) {
       this.envEVarList = new ArrayList<PExprVarSlot>(this.copyFrom.envEVarList);
     }
-    if (this.copyFrom.givenTVarList != null) {
-      this.givenTVarList = new ArrayList<PTypeVarSlot>(this.copyFrom.givenTVarList);
-    }
+    // if (this.copyFrom.givenTVarList != null) {
+      // this.givenTVarList = new ArrayList<PTypeVarSlot>(this.copyFrom.givenTVarList);
+    // }
     this.copyFrom = null;
   }
 
@@ -453,14 +454,33 @@ class PScope {
     return v;
   }
 
-  List<PTypeVarSlot> getEnvTVarList() {
+  List<PTypeVarSlot> getDefinedTVarList() {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
-    return this.inParallel?
-      this.parent.getEnvTVarList():  // temporal impl - forward simply
-      this.envTVarList;
+    List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
+    this.collectDefinedTVars(vs);
+    return vs;
   }
+
+  private void collectDefinedTVars(List<PTypeVarSlot> vs) {
+    if (this.parent != null) {
+      this.parent.collectDefinedTVars(vs);
+    }
+    Iterator<PTypeVarDef> vi = this.tvarDict.values().iterator();
+    while (vi.hasNext()) {
+      vs.add(vi.next()._resolved_varSlot);
+    }
+  }
+
+  // List<PTypeVarSlot> getEnvTVarList() {
+    // if (this.copyFrom != null) {
+      // throw new IllegalStateException("Not copied yet.");
+    // }
+    // return this.inParallel?
+      // this.parent.getEnvTVarList():  // temporal impl - forward simply
+      // this.envTVarList;
+  // }
 
   List<PExprVarSlot> getEnvEVarList() {
     if (this.copyFrom != null) {
@@ -619,58 +639,58 @@ class PScope {
     return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, k, false, paramTypeSkels);
   }
 
-  List<PTypeVarSlot> getGivenTVarList() throws CompileException {
-    if (this.copyFrom != null) {
-      throw new IllegalStateException("Not copied yet.");
-    }
-    if (this.givenTVarList == null) {
-      if (this.parent == null || this.parent.pos < 1) {  // function top pos
-        this.setupGivenTVarListForFun();
-      } else if (this.parent.pos != this.pos) {
-        this.setupGivenTVarListForClosure();
-      } else {
-        this.givenTVarList = this.parent.getGivenTVarList();
-      }
-    }
-    return this.givenTVarList;
-  }
-
-  private void setupGivenTVarListForFun() throws CompileException {
-    if (this.copyFrom != null) {
-      throw new IllegalStateException("Not copied yet.");
-    }
-    List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
-    PTypeSkel[] pts = this.evalStmt.getParamTypes();
-    for (int i = 0; i < pts.length; i++) {
-      pts[i].extractVars(vs);
-    }
-    this.givenTVarList = new ArrayList<PTypeVarSlot>();
-    for (int i = 0; i < vs.size(); i++) {
-      PTypeVarSlot s = vs.get(i);
-      // if (!this.anonymTVarList.contains(s)) {
-        this.givenTVarList.add(s);
+  // List<PTypeVarSlot> getGivenTVarList() throws CompileException {
+    // if (this.copyFrom != null) {
+      // throw new IllegalStateException("Not copied yet.");
+    // }
+    // if (this.givenTVarList == null) {
+      // if (this.parent == null || this.parent.pos < 1) {  // function top pos
+        // this.setupGivenTVarListForFun();
+      // } else if (this.parent.pos != this.pos) {
+        // this.setupGivenTVarListForClosure();
+      // } else {
+        // this.givenTVarList = this.parent.getGivenTVarList();
       // }
-    }
-  }
+    // }
+    // return this.givenTVarList;
+  // }
 
-  private void setupGivenTVarListForClosure() throws CompileException {
-    if (this.copyFrom != null) {
-      throw new IllegalStateException("Not copied yet.");
-    }
-    List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
-    PTypeSkel[] pts = this.closure.getParamDefinedTypes();
-    for (int i = 0; i < pts.length; i++) {
-      pts[i].extractVars(vs);
-    }
-    this.givenTVarList = new ArrayList<PTypeVarSlot>();
-    this.givenTVarList.addAll(this.parent.getGivenTVarList());
-    for (int i = 0; i < vs.size(); i++) {
-      PTypeVarSlot s = vs.get(i);
-      // if (!this.anonymTVarList.contains(s)) {
-        this.givenTVarList.add(s);
-      // }
-    }
-  }
+  // private void setupGivenTVarListForFun() throws CompileException {
+    // if (this.copyFrom != null) {
+      // throw new IllegalStateException("Not copied yet.");
+    // }
+    // List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
+    // PTypeSkel[] pts = this.evalStmt.getParamTypes();
+    // for (int i = 0; i < pts.length; i++) {
+      // pts[i].extractVars(vs);
+    // }
+    // this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    // for (int i = 0; i < vs.size(); i++) {
+      // PTypeVarSlot s = vs.get(i);
+      // // if (!this.anonymTVarList.contains(s)) {
+        // this.givenTVarList.add(s);
+      // // }
+    // }
+  // }
+
+  // private void setupGivenTVarListForClosure() throws CompileException {
+    // if (this.copyFrom != null) {
+      // throw new IllegalStateException("Not copied yet.");
+    // }
+    // List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
+    // PTypeSkel[] pts = this.closure.getParamDefinedTypes();
+    // for (int i = 0; i < pts.length; i++) {
+      // pts[i].extractVars(vs);
+    // }
+    // this.givenTVarList = new ArrayList<PTypeVarSlot>();
+    // this.givenTVarList.addAll(this.parent.getGivenTVarList());
+    // for (int i = 0; i < vs.size(); i++) {
+      // PTypeVarSlot s = vs.get(i);
+      // // if (!this.anonymTVarList.contains(s)) {
+        // this.givenTVarList.add(s);
+      // // }
+    // }
+  // }
 
   String getFunOfficial() {
     if (this.pos < 1) {

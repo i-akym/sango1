@@ -28,6 +28,7 @@ abstract class PDefaultProgObj extends PDefaultProgElem implements PProgObj {
 
   PDefaultProgObj(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo);
+    if (scope == null) { throw new IllegalArgumentException("Null scope."); }
     this.scope = scope;
   }
 

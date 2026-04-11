@@ -232,9 +232,9 @@ class PPtnMatch extends PDefaultExprObj {
     this.ptn.collectModRefs();
   }
 
-  public PPtnMatch resolve() throws CompileException {
+  public PPtnMatch doResolve() throws CompileException {
     if (this.impose != null) {
-      this.impose = this.impose.resolve();
+      this.impose = (PImpose)this.impose.resolve();
     }
     this.ptn = this.ptn.resolve();
     return this;
@@ -250,7 +250,7 @@ class PPtnMatch extends PDefaultExprObj {
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.impose != null) {
       this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).toSkel();
-      this.typeGraphNode = graph.createDetNode(this);
+      this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
       this.ptn.setupTypeGraph(graph).setInNode(this.impose.setupTypeGraph(graph));
     } else {
       this.typeGraphNode = this.ptn.setupTypeGraph(graph);

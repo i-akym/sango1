@@ -180,7 +180,7 @@ class PCasePtnMatch extends PDefaultExprObj {
     }
   }
 
-  public PCasePtnMatch resolve() throws CompileException {
+  public PCasePtnMatch doResolve() throws CompileException {
     this.ptnMatch = (PPtnMatch)this.ptnMatch.resolve();
     for (int i = 0; i < this.details.length; i++) {
       this.details[i] = (PPtnDetail)this.details[i].resolve();

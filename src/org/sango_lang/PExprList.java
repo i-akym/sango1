@@ -119,9 +119,9 @@ abstract class PExprList extends PDefaultExprObj {
     }
   }
 
-  public PExprList resolve() throws CompileException {
+  public PExprList doResolve() throws CompileException {
     for (int i = 0; i < this.exprs.length; i++) {
-      this.exprs[i] = this.exprs[i].resolve();
+      this.exprs[i] = (PExpr)this.exprs[i].resolve();
     }
     return this;
   }
@@ -141,7 +141,7 @@ abstract class PExprList extends PDefaultExprObj {
       super(srcInfo, outerScope, list);
     }
 
-    public Seq resolve() throws CompileException { return (Seq)super.resolve(); }
+    public Seq doResolve() throws CompileException { return (Seq)super.doResolve(); }
 
     public void normalizeTypes() throws CompileException {
       for (int i = 0; i < this.exprs.length; i++) {
@@ -150,13 +150,13 @@ abstract class PExprList extends PDefaultExprObj {
     }
 
     public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-      this.typeGraphNode = graph.createRefNode(this);
+      this.typeGraphNode = graph.createRefNode(this, this.alreadyDefinedTVarList);
       PTypeGraph.Node n = null;
       for (int i = 0; i < this.exprs.length; i++) {
         if (n == null) {
           n = this.exprs[i].setupTypeGraph(graph);
         } else {
-          PTypeGraph.SeqNode s = graph.createSeqNode(this.exprs[i]);
+          PTypeGraph.SeqNode s = graph.createSeqNode(this.exprs[i], this.exprs[i].alreadyDefinedTVarList);
           s.setLeadingTypeNode(n);
           s.setInNode(this.exprs[i].setupTypeGraph(graph));
           n = s;
@@ -186,7 +186,7 @@ abstract class PExprList extends PDefaultExprObj {
       super(srcInfo, outerScope, list);
     }
 
-    public Elems resolve() throws CompileException { return (Elems)super.resolve(); }
+    public Elems doResolve() throws CompileException { return (Elems)super.doResolve(); }
 
     public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
       throw new RuntimeException("PExprList.Elems#setupTypeGraph is called. " + this.toString());

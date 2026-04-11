@@ -89,7 +89,7 @@ abstract class PEvalItem extends PDefaultExprObj {
       this.obj.collectModRefs();
     }
 
-    public ObjItem resolve() throws CompileException {
+    public ObjItem doResolve() throws CompileException {
       this.obj = this.obj.resolve();
       return this;
     }
@@ -144,7 +144,7 @@ abstract class PEvalItem extends PDefaultExprObj {
 
     public void collectModRefs() {}
 
-    public SymItem resolve() throws CompileException {
+    public SymItem doResolve() throws CompileException {
       return this;
     }
 

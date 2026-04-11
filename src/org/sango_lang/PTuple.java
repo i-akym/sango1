@@ -98,8 +98,8 @@ class PTuple extends PDefaultExprObj {
     this.elems.collectModRefs();
   }
 
-  public PTuple resolve() throws CompileException {
-    this.elems = this.elems.resolve();
+  public PTuple doResolve() throws CompileException {
+    this.elems = (PExprList.Elems)this.elems.resolve();
     return this;
   }
 
@@ -108,7 +108,7 @@ class PTuple extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createTupleNode(this, this.elems.exprs.length);
+    this.typeGraphNode = graph.createTupleNode(this, this.alreadyDefinedTVarList, this.elems.exprs.length);
     for (int i = 0; i < this.elems.exprs.length; i++) {
       ((PTypeGraph.TupleNode)this.typeGraphNode).setElemNode(i, this.elems.exprs[i].setupTypeGraph(graph));
     }

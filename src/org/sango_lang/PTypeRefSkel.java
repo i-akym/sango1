@@ -779,15 +779,15 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public void makeSureConcretenessSpec(Parser.SrcInfo si, boolean inRet, List<PTypeVarSlot> checked) throws CompileException {
+  public void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
     if (isFun(this)) {
       for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].makeSureConcretenessSpec(si, false, checked);
+        this.params[i].excludeBareTVarAtRet(si, false, checked);
       }
-      this.params[this.params.length - 1].makeSureConcretenessSpec(si, true, checked);
+      this.params[this.params.length - 1].excludeBareTVarAtRet(si, atRet, checked);
     } else {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].makeSureConcretenessSpec(si, inRet, checked);
+        this.params[i].excludeBareTVarAtRet(si, false, checked);
       }
     }
   }

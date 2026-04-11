@@ -115,7 +115,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
     this.funId.collectModRefs();
   }
 
-  public PStaticInvEval resolve() throws CompileException {
+  public PStaticInvEval doResolve() throws CompileException {
     StringBuffer emsg;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i] = this.params[i].resolve();
@@ -141,7 +141,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createStaticInvNode(this, this.funId, this.params.length);
+    this.typeGraphNode = graph.createStaticInvNode(this, this.alreadyDefinedTVarList, this.funId, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.StaticInvNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }

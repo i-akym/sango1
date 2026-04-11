@@ -54,14 +54,14 @@ class PWildCard extends PDefaultExprObj {
 
   public void collectModRefs() throws CompileException {}
 
-  public PWildCard resolve() throws CompileException {
+  public PWildCard doResolve() throws CompileException {
     return this;
   }
 
   public void normalizeTypes() throws CompileException {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createRefNode(this);
+    this.typeGraphNode = graph.createRefNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

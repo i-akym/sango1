@@ -23,11 +23,15 @@
  ***************************************************************************/
 package org.sango_lang;
 
+import java.util.List;
+
 interface PExprObj extends PTypedObj {
 
   PExprObj resolve() throws CompileException;
 
   void normalizeTypes() throws CompileException;
+
+  List<PTypeVarSlot> getAlreadyDefinedTVarList();
 
   GFlow.Node setupFlow(GFlow flow);
 
