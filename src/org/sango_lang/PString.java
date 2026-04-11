@@ -113,8 +113,8 @@ class PString extends PDefaultExprObj {
     this.elems.collectModRefs();
   }
 
-  public PString resolve() throws CompileException {
-    this.elems = this.elems.resolve();
+  public PString doResolve() throws CompileException {
+    this.elems = (PExprList.Elems)this.elems.resolve();
     return this;
   }
 
@@ -127,9 +127,9 @@ class PString extends PDefaultExprObj {
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this._normalized_typeSkel != null) {
-      this.typeGraphNode = graph.createDetNode(this);
+      this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     } else {  // one or more elements
-      PTypeGraph.StringNode node = graph.createStringNode(this, this.elems.exprs.length);
+      PTypeGraph.StringNode node = graph.createStringNode(this, this.alreadyDefinedTVarList, this.elems.exprs.length);
       for (int i = 0; i < this.elems.exprs.length; i++) {
         node.setElemNode(i, this.elems.exprs[i].setupTypeGraph(graph));
       }

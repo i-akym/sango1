@@ -53,7 +53,7 @@ class PImpose extends PDefaultExprObj {
     this.type.collectModRefs();
   }
 
-  public PImpose resolve() throws CompileException {
+  public PImpose doResolve() throws CompileException {
     this.type = (PType)this.type.resolve();
     return this;
   }
@@ -90,7 +90,7 @@ class PImpose extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
     }
-    this.typeGraphNode = graph.createDetNode(this);
+    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

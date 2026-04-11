@@ -138,7 +138,7 @@ class PExprVarDef extends PDefaultExprObj {
     }
   }
 
-  public PExprVarDef resolve() throws CompileException {
+  public PExprVarDef doResolve() throws CompileException {
     StringBuffer emsg;
     if (this._resolved_varSlot != null) { return this; }
     if (!this.scope.canDefineEVar(this)) {
@@ -171,7 +171,7 @@ class PExprVarDef extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createVarNode(this, this.name, this.cat);
+    this.typeGraphNode = graph.createVarNode(this, this.alreadyDefinedTVarList, this.name, this.cat);
     return this.typeGraphNode;
   }
 

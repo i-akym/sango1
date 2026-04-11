@@ -404,13 +404,13 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
 
   public PEvalStmt resolve() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolve();
+      this.params[i] = (PExprVarDef)this.params[i].resolve();
     }
     if (this.implExprs != null) {
-      this.implExprs = this.implExprs.resolve();
+      this.implExprs = (PExprList.Seq)this.implExprs.resolve();
     }
     this.retDef.scope.doCopy();
-    this.retDef = this.retDef.resolve();
+    this.retDef = (PRetDef)this.retDef.resolve();
     return this;
   }
 
@@ -429,9 +429,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     this.retDef.normalizeTypes();
     List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i]._normalized_typeSkel.makeSureConcretenessSpec(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
+      this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
-    this.retDef._normalized_typeSkel.makeSureConcretenessSpec(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
     if (this.implExprs != null) {
       this.implExprs.normalizeTypes();
     }

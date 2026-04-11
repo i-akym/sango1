@@ -129,9 +129,9 @@ class PPtnDetail extends PExpr {
     return detailList;
   }
 
-  public PPtnDetail resolve() throws CompileException {
+  public PPtnDetail doResolve() throws CompileException {
     StringBuffer emsg;
-    PPtnDetail pd = (PPtnDetail)super.resolve();
+    PPtnDetail pd = (PPtnDetail)super.doResolve();
     if (!(pd.eval instanceof PExprVarRef)) {
       emsg = new StringBuffer();
       emsg.append("Only variable can be specified for matching at ");

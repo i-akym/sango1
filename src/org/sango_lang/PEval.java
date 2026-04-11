@@ -29,7 +29,7 @@ import java.util.List;
 
 interface PEval extends PExprObj {
 
-  PEval resolve() throws CompileException;
+  PExprObj resolve() throws CompileException;
 
   static final int ACCEPT_NOTHING = 0;
   static final int ACCEPT_BYTE = 1 << 0;

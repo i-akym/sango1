@@ -125,7 +125,7 @@ class PFunRef extends PDefaultExprObj {
     }
   }
 
-  public PFunRef resolve() throws CompileException {
+  public PFunRef doResolve() throws CompileException {
     if (this.official != null) {
       this.official.setCat(PDefDict.EID_CAT_FUN_OFFICIAL);
       this._resolved_officialProps = this.scope.resolveEid(this.official);
@@ -146,16 +146,16 @@ class PFunRef extends PDefaultExprObj {
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
-      this.typeGraphNode = graph.createFunRefNode(this, this.official);
+      this.typeGraphNode = graph.createFunRefNode(this, this.alreadyDefinedTVarList, this.official);
     } else if (this.scope.pos == 1) {
       PEid callee = PEid.create(
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
-      this.typeGraphNode = graph.createFunRefNode(this, callee);
+      this.typeGraphNode = graph.createFunRefNode(this, this.alreadyDefinedTVarList, callee);
     } else {
       this.typeGraphNode = graph.createSelfRefNode(
-        this,
+        this, this.alreadyDefinedTVarList,
         (PTypeGraph.ClosureNode)this.scope.closure.typeGraphNode);
     }
     return this.typeGraphNode;

@@ -104,7 +104,7 @@ class PByte extends PDefaultExprObj {
 
   public void collectModRefs() throws CompileException {}
 
-  public PByte resolve() throws CompileException {
+  public PByte doResolve() throws CompileException {
     return this;
   }
 
@@ -113,7 +113,7 @@ class PByte extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDetNode(this);
+    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

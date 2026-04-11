@@ -103,7 +103,7 @@ class PRetDef extends PDefaultExprObj {
     this.type.collectModRefs();
   }
 
-  public PRetDef resolve() throws CompileException {
+  public PRetDef doResolve() throws CompileException {
     this.type = (PType)this.type.resolve();
     return this;
   }
@@ -119,7 +119,7 @@ class PRetDef extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createRetNode(this);
+    this.typeGraphNode = graph.createRetNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 }

@@ -177,9 +177,9 @@ class PIfClause extends PDefaultExprObj {
     this.action.collectModRefs();
   }
 
-  public PIfClause resolve() throws CompileException {
-    this.guard = this.guard.resolve();
-    this.action = this.action.resolve();
+  public PIfClause doResolve() throws CompileException {
+    this.guard = (PExprList.Seq)this.guard.resolve();
+    this.action = (PExprList.Seq)this.action.resolve();
     return this;
   }
 
@@ -189,8 +189,8 @@ class PIfClause extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??
-    this.typeGraphNode = graph.createRefNode(this);
+    graph.createCondNode(this.guard, this.guard.alreadyDefinedTVarList).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??
+    this.typeGraphNode = graph.createRefNode(this, this.alreadyDefinedTVarList);
     this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }

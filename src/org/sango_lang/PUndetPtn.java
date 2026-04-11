@@ -52,7 +52,7 @@ class PUndetPtn extends PDefaultExprObj {
     this.anchor.collectModRefs();
   }
 
-  public PExprObj resolve() throws CompileException {
+  public PExprObj doResolve() throws CompileException {
     PExprObj p = null;
     PDefDict.EidProps ep = this.scope.resolveEid(this.anchor);
     if (ep == null) {
@@ -66,7 +66,7 @@ class PUndetPtn extends PDefaultExprObj {
     } else if (ep.cat == PDefDict.EID_CAT_VAR) {
       this.anchor.setVar();
       PExprVarDef v = this.scope.lookupEVar(this.anchor.name);
-      p = PExprVarRef.create(this.anchor.srcInfo, this.scope, this.anchor.name, v._resolved_varSlot);
+      p = PExprVarRef.create(this.anchor.srcInfo, this.scope, this.anchor.name, v._resolved_varSlot).resolve();
     } else if ((ep.cat & PDefDict.EID_CAT_DCON_PTN) > 0) {
       this.anchor.setDconPtn();
       p = PDataConstrPtn.convertFromResolvedUndet(this.srcInfo, this.scope, this.context, this.anchor).resolve();

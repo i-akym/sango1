@@ -999,18 +999,16 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
-  public void makeSureConcretenessSpec(Parser.SrcInfo si, boolean inRet, List<PTypeVarSlot> checked) throws CompileException {
-    if (!requiresConcrete) {
-      ;
-    } else if (this.varSlot == null) {
+  public void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
+    if (this.varSlot == null) {
       ;
     } else if (checked.contains(this.varSlot)) {
       ;
-    } else if (!inRet) {
+    } else if (!atRet) {
       checked.add(this.varSlot);
     } else {
       StringBuffer emsg = new StringBuffer();
-      emsg.append("Concreteness not allowed");
+      emsg.append("Bare type var not allowed");
       if (this.name != null) {
         emsg.append(" to ");
         emsg.append(this.name);

@@ -48,14 +48,14 @@ class PEmptyList extends PList {
 
   public void collectModRefs() throws CompileException {}
 
-  public PEmptyList resolve() throws CompileException {
+  public PEmptyList doResolve() throws CompileException {
     return this;
   }
 
   public void normalizeTypes() throws CompileException {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createEmptyListNode(this);
+    this.typeGraphNode = graph.createEmptyListNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

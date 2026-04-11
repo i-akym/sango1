@@ -58,6 +58,7 @@ class PPtnItem extends PDefaultExprObj {
   }
 
   static PPtnItem accept(ParserA.TokenReader reader, PScope outerScope, int spc, int acceptables, int context) throws CompileException, IOException {
+    if (outerScope == null) { throw new IllegalArgumentException("Null scope."); }
     if (acceptables == PPtn.ACCEPT_NOTHING) { return null; }
     StringBuffer emsg;
     Parser.SrcInfo srcInfo = reader.getCurrentSrcInfo();
@@ -145,7 +146,7 @@ class PPtnItem extends PDefaultExprObj {
     this.elem.collectModRefs();
   }
 
-  public PPtnItem resolve() throws CompileException {
+  public PPtnItem doResolve() throws CompileException {
     this.elem = this.elem.resolve();
     return this;
   }

@@ -161,10 +161,10 @@ class PExpr extends PDefaultExprObj implements PEval {
     }
   }
 
-  public PExpr resolve() throws CompileException {
-    this.eval = this.eval.resolve();
+  public PExpr doResolve() throws CompileException {
+    this.eval = (PEval)this.eval.resolve();
     if (this.ptnMatch != null) {
-      this.ptnMatch = this.ptnMatch.resolve();
+      this.ptnMatch = (PPtnMatch)this.ptnMatch.resolve();
     }
     return this;
   }

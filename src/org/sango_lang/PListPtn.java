@@ -46,7 +46,7 @@ abstract class PListPtn extends PDefaultExprObj {
 
     Builder(Parser.SrcInfo srcInfo, PScope outerScope) {
       this.srcInfo = srcInfo;
-      this.scope = scope;
+      this.scope = outerScope;
       this.elemSeq = new ArrayList<PPtnMatch>();
     }
 

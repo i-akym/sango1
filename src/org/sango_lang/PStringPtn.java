@@ -148,9 +148,9 @@ class PStringPtn extends PDefaultExprObj {
     }
   }
 
-  public PStringPtn resolve() throws CompileException {
+  public PStringPtn doResolve() throws CompileException {
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i] = this.elems[i].resolve();
+      this.elems[i] = (PPtnMatch)this.elems[i].resolve();
     }
     return this;
   }
@@ -163,11 +163,11 @@ class PStringPtn extends PDefaultExprObj {
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this._normalized_typeSkel != null) {
-      this.typeGraphNode = graph.createDetNode(this);
+      this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     } else {  // one or more elements
-      this.typeGraphNode = graph.createStringPtnNode(this);
+      this.typeGraphNode = graph.createStringPtnNode(this, this.alreadyDefinedTVarList);
     }
-    PTypeGraph.StringPtnElemNode n = graph.createStringPtnElemNode(this);
+    PTypeGraph.StringPtnElemNode n = graph.createStringPtnElemNode(this, this.alreadyDefinedTVarList);
     n.setInNode(this.typeGraphNode);
     for (int i = 0; i < this.elems.length; i++) {
       this.elems[i].setupTypeGraph(graph).setInNode(n);

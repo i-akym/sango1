@@ -78,7 +78,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
 
   public void collectModRefs() throws CompileException {}
 
-  public PExprVarRef resolve() throws CompileException {
+  public PExprVarRef doResolve() throws CompileException {
     return this;
   }
 
@@ -88,7 +88,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
 /* DEBUG */ if (this.scope == null) { System.out.println("null scope " + this); }
-    return graph.createVarRefNode(this, this.name, this.varSlot.varDef.typeGraphNode);
+    return graph.createVarRefNode(this, this.alreadyDefinedTVarList, this.name, this.varSlot.varDef.typeGraphNode);
   }
 
   public PTypeGraph.Node getTypeGraphNode() {

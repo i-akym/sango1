@@ -185,12 +185,12 @@ class PDataConstrPtn extends PDefaultExprObj {
     this.dcon.collectModRefs();
   }
 
-  public PDataConstrPtn resolve() throws CompileException {
+  public PDataConstrPtn doResolve() throws CompileException {
     for (int i = 0; i < this.posdAttrs.length; i++) {
       this.posdAttrs[i] = this.posdAttrs[i].resolve();
     }
     for (int i = 0; i < this.namedAttrs.length; i++) {
-      this.namedAttrs[i] = this.namedAttrs[i].resolve();
+      this.namedAttrs[i] = (PPtnItem)this.namedAttrs[i].resolve();
     }
     this.dcon.setDconPtn();
     this._resolved_dconProps = this.scope.resolveEid(this.dcon);
@@ -226,7 +226,7 @@ class PDataConstrPtn extends PDefaultExprObj {
         p = this.posdAttrs[i];
         break;
       case ATTR_TO_NONE:
-        p = PWildCard.create(this.srcInfo, this.scope);
+        p = PWildCard.create(this.srcInfo, this.scope).resolve();  // already defined Tvars must be set; non-null is enough...
         break;
       default:  //  to named attribute
         p = (PExprObj)this.namedAttrs[ad].elem;
@@ -301,10 +301,10 @@ class PDataConstrPtn extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.context, this.dcon);
+    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.alreadyDefinedTVarList, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);
-      PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.dcon, i);
+      PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.alreadyDefinedTVarList, this.dcon, i);
       an2.setInNode(this.typeGraphNode);
       an.setInNode(an2);
     }
