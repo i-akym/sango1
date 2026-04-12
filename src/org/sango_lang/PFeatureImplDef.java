@@ -108,7 +108,7 @@ class PFeatureImplDef extends PDefaultProgObj implements PDataDef.FeatureImpl {
     }
 
     PFeature f;
-    if ((f = PFeature.accept(reader, scope)) == null) {
+    if ((f = PFeature.accept(reader, scope, true)) == null) {  // can define var?
       emsg = new StringBuffer();
       emsg.append("Provided feature missing missing at ");
       emsg.append(reader.getCurrentSrcInfo());

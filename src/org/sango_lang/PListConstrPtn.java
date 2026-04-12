@@ -57,9 +57,9 @@ class PListConstrPtn extends PListPtn {
     this.tail.collectModRefs();
   }
 
-  public PListConstrPtn resolve() throws CompileException {
-    this.elem = this.elem.resolve();
-    this.tail = this.tail.resolve();
+  public PListConstrPtn doResolve() throws CompileException {
+    this.elem = (PPtnMatch)this.elem.resolve();
+    this.tail = (PPtnMatch)this.tail.resolve();
     return this;
   }
 
@@ -69,9 +69,9 @@ class PListConstrPtn extends PListPtn {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createListPtnNode(this);
+    this.typeGraphNode = graph.createListPtnNode(this, this.alreadyDefinedTVarList);
     PTypeGraph.Node e = this.elem.setupTypeGraph(graph);
-    PTypeGraph.ListPtnElemNode en = graph.createListPtnElemNode(this);
+    PTypeGraph.ListPtnElemNode en = graph.createListPtnElemNode(this, this.alreadyDefinedTVarList);
     en.setInNode(this.typeGraphNode);
     e.setInNode(en);
     PTypeGraph.Node t = this.tail.setupTypeGraph(graph);

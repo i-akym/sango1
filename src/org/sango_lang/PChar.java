@@ -86,7 +86,7 @@ class PChar extends PDefaultExprObj {
 
   public void collectModRefs() throws CompileException {}
 
-  public PChar resolve() throws CompileException {
+  public PChar doResolve() throws CompileException {
     return this;
   }
 
@@ -95,7 +95,7 @@ class PChar extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDetNode(this);
+    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
     return this.typeGraphNode;
   }
 

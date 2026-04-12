@@ -275,13 +275,13 @@ class PClosure extends PDefaultExprObj {
     retDef.collectModRefs();
   }
 
-  public PClosure resolve() throws CompileException {
+  public PClosure doResolve() throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = this.params[i].resolve();
+      this.params[i] = (PExprVarDef)this.params[i].resolve();
     }
-    this.implExprs = this.implExprs.resolve();
+    this.implExprs = (PExprList.Seq)this.implExprs.resolve();
     this.retDef.scope.doCopy();
-    this.retDef = this.retDef.resolve();
+    this.retDef = (PRetDef)this.retDef.resolve();
     return this;
   }
 
@@ -289,8 +289,15 @@ class PClosure extends PDefaultExprObj {
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].normalizeTypes();
     }
+    this.retDef.normalizeTypes();
+    List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
+    checked.addAll(this.alreadyDefinedTVarList);
+    // checked.addAll(this.scope.getGivenTVarList());  // too many added...
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
+    }
+    this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
     this.implExprs.normalizeTypes();
-    retDef.normalizeTypes();
   }
 
   public PTypeSkel[] getParamDefinedTypes() throws CompileException {
@@ -302,7 +309,7 @@ class PClosure extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createClosureNode(this, this.params.length);
+    this.typeGraphNode = graph.createClosureNode(this, this.alreadyDefinedTVarList, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }

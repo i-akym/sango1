@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.8.3 言語解説</title>
+<title>Sango 1.8.4 言語解説</title>
 </head>
 <body>
 <h1>はじめに</h1>
@@ -1075,26 +1075,16 @@ eval &lt;*A list&gt; *L length -&gt; &lt;int&gt; {
  
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="14.1">14.1. 属性取得関数</h2>
-<p>ラベルを付けた属性は，ラベル名を関数名に使うことによって属性値を取得することができます。</p>
+<p>データ構築子が一つの場合，属性ラベルを関数名に使うと，その属性の値を取得することができます。</p>
 <blockquote class="code-sample">コード例
 <code>Book title = *Title,</code>  # <code>Book = title: *Title *** book$</code> と同じ
 <code>Book author = *Author</code>  # <code>Book = author: *Author *** book$</code> と同じ</blockquote>
-<p>属性ラベルを定義すると，コンパイラは内部的にアクセス関数を生成します。
-  生成された関数は，プログラマが定義した関数と同じように使用することができます。</p>
+<p>データ構築子が一つのときに属性ラベルを定義すると，コンパイラは内部的にアクセス関数を生成します。
+生成された関数は，プログラマが定義した関数と同じように使用することができます。</p>
 <blockquote class="code-sample">生成コード例
-# データ構築子が一つの場合
 <code>data &lt;a&gt; := aa: &lt;t&gt; a$ ;;</code>
 <code>eval &lt;a&gt; *X _attr_a_aa | aa -&gt; &lt;t&gt; { X = aa: *V *** a$, V } ;;</code> <span class="note-ref">*1</span>
- 
-# データ構築子が複数の場合<code>
-data &lt;b&gt; := ba: &lt;t&gt; b1$
-          | bb: &lt;u&gt; b2$ ;;
-eval &lt;b&gt; *X _maybe_attr_b_ba | maybe_ba -&gt; &lt;t maybe&gt; {
-  X case {
-  ; ba: *V *** b1$ -&gt; V value$
-  ; ** -&gt; none$
-  }
-} ;;</code></blockquote>
+</code></blockquote>
 
 <blockquote class="note">*1：生成された関数のアクセス制約は，型の定義がpublic，protectedの場合はpublicに，opaque，privateの場合はprivateになります。</blockquote>
  
@@ -2324,7 +2314,8 @@ eval &lt;... <var>t</var>+&gt; *X _narrow_<var>t</var> | narrow @public -&gt; &l
 <p>型パラメタを持っていない型，または，全ての型パラメタが（再帰的に）決定している型を具象型（concrete type）と呼びます。
   例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
   一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
-<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。</p>
+<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。
+関数，クロージャの返り値に含まれる型変数の宣言にて具象型を指定することはできません。</p>
 <blockquote class="code-sample">コード例<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ create_box @public -&gt; &lt;A box_h&gt; ...</code></blockquote>
@@ -2572,8 +2563,14 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 
 <p>■　1.8.3</p>
 <ul>
-<li>【非互換】データ定義に具象型の型変数を指定できなくした。
+<li>【非互換】データ定義に具象型の型変数を指定できなくした。</li>
 <li>【Limited】<code>&quot;sango.lang&quot;.&lt;_?_&gt;</code>，<code>&quot;sango.lang&quot;.expose</code></li>
+</ul>
+
+<p>■　1.8.4</p>
+<ul>
+<li>【非互換】属性取得関数の自動生成は，データ構築子が1個の場合に限るようにした。つまり，複数のデータ構築子によって定義されている型について，属性取得関数を自動生成しなくした。</li>
+<li>コンパイラに，型推論の情報を表示するオプションを追加</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

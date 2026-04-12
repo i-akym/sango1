@@ -138,7 +138,7 @@ class PExprVarDef extends PDefaultExprObj {
     }
   }
 
-  public PExprVarDef resolve() throws CompileException {
+  public PExprVarDef doResolve() throws CompileException {
     StringBuffer emsg;
     if (this._resolved_varSlot != null) { return this; }
     if (!this.scope.canDefineEVar(this)) {
@@ -150,7 +150,8 @@ class PExprVarDef extends PDefaultExprObj {
       /* DEBUG */ // throw new RuntimeException(emsg.toString());
       throw new CompileException(emsg.toString());
     }
-    this._resolved_varSlot = this.scope.defineEVar(this);
+    this.scope.defineEVar(this);
+    // this._resolved_varSlot = this.scope.defineEVar(this);
     if (this.type != null) {
       this.type = (PType)this.type.resolve();
     }
@@ -170,7 +171,7 @@ class PExprVarDef extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createVarNode(this, this.name, this.cat);
+    this.typeGraphNode = graph.createVarNode(this, this.alreadyDefinedTVarList, this.name, this.cat);
     return this.typeGraphNode;
   }
 

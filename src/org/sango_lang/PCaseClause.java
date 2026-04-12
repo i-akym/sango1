@@ -243,14 +243,14 @@ class PCaseClause extends PDefaultExprObj {
     this.action.collectModRefs();
   }
 
-  public PCaseClause resolve() throws CompileException {
+  public PCaseClause doResolve() throws CompileException {
     for (int i = 0; i < this.ptnMatches.length; i++) {
-      this.ptnMatches[i] = this.ptnMatches[i].resolve();
+      this.ptnMatches[i] = (PCasePtnMatch)this.ptnMatches[i].resolve();
     }
     if (this.guard != null) {
-      this.guard = this.guard.resolve();
+      this.guard = (PExprList.Seq)this.guard.resolve();
     }
-    this.action = this.action.resolve();
+    this.action = (PExprList.Seq)this.action.resolve();
     return this;
   }
 
@@ -269,9 +269,9 @@ class PCaseClause extends PDefaultExprObj {
       this.ptnMatches[i].setupTypeGraph(graph);
     }
     if (this.guard != null) {
-      graph.createCondNode(this.guard).setInNode(this.guard.setupTypeGraph(graph));
+      graph.createCondNode(this.guard, this.guard.alreadyDefinedTVarList).setInNode(this.guard.setupTypeGraph(graph));
     }
-    this.typeGraphNode = graph.createRefNode(this);
+    this.typeGraphNode = graph.createRefNode(this, this.alreadyDefinedTVarList);
     this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }

@@ -270,17 +270,16 @@ class PCompiledModule implements PModDecl {
       ad.tparams[i] = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null, PTypeVarSlot.create(), false, null);
       varList.add(ad.tparams[i]);
     }
-    ad.body = (PTypeRefSkel)this.convertType(aliasTypeDef.body, mod, varList /* , unresolvedTypeRefList, unresolvedFeatureList */);
+    ad.body = this.convertType(aliasTypeDef.body, mod, varList);
     return ad;
   }
 
   class AliasTypeDef implements PAliasTypeDef {
-    // PDefDict.TidProps tconProps;
     Module.Availability availability;
     Module.Access acc;
     String tcon;
     PTypeVarSkel[] tparams;
-    PTypeRefSkel body;
+    PTypeSkel body;
 
     public String getTcon() { return this.tcon; }
 
@@ -296,22 +295,19 @@ class PCompiledModule implements PModDecl {
 
     public Module.Access getAcc() { return this.acc; }
 
-    // public void collectUnaliasTconProps(List<PDefDict.TidProps> list) { this.body.collectTconProps(list); }
-    // public PDefDict.TidProps unaliasTconProps() { return this.body.tconProps; }
+    public PTypeSkel getBody() { return this.body; }
 
-    public PTypeRefSkel getBody() { return this.body; }
-
-    public PTypeRefSkel unalias(PTypeSkel[] params) throws CompileException {
+    public PTypeSkel unalias(PTypeSkel[] params) throws CompileException {
       if (params.length != this.tparams.length) {
         throw new IllegalArgumentException("Length of unaliasing params mismatch.");
       }
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
-      PTypeSkelBindings bindings = PTypeSkelBindings.create();
+      PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
       for (int i = 0; i < params.length; i++) {
-        bindings.bind(((PTypeVarSkel)this.tparams[i].instanciate(ic)).varSlot, params[i]);
+        bindings.bind((PTypeVarSkel)this.tparams[i].instanciate(ic), params[i]);
       }
-      PTypeRefSkel tr = (PTypeRefSkel)this.body.instanciate(ic).resolveBindings(bindings);
-      return tr.normalize();
+      PTypeSkel u = this.body.instanciate(ic).resolveBindings(bindings);
+      return u.normalize();
     }
   }
 
@@ -341,7 +337,7 @@ class PCompiledModule implements PModDecl {
       return index;
     }
 
-    public PTypeSkel getType(PTypeSkelBindings bindings) {
+    public PTypeSkel getType(PTypeSkel.Bindings bindings) {
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
       return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
     }
@@ -511,9 +507,15 @@ class PCompiledModule implements PModDecl {
 
   PTypeVarSkel convertTypeVar(MTypeVar tv, Module mod, List<PTypeVarSkel> varList) {
     PTypeVarSkel v;
-    if (tv.slot < varList.size()) {
+    if (tv.slot < 0) {
+      v = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null,
+        null, tv.requiresConcrete, null);
+      // varList.add(v);  // do no add
+      v.features = (tv.features != null)?
+        this.convertFeatures(tv.features, mod, varList):
+        null;
+    } else if (tv.slot < varList.size()) {
       v = varList.get(tv.slot);
-// /* DEBUG */ System.out.print("DEFINED "); System.out.print(varList); System.out.print(" "); System.out.print(tv); System.out.print(" -> "); System.out.println(v);
     } else if (tv.slot == varList.size()) {
       v = PTypeVarSkel.create(PCompiledModule.this.theCompiler, null, null,
         PTypeVarSlot.create(), tv.requiresConcrete, null);

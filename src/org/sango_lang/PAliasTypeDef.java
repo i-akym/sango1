@@ -35,10 +35,8 @@ public interface PAliasTypeDef {
 
   PTypeVarSlot[] getParamVarSlots();
   
-  // void collectUnaliasTconProps(List<PDefDict.TconProps> list);
+  PTypeSkel getBody();
 
-  PTypeRefSkel getBody();
-
-  PTypeRefSkel unalias(PTypeSkel[] params) throws CompileException;
+  PTypeSkel unalias(PTypeSkel[] params) throws CompileException;
 
 }

@@ -49,7 +49,7 @@ class PWildCards extends PDefaultExprObj {
 
   public void collectModRefs() throws CompileException {}
 
-  public PWildCards resolve() throws CompileException {
+  public PWildCards doResolve() throws CompileException {
     throw new RuntimeException("PWildCards#resolveId() called. - " + this.toString());
   }
 

@@ -35,8 +35,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   String tcon;
   PTypeVarDef[] tparams;
   PTypeVarSkel[] tparamSkels;
-  PType body;  // is PTypeRef after circular def check
-  PTypeRefSkel bodySkel;
+  PType body;
+  PTypeSkel bodySkel;
 
   PAliasTypeStmt(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope.startAliasType());
@@ -279,43 +279,18 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     StringBuffer emsg;
     this.sig = this.sig.resolve();
     this.body = this.body.resolve();
-    if (!(this.body instanceof PTypeRef)) {
-      emsg = new StringBuffer();
-      emsg.append("Alias of non-concrete type at ");
-      emsg.append(this.body.getSrcInfo());
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
+    // if (!(this.body instanceof PTypeRef)) {
+      // emsg = new StringBuffer();
+      // emsg.append("Alias of non-concrete type at ");
+      // emsg.append(this.body.getSrcInfo());
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
     return this;
   }
 
   PAliasTypeDef getAliasTypeDef() { return this; }
 
-  // void checkCyclicAlias() throws CompileException {
-    // AliasGraphNode n = AliasGraphNode.createRoot(((PTypeRef)this.sig).tconProps);
-    // this.checkUnalias(n);
-  // }
-
-  // void checkUnalias(AliasGraphNode a) throws CompileException {
-    // StringBuffer emsg;
-    // if (a.tp.cat != PDefDict.TID_CAT_TCON_ALIAS) { return; }
-    // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-    // a.tp.defGetter.getAliasTypeDef().collectUnaliasTconProps(tps);
-    // for (int i = 0; i < tps.size(); i++) {
-      // AliasGraphNode c = a.addChild(tps.get(i));
-      // if (c == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("Circular definition detected for \"");
-        // emsg.append(this.tcon);
-        // emsg.append("\" at ");
-        // emsg.append(this.srcInfo);
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // this.checkUnalias(c);
-    // }
-  // }
- 
   void checkAcc() throws CompileException {
     if (this.acc == Module.ACC_PRIVATE) { return; }
     this.body.excludePrivateAcc();
@@ -335,30 +310,21 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
   public Module.Access getAcc() { return this.acc; }
 
-  // public void collectUnaliasTconProps(List<PDefDict.TconProps> list) { this.body.toSkel().collectTconProps(list); }
-
-  public PTypeRefSkel getBody() {
-    // if (this.bodySkel == null) {
-      // this.setupBodySkel();
-    // }
+  public PTypeSkel getBody() {
     return this.bodySkel;
   }
 
-  public PTypeRefSkel unalias(PTypeSkel[] params) throws CompileException {
+  public PTypeSkel unalias(PTypeSkel[] params) throws CompileException {
     if (params.length != this.tparams.length) {
       throw new IllegalArgumentException("Length of unaliasing params mismatch.");
     }
-    // if (this.bodySkel == null) {
-      // this.setupBodySkel();
-    // }
-
     PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
-    PTypeSkelBindings bindings = PTypeSkelBindings.create();
+    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
     for (int i = 0; i < this.tparamSkels.length; i++) {
-       bindings.bind(((PTypeVarSkel)this.tparamSkels[i].instanciate(ic)).varSlot, params[i]);
+       bindings.bind((PTypeVarSkel)this.tparamSkels[i].instanciate(ic), params[i]);
     }
-    PTypeRefSkel tr = (PTypeRefSkel)this.bodySkel.instanciate(ic).resolveBindings(bindings);
-    return tr.normalize();
+    PTypeSkel u = this.bodySkel.instanciate(ic).resolveBindings(bindings);
+    return u.normalize();
   }
 
   void setupBodySkel() throws CompileException {
@@ -366,12 +332,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
     for (int i = 0; i < this.tparams.length; i++) {
       this.tparamSkels[i] = this.tparams[i].toSkel();
     }
-    this.bodySkel = (PTypeRefSkel)this.body.toSkel();
+    this.bodySkel = this.body.toSkel();
     this.checkTypeDesc(this.bodySkel);
-    // this.bodySkel = (PTypeRefSkel)((PTypeRefSkel)this.body.toSkel()).unalias(PTypeSkelBindings.create());
-    // List<PDefDict.TidProps> tps = new ArrayList<PDefDict.TidProps>();
-    // this.bodySkel.collectTconProps(tps);
-    // this.scope.addReferredTcons(tps);
   }
 
   private void checkTypeDesc(PTypeSkel t) throws CompileException {
@@ -425,35 +387,4 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
   void normalizeTypes() throws CompileException {
 // HERE
   }
-
-  // private static class AliasGraphNode {
-   // PDefDict.TconProps tp;
-    // AliasGraphNode parent;
-    // List<AliasGraphNode> children;
-
-    // static AliasGraphNode createRoot(PDefDict.TconProps tp) {
-      // return new AliasGraphNode(tp);
-    // }
-
-    // private AliasGraphNode(PDefDict.TconProps tp) {
-      // this.tp = tp;
-      // this.children = new ArrayList<AliasGraphNode>();
-    // }
-
-    // AliasGraphNode addChild(PDefDict.TconProps tp) {  // null if loop detected
-      // AliasGraphNode p = this;
-      // boolean loopDetected = false;
-      // while (!loopDetected && (p != null)) {
-        // loopDetected = tp.key.equals(p.tp.key);
-        // p = p.parent;
-      // }
-      // AliasGraphNode n = null;
-      // if (!loopDetected) {
-        // n = new AliasGraphNode(tp);
-	// this.children.add(n);
-	// n.parent = this;
-      // }
-      // return n;
-    // }
-  // }
 }

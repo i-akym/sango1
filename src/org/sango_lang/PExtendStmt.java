@@ -442,7 +442,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     }
     PTypeRefSkel bsigSkel = baseDef.getTypeSig();
     PTypeRefSkel sigSkel = this.getTypeSig();
-    PTypeSkelBindings bindings = PTypeSkelBindings.create();
+    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
     for (int i = 0; i < sigSkel.params.length; i++) {
       if (!sigSkel.params[i].accept(PTypeSkel.NARROWER, bsigSkel.params[i], bindings)) {
         PTypeVarSkel p = (PTypeVarSkel)sigSkel.params[i];
@@ -489,11 +489,11 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     for (int i = 0; i < this.tparams.length; i++) {
       vs.add(this.tparams[i].getVarSlot());
     }
-    PTypeSkelBindings b = PTypeSkelBindings.create(vs);
+    PTypeSkel.Bindings b = PTypeSkel.Bindings.create(vs);
 
     PTypeRefSkel bsig = base.getTypeSig();
     for (int i = 0; i < bsig.params.length; i++) {
-      b.bind(((PTypeVarSkel)bsig.params[i]).varSlot, this.tparams[i].getTypeSkel());
+      b.bind((PTypeVarSkel)bsig.params[i], this.tparams[i].getTypeSkel());
     }
 
     PFeatureSkel f = id.feature.toSkel();
@@ -777,15 +777,15 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
         PDataAttrDef attr = constr.attrs[i];
         if ((e = this.generateAttrFun1(mod, constr, attr)) != null) { es.add(e); }
       }
-    } else {
-      for (int i = 0; i < this.constrs.length; i++) {
-        PDataConstrDef constr = this.constrs[i];
-        for (int j = 0; j < constr.attrs.length; j++) {
-          PDataAttrDef attr = constr.attrs[j];
-          if ((e = this.generateAttrFun2(mod, constr, attr)) != null) { es.add(e); }
-        }
-      }
-    }
+    } // else {
+      // for (int i = 0; i < this.constrs.length; i++) {
+        // PDataConstrDef constr = this.constrs[i];
+        // for (int j = 0; j < constr.attrs.length; j++) {
+          // PDataAttrDef attr = constr.attrs[j];
+          // if ((e = this.generateAttrFun2(mod, constr, attr)) != null) { es.add(e); }
+        // }
+      // }
+    // }
     return es;
   }
 
@@ -833,75 +833,75 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
     return evalStmtBuilder.create();
   }
 
-  PEvalStmt generateAttrFun2(PModule mod, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
-    // eval @availability <*T0 *T1 .. TCON> *X _maybe_attr_TCON_A | maybe_A @xxx -> <<A's type> maybe> {
-    //   X case {
-    //   ; A: *V *** DCON -> V value$
-    //   ; ** -> none$
-    //   }
-    // }
-    if (attr.name == null) { return null; }
-    String[] names = PModule.generateMaybeAttrFunNames(this.tcon, attr.name);
-    Module.Access a = (this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE;
-    // if (!mod.predefineFunOfficial(names[0], a)) { return null; }
-    // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
-    Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
-    PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
-    PScope defScope = evalStmtBuilder.getDefScope();
-    PScope bodyScope = evalStmtBuilder.getBodyScope();
-    PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
-    PScope retScope = retDefBuilder.getScope();
-    evalStmtBuilder.setAvailability(this.availability);
-    evalStmtBuilder.setOfficial(names[0]);
-    evalStmtBuilder.addAlias(names[1]);
-    evalStmtBuilder.setAcc(a);
-    evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
-      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
-      "X"));
-    PType.Builder retTypeBuilder = PType.Builder.newInstance(si, defScope);
-    retTypeBuilder.addItem(attr.type.unresolvedCopy(si, retScope,
-      PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
-    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "maybe", false));
-    retDefBuilder.setType(retTypeBuilder.create());
-    evalStmtBuilder.setRetDef(retDefBuilder.create());
-    PEval.Builder caseEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
-    caseEvalBuilder.addItem(PEvalItem.create(PEid.create(si, bodyScope, null, "X")));
-    PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance(si, bodyScope);
-    PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance(si, bodyScope);
-    PScope caseClauseScope = caseClauseBuilder.getScope();
-    PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si, caseClauseScope);
-    PPtn.Builder ptnBuilder = PPtn.Builder.newInstance(si, caseClauseScope);
-    ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
-    ptnBuilder.addItem(PPtnItem.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, attr.name, PExprVarDef.create(si, caseClauseScope, PExprVarDef.CAT_LOCAL_VAR, null, "V")));
-    ptnBuilder.addItem(PPtnItem.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si, caseClauseScope)));
-    ptnBuilder.addItem(PPtnItem.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, PEid.create(si, caseClauseScope, null, constr.dcon)));
-    casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
-    caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
-    PEval.Builder valueEvalBuilder = PEval.Builder.newInstance(si, caseClauseScope);
-    valueEvalBuilder.addItem(PEvalItem.create(PEid.create(si, caseClauseScope, null, "V")));
-    valueEvalBuilder.addItem(PEvalItem.create(PEid.create(si, caseClauseScope, PModule.MOD_ID_LANG, "value$")));
-    List<PExpr> aes = new ArrayList<PExpr>();
-    aes.add(PExpr.create(valueEvalBuilder.create()));
-    caseClauseBuilder.setAction(PExprList.Seq.create(si, caseClauseScope, aes));
-    caseBlockBuilder.addClause(caseClauseBuilder.create());
-    PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si, bodyScope);
-    PScope otherwiseScope = otherwiseCaseClauseBuilder.getScope();
-    PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si, otherwiseScope);
-    PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance(si, otherwiseScope);
-    otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
-    otherwisePtnBuilder.addItem(PPtnItem.create(si, otherwiseScope, PPtnMatch.CONTEXT_TRIAL, null, PWildCard.create(si, otherwiseScope)));
-    otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, otherwiseScope, PPtnMatch.CONTEXT_TRIAL, null, otherwisePtnBuilder.create()));
-    otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
-    PEval.Builder noneEvalBuilder = PEval.Builder.newInstance(si, otherwiseScope);
-    noneEvalBuilder.addItem(PEvalItem.create(PEid.create(si, otherwiseScope, PModule.MOD_ID_LANG, "none$")));
-    List<PExpr> aes2 = new ArrayList<PExpr>();
-    aes2.add(PExpr.create(noneEvalBuilder.create()));
-    otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, otherwiseScope, aes2));
-    caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
-    caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
-    List<PExpr> ies = new ArrayList<PExpr>();
-    ies.add(PExpr.create(caseEvalBuilder.create()));
-    evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
-    return evalStmtBuilder.create();
-  }
+  // PEvalStmt generateAttrFun2(PModule mod, PDataConstrDef constr, PDataAttrDef attr) throws CompileException {
+    // // eval @availability <*T0 *T1 .. TCON> *X _maybe_attr_TCON_A | maybe_A @xxx -> <<A's type> maybe> {
+    // //   X case {
+    // //   ; A: *V *** DCON -> V value$
+    // //   ; ** -> none$
+    // //   }
+    // // }
+    // if (attr.name == null) { return null; }
+    // String[] names = PModule.generateMaybeAttrFunNames(this.tcon, attr.name);
+    // Module.Access a = (this.acc == Module.ACC_PUBLIC || this.acc == Module.ACC_PROTECTED)? Module.ACC_PUBLIC: Module.ACC_PRIVATE;
+    // // if (!mod.predefineFunOfficial(names[0], a)) { return null; }
+    // // if (mod.funOfficialDict.containsKey(names[0])) { return null; }
+    // Parser.SrcInfo si = srcInfo.appendPostfix("_maybe_attr");
+    // PEvalStmt.Builder evalStmtBuilder = PEvalStmt.Builder.newInstance(si, this.scope.theMod.scope);
+    // PScope defScope = evalStmtBuilder.getDefScope();
+    // PScope bodyScope = evalStmtBuilder.getBodyScope();
+    // PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, defScope);
+    // PScope retScope = retDefBuilder.getScope();
+    // evalStmtBuilder.setAvailability(this.availability);
+    // evalStmtBuilder.setOfficial(names[0]);
+    // evalStmtBuilder.addAlias(names[1]);
+    // evalStmtBuilder.setAcc(a);
+    // evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
+      // this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
+      // "X"));
+    // PType.Builder retTypeBuilder = PType.Builder.newInstance(si, defScope);
+    // retTypeBuilder.addItem(attr.type.unresolvedCopy(si, retScope,
+      // PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
+    // retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "maybe", false));
+    // retDefBuilder.setType(retTypeBuilder.create());
+    // evalStmtBuilder.setRetDef(retDefBuilder.create());
+    // PEval.Builder caseEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
+    // caseEvalBuilder.addItem(PEvalItem.create(PEid.create(si, bodyScope, null, "X")));
+    // PCaseBlock.Builder caseBlockBuilder = PCaseBlock.Builder.newInstance(si, bodyScope);
+    // PCaseClause.Builder caseClauseBuilder = PCaseClause.Builder.newInstance(si, bodyScope);
+    // PScope caseClauseScope = caseClauseBuilder.getScope();
+    // PCasePtnMatch.Builder casePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si, caseClauseScope);
+    // PPtn.Builder ptnBuilder = PPtn.Builder.newInstance(si, caseClauseScope);
+    // ptnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    // ptnBuilder.addItem(PPtnItem.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, attr.name, PExprVarDef.create(si, caseClauseScope, PExprVarDef.CAT_LOCAL_VAR, null, "V")));
+    // ptnBuilder.addItem(PPtnItem.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, PWildCards.create(si, caseClauseScope)));
+    // ptnBuilder.addItem(PPtnItem.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, PEid.create(si, caseClauseScope, null, constr.dcon)));
+    // casePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, caseClauseScope, PPtnMatch.CONTEXT_TRIAL, null, ptnBuilder.create()));
+    // caseClauseBuilder.addPtnMatch(casePtnMatchBuilder.create());
+    // PEval.Builder valueEvalBuilder = PEval.Builder.newInstance(si, caseClauseScope);
+    // valueEvalBuilder.addItem(PEvalItem.create(PEid.create(si, caseClauseScope, null, "V")));
+    // valueEvalBuilder.addItem(PEvalItem.create(PEid.create(si, caseClauseScope, PModule.MOD_ID_LANG, "value$")));
+    // List<PExpr> aes = new ArrayList<PExpr>();
+    // aes.add(PExpr.create(valueEvalBuilder.create()));
+    // caseClauseBuilder.setAction(PExprList.Seq.create(si, caseClauseScope, aes));
+    // caseBlockBuilder.addClause(caseClauseBuilder.create());
+    // PCaseClause.Builder otherwiseCaseClauseBuilder = PCaseClause.Builder.newInstance(si, bodyScope);
+    // PScope otherwiseScope = otherwiseCaseClauseBuilder.getScope();
+    // PCasePtnMatch.Builder otherwisePtnMatchBuilder = PCasePtnMatch.Builder.newInstance(si, otherwiseScope);
+    // PPtn.Builder otherwisePtnBuilder = PPtn.Builder.newInstance(si, otherwiseScope);
+    // otherwisePtnBuilder.setContext(PPtnMatch.CONTEXT_TRIAL);
+    // otherwisePtnBuilder.addItem(PPtnItem.create(si, otherwiseScope, PPtnMatch.CONTEXT_TRIAL, null, PWildCard.create(si, otherwiseScope)));
+    // otherwisePtnMatchBuilder.setPtnMatch(PPtnMatch.create(si, otherwiseScope, PPtnMatch.CONTEXT_TRIAL, null, otherwisePtnBuilder.create()));
+    // otherwiseCaseClauseBuilder.addPtnMatch(otherwisePtnMatchBuilder.create());
+    // PEval.Builder noneEvalBuilder = PEval.Builder.newInstance(si, otherwiseScope);
+    // noneEvalBuilder.addItem(PEvalItem.create(PEid.create(si, otherwiseScope, PModule.MOD_ID_LANG, "none$")));
+    // List<PExpr> aes2 = new ArrayList<PExpr>();
+    // aes2.add(PExpr.create(noneEvalBuilder.create()));
+    // otherwiseCaseClauseBuilder.setAction(PExprList.Seq.create(si, otherwiseScope, aes2));
+    // caseBlockBuilder.addClause(otherwiseCaseClauseBuilder.create());
+    // caseEvalBuilder.addItem(PEvalItem.create(caseBlockBuilder.create()));
+    // List<PExpr> ies = new ArrayList<PExpr>();
+    // ies.add(PExpr.create(caseEvalBuilder.create()));
+    // evalStmtBuilder.setImplExprs(PExprList.Seq.create(si, bodyScope, ies));
+    // return evalStmtBuilder.create();
+  // }
 }
