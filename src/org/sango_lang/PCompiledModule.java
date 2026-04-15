@@ -321,7 +321,7 @@ class PCompiledModule implements PModDecl {
       this.attrList = new ArrayList<AttrDef>();
     }
 
-    public PDataDef getDataDef() { return this.dataDef; }
+    // public PDataDef getDataDef() { return this.dataDef; }
 
     public String getDcon() { return this.dcon; }
 
