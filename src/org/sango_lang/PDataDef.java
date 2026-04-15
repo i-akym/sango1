@@ -53,8 +53,6 @@ public interface PDataDef {
 
   interface Constr {
 
-    PDataDef getDataDef();
-
     String getDcon();
 
     int getAttrCount();
@@ -63,7 +61,7 @@ public interface PDataDef {
 
     int getAttrIndex(String name);  // -1 if not found
 
-    PTypeSkel getType(PTypeSkel.Bindings bindings);
+    // PTypeSkel getType(PTypeSkel.Bindings bindings);
 
   }
 

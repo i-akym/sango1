@@ -128,7 +128,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef {
           this.nameSet.add(name);
         }
       }
-      constr.setDataDef(this.dat);
+      // constr.setDataDef(this.dat);
       this.constrList.add(constr);
     }
 

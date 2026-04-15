@@ -1047,7 +1047,9 @@ if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
       /* DEBUG */ System.out.println(b);
 }
-      PTypeSkel dt = constr.getType(b);
+      PTypeSkel dt = dataDef.getTypeSig().resolveBindings(b).instanciate(PTypeSkel.InstanciationContext.create(b));
+      // PTypeSkel dt = constr.getType(b);  // original
+
       // sig param does not require concreteness now
       // PTypeRefSkel sig = dataDef.getTypeSig();
       // if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {

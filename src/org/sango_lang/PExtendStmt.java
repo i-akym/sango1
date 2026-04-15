@@ -129,7 +129,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef {
           this.nameSet.add(name);
         }
       }
-      constr.setDataDef(this.ext);
+      // constr.setDataDef(this.ext);
       this.constrList.add(constr);
     }
 

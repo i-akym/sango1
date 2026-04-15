@@ -30,7 +30,7 @@ import java.util.List;
 class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
-  PDataDef dataDef;
+  // private PDataDef dataDef;  // i want to delete...
 
   PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.startDataConstr());
@@ -162,7 +162,7 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     return builder.create();
   }
 
-  public PDataDef getDataDef() { return this.dataDef; }
+  // public PDataDef getDataDef() { return this.dataDef; }
 
   public String getDcon() { return this.dcon; }
 
@@ -180,19 +180,14 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     return i;
   }
 
-  void setDataDef(PDataDef dataDef) {
-    this.dataDef = dataDef;
-  }
-
-  // void setDataType(PType type) {
-    // this.dataType = type;
+  // void setDataDef(PDataDef dataDef) {
+    // this.dataDef = dataDef;
   // }
 
-  public PTypeSkel getType(PTypeSkel.Bindings bindings) {
-    PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
-    return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
-    // return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
-  }
+  // public PTypeSkel getType(PTypeSkel.Bindings bindings) {
+    // PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
+    // return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
+  // }
 
   public void collectModRefs() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
