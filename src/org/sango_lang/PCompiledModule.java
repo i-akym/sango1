@@ -206,7 +206,7 @@ class PCompiledModule implements PModDecl {
       } else {
         tps = new PDefDict.TparamProps[this.sigParams.length];
         for (int i = 0; i < this.sigParams.length; i++) {
-          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i], this.sigParams[i].requiresConcrete);
+          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i]);
         }
       }
       return tps;
@@ -257,7 +257,7 @@ class PCompiledModule implements PModDecl {
     // PDefDict.DataDefGetter g = createDataDefGetter(ad);
     PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
     for (int k = 0; k < paramPropss.length; k++) {
-      paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
+      paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT);
     }
     // ad.tconProps = PDefDict.TidProps.create(
       // ik, PDefDict.TID_CAT_TCON_ALIAS, paramPropss, aliasTypeDef.acc, g);
@@ -414,7 +414,7 @@ class PCompiledModule implements PModDecl {
     public PDefDict.TparamProps[] getParamPropss() {
       PDefDict.TparamProps[] pps = new PDefDict.TparamProps[this.paramVariances.length];
       for (int i = 0; i < pps.length; i++) {
-        pps[i] = PDefDict.TparamProps.create(this.paramVariances[i], false);
+        pps[i] = PDefDict.TparamProps.create(this.paramVariances[i]);
       }
       return pps;
     }

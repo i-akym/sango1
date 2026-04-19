@@ -885,24 +885,20 @@ class PDefDict {
   }
 
   static class TparamProps {
-    public Module.Variance variance;  // public for impl of sango.lang.module
-    boolean concrete;
+    Module.Variance variance;
 
-    static TparamProps create(Module.Variance variance, boolean concrete) {
-      return new TparamProps(variance, concrete);
+    static TparamProps create(Module.Variance variance) {
+      return new TparamProps(variance);
     }
 
-    private TparamProps(Module.Variance variance, boolean concrete) {
+    private TparamProps(Module.Variance variance) {
       this.variance = variance;
-      this.concrete = concrete;
     }
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append("tparamprops[variance=");
       buf.append(this.variance);
-      buf.append(",concrete=");
-      buf.append(this.concrete);
       buf.append("]");
       return buf.toString();
     }

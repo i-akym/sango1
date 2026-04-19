@@ -373,7 +373,7 @@ interface PType extends PProgObj {
     }
 
     PDefDict.TparamProps getProps() {
-      return PDefDict.TparamProps.create(this.variance, this.varDef.requiresConcrete);
+      return PDefDict.TparamProps.create(this.variance);
     }
 
     PTypeVarSlot getVarSlot() {
