@@ -86,7 +86,6 @@ public class MDataDef implements Module.Elem {
     }
 
     void addConstrDef(MConstrDef constrDef) {
-      constrDef.setDataDef(this.dataDef);
       this.constrList.add(constrDef);
     }
 

@@ -29,15 +29,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class MConstrDef {
-  MDataDef theDataDef;
   String dcon;
   MAttrDef [] attrs;
 
   private MConstrDef() {}
-
-  void setDataDef(MDataDef dataDef) {
-    this.theDataDef = dataDef;
-  }
 
   static class Builder {
     MConstrDef constrDef;
