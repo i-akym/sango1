@@ -352,8 +352,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
         throw new CompileException(emsg.toString());
       }
       int paramCount = -2;
-      if ((tp.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
-        PDataDef dd = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tr.tconKey);
+      if ((tp.cat & PDefDict.TID_CAT_TCON_DATA) > 0) {
+        PDataDef.OriginDef dd = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tr.tconKey);
         if (dd == null) { throw new RuntimeException("Def not registered. " + tr.tconKey); }
         PDefDict.TparamProps[] ps = dd.getParamPropss();
         paramCount = (ps != null)? ps.length: -1;

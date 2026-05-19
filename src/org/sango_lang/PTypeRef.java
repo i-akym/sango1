@@ -140,7 +140,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       throw new CompileException(emsg.toString());
     }
     int paramCount = -2;
-    if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
+    if ((this._resolved_tconProps.cat & PDefDict.TID_CAT_TCON_DATA) > 0) {
       PDataDef dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, this._resolved_tconProps.key);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.tcon); }  // checked before
       paramCount = dataDef.getParamCount();

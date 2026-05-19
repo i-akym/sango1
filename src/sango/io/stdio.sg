@@ -285,7 +285,7 @@ eval <act.post_h void fun> *Reply <io.line_instream_h> *In reader -> <void> {
   }
 } ;;
 
-eval <reader_data> *RD <act.msg+> *Msg reader_dispatch -> <reader_data maybe> {
+eval <reader_data> *RD <act.msg> *Msg reader_dispatch -> <reader_data maybe> {
   Msg case {
   ; *Ret read_line_req$ -> RD Ret reader_read_line
   # ; *Ret try_read_line_req$ -> RD Ret reader_try_read_line
@@ -405,7 +405,7 @@ eval <act.post_h void fun> *Reply <io.print_stream_h> *Out writer -> <void> {
   }
 } ;;
 
-eval <writer_data> *WD <act.msg+> *Msg writer_dispatch -> <writer_data maybe> {
+eval <writer_data> *WD <act.msg> *Msg writer_dispatch -> <writer_data maybe> {
   Msg case {
   ; *Char write_req$ -> WD Char writer_write
   ; *Str *Start *Len write_chars_req$ -> WD Str Start Len writer_write_chars

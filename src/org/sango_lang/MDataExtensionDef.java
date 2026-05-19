@@ -1,6 +1,6 @@
 /***************************************************************************
  * MIT License                                                             *
- * Copyright (c) 2018 Isao Akiyama                                         *
+ * Copyright (c) 2026 AKIYAMA Isao                                         *
  *                                                                         *
  * Permission is hereby granted, free of charge, to any person obtaining   *
  * a copy of this software and associated documentation files (the         *
@@ -28,137 +28,109 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class MDataDef implements Module.Elem {
-  String tcon;
+public class MDataExtensionDef implements Module.Elem {
+  String defKey;
   Module.Availability availability;
   Module.Access acc;
   MType.ParamDef[] params;
+  int baseModIndex;
+  String baseTcon;
   MConstrDef[] constrs;
-  boolean extensible;
-  MFeatureImplDef[] featureImpls;
 
-  private MDataDef() {}
+  private MDataExtensionDef() {}
 
   static class Builder {
-    MDataDef dataDef;
+    MDataExtensionDef dataExtensionDef;
     List<MType.ParamDef> paramList;
     List<MConstrDef> constrList;
-    List<MFeatureImplDef> featureImplList;
 
     static Builder newInstance() {
       return new Builder();
     }
 
     Builder() {
-      this.dataDef = new MDataDef();
-      this.dataDef.availability = Module.AVAILABILITY_GENERAL;
+      this.dataExtensionDef = new MDataExtensionDef();
+      this.dataExtensionDef.availability = Module.AVAILABILITY_GENERAL;
       this.constrList = new ArrayList<MConstrDef>();
-      this.featureImplList = new ArrayList<MFeatureImplDef>();
     }
 
     void prepareForParams() {
       this.paramList = new ArrayList<MType.ParamDef>();
     }
 
-    void setTcon(String tcon) {
-      this.dataDef.tcon = tcon;
+    void setDefKey(String defKey) {
+      this.dataExtensionDef.defKey = defKey;
     }
 
     void setAvailability(Module.Availability availability) {
-      this.dataDef.availability = availability;
+      this.dataExtensionDef.availability = availability;
     }
 
     void setAcc(Module.Access acc) {
-      this.dataDef.acc = acc;
+      this.dataExtensionDef.acc = acc;
     }
 
     void addParam(MType.ParamDef param) {
       this.paramList.add(param);
     }
 
-    // void setBaseModIndex(int baseModIndex) {
-      // this.dataDef.baseModIndex = baseModIndex;
-    // }
+    void setBaseModIndex(int baseModIndex) {
+      this.dataExtensionDef.baseModIndex = baseModIndex;
+    }
 
-    // void setBaseTcon(String baseTcon) {
-      // this.dataDef.baseTcon = baseTcon;
-    // }
+    void setBaseTcon(String baseTcon) {
+      this.dataExtensionDef.baseTcon = baseTcon;
+    }
 
     void addConstrDef(MConstrDef constrDef) {
       this.constrList.add(constrDef);
     }
 
-    void setExtensible(boolean b) {
-      this.dataDef.extensible = b;
-    }
-
-    void addFeatureImplDef(MFeatureImplDef featureImplDef) {
-      featureImplDef.setDataDef(this.dataDef);
-      this.featureImplList.add(featureImplDef);
-    }
-
-    MDataDef create() {
-      this.dataDef.params = (this.paramList != null)?
+    MDataExtensionDef create() {
+      this.dataExtensionDef.params = (this.paramList != null)?
         this.paramList.toArray(new MType.ParamDef[this.paramList.size()]):
         null;
-      this.dataDef.constrs = this.constrList.toArray(new MConstrDef[this.constrList.size()]);
-      this.dataDef.featureImpls = this.featureImplList.toArray(new MFeatureImplDef[this.featureImplList.size()]);
-      return this.dataDef;
+      this.dataExtensionDef.constrs = this.constrList.toArray(new MConstrDef[this.constrList.size()]);
+      return this.dataExtensionDef;
     }
   }
 
   public Element externalize(Document doc) {
-    Element dataDefNode = doc.createElement(Module.TAG_DATA_DEF);
-    dataDefNode.setAttribute(Module.ATTR_TCON, this.tcon);
-    if (this.extensible) {
-      dataDefNode.setAttribute(Module.ATTR_EXTENSIBLE, Module.REPR_YES);
-    }
+    Element dataExtDefNode = doc.createElement(Module.TAG_DATA_EXT_DEF);
     if (this.availability != Module.AVAILABILITY_GENERAL) {
-      dataDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
+      dataExtDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
     }
     if (this.acc != Module.ACC_PRIVATE) {
-      dataDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
+      dataExtDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
     }
-    // if (this.baseModIndex > 0) {
-      // dataDefNode.setAttribute(Module.ATTR_BASE_MOD_INDEX, Integer.toString(this.baseModIndex));
-    // }
-    // if (this.baseTcon != null) {
-      // dataDefNode.setAttribute(Module.ATTR_BASE_TCON, this.baseTcon);
-    // }
+    dataExtDefNode.setAttribute(Module.ATTR_DEF_KEY, this.defKey);
+    dataExtDefNode.setAttribute(Module.ATTR_BASE_MOD_INDEX, Integer.toString(this.baseModIndex));
+    dataExtDefNode.setAttribute(Module.ATTR_BASE_TCON, this.baseTcon);
     if (this.params.length > 0) {
       Element paramsNode = doc.createElement(Module.TAG_PARAMS);
       for (int i = 0; i < this.params.length; i++) {
         paramsNode.appendChild(this.params[i].externalize(doc));
       }
-      dataDefNode.appendChild(paramsNode);
+      dataExtDefNode.appendChild(paramsNode);
     }
-    if (this.constrs != null) {  // needed?
-      for (int i = 0; i < this.constrs.length; i++) {
-        dataDefNode.appendChild(this.externalizeConstrDef(doc, this.constrs[i]));
-      }
+    for (int i = 0; i < this.constrs.length; i++) {
+      dataExtDefNode.appendChild(this.externalizeConstrDef(doc, this.constrs[i]));
     }
-    for (int i = 0; i < this.featureImpls.length; i++) {
-      dataDefNode.appendChild(this.externalizeFeatureImplDef(doc, this.featureImpls[i]));
-    }
-    return dataDefNode;
+    return dataExtDefNode;
   }
 
   Element externalizeConstrDef(Document doc, MConstrDef constrDef) {
     return constrDef.externalize(doc);
   }
 
-  Element externalizeFeatureImplDef(Document doc, MFeatureImplDef featureImplDef) {
-    return featureImplDef.externalize(doc);
-  }
-
-  void checkCompat(Module.ModTab modTab, MDataDef dd, Module.ModTab defModTab) throws FormatException {
+  void checkCompat(Module.ModTab modTab, MDataExtensionDef dxd, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
-    if (Module.equalOrMoreOpenAcc(dd.acc, this.acc)) {
+    if (Module.equalOrMoreOpenAcc(dxd.acc, this.acc)) {
       ;
     } else {
       emsg = new StringBuffer();
-      emsg.append("Incompatible access mode - type: ");
-      emsg.append(dd.tcon);
+      emsg.append("Incompatible access mode on extension: ");
+      emsg.append(dxd.baseTcon);
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
@@ -166,27 +138,14 @@ public class MDataDef implements Module.Elem {
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
-    if (dd.extensible == this.extensible) {
+    if (dxd.params == null && this.params == null) {
+      ;
+    } else if (dxd.params != null && this.params != null && dxd.params.length == this.params.length) {
       ;
     } else {
       emsg = new StringBuffer();
-      emsg.append("Incompatible extensibility - extensible: ");
-      emsg.append(dd.extensible);
-      emsg.append(", referred in: ");
-      emsg.append(modTab.getMyModName().repr());
-      emsg.append(" defined in: ");
-      emsg.append(defModTab.getMyModName().repr());
-      emsg.append(".");
-      throw new FormatException(emsg.toString());
-    }
-    if (dd.params == null && this.params == null) {
-      ;
-    } else if (dd.params != null && this.params != null && dd.params.length == this.params.length) {
-      ;
-    } else {
-      emsg = new StringBuffer();
-      emsg.append("Incompatible parameter count - type: ");
-      emsg.append(dd.tcon);
+      emsg.append("Incompatible parameter count on extension: ");
+      emsg.append(dxd.baseTcon);
       emsg.append(", referred in: ");
       emsg.append(modTab.getMyModName().repr());
       emsg.append(" defined in: ");
@@ -196,7 +155,7 @@ public class MDataDef implements Module.Elem {
     }
     for (int i = 0; i < this.constrs.length; i++) {
       MConstrDef cd = this.constrs[i];
-      cd.checkCompat(modTab, dd.constrs, defModTab);
+      cd.checkCompat(modTab, this.constrs, defModTab);
     }
   }
 }

@@ -24,24 +24,28 @@
 package org.sango_lang;
 
 public class RDataConstr {
-  public static final RDataConstr pseudoOfTuple = new RDataConstr(Module.MOD_LANG, "@TUPLE", -1, "tuple", -1);
+  public static final RDataConstr pseudoOfTuple = new RDataConstr(Module.MOD_LANG, Module.MOD_LANG, "@TUPLE", -1, "tuple", -1, null);
 
-  Cstr modName;
-  String name;
+  Cstr modName;  // type origin def
+  Cstr constrModName;  // actually constructing module
+  String name;  // dcon name
   int attrCount;
   String tcon;
   int tparamCount;
+  String callbackFunNameKey;  // maybe null
 
-  RDataConstr(Cstr modName, String name, int attrCount, String tcon, int tparamCount) {
+  RDataConstr(Cstr modName, Cstr constrModName, String name, int attrCount, String tcon, int tparamCount, String callbackFunNameKey) {
     this.modName = modName;
+    this.constrModName = constrModName;
     this.name = name;
     this.attrCount = attrCount;
     this.tcon = tcon;
     this.tparamCount = tparamCount;
+    this.callbackFunNameKey = callbackFunNameKey;
   }
 
-  static RDataConstr create(Cstr modName, String name, int attrCount, String tcon, int tparamCount) {
-    return new RDataConstr(modName, name, attrCount, tcon, tparamCount);
+  static RDataConstr create(Cstr modName, Cstr constrModName, String name, int attrCount, String tcon, int tparamCount, String callbackFunNameKey) {
+    return new RDataConstr(modName, constrModName, name, attrCount, tcon, tparamCount, callbackFunNameKey);
   }
 
   public boolean equals(Object o) {
@@ -52,7 +56,7 @@ public class RDataConstr {
       b = false;
     } else {
       RDataConstr d = (RDataConstr)o;
-      b = d.modName.equals(this.modName) && d.name.equals(this.name);
+      b = d.modName.equals(this.modName) && d.constrModName.equals(this.constrModName) && d.name.equals(this.name);
     }
     return b;
   }

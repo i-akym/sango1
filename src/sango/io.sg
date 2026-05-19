@@ -35,7 +35,7 @@ import "sango.list" -> list ;;
 import "sango.string" -> str ;;
 import "sango.system" -> sys ;;
 
-extend <exc_desc> @public := <io_failure+> io_failure$ ;;
+extend <exc_desc> @public := <io_failure> io_failure$ ;;
 
 data <io_failure> @public :=
 | not_exist$
@@ -45,7 +45,8 @@ data <io_failure> @public :=
 | bad_data$
 | timeout$
 | interrupted$
-| error$ ;;
+| error$
+| ... ;;
 
 data <*A trial_res> @public :=
 | <A> done$
@@ -328,7 +329,7 @@ eval <act.post_h void fun> *Reply <byte instream_h> *In <enc.decoder_h> *Decoder
     }
 } ;;
 
-eval <char_reader_d> *RD <act.msg+> *Msg char_reader_dispatch -> <<char_reader_d> maybe> {
+eval <char_reader_d> *RD <act.msg> *Msg char_reader_dispatch -> <<char_reader_d> maybe> {
   Msg case {
   ; *Ret read_char_req$ -> RD Ret char_reader_read
   ; *Ret *Len read_cstr_req$ -> RD Ret Len char_reader_read_cstr
@@ -506,7 +507,7 @@ eval <act.post_h void fun> *Reply <enc.encoder_h> *Encoder <byte outstream_h> *O
     }
 } ;;
 
-eval <char_writer_d> *WD <act.msg+> *Msg char_writer_dispatch -> <<char_writer_d> maybe> {
+eval <char_writer_d> *WD <act.msg> *Msg char_writer_dispatch -> <<char_writer_d> maybe> {
   Msg case {
   ; *Char write_char_req$ -> WD Char char_writer_write
   ; *Str *Start *Len write_cstr_part_req$ -> WD Str Start Len char_writer_write_string_part
@@ -694,7 +695,7 @@ eval <act.post_h void fun> *Reply <char instream_h> *In line_reader -> <void> {
     }
 } ;;
 
-eval <line_reader_d> *RD <act.msg+> *Msg line_reader_dispatch -> <<line_reader_d> maybe> {
+eval <line_reader_d> *RD <act.msg> *Msg line_reader_dispatch -> <<line_reader_d> maybe> {
   Msg case {
   ; *Ret read_line_req$ -> RD Ret line_reader_read
   ; *Ret close_req$ -> RD Ret line_reader_close

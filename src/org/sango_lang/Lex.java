@@ -327,6 +327,8 @@ public class Lex {
     case 600: fin = dispatch600(c); break;
     case 610: fin = dispatch610(c); break;
     case 620: fin = dispatch620(c); break;
+    case 630: fin = dispatch630(c); break;
+    case 631: fin = dispatch631(c); break;
     case 900: fin = dispatch900(c); break;
     default:
       errmsg = new StringBuffer();
@@ -366,6 +368,7 @@ public class Lex {
       case '=': this.setStart(); this.consumed(); this.transit(600); return false;
       case '+': this.setStart(); this.consumed(); this.transit(610); return false;
       case '\\': this.setStart(); this.consumed(); this.transit(620); return false;
+      case '.': this.setStart(); this.consumed(); this.transit(630); return false;
       case '#': this.setStart(); this.consumed(); this.space = true; this.transit(900); return false;
       case '"': this.setStart(); this.consumed(); this.cstr = new Cstr(); this.transit(400); return false;
       case '<': this.setStart(); this.consumed(); this.setSymToken(LToken.LT); this.transit(0); return true;
@@ -374,7 +377,6 @@ public class Lex {
       case ')': this.setStart(); this.consumed(); this.setSymToken(LToken.RPAR); this.transit(0); return true;
       case ']': this.setStart(); this.consumed(); this.setSymToken(LToken.RBRACKET); this.transit(0); return true;
       case ',': this.setStart(); this.consumed(); this.setSymToken(LToken.COMMA); this.transit(0); return true;
-      case '.': this.setStart(); this.consumed(); this.setSymToken(LToken.DOT); this.transit(0); return true;
       case '!': this.setStart(); this.consumed(); this.setSymToken(LToken.EXCLA); this.transit(0); return true;
       case '~': this.setStart(); this.consumed(); this.setSymToken(LToken.TILD); this.transit(0); return true;
       case '/': this.setStart(); this.consumed(); this.setSymToken(LToken.SLASH); this.transit(0); return true;
@@ -748,6 +750,20 @@ public class Lex {
     switch (c) {
     case '\\': this.consumed(); this.setSymToken(LToken.BKSLASH_BKSLASH); this.transit(0); return true;
     default: this.setSymToken(LToken.BKSLASH); this.transit(0); return true;
+    }
+  }
+
+  private boolean dispatch630(int c) {
+    switch (c) {
+    case '.': this.consumed(); this.transit(631); return false;
+    default: this.setSymToken(LToken.DOT); this.transit(0); return true;
+    }
+  }
+
+  private boolean dispatch631(int c) {
+    switch (c) {
+    case '.': this.consumed(); this.setSymToken(LToken.DOT_DOT_DOT); this.transit(0); return true;
+    default: this.setSymToken(LToken.DOT_DOT); this.transit(0); return true;
     }
   }
 
