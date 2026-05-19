@@ -412,7 +412,7 @@ eval <act.post_h void fun> *Reply <byte io.instream_h> *In byte_reader -> <void>
   }
 } ;;
 
-eval <byte reader_data> *RD <act.msg+> *Msg byte_reader_dispatch -> <<byte reader_data> maybe> {
+eval <byte reader_data> *RD <act.msg> *Msg byte_reader_dispatch -> <<byte reader_data> maybe> {
   Msg case {
   ; *Ret read_byte_req$ -> RD Ret byte_reader_read_byte
   ; *Ret *Len read_bstr_req$ -> RD Ret Len byte_reader_read_bstr
@@ -514,7 +514,7 @@ eval <act.post_h void fun> *Reply <byte io.outstream_h> *Out byte_writer -> <voi
   }
 } ;;
 
-eval <byte writer_data> *WD <act.msg+> *Msg byte_writer_dispatch -> <<byte writer_data> maybe> {
+eval <byte writer_data> *WD <act.msg> *Msg byte_writer_dispatch -> <<byte writer_data> maybe> {
   Msg case {
   ; *Byte write_byte_req$ -> WD Byte byte_writer_write
   ; *Str *Start *Len write_bstr_part_req$ -> WD Str Start Len byte_writer_write_string_part

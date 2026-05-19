@@ -497,7 +497,7 @@ public class Compiler {
     // phase 3
     try {
       this.defDict.checkCyclicAlias();
-      this.defDict.checkCyclicExtension();
+      // this.defDict.checkCyclicExtension();
     } catch (Exception ex) {
       this.compileErrorDetected(null, ex);
     }

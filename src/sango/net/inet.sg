@@ -53,8 +53,8 @@ eval <connection_socket_impl_p> *CSI csi_instream -> <byte io.instream_h> @nativ
 eval <connection_socket_impl_p> *CSI csi_outstream -> <byte io.outstream_h> @native ;;
 eval <connection_socket_impl_p> *CSI csi_close -> <void> @native ;;
 eval <connection_socket_impl_p> *CSI csi_open? -> <bool> @native ;;
-eval <connection_socket_impl_p> *CSI <cstr> *Key csi_opt -> <soc.socket_opt_value+> @native ;;
-eval <connection_socket_impl_p> *CSI <cstr> *Key <soc.socket_opt_value+> *Value csi_set_opt -> <void> @native ;;
+eval <connection_socket_impl_p> *CSI <cstr> *Key csi_opt -> <soc.socket_opt_value> @native ;;
+eval <connection_socket_impl_p> *CSI <cstr> *Key <soc.socket_opt_value> *Value csi_set_opt -> <void> @native ;;
 eval <connection_socket_impl_p> *CSI csi_opt_keys -> <cstr list> @native ;;
 
 data <connection_socket_h> @opaque :=
@@ -92,8 +92,8 @@ eval <connection_socket_h> *CS cs_abstract_socket | abstract_socket @public -> <
     outstream_f: \\ <byte io.outstream_h> { CSI csi_outstream }
     close_f: \\ <void> { CSI csi_close }
     open?_f: \\ <bool> { CSI csi_open? }
-    opt_f: \ <cstr> *Key -> <soc.socket_opt_value+> { CSI Key csi_opt }
-    set_opt_f: \ <cstr> *Key <soc.socket_opt_value+> *Value -> <void> { CSI Key Value csi_set_opt }
+    opt_f: \ <cstr> *Key -> <soc.socket_opt_value> { CSI Key csi_opt }
+    set_opt_f: \ <cstr> *Key <soc.socket_opt_value> *Value -> <void> { CSI Key Value csi_set_opt }
     opt_keys_f: \\ <cstr list> { CSI csi_opt_keys }
     soc.socket_h$
 } ;;
@@ -104,8 +104,8 @@ eval <int> *Port create_server_socket_impl -> <server_socket_impl_p> @native ;;
 eval <server_socket_impl_p> *SSI ssi_accept -> <connection_socket_impl_p> @native ;;
 eval <server_socket_impl_p> *SSI ssi_close -> <void> @native ;;
 eval <server_socket_impl_p> *SSI ssi_open? -> <bool> @native ;;
-eval <server_socket_impl_p> *SSI <cstr> *Key ssi_opt -> <soc.socket_opt_value+> @native ;;
-eval <server_socket_impl_p> *SSI <cstr> *Key <soc.socket_opt_value+> *Value ssi_set_opt -> <void> @native ;;
+eval <server_socket_impl_p> *SSI <cstr> *Key ssi_opt -> <soc.socket_opt_value> @native ;;
+eval <server_socket_impl_p> *SSI <cstr> *Key <soc.socket_opt_value> *Value ssi_set_opt -> <void> @native ;;
 eval <server_socket_impl_p> *SSI ssi_opt_keys -> <cstr list> @native ;;
 
 data <server_socket_h> @opaque :=

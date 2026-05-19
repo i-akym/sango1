@@ -28,20 +28,24 @@ import org.w3c.dom.Element;
 
 public class MDataConstr implements Module.Elem {
   int modIndex;
+  int constrModIndex;
   String name;
   int attrCount;
   String tcon;
   int tparamCount;
+  String callbackFunNameKey;  // maybe null
 
   private MDataConstr() {}
 
-  static MDataConstr create(int modIndex, String name, int attrCount, String tcon, int tparamCount) {
+  static MDataConstr create(int modIndex, int constrModIndex, String name, int attrCount, String tcon, int tparamCount, String callbackFunNameKey) {
     MDataConstr dc = new MDataConstr();
     dc.modIndex = modIndex;
+    dc.constrModIndex = constrModIndex;
     dc.name = name;
     dc.attrCount = attrCount;
     dc.tcon = tcon;
     dc.tparamCount = tparamCount;
+    dc.callbackFunNameKey = callbackFunNameKey;
     return dc;
   }
 
@@ -53,7 +57,7 @@ public class MDataConstr implements Module.Elem {
       b = false;
     } else {
       MDataConstr dc = (MDataConstr)o;
-      b = (dc.modIndex == this.modIndex) && dc.name.equals(this.name);  // do not care attrCount
+      b = (dc.modIndex == this.modIndex) && (dc.constrModIndex == this.constrModIndex) && dc.name.equals(this.name);  // do not care attrCount and others
     }
     return b;
   }
@@ -63,11 +67,17 @@ public class MDataConstr implements Module.Elem {
     if (this.modIndex > 0) {
       dataConstrNode.setAttribute(Module.ATTR_MOD_INDEX, Integer.toString(this.modIndex));
     }
+    if (this.constrModIndex != this.modIndex) {
+      dataConstrNode.setAttribute(Module.ATTR_CONSTR_MOD_INDEX, Integer.toString(this.constrModIndex));
+    }
     dataConstrNode.setAttribute(Module.ATTR_DCON, this.name);
     dataConstrNode.setAttribute(Module.ATTR_ATTR_COUNT, Integer.toString(this.attrCount));
     if (this.tcon != null) {
       dataConstrNode.setAttribute(Module.ATTR_TCON, this.tcon);
       dataConstrNode.setAttribute(Module.ATTR_TPARAM_COUNT, Integer.toString(this.tparamCount));
+    }
+    if (this.callbackFunNameKey != null) {
+      dataConstrNode.setAttribute(Module.ATTR_CALLBACK_KEY, this.callbackFunNameKey);
     }
     return dataConstrNode;
   }

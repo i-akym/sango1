@@ -42,16 +42,17 @@ data <fd> @public :=
 | <int> int_fd$
 | <real> real_fd$
 | <char> char_fd$
-| <cstr> cstr_fd$ ;;
+| <cstr> cstr_fd$
+| ... ;;
 
-alias type <obj> @public := <fd+> ;;
+alias type <obj> @public := <fd> ;;
 alias type <obj_key> @public := <cstr> ;;
 alias type <format_method> @public := <cstr> ;;
 alias type <format_param> @public := <cstr> ;;
 alias type <formatter> @public := <obj format_param lc.locale cstr fun> ;;
 alias type <formatter_tab> := <format_method formatter map.map> ;;
 
-extend <sys.prop> -> my_prop := <formatter_tab> formatter_tab$ ;;
+extend <sys.prop> := <formatter_tab> formatter_tab$ ;;
 
 eval _init_ -> <void> {
   (cstr.ord_fs avlmap.new_map)
@@ -73,7 +74,7 @@ eval <cstr> *Method formatter -> <formatter> {
 
 eval <format_method> *Method <formatter> *Formatter install_formatter @public -> <void> {
   "sango.cstr.format.formatter_tab"
-  \ <sys.prop+> *Old_prop -> <sys.prop+> {
+  \ <sys.prop> *Old_prop -> <sys.prop> {
     Old_prop = *Old formatter_tab$,
     (Old Method Formatter map.add) formatter_tab$
   }

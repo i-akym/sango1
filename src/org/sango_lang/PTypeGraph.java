@@ -992,11 +992,15 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.actualName, ep.key);
-      if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
+
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
+      // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.actualName, ep.key);
+      // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
+      PDataDef.Constr constr = PTypeGraph.this.theCompiler.defDict.getConstrDefFromDcon(
+        PTypeGraph.this.theMod.actualName, ep.key);
+      // PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
       if (constr == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       if (constr.getAttrCount() != this.attrNodes.length) {
         emsg = new StringBuffer();
@@ -1291,9 +1295,10 @@ if (DEBUG > 1) {
       if (t == null) { return null; }  // HERE: in case of <_>
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
-      if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
+      // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
+      // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
       PTypeSkel.Bindings b = PTypeSkel.Bindings.create(this.givenTVarList);
@@ -1369,11 +1374,14 @@ if (DEBUG > 1) {
       if ((b = ((DataConstrPtnNode)this.inNode).getBindings()) == null) { return null; }
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
-      if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
-      if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
+      PDataDef.Constr constr =PTypeGraph.this.theCompiler.defDict.getConstrDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key); 
+      PDataDef.Attr attr = constr.getAttrAt(this.index);
+      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
+      // // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
+      // // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
+      // if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(b);
       return attr.getNormalizedType().resolveBindings(b).instanciate(ic);
     }

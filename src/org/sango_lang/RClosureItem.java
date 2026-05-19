@@ -65,6 +65,8 @@ public class RClosureItem extends RObjItem {
 
   int getParamCount() { return this.impl.paramCount; }
 
+  String getCallbackFunNameKey() { return null; }
+
   public void doHash(RNativeImplHelper helper, RClosureItem self) {
     helper.setReturnValue(helper.getIntItem(0));  // TODO: improve!
   }

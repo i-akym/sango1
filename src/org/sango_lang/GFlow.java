@@ -117,12 +117,12 @@ class GFlow {
     return new SeqNode(srcInfo);
   }
 
-  DataConstrNode createNodeForDataConstrBody(Parser.SrcInfo srcInfo, Cstr modName, String dcon, String tcon, int tparamCount) {
-    return new DataConstrNode(srcInfo, modName, dcon, tcon, tparamCount);
+  DataConstrNode createNodeForDataConstrBody(Parser.SrcInfo srcInfo, Cstr modName, Cstr constrModName, String dcon, String tcon, int tparamCount, String callbackFunNameKey) {
+    return new DataConstrNode(srcInfo, modName, constrModName, dcon, tcon, tparamCount, callbackFunNameKey);
   }
 
-  DataConstrPtnNode createNodeForDataConstrPtn(Parser.SrcInfo srcInfo, Cstr modName, String dcon, String tcon, int tparamCount) {
-    return new DataConstrPtnNode(srcInfo, modName, dcon, tcon, tparamCount);
+  DataConstrPtnNode createNodeForDataConstrPtn(Parser.SrcInfo srcInfo, Cstr modName, Cstr constrModName, String dcon, String tcon, int tparamCount, String callbackFunNameKey) {
+    return new DataConstrPtnNode(srcInfo, modName, constrModName, dcon, tcon, tparamCount, callbackFunNameKey);
   }
 
   SelfRefNode createNodeForSelfRef(Parser.SrcInfo srcInfo) {
@@ -861,20 +861,25 @@ class GFlow {
 
   class DataConstrNode extends SeqNode{
     Cstr modName;
+    Cstr constrModName;
     String dcon;
     String tcon;
     int tparamCount;
+    String callbackFunNameKey;
 
-    DataConstrNode(Parser.SrcInfo srcInfo, Cstr modName, String dcon, String tcon, int tparamCount) {
+    DataConstrNode(Parser.SrcInfo srcInfo, Cstr modName, Cstr constrModName, String dcon, String tcon, int tparamCount, String callbackFunNameKey) {
       super(srcInfo);
       this.modName = modName;
+      this.constrModName = constrModName;
       this.dcon = dcon;
       this.tcon = tcon;
       this.tparamCount = tparamCount;
+      this.callbackFunNameKey = callbackFunNameKey;
     }
 
     void generateBody(Module.Builder builder, int context, RootNode frameRoot, TrialNode trialNode, AllocMap allocMap) {
       int modRefIndex = builder.modNameToModIndex(this.modName);
+      int constrModRefIndex = builder.modNameToModIndex(this.constrModName);
       int attrCount = 0;
       Node n = this.first;
       while (n != null) {
@@ -884,10 +889,10 @@ class GFlow {
         n = n.next;
       }
       int dcIndex;
-      if (modRefIndex == Module.MOD_INDEX_SELF) {
-        dcIndex = builder.putUniqueDataConstrLocal(this.dcon, attrCount, this.tcon, this.tparamCount);
+      if (modRefIndex == Module.MOD_INDEX_SELF && constrModRefIndex == Module.MOD_INDEX_SELF) {
+        dcIndex = builder.putUniqueDataConstrLocal(this.dcon, attrCount, this.tcon, this.tparamCount, this.callbackFunNameKey);
       } else{
-        dcIndex = builder.startUniqueDataConstrForeign(modRefIndex, this.dcon, attrCount, this.tcon, this.tparamCount);
+        dcIndex = builder.startUniqueDataConstrForeign(modRefIndex, constrModRefIndex, this.dcon, attrCount, this.tcon, this.tparamCount, this.callbackFunNameKey);
         if (dcIndex < 0) {
           // HERE: set attr types for verification
           dcIndex = builder.endUniqueDataConstrForeign();
@@ -899,30 +904,35 @@ class GFlow {
 
   class DataConstrPtnNode extends SeqNode{
     Cstr modName;
+    Cstr constrModName;
     String dcon;
     String tcon;
     int tparamCount;
+    String callbackFunNameKey;
 
-    DataConstrPtnNode(Parser.SrcInfo srcInfo, Cstr modName, String dcon, String tcon, int tparamCount) {
+    DataConstrPtnNode(Parser.SrcInfo srcInfo, Cstr modName, Cstr constrModName, String dcon, String tcon, int tparamCount, String callbackFunNameKey) {
       super(srcInfo);
       this.modName = modName;
+      this.constrModName = constrModName;
       this.dcon = dcon;
       this.tcon = tcon;
       this.tparamCount = tparamCount;
+      this.callbackFunNameKey = callbackFunNameKey;
     }
 
     void generateBody(Module.Builder builder, int context, RootNode frameRoot, TrialNode trialNode, AllocMap allocMap) {
       int modRefIndex = builder.modNameToModIndex(this.modName);
+      int constrModRefIndex = builder.modNameToModIndex(this.constrModName);
       int attrCount = 0;
       Node n;
       for (n = this.first; n != null; n = n.next) {
         attrCount++;
       }
       int dcIndex;
-      if (modRefIndex == Module.MOD_INDEX_SELF) {
-        dcIndex = builder.putUniqueDataConstrLocal(this.dcon, attrCount, this.tcon, this.tparamCount);
+      if (modRefIndex == Module.MOD_INDEX_SELF && constrModRefIndex == Module.MOD_INDEX_SELF) {
+        dcIndex = builder.putUniqueDataConstrLocal(this.dcon, attrCount, this.tcon, this.tparamCount, this.callbackFunNameKey);
       } else{
-        dcIndex = builder.startUniqueDataConstrForeign(modRefIndex, this.dcon, attrCount, this.tcon, this.tparamCount);
+        dcIndex = builder.startUniqueDataConstrForeign(modRefIndex, constrModRefIndex, this.dcon, attrCount, this.tcon, this.tparamCount, this.callbackFunNameKey);
         if (dcIndex < 0) {
           // HERE: set attr types for verification
           dcIndex = builder.endUniqueDataConstrForeign();

@@ -256,9 +256,8 @@ kbd {
   定数は関数の返り値として提供されます。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;_&gt; @opaque ;;</code></td></tr></table>
-<p>Sangoの全ての型の基底である型を表します（すべての型はこの型を拡張した型とみなします）。
-  この型のオブジェクトは存在しません。
-  この型の特別な意味として，関数の結果型に用いられた場合に，その関数から制御が戻らないことを表します。</p>
+<p>関数の結果型に用いられ，その関数から制御が戻らないことを表します。
+この型のオブジェクトは存在しません。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;void&gt; @public := void$ ;;</code></td></tr></table>
 <p>関数から返すべき値が無いことを表す便宜的な型です。</p>
@@ -291,11 +290,11 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 <p>文字を表します。
 内部表現はUnicodeで，大小判定もUnicodeで行われます。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A list&gt; @opaque
+<table border width="100%"><tr><td class="def"><code>data &lt;*A list&gt; @opaque
 ++ [ A a'col ] ;;</code></td></tr></table>
 <p>リストを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A string&gt; @opaque
+<table border width="100%"><tr><td class="def"><code>data &lt;*A string&gt; @opaque
 ++ [ A a'col ] ;;</code></td></tr></table>
 <p>ストリングを表します。</p>
 
@@ -306,10 +305,10 @@ data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
 <table border width="100%"><tr><td class="def"><code>alias type &lt;cstr&gt; @public := &lt;char string&gt; ;;</code></td></tr></table>
 <p>文字のストリングの別名で，文字列のことです。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A maybe&gt; @public := &lt;A&gt; value$ | none$ ;;</code></td></tr></table>
 <p><code>&lt;A&gt;</code>の値がある場合と無い場合を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A iter&gt; @public := next_f: &lt;&lt;A iter_res&gt; fun&gt; iter$ ;;</code></td></tr></table>
 <p>イテレータ（データを次々と供給するオブジェクト）を表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;*A iter_res&gt; @public := &lt;&lt;A &lt;A iter&gt; tuple&gt; maybe&gt; ;;
@@ -366,7 +365,7 @@ eval &lt;*D *A col_fs&gt; *Fs col_fs_empty?_f | empty?_f @public -&gt; &lt;D boo
 <h2 id="sango.lang.2"><code>sango.lang</code> - 例外</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;exception&gt; @protected :=
-  desc: &lt;exc_desc+&gt; msg: &lt;cstr&gt; info: &lt;exc_info&gt; org: &lt;exception maybe&gt;
+  desc: &lt;exc_desc&gt; msg: &lt;cstr&gt; info: &lt;exc_info&gt; org: &lt;exception maybe&gt;
   exception$ ;;</code></td></tr></table>
 <p>例外オブジェクトを表します。
   <code>desc</code>は例外理由，<code>msg</code>は補足メッセージ，<code>info</code>は例外発生状況です。
@@ -375,13 +374,13 @@ eval &lt;*D *A col_fs&gt; *Fs col_fs_empty?_f | empty?_f @public -&gt; &lt;D boo
 
 <table border width="100%"><tr><td class="def"><code>data &lt;exc_desc&gt; @public :=
 | assertion_error$ | intentional$ | unsupported$ | security_error$
-| bad_arg$ | bad_status$ | &lt;runtime_failure+&gt; runtime_failure$
-| &lt;arith_failure+&gt; arith_failure$ | sys_error$ | &lt;exc_desc+&gt; thru$ ;;</code></td></tr></table>
+| bad_arg$ | bad_status$ | &lt;runtime_failure&gt; runtime_failure$
+| &lt;arith_failure&gt; arith_failure$ | sys_error$ | &lt;exc_desc&gt; thru$ | ... ;;</code></td></tr></table>
 <p>例外理由を表します。
-  データ構築子名が理由を示しています。独自の例外理由を定義する場合には，この定義を拡張します。</p>
+データ構築子名が理由を示しています。独自の例外理由を定義する場合には，この定義を拡張します。</p>
 <p><code>intentional$</code>は，プログラマが何らかの理由で処理を中断させるときに使用できます。
-  <code>sys_error$</code>は，Sangoランタイムの内部エラーを示します。
-  <code>thru$</code>は，アクタを速やかに終了すべき例外を示し，<code>try</code>で捕捉されません。</p>
+<code>sys_error$</code>は，Sangoランタイムの内部エラーを示します。
+<code>thru$</code>は，アクタを速やかに終了すべき例外を示し，<code>try</code>で捕捉されません。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;runtime_failure&gt; @public := incompat$ | no_case$ | no_elem$ ;;</code></td></tr></table>
 <p>Sangoランタイムが検出した例外を表します。
@@ -396,19 +395,19 @@ eval &lt;*D *A col_fs&gt; *Fs col_fs_empty?_f | empty?_f @public -&gt; &lt;D boo
 <p>例外の発生状況を表します。
   このオブジェクトから情報を得る関数が<code>&quot;sango.debug&quot;</code>から提供されています。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;+*A result&gt; @public := fin: &lt;A&gt; fin$ | &lt;exception&gt; exc$ ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A result&gt; @public := fin: &lt;A&gt; fin$ | &lt;exception&gt; exc$ ;;</code></td></tr></table>
 <p>関数の実行結果として，正常終了して結果が返された場合か，例外が発生した場合を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg &lt;exception maybe&gt; *Original_exc_
+<table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc&gt; *Desc &lt;cstr&gt; *Msg &lt;exception maybe&gt; *Original_exc_
   new_exception @public -&gt; &lt;exception&gt; ;;</code></td></tr></table>
 <p>例外オブジェクトを生成します。
   既存の例外オブジェクトを保持する場合は<code>Original_exc_</code>に指定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg
+<table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc&gt; *Desc &lt;cstr&gt; *Msg
   new_original_exception | new_exception @public -&gt; &lt;exception&gt; ;;</code></td></tr></table>
 <p>新たな例外発生を示す例外オブジェクトを生成します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc+&gt; *Desc &lt;cstr&gt; *Msg &lt;exception&gt; *Original_exc
+<table border width="100%"><tr><td class="def"><code>eval &lt;exc_desc&gt; *Desc &lt;cstr&gt; *Msg &lt;exception&gt; *Original_exc
   new_chained_exception | new_exception @public -&gt; &lt;exception&gt; ;;</code></td></tr></table>
 <p>既存例外オブジェクトを保持した例外オブジェクトを生成します。</p>
 
@@ -899,17 +898,18 @@ eval &lt;*A async_result_h&gt; *Result
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.actor.2"><code>sango.actor</code> - メッセージ交換</h2>
 
-<table border width="100%"><tr><td class="def"><code>extend &lt;_0&gt; -&gt; msg @public :=
+<table border width="100%"><tr><td class="def"><code>data &lt;msg&gt; @public :=
 | signal$
 | no_post$
 | &lt;sys_msg&gt; sys_msg$
-| &lt;actor_h&gt; &lt;actor_state&gt; actor_state_changed$ ;;</code></td></tr></table>
+| &lt;actor_h&gt; &lt;actor_state&gt; actor_state_changed$
+| ... ;;</code></td></tr></table>
 <p>メッセージを表します。
-  必要に応じて拡張して使用します。
-  <code>signal$</code>は，空のメッセージです。
-  <code>no_post$</code>はこれ以上のメッセージがポストされないことを示します。
-  <code>sys_msg$</code>はシステムからのメッセージを示します。
-  <code>actor_state_changed$</code>はアクタの状態変化を示します。</p>
+必要に応じて拡張して使用します。
+<code>signal$</code>は，空のメッセージです。
+<code>no_post$</code>はこれ以上のメッセージがポストされないことを示します。
+<code>sys_msg$</code>はシステムからのメッセージを示します。
+<code>actor_state_changed$</code>はアクタの状態変化を示します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;sys_msg&gt; @public :=
 | shutdown$ ;;</code></td></tr></table>
@@ -954,7 +954,7 @@ eval &lt;*A async_result_h&gt; *Result
 <p><code>&lt;post_h&gt;</code>を再取得します。
   対応する<code>&lt;post_h&gt;</code>オブジェクトが消滅している場合（どのアクタからも送信されないことが確実になっている場合）には，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;post_h&gt; *P &lt;msg+&gt; *M mbox_send_msg | send_msg | send @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;post_h&gt; *P &lt;msg&gt; *M mbox_send_msg | send_msg | send @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>メッセージを送信します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;mbox_h&gt; *B &lt;wait&gt; *Wait listen_mbox | listen @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
@@ -968,7 +968,7 @@ eval &lt;*A async_result_h&gt; *Result
   <code>Wait</code>にタイムアウト時間を指定することができます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;mbox_h&gt; *B
-  mbox_receive_msg | receive_msg | receive @public -&gt; &lt;msg+ maybe&gt; ;;</code></td></tr></table>
+  mbox_receive_msg | receive_msg | receive @public -&gt; &lt;msg maybe&gt; ;;</code></td></tr></table>
 <p>メッセージボックスからメッセージを受信します。
   メッセージが無い場合は<code>none$</code>が返ります。
   関数はブロックされず，即時に結果を返します。</p>
@@ -1698,7 +1698,7 @@ eval &lt;*A *B *C *D *E *T fun&gt; *F5 unary5 | unary @public -&gt; &lt;&lt;A B 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.io.1"><code>sango.io</code> - データ定義</h2>
 
-<table border width="100%"><tr><td class="def"><code>extend &lt;exc_desc&gt; @public := &lt;io_failure+&gt; io_failure$ ;;
+<table border width="100%"><tr><td class="def"><code>extend &lt;exc_desc&gt; @public := &lt;io_failure&gt; io_failure$ ;;
 data &lt;io_failure&gt; @public := not_exist$ | not_available$ | not_allowed$
 | bad_param$ | bad_data$ | timeout$ | interrupted$ | error$ ;;</code></td></tr></table>
 <p>入出力に関する例外を表します。
@@ -2783,7 +2783,7 @@ eval &lt;bigint&gt; *B0 &lt;bigint&gt; *B1 bit_xor @public -&gt; &lt;bigint&gt; 
   型によってデータ構築子を使い分けます。
   今後，型が追加される可能性があります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key property @public -&gt; &lt;prop+ maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key property @public -&gt; &lt;prop maybe&gt; ;;</code></td></tr></table>
 <p><code>Key</code>に合致するシステムプロパティを取得します。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key int_property @public -&gt; &lt;int maybe&gt; ;;
@@ -2811,10 +2811,10 @@ eval &lt;cstr&gt; *Key &lt;cstr&gt; *Default
 eval byte_order @public -&gt; &lt;byte_order&gt; ;;</code></td></tr></table>
 <p>バイト順（ビッグ・エンディアン，リトル・エンディアン）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key &lt;prop+&gt; *Value add_property @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key &lt;prop&gt; *Value add_property @public -&gt; &lt;void&gt; ;;</code></td></tr></table>
 <p>システムプロパティとして<code>Value</code>を追加あるいは置き換えます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key &lt;prop+ prop+ fun&gt; *Upd update_property @public -&gt; &lt;prop+&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Key &lt;prop prop fun&gt; *Upd update_property @public -&gt; &lt;prop&gt; ;;</code></td></tr></table>
 <p>システムプロパティを取得し<code>Upd</code>によって更新した値で置き換えます。
   新しい値を結果として返します。</p>
 

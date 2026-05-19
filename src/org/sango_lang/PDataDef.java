@@ -23,15 +23,15 @@
  ***************************************************************************/
 package org.sango_lang;
 
-public interface PDataDef {
+public abstract interface PDataDef {
 
   Module.Availability getAvailability();
 
   Module.Access getAcc();
 
-  String getFormalTcon();
+  Cstr getModName();
 
-  PDefDict.IdKey getBaseTconKey();
+  String getTcon();
 
   int getParamCount();
   // -1 for 'tuple', 'fun'
@@ -47,9 +47,24 @@ public interface PDataDef {
 
   Constr getConstrAt(int index);
 
-  int getFeatureImplCount();
+  interface OriginDef extends PDataDef {
 
-  FeatureImpl getFeatureImplAt(int index);
+    boolean isExtensible();
+
+    int getFeatureImplCount();
+
+    FeatureImpl getFeatureImplAt(int index);
+
+  }
+
+  interface ExtensionDef extends PDataDef {
+
+    String getDefKey();
+
+    Cstr getOriginModName();
+    // PDefDict.IdKey getBaseTconKey();
+
+  }
 
   interface Constr {
 

@@ -93,11 +93,12 @@ eval <*A async_h> *Async async_peek_result | peek @public -> <<A result> maybe> 
 
 #  -- messaging --
 
-extend <_0> -> msg @public :=
+data <msg> @public :=
 | signal$
 | no_post$
 | <sys_msg> sys_msg$
-| <actor_h> <actor_state> actor_state_changed$ ;;
+| <actor_h> <actor_state> actor_state_changed$
+| ... ;;
 
 data <sys_msg> @public :=
 | shutdown$ ;;
@@ -175,11 +176,11 @@ eval <preserved_post_h> *PP get_post_h @public -> <post_h maybe> {
 
 eval <be> *BE be_owner | owner -> <actor_h> @native ;;
 
-eval <post_h> *P <msg+> *M mbox_send_msg | send_msg | send @public -> <void> {
+eval <post_h> *P <msg> *M mbox_send_msg | send_msg | send @public -> <void> {
   (P bewe >> box.read) M try_put_msg
 } ;;
 
-eval <mboxp box.wbox_h> *BEW <msg+> *M try_put_msg -> <void> {
+eval <mboxp box.wbox_h> *BEW <msg> *M try_put_msg -> <void> {
   BEW box.get >> case {
   ; *BE value$ ->
     BE M be_put_msg
@@ -187,7 +188,7 @@ eval <mboxp box.wbox_h> *BEW <msg+> *M try_put_msg -> <void> {
   }
 } ;;
 
-eval <be> *BE <msg+> *M be_put_msg -> <void> @native ;;
+eval <be> *BE <msg> *M be_put_msg -> <void> @native ;;
 
 eval <mbox_h list> *Mboxes <wait> *Wait mbox_listen_multiple | listen_mboxes | listen @public
     -> <mbox_h list> {
@@ -205,11 +206,11 @@ eval <mbox_h> *Mbox <wait> *Wait listen_mbox | listen @public -> <bool> {
   }
 } ;;
 
-eval <mbox_h> *Mbox mbox_receive_msg | receive_msg | receive @public -> <msg+ maybe> {
+eval <mbox_h> *Mbox mbox_receive_msg | receive_msg | receive @public -> <msg maybe> {
   Mbox be >> be_receive_msg
 } ;;
 
-eval <be> *BE be_receive_msg -> <msg+ maybe> @native ;;
+eval <be> *BE be_receive_msg -> <msg maybe> @native ;;
 
 
 # -- monitoring --

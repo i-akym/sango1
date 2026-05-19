@@ -78,6 +78,10 @@ public class RStructItem extends RObjItem {
     return tsig;
   }
 
+  Cstr getCallbackModName() { return this.dataConstr.constrModName; }
+
+  String getCallbackFunNameKey() { return this.dataConstr.callbackFunNameKey; }
+
   public void doHash(RNativeImplHelper helper, RClosureItem self) {
     Object[] ris = (Object[])helper.getAndClearResumeInfo();
     if (ris == null) {
@@ -110,6 +114,8 @@ public class RStructItem extends RObjItem {
     Cstr s = new Cstr();
     String sep;
     if (this.dataConstr != RDataConstr.pseudoOfTuple) {
+      s.append(Cstr.repr(this.dataConstr.constrModName));
+      s.append(".");
       s.append(this.dataConstr.name);
       sep = ";";
     } else {
@@ -123,37 +129,37 @@ public class RStructItem extends RObjItem {
     return s;
   }
 
-  public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
-    Object[] ris = (Object[])helper.getAndClearResumeInfo();
-    if (ris == null) {
-      if (this.fields.length == 0) {
-        Cstr r = this.createDumpHeader();
-        r.append(this.dataConstr.name);
-        r.append(this.createDumpTrailer());
-        helper.setReturnValue(helper.cstrToArrayItem(r));
-      } else {
-        Cstr r = this.createDumpHeader();
-        if (this.dataConstr != RDataConstr.pseudoOfTuple) {
-          r.append(this.dataConstr.name);
-          r.append(';');
-        }
-        helper.scheduleDebugRepr(this.fields[0], new Object[] { 0, r });
-      }
-    } else {
-      RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
-      int current = (Integer)ris[0];
-      Cstr r = (Cstr)ris[1];
-      r.append(helper.arrayItemToCstr(rx));
-      int next = current + 1;
-      if (next < this.fields.length) {
-        r.append(',');
-        helper.scheduleDebugRepr(this.fields[next], new Object[] { next, r });
-      } else {
-        r.append(this.createDumpTrailer());
-        helper.setReturnValue(helper.cstrToArrayItem(r));
-      }
-    }
-  }
+  // public void doDebugRepr(RNativeImplHelper helper, RClosureItem self) {
+    // Object[] ris = (Object[])helper.getAndClearResumeInfo();
+    // if (ris == null) {
+      // if (this.fields.length == 0) {
+        // Cstr r = this.createDumpHeader();
+        // r.append(this.dataConstr.name);
+        // r.append(this.createDumpTrailer());
+        // helper.setReturnValue(helper.cstrToArrayItem(r));
+      // } else {
+        // Cstr r = this.createDumpHeader();
+        // if (this.dataConstr != RDataConstr.pseudoOfTuple) {
+          // r.append(this.dataConstr.name);
+          // r.append(';');
+        // }
+        // helper.scheduleDebugRepr(this.fields[0], new Object[] { 0, r });
+      // }
+    // } else {
+      // RArrayItem rx = (RArrayItem)helper.getInvocationResult().getReturnValue();
+      // int current = (Integer)ris[0];
+      // Cstr r = (Cstr)ris[1];
+      // r.append(helper.arrayItemToCstr(rx));
+      // int next = current + 1;
+      // if (next < this.fields.length) {
+        // r.append(',');
+        // helper.scheduleDebugRepr(this.fields[next], new Object[] { next, r });
+      // } else {
+        // r.append(this.createDumpTrailer());
+        // helper.setReturnValue(helper.cstrToArrayItem(r));
+      // }
+    // }
+  // }
 
   public boolean equals(Object o) {
     boolean eq;

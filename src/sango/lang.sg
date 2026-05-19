@@ -60,12 +60,12 @@ data <char> @opaque := @native  # charset is unicode
 
 # list type
 
-data <+*A list> @opaque := @native
+data <*A list> @opaque := @native
 ++ list_col_fs -> [ A a'col ] ;;
 
 # string type
 
-data <+*A string> @opaque := @native
+data <*A string> @opaque := @native
 ++ string_col_fs -> [ A a'col ] ;;
 
 alias type <bstr> @public := <byte string> ;;
@@ -74,7 +74,7 @@ alias type <cstr> @public := <char string> ;;
 # exception types
 
 data <exception> @protected :=
-  desc: <exc_desc+>
+  desc: <exc_desc>
   msg: <cstr>
   info: <exc_info>
   org: <exception maybe>
@@ -87,21 +87,24 @@ data <exc_desc> @public :=
 | security_error$
 | bad_arg$
 | bad_status$
-| <runtime_failure+> runtime_failure$
-| <arith_failure+> arith_failure$
+| <runtime_failure> runtime_failure$
+| <arith_failure> arith_failure$
 | sys_error$
-| <exc_desc+> thru$ ;;
+| <exc_desc> thru$
+| ... ;;
 
 data <runtime_failure> @public :=
 | incompat$
 | no_case$
-| no_elem$ ;;
+| no_elem$
+| ... ;;
 
 data <arith_failure> @public :=
 | zero_div$
 | overflow$
 | underflow$
-| arith_error$ ;;
+| arith_error$
+| ... ;;
 
 data <exc_info> @opaque := @native ;;
 
@@ -116,11 +119,11 @@ data <*A *B *C *D *E _5> @public := _5$ ;;
 
 # miscellaneous types
 
-data <+*A result> @public :=
+data <*A result> @public :=
 | fin: <A> fin$
 | <exception> exc$ ;;
 
-data <+*A maybe> @public :=
+data <*A maybe> @public :=
 | <A> value$
 | none$ ;;
 
@@ -203,7 +206,7 @@ eval @beta <*D *A col_fs> *Fs col_fs_empty?_f | empty?_f @public -> <D bool fun>
   }
 } ;;
 
-data <+*A iter> @public :=
+data <*A iter> @public :=
   next_f: <<A iter_res> fun>
   iter$ ;;
 
@@ -717,13 +720,13 @@ eval <*A fun> *F catch_all_try @public -> <A result> @native ;;
 
 # exception functions
 
-eval <exc_desc+> *Desc <cstr> *Msg <exception maybe> *Original_exc_ new_exception @public -> <exception> @native ;;
+eval <exc_desc> *Desc <cstr> *Msg <exception maybe> *Original_exc_ new_exception @public -> <exception> @native ;;
 
-eval <exc_desc+> *Desc <cstr> *Msg new_original_exception | new_exception @public -> <exception> {
+eval <exc_desc> *Desc <cstr> *Msg new_original_exception | new_exception @public -> <exception> {
   Desc Msg none$ new_exception
 } ;;
 
-eval <exc_desc+> *Desc <cstr> *Msg <exception> *Original_exc new_chained_exception | new_exception @public -> <exception> {
+eval <exc_desc> *Desc <cstr> *Msg <exception> *Original_exc new_chained_exception | new_exception @public -> <exception> {
   Desc Msg (Original_exc value$) new_exception
 } ;;
 

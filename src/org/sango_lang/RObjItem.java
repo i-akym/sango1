@@ -34,6 +34,16 @@ abstract public class RObjItem extends RVMItem {
 
   abstract public RType.Sig getTsig();
 
+  Cstr getCallbackModName() {
+    // default impl
+    return this.getTsig().mod;
+  }
+
+  String getCallbackFunNameKey() {
+    // default impl
+    return this.getTsig().name.toJavaString();
+  }
+
   final public void objHash(RNativeImplHelper helper, RClosureItem self) {
     Object ri = helper.getAndClearResumeInfo();
     if (ri == null) {
@@ -57,8 +67,15 @@ abstract public class RObjItem extends RVMItem {
   }
 
   private void scheduleDoHash(RNativeImplHelper helper, Object resumeInfo) {
-    RType.Sig tsig = this.getTsig();
-    RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_hash_" + tsig.name.toJavaString());
+    RClosureItem c;
+    String s = this.getCallbackFunNameKey();
+    if (s != null) {
+      c = helper.core.getClosureItem(this.getCallbackModName(), "_call_hash_" + s);
+    } else {
+      c = null;
+    }
+    // RType.Sig tsig = this.getTsig();
+    // RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_hash_" + tsig.name.toJavaString());
     if (c != null) {
       helper.scheduleInvocation(c, new RObjItem[] { this }, resumeInfo);
     } else {
@@ -129,8 +146,15 @@ abstract public class RObjItem extends RVMItem {
   }
 
   private void scheduleDoDebugRepr(RNativeImplHelper helper, Object resumeInfo) {
-    RType.Sig tsig = this.getTsig();
-    RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_debug_repr_" + tsig.name.toJavaString());
+    RClosureItem c;
+    String s = this.getCallbackFunNameKey();
+    if (s != null) {
+      c = helper.core.getClosureItem(this.getCallbackModName(), "_call_debug_repr_" + s);
+    } else {
+      c = null;
+    }
+    // RType.Sig tsig = this.getTsig();
+    // RClosureItem c = helper.core.getClosureItem(tsig.mod, "_call_debug_repr_" + tsig.name.toJavaString());
     if (c != null) {
       helper.scheduleInvocation(c, new RObjItem[] { this }, resumeInfo);
     } else {

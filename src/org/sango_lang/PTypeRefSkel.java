@@ -55,7 +55,7 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   private void calcFeatures() throws CompileException {
-    PDataDef dd = this.theCompiler.defDict.getDataDef(null, this.tconKey);
+    PDataDef.OriginDef dd = this.theCompiler.defDict.getDataDef(null, this.tconKey);
     PTypeRefSkel sig = dd.getTypeSig();
     PFeatureSkel[] fs = new PFeatureSkel[dd.getFeatureImplCount()];
     for (int i = 0; i < fs.length; i++) {
@@ -175,7 +175,7 @@ public class PTypeRefSkel implements PTypeSkel {
       }
       vv[this.params.length - 1] = Module.COVARIANT;
     } else {
-      PDataDef dd = this.theCompiler.defDict.getDataDef(null, this.tconKey);
+      PDataDef.OriginDef dd = this.theCompiler.defDict.getDataDef(null, this.tconKey);
       for (int i = 0; i < this.params.length; i++) {
         vv[i] = dd.getParamPropss()[i].variance;
       }
@@ -480,80 +480,82 @@ public class PTypeRefSkel implements PTypeSkel {
 
   boolean canAcceptNarrowerOnTcon(PTypeRefSkel tr) throws CompileException {
     // BOTTOM is not supported here
-    boolean b;
-    if (this.tconKey.equals(tr.tconKey)) {
-      if (this.ext && tr.ext) {
-        b = true;
-      } else if (this.ext && !tr.ext) {
-        b = true;
-      } else if (!this.ext && tr.ext) {
-        b = false;
-      } else {
-        b = true;
-      }
-    } else if (this.theCompiler.defDict.isBaseOf(tr.tconKey, this.tconKey)) {
-      if (this.ext && tr.ext) {
-        b = false;
-      } else if (this.ext && !tr.ext) {
-        b = false;
-      } else if (!this.ext && tr.ext) {
-        b = true;
-      } else {
-        b = true;
-      }
-    } else if (this.theCompiler.defDict.isBaseOf(this.tconKey, tr.tconKey)) {
-      if (this.ext && tr.ext) {
-        b = true;
-      } else if (this.ext && !tr.ext) {
-        b = true;
-      } else if (!this.ext && tr.ext) {
-        b = false;
-      } else {
-        b = false;
-      }
-    } else {
-      b = false;
-    }
-    return b;
+    return this.tconKey.equals(tr.tconKey);
+    // boolean b;
+    // if (this.tconKey.equals(tr.tconKey)) {
+      // if (this.ext && tr.ext) {
+        // b = true;
+      // } else if (this.ext && !tr.ext) {
+        // b = true;
+      // } else if (!this.ext && tr.ext) {
+        // b = false;
+      // } else {
+        // b = true;
+      // }
+    // } else if (this.theCompiler.defDict.isBaseOf(tr.tconKey, this.tconKey)) {
+      // if (this.ext && tr.ext) {
+        // b = false;
+      // } else if (this.ext && !tr.ext) {
+        // b = false;
+      // } else if (!this.ext && tr.ext) {
+        // b = true;
+      // } else {
+        // b = true;
+      // }
+    // } else if (this.theCompiler.defDict.isBaseOf(this.tconKey, tr.tconKey)) {
+      // if (this.ext && tr.ext) {
+        // b = true;
+      // } else if (this.ext && !tr.ext) {
+        // b = true;
+      // } else if (!this.ext && tr.ext) {
+        // b = false;
+      // } else {
+        // b = false;
+      // }
+    // } else {
+      // b = false;
+    // }
+    // return b;
   }
 
   boolean canAcceptWiderOnTcon(PTypeRefSkel tr) throws CompileException {
     // BOTTOM is not supported here
-    boolean b;
-    if (this.tconKey.equals(tr.tconKey)) {
-      if (this.ext && tr.ext) {
-        b = true;
-      } else if (this.ext && !tr.ext) {
-        b = false;
-      } else if (!this.ext && tr.ext) {
-        b = true;
-      } else {
-        b = true;
-      }
-    } else if (this.theCompiler.defDict.isBaseOf(tr.tconKey, this.tconKey)) {
-      if (this.ext && tr.ext) {
-        b = true;
-      } else if (this.ext && !tr.ext) {
-        b = false;
-      } else if (!this.ext && tr.ext) {
-        b = true;
-      } else {
-        b = false;
-      }
-    } else if (this.theCompiler.defDict.isBaseOf(this.tconKey, tr.tconKey)) {
-      if (this.ext && tr.ext) {
-        b = false;
-      } else if (this.ext && !tr.ext) {
-        b = false;
-      } else if (!this.ext && tr.ext) {
-        b = true;
-      } else {
-        b = true;
-      }
-    } else {
-      b = false;
-    }
-    return b;
+    return this.tconKey.equals(tr.tconKey);
+    // boolean b;
+    // if (this.tconKey.equals(tr.tconKey)) {
+      // if (this.ext && tr.ext) {
+        // b = true;
+      // } else if (this.ext && !tr.ext) {
+        // b = false;
+      // } else if (!this.ext && tr.ext) {
+        // b = true;
+      // } else {
+        // b = true;
+      // }
+    // } else if (this.theCompiler.defDict.isBaseOf(tr.tconKey, this.tconKey)) {
+      // if (this.ext && tr.ext) {
+        // b = true;
+      // } else if (this.ext && !tr.ext) {
+        // b = false;
+      // } else if (!this.ext && tr.ext) {
+        // b = true;
+      // } else {
+        // b = false;
+      // }
+    // } else if (this.theCompiler.defDict.isBaseOf(this.tconKey, tr.tconKey)) {
+      // if (this.ext && tr.ext) {
+        // b = false;
+      // } else if (this.ext && !tr.ext) {
+        // b = false;
+      // } else if (!this.ext && tr.ext) {
+        // b = true;
+      // } else {
+        // b = true;
+      // }
+    // } else {
+      // b = false;
+    // }
+    // return b;
   }
 
   boolean canAcceptEqualOnTcon(PTypeRefSkel tr) {

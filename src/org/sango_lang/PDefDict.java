@@ -34,11 +34,14 @@ import java.util.Set;
 class PDefDict {
   static final int TID_CAT_NOT_FOUND = 0;
   static final int TID_CAT_VAR = 1;
-  static final int TID_CAT_TCON_DATAEXT_DATA = 2;
-  static final int TID_CAT_TCON_DATAEXT_EXTEND = 4;
-  static final int TID_CAT_TCON_DATAEXT = TID_CAT_TCON_DATAEXT_DATA + TID_CAT_TCON_DATAEXT_EXTEND;
+  static final int TID_CAT_TCON_DATA = 2;
+  static final int TID_CAT_DEFKEY_EXT = 4;
+  // static final int TID_CAT_TCON_DATAEXT_DATA = 2;
+  // static final int TID_CAT_TCON_DATAEXT_EXTEND = 4;
+  // static final int TID_CAT_TCON_DATAEXT = TID_CAT_TCON_DATAEXT_DATA + TID_CAT_TCON_DATAEXT_EXTEND;
   static final int TID_CAT_TCON_ALIAS = 8;
-  static final int TID_CAT_TCON = TID_CAT_TCON_DATAEXT + TID_CAT_TCON_ALIAS;
+  static final int TID_CAT_TCON = TID_CAT_TCON_DATA + TID_CAT_TCON_ALIAS;
+  // static final int TID_CAT_TCON = TID_CAT_TCON_DATAEXT + TID_CAT_TCON_ALIAS;
   static final int TID_CAT_FEATURE = 16;
 
   static final int EID_CAT_NOT_FOUND = 0;
@@ -53,14 +56,17 @@ class PDefDict {
 
   Map<Cstr, PModDecl> modDeclDict;
   Set<Cstr> unavailableMods;
-  Map<IdKey, IdKey> dconDict;  // dcon -> tcon
+  Map<IdKey, IdKey> originDconDict;  // dcon -> tcon
+  Map<IdKey, IdKey> extensionDconDict;  // dcon -> extension def key
   Map<IdKey, TidProps> tidDict;
   Map<IdKey, EidProps> eidDict;
-  Map<IdKey, PDataDef> dataDefDict;
+  Map<IdKey, PDataDef.OriginDef> dataOriginDefDict;
+  Map<IdKey, PDataDef.ExtensionDef> dataExtensionDefDict;  // def key -> extension def
   Map<IdKey, PAliasTypeDef> aliasTypeDefDict;
   Map<IdKey, PFeatureDef> featureDefDict;
   Map<Cstr, List<PFunDef>> funDefListDict;  // def list in each module
-  Map<Cstr, Set<IdKey>> foreignDataDefs;
+  Map<Cstr, Set<IdKey>> foreignDataOriginDefs;
+  Map<Cstr, Set<IdKey>> foreignDataExtensionDefs;
   Map<Cstr, Set<IdKey>> foreignAliasTypeDefs;
   Map<Cstr, Set<IdKey>> foreignFeatureDefs;
   Map<Cstr, Set<IdKey>> foreignFunDefs;
@@ -72,12 +78,15 @@ class PDefDict {
     this.unavailableMods = unavailableMods;
     this.tidDict = new HashMap<IdKey, TidProps>();
     this.eidDict = new HashMap<IdKey, EidProps>();
-    this.dataDefDict = new HashMap<IdKey, PDataDef>();
+    this.dataOriginDefDict = new HashMap<IdKey, PDataDef.OriginDef>();
+    this.dataExtensionDefDict = new HashMap<IdKey, PDataDef.ExtensionDef>();
     this.aliasTypeDefDict = new HashMap<IdKey, PAliasTypeDef>();
     this.featureDefDict = new HashMap<IdKey, PFeatureDef>();
     this.funDefListDict = new HashMap<Cstr, List<PFunDef>>();
-    this.dconDict = new HashMap<IdKey, IdKey>();
-    this.foreignDataDefs = new HashMap<Cstr, Set<IdKey>>();
+    this.originDconDict = new HashMap<IdKey, IdKey>();
+    this.extensionDconDict = new HashMap<IdKey, IdKey>();
+    this.foreignDataOriginDefs = new HashMap<Cstr, Set<IdKey>>();
+    this.foreignDataExtensionDefs = new HashMap<Cstr, Set<IdKey>>();
     this.foreignAliasTypeDefs = new HashMap<Cstr, Set<IdKey>>();
     this.foreignFeatureDefs = new HashMap<Cstr, Set<IdKey>>();
     this.foreignFunDefs = new HashMap<Cstr, Set<IdKey>>();
@@ -89,7 +98,7 @@ class PDefDict {
     boolean succeeded;
     TidProps tp = this.tidDict.get(tid);
     if (tp == null) {
-      tp = TidProps.create(tid, TID_CAT_TCON_DATAEXT_DATA, acc);
+      tp = TidProps.create(tid, TID_CAT_TCON_DATA, acc);
       this.tidDict.put(tid, tp);
       succeeded = true;
     } else {
@@ -98,11 +107,11 @@ class PDefDict {
     return succeeded;
   }
 
-  boolean predefineTconExtend(IdKey tid, Module.Access acc) {
+  boolean predefineDefKeyExtension(IdKey tid, Module.Access acc) {
     boolean succeeded;
     TidProps tp = this.tidDict.get(tid);
     if (tp == null) {
-      tp = TidProps.create(tid, TID_CAT_TCON_DATAEXT_EXTEND, acc);
+      tp = TidProps.create(tid, TID_CAT_DEFKEY_EXT, acc);
       this.tidDict.put(tid, tp);
       succeeded = true;
     } else {
@@ -110,6 +119,19 @@ class PDefDict {
     }
     return succeeded;
   }
+
+  // boolean predefineTconExtend(IdKey tid, Module.Access acc) {
+    // boolean succeeded;
+    // TidProps tp = this.tidDict.get(tid);
+    // if (tp == null) {
+      // tp = TidProps.create(tid, TID_CAT_TCON_DATAEXT_EXTEND, acc);
+      // this.tidDict.put(tid, tp);
+      // succeeded = true;
+    // } else {
+      // succeeded = false;
+    // }
+    // return succeeded;
+  // }
 
   boolean predefineTconAliasType(IdKey tid, Module.Access acc) {
     boolean succeeded;
@@ -191,23 +213,39 @@ class PDefDict {
     this.modDeclDict.put(modName, decl);
   }
 
-  void putDataDef(IdKey tid, PDataDef def) {
+  void putDataOriginDef(IdKey tid, PDataDef.OriginDef def) {
     // call predefineXXX and check in advance
     TidProps tp = this.tidDict.get(tid);
-    if (tp == null || (tp.cat & TID_CAT_TCON_DATAEXT) == 0) { throw new IllegalArgumentException("Not predefined. " + tid); }
-    if (def.getBaseTconKey() == null) {
-      if ((tp.cat & TID_CAT_TCON_DATAEXT_DATA) == 0) { throw new IllegalArgumentException("Category mismatch. " + tid); }
-    } else {
-      if ((tp.cat & TID_CAT_TCON_DATAEXT_EXTEND) == 0) { throw new IllegalArgumentException("Category mismatch. " + tid); }
-    }
+    if (tp == null || (tp.cat & TID_CAT_TCON_DATA) == 0) { throw new IllegalArgumentException("Not predefined. " + tid); }
+    // if (def.getBaseTconKey() == null) {
+      // if ((tp.cat & TID_CAT_TCON_DATA) == 0) { throw new IllegalArgumentException("Category mismatch. " + tid); }
+    // }
     for (int i = 0; i < def.getConstrCount(); i++) {
       PDataDef.Constr c = def.getConstrAt(i);
       IdKey dcon = IdKey.create(tid.modName, c.getDcon());
       EidProps ep = this.eidDict.get(dcon);
       if (ep == null || (ep.cat & EID_CAT_DCON) == 0) { throw new IllegalArgumentException("Not predefined. " + dcon); }
-      this.dconDict.put(dcon, tid);
+      this.originDconDict.put(dcon, tid);
     }
-    this.dataDefDict.put(tid, def);
+    this.dataOriginDefDict.put(tid, def);
+  }
+
+  void putDataExtensionDef(IdKey defKey, PDataDef.ExtensionDef def) {
+    // base tcon key can be determined later
+    // call predefineXXX and check in advance
+    String dk = def.getDefKey();
+    if (dk == null) { throw new IllegalArgumentException("Null def key."); }
+    if (!dk.equals(defKey.idName)) { throw new IllegalArgumentException("Def key mismatch."); }
+    TidProps tp = this.tidDict.get(defKey);
+    if (tp == null || (tp.cat & TID_CAT_DEFKEY_EXT) == 0) { throw new IllegalArgumentException("Not predefined. " + defKey); }
+    for (int i = 0; i < def.getConstrCount(); i++) {
+      PDataDef.Constr c = def.getConstrAt(i);
+      IdKey dcon = IdKey.create(defKey.modName, c.getDcon());
+      EidProps ep = this.eidDict.get(dcon);
+      if (ep == null || (ep.cat & EID_CAT_DCON) == 0) { throw new IllegalArgumentException("Not predefined. " + dcon); }
+      this.extensionDconDict.put(dcon, defKey);
+    }
+    this.dataExtensionDefDict.put(defKey, def);
   }
 
   void putAliasTypeDef(IdKey tid, PAliasTypeDef def) {
@@ -243,12 +281,23 @@ class PDefDict {
     fds.add(def);
   }
 
-  PDataDef getDataDef(Cstr referrer, IdKey tid) throws CompileException {
+  PDataDef.OriginDef getDataDef(Cstr referrer, IdKey tid) throws CompileException {
     // returns null if not found
+    if (tid == null) { throw new IllegalArgumentException("Null tid"); }
     this.checkModIsAvailable(tid.modName);  // may throw exception
-    PDataDef def = this.dataDefDict.get(tid);
+    PDataDef.OriginDef def = this.dataOriginDefDict.get(tid);
     if (def != null) {
       this.recordForeignDataDef(referrer, tid);
+    }
+    return def;
+  }
+
+  PDataDef.ExtensionDef getDataExtensionDef(Cstr referrer, IdKey tid) throws CompileException {
+    // returns null if not found
+    this.checkModIsAvailable(tid.modName);  // may throw exception
+    PDataDef.ExtensionDef def = this.dataExtensionDefDict.get(tid);
+    if (def != null) {
+      this.recordForeignDataExtensionDef(referrer, tid);
     }
     return def;
   }
@@ -274,7 +323,7 @@ class PDefDict {
     while (iter.hasNext()) {
       IdKey k = iter.next();
       TidProps tp = this.tidDict.get(k);
-      if ((tp.cat & TID_CAT_TCON_DATAEXT) > 0) {
+      if ((tp.cat & TID_CAT_TCON_DATA) > 0) {
         tconsChecked.add(k);
       } else if ((tp.cat & TID_CAT_TCON_ALIAS) > 0) {
         tconsToCheck.add(k);
@@ -314,51 +363,51 @@ class PDefDict {
     }
   }
 
-  void checkCyclicExtension() throws CompileException {
-    List<IdKey> tconsToCheck = new ArrayList<IdKey>();
-    Set<IdKey> tconsChecked = new HashSet<IdKey>();
-    Iterator<IdKey> iter = this.tidDict.keySet().iterator();
-    while (iter.hasNext()) {
-      IdKey k = iter.next();
-      TidProps tp = this.tidDict.get(k);
-      if ((tp.cat & TID_CAT_TCON_DATAEXT_DATA) > 0) {
-        tconsChecked.add(k);
-      } else if ((tp.cat & TID_CAT_TCON_DATAEXT_EXTEND) > 0) {
-        tconsToCheck.add(k);
-      }
-    }
-    for (int i = 0; i < tconsToCheck.size(); i++) {
-      this.checkCyclicExtension1(tconsToCheck.get(i), tconsChecked);
-    }
-  }
+  // void checkCyclicExtension() throws CompileException {
+    // List<IdKey> tconsToCheck = new ArrayList<IdKey>();
+    // Set<IdKey> tconsChecked = new HashSet<IdKey>();
+    // Iterator<IdKey> iter = this.tidDict.keySet().iterator();
+    // while (iter.hasNext()) {
+      // IdKey k = iter.next();
+      // TidProps tp = this.tidDict.get(k);
+      // if ((tp.cat & TID_CAT_TCON_DATAEXT_DATA) > 0) {
+        // tconsChecked.add(k);
+      // } else if ((tp.cat & TID_CAT_TCON_DATAEXT_EXTEND) > 0) {
+        // tconsToCheck.add(k);
+      // }
+    // }
+    // for (int i = 0; i < tconsToCheck.size(); i++) {
+      // this.checkCyclicExtension1(tconsToCheck.get(i), tconsChecked);
+    // }
+  // }
 
-  private void checkCyclicExtension1(IdKey tcon, Set<IdKey> tconsChecked) throws CompileException {
-    Set<IdKey> tconsChecking = new HashSet<IdKey>();
-    tconsChecking.add(tcon);
-    this.checkCyclicExtension2(
-      this.dataDefDict.get(tcon).getBaseTconKey(),
-      tconsChecking,
-      tconsChecked);
-  }
+  // private void checkCyclicExtension1(IdKey tcon, Set<IdKey> tconsChecked) throws CompileException {
+    // Set<IdKey> tconsChecking = new HashSet<IdKey>();
+    // tconsChecking.add(tcon);
+    // this.checkCyclicExtension2(
+      // this.dataDefDict.get(tcon).getBaseTconKey(),
+      // tconsChecking,
+      // tconsChecked);
+  // }
 
-  private void checkCyclicExtension2(IdKey baseTconKey, Set<IdKey> tconsChecking, Set<IdKey> tconsChecked) throws CompileException {
-    if (tconsChecked.contains(baseTconKey)) {
-      ;
-    } else if (tconsChecking.contains(baseTconKey)) {
-      StringBuffer emsg = new StringBuffer();
-      emsg.append("Cyclic definition for data extention on \"");
-      emsg.append(baseTconKey.repr());
-      emsg.append("\".");
-      throw new CompileException(emsg.toString());
-    } else {
-      tconsChecking.add(baseTconKey);
-      this.checkCyclicExtension2(
-        this.dataDefDict.get(baseTconKey).getBaseTconKey(),
-        tconsChecking,
-        tconsChecked);
-      tconsChecked.add(baseTconKey);
-    }
-  }
+  // private void checkCyclicExtension2(IdKey baseTconKey, Set<IdKey> tconsChecking, Set<IdKey> tconsChecked) throws CompileException {
+    // if (tconsChecked.contains(baseTconKey)) {
+      // ;
+    // } else if (tconsChecking.contains(baseTconKey)) {
+      // StringBuffer emsg = new StringBuffer();
+      // emsg.append("Cyclic definition for data extention on \"");
+      // emsg.append(baseTconKey.repr());
+      // emsg.append("\".");
+      // throw new CompileException(emsg.toString());
+    // } else {
+      // tconsChecking.add(baseTconKey);
+      // this.checkCyclicExtension2(
+        // this.dataDefDict.get(baseTconKey).getBaseTconKey(),
+        // tconsChecking,
+        // tconsChecked);
+      // tconsChecked.add(baseTconKey);
+    // }
+  // }
 
   TidProps resolveTcon(Cstr referrer, IdKey tid) throws CompileException {
     // returns null if not found
@@ -440,46 +489,122 @@ class PDefDict {
     return ep;
   }
 
-  boolean isBaseOf(IdKey base, IdKey ext) throws CompileException {
-    PDataDef ed = this.dataDefDict.get(ext);
-    if (ed == null) { throw new IllegalArgumentException("Not a data/ext. " + ext); }
-    if (ext.equals(base)) { return true; }
-    IdKey x = ed.getBaseTconKey();
-    boolean b = false;
-    while (!b && x != null) {
-      if (x.equals(base)) {
-        b = true;  // found
-      } else {
-        PDataDef xd = this.dataDefDict.get(x);
-        if (xd == null) { throw new IllegalArgumentException("Not a data/ext. " + x); }
-        x = xd.getBaseTconKey();  // repeat
-      }
-    }
-    return b;
-  }
+  // boolean isBaseOf(IdKey base, IdKey ext) throws CompileException {
+    // PDataDef ed = this.dataDefDict.get(ext);
+    // if (ed == null) { throw new IllegalArgumentException("Not a data/ext. " + ext); }
+    // if (ext.equals(base)) { return true; }
+    // IdKey x = ed.getBaseTconKey();
+    // boolean b = false;
+    // while (!b && x != null) {
+      // if (x.equals(base)) {
+        // b = true;  // found
+      // } else {
+        // PDataDef xd = this.dataDefDict.get(x);
+        // if (xd == null) { throw new IllegalArgumentException("Not a data/ext. " + x); }
+        // x = xd.getBaseTconKey();  // repeat
+      // }
+    // }
+    // return b;
+  // }
 
   PModDecl getModDecl(Cstr modName) {
     return this.modDeclDict.get(modName);
   }
 
-  IdKey getTconFromDconForEval(Cstr referrer, IdKey eid) throws CompileException {
+  PDataDef.OriginDef getDataOriginDefFromDcon(Cstr referrer, IdKey eid) throws CompileException {
     // returns null if undefined dcon
+    if (eid == null) { throw new IllegalArgumentException("Null eid"); }
     EidProps ep = this.resolveAnchor(referrer, eid);  // may throw exception
-    if (ep == null || (ep.cat & EID_CAT_DCON_EVAL) == 0) { return null; }
+    if (ep == null || (ep.cat & EID_CAT_DCON) == 0) { return null; }
     // this.checkModIsAvailable(tid.modName);  // may throw exception  // checked in resolveAnchor
-    IdKey tcon = this.dconDict.get(eid);
-    if (tcon == null) { throw new RuntimeException("Tcon not defined. " + eid); }
-    return tcon;
+    PDataDef.OriginDef def;
+    IdKey tcon = this.originDconDict.get(eid);
+    if (tcon != null) {
+      def = this.getDataDef(referrer, tcon);
+    } else {
+      IdKey dk = this.extensionDconDict.get(eid);
+      if (dk != null) {
+        PDataDef.ExtensionDef dxd = this.getDataExtensionDef(referrer, dk);
+        tcon = IdKey.create(dxd.getOriginModName(), dxd.getTcon());
+        def = this.getDataDef(referrer, tcon);
+      } else {
+        def = null;
+      }
+    }
+    return def;
   }
 
-  IdKey getTconFromDconForPtn(Cstr referrer, IdKey eid) throws CompileException {
+  PDataDef.ExtensionDef getDataExtensionDefFromDcon(Cstr referrer, IdKey eid) throws CompileException {
+    // returns null if undefined dcon
+    if (eid == null) { throw new IllegalArgumentException("Null eid"); }
+    EidProps ep = this.resolveAnchor(referrer, eid);  // may throw exception
+    if (ep == null || (ep.cat & EID_CAT_DCON) == 0) { return null; }
+    // this.checkModIsAvailable(tid.modName);  // may throw exception  // checked in resolveAnchor
+    PDataDef.ExtensionDef def;
+    IdKey dk = this.extensionDconDict.get(eid);
+    if (dk != null) {
+      def = this.getDataExtensionDef(referrer, dk);
+    } else {
+      def = null;
+    }
+    return def;
+  }
+
+  // IdKey getTconFromDconForEval(Cstr referrer, IdKey eid) throws CompileException {
+    // // returns null if undefined dcon
+    // if (eid == null) { throw new IllegalArgumentException("Null eid"); }
+    // EidProps ep = this.resolveAnchor(referrer, eid);  // may throw exception
+    // if (ep == null || (ep.cat & EID_CAT_DCON_EVAL) == 0) { return null; }
+    // // this.checkModIsAvailable(tid.modName);  // may throw exception  // checked in resolveAnchor
+    // IdKey tcon = this.dconDict.get(eid);
+    // if (tcon == null) { throw new RuntimeException("Tcon not defined. " + eid); }
+    // return tcon;
+  // }
+
+  IdKey getExtensionDefKeyFromDconForEval(Cstr referrer, IdKey eid) throws CompileException {
+    // returns null if undefined dcon
+    this.checkModIsAvailable(eid.modName);
+    if (eid == null) { throw new IllegalArgumentException("Null eid"); }
+    EidProps ep = this.resolveAnchor(referrer, eid);  // may throw exception
+    if (ep == null || (ep.cat & EID_CAT_DCON_EVAL) == 0) { return null; }
+    return this.extensionDconDict.get(eid);  // maybe return null
+  }
+
+  // IdKey getTconFromDconForPtn(Cstr referrer, IdKey eid) throws CompileException {
+    // // returns null if undefined dcon
+    // EidProps ep = this.resolveAnchor(referrer, eid);  // may throw exception
+    // if (ep == null || (ep.cat & EID_CAT_DCON_PTN) == 0) { return null; }
+    // // this.checkModIsAvailable(tid.modName);  // may throw exception  // checked in resolveAnchor
+    // IdKey tcon = this.originDconDict.get(eid);
+    // if (tcon == null) { throw new RuntimeException("Tcon not defined. " + eid); }
+    // return tcon;
+  // }
+
+  IdKey getExtensionDefKeyFromDconForPtn(Cstr referrer, IdKey eid) throws CompileException {
     // returns null if undefined dcon
     EidProps ep = this.resolveAnchor(referrer, eid);  // may throw exception
     if (ep == null || (ep.cat & EID_CAT_DCON_PTN) == 0) { return null; }
     // this.checkModIsAvailable(tid.modName);  // may throw exception  // checked in resolveAnchor
-    IdKey tcon = this.dconDict.get(eid);
-    if (tcon == null) { throw new RuntimeException("Tcon not defined. " + eid); }
-    return tcon;
+    return this.extensionDconDict.get(eid);  // maybe return null
+  }
+
+  // utility
+  PDataDef.Constr getConstrDefFromDcon(Cstr referrer, IdKey eid) throws CompileException {
+    // necessary checks should be done in advance...
+    this.checkModIsAvailable(eid.modName);  // may throw exception
+    PDataDef.Constr constrDef;
+    IdKey exDefKey = this.extensionDconDict.get(eid);
+    if (exDefKey != null) {
+      constrDef = this.dataExtensionDefDict.get(exDefKey).getConstr(eid.idName);
+    } else {
+      IdKey dk = this.originDconDict.get(eid);
+      if (dk != null) {
+        constrDef = this.dataOriginDefDict.get(this.originDconDict.get(eid)).getConstr(eid.idName);
+      } else {
+        constrDef = null;
+      }
+    }
+    return constrDef;
   }
 
   PAliasTypeDef getAliasTypeDef(Cstr referrer, IdKey tid) throws CompileException {
@@ -575,8 +700,10 @@ class PDefDict {
     if (referrer.equals(tid.modName)) { return; }  // skip if local ref
     TidProps tp = this.resolveTcon(referrer, tid);
     if (tp == null) { throw new IllegalArgumentException("Unknown tid. " + tid.toString()); }
-    if ((tp.cat & TID_CAT_TCON_DATAEXT) > 0) {
+    if ((tp.cat & TID_CAT_TCON_DATA) > 0) {
       this.getDataDef(referrer, tid);  // record reference internally
+    } else if ((tp.cat & TID_CAT_DEFKEY_EXT) > 0) {
+      this.getDataExtensionDef(referrer, tid);  // record reference internally
     } else if ((tp.cat & TID_CAT_TCON_ALIAS) > 0) {
       this.getAliasTypeDef(referrer, tid);  // record reference internally
     } else {
@@ -588,10 +715,22 @@ class PDefDict {
 /* TRAP */ if (tid.idName == null) { throw new RuntimeException("Null id name."); }
     if (referrer == null) { return; }  // skip if internal ref
     if (referrer.equals(tid.modName)) { return; }  // skip if local ref
-    Set<IdKey> referred = this.foreignDataDefs.get(referrer);
+    Set<IdKey> referred = this.foreignDataOriginDefs.get(referrer);
     if (referred == null) {
       referred = new HashSet<IdKey>();
-      this.foreignDataDefs.put(referrer, referred);
+      this.foreignDataOriginDefs.put(referrer, referred);
+    }
+    referred.add(tid);
+  }
+
+  void recordForeignDataExtensionDef(Cstr referrer, IdKey tid) {
+/* TRAP */ if (tid.idName == null) { throw new RuntimeException("Null id name."); }
+    if (referrer == null) { return; }  // skip if internal ref
+    if (referrer.equals(tid.modName)) { return; }  // skip if local ref
+    Set<IdKey> referred = this.foreignDataExtensionDefs.get(referrer);
+    if (referred == null) {
+      referred = new HashSet<IdKey>();
+      this.foreignDataExtensionDefs.put(referrer, referred);
     }
     referred.add(tid);
   }
@@ -631,13 +770,13 @@ class PDefDict {
     referred.add(eid);
   }
 
-  List<PDataDef> getAllDataDefsIn(Cstr modName) {
+  List<PDataDef> getAllDataOriginDefsIn(Cstr modName) {
     List<PDataDef> defs = new ArrayList<PDataDef>();
-    Iterator<IdKey> ki = this.dataDefDict.keySet().iterator();
+    Iterator<IdKey> ki = this.dataOriginDefDict.keySet().iterator();
     while (ki.hasNext()) {
       IdKey k = ki.next();
       if (modName.equals(k.modName)) {
-        defs.add(this.dataDefDict.get(k));
+        defs.add(this.dataOriginDefDict.get(k));
       }
     }
     return defs;
@@ -672,15 +811,30 @@ class PDefDict {
     return (defs != null)? defs: new ArrayList<PFunDef>();
   }
 
-  List<PDataDef> getForeignDataDefsIn(Cstr referrer, Cstr modName) {
-    List<PDataDef> defs = new ArrayList<PDataDef>();
-    Set<IdKey> ids = this.foreignDataDefs.get(referrer);
+  List<PDataDef.OriginDef> getForeignDataOriginDefsIn(Cstr referrer, Cstr modName) {
+    List<PDataDef.OriginDef> defs = new ArrayList<PDataDef.OriginDef>();
+    Set<IdKey> ids = this.foreignDataOriginDefs.get(referrer);
     if (ids != null) {
       Iterator<IdKey> i = ids.iterator();
       while (i.hasNext()) {
         IdKey id = i.next();
         if (id.modName.equals(modName)) {
-          defs.add(this.dataDefDict.get(id));
+          defs.add(this.dataOriginDefDict.get(id));
+        }
+      }
+    }
+    return defs;
+  }
+
+  List<PDataDef.ExtensionDef> getForeignDataExtensionDefsIn(Cstr referrer, Cstr modName) {
+    List<PDataDef.ExtensionDef> defs = new ArrayList<PDataDef.ExtensionDef>();
+    Set<IdKey> ids = this.foreignDataExtensionDefs.get(referrer);
+    if (ids != null) {
+      Iterator<IdKey> i = ids.iterator();
+      while (i.hasNext()) {
+        IdKey id = i.next();
+        if (id.modName.equals(modName)) {
+          defs.add(this.dataExtensionDefDict.get(id));
         }
       }
     }
@@ -775,6 +929,14 @@ class PDefDict {
     public static IdKey create(Cstr modName, String idName) {
       return new IdKey(modName, idName);
     }
+
+    // public static IdKey createForExtensionDef(Cstr modName, String idName) {
+      // return new IdKey(modName, Module.ID_PREFIX_DATA_EXT + idName);
+    // }
+
+    // public boolean isExtensionDefKey() {
+      // return Module.isIdForDataExtension(this.idName);
+    // }
 
     IdKey(Cstr modName, String idName) {
       /* DEBUG */ if (modName == null) { throw new IllegalArgumentException("Mod name is null. " + idName); }

@@ -35,7 +35,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   Map<String, PEvalItem> namedAttrDict;
   PEvalItem.ObjItem using;
   PDefDict.EidProps _resolved_dconProps;
-  PDataDef _resolved_dataDef;
+  PDataDef.OriginDef _resolved_dataOriginDef;
+  PDataDef.ExtensionDef _resolved_dataExtensionDef;  // non-null if dcon is defined in extension def
   PExpr[] bdPosd;
   PExpr[] bdNamed;
   PExpr bdUsing;
@@ -225,8 +226,8 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForEval(this.scope.theMod.actualName, this._resolved_dconProps.key);
-    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tconKey);
+    // PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForEval(this.scope.theMod.actualName, this._resolved_dconProps.key);
+    // this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tconKey);
     this.breakDown();
     return this;
   }
@@ -257,8 +258,10 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
 
   private int[] analyzeAttrSrc() throws CompileException {
     StringBuffer emsg;
-    //PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
-    PDataDef.Constr constr = this._resolved_dataDef.getConstr(this.dcon.name);
+// /* DEBUG */ if (this._resolved_dataOriginDef == null) { throw new RuntimeException("Unexpected: null datadef"); }
+    PDataDef.Constr constr = this.scope.getCompiler().defDict.getConstrDefFromDcon(
+      this.scope.theMod.actualName, _resolved_dconProps.key);
+    // PDataDef.Constr constr = this._resolved_dataDef.getConstr(this.dcon.name);
     int[] attrSrcs = new int[constr.getAttrCount()];
     if (this.posdAttrs.length + this.namedAttrs.length > attrSrcs.length) {
       emsg = new StringBuffer();
@@ -473,6 +476,9 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
+    this._resolved_dataOriginDef = this.scope.getCompiler().defDict.getDataOriginDefFromDcon(this.scope.theMod.actualName, this._resolved_dconProps.key);
+    this._resolved_dataExtensionDef = this.scope.getCompiler().defDict.getDataExtensionDefFromDcon(this.scope.theMod.actualName, this._resolved_dconProps.key);
+
     if (this.bdPosd != null) {
       for (int i = 0; i < this.bdPosd.length; i++) {
         this.bdPosd[i].setupTypeGraph(graph);
@@ -515,9 +521,22 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     }
     PTypeRefSkel type = (PTypeRefSkel)this.typeGraphNode.getFinalizedType();
     // /* DEBUG */ System.out.println(type.tconProps);
+
+    String callbackFunNameKey;
+    if (this._resolved_dataExtensionDef == null) {  // origin def
+      callbackFunNameKey = type.tconKey.idName;
+    } else {
+      String dk = this._resolved_dataExtensionDef.getDefKey();
+      callbackFunNameKey = dk.startsWith("@")? null: dk;
+    }
+
     GFlow.DataConstrNode n = flow.createNodeForDataConstrBody(
-      this.srcInfo, this._resolved_dconProps.key.modName, this.dcon.name,
-      type.tconKey.idName, type.params.length);
+      this.srcInfo,
+      this._resolved_dataOriginDef.getModName(),
+      this._resolved_dconProps.key.modName,
+      this.dcon.name,
+      type.tconKey.idName, type.params.length,
+      callbackFunNameKey);
     for (int i = 0; i < this.bdAttrs.length; i++) {
       n.addChild(this.bdAttrs[i].setupFlow(flow));
     }

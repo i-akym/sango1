@@ -43,13 +43,7 @@ import org.w3c.dom.Node;
 
 public class Module {
   // module file format version
-  // * static final String CUR_FORMAT_VERSION = "1.0";
-  // initial
-  // * static final String CUR_FORMAT_VERSION = "1.1";
-  // add 'requires_concrete' attribute to type var slot, which must be checked for type consistency
-  // * static final String CUR_FORMAT_VERSION = "1.2";
-  // add 'param' envelope node for each parameter in data def, and move variance spec from 'type_var' node to 'param'
-  static final String CUR_FORMAT_VERSION = "1.3";
+  static final String CUR_FORMAT_VERSION = "1.4";
 
   public static final Cstr MOD_LANG = new Cstr("sango.lang");
   // public static final Cstr MOD_ENTITY = new Cstr("sango.entity");
@@ -95,6 +89,8 @@ public class Module {
   static final String TAG_DATA_CONSTRS = "data_constrs";
   static final String TAG_DATA_DEF = "data_def";
   static final String TAG_DATA_DEFS = "data_defs";
+  static final String TAG_DATA_EXT_DEF = "data_ext_def";
+  static final String TAG_DATA_EXT_DEFS = "data_ext_defs";
   static final String TAG_FEATURE = "feature";
   static final String TAG_FEATURE_DEF = "feature_def";
   static final String TAG_FEATURE_DEFS = "feature_defs";
@@ -129,9 +125,13 @@ public class Module {
   static final String ATTR_AVAILABILITY = "availability";
   static final String ATTR_BASE_MOD_INDEX = "base_mod_index";
   static final String ATTR_BASE_TCON = "base_tcon";
+  static final String ATTR_CALLBACK_KEY = "callback_key";
+  static final String ATTR_CONSTR_MOD_INDEX = "constr_mod_index";
   static final String ATTR_DCON = "dcon";
+  static final String ATTR_DEF_KEY = "def_key";
   static final String ATTR_ENV_COUNT = "env_count";
   static final String ATTR_EXT = "ext";
+  static final String ATTR_EXTENSIBLE = "extensible";
   static final String ATTR_FORMAT_VERSION = "format_version";
   static final String ATTR_GETTER = "getter";
   static final String ATTR_MOD = "mod";
@@ -205,6 +205,11 @@ public class Module {
   public static final Variance COVARIANT = new Variance("covariant");
   public static final Variance CONTRAVARIANT = new Variance("contravariant");
 
+  // public static final String ID_PREFIX_DATA_EXT = "EXT:";
+
+  // static boolean isIdNormal(String id) { return id.indexOf(":") < 0; }
+  // static boolean isIdForDataExtension(String id) { return id.startsWith(ID_PREFIX_DATA_EXT); }
+
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;
 
@@ -214,11 +219,14 @@ public class Module {
   int slotCount;
   ModTab modTab;
   Map<Cstr, MDataDef[]> foreignDataDefsDict;
+  Map<Cstr, MDataExtensionDef[]> foreignDataExtensionDefsDict;
   Map<Cstr, MAliasTypeDef[]> foreignAliasTypeDefsDict;
   Map<Cstr, MFeatureDef[]> foreignFeatureDefsDict;
   Map<Cstr, MFunDef[]> foreignFunDefsDict;
   MDataDef[] dataDefs;
   Map<String, MDataDef> dataDefDict;
+  MDataExtensionDef[] dataExtensionDefs;
+  Map<String, MDataExtensionDef> dataExtensionDefDict;
   Map<String, MConstrDef> constrDefDict;
   MAliasTypeDef[] aliasTypeDefs;
   MFeatureDef[] featureDefs;
@@ -238,6 +246,8 @@ public class Module {
   public int getSlotCount() { return this.slotCount; }
 
   public MDataDef[] getDataDefs() { return this.dataDefs; }
+
+  public MDataExtensionDef[] getDataExtensionDefs() { return this.dataExtensionDefs; }
 
   public MAliasTypeDef[] getAliasTypeDefs() { return this.aliasTypeDefs; }
 
@@ -278,6 +288,9 @@ public class Module {
       node = skipIgnorableNodes(node.getNextSibling());
     }
     if (internalizeDataDefs(node, builder)) {
+      node = skipIgnorableNodes(node.getNextSibling());
+    }
+    if (internalizeDataExtensionDefs(node, builder)) {
       node = skipIgnorableNodes(node.getNextSibling());
     }
     if (internalizeAliasTypeDefs(node, builder)) {
@@ -403,6 +416,9 @@ public class Module {
       if (internalizeDataDefs(n, builder)) {
         n = skipIgnorableNodes(n.getNextSibling());
       }
+      if (internalizeDataExtensionDefs(n, builder)) {
+        n = skipIgnorableNodes(n.getNextSibling());
+      }
       if (internalizeAliasTypeDefs(n, builder)) {
         n = skipIgnorableNodes(n.getNextSibling());
       }
@@ -425,7 +441,6 @@ public class Module {
     } else {
       return false;
     }
-    // /* DEBUG */ System.out.println("internalizing data_defs nodes...");
     Node n = node.getFirstChild();
     while (n != null) {
       if (isIgnorable(n)) {
@@ -447,16 +462,12 @@ public class Module {
     if (aTcon == null) {
       throw new FormatException("'" + ATTR_TCON + "' attribute not found.");
     }
-    // /* DEBUG */ System.out.print("tcon = ");
-    // /* DEBUG */ System.out.println(aTcon.getNodeValue());
 
     Availability av = AVAILABILITY_GENERAL;  // default
     Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
     if (aAvailability != null) {
       av = parseAvailabilityAttr(aAvailability.getNodeValue());
     }
-    // /* DEBUG */ System.out.print("availability = ");
-    // /* DEBUG */ System.out.println(av);
 
     Access acc = ACC_PRIVATE;  // default
     Node aAcc = attrs.getNamedItem(ATTR_ACC);
@@ -474,8 +485,19 @@ public class Module {
         throw new FormatException("Invalid " + ATTR_ACC + ": " + sAcc);
       }
     }
-    // /* DEBUG */ System.out.print("acc = ");
-    // /* DEBUG */ System.out.println(acc);
+
+    boolean extensible = false;
+    Node aExtensible = attrs.getNamedItem(ATTR_EXTENSIBLE);
+    if (aExtensible != null) {
+      String sExtensible = aExtensible.getNodeValue();
+      if (sExtensible.equals(REPR_YES)) {
+        extensible = true;
+      } else if (sExtensible.equals(REPR_NO)) {
+        extensible = false;
+      } else {
+        throw new FormatException("Invalid " + ATTR_EXTENSIBLE + ": " + sExtensible);
+      }
+    }
 
     int paramCount = 0;  // default: 0
     Node aParamCount = attrs.getNamedItem(ATTR_PARAM_COUNT);
@@ -485,17 +507,7 @@ public class Module {
     if (paramCount < 0) {
       throw new FormatException("Invalid " + ATTR_PARAM_COUNT + ": " + paramCount);
     }
-    // /* DEBUG */ System.out.print("param_count = ");
-    // /* DEBUG */ System.out.println(paramCount);
-
-    Node aBaseModIndex = attrs.getNamedItem(ATTR_BASE_MOD_INDEX);
-    if (aBaseModIndex != null) {
-      Node aBaseTcon = attrs.getNamedItem(ATTR_BASE_TCON);
-      String baseTcon = (aBaseTcon != null)? aBaseTcon.getNodeValue(): aTcon.getNodeValue();
-      builder.startDataDef(aTcon.getNodeValue(), av, acc, parseInt(aBaseModIndex.getNodeValue()), baseTcon);
-    } else {
-      builder.startDataDef(aTcon.getNodeValue(), av, acc);
-    }
+      builder.startDataDef(aTcon.getNodeValue(), av, acc, extensible);
     Node n = node.getFirstChild();
     int state = 0;
     while (n != null) {
@@ -516,6 +528,99 @@ public class Module {
       n = n.getNextSibling();
     }
     builder.endDataDef();
+  }
+
+  static boolean internalizeDataExtensionDefs(Node node, Builder builder) throws FormatException {
+    if ((node != null) && node.getNodeName().equals(TAG_DATA_EXT_DEFS)) {
+      ;
+    } else {
+      return false;
+    }
+    Node n = node.getFirstChild();
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (n.getNodeName().equals(TAG_DATA_EXT_DEF)) {
+        internalizeDataExtensionDef(n, builder);
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_DATA_EXT_DEFS + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    return true;
+  }
+
+  static void internalizeDataExtensionDef(Node node, Builder builder) throws FormatException {
+    NamedNodeMap attrs = node.getAttributes();
+
+    Node aDefKey = attrs.getNamedItem(ATTR_DEF_KEY);
+    if (aDefKey == null) {
+      throw new FormatException("'" + ATTR_DEF_KEY + "' attribute not found.");
+    }
+
+    int baseModIndex = MOD_INDEX_SELF;  // default: self (= 0)
+    Node aBaseModIndex = attrs.getNamedItem(ATTR_BASE_MOD_INDEX);
+    if (aBaseModIndex != null) {
+      baseModIndex = parseInt(aBaseModIndex.getNodeValue());
+    }
+    if (baseModIndex < 0) {
+      throw new FormatException("Invalid base_mod_index: " + baseModIndex);
+    }
+
+    Node aBaseTcon = attrs.getNamedItem(ATTR_BASE_TCON);
+    if (aBaseTcon == null) {
+      throw new FormatException("'" + ATTR_BASE_TCON + "' attribute not found.");
+    }
+
+    Availability av = AVAILABILITY_GENERAL;  // default
+    Node aAvailability = attrs.getNamedItem(ATTR_AVAILABILITY);
+    if (aAvailability != null) {
+      av = parseAvailabilityAttr(aAvailability.getNodeValue());
+    }
+
+    Access acc = ACC_PRIVATE;  // default
+    Node aAcc = attrs.getNamedItem(ATTR_ACC);
+    if (aAcc != null) {
+      String sAcc = aAcc.getNodeValue();
+      if (sAcc.equals(REPR_PUBLIC)) {
+        acc = ACC_PUBLIC;
+      } else if (sAcc.equals(REPR_PROTECTED)) {
+        acc = ACC_PROTECTED;
+      } else if (sAcc.equals(REPR_OPAQUE)) {
+        acc = ACC_OPAQUE;
+      } else if (sAcc.equals(REPR_PRIVATE)) {
+        acc = ACC_PRIVATE;
+      } else {
+        throw new FormatException("Invalid " + ATTR_ACC + ": " + sAcc);
+      }
+    }
+
+    int paramCount = 0;  // default: 0
+    Node aParamCount = attrs.getNamedItem(ATTR_PARAM_COUNT);
+    if (aParamCount != null) {
+      paramCount = parseInt(aParamCount.getNodeValue());
+    }
+    if (paramCount < 0) {
+      throw new FormatException("Invalid " + ATTR_PARAM_COUNT + ": " + paramCount);
+    }
+    builder.startDataExtensionDef(aDefKey.getNodeValue(), av, acc, baseModIndex, aBaseTcon.getNodeValue());
+    Node n = node.getFirstChild();
+    int state = 0;
+    while (n != null) {
+      if (isIgnorable(n)) {
+        ;
+      } else if (state == 0 & n.getNodeName().equals(TAG_PARAMS)) {  // appears first if any
+        internalizeDataDefParams(n, builder);
+        state = 1;
+      } else if (state <= 1 && n.getNodeName().equals(TAG_CONSTR)) {
+        internalizeDataDefConstr(n, builder);
+        state = 1;
+      } else {
+        throw new FormatException("Unknown element under '" + TAG_DATA_EXT_DEF + "' element: " + n.getNodeName());
+      }
+      n = n.getNextSibling();
+    }
+    builder.endDataExtensionDef();
   }
 
   static void internalizeDataDefParams(Node node, Builder builder) throws FormatException {
@@ -1103,6 +1208,14 @@ public class Module {
     }
     // /* DEBUG */ System.out.print("mod_index = ");
     // /* DEBUG */ System.out.println(modIndex);
+    int constrModIndex = modIndex;  // default
+    Node aConstrModIndex = attrs.getNamedItem(ATTR_CONSTR_MOD_INDEX);
+    if (aConstrModIndex != null) {
+      constrModIndex = parseInt(aConstrModIndex.getNodeValue());
+    }
+    if (constrModIndex < 0) {
+      throw new FormatException("Invalid constr_mod_index: " + constrModIndex);
+    }
 
     Node aDcon = attrs.getNamedItem(ATTR_DCON);
     if (aDcon == null) {
@@ -1139,7 +1252,13 @@ public class Module {
     // /* DEBUG */ System.out.println(tparamCount);
     }
 
-    builder.putDataConstr(modIndex, aDcon.getNodeValue(), attrCount, tcon, tparamCount);
+    Node aCallbackKey = attrs.getNamedItem(ATTR_CALLBACK_KEY);
+    String callbackFunNameKey = null;
+    if (aCallbackKey != null) {
+      callbackFunNameKey = aCallbackKey.getNodeValue();
+    }
+
+    builder.putDataConstr(modIndex, constrModIndex, aDcon.getNodeValue(), attrCount, tcon, tparamCount, callbackFunNameKey);
   }
 
   static boolean internalizeClosureConstrs(Node node, Builder builder) throws FormatException {
@@ -1443,6 +1562,9 @@ public class Module {
     if (this.dataDefs.length > 0) {
       moduleNode.appendChild(this.externalizeDataDefs(doc, this.dataDefs));
     }
+    if (this.dataExtensionDefs.length > 0) {
+      moduleNode.appendChild(this.externalizeDataExtensionDefs(doc, this.dataExtensionDefs));
+    }
     if (this.aliasTypeDefs.length > 0) {
       moduleNode.appendChild(this.externalizeAliasTypeDefs(doc, this.aliasTypeDefs));
     }
@@ -1483,6 +1605,10 @@ public class Module {
     if (dds.length > 0) {
       modRefNode.appendChild(this.externalizeDataDefs(doc, dds));
     }
+    MDataExtensionDef[] dxds = this.foreignDataExtensionDefsDict.get(modName);
+    if (dxds.length > 0) {
+      modRefNode.appendChild(this.externalizeDataExtensionDefs(doc, dxds));
+    }
     MAliasTypeDef[] ads = this.foreignAliasTypeDefsDict.get(modName);
     if (ads.length > 0) {
       modRefNode.appendChild(this.externalizeAliasTypeDefs(doc, ads));
@@ -1510,6 +1636,20 @@ public class Module {
 
   Element externalizeDataDef(Document doc, MDataDef dataDef) {
     return dataDef.externalize(doc);
+  }
+
+  Element externalizeDataExtensionDefs(Document doc, MDataExtensionDef[] dxds) {
+    Element dataExtensionDefsNode = doc.createElement(TAG_DATA_EXT_DEFS);
+    for (int i = 0; i < dxds.length; i++) {
+      if (dxds[i].params != null) {
+        dataExtensionDefsNode.appendChild(this.externalizeDataExtensionDef(doc, dxds[i]));
+      }
+    }
+    return dataExtensionDefsNode;
+  }
+
+  Element externalizeDataExtensionDef(Document doc, MDataExtensionDef dataExtensionDef) {
+    return dataExtensionDef.externalize(doc);
   }
 
   Element externalizeAliasTypeDefs(Document doc, MAliasTypeDef[] ads) {
@@ -1616,13 +1756,16 @@ public class Module {
     Cstr currentForeignModName;
     List<Cstr> foreignModList;
     Map<Cstr, List<MDataDef>> foreignDataDefListDict;
+    Map<Cstr, List<MDataExtensionDef>> foreignDataExtensionDefListDict;
     Map<Cstr, List<MAliasTypeDef>> foreignAliasTypeDefListDict;
     Map<Cstr, List<MFeatureDef>> foreignFeatureDefListDict;
     Map<Cstr, List<MFunDef>> foreignFunDefListDict;
     MDataDef.Builder dataDefBuilder;
+    MDataExtensionDef.Builder dataExtensionDefBuilder;
     MConstrDef.Builder constrDefBuilder;
     MAttrDef currentAttrDef;
     List<MDataDef> dataDefList;
+    List<MDataExtensionDef> dataExtensionDefList;
     MAliasTypeDef currentAliasTypeDef;
     List<MAliasTypeDef> aliasTypeDefList;
     Map<String, MFeatureDef> featureDefDict;
@@ -1644,15 +1787,18 @@ public class Module {
       this.mod = new Module();
       this.mod.actualName = actualModName;
       this.foreignDataDefListDict = new HashMap<Cstr, List<MDataDef>>();
+      this.foreignDataExtensionDefListDict = new HashMap<Cstr, List<MDataExtensionDef>>();
       this.foreignAliasTypeDefListDict = new HashMap<Cstr, List<MAliasTypeDef>>();
       this.foreignFeatureDefListDict = new HashMap<Cstr, List<MFeatureDef>>();
       this.foreignFunDefListDict = new HashMap<Cstr, List<MFunDef>>();
       this.mod.dataDefDict = new HashMap<String, MDataDef>();
+      this.mod.dataExtensionDefDict = new HashMap<String, MDataExtensionDef>();
       this.mod.constrDefDict = new HashMap<String, MConstrDef>();
       this.mod.featureDefDict = new HashMap<String, MFeatureDef>();
       this.mod.funDefDict = new HashMap<String, MFunDef>();
       this.foreignModList = new ArrayList<Cstr>();
       this.dataDefList = new ArrayList<MDataDef>();
+      this.dataExtensionDefList = new ArrayList<MDataExtensionDef>();
       this.aliasTypeDefList = new ArrayList<MAliasTypeDef>();
       this.featureDefList = new ArrayList<MFeatureDef>();
       this.funDefList = new ArrayList<MFunDef>();
@@ -1729,11 +1875,13 @@ public class Module {
       // this.foreignModList.add(this.currentForeignModName);
 // /* DEBUG */ System.out.println("foreign data_def " + this.currentForeignModName.toJavaString() + " " + this.dataDefList);
       this.foreignDataDefListDict.put(this.currentForeignModName, this.dataDefList);
+      this.foreignDataExtensionDefListDict.put(this.currentForeignModName, this.dataExtensionDefList);
       this.foreignAliasTypeDefListDict.put(this.currentForeignModName, this.aliasTypeDefList);
       this.foreignFeatureDefListDict.put(this.currentForeignModName, this.featureDefList);
       this.foreignFunDefListDict.put(this.currentForeignModName, this.funDefList);
       this.currentForeignModName = null;
       this.dataDefList = new ArrayList<MDataDef>();
+      this.dataExtensionDefList = new ArrayList<MDataExtensionDef>();
       this.aliasTypeDefList = new ArrayList<MAliasTypeDef>();
       this.featureDefList = new ArrayList<MFeatureDef>();
       this.funDefList = new ArrayList<MFunDef>();
@@ -1754,22 +1902,16 @@ public class Module {
       this.dataDefBuilder.setTcon(tcon);
       this.dataDefBuilder.setAvailability(availability);
       this.dataDefBuilder.setAcc(acc);
-      this.dataDefBuilder.setBaseModIndex(0);
-      this.dataDefBuilder.setBaseTcon(null);
+      this.dataDefBuilder.setExtensible(false);
     }
 
-    void startDataDef(String tcon, Availability availability, Access acc) {
-      this.startDataDef(tcon, availability, acc, 0, null);
-    }
-
-    void startDataDef(String tcon, Availability availability, Access acc, int baseModIndex, String baseTcon) {
+    void startDataDef(String tcon, Availability availability, Access acc, boolean extensible) {
       this.dataDefBuilder = MDataDef.Builder.newInstance();
       this.dataDefBuilder.prepareForParams();
       this.dataDefBuilder.setTcon(tcon);
       this.dataDefBuilder.setAvailability(availability);
       this.dataDefBuilder.setAcc(acc);
-      this.dataDefBuilder.setBaseModIndex(baseModIndex);
-      this.dataDefBuilder.setBaseTcon(baseTcon);
+      this.dataDefBuilder.setExtensible(extensible);
     }
 
     void putDataDefParam(MType.ParamDef p) {
@@ -1780,6 +1922,28 @@ public class Module {
       MDataDef dd = this.dataDefBuilder.create();
       this.dataDefList.add(dd);
       this.mod.dataDefDict.put(dd.tcon, dd);
+      this.dataDefBuilder = null;
+    }
+
+    void startDataExtensionDef(String defKey, Availability availability, Access acc, int baseModIndex, String baseTcon) {
+      this.dataExtensionDefBuilder = MDataExtensionDef.Builder.newInstance();
+      this.dataExtensionDefBuilder.setDefKey(defKey);
+      this.dataExtensionDefBuilder.prepareForParams();
+      this.dataExtensionDefBuilder.setAvailability(availability);
+      this.dataExtensionDefBuilder.setAcc(acc);
+      this.dataExtensionDefBuilder.setBaseModIndex(baseModIndex);
+      this.dataExtensionDefBuilder.setBaseTcon(baseTcon);
+    }
+
+    void putDataExtensionDefParam(MType.ParamDef p) {
+      this.dataExtensionDefBuilder.addParam(p);
+    }
+
+    void endDataExtensionDef() {
+      MDataExtensionDef dxd = this.dataExtensionDefBuilder.create();
+      this.dataExtensionDefList.add(dxd);
+      this.mod.dataExtensionDefDict.put(dxd.defKey, dxd);
+      this.dataExtensionDefBuilder = null;
     }
 
     void startConstrDef(String dcon) {
@@ -1791,7 +1955,13 @@ public class Module {
     void endConstrDef() {
       MConstrDef cd = this.constrDefBuilder.create();
       this.mod.constrDefDict.put(cd.dcon, cd);
-      this.dataDefBuilder.addConstrDef(cd);
+      if (this.dataDefBuilder != null) {
+        this.dataDefBuilder.addConstrDef(cd);
+      } else if (this.dataExtensionDefBuilder != null) {
+        this.dataExtensionDefBuilder.addConstrDef(cd);
+      } else {
+        throw new IllegalStateException("data def not open.");
+      }
       this.constrDefBuilder = null;
     }
 
@@ -1808,8 +1978,8 @@ public class Module {
       this.currentAttrDef = null;
     }
 
-    void putDataConstr(int modIndex, String name, int attrCount, String tcon, int tparamCount) {
-      this.dataConstrList.add(MDataConstr.create(modIndex, name, attrCount, tcon, tparamCount));
+    void putDataConstr(int modIndex, int constrModIndex, String name, int attrCount, String tcon, int tparamCount, String callbackFunNameKey) {
+      this.dataConstrList.add(MDataConstr.create(modIndex, constrModIndex, name, attrCount, tcon, tparamCount, callbackFunNameKey));
     }
 
     void addFeatureImplDef(int providerModIndex, String providerFun, String getter, MFeature provided) {
@@ -1897,8 +2067,8 @@ public class Module {
       this.srcInfoTab.add(si);
     }
 
-    int putUniqueDataConstrLocal(String dcon, int attrCount, String tcon, int tparamCount) {
-      MDataConstr dc = MDataConstr.create(0, dcon, attrCount, tcon, tparamCount);
+    int putUniqueDataConstrLocal(String dcon, int attrCount, String tcon, int tparamCount, String callbackFunNameKey) {
+      MDataConstr dc = MDataConstr.create(0, 0, dcon, attrCount, tcon, tparamCount, callbackFunNameKey);
       int index = this.dataConstrList.indexOf(dc);
       if (index < 0) {
         index = this.dataConstrList.size();
@@ -1913,8 +2083,8 @@ public class Module {
       return index;
     }
 
-    int startUniqueDataConstrForeign(int modIndex, String dcon, int attrCount, String tcon, int tparamCount) {
-      MDataConstr dc = MDataConstr.create(modIndex, dcon, attrCount, tcon, tparamCount);
+    int startUniqueDataConstrForeign(int modIndex, int constrModIndex, String dcon, int attrCount, String tcon, int tparamCount, String callbackFunNameKey) {
+      MDataConstr dc = MDataConstr.create(modIndex, constrModIndex, dcon, attrCount, tcon, tparamCount, callbackFunNameKey);
       int index = this.dataConstrList.indexOf(dc);
       if (index < 0) {
         this.curDataConstr = dc;
@@ -1996,6 +2166,7 @@ public class Module {
         this.endDataDef();
       }
       this.mod.foreignDataDefsDict = new HashMap<Cstr, MDataDef[]>();
+      this.mod.foreignDataExtensionDefsDict = new HashMap<Cstr, MDataExtensionDef[]>();
       this.mod.foreignAliasTypeDefsDict = new HashMap<Cstr, MAliasTypeDef[]>();
       this.mod.foreignFeatureDefsDict = new HashMap<Cstr, MFeatureDef[]>();
       this.mod.foreignFunDefsDict = new HashMap<Cstr, MFunDef[]>();
@@ -2003,6 +2174,8 @@ public class Module {
       for (int i = 0; i < foreignMods.length; i++) {
         List<MDataDef> dl = this.foreignDataDefListDict.get(foreignMods[i]);
         this.mod.foreignDataDefsDict.put(foreignMods[i], dl.toArray(new MDataDef[dl.size()]));
+        List<MDataExtensionDef> dxl = this.foreignDataExtensionDefListDict.get(foreignMods[i]);
+        this.mod.foreignDataExtensionDefsDict.put(foreignMods[i], dxl.toArray(new MDataExtensionDef[dxl.size()]));
         List<MAliasTypeDef> al = this.foreignAliasTypeDefListDict.get(foreignMods[i]);
         this.mod.foreignAliasTypeDefsDict.put(foreignMods[i], al.toArray(new MAliasTypeDef[al.size()]));
         List<MFeatureDef> ftl = this.foreignFeatureDefListDict.get(foreignMods[i]);
@@ -2011,6 +2184,7 @@ public class Module {
         this.mod.foreignFunDefsDict.put(foreignMods[i], fl.toArray(new MFunDef[fl.size()]));
       }
       this.mod.dataDefs = this.dataDefList.toArray(new MDataDef[this.dataDefList.size()]);
+      this.mod.dataExtensionDefs = this.dataExtensionDefList.toArray(new MDataExtensionDef[this.dataExtensionDefList.size()]);
       this.mod.aliasTypeDefs = this.aliasTypeDefList.toArray(new MAliasTypeDef[this.aliasTypeDefList.size()]);
       this.mod.featureDefs = this.featureDefList.toArray(new MFeatureDef[this.featureDefList.size()]);
       this.mod.funDefs = this.funDefList.toArray(new MFunDef[this.funDefList.size()]);
