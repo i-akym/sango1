@@ -73,7 +73,7 @@ class PExprVarRef extends PDefaultExprObj implements PEval {
   }
 
   public PTid deepCopy(Parser.SrcInfo srcInfo, PScope outerScope) {  // rollback to PTid
-    return PTid.create(srcInfo, outerScope, null, this.name, false);
+    return PTid.create(srcInfo, outerScope, null, this.name);
   }
 
   public void collectModRefs() throws CompileException {}

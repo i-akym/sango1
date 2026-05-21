@@ -1271,7 +1271,7 @@ class PModule implements PModDecl {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTid.create(si, retScope, MOD_ID_LANG, "cstr", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, MOD_ID_LANG, "cstr"));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
@@ -1289,7 +1289,7 @@ class PModule implements PModDecl {
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     retTypeBuilder.addItem(eval.retDef.type.unresolvedCopy(
-      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
+      si, retScope, PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());

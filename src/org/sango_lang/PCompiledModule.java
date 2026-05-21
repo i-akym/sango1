@@ -239,7 +239,6 @@ class PCompiledModule implements PModDecl {
           PCompiledModule.this.theCompiler,
           null,
           PDefDict.IdKey.create(this.modName, this.tcon),
-          false,
           this.params);
       }
       return this.sig;
@@ -324,7 +323,6 @@ class PCompiledModule implements PModDecl {
     public String getDefKey() { return this.defKey; }
 
     public Cstr getOriginModName() { return this.baseTconKey.modName; }
-    // public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
 
     public int getParamCount() { return this.params.length; }
 
@@ -337,22 +335,16 @@ class PCompiledModule implements PModDecl {
       return tps;
     }
 
-    // public int getParamCount() { return (this.params != null)? this.params.length: -1 ; }
-
     public PTypeRefSkel getTypeSig() {
       if (this.sig == null) {
         this.sig = PTypeRefSkel.create(
           PCompiledModule.this.theCompiler,
           null,
           this.baseTconKey,
-          // PDefDict.IdKey.create(this.modName, this.baseTcon),
-          false,
           this.params);
       }
       return this.sig;
     }
-
-    // public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public Module.Availability getAvailability() { return this.availability; }
 
@@ -622,7 +614,6 @@ class PCompiledModule implements PModDecl {
       PCompiledModule.this.theCompiler,
       null,
       ik,
-      tr.ext,
       params);
     return t;
   }

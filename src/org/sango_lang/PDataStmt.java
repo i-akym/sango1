@@ -157,7 +157,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
       for (int i = 0; i < this.dat.tparams.length; i++) {
         tb.addItem(this.dat.tparams[i].getItem());
       }
-      tb.addItem(PTid.create(this.dat.srcInfo, this.getDefScope(), null, this.tcon.name, false));
+      tb.addItem(PTid.create(this.dat.srcInfo, this.getDefScope(), null, this.tcon.name));
       this.dat.sig = PType.asRef(tb.create());
       if (!this.constrList.isEmpty() || this.dat.extensible) {
         this.dat.constrs = this.constrList.toArray(new PDataConstrDef[this.constrList.size()]);
@@ -279,7 +279,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon, false);
+    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon);
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
@@ -572,10 +572,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PScope evalDefScope = evalStmtBuilder.getDefScope();
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
-      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_CONCRETE_KEEP),
       "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "int", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "int"));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
@@ -608,10 +608,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
     evalStmtBuilder.setOfficial("_call_debug_repr_" + this.tcon);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
-      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_CONCRETE_KEEP),
       "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "cstr", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "cstr"));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
@@ -667,11 +667,10 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
     evalStmtBuilder.addAlias(names[1]);
     evalStmtBuilder.setAcc(a);
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
-      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_CONCRETE_KEEP),
       "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(attr.type.unresolvedCopy(si, retScope,
-      PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
+    retTypeBuilder.addItem(attr.type.unresolvedCopy(si, retScope, PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder matchEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
@@ -714,14 +713,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
     evalStmtBuilder.setOfficial(impl.getter);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(this.sig.unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+    retTypeBuilder.addItem(this.sig.unresolvedCopy(si, retScope, PType.COPY_CONCRETE_KEEP));
     for (int i = 0; i < impl.feature.params.length; i++) {
-        retTypeBuilder.addItem(impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP));
+        retTypeBuilder.addItem(impl.feature.params[i].unresolvedCopy(si, retScope, PType.COPY_CONCRETE_KEEP));
     }
     retTypeBuilder.addItem(
       PTid.create(si, retScope, 
-        impl.feature.fname.modId, "_feature_impl_" + impl.feature.fname.name,
-        false));
+        impl.feature.fname.modId, "_feature_impl_" + impl.feature.fname.name));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);

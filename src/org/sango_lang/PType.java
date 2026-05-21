@@ -30,10 +30,7 @@ import java.util.List;
 interface PType extends PProgObj {
   PType resolve() throws CompileException;
 
-  PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt);
-  static final int COPY_EXT_KEEP = -1;
-  static final int COPY_EXT_OFF = 0;
-  static final int COPY_EXT_ON = 1;
+  PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt);
   static final int COPY_CONCRETE_KEEP = -1;
   static final int COPY_CONCRETE_OFF = 0;
   static final int COPY_CONCRETE_ON = 1;
@@ -248,7 +245,7 @@ interface PType extends PProgObj {
 
   static PType voidType(Parser.SrcInfo srcInfo, PScope scope) {
     Builder builder = Builder.newInstance(srcInfo, scope);
-    builder.addItem(PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
+    builder.addItem(PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, "void"));
     PType v = null;
     try {
       v = builder.create();
@@ -313,13 +310,6 @@ interface PType extends PProgObj {
         spc = ParserA.SPACE_NEEDED;
         state = 0;
       } else if (state == 2 && (anc = PTid.accept(reader, scope, anchorQual, spc)) != null) {
-        if (anc.ext) {
-          emsg = new StringBuffer();
-          emsg.append("Extension not allowed at ");
-          emsg.append(anc.srcInfo);
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
         dh = new DefHeader();
         dh.srcInfo = si;
         dh.params = new DefHeaderParam[params.size()];
@@ -442,7 +432,7 @@ interface PType extends PProgObj {
       } else {
         emsg = new StringBuffer();
         emsg.append("Type constructor \"");
-        emsg.append(PTid.repr(this.id.modId, this.id.name, false));
+        emsg.append(PTid.repr(this.id.modId, this.id.name));
         emsg.append("\" not defined at ");
         emsg.append(this.id.srcInfo);
         emsg.append(".");
@@ -463,18 +453,8 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#getNormalizedSkel is called.");
     }
 
-    public PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-      boolean ext;
-      if (extOpt == COPY_EXT_KEEP) {
-        ext = this.id.ext;
-      } else if (extOpt == COPY_EXT_OFF) {
-        ext = false;
-      } else if (extOpt == COPY_EXT_ON) {
-        ext = true;
-      } else {
-        throw new IllegalArgumentException("Unknown extOpt.");
-      }
-      return Undet.create(PTid.create(srcInfo, scope, this.id.modId, this.id.name, ext));
+    public PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
+      return Undet.create(PTid.create(srcInfo, scope, this.id.modId, this.id.name));
     }
 
     public String toString() {

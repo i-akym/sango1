@@ -210,12 +210,8 @@ public class PFeatureSkel {
 
   boolean acceptTypeRef(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
-    if (tr.ext) {
-      b = false;
-    } else {
-      List fs = tr.getFeatures();
-      b = this.acceptList(width, fs, bindings);
-    }
+    List fs = tr.getFeatures();
+    b = this.acceptList(width, fs, bindings);
     return b;
   }
 
@@ -261,13 +257,8 @@ public class PFeatureSkel {
   }
 
   boolean requireTypeRef(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
-    boolean b;
-    if (tr.ext) {
-      b = false;
-    } else {
-      List fs = tr.getFeatures();
-      b = this.requireList(width, fs, bindings);
-    }
+    List fs = tr.getFeatures();
+    boolean b = this.requireList(width, fs, bindings);
     return b;
   }
 

@@ -618,7 +618,7 @@ class PScope {
     PType.Builder b = PType.Builder.newInstance(srcInfo, this);
     PType ct;
     try {
-      b.addItem(PTid.create(srcInfo, this, PModule.MOD_ID_LANG, "char", false));
+      b.addItem(PTid.create(srcInfo, this, PModule.MOD_ID_LANG, "char"));
       ct = b.create();
       ct = ct.resolve();
     } catch (CompileException ex) {
@@ -636,61 +636,8 @@ class PScope {
     if (tp == null) {
       throw new RuntimeException("Internal error.");
     }
-    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, k, false, paramTypeSkels);
+    return PTypeRefSkel.create(this.theMod.theCompiler, srcInfo, k, paramTypeSkels);
   }
-
-  // List<PTypeVarSlot> getGivenTVarList() throws CompileException {
-    // if (this.copyFrom != null) {
-      // throw new IllegalStateException("Not copied yet.");
-    // }
-    // if (this.givenTVarList == null) {
-      // if (this.parent == null || this.parent.pos < 1) {  // function top pos
-        // this.setupGivenTVarListForFun();
-      // } else if (this.parent.pos != this.pos) {
-        // this.setupGivenTVarListForClosure();
-      // } else {
-        // this.givenTVarList = this.parent.getGivenTVarList();
-      // }
-    // }
-    // return this.givenTVarList;
-  // }
-
-  // private void setupGivenTVarListForFun() throws CompileException {
-    // if (this.copyFrom != null) {
-      // throw new IllegalStateException("Not copied yet.");
-    // }
-    // List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
-    // PTypeSkel[] pts = this.evalStmt.getParamTypes();
-    // for (int i = 0; i < pts.length; i++) {
-      // pts[i].extractVars(vs);
-    // }
-    // this.givenTVarList = new ArrayList<PTypeVarSlot>();
-    // for (int i = 0; i < vs.size(); i++) {
-      // PTypeVarSlot s = vs.get(i);
-      // // if (!this.anonymTVarList.contains(s)) {
-        // this.givenTVarList.add(s);
-      // // }
-    // }
-  // }
-
-  // private void setupGivenTVarListForClosure() throws CompileException {
-    // if (this.copyFrom != null) {
-      // throw new IllegalStateException("Not copied yet.");
-    // }
-    // List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
-    // PTypeSkel[] pts = this.closure.getParamDefinedTypes();
-    // for (int i = 0; i < pts.length; i++) {
-      // pts[i].extractVars(vs);
-    // }
-    // this.givenTVarList = new ArrayList<PTypeVarSlot>();
-    // this.givenTVarList.addAll(this.parent.getGivenTVarList());
-    // for (int i = 0; i < vs.size(); i++) {
-      // PTypeVarSlot s = vs.get(i);
-      // // if (!this.anonymTVarList.contains(s)) {
-        // this.givenTVarList.add(s);
-      // // }
-    // }
-  // }
 
   String getFunOfficial() {
     if (this.pos < 1) {

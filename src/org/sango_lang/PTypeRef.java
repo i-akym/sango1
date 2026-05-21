@@ -54,8 +54,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       throw new CompileException(emsg.toString());
     }
     String mid = elem.getAttrValueAsId("mid");
-    boolean ext = elem.getAttrValueAsYesNoSwitch("ext", false);
-    PTid tconItem = PTid.create(elem.getSrcInfo(), scope, mid, tcon, ext);
+    PTid tconItem = PTid.create(elem.getSrcInfo(), scope, mid, tcon);
     tconItem.setTcon();
     ParserB.Elem e = elem.getFirstChild();
     while (e != null) {
@@ -96,14 +95,14 @@ class PTypeRef extends PDefaultProgObj implements PType {
     return buf.toString();
   }
 
-  public PTypeRef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  public PTypeRef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
     PTypeRef t = new PTypeRef(srcInfo, scope);
-    t.tcon = this.tcon.copy(srcInfo, scope, extOpt, concreteOpt);
+    t.tcon = this.tcon.copy(srcInfo, scope);
     t.params = new PType[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       try {
         PType.Builder b = PType.Builder.newInstance(srcInfo, scope);
-        b.addItem(this.params[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
+        b.addItem(this.params[i].unresolvedCopy(srcInfo, scope, concreteOpt));
         t.params[i] = b.create();
       } catch (Exception ex) {
         throw new RuntimeException("Internal error. " + ex.toString());
@@ -114,7 +113,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
 
   static PTypeRef getLangDefinedType(Parser.SrcInfo srcInfo, PScope scope, String tcon, PType[] paramTypeDescs) {
     return  create(srcInfo, scope,
-      PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, tcon, false),
+      PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, tcon),
       paramTypeDescs);
   }
 
@@ -192,7 +191,7 @@ class PTypeRef extends PDefaultProgObj implements PType {
       for (int i = 0; i < ps.length; i++) {
         ps[i] = this.params[i].toSkel();
       }
-      this._once_skel = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, this.tcon.ext, ps);
+      this._once_skel = PTypeRefSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_tconProps.key, ps);
     }
     return this._once_skel;
   }

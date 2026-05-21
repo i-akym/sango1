@@ -205,7 +205,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon, false);
+    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon);
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));

@@ -45,7 +45,7 @@ public class PFeature extends PDefaultProgObj {
       buf.append(",");
     }
     buf.append("name=");
-    buf.append(PTid.repr(this.fname.modId, this.fname.name, false));
+    buf.append(PTid.repr(this.fname.modId, this.fname.name));
     buf.append(",params=[");
     String sep = "";
     for (int i = 0; i < this.params.length; i++) {
@@ -159,20 +159,12 @@ public class PFeature extends PDefaultProgObj {
     return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_featureProps.key, ps);
   }
 
-  // PFeatureSkel getNormalizedSkel() throws CompileException {
-    // PTypeSkel ps[] = new PTypeSkel[this.params.length];
-    // for (int i = 0; i < ps.length; i++) {
-      // ps[i] = this.params[i].getNormalizedSkel();
-    // }
-    // return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_featureProps.key, ps);
-  // }
-
-  PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
     Builder builder = Builder.newInstance(srcInfo, scope);
     for (int i = 0; i < this.params.length; i++) {
-      builder.addItem(this.params[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
+      builder.addItem(this.params[i].unresolvedCopy(srcInfo, scope, concreteOpt));
     }
-    builder.addItem(this.fname.copy(srcInfo, scope, extOpt, concreteOpt));
+    builder.addItem(this.fname.copy(srcInfo, scope));
     PFeature f = null;
     try {
       f = builder.create();
@@ -297,10 +289,10 @@ public class PFeature extends PDefaultProgObj {
       // return PFeatureSkel.List.create(this.srcInfo, fss);
     // }
 
-    List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
       ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
       for (int i = 0; i < this.features.length; i++) {
-        builder.addFeature(this.features[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
+        builder.addFeature(this.features[i].unresolvedCopy(srcInfo, scope, concreteOpt));
       }
       List L = null;
       try {

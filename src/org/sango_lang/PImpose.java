@@ -74,13 +74,6 @@ class PImpose extends PDefaultExprObj {
       throw new CompileException(emsg.toString());
     }
     PTypeRefSkel tr = (PTypeRefSkel)t;
-    if (tr.ext) {
-      emsg = new StringBuffer();
-      emsg.append("Extended type not allowed for imposing at ");
-      emsg.append(this.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
     for (int i = 0; i < tr.params.length; i++) {
       if (!tr.params[i].isLiteralNaked()) {
         emsg = new StringBuffer();

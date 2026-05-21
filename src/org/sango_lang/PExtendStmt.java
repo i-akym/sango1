@@ -141,15 +141,11 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
     PExtendStmt create() throws CompileException {
       StringBuffer emsg;
       this.ext.tparams = this.paramList.toArray(new PType.DefHeaderParam[this.paramList.size()]);
-      // this.ext.baseModId = (this.baseTcon.modId != null)? this.baseTcon.modId: PModule.MOD_ID_LANG;
-      // this.ext.baseTcon = this.baseTcon.name;
-      // this.ext.tcon = this.ext.baseTcon;
       PType.Builder tb = PType.Builder.newInstance(this.ext.srcInfo, this.getDefScope());
       for (int i = 0; i < this.ext.tparams.length; i++) {
         tb.addItem(this.ext.tparams[i].getItem());
       }
       tb.addItem(this.ext.baseTcon);
-      // tb.addItem(PTid.create(this.ext.srcInfo, this.getDefScope(), null, this.ext.baseTcon, false));
       this.ext.sig = PType.asRef(tb.create());
       this.ext.constrs = this.constrList.toArray(new PDataConstrDef[this.constrList.size()]);
       this.ext.featureImpls = this.featureImplList.toArray(new PFeatureImplDef[this.featureImplList.size()]);
@@ -261,13 +257,8 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTid btconItem = PTid.create(elem.getSrcInfo(), defScope, elem.getAttrValueAsId("base-mid"), btcon, false);
+    PTid btconItem = PTid.create(elem.getSrcInfo(), defScope, elem.getAttrValueAsId("base-mid"), btcon);
     btconItem.setTcon();
-
-    // String renamed = elem.getAttrValueAsId("renamed-tcon");
-    // if (renamed != null) {
-      // builder.setRename(renamed);
-    // }
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
     Module.Access acc = PModule.acceptXAccAttr(elem, PModule.ACC_OPTS_FOR_EXTEND, PModule.ACC_DEFAULT_FOR_EXTEND);
@@ -587,10 +578,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
     evalStmtBuilder.setOfficial("_call_hash_" + this.defKey);
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
-      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_CONCRETE_KEEP),
       "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "int", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "int"));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
@@ -622,10 +613,10 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
     evalStmtBuilder.setAcc(Module.ACC_PRIVATE);
     PType.Builder paramTypeBuilder = PType.Builder.newInstance(si, defScope);
     evalStmtBuilder.addParam(PExprVarDef.create(si, defScope, PExprVarDef.CAT_FUN_PARAM,
-      this.sig.unresolvedCopy(si, defScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_KEEP),
+      this.sig.unresolvedCopy(si, defScope, PType.COPY_CONCRETE_KEEP),
       "X"));
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "cstr", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, PModule.MOD_ID_LANG, "cstr"));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     PEval.Builder callEvalBuilder = PEval.Builder.newInstance(si, bodyScope);
