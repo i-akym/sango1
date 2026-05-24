@@ -202,7 +202,7 @@ class Generator {
     PDefDict.TparamProps[] tps = dod.getParamPropss();
     for (int i = 0; i < pvs.length; i++) {
       MTypeVar v = (MTypeVar)pvs[i].toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList);
-      MType.ParamDef p = MType.ParamDef.create(tps[i].variance, v);
+      MType.ParamDef p = MType.ParamDef.create(v);
       this.modBuilder.putDataDefParam(p);
     }
     if (!inReferredDef || acc == Module.ACC_PUBLIC || acc == Module.ACC_PROTECTED) {
@@ -238,7 +238,7 @@ class Generator {
     PDefDict.TparamProps[] tps = dxd.getParamPropss();
     for (int i = 0; i < pvs.length; i++) {
       MTypeVar v = (MTypeVar)pvs[i].toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList);
-      MType.ParamDef p = MType.ParamDef.create(tps[i].variance, v);
+      MType.ParamDef p = MType.ParamDef.create(v);
       this.modBuilder.putDataDefParam(p);
     }
     if (!inReferredDef || acc == Module.ACC_PUBLIC || acc == Module.ACC_PROTECTED) {
@@ -322,7 +322,7 @@ class Generator {
     b.setObjType((MTypeVar)feature.obj.toSkel().toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList));
     for (int i = 0; i < feature.params.length; i++) {
       MTypeVar v = (MTypeVar)feature.params[i].getTypeSkel().toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList);
-      MType.ParamDef d = MType.ParamDef.create(feature.params[i].variance, v);
+      MType.ParamDef d = MType.ParamDef.create(v);
       b.addParam(d);
     }
     b.setImplType((MTypeRef)feature.impl.toSkel().toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList));
@@ -340,7 +340,7 @@ class Generator {
     PDefDict.TparamProps[] pps = fd.getParamPropss();
     for (int i = 0; i < sig.params.length; i++) {
       MTypeVar v = (MTypeVar)sig.params[i].toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList);
-      MType.ParamDef d = MType.ParamDef.create(pps[i].variance, v);
+      MType.ParamDef d = MType.ParamDef.create(v);
       b.addParam(d);
     }
     b.setImplType((MTypeRef)fd.getImplType().toMType(this.theMod, this.modBuilder, inReferredDef, varSlotList));

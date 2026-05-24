@@ -150,7 +150,6 @@ public class Module {
   static final String ATTR_V = "v";  // src info value
   static final String ATTR_VALUE = "value";
   static final String ATTR_VAR_COUNT = "var_count";
-  static final String ATTR_VARIANCE = "variance";
 
   static final String REPR_YES = "yes";
   static final String REPR_NO = "no";
@@ -163,9 +162,6 @@ public class Module {
   static final String REPR_BETA = "beta";
   static final String REPR_LIMITED = "limited";
   static final String REPR_DEPRECATED = "deprecated";
-  static final String REPR_INVARIANT = "in";  // CAUTION: symbol differs from constant name
-  static final String REPR_COVARIANT = "co";  // CAUTION: symbol differs from constant name
-  static final String REPR_CONTRAVARIANT = "cx";  // CAUTION: symbol differs from constant name
 
   public static class Access extends Option {
     private static int nextSN = 0;
@@ -192,23 +188,6 @@ public class Module {
   public static final Availability AVAILABILITY_BETA = new Availability("beta");
   public static final Availability AVAILABILITY_LIMITED = new Availability("limited");
   public static final Availability AVAILABILITY_DEPRECATED = new Availability("deprecated");
-
-  public static class Variance extends Option {
-    private static int nextSN = 0;
-    String repr;
-    Variance(String repr) { super(); this.repr = repr; }
-    int nextSN() { return nextSN++; };
-    public String toString() { return this.repr; }
-  }
-  public static final Variance NO_VARIANCE = null;
-  public static final Variance INVARIANT = new Variance("invariant");
-  public static final Variance COVARIANT = new Variance("covariant");
-  public static final Variance CONTRAVARIANT = new Variance("contravariant");
-
-  // public static final String ID_PREFIX_DATA_EXT = "EXT:";
-
-  // static boolean isIdNormal(String id) { return id.indexOf(":") < 0; }
-  // static boolean isIdForDataExtension(String id) { return id.startsWith(ID_PREFIX_DATA_EXT); }
 
   static final int MSLOT_INDEX_NAME = 0;
   static final int MSLOT_INDEX_INITD = 1;

@@ -199,7 +199,7 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_PROHIBITED);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, Parser.QUAL_PROHIBITED);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -510,22 +510,6 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
     if (this.acc != Module.ACC_OPAQUE && this.constrs != null) {
       for (int i = 0; i < this.constrs.length; i++) {
         this.constrs[i].excludePrivateAcc();
-      }
-    }
-  }
-
-  public void checkVariance() throws CompileException {
-    if (this.tparams != null && this.constrs != null) {
-      PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
-      Module.Variance[] vs = new Module.Variance[this.tparams.length];
-      for (int i = 0; i < this.tparams.length; i++) {
-        // if (this.tparams[i].varDef._resolved_varSlot == null) { throw new RuntimeException("Null varSlot."); }
-        ss[i] = this.tparams[i].getVarSlot();
-        vs[i] = this.tparams[i].variance;
-      }
-      PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
-      for (int i = 0; i < this.constrs.length; i++) {
-        this.constrs[i].checkVariance(vt);
       }
     }
   }

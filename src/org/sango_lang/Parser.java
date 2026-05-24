@@ -52,7 +52,6 @@ abstract class Parser {
 
   void parse4() throws CompileException {
     this.mod.normalizeTypes();
-    this.mod.checkVariance();
   }
 
   void parse5() throws CompileException {

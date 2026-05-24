@@ -30,7 +30,6 @@ public class PFeatureSkel {
   Compiler theCompiler;
   Parser.SrcInfo srcInfo;
   PDefDict.IdKey fnameKey;
-  // PDefDict.FeatureProps featureProps;
   PTypeSkel[] params;  // empty array if no params
 
   private PFeatureSkel() {}
@@ -170,113 +169,101 @@ public class PFeatureSkel {
     return create(this.theCompiler, this.srcInfo, this.fnameKey, ps);
   }
 
-  boolean accept(int width, PFeatureSkel feature, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean accept(PFeatureSkel feature, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b = true;
     if (!(b = this.fnameKey.equals(feature.fnameKey))) {
       ;
     } else {
       PFeatureDef fd = this.getMyFeatureDef();
-      // PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
-      PDefDict.TparamProps[] pps = fd.getParamPropss();
       for (int i = 0; b && i < this.params.length; i++) {
-        int w = PTypeSkel.calcWidth(width, pps[i].variance);
-        // int w = PTypeSkel.calcWidth(width, fd.getParamVarianceAt(i));
-        b = this.params[i].accept(w, feature.params[i], bindings);
+        b = this.params[i].accept(feature.params[i], bindings);
       }
     }
     return b;
   }
 
-  boolean acceptList(int width, List fs, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptList(List fs, PTypeSkel.Bindings bindings) throws CompileException {
     int len = (fs == null)? 0: fs.features.length;
     boolean b = false;
     for (int i = 0; !b && i < len; i++) {
-      b = this.accept(width, fs.features[i], bindings);
+      b = this.accept(fs.features[i], bindings);
     }
     return b;
   }
 
-  boolean acceptObj(int width, PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptObj(PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b = false;
     if (obj instanceof PTypeRefSkel) {
-      b = this.acceptTypeRef(width, (PTypeRefSkel)obj, bindings);
+      b = this.acceptTypeRef((PTypeRefSkel)obj, bindings);
     } else if (obj instanceof PTypeVarSkel) {
-      b = this.acceptVar(width, (PTypeVarSkel)obj, bindings);
+      b = this.acceptVar((PTypeVarSkel)obj, bindings);
     } else {
       throw new IllegalArgumentException("Unexpected type. " + obj);
     }
     return b;
   }
 
-  boolean acceptTypeRef(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptTypeRef(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     List fs = tr.getFeatures();
-    b = this.acceptList(width, fs, bindings);
+    b = this.acceptList(fs, bindings);
     return b;
   }
 
-  boolean acceptVar(int width, PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
-    return this.acceptList(width, tv.features, bindings);
+  boolean acceptVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+    return this.acceptList(tv.features, bindings);
   }
 
-  boolean require(int width, PFeatureSkel feature, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean require(PFeatureSkel feature, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b = true;
     if (!(b = this.fnameKey.equals(feature.fnameKey))) {
       ;
     } else {
       PFeatureDef fd = this.getMyFeatureDef();
-      PDefDict.TparamProps[] pps = fd.getParamPropss();
-      // PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
       for (int i = 0; b && i < this.params.length; i++) {
-        int w = PTypeSkel.calcWidth(width, pps[i].variance);
-        // int w = PTypeSkel.calcWidth(width, fd.getParamVarianceAt(i));
-        b = this.params[i].require(w, feature.params[i], bindings);
+        b = this.params[i].require(feature.params[i], bindings);
       }
     }
     return b;
   }
 
-  boolean requireList(int width, List fs, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireList(List fs, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b = false;
     for (int i = 0; !b && i < fs.features.length; i++) {
-      b = this.require(width, fs.features[i], bindings);
+      b = this.require(fs.features[i], bindings);
     }
     return b;
   }
 
-  boolean requireObj(int width, PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireObj(PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b = false;
     if (obj instanceof PTypeRefSkel) {
-      b = this.requireTypeRef(width, (PTypeRefSkel)obj, bindings);
+      b = this.requireTypeRef((PTypeRefSkel)obj, bindings);
     } else if (obj instanceof PTypeVarSkel) {
-      b = this.requireVar(width, (PTypeVarSkel)obj, bindings);
+      b = this.requireVar((PTypeVarSkel)obj, bindings);
     } else {
       throw new IllegalArgumentException("Unexpected type. " + obj);
     }
     return b;
   }
 
-  boolean requireTypeRef(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireTypeRef(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
     List fs = tr.getFeatures();
-    boolean b = this.requireList(width, fs, bindings);
+    boolean b = this.requireList(fs, bindings);
     return b;
   }
 
-  boolean requireVar(int width, PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
-    return this.requireList(width, tv.features, bindings);
+  boolean requireVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+    return this.requireList(tv.features, bindings);
   }
 
-  JoinResult join(int width, PFeatureSkel f2, JoinResult res) throws CompileException {
+  JoinResult join(PFeatureSkel f2, JoinResult res) throws CompileException {
     PTypeSkel.Bindings b = res.bindings;
     PFeatureDef fd = this.theCompiler.defDict.getFeatureDef(null, this.fnameKey);
-    PDefDict.TparamProps[] pps = fd.getParamPropss();
-    // PFeatureDef fd = this.featureProps.defGetter.getFeatureDef();
     PTypeSkel[] ps = new PTypeSkel[this.params.length];
     boolean cont = true;
     for (int i = 0; cont && i < this.params.length; i++) {
-      int w = PTypeSkel.calcWidth(width, pps[i].variance);
-      // int w = PTypeSkel.calcWidth(width, fd.getParamVarianceAt(i));
-      PTypeSkel.JoinResult sr = this.params[i].join2(w, f2.params[i], b);
+      PTypeSkel.JoinResult sr = this.params[i].join2(f2.params[i], b);
       if (sr != null) {
         ps[i] = sr.joined;
         b = sr.bindings;
@@ -401,84 +388,51 @@ public class PFeatureSkel {
       return create(this.srcInfo, fs);
     }
 
-    boolean acceptList(int width, List fs, PTypeSkel.Bindings bindings) throws CompileException {
+    boolean acceptList(List fs, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel.List#acceptList A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(fs); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel.List#acceptList A "); System.out.print(this); System.out.print(" "); System.out.print(fs); System.out.print(" "); System.out.println(bindings);
 }
       boolean b = true;
       for (int i = 0; b && i < this.features.length; i++) {
-        b = this.features[i].acceptList(width, fs, bindings);
+        b = this.features[i].acceptList(fs, bindings);
       }
       return b;
     }
 
-    boolean acceptObj(int width, PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
+    boolean acceptObj(PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel.List#acceptObj A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel.List#acceptObj A "); System.out.print(this); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
 }
       boolean b = true;
       for (int i = 0; b && i < this.features.length; i++) {
-        b = this.features[i].acceptObj(width, obj, bindings);
+        b = this.features[i].acceptObj(obj, bindings);
       }
       return b;
     }
 
-    boolean requireList(int width, List fs, PTypeSkel.Bindings bindings) throws CompileException {
+    boolean requireList(List fs, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel.List#requireList A "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(fs); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel.List#requireList A "); System.out.print(this); System.out.print(" "); System.out.print(fs); System.out.print(" "); System.out.println(bindings);
 }
       boolean b = true;
       for (int i = 0; b && i < this.features.length; i++) {
-        b = this.features[i].requireList(width, fs, bindings);
+        b = this.features[i].requireList(fs, bindings);
       }
       return b;
     }
 
-    boolean requireObj(int width, PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
+    boolean requireObj(PTypeSkel obj, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PFeatureSkel.List#requireObj 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PFeatureSkel.List#requireObj 1 "); System.out.print(this); System.out.print(" "); System.out.print(obj); System.out.print(" "); System.out.println(bindings);
 }
       boolean b = true;
       for (int i = 0; b && i < this.features.length; i++) {
-        b = this.features[i].requireObj(width, obj, bindings);
+        b = this.features[i].requireObj(obj, bindings);
       }
       return b;
     }
 
-    // List merge(int width, List fs2, PTypeSkel.Bindings bindings) throws CompileException {
-      // java.util.List<PFeatureSkel> ff = new ArrayList<PFeatureSkel>();
-      // for (int i = 0; i < fs2.features.length; i++) {
-        // ff.add(fs2.features[i]);
-      // }
-      // ListBuilder builder = ListBuilder.newInstance(this.srcInfo);
-      // for (int i = 0; bindings != null && i < this.features.length; i++) {
-        // PFeatureSkel f = this.features[i];
-        // boolean stop = false;
-        // for (int j = 0; !stop && j < ff.size(); j++) {  // search target
-          // PFeatureSkel f2 = ff.get(j);
-          // if (f.fnameKey.equals(f2.fnameKey)) {
-            // if (f.accept(width, f2, bindings)) {
-              // builder.add(f);
-              // ff.remove(j);
-            // } else {
-              // bindings = null;
-            // }
-            // stop = true;
-          // }
-        // }
-        // if (bindings != null && !stop) {
-          // builder.add(f);
-        // }
-      // }
-      // if (bindings != null) {
-        // for (int j = 0; j < ff.size(); j++) {
-          // builder.add(ff.get(j));
-        // }
-      // }
-      // return (bindings != null)? builder.create(): null;
-    // }
-
-    JoinResult joinList(int width, List fs2, PTypeSkel.Bindings bindings) throws CompileException {
+    JoinResult joinList(List fs2, PTypeSkel.Bindings bindings) throws CompileException {
       JoinResult r = JoinResult.create(this.srcInfo, bindings);
       for (int i = 0; r != null && i < this.features.length; i++) {
         PFeatureSkel f = this.features[i];
@@ -486,7 +440,7 @@ public class PFeatureSkel {
         for (int j = 0; !found && j < fs2.features.length; j++) {  // search target
           PFeatureSkel f2 = fs2.features[j];
           if (f.fnameKey.equals(f2.fnameKey)) {
-            r = f.join(width, f2, r);
+            r = f.join(f2, r);
             found = true;
           }
         }

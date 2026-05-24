@@ -166,7 +166,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
     if (ParserA.acceptToken(reader, LToken.LT, ParserA.SPACE_DO_NOT_CARE) == null) { return null; }
 
-    PType.DefHeader dh = PType.acceptDefHeader(reader, scope, false, Parser.QUAL_PROHIBITED);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, scope, Parser.QUAL_PROHIBITED);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Template missing at ");

@@ -208,33 +208,6 @@ public class PFeature extends PDefaultProgObj {
       return builder.create();
     }
 
-    // static List acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      // StringBuffer emsg;
-      // ParserA.Token t;
-      // if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
-      // ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
-      // PFeature f;
-      // int state = 0;
-      // while (state >= 0) {
-        // if (state == 0 && (f = acceptSigDesc(reader, scope)) != null) {
-          // builder.addFeature(f);
-          // state = 1;
-        // } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
-          // state = 0;
-        // } else {
-          // state = -1;
-        // }
-      // }
-      // if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("] missing at ");
-        // emsg.append(reader.getCurrentSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // return builder.create();
-    // }
-
     public String toString() {
       StringBuffer buf = new StringBuffer();
       buf.append("feature.list[");
@@ -280,14 +253,6 @@ public class PFeature extends PDefaultProgObj {
       }
       return PFeatureSkel.List.create(this.srcInfo, fss);
     }
-
-    // PFeatureSkel.List getNormalizedSkel() throws CompileException {
-      // PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
-      // for (int i = 0; i < fss.length; i++) {
-        // fss[i] = this.features[i].getNormalizedSkel();
-      // }
-      // return PFeatureSkel.List.create(this.srcInfo, fss);
-    // }
 
     List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
       ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
@@ -415,14 +380,6 @@ public class PFeature extends PDefaultProgObj {
     }
 
     List create() throws CompileException {
-      // StringBuffer emsg;
-      // if (this.features.size() == 0) {
-        // emsg = new StringBuffer();
-        // emsg.append("Empty feature list at ");
-        // emsg.append(this.list.getSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
       this.list.features = this.features.toArray(new PFeature[this.features.size()]);
       return this.list;
     }

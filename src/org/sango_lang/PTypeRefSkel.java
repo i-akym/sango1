@@ -60,7 +60,7 @@ public class PTypeRefSkel implements PTypeSkel {
       PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create(new ArrayList<PTypeVarSlot>());
       for (int j = 0; j < sig.params.length; j++) {
         // sig param does not include type ref, so width does not mean; only to cause binding of var actually
-        if (!sig.params[j].accept(PTypeSkel.EQUAL, this.params[j], bindings)) {
+        if (!sig.params[j].accept(this.params[j], bindings)) {
           StringBuffer emsg = new StringBuffer();
           emsg.append("Does not suit type definition at ");
           emsg.append(this.params[j].getSrcInfo());
@@ -141,34 +141,6 @@ public class PTypeRefSkel implements PTypeSkel {
     return b;
   }
 
-  Module.Variance[] paramVariances() throws CompileException {
-    Module.Variance[] vv = new Module.Variance[this.params.length] ;
-    if (isTuple(this)) {
-      for (int i = 0; i < this.params.length; i++) {
-        vv[i] = Module.COVARIANT;
-      }
-    } else if (isFun(this)) {
-      for (int i = 0; i < this.params.length - 1; i++) {
-        vv[i] = Module.CONTRAVARIANT;
-      }
-      vv[this.params.length - 1] = Module.COVARIANT;
-    } else {
-      PDataDef.OriginDef dd = this.theCompiler.defDict.getDataDef(null, this.tconKey);
-      for (int i = 0; i < this.params.length; i++) {
-        vv[i] = dd.getParamPropss()[i].variance;
-      }
-    }
-    return vv;
-  }
-
-  static int[] paramWidths(int width, Module.Variance[] variances) {
-    int[] ww = new int[variances.length] ;
-    for (int i = 0; i < variances.length; i++) {
-      ww[i] = PTypeSkel.calcWidth(width, variances[i]);
-    }
-    return ww;
-  }
-
   public PTypeSkel normalize() throws CompileException {
     PTypeSkel n;
     PDefDict.TidProps tp = this.theCompiler.defDict.resolveTcon(null, this.tconKey);
@@ -204,97 +176,96 @@ public class PTypeRefSkel implements PTypeSkel {
     return create(this.theCompiler, this.srcInfo, this.tconKey, ps);
   }
 
-  public boolean accept(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  public boolean accept(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     PTypeSkel t = type.resolveBindings(bindings);
     if (this.getCat() == PTypeSkel.CAT_BOTTOM) {
-      b = this.acceptBottom(width, t, bindings);
+      b = this.acceptBottom(t, bindings);
     } else {
-      b = this.acceptSome(width, t, bindings);
+      b = this.acceptSome(t, bindings);
     }
     return b;
   }
 
-  boolean acceptBottom(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptBottom(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptBottom "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptBottom 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptBottom 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = true;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptBottom 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptBottom 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = width == PTypeSkel.WIDER;
+      b = false;
     } else if (cat == PTypeSkel.CAT_VAR) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptBottom 4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptBottom 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = this.acceptGenericVar(width, (PTypeVarSkel)type, bindings);
+      b = this.acceptGenericVar((PTypeVarSkel)type, bindings);
     } else {
       throw new RuntimeException("Unexspected type. " + type.toString());
     }
     return b;
   }
 
-  boolean acceptSome(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptSome(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptSome 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptSome 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = width == PTypeSkel.NARROWER;
+      b = true;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptSome 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptSome 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = this.acceptSomeSome(width, (PTypeRefSkel)type, bindings);
+      b = this.acceptSomeSome((PTypeRefSkel)type, bindings);
     } else if (cat == PTypeSkel.CAT_VAR) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptSome 4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptSome 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = this.acceptGenericVar(width, (PTypeVarSkel)type, bindings);
+      b = this.acceptGenericVar((PTypeVarSkel)type, bindings);
     } else {
       throw new RuntimeException("Unexspected type. " + type.toString());
     }
     return b;
   }
 
-  boolean acceptSomeSome(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptSomeSome(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptTypeRef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptSomeSome "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (this.params.length != tr.params.length) {
+    if (!this.tconKey.equals(tr.tconKey)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptTypeRef 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptSomeSome 1 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (!this.canAcceptOnTcon(width, tr)) {
+    } else if (this.params.length != tr.params.length) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptTypeRef 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptSomeSome 2 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#acceptTypeRef 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#acceptTypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = true;
-      int[] ww = paramWidths(width, this.paramVariances());
       for (int i = 0; b && i < this.params.length; i++) {
-        b = this.params[i].accept(ww[i], tr.params[i], bindings);
+        b = this.params[i].accept(tr.params[i], bindings);
       }
     }
     return b;
   }
 
-  boolean acceptGenericVar(int width, PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean acceptGenericVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -316,102 +287,101 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#acceptGenericVar 5 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       this.castVarToMe(tv, bindings);
-      b = this.accept(width, tv, bindings);
+      b = this.accept(tv, bindings);
     }
     return b;
   }
 
-  public boolean require(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  public boolean require(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     PTypeSkel t = type.resolveBindings(bindings);
     if (this.getCat() == PTypeSkel.CAT_BOTTOM) {
-      b = this.requireBottom(width, t, bindings);
+      b = this.requireBottom(t, bindings);
     } else {
-      b = this.requireSome(width, t, bindings);
+      b = this.requireSome(t, bindings);
     }
     return b;
   }
 
-  boolean requireBottom(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireBottom(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireBottom "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireBottom "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireBottom 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireBottom 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = true;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireBottom 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireBottom 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = width == PTypeSkel.WIDER;
+      b = false;
     } else if (cat == PTypeSkel.CAT_VAR) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireBottom 4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireBottom 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = this.requireGenericVar(width, (PTypeVarSkel)type, bindings);
+      b = this.requireGenericVar((PTypeVarSkel)type, bindings);
     } else {
       throw new RuntimeException("Unexspected type. " + type.toString());
     }
     return b;
   }
 
-  boolean requireSome(int width, PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireSome(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
     boolean b;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireSome 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireSome 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = width == PTypeSkel.NARROWER;
+      b = true;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireSome 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireSome 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = this.requireSomeSome(width, (PTypeRefSkel)type, bindings);
+      b = this.requireSomeSome((PTypeRefSkel)type, bindings);
     } else if (cat == PTypeSkel.CAT_VAR) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireSome 4 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireSome 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      b = this.requireGenericVar(width, (PTypeVarSkel)type, bindings);
+      b = this.requireGenericVar((PTypeVarSkel)type, bindings);
     } else {
       throw new RuntimeException("Unexspected type. " + type.toString());
     }
     return b;
   }
 
-  boolean requireSomeSome(int width, PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireSomeSome(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireTypeRef "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireTypeRef "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (this.params.length != tr.params.length) {
+    if (!this.tconKey.equals(tr.tconKey)) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireTypeRef 1 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireTypeRef 1 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
-    } else if (!this.canAcceptOnTcon(width, tr)) {
+    } else if (this.params.length != tr.params.length) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireTypeRef 2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireTypeRef 2 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#requireTypeRef 3 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#requireTypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.print(tr); System.out.print(" "); System.out.println(bindings);
 }
       b = true;
-      int[] ww = paramWidths(width, this.paramVariances());
       for (int i = 0; b && i < this.params.length; i++) {
-        b = this.params[i].require(ww[i], tr.params[i], bindings);
+        b = this.params[i].require(tr.params[i], bindings);
       }
     }
     return b;
   }
 
-  boolean requireGenericVar(int width, PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+  boolean requireGenericVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireGenericVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -433,113 +403,8 @@ public class PTypeRefSkel implements PTypeSkel {
   System.out.print("PTypeRefSkel#requireGenericVar 5 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       this.castVarToMe(tv, bindings);
-      b = this.require(width, tv, bindings);
+      b = this.require(tv, bindings);
     }
-    return b;
-  }
-
-  boolean canAcceptOnTcon(int width, PTypeRefSkel tr) throws CompileException {
-    boolean b;
-    switch (width) {
-    case PTypeSkel.NARROWER:
-      b = this.canAcceptNarrowerOnTcon(tr);
-      break;
-    case PTypeSkel.WIDER:
-      b = this.canAcceptWiderOnTcon(tr);
-      break;
-    case PTypeSkel.EQUAL:
-      b = this.canAcceptEqualOnTcon(tr);
-      break;
-    default:
-      throw new IllegalArgumentException("Unknown width. " + width);
-    }
-    return b;
-  }
-
-  boolean canAcceptNarrowerOnTcon(PTypeRefSkel tr) throws CompileException {
-    // BOTTOM is not supported here
-    return this.tconKey.equals(tr.tconKey);
-    // boolean b;
-    // if (this.tconKey.equals(tr.tconKey)) {
-      // if (this.ext && tr.ext) {
-        // b = true;
-      // } else if (this.ext && !tr.ext) {
-        // b = true;
-      // } else if (!this.ext && tr.ext) {
-        // b = false;
-      // } else {
-        // b = true;
-      // }
-    // } else if (this.theCompiler.defDict.isBaseOf(tr.tconKey, this.tconKey)) {
-      // if (this.ext && tr.ext) {
-        // b = false;
-      // } else if (this.ext && !tr.ext) {
-        // b = false;
-      // } else if (!this.ext && tr.ext) {
-        // b = true;
-      // } else {
-        // b = true;
-      // }
-    // } else if (this.theCompiler.defDict.isBaseOf(this.tconKey, tr.tconKey)) {
-      // if (this.ext && tr.ext) {
-        // b = true;
-      // } else if (this.ext && !tr.ext) {
-        // b = true;
-      // } else if (!this.ext && tr.ext) {
-        // b = false;
-      // } else {
-        // b = false;
-      // }
-    // } else {
-      // b = false;
-    // }
-    // return b;
-  }
-
-  boolean canAcceptWiderOnTcon(PTypeRefSkel tr) throws CompileException {
-    // BOTTOM is not supported here
-    return this.tconKey.equals(tr.tconKey);
-    // boolean b;
-    // if (this.tconKey.equals(tr.tconKey)) {
-      // if (this.ext && tr.ext) {
-        // b = true;
-      // } else if (this.ext && !tr.ext) {
-        // b = false;
-      // } else if (!this.ext && tr.ext) {
-        // b = true;
-      // } else {
-        // b = true;
-      // }
-    // } else if (this.theCompiler.defDict.isBaseOf(tr.tconKey, this.tconKey)) {
-      // if (this.ext && tr.ext) {
-        // b = true;
-      // } else if (this.ext && !tr.ext) {
-        // b = false;
-      // } else if (!this.ext && tr.ext) {
-        // b = true;
-      // } else {
-        // b = false;
-      // }
-    // } else if (this.theCompiler.defDict.isBaseOf(this.tconKey, tr.tconKey)) {
-      // if (this.ext && tr.ext) {
-        // b = false;
-      // } else if (this.ext && !tr.ext) {
-        // b = false;
-      // } else if (!this.ext && tr.ext) {
-        // b = true;
-      // } else {
-        // b = true;
-      // }
-    // } else {
-      // b = false;
-    // }
-    // return b;
-  }
-
-  boolean canAcceptEqualOnTcon(PTypeRefSkel tr) {
-    // BOTTOM is not supported here
-    boolean b;
-    b = this.tconKey.equals(tr.tconKey);
     return b;
   }
 
@@ -575,7 +440,7 @@ if (PTypeGraph.DEBUG > 1) {
 }
     PTypeSkel t;
     PTypeSkel.JoinResult r;
-    if ((r = this.join2(PTypeSkel.WIDER, /* true, */ type, PTypeSkel.Bindings.create(givenTVarList))) != null) {
+    if ((r = this.join2(type, PTypeSkel.Bindings.create(givenTVarList))) != null) {
       t = r.joined.instanciate(PTypeSkel.InstanciationContext.create(r.bindings));
     } else {
       t = null;
@@ -583,9 +448,9 @@ if (PTypeGraph.DEBUG > 1) {
     return t;
   }
 
-  public PTypeSkel.JoinResult join2(int width, /* boolean bindsRef, */ PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
+  public PTypeSkel.JoinResult join2(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  System.out.print("PTypeRefSkel#join2 "); System.out.print(width); System.out.print(" "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+  System.out.print("PTypeRefSkel#join2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     PTypeSkel.JoinResult r;
     if (this.getCat() == PTypeSkel.CAT_BOTTOM) {
@@ -593,51 +458,43 @@ if (PTypeGraph.DEBUG > 1) {
     } else if (type.getCat() == PTypeSkel.CAT_BOTTOM) {
       r = PTypeSkel.JoinResult.create(this, bindings);
     } else if (type instanceof PTypeVarSkel) {
-      r = ((PTypeVarSkel)type).join2(width, /* bindsRef, */ this, bindings);  // forward
+      r = ((PTypeVarSkel)type).join2(this, bindings);  // forward
     } else if (type instanceof PTypeRefSkel) {
-      r = this.join2TypeRef(width, /* bindsRef, */ (PTypeRefSkel)type, bindings);
+      r = this.join2TypeRef((PTypeRefSkel)type, bindings);
     } else {
       throw new IllegalArgumentException("Unknown type. " + type.toString());
     }
     return r;
   }
 
-  PTypeSkel.JoinResult join2TypeRef(int width, /* boolean bindsRef, */ PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+  PTypeSkel.JoinResult join2TypeRef(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 0 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
     PTypeSkel.JoinResult r;
-    if (this.params.length != tr.params.length) {
+    if (!this.tconKey.equals(tr.tconKey)) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 1 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
       r = null;
-    } else if (!this.canAcceptOnTcon(width, tr)) {
+    } else if (this.params.length != tr.params.length) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 2 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
       r = null;
-    } else if (this.params.length == 0) {
+    } else {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 3 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
-      PTypeSkel[] ps = new PTypeSkel[0];
-      PTypeRefSkel joined = create(tr.theCompiler, tr.srcInfo, tr.tconKey, ps);
-      r = PTypeSkel.JoinResult.create(joined, bindings);
-    } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 4 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
-}
       PTypeSkel[] ps = new PTypeSkel[this.params.length];
-      int[] ww = paramWidths(width, this.paramVariances());
       PTypeSkel.Bindings b = bindings;
       boolean c = true;
       for (int i = 0; c && i < this.params.length; i++) {
         PTypeSkel.JoinResult r2;
-        if ((r2 = this.params[i].join2(ww[i], /* bindsRef, */ tr.params[i], b.copy())) != null) {
+        if ((r2 = this.params[i].join2(tr.params[i], b.copy())) != null) {
           ps[i] = r2.joined;
           b = r2.bindings;
-        } else if ((r2 = tr.params[i].join2(ww[i], /* bindsRef, */ this.params[i], b.copy())) != null) {
+        } else if ((r2 = tr.params[i].join2(this.params[i], b.copy())) != null) {
           ps[i] = r2.joined;
           b = r2.bindings;
         } else {
@@ -646,23 +503,19 @@ if (PTypeGraph.DEBUG > 1) {
       }
       if (c) {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 4-1 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
+    /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 3-1 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
         PTypeRefSkel joined = create(tr.theCompiler, tr.srcInfo, tr.tconKey, ps);
         r = PTypeSkel.JoinResult.create(joined, b);
       } else {
 if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 4-2 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
+    /* DEBUG */ System.out.print("PTypeRefSkel#join2TypeRef 3-2 "); System.out.print(this); System.out.print(" "); System.out.println(tr);
 }
         r = null;
       }
     }
     return r;
   }
-
-  // static boolean isAny(PTypeSkel type) {
-    // return isLangType(type, "@ANY");
-  // }
 
   static boolean isBottom(PTypeSkel type) {
     return isLangType(type, Module.TCON_BOTTOM);
@@ -703,7 +556,6 @@ if (PTypeGraph.DEBUG > 1) {
     MTypeRef.Builder b = MTypeRef.Builder.newInstance();
     if (!this.tconKey.modName.equals(mod.actualName)) {
       b.setModIndex(modBuilder.modNameToModIndex(this.tconKey.modName));
-      // b.setModIndex(mod.actualNodNameToModRefIndex(inReferredDef, this.tconKey.modName));
     }
     b.setTcon(this.tconKey.idName);
     for (int i = 0; i < params.length; i++) {
@@ -717,30 +569,6 @@ if (PTypeGraph.DEBUG > 1) {
       this.params[i].extractVars(extracted);
     }
   }
-
-  public void collectVarVariances(PTypeVarSlot slot, Module.Variance contextVariance, List<Module.Variance> variances) throws CompileException {
-    Module.Variance[] vs = this.paramVariances();
-    for (int i = 0; i < this.params.length; i++) {
-      if (contextVariance == null) {
-        this.params[i].collectVarVariances(slot, vs[i], variances);
-      } else if (contextVariance == Module.INVARIANT) {
-        this.params[i].collectVarVariances(slot, Module.INVARIANT, variances);
-      } else if (contextVariance == vs[i]) {
-        this.params[i].collectVarVariances(slot, contextVariance, variances);
-      } else {
-        this.params[i].collectVarVariances(slot, Module.INVARIANT, variances);
-      }
-    }
-  }
-
-  // public void collectTconProps(List<PDefDict.TconProps> list) {
-    // for (int i = 0; i < this.params.length; i++) {
-      // this.params[i].collectTconProps(list);
-    // }
-    // if (!list.contains(this.tconProps)) {
-      // list.add(this.tconProps);
-    // }
-  // }
 
   public PTypeSkel unalias(PTypeSkel.Bindings bindings) throws CompileException {
     PTypeSkel ps[] = new PTypeSkel[this.params.length];
@@ -768,25 +596,6 @@ if (PTypeGraph.DEBUG > 1) {
         this.params[i].excludeBareTVarAtRet(si, false, checked);
       }
     }
-  }
-
-  PTypeVarSkel varIncompatVariance(PTypeSkel.VarianceTab vt) throws CompileException {
-    PTypeVarSkel x = null;
-    Module.Variance[] vs = this.paramVariances();
-    for (int i = 0; x == null && i < this.params.length; i++) {
-      if (this.params[i] instanceof PTypeVarSkel) {
-        PTypeVarSkel v = (PTypeVarSkel)this.params[i];
-        if (!vt.isCompatible(v.varSlot, vs[i])) {
-          x = v;
-        }
-      } else if (this.params[i] instanceof PTypeRefSkel) {
-        PTypeRefSkel r = (PTypeRefSkel)this.params[i];
-        x = r.varIncompatVariance(vt.forContext(vs[i]));
-      } else {
-        throw new RuntimeException("Unexpected type. " + this.params[i]);
-      }
-    }
-    return x;
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {

@@ -154,10 +154,8 @@ class PCompiledModule implements PModDecl {
     dd.tcon = dataDef.tcon;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     if (dataDef.params != null) {
-      dd.paramVariances = new Module.Variance[dataDef.params.length];
       dd.params = new PTypeVarSkel[dataDef.params.length];
       for (int i = 0; i < dataDef.params.length; i++) {
-        dd.paramVariances[i] = dataDef.params[i].variance;
         PTypeVarSkel v = (PTypeVarSkel)this.convertType(dataDef.params[i].var, mod, varList /* , unresolvedTypeRefList, unresolvedFeatureList */);
         dd.params[i] = v;
       }
@@ -194,7 +192,6 @@ class PCompiledModule implements PModDecl {
     Cstr modName;
     String tcon;
     PTypeVarSkel[] params;
-    Module.Variance[] paramVariances;
     List<String> constrList;
     Map<String, ConstrDef> constrDict;
     boolean extensible;
@@ -225,13 +222,11 @@ class PCompiledModule implements PModDecl {
       } else {
         tps = new PDefDict.TparamProps[this.params.length];
         for (int i = 0; i < this.params.length; i++) {
-          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i]);
+          tps[i] = PDefDict.TparamProps.create();
         }
       }
       return tps;
     }
-
-    // public int getParamCount() { return (this.params != null)? this.params.length: -1 ; }
 
     public PTypeRefSkel getTypeSig() {
       if (this.sig == null) {
@@ -243,8 +238,6 @@ class PCompiledModule implements PModDecl {
       }
       return this.sig;
     }
-
-    // public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public boolean isExtensible() { return this.extensible; }
 
@@ -262,7 +255,6 @@ class PCompiledModule implements PModDecl {
       ConstrDef cd = new ConstrDef(dcon);
       this.constrList.add(dcon);
       this.constrDict.put(dcon, cd);
-      // cd.dataDef = this;
       return cd;
     }
   }
@@ -273,16 +265,11 @@ class PCompiledModule implements PModDecl {
     dxd.availability = dataExtensionDef.availability;
     dxd.acc = dataExtensionDef.acc;
     dxd.modName = mod.actualName;
-    // dxd.sigTcon = dataExtensionDef.baseTcon;
-    // if (dataExtensionDef.baseModIndex > 0) {
-      dxd.baseTconKey = PDefDict.IdKey.create(mod.getModAt(dataExtensionDef.baseModIndex), dataExtensionDef.baseTcon);
-    // }
+    dxd.baseTconKey = PDefDict.IdKey.create(mod.getModAt(dataExtensionDef.baseModIndex), dataExtensionDef.baseTcon);
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     if (dataExtensionDef.params != null) {
-      dxd.paramVariances = new Module.Variance[dataExtensionDef.params.length];
       dxd.params = new PTypeVarSkel[dataExtensionDef.params.length];
       for (int i = 0; i < dataExtensionDef.params.length; i++) {
-        dxd.paramVariances[i] = dataExtensionDef.params[i].variance;
         PTypeVarSkel v = (PTypeVarSkel)this.convertType(dataExtensionDef.params[i].var, mod, varList);
         dxd.params[i] = v;
       }
@@ -302,7 +289,6 @@ class PCompiledModule implements PModDecl {
     String defKey;
     Module.Availability availability;
     Cstr modName;
-    Module.Variance[] paramVariances;
     PTypeVarSkel[] params;
     Module.Access acc;
     Cstr baseModName;
@@ -330,7 +316,7 @@ class PCompiledModule implements PModDecl {
       PDefDict.TparamProps[] tps;
       tps = new PDefDict.TparamProps[this.params.length];
       for (int i = 0; i < this.params.length; i++) {
-        tps[i] = PDefDict.TparamProps.create(this.paramVariances[i]);
+        tps[i] = PDefDict.TparamProps.create();
       }
       return tps;
     }
@@ -368,13 +354,6 @@ class PCompiledModule implements PModDecl {
   AliasTypeDef convertAliasTypeDef(Module mod, MAliasTypeDef aliasTypeDef) {
     AliasTypeDef ad = new AliasTypeDef();
     PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, aliasTypeDef.tcon);
-    // PDefDict.DataDefGetter g = createDataDefGetter(ad);
-    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
-    for (int k = 0; k < paramPropss.length; k++) {
-      paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT);
-    }
-    // ad.tconProps = PDefDict.TidProps.create(
-      // ik, PDefDict.TID_CAT_TCON_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.availability = aliasTypeDef.availability;
     ad.acc = aliasTypeDef.acc;
     ad.tcon = aliasTypeDef.tcon;
@@ -499,10 +478,8 @@ class PCompiledModule implements PModDecl {
     fd.nameKey = PDefDict.IdKey.create(mod.actualName, featureDef.fname);
     fd.obj = convertTypeVar(featureDef.obj, mod, varList);
     fd.params = new PTypeVarSkel[featureDef.params.length];
-    fd.paramVariances = new Module.Variance[featureDef.params.length];
     for (int i = 0; i < fd.params.length; i++) {
       fd.params[i] = convertTypeVar(featureDef.params[i].var, mod, varList);
-      fd.paramVariances[i] = featureDef.params[i].variance;
     }
     fd.impl = this.convertTypeRef(featureDef.impl, mod, varList);
     return fd;
@@ -514,7 +491,6 @@ class PCompiledModule implements PModDecl {
     PDefDict.IdKey nameKey;
     PTypeVarSkel obj;
     PTypeVarSkel[] params;
-    Module.Variance[] paramVariances;
     PTypeRefSkel impl;
 
     public Module.Availability getAvailability() { return this.availability; }
@@ -526,22 +502,18 @@ class PCompiledModule implements PModDecl {
     public int getParamCount() { return this.params.length; }
 
     public PDefDict.TparamProps[] getParamPropss() {
-      PDefDict.TparamProps[] pps = new PDefDict.TparamProps[this.paramVariances.length];
+      PDefDict.TparamProps[] pps = new PDefDict.TparamProps[this.params.length];
       for (int i = 0; i < pps.length; i++) {
-        pps[i] = PDefDict.TparamProps.create(this.paramVariances[i]);
+        pps[i] = PDefDict.TparamProps.create();
       }
       return pps;
     }
 
     public PTypeVarSkel getObjType() { return this.obj; }
 
-    // public PTypeVarSkel[] getParams() { return this.params; }
-
     public PFeatureSkel getFeatureSig() {
       return PFeatureSkel.create(PCompiledModule.this.theCompiler, null, this.nameKey, this.params);
     }
-
-    // public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public PTypeRefSkel getImplType() { return this.impl; }
   }

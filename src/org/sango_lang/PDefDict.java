@@ -681,15 +681,10 @@ class PDefDict {
     PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create(givenTVarList);
     boolean b = true;
     for (int i = 0; b && i < pts.length; i++) {
-// /* DEBUG */ System.out.print(pts[i]); System.out.println(paramTypes[i]);
-      b = pts[i].accept(PTypeSkel.NARROWER, paramTypes[i], bindings);
+      b = pts[i].accept( paramTypes[i], bindings);
     }
     if (b) {
       b = bindings.getAnyInconcreteVar() == null;
-      // for (int i = 0; b && i < pts.length; i++) {
-        // PTypeSkel p = paramTypes[i].resolveBindings(bindings);
-        // b = pts[i].extractAnyInconcreteVar(p) == null;
-      // }
     }
    return b? bindings: null;
   }
@@ -1035,8 +1030,6 @@ class PDefDict {
       buf.append(this.key);
       buf.append(",cat=");
       buf.append(this.cat);
-      // buf.append(",avial=");
-      // buf.append(this.avail);
       buf.append(",acc=");
       buf.append(this.acc);
       buf.append(",acc=2");
@@ -1047,21 +1040,17 @@ class PDefDict {
   }
 
   static class TparamProps {
-    Module.Variance variance;
+    // property collection for future use
 
-    static TparamProps create(Module.Variance variance) {
-      return new TparamProps(variance);
+    static TparamProps create() {
+      return new TparamProps();
     }
 
-    private TparamProps(Module.Variance variance) {
-      this.variance = variance;
-    }
+    private TparamProps() {}
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
-      buf.append("tparamprops[variance=");
-      buf.append(this.variance);
-      buf.append("]");
+      buf.append("tparamprops[]");
       return buf.toString();
     }
   }

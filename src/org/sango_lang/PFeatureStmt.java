@@ -164,7 +164,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeader hd = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_PROHIBITED);
+    PType.DefHeader hd = PType.acceptDefHeader(reader, defScope, Parser.QUAL_PROHIBITED);
     if (hd == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -324,50 +324,6 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     }
     this.impl.excludePrivateAcc();
     return;
-  }
-
-  // public void setupExtensionGraph(PDefDict.ExtGraph g) throws CompileException {}
-
-  void checkVariance() throws CompileException {
-    for(int i = 0; i < this.params.length; i++) {
-      this.checkVariance1(this.params[i]);
-    }
-  }
-
-  void checkVariance1(PType.DefHeaderParam p) throws CompileException {
-    StringBuffer emsg;
-    List<Module.Variance> vs = new ArrayList<Module.Variance>();
-    this._normalized_implSkel.collectVarVariances(p.getVarSlot(), null, vs);
-    if (vs.size() == 0) {
-      emsg = new StringBuffer();
-      emsg.append("Type variable \"");
-      emsg.append(p.getVarName());
-      emsg.append("\" not referred in feature object at ");
-      emsg.append(p.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
-    if (vs.contains(null)) { throw new RuntimeException("Unexptected variance."); }
-    boolean iv = vs.contains(Module.INVARIANT);
-    boolean cv = vs.contains(Module.COVARIANT);
-    boolean xv = vs.contains(Module.CONTRAVARIANT);
-    if (p.variance == Module.INVARIANT) {
-      ;  // pass
-    } else if (p.variance == Module.COVARIANT && cv && !iv && !xv) {
-      ;  // pass
-    } else if (p.variance == Module.CONTRAVARIANT && xv && !iv && !cv) {
-      ;  // pass
-    } else {
-      emsg = new StringBuffer();
-      emsg.append("Incompatible variance \"");
-      emsg.append(p.variance);
-      emsg.append("\" for type variable \"");
-      emsg.append(p.getVarName());
-      emsg.append("\" at ");
-      emsg.append(p.srcInfo);
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
   }
 
   void normalizeTypes() throws CompileException {

@@ -170,7 +170,7 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, true, Parser.QUAL_MAYBE);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, defScope, Parser.QUAL_MAYBE);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Syntex error at ");
@@ -453,36 +453,11 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
       throw new CompileException(emsg.toString()) ;
     }
 
-    // PDefDict.TparamProps[] bpps = baseDef.getParamPropss();
-    // if (bpps != null && this.tparams.length != bpps.length) {
-      // emsg = new StringBuffer();
-      // emsg.append("Parameter count of 'extend' definition mismatch at ");
-      // emsg.append(this.srcInfo);
-      // emsg.append(".");
-      // throw new CompileException(emsg.toString()) ;
-    // }
-    // if (bpps != null) {
-      // for (int i = 0; i < this.tparams.length; i++) {
-        // if (this.tparams[i].variance != bpps[i].variance) {
-          // emsg = new StringBuffer();
-          // emsg.append("Variance of *");
-          // emsg.append(this.tparams[i].getVarName());
-          // emsg.append(" mismatch with that of base definition at ");
-          // emsg.append(this.srcInfo);
-          // emsg.append(". ");
-          // emsg.append(this.tparams[i].variance);
-          // emsg.append(" ");
-          // emsg.append(bpps[i].variance);
-          // throw new CompileException(emsg.toString()) ;
-        // }
-      // }
-    // }
-
     PTypeRefSkel bsigSkel = baseDef.getTypeSig();
     PTypeRefSkel sigSkel = this.getTypeSig();
     PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
     for (int i = 0; i < sigSkel.params.length; i++) {
-      if (!sigSkel.params[i].accept(PTypeSkel.NARROWER, bsigSkel.params[i], bindings)) {
+      if (!sigSkel.params[i].accept(bsigSkel.params[i], bindings)) {
         PTypeVarSkel p = (PTypeVarSkel)sigSkel.params[i];
         emsg = new StringBuffer();
         emsg.append("Type parameter \"");
@@ -492,20 +467,6 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-    }
-  }
-
-  public void checkVariance() throws CompileException {
-    PTypeVarSlot[] ss = new PTypeVarSlot[this.tparams.length];
-    Module.Variance[] vs = new Module.Variance[this.tparams.length];
-    for (int i = 0; i < this.tparams.length; i++) {
-      // if (this.tparams[i].varDef._resolved_varSlot == null) { throw new RuntimeException("Null varSlot."); }
-      ss[i] = this.tparams[i].getVarSlot();
-      vs[i] = this.tparams[i].variance;
-    }
-    PTypeSkel.VarianceTab vt = PTypeSkel.VarianceTab.create(ss, vs);
-    for (int i = 0; i < this.constrs.length; i++) {
-      this.constrs[i].checkVariance(vt);
     }
   }
 

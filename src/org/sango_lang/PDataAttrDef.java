@@ -32,7 +32,6 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
 
   private PDataAttrDef(Parser.SrcInfo srcInfo, PScope outerScope) {
     super(srcInfo, outerScope);
-    // super(srcInfo, outerScope.enterInner());
   }
 
   static PDataAttrDef create(Parser.SrcInfo srcInfo, PScope outerScope, String name, PType type) {
@@ -166,27 +165,6 @@ class PDataAttrDef extends PDefaultTypedObj implements PDataDef.Attr {
 
   public void excludePrivateAcc() throws CompileException {
     this.type.excludePrivateAcc();
-  }
-
-  void checkVariance(PTypeSkel.VarianceTab vt) throws CompileException {
-    if (this._normalized_typeSkel == null) { throw new RuntimeException("No normalized type skel. " + this); }
-    if (this._normalized_typeSkel instanceof PTypeVarSkel) {
-      ;  // skip
-    } else if (this._normalized_typeSkel instanceof PTypeRefSkel) {
-      PTypeRefSkel t = (PTypeRefSkel)this._normalized_typeSkel;
-      PTypeVarSkel x = t.varIncompatVariance(vt);
-      if (x != null) {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Incompatible variance for ");
-        emsg.append(PTypeSkel.Repr.topLevelRepr(x));
-        emsg.append(" at ");
-        emsg.append(this.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-    } else {
-      throw new RuntimeException("Unexpected type. " + this._normalized_typeSkel);
-    }
   }
 
   public void normalizeTypes() throws CompileException {
