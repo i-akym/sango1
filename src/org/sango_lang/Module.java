@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
@@ -2432,6 +2433,10 @@ public class Module {
       if (dds != null && dds.length > 0) {
         this.checkDataDefsCompat(dds, defMod);
       }
+      MDataExtensionDef[] dxds = this.foreignDataExtensionDefsDict.get(m);
+      if (dxds != null && dxds.length > 0) {
+        this.checkDataExtensionDefsCompat(dxds, defMod);
+      }
       MFunDef[] fds = this.foreignFunDefsDict.get(m);
       if (fds != null && fds.length > 0) {
         this.checkFunDefsCompat(fds, defMod);
@@ -2455,6 +2460,24 @@ public class Module {
         throw new FormatException(emsg.toString());
       }
       dd.checkCompat(this.modTab, ddd, defMod.modTab);
+    }
+  }
+
+  void checkDataExtensionDefsCompat(MDataExtensionDef[] dxds, Module defMod) throws FormatException {
+    // setup map for dcon -> MDataExtensionDef
+    Map<String, MDataExtensionDef> xm = new HashMap<String, MDataExtensionDef>();
+    Iterator<String> ki = defMod.dataExtensionDefDict.keySet().iterator();
+    while (ki.hasNext()) {
+      String k = ki.next();
+      MDataExtensionDef ddxd = defMod.dataExtensionDefDict.get(k);
+      for (int i = 0; i < ddxd.constrs.length; i++) {
+        MConstrDef cd = ddxd.constrs[i];
+        xm.put(cd.dcon, ddxd);
+      }
+    }
+
+    for (int i = 0; i < dxds.length; i++) {
+      dxds[i].checkCompat(this.modTab, xm, defMod.modTab, defMod.constrDefDict);
     }
   }
 
