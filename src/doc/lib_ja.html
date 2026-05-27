@@ -262,13 +262,13 @@ kbd {
 <table border width="100%"><tr><td class="def"><code>data &lt;void&gt; @public := void$ ;;</code></td></tr></table>
 <p>関数から返すべき値が無いことを表す便宜的な型です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;_0&gt; @public := _0$ ;;
-data &lt;*A _1&gt; @public := _1$ ;;
-data &lt;*A *B _2&gt; @public := _2$ ;;
-data &lt;*A *B *C _3&gt; @public := _3$ ;;
-data &lt;*A *B *C *D _4&gt; @public := _4$ ;;
-data &lt;*A *B *C *D *E _5&gt; @public := _5$ ;;</code></td></tr></table>
-<p>n個の型パラメタを持つ型を表したいとき，拡張して使用します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;_0&gt; @public := ... ;;
+data &lt;*A _1&gt; @public := ... ;;
+data &lt;*A *B _2&gt; @public := ... ;;
+data &lt;*A *B *C _3&gt; @public := ... ;;
+data &lt;*A *B *C *D _4&gt; @public := ... ;;
+data &lt;*A *B *C *D *E _5&gt; @public := ... ;;</code></td></tr></table>
+<p>【Deprecated】n個の型パラメタを持つ型を表したいとき，拡張して使用します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;bool&gt; @public := true$ | false$ ;;</code></td></tr></table>
 <p>論理的な「真」と「偽」を表します。</p>
