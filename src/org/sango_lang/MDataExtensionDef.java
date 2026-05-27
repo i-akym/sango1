@@ -25,6 +25,7 @@ package org.sango_lang;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -123,39 +124,65 @@ public class MDataExtensionDef implements Module.Elem {
     return constrDef.externalize(doc);
   }
 
-  void checkCompat(Module.ModTab modTab, MDataExtensionDef dxd, Module.ModTab defModTab) throws FormatException {
+  void checkCompat(Module.ModTab modTab, Map<String, MDataExtensionDef> dconTab, Module.ModTab defModTab, Map<String, MConstrDef> constrDefDict) throws FormatException {
+  
     StringBuffer emsg;
-    if (Module.equalOrMoreOpenAcc(dxd.acc, this.acc)) {
-      ;
-    } else {
-      emsg = new StringBuffer();
-      emsg.append("Incompatible access mode on extension: ");
-      emsg.append(dxd.baseTcon);
-      emsg.append(", referred in: ");
-      emsg.append(modTab.getMyModName().repr());
-      emsg.append(" defined in: ");
-      emsg.append(defModTab.getMyModName().repr());
-      emsg.append(".");
-      throw new FormatException(emsg.toString());
-    }
-    if (dxd.params == null && this.params == null) {
-      ;
-    } else if (dxd.params != null && this.params != null && dxd.params.length == this.params.length) {
-      ;
-    } else {
-      emsg = new StringBuffer();
-      emsg.append("Incompatible parameter count on extension: ");
-      emsg.append(dxd.baseTcon);
-      emsg.append(", referred in: ");
-      emsg.append(modTab.getMyModName().repr());
-      emsg.append(" defined in: ");
-      emsg.append(defModTab.getMyModName().repr());
-      emsg.append(".");
-      throw new FormatException(emsg.toString());
-    }
+
     for (int i = 0; i < this.constrs.length; i++) {
       MConstrDef cd = this.constrs[i];
-      cd.checkCompat(modTab, this.constrs, defModTab);
+      MDataExtensionDef xd = dconTab.get(cd.dcon);
+      if (xd == null) {
+        emsg = new StringBuffer();
+        emsg.append("Data contructor \"");
+        emsg.append(cd.dcon);
+        emsg.append("\" not found, referred in: ");
+        emsg.append(modTab.getMyModName().repr());
+        emsg.append(" defined in: ");
+        emsg.append(defModTab.getMyModName().repr());
+        emsg.append(".");
+        throw new FormatException(emsg.toString());
+      }
+      if (Module.equalOrMoreOpenAcc(xd.acc, this.acc)) {
+        ;
+      } else {
+        emsg = new StringBuffer();
+        emsg.append("Incompatible access mode on extension: ");
+        emsg.append(xd.baseTcon);
+        emsg.append(", referred in: ");
+        emsg.append(modTab.getMyModName().repr());
+        emsg.append(" defined in: ");
+        emsg.append(defModTab.getMyModName().repr());
+        emsg.append(".");
+        throw new FormatException(emsg.toString());
+      }
+      if (xd.params == null && this.params == null) {
+        ;
+      } else if (xd.params != null && this.params != null && xd.params.length == this.params.length) {
+        ;
+      } else {
+        emsg = new StringBuffer();
+        emsg.append("Incompatible parameter count on extension: ");
+        emsg.append(xd.baseTcon);
+        emsg.append(", referred in: ");
+        emsg.append(modTab.getMyModName().repr());
+        emsg.append(" defined in: ");
+        emsg.append(defModTab.getMyModName().repr());
+        emsg.append(".");
+        throw new FormatException(emsg.toString());
+      }
+      MConstrDef dcd = constrDefDict.get(cd.dcon);
+      if (dcd == null) {
+        emsg = new StringBuffer();
+        emsg.append("Data contructor \"");
+        emsg.append(dcd.dcon);
+        emsg.append("\" not found, referred in: ");
+        emsg.append(modTab.getMyModName().repr());
+        emsg.append(" defined in: ");
+        emsg.append(defModTab.getMyModName().repr());
+        emsg.append(".");
+        throw new FormatException(emsg.toString());
+      }
+      cd.checkCompat(modTab, new MConstrDef[] { dcd }, defModTab);
     }
   }
 }
