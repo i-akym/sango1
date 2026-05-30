@@ -270,21 +270,21 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1Given C "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = this.accept1GivenVar((PTypeVarSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+      b = this.accept1GivenAnonym((PTypeVarSkel)type, bindings);
     } else {
-      throw new RuntimeException("PTypeVarSkel#accept1Given (to anonymous) not implementd.");
+      throw new RuntimeException("Unexpected category");
     }
     return b;
   }
 
   boolean accept1GivenVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
-    // tv: GIVEN or FREE
+    // tv: GIVEN or FREE; not ANVAR
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1GivenVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (tv.varSlot == null) {
-      throw new RuntimeException("PTypeVarSkel#accept1GivenVar (anonymous tv) not implemented.");
-    } else if (this.varSlot == tv.varSlot) {
+    if (this.varSlot == tv.varSlot) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1GivenVar B "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -359,6 +359,15 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
+  boolean accept1GivenAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1GivenAnonym "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+    boolean b;
+    b = false;
+    return b;
+  }
+
   boolean accept1Free(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
@@ -381,8 +390,13 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1Free 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = this.accept1FreeVar((PTypeVarSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1Free 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+}
+      b = this.accept1FreeAnonym((PTypeVarSkel)type, bindings);
     } else {
-      throw new RuntimeException("PTypeVarSkel#accept1Free (to anonymous) not implementd.");
+      throw new RuntimeException("Unexpected category");
     }
     return b;
   }
@@ -422,9 +436,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#accept1FreeVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (tv.varSlot == null) {
-      throw new RuntimeException("PTypeVarSkel#accept1GivenVar (anonymous tv) not implemented.");
-    } else if (this.varSlot == tv.varSlot) {
+    if (this.varSlot == tv.varSlot) {
       b = true;
     } else if (bindings.isGivenTVar(tv)) {
       b = this.accept1FreeGiven(tv, bindings);
@@ -468,6 +480,26 @@ public class PTypeVarSkel implements PTypeSkel {
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1FreeFree B "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = false;
+    }
+    return b;
+  }
+
+  boolean accept1FreeAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeAnonym "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+    boolean b;
+    bindings.bind(this, tv);
+    if (this.features == null || this.features.acceptList(tv.features, bindings)) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeAnonym A "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
+}
+      b = true;
+    } else {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeVarSkel#accept1FreeAnonym B "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
       b = false;
     }
@@ -584,21 +616,21 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#require1Given C "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = this.require1GivenVar((PTypeVarSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+      b = this.require1GivenAnonym((PTypeVarSkel)type, bindings);
     } else {
-      throw new RuntimeException("PTypeVarSkel#require1Given (to anonymous) not implementd.");
+      throw new RuntimeException("Unexpected category");
     }
     return b;
   }
 
   boolean require1GivenVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
-    // tv: GIVEN or FREE
+    // tv: GIVEN or FREE; not ANVAR
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1GivenVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (tv.varSlot == null) {
-      throw new RuntimeException("PTypeVarSkel#requireGivenVar (anonymous tv) not implemented.");
-    } else if (this.varSlot == tv.varSlot) {
+    if (this.varSlot == tv.varSlot) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1GivenVar B "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
@@ -663,6 +695,12 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
+  boolean require1GivenAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+    boolean b;
+    b = false;
+    return b;
+  }
+
   boolean require1Free(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Free "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
@@ -685,8 +723,10 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#require1Free D "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
       b = this.require1FreeVar((PTypeVarSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_VAR) {
+      b = this.require1FreeAnonym((PTypeVarSkel)type, bindings);
     } else {
-      throw new RuntimeException("PTypeVarSkel#require1Free (to anonymous) not implementd.");
+      throw new RuntimeException("Unexpected category");
     }
     return b;
   }
@@ -762,6 +802,27 @@ public class PTypeVarSkel implements PTypeSkel {
     return b;
   }
 
+  boolean require1FreeAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+    PTypeVarSkel tv2;
+    boolean b;
+    if (this.features == null) {
+      tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
+      bindings.bind(this, tv2);
+      b = true;
+    } else if (tv.features == null) {
+      tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
+      bindings.bind(this, tv2);
+      b = true;
+    } else if (this.features.acceptList(tv.features, bindings)) {
+      tv2 = tv.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
+      bindings.bind(this, tv2);
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
     boolean b = false;
     if (this.varSlot == varSlot) {
@@ -830,17 +891,17 @@ if (PTypeGraph.DEBUG > 1) {
       r = null;
     } else if (cat == PTypeSkel.CAT_VAR) {
       r = this.join3GivenVar((PTypeVarSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+      r = this.join3GivenAnonym((PTypeVarSkel)type, bindings);
     } else {
-      throw new RuntimeException("PTypeVarSkel#join3Given (to anonymous) not implementd.");
+      throw new RuntimeException("Unexpected category");
     }
     return r;
   }
 
   PTypeSkel.JoinResult join3GivenVar(PTypeVarSkel tv, PTypeSkel.Bindings bindings) {
     PTypeSkel.JoinResult r;
-    if (tv.varSlot == null) {
-      throw new RuntimeException("PTypeVarSkel#accept1GivenVar (anonymous tv) not implemented.");
-    } else if (this.varSlot == tv.varSlot) {
+    if (this.varSlot == tv.varSlot) {
       r = PTypeSkel.JoinResult.create(this, bindings);
     } else if (bindings.isGivenTVar(tv)) {
       r = null;
@@ -853,6 +914,12 @@ if (PTypeGraph.DEBUG > 1) {
   PTypeSkel.JoinResult join3GivenFree(PTypeVarSkel tv, PTypeSkel.Bindings bindings) {
     PTypeSkel.JoinResult r;
     r = tv.join3FreeGiven(this, bindings);  // swap and forward
+    return r;
+  }
+
+  PTypeSkel.JoinResult join3GivenAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) {
+    PTypeSkel.JoinResult r;
+    r = null;  // temporally
     return r;
   }
 
@@ -892,7 +959,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-        r = this.join3FreeTypeRef((PTypeRefSkel)t, bindings);
+        r = this.join3FreeSome((PTypeRefSkel)t, bindings);
       } else {
         throw new IllegalArgumentException("Unknown type. " + type.toString());
       }
@@ -900,7 +967,7 @@ if (PTypeGraph.DEBUG > 1) {
 if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join3Free B "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
-      r = this.join3FreeTypeRef((PTypeRefSkel)type, bindings);
+      r = this.join3FreeSome((PTypeRefSkel)type, bindings);
     } else {
       throw new IllegalArgumentException("Unknown type. " + type.toString());
     }
@@ -916,7 +983,7 @@ if (PTypeGraph.DEBUG > 1) {
     return r;
   }
 
-  PTypeSkel.JoinResult join3FreeTypeRef(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+  PTypeSkel.JoinResult join3FreeSome(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
     PTypeSkel.JoinResult r;
     if (tr.includesVar(this.varSlot, bindings)) {
       r = null;
