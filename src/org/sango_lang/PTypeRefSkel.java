@@ -154,6 +154,21 @@ public class PTypeRefSkel implements PTypeSkel {
       }
       n = create(this.theCompiler, this.srcInfo, this.tconKey, ps);
     }
+
+    // check occurrence of bottom
+    if (n instanceof PTypeRefSkel) {
+      PTypeRefSkel nn = (PTypeRefSkel)n;
+      int p = isFun(nn)? nn.params.length - 1: nn.params.length;
+      for (int i = 0; i < p; i++) {
+        if (isBottom(nn.params[i])) {
+          StringBuffer emsg = new StringBuffer();
+          emsg.append("\"<_>\" not allowed at ");
+          emsg.append(this.srcInfo);
+          emsg.append(".");
+          throw new CompileException(emsg.toString());
+        }
+      }
+    }
     return n;
   }
 

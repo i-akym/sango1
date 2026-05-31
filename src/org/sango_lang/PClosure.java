@@ -292,8 +292,14 @@ class PClosure extends PDefaultExprObj {
     this.retDef.normalizeTypes();
     List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
     checked.addAll(this.alreadyDefinedTVarList);
-    // checked.addAll(this.scope.getGivenTVarList());  // too many added...
     for (int i = 0; i < this.params.length; i++) {
+      if (PTypeRefSkel.isBottom(this.params[i]._normalized_typeSkel)) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("\"<_>\" not allowed at ");
+        emsg.append(this.params[i].getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
     this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
