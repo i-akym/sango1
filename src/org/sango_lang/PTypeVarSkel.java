@@ -825,7 +825,9 @@ public class PTypeVarSkel implements PTypeSkel {
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
     boolean b = false;
-    if (this.varSlot == varSlot) {
+    if (this.varSlot == null || varSlot == null) {
+      b = false;
+    } else if (this.varSlot == varSlot) {
       b = true;
     // } else if (b = this.features.includesVar(varSlot, bindings)) {  // HERE: needed?
       // ;
