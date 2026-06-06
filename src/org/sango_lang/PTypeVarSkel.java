@@ -745,9 +745,7 @@ public class PTypeVarSkel implements PTypeSkel {
   System.out.print("PTypeVarSkel#require1FreeVar "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bindings);
 }
     boolean b;
-    if (tv.varSlot == null) {
-      throw new RuntimeException("PTypeVarSkel#require1FreeVar (anonymous tv) not implemented.");
-    } else if (this.varSlot == tv.varSlot) {
+    if (this.varSlot == tv.varSlot) {
       b = true;
     } else if (bindings.isGivenTVar(tv)) {
       b = this.require1FreeGiven(tv, bindings);
@@ -878,7 +876,31 @@ if (PTypeGraph.DEBUG > 1) {
   }
 
   public PTypeSkel.JoinResult join3Anonym(PTypeSkel type, PTypeSkel.Bindings bindings) throws CompileException {
-    throw new RuntimeException("PTypeVarSkel#join3Anonym not implemented.");
+if (PTypeGraph.DEBUG > 1) {
+    /* DEBUG */ System.out.print("PTypeVarSkel#join3Anonym "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
+}
+    PTypeSkel.JoinResult r;
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      r = PTypeSkel.JoinResult.create(this, bindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
+      r = this.join3FreeSome((PTypeRefSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_VAR) {
+      PTypeVarSkel tv2 = (PTypeVarSkel)type;
+      if (this.varSlot == tv2.varSlot)  {
+        r = PTypeSkel.JoinResult.create(this, bindings);
+      } else if (bindings.isGivenTVar(tv2))  {
+        r = this.join3FreeGiven(tv2, bindings);
+      } else {
+        r = this.join3FreeFree(tv2, bindings);
+      }
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+      PTypeVarSkel tv2 = (PTypeVarSkel)type;
+      r = this.join3FreeAnonym(tv2, bindings);
+    } else {
+      throw new IllegalArgumentException("Unknown category. " + type.toString());
+    }
+    return r;
   }
 
   PTypeSkel.JoinResult join3Given(PTypeSkel type, PTypeSkel.Bindings bindings) {
@@ -930,50 +952,41 @@ if (PTypeGraph.DEBUG > 1) {
     /* DEBUG */ System.out.print("PTypeVarSkel#join3Free "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
 }
     PTypeSkel.JoinResult r;
-    if (type instanceof PTypeVarSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-      PTypeVarSkel tv = (PTypeVarSkel)type;
-      PTypeSkel t = tv.resolveBindings(bindings);
-      if (t instanceof PTypeVarSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        PTypeVarSkel tv2 = (PTypeVarSkel)t;
-        if (this.varSlot == tv2.varSlot)  {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A11 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-          r = PTypeSkel.JoinResult.create(this, bindings);
-        } else if (bindings.isGivenTVar(tv2))  {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A12 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-          r = this.join3FreeGiven(tv2, bindings);
-        } else {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A13 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-          r = this.join3FreeFree(tv2, bindings);
-        }
-      } else if (t instanceof PTypeRefSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free A2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
-        r = this.join3FreeSome((PTypeRefSkel)t, bindings);
-      } else {
-        throw new IllegalArgumentException("Unknown type. " + type.toString());
-      }
-    } else if (type instanceof PTypeRefSkel) {
-if (PTypeGraph.DEBUG > 1) {
-    /* DEBUG */ System.out.print("PTypeVarSkel#join3Free B "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bindings);
-}
+    int cat = type.getCat();
+    if (cat == PTypeSkel.CAT_BOTTOM) {
+      r = PTypeSkel.JoinResult.create(this, bindings);
+    } else if (cat == PTypeSkel.CAT_SOME) {
       r = this.join3FreeSome((PTypeRefSkel)type, bindings);
+    } else if (cat == PTypeSkel.CAT_VAR) {
+      PTypeVarSkel tv2 = (PTypeVarSkel)type;
+      if (this.varSlot == tv2.varSlot)  {
+        r = PTypeSkel.JoinResult.create(this, bindings);
+      } else if (bindings.isGivenTVar(tv2))  {
+        r = this.join3FreeGiven(tv2, bindings);
+      } else {
+        r = this.join3FreeFree(tv2, bindings);
+      }
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+      PTypeVarSkel tv2 = (PTypeVarSkel)type;
+      r = this.join3FreeAnonym(tv2, bindings);
     } else {
-      throw new IllegalArgumentException("Unknown type. " + type.toString());
+      throw new IllegalArgumentException("Unknown category. " + type.toString());
     }
     return r;
+
+    // if (type instanceof PTypeVarSkel) {
+      // PTypeVarSkel tv = (PTypeVarSkel)type;
+      // PTypeSkel t = tv.resolveBindings(bindings);
+      // if (t instanceof PTypeVarSkel) {
+        // PTypeVarSkel tv2 = (PTypeVarSkel)t;
+      // } else if (t instanceof PTypeRefSkel) {
+      // } else {
+      // }
+    // } else if (type instanceof PTypeRefSkel) {
+      // r = this.join3FreeSome((PTypeRefSkel)type, bindings);
+    // } else {
+      // throw new IllegalArgumentException("Unknown type. " + type.toString());
+    // }
   }
 
   PTypeSkel.JoinResult join3FreeGiven(PTypeVarSkel tv, PTypeSkel.Bindings bindings) {
@@ -1017,6 +1030,34 @@ if (PTypeGraph.DEBUG > 1) {
     } else {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null /* dummy */, bindings);
       bindings.bind(tv, v);
+      if ((fr = this.features.joinList(tv.features, bindings)) != null) {
+        v.features = fr.pack();
+        r = PTypeSkel.JoinResult.create(v, fr.bindings);
+      } else {
+        r = null;
+      }
+    }
+    return r;
+  }
+
+  PTypeSkel.JoinResult join3FreeAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+    PTypeSkel.JoinResult r;
+    PFeatureSkel.JoinResult fr;
+    if (this.features == null && tv.features == null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null, bindings);
+      //## bindings.bind(tv, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else if (tv.features == null && tv.features != null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
+      //## bindings.bind(tv, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else if (tv.features != null && tv.features == null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
+      //## bindings.bind(tv, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null /* dummy */, bindings);
+      //## bindings.bind(tv, v);
       if ((fr = this.features.joinList(tv.features, bindings)) != null) {
         v.features = fr.pack();
         r = PTypeSkel.JoinResult.create(v, fr.bindings);
