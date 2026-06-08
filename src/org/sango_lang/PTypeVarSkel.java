@@ -915,27 +915,14 @@ if (PTypeGraph.DEBUG > 1) {
   PTypeSkel.JoinResult join3AnonymAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
     PTypeSkel.JoinResult r;
     PFeatureSkel.JoinResult fr;
-    if (this.features == null && tv.features == null) {
-      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null, bindings);
-      //## bindings.bind(tv, v);
+    if (this.features == null || tv.features == null) {
+      PTypeVarSkel v = create(this.theCompiler, this.srcInfo, this.name, null, this.requiresConcrete | tv.requiresConcrete, null);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features == null && tv.features != null) {
-      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
-      //## bindings.bind(tv, v);
-      r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features != null && tv.features == null) {
-      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
-      //## bindings.bind(tv, v);
-      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else if ((fr = this.features.joinList(tv.features, bindings)) != null) {
+      PTypeVarSkel v = create(this.theCompiler, this.srcInfo, this.name, null, this.requiresConcrete | tv.requiresConcrete, fr.pack());
+      r = PTypeSkel.JoinResult.create(v, fr.bindings);
     } else {
-      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null /* dummy */, bindings);
-      //## bindings.bind(tv, v);
-      if ((fr = this.features.joinList(tv.features, bindings)) != null) {
-        v.features = fr.pack();
-        r = PTypeSkel.JoinResult.create(v, fr.bindings);
-      } else {
-        r = null;
-      }
+      r = null;
     }
     return r;
   }
