@@ -884,21 +884,58 @@ if (PTypeGraph.DEBUG > 1) {
     if (cat == PTypeSkel.CAT_BOTTOM) {
       r = PTypeSkel.JoinResult.create(this, bindings);
     } else if (cat == PTypeSkel.CAT_SOME) {
-      r = this.join3FreeSome((PTypeRefSkel)type, bindings);
+      r = this.join3AnonymSome((PTypeRefSkel)type, bindings);
     } else if (cat == PTypeSkel.CAT_VAR) {
       PTypeVarSkel tv2 = (PTypeVarSkel)type;
-      if (this.varSlot == tv2.varSlot)  {
-        r = PTypeSkel.JoinResult.create(this, bindings);
-      } else if (bindings.isGivenTVar(tv2))  {
-        r = this.join3FreeGiven(tv2, bindings);
+      if (bindings.isGivenTVar(tv2))  {
+        r = tv2.join3GivenAnonym(this, bindings);  // exchange
       } else {
-        r = this.join3FreeFree(tv2, bindings);
+        r = tv2.join3FreeAnonym(this, bindings);  // exchange
       }
     } else if (cat == PTypeSkel.CAT_ANVAR) {
       PTypeVarSkel tv2 = (PTypeVarSkel)type;
-      r = this.join3FreeAnonym(tv2, bindings);
+      r = this.join3AnonymAnonym(tv2, bindings);
     } else {
       throw new IllegalArgumentException("Unknown category. " + type.toString());
+    }
+    return r;
+  }
+
+  PTypeSkel.JoinResult join3AnonymSome(PTypeRefSkel tr, PTypeSkel.Bindings bindings) throws CompileException {
+    PTypeSkel.JoinResult r;
+    if (this.features != null && !this.features.acceptObj(tr, bindings)) {
+      r = null;
+    } else {
+      PTypeSkel.Bindings b = bindings.copy();
+      r = PTypeSkel.JoinResult.create(tr, b);
+    }
+    return r;
+  }
+
+  PTypeSkel.JoinResult join3AnonymAnonym(PTypeVarSkel tv, PTypeSkel.Bindings bindings) throws CompileException {
+    PTypeSkel.JoinResult r;
+    PFeatureSkel.JoinResult fr;
+    if (this.features == null && tv.features == null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null, bindings);
+      //## bindings.bind(tv, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else if (tv.features == null && tv.features != null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
+      //## bindings.bind(tv, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else if (tv.features != null && tv.features == null) {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
+      //## bindings.bind(tv, v);
+      r = PTypeSkel.JoinResult.create(v, bindings);
+    } else {
+      PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null /* dummy */, bindings);
+      //## bindings.bind(tv, v);
+      if ((fr = this.features.joinList(tv.features, bindings)) != null) {
+        v.features = fr.pack();
+        r = PTypeSkel.JoinResult.create(v, fr.bindings);
+      } else {
+        r = null;
+      }
     }
     return r;
   }
@@ -973,20 +1010,6 @@ if (PTypeGraph.DEBUG > 1) {
       throw new IllegalArgumentException("Unknown category. " + type.toString());
     }
     return r;
-
-    // if (type instanceof PTypeVarSkel) {
-      // PTypeVarSkel tv = (PTypeVarSkel)type;
-      // PTypeSkel t = tv.resolveBindings(bindings);
-      // if (t instanceof PTypeVarSkel) {
-        // PTypeVarSkel tv2 = (PTypeVarSkel)t;
-      // } else if (t instanceof PTypeRefSkel) {
-      // } else {
-      // }
-    // } else if (type instanceof PTypeRefSkel) {
-      // r = this.join3FreeSome((PTypeRefSkel)type, bindings);
-    // } else {
-      // throw new IllegalArgumentException("Unknown type. " + type.toString());
-    // }
   }
 
   PTypeSkel.JoinResult join3FreeGiven(PTypeVarSkel tv, PTypeSkel.Bindings bindings) {
