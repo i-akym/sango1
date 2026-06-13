@@ -100,7 +100,8 @@ public class PTypeVarSkel implements PTypeSkel {
   public boolean isLiteralNaked() { return false; }
 
   public boolean isConcrete() {
-    return (this.varSlot == null) || this.requiresConcrete;
+    return ((this.varSlot == null) || this.requiresConcrete)
+      && (this.features == null || this.features.isConcrete());
   }
 
   // public PTypeSkel extractAnyInconcreteVar(PTypeSkel type) {
