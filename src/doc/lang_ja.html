@@ -1531,12 +1531,13 @@ data &lt;*A *B map_impl&gt; @opaque :=
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="20.3">20.3. 使用</h2>
 <p>データ・フィーチャを持つデータを受け取る型は，型変数の後に<code>[ ]</code>で囲んでデータ・フィーチャを記述します<sup>*1</sup>。
-例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*2</sup>。
-データ・フィーチャ・オブジェクトを取得するには「<code>_feature_</code>データ・フィーチャ名」の関数を使用します<sup>*3</sup>。</p>
+例えば型変数として<code>T</code>を使えば，<code>&lt;*T[ A B a'map ]&gt;</code>とします<sup>*2</sup><sup>*3</sup>。
+データ・フィーチャ・オブジェクトを取得するには「<code>_feature_</code>データ・フィーチャ名」の関数を使用します<sup>*4</sup>。</p>
 
 <blockquote class="note">*1：複数のデータ・フィーチャを実装している場合は，データ・フィーチャをカンマ「<code>,</code>」でつなぎます。</blockquote>
 <blockquote class="note">*2：<code>A</code>，<code>B</code>も同時にここで宣言するなら<code>*A</code>，<code>*B</code>となります。</blockquote>
-<blockquote class="note">*3：この関数はデータ・フィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
+<blockquote class="note">*3：データ・フィーチャにのみ着目し，変数名を付けないこともできます（匿名変数）。その場合は「<code>**</code>」 に続き，データ・フィーチャを記述します。例：<code>&lt;**[ A B a'map ]&gt;</code></blockquote>
+<blockquote class="note">*4：この関数はデータ・フィーチャを宣言したモジュール内にコンパイラによって自動生成されています。
 この例では，データ・フィーチャの実装コードの中で使用しています。</blockquote>
 
 <blockquote class="code-sample"><code>import &quot;feature.map&quot; -&gt; map ;;
