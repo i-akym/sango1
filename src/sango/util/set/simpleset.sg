@@ -27,20 +27,21 @@ import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.set" -> set ;;
 
-data <*A d> :=
+data <*A set> @opaque :=
   eq_fs: <A eq_fs>
   col: <A list>
-  d$ ;;
+  set$
+++ set_fs -> [ A set.a'set ] ;;
 
-eval new_set @public -> <*A set.set> {
+eval new_set @public -> <*A set> {
   hard_eq_fs new_set
 } ;;
 
-eval <*A eq_fs> *Eq new_set_eq | new_set @public -> <A set.set> {
-  (Eq [] d$) set_fs set.combine
+eval <*A eq_fs> *Eq new_set_eq | new_set @public -> <A set> {
+  Eq [] set$
 } ;;
 
-eval set_fs -> <<*A d> A set.set_fs> {
+eval set_fs -> <<*A set> A set.set_fs> {
   empty?_f: ^empty?
   size_f: ^size
   get_f: ^get
@@ -55,18 +56,18 @@ eval set_fs -> <<*A d> A set.set_fs> {
   set.set_fs$
 } ;;
 
-eval <*A d> *Set_d empty? -> <bool> {
-  Set_d = *Eq *Col d$,
+eval <*A set> *Set empty? @public -> <bool> {
+  Set = *Eq *Col set$,
   Col list.empty?
 } ;;
 
-eval <*A d> *Set_d size -> <int> {
-  Set_d = *Eq *Col d$,
+eval <*A set> *Set size @public -> <int> {
+  Set = *Eq *Col set$,
   Col list.length
 } ;;
 
-eval <*A d> *Set_d <A> *Elem get -> <A maybe> {
-  Set_d = *Eq *Col d$,
+eval <*A set> *Set <A> *Elem get @public -> <A maybe> {
+  Set = *Eq *Col set$,
   Col &\ <A list> *Xs -> <A maybe> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? -> H value$
@@ -76,66 +77,65 @@ eval <*A d> *Set_d <A> *Elem get -> <A maybe> {
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem contain? -> <bool> {
-  Set_d Elem get >> something?
+eval <*A set> *Set <A> *Elem contain? @public -> <bool> {
+  Set Elem get >> something?
 } ;;
 
-eval <*A d> *Set_d <A> *Elem put -> <<A d> <A maybe> tuple> {
-  Set_d = *Eq *Col d$,
-  Col [] &\ <A list> *Xs <A list> *Nes -> <<A d> <A maybe> tuple> {
+eval <*A set> *Set <A> *Elem put @public -> <<A set> <A maybe> tuple> {
+  Set = *Eq *Col set$,
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A set> <A maybe> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? ->
-      (| col: ([ Elem ; T ] Nes list.append) :: Set_d d$,
+      (| col: ([ Elem ; T ] Nes list.append) :: Set set$,
          H value$ |)
     ; [ *H ; *T ] -> T [ H ; Nes ] &&
     ; [] ->
-      (| col: [ Elem ; Nes ] :: Set_d d$,
+      (| col: [ Elem ; Nes ] :: Set set$,
          none$ |)
     }
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem put_new -> <<A d> bool tuple> {
-  Set_d Elem contain? >> case {
-  ; true$ -> (| Set_d, false$ |)
-  ; ** -> (| Set_d Elem add, true$ |)
+eval <*A set> *Set <A> *Elem put_new @public -> <<A set> bool tuple> {
+  Set Elem contain? >> case {
+  ; true$ -> (| Set, false$ |)
+  ; ** -> (| Set Elem add, true$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem add -> <A d> {
-  Set_d Elem put = (| *Set_d', ** |),
-  Set_d'
+eval <*A set> *Set <A> *Elem add @public -> <A set> {
+  Set Elem put = (| *Set', ** |),
+  Set'
 } ;;
 
-eval <*A d> *Set_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
-  Set_d = *Eq *Col d$,
-  Col [] &\ <A list> *Xs <A list> *Nes -> <<A d> <A maybe> tuple> {
+eval <*A set> *Set <A> *Elem remove @public -> <<A set> <A maybe> tuple> {
+  Set = *Eq *Col set$,
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A set> <A maybe> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? ->
-      (| col: (T Nes list.append) :: Set_d d$,
+      (| col: (T Nes list.append) :: Set set$,
          H value$ |)
     ; [ *H ; *T ] -> T [ H ; Nes ] &&
     ; [] ->
-      (| col: Nes :: Set_d d$,
+      (| col: Nes :: Set set$,
          none$ |)
     }
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem delete -> <A d> {
-  Set_d Elem remove = (| *Set_d', ** |),
-  Set_d'
+eval <*A set> *Set <A> *Elem delete @public -> <A set> {
+  Set Elem remove = (| *Set', ** |),
+  Set'
 } ;;
 
-eval <*A d> *Set_d take -> <<A <A d> tuple> maybe> {
-  Set_d = *Eq *Col d$,
+eval <*A set> *Set take @public -> <<A <A set> tuple> maybe> {
+  Set = *Eq *Col set$,
   Col case {
-  ; [ *E ; *Col' ] -> (| E, col: Col' :: Set_d d$ |) value$
+  ; [ *E ; *Col' ] -> (| E, col: Col' :: Set set$ |) value$
   ; [] -> none$
   }
 } ;;
 
-eval <*A d> *Set_d clear -> <A d> {
-  col: [] :: Set_d d$
+eval <*A set> *Set clear @public -> <A set> {
+  col: [] :: Set set$
 } ;;
-

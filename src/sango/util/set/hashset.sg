@@ -28,21 +28,22 @@ import "sango.util.map" -> map ;;
 import "sango.util.set" -> set ;;
 import "sango.util.set.simpleset" -> sset ;;
 
-data <*A d> :=
+data <*A set> @opaque :=
   eq_fs: <A eq_fs>
   col: <int <A set.set> map.map>
   count: <int>
-  d$ ;;
+  set$
+++ set_fs -> [ A set.a'set ] ;;
 
 eval new_set @public -> <*A set.set> {
   hard_eq_fs new_set
 } ;;
 
 eval <*A eq_fs> *Eq new_set_eq | new_set @public -> <A set.set> {
-  (Eq (int_ord_fs avlmap.new_map) 0 d$) set_fs set.combine
+  Eq (int_ord_fs avlmap.new_map) 0 set$
 } ;;
 
-eval set_fs -> <<*A d> A set.set_fs> {
+eval set_fs @public -> <<*A set> A set.set_fs> {
   empty?_f: ^empty?
   size_f: ^size
   get_f: ^get
@@ -57,30 +58,30 @@ eval set_fs -> <<*A d> A set.set_fs> {
   set.set_fs$
 } ;;
 
-eval <*A d> *Set_d empty? -> <bool> {
-  Set_d = *Eq *Col *Count d$,
+eval <*A set> *Set empty? @public -> <bool> {
+  Set = *Eq *Col *Count set$,
   Count zero?
 } ;;
 
-eval <*A d> *Set_d size -> <int> {
-  Set_d = *Eq *Col *Count d$,
+eval <*A set> *Set size @public -> <int> {
+  Set = *Eq *Col *Count set$,
   Count
 } ;;
 
-eval <*A d> *Set_d <A> *Elem get -> <A maybe> {
-  Set_d = *Eq *Col *Count d$,
+eval <*A set> *Set <A> *Elem get @public -> <A maybe> {
+  Set = *Eq *Col *Count set$,
   Col (Elem &(Eq hash_f)) map.assoc >> case {
   ; *S value$ -> S Elem set.get
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem contain? -> <bool> {
-  Set_d Elem get >> something?
+eval <*A set> *Set <A> *Elem contain? @public -> <bool> {
+  Set Elem get >> something?
 } ;;
 
-eval <*A d> *Set_d <A> *Elem put -> <<A d> <A maybe> tuple> {
-  Set_d = *Eq *Col *Count d$,
+eval <*A set> *Set <A> *Elem put @public -> <<A set> <A maybe> tuple> {
+  Set = *Eq *Col *Count set$,
   Elem &(Eq hash_f) = *H,
   Col H map.assoc >> case {
   ; *S value$ ->
@@ -88,30 +89,30 @@ eval <*A d> *Set_d <A> *Elem put -> <<A d> <A maybe> tuple> {
     ; (| *S', none$ |) -> (| Col H S' map.add, Count inc, none$ |)
     ; (| *S', *R |) -> (| Col H S' map.add, Count, R |)
     } = (| *Col', *Count', *Replaced_ |),
-    (| col: Col' count: Count' :: Set_d d$, Replaced_ |)
+    (| col: Col' count: Count' :: Set set$, Replaced_ |)
   ; ** ->
     Eq sset.new_set = *S,
     S Elem set.add = *S',
     Col H S' map.add = *Col',
     Count inc = *Count',
-    (| col: Col' count: Count' :: Set_d d$, none$ |)
+    (| col: Col' count: Count' :: Set set$, none$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem put_new -> <<A d> bool tuple> {
-  Set_d Elem contain? >> case {
-  ; true$ -> (| Set_d, false$ |)
-  ; ** -> (| Set_d Elem add, true$ |)
+eval <*A set> *Set <A> *Elem put_new @public -> <<A set> bool tuple> {
+  Set Elem contain? >> case {
+  ; true$ -> (| Set, false$ |)
+  ; ** -> (| Set Elem add, true$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem add -> <A d> {
-  Set_d Elem put = (| *Set_d', ** |),
-  Set_d'
+eval <*A set> *Set <A> *Elem add @public -> <A set> {
+  Set Elem put = (| *Set', ** |),
+  Set'
 } ;;
 
-eval <*A d> *Set_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
-  Set_d = *Eq *Col *Count d$,
+eval <*A set> *Set <A> *Elem remove @public -> <<A set> <A maybe> tuple> {
+  Set = *Eq *Col *Count set$,
   Elem &(Eq hash_f) = *H,
   Col H map.assoc >> case {
   ; *S value$ ->
@@ -120,35 +121,35 @@ eval <*A d> *Set_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
     ; (| *S', *R |) || S' set.empty? -> (| Col H map.delete, Count dec, R |)
     ; (| *S', *R |) -> (| Col H S' map.add, Count dec, R |)
     } = (| *Col', *Count', *Removed_ |),
-    (| col: Col' count: Count' :: Set_d d$, Removed_ |)
-  ; ** -> (| Set_d, none$ |)
+    (| col: Col' count: Count' :: Set set$, Removed_ |)
+  ; ** -> (| Set, none$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem delete -> <A d> {
-  Set_d Elem remove = (| *Set_d', ** |),
-  Set_d'
+eval <*A set> *Set <A> *Elem delete @public -> <A set> {
+  Set Elem remove = (| *Set', ** |),
+  Set'
 } ;;
 
-eval <*A d> *Set_d take -> <<A <A d> tuple> maybe> {
-  Set_d = *Eq *Col *Count d$,
+eval <*A set> *Set take @public -> <<A <A set> tuple> maybe> {
+  Set = *Eq *Col *Count set$,
   Col map.take >> case {
   ; (| (| *H, *S |), *Col' |) value$ ->
     S set.take = (| *E, *S' |) value$,
     Count dec = *Count',
     S' set.empty? >> case {
     ; true$ ->
-      (| E, col: Col' count: Count' :: Set_d d$ |) value$
+      (| E, col: Col' count: Count' :: Set set$ |) value$
     ; ** ->
       Col' H S' map.add = *Col'',
-      (| E, col: Col'' count: Count' :: Set_d d$ |) value$
+      (| E, col: Col'' count: Count' :: Set set$ |) value$
     }
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Set_d clear -> <A d> {
-  Set_d = *Eq *Col *Count d$,
-  col: (Col map.clear) count: 0 :: Set_d d$
+eval <*A set> *Set clear @public -> <A set> {
+  Set = *Eq *Col *Count set$,
+  col: (Col map.clear) count: 0 :: Set set$
 } ;;
 
