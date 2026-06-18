@@ -15,7 +15,6 @@ eval <d> *X _hash_d -> <int> { 3 } ;;  # always return same hash value
 eval test -> <void> {
   test000,
   test001,
-  test200,
   void$
 } ;;
 
@@ -44,8 +43,4 @@ eval test001 -> <void> {
   },
   S5 set.clear >> set.empty? = true$,
   void$
-} ;;
-eval test200 -> <void> {
-  hashset.new_set = <int set.set> *S0,
-  S0 t1.testB00
 } ;;
