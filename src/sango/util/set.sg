@@ -122,17 +122,17 @@ eval <*T[ *A a'set ]> *Set iter @public -> <A iter> {
   Set Set_fs do_iter
 } ;;
 
-eval <*A set> *Set <A bool fun> *Filter filter | filter @public -> <A set> {
+eval <*T[ *A a'set ]> *Set <A bool fun> *Filter filter | filter @public -> <T> {
   (Set clear) ((Set iter) Filter iter.add_filter) add_iter
 } ;;
 
-eval <*A set> *Set0 <A set> *Set1 intersection @public -> <A set> {
+eval <*T[ *A a'set ]> *Set0 <*U[ A a'set ]> *Set1 intersection @public -> <T> {
   Set0 
   \ <A> *X -> <bool> { Set1 X contain? }
   filter
 } ;;
 
-eval <*A set> *Set0 <A set> *Set1 difference @public -> <A set> {
+eval <*T[ *A a'set ]> *Set0 <*U[ A a'set ]> *Set1 difference @public -> <T> {
   Set0
   \ <A> *X -> <bool> { Set1 X contain? >> not }
   filter
