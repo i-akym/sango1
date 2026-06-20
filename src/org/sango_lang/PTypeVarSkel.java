@@ -1135,6 +1135,9 @@ if (PTypeGraph.DEBUG > 1) {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+    if (this.features != null) {
+      this.features.excludeBareTVarAtRet(si, atRet, checked);
+    }
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {}
