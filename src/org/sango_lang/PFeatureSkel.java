@@ -144,6 +144,12 @@ public class PFeatureSkel {
     return b;
   }
 
+  void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
+    for (int i = 0; i < this.params.length; i++) {
+      this.params[i].excludeBareTVarAtRet(si, false, checked);  // atRet == false ok?
+    }
+  }
+
   // PTypeSkel extractAnyInconcreteVar(/* java.util.List<PTypeVarSlot> givenTVarList */) {
     // PTypeSkel t = null;
 // // TODO
@@ -386,6 +392,12 @@ public class PFeatureSkel {
         b = this.features[i].includesVar(varSlot, bindings);
       }
       return b;
+    }
+
+    void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
+      for (int i = 0; i < this.features.length; i++) {
+        this.features[i].excludeBareTVarAtRet(si, atRet, checked);
+      }
     }
 
     List resolveBindings(PTypeSkel.Bindings bindings) {
