@@ -1030,11 +1030,11 @@ if (PTypeGraph.DEBUG > 1) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null, bindings);
       bindings.bind(tv, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features == null && tv.features != null) {
+    } else if (this.features == null && tv.features != null) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
       bindings.bind(tv, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features != null && tv.features == null) {
+    } else if (this.features != null && tv.features == null) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
       bindings.bind(tv, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
@@ -1058,11 +1058,11 @@ if (PTypeGraph.DEBUG > 1) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, null, bindings);
       //## bindings.bind(tv, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features == null && tv.features != null) {
+    } else if (this.features == null && tv.features != null) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, tv.features, bindings);
       //## bindings.bind(tv, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
-    } else if (tv.features != null && tv.features == null) {
+    } else if (this.features != null && tv.features == null) {
       PTypeVarSkel v = this.cast(this.requiresConcrete | tv.requiresConcrete, this.features, bindings);
       //## bindings.bind(tv, v);
       r = PTypeSkel.JoinResult.create(v, bindings);
