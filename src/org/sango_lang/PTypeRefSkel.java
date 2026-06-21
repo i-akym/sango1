@@ -69,7 +69,8 @@ public class PTypeRefSkel implements PTypeSkel {
         }
       }
       PFeatureSkel f = dd.getFeatureImplAt(i).getImpl();
-      fs[i] = f.resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
+      fs[i] = f.resolveBindings(bindings);
+      // fs[i] = f.resolveBindings(bindings).instanciate(PTypeSkel.InstanciationContext.create(bindings));
     }
     this.features = PFeatureSkel.List.create(this.srcInfo, fs);
   }
