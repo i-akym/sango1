@@ -198,8 +198,9 @@ kbd {
   <a href="#sango.util.locale.1">生成</a>
   <a href="#sango.util.locale.2">デフォルト値</a>
 <a href="#sango.util.map"><code>sango.util.map</code></a>
-  <a href="#sango.util.map.1">フレームワーク</a>
-  <a href="#sango.util.map.2">実装者向け情報</a>
+  <a href="#sango.util.map.1">データ・フィーチャ</a>
+  <a href="#sango.util.map.2">フレームワーク</a>
+  <a href="#sango.util.map.3">実装者向け情報</a>
 <a href="#sango.util.map.hashmap"><code>sango.util.map.hashmap</code></a>
 <a href="#sango.util.map.shared"><code>sango.util.map.shared</code></a> 【Beta】
 <a href="#sango.util.map.shared.box"><code>sango.util.map.shared.box</code></a> 【Beta】
@@ -2978,10 +2979,29 @@ eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;<
 <h1 id="sango.util.avltree.map"><code>sango.util.avltree.map</code></h1>
 
 <p>AVL木によるマップの実装です。
-  キーは順序付け可能でなければなりません。</p>
+キーは順序付け可能でなければなりません。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @opaque
+++ [ A B map.a'map ] ;;</code></td></tr></table>
+<p>マップを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ord_fs&gt; *Ord new_map @public -&gt; &lt;A *B map&gt; ;;</code></td></tr></table>
 <p>空のマップを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;A B map&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;
+eval &lt;*A *B map&gt; *Map take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.map&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.queue"><code>sango.util.avltree.queue</code></h1>
@@ -3161,7 +3181,7 @@ eval &lt;*A set&gt; *Set clear @public -&gt; &lt;A set&gt; ;;</code></td></tr></
 ++ [ A a'col ] ;;</code></td></tr></table>
 <p>カプセル化されたコレクションオブジェクトを表します。
 &lt;A&gt;は要素の型です。
-<code>col</code>はを<code>a'col</code>データフィーチャを実装しています。</p>
+<code>col</code>はを<code>a'col</code>データ・フィーチャを実装しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A col&gt; *Col empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>コレクションが空かどうかを判定します。</p>
@@ -3415,84 +3435,95 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 それらを統一的に扱えるようにしたフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.map.1"><code>sango.util.map</code> - フレームワーク</h2>
+<h2 id="sango.util.map.1"><code>sango.util.map</code> - データ・フィーチャ</h2>
 
-<p>データと機能関数群をカプセル化しています。</p>
+<p>データ・フィーチャに関する定義です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @opaque
-++ [ A B &quot;sango.util.map.feature&quot;.a'map ] ;;</code></td></tr></table>
-<p>カプセル化されたマップオブジェクトを表します。
-<code><code>&lt;A&gt;</code>はキーの型，<code>&lt;B&gt;</code>は値の型です。
-<code>map</code>は<code>&quot;sango.util.map.feature&quot;.a'map</code>データ・フィーチャを実装しています。</p>
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A *B a'map ] @public -&gt; &lt;T A B map_fs&gt; ;;</td></tr></table>
+<p>マップのデータ・フィーチャを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A *B map_inc&gt; @protected :=
+  fx: &lt;T&gt;
+  fo: &lt;T A B map_fs&gt;
+  map_inc$
+++ [ &lt;A B tuple&gt; a'col ] ;;</td></tr></table>
+<p>化身を表します。
+化身は<code>&quot;sango.lang&quot;.a'col</code>データ・フィーチャを実装しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *FX incarnate @public -&gt; &lt;T A B map_inc&gt; ;;</td></tr></table>
+<p>化身に変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.map.2"><code>sango.util.map</code> - フレームワーク</h2>
+
+<p>振る舞いを定義しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A *B map&gt; @public := &lt;**[ A B a'map ]&gt; ;;</td></tr></table>
+<p>マップを表します。
+<code>a'map</code>データ・フィーチャを実装した任意の型を意味しています。
+<code>&lt;A&gt;</code>はキーの型，<code>&lt;B&gt;</code>は値の型です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>マップが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map size @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>マップの大きさ（キーと値のペアの数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キーと値のペアを返します。
 登録されていない場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;</code></td></tr></table>
 <p>キーに対する値を返します。
 登録されていない場合は<code>none$</code>が返ります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キーがマップに登録されているかどうか判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;T &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録します。
 処理後のマップとすでに登録されていた値が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;T bool tuple&gt; ;;</code></td></tr></table>
 <p>新しいキーと値のペアをマップに登録します。
 すでにキーが登録されている場合，マップは変化しません。
 処理後のマップとマップの更新有無が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップに登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key remove @public -&gt; &lt;T &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除します。
 処理後のマップと登録されていたペアが返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map take @public -&gt; &lt;&lt;&lt;A B tuple&gt; T tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>キーと値のペアをマップから一組取り出します。
 取り出されたペアと，残りのマップが返されます。
 マップが空の場合，<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map clear @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>マップを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map iter @public -&gt; &lt;&lt;A B tuple&gt; iter&gt; ;;</code></td></tr></table>
 <p>キーと値のペアを供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;&lt;A B tuple&gt; list&gt; *KVs add_list @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>リストに含まれるキーと値のペアを全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;&lt;A B tuple&gt; iter&gt; *Iter add_iter @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>イテレータが供給するキーと値のペアを全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A list&gt; *Ks delete_list @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A list&gt; *Ks delete_list @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>リストに含まれるキーを全て削除します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A *B a'map ]&gt; *Map &lt;A iter&gt; *Iter delete_iter @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>イテレータが供給するキーを全て削除します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.map.2"><code>sango.util.map</code> - 実装者向け情報</h2>
-
-<p>マップは，実装のための内部データと機能関数群からなります。
-内部データは，自由に定義することができます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A *B map_fs&gt; *Fs combine @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
-<p>マップを生成します。
-<code>Z</code>が内部データです。</p>
+<h2 id="sango.util.map.3"><code>sango.util.map</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A *B map_fs&gt; @public :=
   empty?_f: &lt;D bool fun&gt;
@@ -3534,15 +3565,35 @@ eval &lt;cstr&gt; *Language &lt;cstr&gt; *Country &lt;cstr&gt; *Variant
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.map.hashmap"><code>sango.util.map.hashmap</code></h1>
 
-<p>オブジェクトのハッシュ値を使用して，コレクション内部のキー探索を高速化したマップです。</p>
+<p>セットの一つの実装です。
+オブジェクトのハッシュ値を使用して，コレクション内部のキー探索を高速化したマップです。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval new_map @public -&gt; &lt;*A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
-<p>マップを生成します。
-  オブジェクトの等価比較以外でキーを比較する場合は，次の関数を使用します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @opaque
+++ [ A B &quot;sango.util.map&quot;.a'map ] ;;</code></td></tr></table>
+<p>マップを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval new_map @public -&gt; &lt;*A *B map&gt; ;;</code></td></tr></table>
 <p>マップを生成します。
-  <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
+オブジェクトの等価比較以外でキーを比較する場合は，次の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B map&gt; ;;</code></td></tr></table>
+<p>マップを生成します。
+<code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;A B map&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;
+eval &lt;*A *B map&gt; *Map take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.map&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.map.shared"><code>sango.util.map.shared</code> 【Beta】</h1>
@@ -3627,15 +3678,34 @@ eval &lt;*A! kt&gt; *Key_tab &lt;*B! &quot;sango.entity&quot;.entity_fs&gt; *Ent
 <h1 id="sango.util.map.simplemap"><code>sango.util.map.simplemap</code></h1>
 
 <p>簡易なマップの実装を提供します。
-  サイズに比例したアクセスコストがかかります。</p>
+サイズに比例したアクセスコストがかかります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval new_map @public -&gt; &lt;*A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
-<p>simple mapのオブジェクトを生成します。
-  オブジェクトの等価比較以外でキーを比較する場合は，次の関数を使用します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A *B map&gt; @opaque
+++ [ A B &quot;sango.util..map&quot;.a'map ] ;;</code></td></tr></table>
+<p>マップを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B &quot;sango.util.map&quot;.map&gt; ;;</code></td></tr></table>
-<p>simple mapのオブジェクトを生成します。
-  <code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
+<table border width="100%"><tr><td class="def"><code>eval new_map @public -&gt; &lt;*A *B map&gt; ;;</code></td></tr></table>
+<p>マップを生成します。
+オブジェクトの等価比較以外でキーを比較する場合は，次の関数を使用します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A eq_fs&gt; *Eq new_map_eq | new_map @public -&gt; &lt;A *B map&gt; ;;</code></td></tr></table>
+<p>マップを生成します。
+<code>Eq</code>にキーの等価比較を行う関数群を指定します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A *B map&gt; *Map empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map size @public -&gt; &lt;int&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key get @public -&gt; &lt;&lt;A B tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key assoc @public -&gt; &lt;B maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key contain_key? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value put_new @public -&gt; &lt;&lt;A B map&gt; bool tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key &lt;B&gt; *Value add @public -&gt; &lt;A B map&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key remove @public -&gt; &lt;&lt;A B map&gt; &lt;&lt;A B tuple&gt; maybe&gt; tuple&gt; ;;
+eval &lt;*A *B map&gt; *Map &lt;A&gt; *Key delete @public -&gt; &lt;A B map&gt; ;;
+eval &lt;*A *B map&gt; *Map take @public -&gt; &lt;&lt;&lt;A B tuple&gt; &lt;A B map&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A *B map&gt; *Map clear @public -&gt; &lt;A B map&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.map&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.ord.feature"><code>sango.util.ord.feature</code> 【Beta】</h1>
@@ -3935,7 +4005,7 @@ eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code>
   set_inc$
 ++ [ A a'col ] ;;</td></tr></table>
 <p>化身を表します。
-化身は<code>&quot;sango.lang&quot;.a'col</code>データフィーチャを実装しています。</p>
+化身は<code>&quot;sango.lang&quot;.a'col</code>データ・フィーチャを実装しています。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'set ]&gt; *FX incarnate @public -&gt; &lt;T A set_inc&gt; ;;</td></tr></table>
 <p>化身に変換します。</p>
