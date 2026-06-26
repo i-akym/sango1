@@ -30,12 +30,13 @@ import "sango.util.avltree.map" -> amap ;;
 import "sango.util.bag" -> bag ;;
 import "sango.util.map" -> map ;;
 
-data <*A d> :=
+data <*A bag> @opaque :=
   body: <A <A list> map.map>
   count: <int>
-  d$ ;;
+  bag$
+++ bag_fs -> [ A bag.a'bag ] ;;
 
-eval bag_fs -> <<*A d> A bag.bag_fs> {
+eval bag_fs -> <<*A bag> A bag.bag_fs> {
   empty?_f: ^empty?
   size_f: ^size
   contain?_f: ^contain?
@@ -50,87 +51,84 @@ eval bag_fs -> <<*A d> A bag.bag_fs> {
   bag.bag_fs$
 } ;;
 
-eval <*A ord_fs> *Ord new_bag @public -> <A bag.bag> {
-  body: (Ord amap.new_map)
-  count: 0
-  d$ = *Bag_d,
-  Bag_d bag_fs bag.combine
+eval <*A ord_fs> *Ord new_bag @public -> <A bag> {
+  body: (Ord amap.new_map) count: 0 bag$
 } ;;
 
-eval <*A d> *Bag_d empty? -> <bool> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag empty? @public -> <bool> {
+  Bag = body: *Map count: *Count bag$,
   Count zero?
 } ;;
 
-eval <*A d> *Bag_d size -> <int> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag size @public -> <int> {
+  Bag = body: *Map count: *Count bag$,
   Count
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem contain? -> <bool> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag <A> *Elem contain? @public -> <bool> {
+  Bag = body: *Map count: *Count bag$,
   Map Elem map.contain_key?
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem get_all -> <A list> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag <A> *Elem get_all @public -> <A list> {
+  Bag = body: *Map count: *Count bag$,
   Map Elem map.get >> case {
   ; (| *E, *Es |) value$ -> [ E ; Es ]
   ; ** -> []
   }
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem add -> <A d> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag <A> *Elem add @public -> <A bag> {
+  Bag = body: *Map count: *Count bag$,
   Map Elem map.remove >> case {
   ; (| *M, (| *E, *Es |) value$ |) -> M Elem [ E ; Es ] map.add
   ; (| *M, ** |) -> M Elem [] map.add
   } = *Map',
-  body: Map' count: (Count inc) d$
+  body: Map' count: (Count inc) bag$
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag <A> *Elem remove @public -> <<A bag> <A maybe> tuple> {
+  Bag = body: *Map count: *Count bag$,
   Map Elem map.remove >> case {
   ; (| *M, (| *E, [] |) value$ |) -> (| M, E value$, Count dec |)
   ; (| *M, (| *E, [ *EE ; *Es ] |) value$ |) -> (| M EE Es map.add, E value$, Count dec |)
   ; (| *M, ** |) -> (| M, none$, Count |)
   } = (| *Map', *Removed_, *Count' |),
-  (| body: Map' count: Count' d$, Removed_ |)
+  (| body: Map' count: Count' bag$, Removed_ |)
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem remove_all -> <<A d> <A list> tuple> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag <A> *Elem remove_all @public -> <<A bag> <A list> tuple> {
+  Bag = body: *Map count: *Count bag$,
   Map Elem map.remove >> case {
   ; (| *M, (| *E, *Es |) value$ |) -> (| M, [ E ; Es ], Count (Es list.length >> inc) diff |)
   ; (| *M, ** |) -> (| M, [], Count |)
   } = (| *Map', *Removed, *Count' |),
-  (| body: Map' count: Count' d$, Removed |)
+  (| body: Map' count: Count' bag$, Removed |)
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem delete -> <A d> {
-  Bag_d Elem remove >> tuple.pair_first
+eval <*A bag> *Bag <A> *Elem delete @public -> <A bag> {
+  Bag Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem delete_all -> <A d> {
-  Bag_d Elem remove_all >> tuple.pair_first
+eval <*A bag> *Bag <A> *Elem delete_all @public -> <A bag> {
+  Bag Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A d> *Bag_d take -> <<A <A d> tuple> maybe> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag take @public -> <<A <A bag> tuple> maybe> {
+  Bag = body: *Map count: *Count bag$,
   Map map.take >> case {
   ; (| (| *E, [] |), *M |) value$ ->
-    (| E, body: M count: (Count dec) d$ |) value$
+    (| E, body: M count: (Count dec) bag$ |) value$
   ; (| (| *E, [ *EE ; *Es ] |), *M |) value$ ->
     M EE Es map.add = *M',
-    (| E, body: M' count: (Count dec) d$ |) value$
+    (| E, body: M' count: (Count dec) bag$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Bag_d clear -> <A d> {
-  Bag_d = body: *Map count: *Count d$,
+eval <*A bag> *Bag clear @public -> <A bag> {
+  Bag = body: *Map count: *Count bag$,
   body: (Map map.clear)
   count: 0
-  d$
+  bag$
 } ;;

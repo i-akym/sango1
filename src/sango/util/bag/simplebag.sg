@@ -28,20 +28,21 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.bag" -> bag ;;
 import "sango.util.iter" -> iter ;;
 
-data <*A d> :=
+data <*A bag> @opaque :=
   eq_fs: <A eq_fs>
   col: <A list>
-  d$ ;;
+  bag$
+++ bag_fs -> [ A bag.a'bag ] ;;
 
-eval new_bag @public -> <*A bag.bag> {
+eval new_bag @public -> <*A bag> {
   hard_eq_fs new_bag
 } ;;
 
-eval <*A eq_fs> *Eq new_bag_eq | new_bag @public -> <A bag.bag> {
-  (Eq [] d$) bag_fs bag.combine
+eval <*A eq_fs> *Eq new_bag_eq | new_bag @public -> <A bag> {
+  Eq [] bag$
 } ;;
 
-eval bag_fs -> <<*A d> A bag.bag_fs> {
+eval bag_fs -> <<*A bag> A bag.bag_fs> {
   empty?_f: ^empty?
   size_f: ^size
   contain?_f: ^contain?
@@ -56,18 +57,18 @@ eval bag_fs -> <<*A d> A bag.bag_fs> {
   bag.bag_fs$
 } ;;
 
-eval <*A d> *Bag_d empty? -> <bool> {
-  Bag_d = col: *Col *** d$,
+eval <*A bag> *Bag empty? @public -> <bool> {
+  Bag = col: *Col *** bag$,
   Col list.empty?
 } ;;
 
-eval <*A d> *Bag_d size -> <int> {
-  Bag_d = col: *Col *** d$,
+eval <*A bag> *Bag size @public -> <int> {
+  Bag = col: *Col *** bag$,
   Col list.length
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem contain? -> <bool> {
-  Bag_d = *Eq *Col d$,
+eval <*A bag> *Bag <A> *Elem contain? @public -> <bool> {
+  Bag = *Eq *Col bag$,
   Col &\ <A list> *Xs -> <bool> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? -> true$
@@ -77,8 +78,8 @@ eval <*A d> *Bag_d <A> *Elem contain? -> <bool> {
   }
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem get_all -> <A list> {
-  Bag_d = *Eq *Col d$,
+eval <*A bag> *Bag <A> *Elem get_all @public -> <A list> {
+  Bag = *Eq *Col bag$,
   Col [] &\ <A list> *Xs <A list> *Found -> <A list> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? -> T [ H ; Found] &&
@@ -88,51 +89,50 @@ eval <*A d> *Bag_d <A> *Elem get_all -> <A list> {
   }
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem add -> <A d> {
-  Bag_d = col: *Col *** d$,
-  col: [ Elem ; Col] :: Bag_d d$
+eval <*A bag> *Bag <A> *Elem add @public -> <A bag> {
+  Bag = col: *Col *** bag$,
+  col: [ Elem ; Col] :: Bag bag$
 
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
-  Bag_d = *Eq *Col d$,
-  Col [] &\ <A list> *Xs <A list> *Nes -> <<A d> <A maybe> tuple> {
+eval <*A bag> *Bag <A> *Elem remove @public -> <<A bag> <A maybe> tuple> {
+  Bag = *Eq *Col bag$,
+  Col [] &\ <A list> *Xs <A list> *Nes -> <<A bag> <A maybe> tuple> {
     Xs case {
-    ; [ *H ; *T ] || H Elem Eq eq? -> (| col: (T Nes list.append) :: Bag_d d$, H value$ |)
+    ; [ *H ; *T ] || H Elem Eq eq? -> (| col: (T Nes list.append) :: Bag bag$, H value$ |)
     ; [ *H ; *T ] -> T [ H ; Nes ] &&
-    ; [] -> (| col: Nes :: Bag_d d$, none$ |)
+    ; [] -> (| col: Nes :: Bag bag$, none$ |)
     }
   }
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem remove_all -> <<A d> <A list> tuple> {
-  Bag_d = *Eq *Col d$,
-  Col [] [] &\ <A list> *Xs <A list> *Nes <A list> *Removed -> <<A d> <A list> tuple> {
+eval <*A bag> *Bag <A> *Elem remove_all @public -> <<A bag> <A list> tuple> {
+  Bag = *Eq *Col bag$,
+  Col [] [] &\ <A list> *Xs <A list> *Nes <A list> *Removed -> <<A bag> <A list> tuple> {
     Xs case {
     ; [ *H ; *T ] || H Elem Eq eq? -> T Nes [ H ; Removed] &&
     ; [ *H ; *T ] -> T [ H ; Nes ] Removed &&
-    ; [] -> (| col: Nes :: Bag_d d$, Removed |)
+    ; [] -> (| col: Nes :: Bag bag$, Removed |)
     }
   }
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem delete -> <A d> {
-  Bag_d Elem remove >> tuple.pair_first
+eval <*A bag> *Bag <A> *Elem delete @public -> <A bag> {
+  Bag Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A d> *Bag_d <A> *Elem delete_all -> <A d> {
-  Bag_d Elem remove_all >> tuple.pair_first
+eval <*A bag> *Bag <A> *Elem delete_all @public -> <A bag> {
+  Bag Elem remove_all >> tuple.pair_first
 } ;;
 
-eval <*A d> *Bag_d take -> <<A <A d> tuple> maybe> {
-  Bag_d = col: *Col *** d$,
+eval <*A bag> *Bag take @public -> <<A <A bag> tuple> maybe> {
+  Bag = col: *Col *** bag$,
   Col case {
-  ; [ *E ; *Col' ] -> (| E, col: Col' :: Bag_d d$ |) value$
+  ; [ *E ; *Col' ] -> (| E, col: Col' :: Bag bag$ |) value$
   ; [] -> none$
   }
 } ;;
 
-eval <*A d> *Bag_d clear -> <A d> {
-  col: [] :: Bag_d d$
+eval <*A bag> *Bag clear @public -> <A bag> {
+  col: [] :: Bag bag$
 } ;;
-
