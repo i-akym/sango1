@@ -243,8 +243,9 @@ kbd {
   <a href="#sango.util.shell.10">サブプロセス起動</a>
 <a href="#sango.util.sort"><code>sango.util.sort</code></a>
 <a href="#sango.util.stack"><code>sango.util.stack</code></a>
-  <a href="#sango.util.stack.1">フレームワーク</a>
-  <a href="#sango.util.stack.2">実装者向け情報</a>
+  <a href="#sango.util.stack.1">データ・フィーチャ</a>
+  <a href="#sango.util.stack.2">フレームワーク</a>
+  <a href="#sango.util.stack.3">実装者向け情報</a>
 <a href="#sango.util.stack.liststack"><code>sango.util.stack.liststack</code></a>
 </div>
 
@@ -4681,58 +4682,66 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
 それらを統一的に扱えるようにしたフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.stack.1"><code>sango.util.stack</code> - フレームワーク</h2>
+<h2 id="sango.util.stack.1"><code>sango.util.stack</code> - データ・フィーチャ</h2>
 
-<p>データと機能関数群をカプセル化しています。</p>
+<p>データ・フィーチャに関する定義です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A stack&gt; @opaque
-++ [ A &quot;sango.util.stack.feature&quot;.a'stack ] ;;</code></td></tr></table>
-<p>カプセル化されたスタックオブジェクトを表します。
-<code>&lt;A&gt;</code>は要素の型です。
-<code>stack</code>は<code>&quot;sango.util.stack.feature&quot;.a'stack</code>データ・フィーチャを実装しています。</p>
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A a'stack ] @public -&gt; &lt;T A stack_fs&gt; ;;</td></tr></table>
+<p>スタックのデータ・フィーチャを表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A stack_inc&gt; @protected :=
+  fx: &lt;T&gt;
+  fo: &lt;T A stack_fs&gt;
+  stack_inc$
+++ [ A a'col ] ;;</td></tr></table>
+<p>化身を表します。
+化身は<code>&quot;sango.lang&quot;.a'col</code>データ・フィーチャを実装しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *FX incarnate @public -&gt; &lt;T A stack_inc&gt; ;;</td></tr></table>
+<p>化身に変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.stack.2"><code>sango.util.stack</code> - フレームワーク</h2>
+
+<p>振る舞いを定義しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A stack ]&gt; @public := &lt;**[ A a'stack ]&gt; ;;</td></tr></table>
+<p>スタックを表します。
+<code>a'stack</code>データ・フィーチャを実装した任意の型を意味しています。
+<code>&lt;A&gt;</code>は要素の型です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>スタックが空かどうかを判定します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack depth @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>スタックの深さ（値の数）を返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem push @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack &lt;A&gt; *Elem push @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>値をスタックに登録します。
 登録された値はスタックの一番上に位置づけられます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack top @public -&gt; &lt;A maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を返します。
 スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack pop @public -&gt; &lt;&lt;A T tuple&gt; maybe&gt; ;;</code></td></tr></table>
 <p>スタックの一番上の値を取り出し，残りのスタックと共に返します。
 スタックが空の場合は<code>none$</code>が返されます。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
-<p>スタックをリストに変換します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack clear @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>スタックを空にします。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>要素をスタックの上から順に供給するイテレータを返します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A list&gt; *Elems push_list @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack &lt;A list&gt; *Elems push_list @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>リストに含まれる値を全て登録します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack &lt;A iter&gt; *Iter push_iter @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'stack ]&gt; *Stack &lt;A iter&gt; *Iter push_iter @public -&gt; &lt;T&gt; ;;</code></td></tr></table>
 <p>イテレータが供給する値を全て登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.stack.2"><code>sango.util.stack</code> - 実装者向け情報</h2>
-
-<p>スタックは，実装のための内部データと機能関数群からなります。
-内部データは，自由に定義することができます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A stack_fs&gt; *Fs combine @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
-<p>スタックを生成します。
-<code>Z</code>が内部データです。</p>
+<h2 id="sango.util.stack.3"><code>sango.util.stack</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A stack_fs&gt; @public :=
   empty?_f: &lt;D bool fun&gt;
@@ -4740,25 +4749,37 @@ eval &lt;*A string&gt; *Str &lt;A ord_fs&gt; *Ord sort_string | sort @public -&g
   push_f: &lt;D A D fun&gt;
   top_f: &lt;D &lt;A maybe&gt; fun&gt;
   pop_f: &lt;D &lt;&lt;A D tuple&gt; maybe&gt; fun&gt;
-  to_list_f_: &lt;&lt;D &lt;A list&gt; fun&gt; maybe&gt;
   clear_f: &lt;D D fun&gt;
   stack_fs$ ;;</code></td></tr></table>
 <p>機能関数群を表します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D *A stack_fs&gt; *Fs stack_fs_to_list_f | to_list_f @public -&gt; &lt;D &lt;A list&gt; fun&gt; ;;</code></td></tr></table>
-<p>リストに変換する関数を返します。</p>
-
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.stack.liststack"><code>sango.util.stack.liststack</code></h1>
 
-<p>リストをスタックのフレームワークで使用できるようラップしたオブジェクトを提供します。
-  リストとの相互変換を低コストで行います。</p>
+<p>スタックの一つの実装です。
+リストとの相互変換を低コストで行います。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval new_stack @public -&gt; &lt;*A &quot;sango.util.stack&quot;.stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A stack&gt; @opaque
+++ [ A stack.a'stack ] ;;</code></td></tr></table>
+<p>スタックを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_stack @public -&gt; &lt;*A stack&gt; ;;</code></td></tr></table>
 <p>空のスタックを生成します。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *L to_stack @public -&gt; &lt;A &quot;sango.util.stack&quot;.stack&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *L to_stack @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
 <p>リストをスタックに変換します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A stack&gt; *Stack depth @public -&gt; &lt;int&gt; ;;
+eval &lt;*A stack&gt; *Stack &lt;A&gt; *Elem push @public -&gt; &lt;A stack&gt; ;;
+eval &lt;*A stack&gt; *Stack top @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A stack&gt; *Stack pop @public -&gt; &lt;&lt;A &lt;A stack&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A stack&gt; *Stack clear @public -&gt; &lt;A stack&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.stack&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A stack&gt; *Stack to_list @public -&gt; &lt;A list&gt; ;;</code></td></tr></table>
+<p>リストに変換します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 

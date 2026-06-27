@@ -6,7 +6,7 @@ import "sango.system.runtime" -> runtime ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.stack" -> stack ;;
 import "sango.util.stack.liststack" -> liststack ;;
-import "testlib..stack.1" -> t1 ;;
+import "testlib.stack.1" -> t1 ;;
 
 eval _main_ -> <void> {
   test
@@ -15,6 +15,7 @@ eval _main_ -> <void> {
 eval test -> <void> {
   test000,
   test100,
+  test200,
   void$
 } ;;
 eval test000 -> <void> {
@@ -23,4 +24,9 @@ eval test000 -> <void> {
 eval test100 -> <void> {
   liststack.new_stack = <int stack.stack> *S,
   S t1.testB00
+} ;;
+eval test200 -> <void> {
+  [ 1, 2, 3 ] liststack.to_stack = *S,
+  S liststack.to_list = [ 1, 2, 3 ],
+  void$
 } ;;
