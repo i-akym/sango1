@@ -26,62 +26,62 @@ module "sango.util.stack.liststack" ;;
 import "sango.list" -> list ;;
 import "sango.util.stack" -> stack ;;
 
-data <*A d> :=
+data <*A stack> @opaque :=
   <A list>
-  d$ ;;
+  stack$
+++ stack_fs -> [ A stack.a'stack ] ;;
 
-eval new_stack @public -> <*A stack.stack> {
+eval new_stack @public -> <*A stack> {
   [] to_stack
 } ;;
 
-eval <*A list> *Elems to_stack @public -> <A stack.stack> {
-  (Elems d$) stack_fs stack.combine
+eval <*A list> *Elems to_stack @public -> <A stack> {
+  Elems stack$
 } ;;
 
-eval stack_fs -> <<*A d> A stack.stack_fs> {
+eval stack_fs -> <<*A stack> A stack.stack_fs> {
   empty?_f: ^empty?
   depth_f: ^depth
   push_f: ^push
   top_f: ^top
   pop_f: ^pop
-  to_list_f_: (^to_list value$)
   clear_f: ^clear
   stack.stack_fs$
 } ;;
 
-eval <*A d> *Stack_d empty? -> <bool> {
-  Stack_d = *Elems d$,
+eval <*A stack> *Stack empty? @public -> <bool> {
+  Stack = *Elems stack$,
   Elems list.empty?
 } ;;
 
-eval <*A d> *Stack_d depth -> <int> {
-  Stack_d = *Elems d$,
+eval <*A stack> *Stack depth @public -> <int> {
+  Stack = *Elems stack$,
   Elems list.length
 } ;;
 
-eval <*A d> *Stack_d <A> *Elem push -> <A d> {
-  Stack_d = *Elems d$,
-  [ Elem ; Elems ] d$
+eval <*A stack> *Stack <A> *Elem push @public -> <A stack> {
+  Stack = *Elems stack$,
+  [ Elem ; Elems ] stack$
 } ;;
 
-eval <*A d> *Stack_d top -> <A maybe> {
-  Stack_d = *Elems d$,
+eval <*A stack> *Stack top @public -> <A maybe> {
+  Stack = *Elems stack$,
   Elems list.head
 } ;;
 
-eval <*A d> *Stack_d pop -> <<A <A d> tuple> maybe> {
-  Stack_d = *Elems d$,
+eval <*A stack> *Stack pop @public -> <<A <A stack> tuple> maybe> {
+  Stack = *Elems stack$,
   Elems case {
-  ; [ *Top ; *Others ] -> (| Top, Others d$ |) value$
+  ; [ *Top ; *Others ] -> (| Top, Others stack$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Stack_d to_list -> <A list> {
-  Stack_d = *Elems d$,
-  Elems
+eval <*A stack> *Stack clear @public -> <A stack> {
+  [] stack$
 } ;;
 
-eval <*A d> *Stack_d clear -> <A d> {
-  [] d$
+eval <*A stack> *Stack to_list @public -> <A list> {
+  Stack = *Elems stack$,
+  Elems
 } ;;
