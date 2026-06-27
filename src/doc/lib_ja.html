@@ -213,8 +213,9 @@ kbd {
   <a href="#sango.util.ord.feature.2">化身</a>
 <a href="#sango.util.prop"><code>sango.util.prop</code></a> 【Alpha】
 <a href="#sango.util.queue"><code>sango.util.queue</code></a>
-  <a href="#sango.util.queue.1">フレームワーク</a>
-  <a href="#sango.util.queue.2">実装者向け情報</a>
+  <a href="#sango.util.queue.1">データ・フィーチャ</a>
+  <a href="#sango.util.queue.2">フレームワーク</a>
+  <a href="#sango.util.queue.3">実装者向け情報</a>
 <a href="#sango.util.queue.simplequeue"><code>sango.util.queue.simplequeue</code></a>
 <a href="#sango.util.ralist"><code>sango.util.ralist</code></a>
   <a href="#sango.util.ralist.1">フレームワーク</a>
@@ -3027,8 +3028,20 @@ eval &lt;*A *B map&gt; *Map clear @public -&gt; &lt;A B map&gt; ;;</code></td></
 
 <p>AVL木によるキューの実装です。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval new_queue -&gt; &lt;*A &quot;sango.util.queue&quot;.queue&gt; ;;</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @opaque
+++ [ A &quot;sango.util.queue&quot;.a'queue ] ;;</code></td></tr></table>
+<p>キューを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_queue -&gt; &lt;*A queue&gt; ;;</code></td></tr></table>
 <p>空のキューを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue length @public -&gt; &lt;int&gt; ;;
+eval &lt;*A queue&gt; *Queue &lt;A&gt; *Elem enqueue @public -&gt; &lt;A queue&gt; ;;
+eval &lt;*A queue&gt; *Queue head @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A queue&gt; *Queue dequeue @public -&gt; &lt;&lt;A &lt;A queue&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A queue&gt; *Queue clear @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.queue&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.ralist"><code>sango.util.avltree.ralist</code></h1>
@@ -3807,15 +3820,33 @@ eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code>
 それらを統一的に扱えるようにしたフレームワークを提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.queue.1"><code>sango.util.queue</code> - フレームワーク</h2>
+<h2 id="sango.util.queue.1"><code>sango.util.queue</code> - データ・フィーチャ</h2>
 
-<p>データと機能関数群をカプセル化しています。</p>
+<p>データ・フィーチャに関する定義です。</p>
 
-<table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @opaque
-++ [ A &quot;sango.util.queue.feature&quot;.a'queue ] ;;</code></td></tr></table>
-<p>カプセル化されたキューオブジェクトを表します。
-<code>&lt;A&gt;</code>は要素の型です。
-<code>queue</code>は<code>&quot;sango.util.queue.feature&quot;.a'queue</code>データ・フィーチャを実装しています。</p>
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A a'queue ] @public -&gt; &lt;T A queue_fs&gt; ;;</td></tr></table>
+<p>キューのデータ・フィーチャを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A queue_inc&gt; @protected :=
+  fx: &lt;T&gt;
+  fo: &lt;T A queue_fs&gt;
+  queue_inc$
+++ [ A a'col ] ;;</td></tr></table>
+<p>化身を表します。
+化身は<code>&quot;sango.lang&quot;.a'col</code>データ・フィーチャを実装しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'queue ]&gt; *FX incarnate @public -&gt; &lt;T A queue_inc&gt; ;;</td></tr></table>
+<p>化身に変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.queue.2"><code>sango.util.queue</code> - フレームワーク</h2>
+
+<p>振る舞いを定義しています。</p>
+
+<table border width="100%"><tr><td class="def"><code>alias type &lt;*A queue&gt; @public := &lt;**[ A a'queue ]&gt; ;;</td></tr></table>
+<p>キューを表します。
+<code>a'queue</code>データ・フィーチャを実装した任意の型を意味しています。
+<code>&lt;A&gt;</code>は要素の型です。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue empty? @public -&gt; &lt;bool&gt; ;;</code></td></tr></table>
 <p>キューが空かどうかを判定します。</p>
@@ -3848,14 +3879,7 @@ eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code>
 <p>イテレータが供給する値を順に登録します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.queue.2"><code>sango.util.queue</code> - 実装者向け情報</h2>
-
-<p>キューは，実装のための内部データと機能関数群からなります。
-内部データは，自由に定義することができます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A queue_fs&gt; *Fs combine @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
-<p>キューを生成します。
-<code>Z</code>が内部データです。</p>
+<h2 id="sango.util.queue.3"><code>sango.util.queue</code> - 実装者向け情報</h2>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A queue_fs&gt; @public :=
   empty?_f: &lt;D bool fun&gt;
@@ -3870,10 +3894,23 @@ eval &lt;*T[ a'ord ]&gt; *FX incarnate @public -&gt; &lt;T ord_inc&gt; ;;</code>
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.queue.simplequeue"><code>sango.util.queue.simplequeue</code></h1>
 
-<p>簡易なキューの実装を提供します。長さに比例したアクセスコストがかかることがあります。</p>
+<p>簡易なキューの実装を提供します。
+長さに比例したアクセスコストがかかることがあります。</p>
 
-<table border width="100%"><tr><td class="def"><code>eval new_queue @public -&gt; &lt;*A &quot;sango.util.queue&quot;.queue&gt; ;;</code></td></tr></table>
-<p>simple queueのオブジェクトを生成します。</p>
+<table border width="100%"><tr><td class="def"><code>data &lt;*A queue&gt; @opaque
+++ [ A &quot;sango.util.queue&quot;.a'queue ] ;;</code></td></tr></table>
+<p>キューを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval new_queue @public -&gt; &lt;*A queue&gt; ;;</code></td></tr></table>
+<p>空のキューをを生成します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A queue&gt; *Queue length @public -&gt; &lt;int&gt; ;;
+eval &lt;*A queue&gt; *Queue &lt;A&gt; *Elem enqueue @public -&gt; &lt;A queue&gt; ;;
+eval &lt;*A queue&gt; *Queue head @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A queue&gt; *Queue dequeue @public -&gt; &lt;&lt;A &lt;A queue&gt; tuple&gt; maybe&gt; ;;
+eval &lt;*A queue&gt; *Queue clear @public -&gt; &lt;A queue&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.queue&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.ralist"><code>sango.util.ralist</code></h1>
