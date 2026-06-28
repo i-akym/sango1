@@ -26,9 +26,10 @@ module "sango.util.avltree.ralist" ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.ralist" -> ral ;;
 
-data <*A d> :=
+data <*A ralist> @opaque :=
   body: <A avl.tree>
-  d$ ;;
+  ralist$
+++ ralist_fs -> [ A ral.a'ralist ] ;;
 
 eval <int> *Index find_locator -> <<*A avl.node> <A avl.locate> fun> {
   \ <*AA avl.node> *N -> <AA avl.locate> { 
@@ -52,10 +53,10 @@ eval <int> *Index insert_locator -> <<*A avl.node> <A avl.locate> fun> {
 } ;;
 
 eval new_ralist @public -> <*A ral.ralist> {
-  (body: avl.new_tree d$) ralist_fs ral.combine
+  body: avl.new_tree ralist$
 } ;;
 
-eval ralist_fs -> <<*A d> A ral.ralist_fs> {
+eval ralist_fs -> <<*A ralist> A ral.ralist_fs> {
   empty?_f: ^empty?
   length_f: ^length
   elem_f: ^elem
@@ -72,37 +73,37 @@ eval ralist_fs -> <<*A d> A ral.ralist_fs> {
   ral.ralist_fs$
 } ;;
 
-eval <*A d> *D empty? -> <bool> {
-  D length >> zero?
+eval <*A ralist> *Ralist empty? -> <bool> {
+  Ralist length >> zero?
 } ;;
 
-eval <*A d> *D length -> <int> {
-  D = body: *Body *** d$,
+eval <*A ralist> *Ralist length -> <int> {
+  Ralist = body: *Body *** ralist$,
   Body avl.size
 } ;;
 
-eval <*A d> *D <int> *Index elem -> <A maybe> {
-  D = body: *Body *** d$,
+eval <*A ralist> *Ralist <int> *Index elem -> <A maybe> {
+  Ralist = body: *Body *** ralist$,
   Body (Index find_locator) avl.get >> case {
   ; *Y avl.get_done$ -> Y value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *D <int> *Index <A> *X insert_at -> <A d> {
-  D = body: *Body *** d$,
+eval <*A ralist> *Ralist <int> *Index <A> *X insert_at -> <A ralist> {
+  Ralist = body: *Body *** ralist$,
   Body (Index insert_locator) X avl.put = *Body' avl.put_new_done$,
-  body: Body' :: D d$
+  body: Body' :: Ralist ralist$
 } ;;
 
-eval <*A d> *D <int> *Index remove_at -> <<A d> <A maybe> tuple> {
-  D = body: *Body *** d$,
+eval <*A ralist> *Ralist <int> *Index remove_at -> <<A ralist> <A maybe> tuple> {
+  Ralist = body: *Body *** ralist$,
   Body (Index find_locator) avl.remove >> case {
-  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: D d$, Removed value$ |)
-  ; ** -> (| D, none$ |)
+  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Ralist ralist$, Removed value$ |)
+  ; ** -> (| Ralist, none$ |)
   }
 } ;;
 
-eval <*A d> *D clear -> <A d> {
-  body: avl.new_tree d$
+eval <*A ralist> *Ralist clear -> <A ralist> {
+  body: avl.new_tree ralist$
 } ;;
