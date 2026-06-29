@@ -27,7 +27,7 @@ import "sango.char" -> char ;;
 import "sango.string" -> str ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.locale" -> loc ;;
-import "sango.util.ord.feature" -> ordf ;;
+import "sango.util.ord" -> ord ;;
 
 data <line> @public := line_text: <cstr> line_term: <cstr> line$ ;;
 
@@ -150,7 +150,7 @@ eval <cstr> *S <cstr> *Seq <cstr> *New replace_all_cstr @public -> <cstr> {
 } ;;
 
 eval <cstr> *S0 <cstr> *S1 compare @public -> <ordering> {
-  (S0 char_ord_fs str.ord_string$) (S1 char_ord_fs str.ord_string$) ordf.compare
+  (S0 char_ord_fs str.ord_string$) (S1 char_ord_fs str.ord_string$) ord.compare
 } ;;
 
 eval <cstr> *S0 <cstr> *S1 eq? @public -> <bool> {
