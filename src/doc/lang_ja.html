@@ -1616,14 +1616,14 @@ eval &lt;*D *A *B map_fs&gt; *Fs map_fs_to_col_fs | to_col_fs @public -&gt; &lt;
 eval &lt;*T[ *A *B a'map ] *FX incarnate @public -&gt; &lt;T A B map_inc&gt; ;;
 </code></blockquote>
 <blockquote class="code-sample">化身型の使用
-<code>import &quot;sango.util.col.feature&quot; -&gt; colf ;;
+<code>import &quot;sango.util.col&quot; -&gt; col ;;
 eval &lt;*T[ int cstr map.a'map ]&gt; *M f -&gt; &lt;void&gt; {
   # M = {}
   M 2 &quot;two&quot; map.add = *M1,  # M1 = { (2,&quot;two&quot;) }
   ...
   M1 map.incarnate = *M1_inc,
-  M1_inc colf.size = 1,
-  M1_inc colf.iter = *M1_inc_iter,
+  M1_inc col.size = 1,
+  M1_inc col.iter = *M1_inc_iter,
   M1_inc_iter next = (| (| 2, &quot;two&quot; |), ** |) value$,
   void$
 } ;;</code></blockquote>
@@ -2427,6 +2427,7 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【非互換】ランダム・アクセス・リストの定義を，データ・フィーチャによるものに変更。<code>&quot;sango.util.ralist.feature&quot;</code>を削除。<code>&quot;sango.util.ralist&quot;.combine</code>を削除。</li>
 <li>【Beta，非互換】<code>&quot;sango.util.eq.feature&quot;</code>を<code>&quot;sango.util.eq&quot;</code>に変更</li>
 <li>【Beta，非互換】<code>&quot;sango.util.ord.feature&quot;</code>を<code>&quot;sango.util.ord&quot;</code>に変更</li>
+<li>【Beta，非互換】<code>&quot;sango.util.col.feature&quot;</code>を<code>&quot;sango.util.col&quot;</code>に統合</li>
 <li>【Deprecated】<code>&quot;sango.lang&quot;._0</code>，<code>_1</code>，<code>_2</code>，<code>_3</code>，<code>_4</code>，<code>_5</code></li>
 </ul>
 
