@@ -187,11 +187,11 @@ kbd {
   <a href="#sango.util.eq.1">等価判定</a>
   <a href="#sango.util.eq.2">化身</a>
 <a href="#sango.util.iter"><code>sango.util.iter</code></a>
-  <a href="#sango.util.iter.1">定数の供給</a>
-  <a href="#sango.util.iter.2">連結</a>
-  <a href="#sango.util.iter.3">変形</a>
-  <a href="#sango.util.iter.4">要素処理</a>
-<a href="#sango.util.iter.feature"><code>sango.util.iter.feature</code></a> 【Beta】
+  <a href="#sango.util.iter.1">データ・フィーチャ</a>
+  <a href="#sango.util.iter.2">定数の供給</a>
+  <a href="#sango.util.iter.3">連結</a>
+  <a href="#sango.util.iter.4">変形</a>
+  <a href="#sango.util.iter.5">要素処理</a>
   <a href="#sango.util.iter.feature.1">化身</a>
 <a href="#sango.util.locale"><code>sango.util.locale</code></a> 【Alpha】
   <a href="#sango.util.locale.1">生成</a>
@@ -3401,15 +3401,26 @@ eval &lt;*T[ a'eq ]&gt; *FX incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></
 <p>イテレータに関する各種機能を提供します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.1"><code>sango.util.iter</code> - 定数の供給</h2>
+<h2 id="sango.util.iter.1"><code>sango.util.iter</code> - データ・フィーチャ</h2>
 
-<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *K const_iter @public -&gt; &lt;A iter&gt; ;;
-</code></td></tr></table>
+<table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
+  fx: &lt;T&gt;
+  fo: &lt;T &lt;A iter&gt; fun&gt;
+  iter_inc$ ;;</code></td></tr></table>
+<p><code>a'iter</code>データ・フィーチャの化身型です。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ *A a'iter ]&gt; *FX incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
+<p>化身型に変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.util.iter.2"><code>sango.util.iter</code> - 定数の供給</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *K const_iter @public -&gt; &lt;A iter&gt; ;;</code></td></tr></table>
 <p>定数<code>X</code>を供給し続けるイテレータを返します。
 限りなく値を生成しますので，生成関数を呼び出す側で停止する場合のみに使用してください 。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.2"><code>sango.util.iter</code> - 連結</h2>
+<h2 id="sango.util.iter.3"><code>sango.util.iter</code> - 連結</h2>
 
 <p>複数のイテレータを連結します。</p>
 
@@ -3417,7 +3428,7 @@ eval &lt;*T[ a'eq ]&gt; *FX incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></
 <p>リストに含まれる順にイテレータを連結して，一つのイテレータを生成します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.3"><code>sango.util.iter</code> - 変形</h2>
+<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 変形</h2>
 
 <p>イテレータを変形します。</p>
 
@@ -3436,26 +3447,11 @@ eval &lt;*T[ a'eq ]&gt; *FX incarnate @public -&gt; &lt;T eq_inc&gt; ;;</code></
 <code>I</code>が生成した値に対して<code>W</code>が<code>false$</code>を返すと生成を終了します（全体が<code>none$</code>を返します）。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.4"><code>sango.util.iter</code> - 要素処理</h2>
+<h2 id="sango.util.iter.5"><code>sango.util.iter</code> - 要素処理</h2>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A&gt; *X &lt;*B iter&gt; *I &lt;A B A fun&gt; *F fold @public -&gt; &lt;A&gt; ;;</code></td></tr></table>
 <p><code>I</code>から供給される値を<code><var>Y<sub>0</sub></var></code>，<code><var>Y<sub>1</sub></var></code>，<code><var>Y<sub>2</sub></var></code>，...とするとき，<code>(((X <var>Y<sub>0</sub></var> &amp;F) <var>Y<sub>1</sub></var> &amp;F) <var>Y<sub>2</sub></var> &amp;F)...</code>の結果を返します。
 この関数名は，<code>&quot;sango.list&quot;.fold</code>に由来します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.util.iter.feature"><code>sango.util.iter.feature</code> 【Beta】</h1>
-
-<p><code>a'iter</code>データ・フィーチャに関する各種機能を提供します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.util.iter.feature.1"><code>sango.util.iter.feature</code> - 化身</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*T *A iter_inc&gt; @protected :=
-  fx: &lt;T&gt;
-  fo: &lt;T &lt;A iter&gt; fun&gt;
-  iter_inc$ ;;
-eval &lt;*T[ *A a'iter ]&gt; *FX incarnate @public -&gt; &lt;T A iter_inc&gt; ;;</code></td></tr></table>
-<p><code>a'iter</code>データ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.locale"><code>sango.util.locale</code> 【Alpha】</h1>
