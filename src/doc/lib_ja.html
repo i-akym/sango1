@@ -97,10 +97,8 @@ kbd {
   <a href="#sango.debug.2">アサーション</a>
   <a href="#sango.debug.3">例外情報</a>
 <a href="#sango.entity"><code>sango.entity</code></a>
-  <a href="#sango.entity.1">実体機能</a>
-<a href="#sango.entity.feature"><code>sango.entity.feature</code></a> 【Beta】
-  <a href="#sango.entity.feature.1">データ・フィーチャ</a>
-  <a href="#sango.entity.feature.2">化身</a>
+  <a href="#sango.entity.1">データ・フィーチャ</a>
+  <a href="#sango.entity.2">実体機能</a>
 <a href="#sango.entity.box"><code>sango.entity.box</code></a>
   <a href="#sango.entity.box.1">ボックス</a>
   <a href="#sango.entity.box.2">弱参照</a>
@@ -1516,12 +1514,32 @@ eval &lt;cstr&gt; *S0 &lt;cstr&gt; *S1 ge? @public -&gt; &lt;bool&gt; ;;</code><
 
 <p>「実体」（entity）に関する定義・機能を提供します。</p>
 
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.1"><code>sango.entity</code> - 実体機能</h2>
-
 <p>実体は「存在」(existence)にデータが関連づけられているものです。
 実体から存在を取り出すことを「undress」，存在をもとに実体を再構築することを「redress」と呼びます。
 実体を抽象的に扱う場合に，undress，redressが必要となることがあります。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.1"><code>sango.entity</code> - データ・フィーチャ</h2>
+
+<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'entity ] @public -&gt; &lt;T entity_fs&gt; ;;</code></td></tr></table>
+<p>実体であることを表します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'entity ]&gt; *Entity undress @public -&gt; &lt;&quot;sango.entity.existence&quot;.existence &lt;T redress_f&gt; tuple&gt; ;;</code></td></tr></table>
+<p>undressします。</p>
+
+<table border width="100%"><tr><td class="def"><code>data &lt;*T entity_inc&gt; @protected :=
+  fx: &lt;T&gt;
+  fo: &lt;T entity_fs&gt;
+  entity_inc$
+++ [ &quot;sango.unique&quot;.a'unique ]  ;;</code></td></tr></table>
+<p>化身型を表します。
+化身型は，<code>&quot;sango.unique&quot;.a'unique</code>データ・フィーチャを実装します。</p>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
+<p>化身型に変換します。</p>
+
+<p class="toc-ref"><a href="#toc">[目次]</a></p>
+<h2 id="sango.entity.2"><code>sango.entity</code> - 実体機能</h2>
 
 <table border width="100%"><tr><td class="def"><code>alias type &lt;*A undress_f&gt; @public := &lt;A &lt;&quot;sango.entity.existence&quot;.existence &lt;A redress_f&gt; tuple&gt; fun&gt; ;;
 alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot;.existence A fun&gt; ;;</code></td></tr></table>
@@ -1531,30 +1549,6 @@ alias type &lt;*A redress_f&gt; @public := &lt;&quot;sango.entity.existence&quot
   undress_f: &lt;A undress_f&gt;
   entity_fs$ ;;</code></td></tr></table>
 <p>実体に関する機能をまとめた関数群を表します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h1 id="sango.entity.feature"><code>sango.entity.feature</code> 【Beta】</h1>
-
-<p>「実体」（entity）のデータ・フィーチャに関する定義・機能を提供します。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.feature.1"><code>sango.entity.feature</code> - データ・フィーチャ</h2>
-
-<table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ a'entity ] @public -&gt; &lt;T &quot;sango.entity&quot;.entity_fs&gt; ;;</code></td></tr></table>
-<p>実体であることを表します。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*T[ a'entity ]&gt; *FEntity undress @public -&gt; &lt;&quot;sango.entity.existence&quot;.existence &lt;T &quot;sango.entity&quot;.redress_f&gt; tuple&gt; ;;</code></td></tr></table>
-<p>undressします。</p>
-
-<p class="toc-ref"><a href="#toc">[目次]</a></p>
-<h2 id="sango.entity.feature.2"><code>sango.entity.feature</code> - 化身</h2>
-
-<table border width="100%"><tr><td class="def"><code>data &lt;*T entity_inc&gt; @protected :=
-  fx: &lt;T&gt;
-  fo: &lt;T &quot;sango.entity&quot;.entity_fs&gt;
-  entity_inc$ ;;
-eval &lt;*T[ a'entity ]&gt; *FX incarnate @public -&gt; &lt;T entity_inc&gt; ;;</code></td></tr></table>
-<p>a'entityデータ・フィーチャの化身型です。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.entity.box"><code>sango.entity.box</code></h1>

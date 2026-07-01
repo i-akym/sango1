@@ -24,6 +24,8 @@
 module "sango.entity" ;;
 
 import "sango.entity.existence" -> ex ;;
+import "sango.unique" -> uniq ;;
+import "sango.unique.feature" -> uniqf ;;
 
 alias type <*A undress_f> @public := <A <ex.existence <A redress_f> tuple> fun> ;;
 alias type <*A redress_f> @public := <ex.existence A fun> ;;
@@ -31,3 +33,34 @@ alias type <*A redress_f> @public := <ex.existence A fun> ;;
 data <*A entity_fs> @public :=
   undress_f: <A undress_f>
   entity_fs$ ;;
+
+
+### feature
+
+feature <*T> [ a'entity ] @public -> <T entity_fs> ;;
+
+eval <*T[ a'entity ]> *Entity undress @public -> <ex.existence <T redress_f> tuple> {
+  Entity _feature_a'entity = *UF entity_fs$,
+  Entity &UF
+} ;;
+
+
+### incarnation
+
+data <*T entity_inc> @protected :=
+  fx: <T>
+  fo: <T entity_fs>
+  entity_inc$
+++ as_a'unique -> [ uniqf.a'unique ] ;;
+
+eval <*T[ a'entity ]> *FX incarnate @public -> <T entity_inc> {
+  FX (FX _feature_a'entity) entity_inc$
+} ;;
+
+eval as_a'unique -> <<*T entity_inc> uniq.u fun> {
+  \ <*TT entity_inc> *I -> <uniq.u> {
+    I = *FX *Fo entity_inc$,
+    FX &(Fo undress_f) = (| *Ex, ** |),
+    Ex ex.uniqueness
+  }
+} ;;
