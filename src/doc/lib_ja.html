@@ -3049,6 +3049,25 @@ eval &lt;*A queue&gt; *Queue clear @public -&gt; &lt;A queue&gt; ;;</code></td><
 <table border width="100%"><tr><td class="def"><code>eval new_ralist @public -&gt; &lt;*A ralist&gt; ;;</code></td></tr></table>
 <p>空のランダム・アクセス・リストを生成します。</p>
 
+<table border width="100%"><tr><td class="def"><code>eval &lt;*A ralist&gt; *Ralist empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A ralist&gt; *Ralist non_empty? @public -&gt; &lt;bool&gt; ;;
+eval &lt;*A ralist&gt; *Ralist length @public -&gt; &lt;int&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Index elem @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A ralist&gt; *Ralist first @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A ralist&gt; *Ralist last @public -&gt; &lt;A maybe&gt; ;;
+eval &lt;*A ralist&gt; *Ralist tail @public -&gt; &lt;&lt;A ralist&gt; maybe&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Index &lt;A&gt; *X insert_at @public -&gt; &lt;A ralist&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;A&gt; *X append @public -&gt; &lt;A ralist&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Index remove_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Index delete_at @public -&gt; &lt;A ralist&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Index &lt;A&gt; *Elem replace_at @public -&gt; &lt;&lt;A ralist&gt; &lt;A maybe&gt; tuple&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Index &lt;A&gt; *Elem update_at @public -&gt; &lt;A ralist&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Count take @public -&gt; &lt;A ralist&gt; ;;
+eval &lt;*A ralist&gt; *Ralist &lt;int&gt; *Count drop @public -&gt; &lt;A ralist&gt; ;;
+eval &lt;*A ralist&gt; *Ralist clear @public -&gt; &lt;A ralist&gt; ;;</code></td></tr></table>
+<p><code>&quot;sango.util.ralist&quot;</code>の関数と同じ機能を提供します。
+このモジュールから直接呼び出すこともできます。</p>
+
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.util.avltree.set"><code>sango.util.avltree.set</code></h1>
 
