@@ -31,7 +31,7 @@ import "sango.util.avltree.map" -> avlmap ;;
 import "sango.util.map" -> map ;;
 import "sango.util.prop" -> prop ;;
 
-alias type <prop_tab> := <cstr prop+ map.map> ;;
+alias type <prop_tab> := <cstr prop map.map> ;;
 
 data <d> :=
   prop_tab_box: <prop_tab box.box_h>
@@ -46,13 +46,14 @@ data <prop> @public :=
 | <int> int_prop$
 | <real> real_prop$
 | <char> char_prop$
-| <cstr> cstr_prop$ ;;
+| <cstr> cstr_prop$
+| ... ;;
 
 data <byte_order> @public :=
 | big_endian$
 | little_endian$ ;;
 
-eval <cstr> *Key property @public -> <prop+ maybe> {
+eval <cstr> *Key property @public -> <prop maybe> {
   _initd_ = prop_tab_box: *Box *** d$,
   Box box.read = *Tab,
   Tab Key map.assoc
@@ -115,7 +116,7 @@ eval byte_order @public -> <byte_order> {
   }
 } ;;
 
-eval <cstr> *Key <prop+> *Value add_property @public -> <void> {
+eval <cstr> *Key <prop> *Value add_property @public -> <void> {
   _initd_ = prop_tab_monitor: *Mon *** d$,
   Mon
     \ <prop_tab box.box_h> *Prop_tab_box -> <void> {
@@ -125,10 +126,10 @@ eval <cstr> *Key <prop+> *Value add_property @public -> <void> {
     actu.run
 } ;;
 
-eval <cstr> *Key <prop+ prop+ fun> *Upd update_property @public -> <prop+> {
+eval <cstr> *Key <prop prop fun> *Upd update_property @public -> <prop> {
   _initd_ = prop_tab_monitor: *Mon *** d$,
   Mon
-    \ <prop_tab box.box_h> *Prop_tab_box -> <prop+> {
+    \ <prop_tab box.box_h> *Prop_tab_box -> <prop> {
       Prop_tab_box box.read = *Prop_tab,
       Prop_tab Key map.assoc = *Old value$,
       Old &Upd = *New,
@@ -142,7 +143,7 @@ eval <cstr> *Key <prop+ prop+ fun> *Upd update_property @public -> <prop+> {
 # -- initialization --
 
 eval _init_ -> <d> {
-  init_props (cstr.ord_fs avlmap.new_map) &\ <<cstr prop+ tuple> list> *KVs <prop_tab> *M -> <prop_tab> {
+  init_props (cstr.ord_fs avlmap.new_map) &\ <<cstr prop tuple> list> *KVs <prop_tab> *M -> <prop_tab> {
     KVs case {
     ; [ (| *K, *V |) ; *T ] -> M K V map.add = *M', T M' &&
     ; ** -> M
@@ -156,18 +157,18 @@ eval _init_ -> <d> {
     d$
 } ;;
 
-eval init_props -> <<cstr prop+ tuple> list> {
+eval init_props -> <<cstr prop tuple> list> {
   sys_props_from_conf sys_props_from_env list.append >> parse_sys_prop_descs
 } ;;
 
 eval sys_props_from_conf -> <<cstr <prop.prop_desc list> tuple> list> @native ;;
 eval sys_props_from_env -> <<cstr <prop.prop_desc list> tuple> list> @native ;;
 
-eval <<cstr <prop.prop_desc list> tuple> list> *Descs parse_sys_prop_descs -> <<cstr prop+ tuple> list> {
+eval <<cstr <prop.prop_desc list> tuple> list> *Descs parse_sys_prop_descs -> <<cstr prop tuple> list> {
   Descs ^parse_sys_prop_desc list.map
 } ;;
 
-eval <cstr <prop.prop_desc list> tuple> *Desc parse_sys_prop_desc -> <cstr prop+ tuple> {
+eval <cstr <prop.prop_desc list> tuple> *Desc parse_sys_prop_desc -> <cstr prop tuple> {
   Desc case {
   ; (| "os.type", [ *S prop.cstr_prop$ ] |) -> (| "os.type", S cstr_prop$ |)
   ; (| "line.terminator", [ *S prop.cstr_prop$ ] |) -> (| "line.terminator", S cstr_prop$ |)

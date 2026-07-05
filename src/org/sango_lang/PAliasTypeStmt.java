@@ -166,7 +166,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
 
     if (ParserA.acceptToken(reader, LToken.LT, ParserA.SPACE_DO_NOT_CARE) == null) { return null; }
 
-    PType.DefHeader dh = PType.acceptDefHeader(reader, scope, false, Parser.QUAL_PROHIBITED);
+    PType.DefHeader dh = PType.acceptDefHeader(reader, scope, Parser.QUAL_PROHIBITED);
     if (dh == null) {
       emsg = new StringBuffer();
       emsg.append("Template missing at ");
@@ -205,7 +205,7 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon, false);
+    PTid tconItem = PTid.create(elem.getSrcInfo(), defScope, null, tcon);
     tconItem.setTcon();
 
     builder.setAvailability(PModule.acceptXAvailabilityAttr(elem));
@@ -352,8 +352,8 @@ class PAliasTypeStmt extends PDefaultProgObj implements PAliasTypeDef {
         throw new CompileException(emsg.toString());
       }
       int paramCount = -2;
-      if ((tp.cat & PDefDict.TID_CAT_TCON_DATAEXT) > 0) {
-        PDataDef dd = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tr.tconKey);
+      if ((tp.cat & PDefDict.TID_CAT_TCON_DATA) > 0) {
+        PDataDef.OriginDef dd = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tr.tconKey);
         if (dd == null) { throw new RuntimeException("Def not registered. " + tr.tconKey); }
         PDefDict.TparamProps[] ps = dd.getParamPropss();
         paramCount = (ps != null)? ps.length: -1;

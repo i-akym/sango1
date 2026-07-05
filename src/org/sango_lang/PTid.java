@@ -29,13 +29,12 @@ public class PTid extends PDefaultProgObj {
   int catOpt;
   String modId;
   String name;
-  boolean ext;
 
   private PTid(Parser.SrcInfo srcInfo, PScope scope) {
     super(srcInfo, scope);
   }
 
-  static PTid create(Parser.SrcInfo srcInfo, PScope scope, String modId, String name, boolean ext) {
+  static PTid create(Parser.SrcInfo srcInfo, PScope scope, String modId, String name) {
     PTid id = new PTid(srcInfo, scope);
     id.modId = modId;
     if (modId == null) {
@@ -44,21 +43,17 @@ public class PTid extends PDefaultProgObj {
       id.catOpt = PDefDict.TID_CAT_TCON;
     }
     id.name = name;
-    id.ext = ext;
-    if (ext) {
-      id.cutOffVar();
-    }
     return id;
   }
 
   static PTid createVar(Parser.SrcInfo srcInfo, PScope scope, String name) {
-    PTid id = create(srcInfo, scope, null, name, false);
+    PTid id = create(srcInfo, scope, null, name);
     id.setVar();
     return id;
   }
 
   static PTid createFeature(Parser.SrcInfo srcInfo, PScope scope, String name) {
-    PTid id = create(srcInfo, scope, null, name, false);
+    PTid id = create(srcInfo, scope, null, name);
     id.setFeature();
     return id;
   }
@@ -136,37 +131,24 @@ public class PTid extends PDefaultProgObj {
   }
 
   String repr() {
-    return repr(this.modId, this.name, this.ext);
+    return repr(this.modId, this.name);
   }
 
-  static String repr(String modId, String name, boolean ext) {
+  static String repr(String modId, String name) {
     StringBuffer buf = new StringBuffer();
     if (modId != null) {
       buf.append(modId);
       buf.append(".");
     }
     buf.append(name);
-    if (ext) {
-      buf.append("+");
-    }
     return buf.toString();
   }
 
-  public PTid copy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  public PTid copy(Parser.SrcInfo srcInfo, PScope scope /* , int concreteOpt */) {
     PTid id = new PTid(srcInfo, scope);
     id.catOpt = this.catOpt;
     id.modId = this.modId;
     id.name = this.name;
-    switch (extOpt) {
-    case PType.COPY_EXT_OFF:
-      id.ext = false;;
-      break;
-    case PType.COPY_EXT_ON:
-      id.ext = true;;
-      break;
-    default:  // PType.COPY_EXT_KEEP
-      id.ext = this.ext;
-    }
     return id;
   }
 
@@ -193,8 +175,7 @@ public class PTid extends PDefaultProgObj {
       modId = word.value.token;
       name = word2.value.token;
     }
-    boolean ext = ParserA.acceptToken(reader, LToken.PLUS, ParserA.SPACE_DO_NOT_CARE) != null;
-    return create(si, scope, modId, name, ext);
+    return create(si, scope, modId, name);
   }
 
   public void collectModRefs() throws CompileException {

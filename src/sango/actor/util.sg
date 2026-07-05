@@ -116,7 +116,7 @@ eval <act.post_h void fun> *Reply serialize_svr -> <void> {
     }
 } ;;
 
-eval <serialize_svr_d> *SD <act.msg+> *Msg serialize_svr_dispatch -> <<serialize_svr_d> maybe> {
+eval <serialize_svr_d> *SD <act.msg> *Msg serialize_svr_dispatch -> <<serialize_svr_d> maybe> {
   Msg case {
   ; *Ret_ *Actor run_serial_req$ -> SD Ret_ Actor serialize_svr_run
   ; act.no_post$ -> none$

@@ -27,16 +27,17 @@ import "sango.list" -> list ;;
 import "sango.util.iter" -> iter ;;
 import "sango.util.queue" -> queue ;;
 
-data <*A d> :=
+data <*A queue> @opaque :=
   in: <A list>
   out: <A list>
-  d$ ;;
+  queue$
+++ queue_fs -> [ A queue.a'queue ] ;;
 
-eval new_queue @public -> <*A queue.queue> {
-  ([] [] d$) queue_fs queue.combine
+eval new_queue @public -> <*A queue> {
+  [] [] queue$
 } ;;
 
-eval queue_fs -> <<*A d> A queue.queue_fs> {
+eval queue_fs -> <<*A queue> A queue.queue_fs> {
   empty?_f: ^empty?
   length_f: ^length
   enqueue_f: ^enqueue
@@ -46,42 +47,41 @@ eval queue_fs -> <<*A d> A queue.queue_fs> {
   queue.queue_fs$
 } ;;
 
-eval <*A d> *Queue_d empty? -> <bool> {
-  Queue_d = in: *In out: *Out d$,
+eval <*A queue> *Queue empty? @public -> <bool> {
+  Queue = in: *In out: *Out queue$,
   (| Out, In |) case {
   ; (| [], [] |) -> true$
   ; ** -> false$
   }
 } ;;
 
-eval <*A d> *Queue_d length -> <int> {
-  Queue_d = in: *In out: *Out d$,
+eval <*A queue> *Queue length @public -> <int> {
+  Queue = in: *In out: *Out queue$,
   (In list.length) (Out list.length) sum
 } ;;
 
-eval <*A d> *Queue_d <A> *Elem enqueue -> <A d> {
-  Queue_d = in: *In out: *Out d$,
-  [ Elem ; In ] Out d$
+eval <*A queue> *Queue <A> *Elem enqueue @public -> <A queue> {
+  Queue = in: *In out: *Out queue$,
+  [ Elem ; In ] Out queue$
 } ;;
 
-eval <*A d> *Queue_d head -> <A maybe> {
-  Queue_d = in: *In out: *Out d$,
+eval <*A queue> *Queue head @public -> <A maybe> {
+  Queue = in: *In out: *Out queue$,
   Out case {
   ; [ *Head ; ** ] -> Head value$
   ; ** -> In list.last
   }
 } ;;
 
-eval <*A d> *Queue_d dequeue -> <<A <A d> tuple> maybe> {
-  Queue_d = in: *In out: *Out d$,
+eval <*A queue> *Queue dequeue @public -> <<A <A queue> tuple> maybe> {
+  Queue = in: *In out: *Out queue$,
   (| Out, In |) case {
-  ; (| [ *Head ; *Tail ], ** |) -> (| Head, In Tail d$ |) value$
+  ; (| [ *Head ; *Tail ], ** |) -> (| Head, In Tail queue$ |) value$
   ; (| [], [] |) -> none$
-  ; ** -> ([] (In list.reverse) d$) &&
+  ; ** -> ([] (In list.reverse) queue$) &&
   }
 } ;;
 
-eval <*A d> *Queue_d clear -> <A d> {
-  [] [] d$
+eval <*A queue> *Queue clear @public -> <A queue> {
+  [] [] queue$
 } ;;
-

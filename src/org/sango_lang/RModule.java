@@ -67,7 +67,7 @@ public class RModule {
     m.dataConstrDict = new HashMap<String, RDataConstr>();
     for (int i = 0; i < dcs.length; i++) {
       MDataConstr dc = dcs[i];
-      RDataConstr rdc = RDataConstr.create(mod.getModAt(dc.modIndex), dc.name, dc.attrCount, dc.tcon, dc.tparamCount);
+      RDataConstr rdc = RDataConstr.create(mod.getModAt(dc.modIndex), mod.getModAt(dc.constrModIndex), dc.name, dc.attrCount, dc.tcon, dc.tparamCount, dc.callbackFunNameKey);
       m.dataConstrs[i] = rdc;
       if (dc.modIndex == Module.MOD_INDEX_SELF) {
         m.dataConstrDict.put(dc.name, rdc);

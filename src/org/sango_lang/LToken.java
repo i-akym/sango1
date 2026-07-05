@@ -31,7 +31,9 @@ public class LToken {
   public static final int CHAR = 5;
   public static final int CSTR = 6;
   public static final int DOT = 11;
-  public static final int COMMA = 13;
+  public static final int DOT_DOT = 12;
+  public static final int DOT_DOT_DOT = 13;
+  public static final int COMMA = 14;
   public static final int SEM = 15;
   public static final int SEM_SEM = 16;
   public static final int COL = 17;

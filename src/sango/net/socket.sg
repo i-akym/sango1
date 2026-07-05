@@ -30,8 +30,8 @@ data <*A socket_h> @public :=
   outstream_f: <<A io.outstream_h> fun>
   close_f: <void fun>
   open?_f: <bool fun>
-  opt_f: <cstr socket_opt_value+ fun>
-  set_opt_f: <cstr socket_opt_value+ void fun>
+  opt_f: <cstr socket_opt_value fun>
+  set_opt_f: <cstr socket_opt_value void fun>
   opt_keys_f: <<cstr list> fun>
   socket_h$ ;;
 
@@ -54,7 +54,7 @@ eval <*A socket_h> *Socket open? @public -> <bool> {
   &(Socket open?_f)
 } ;;
 
-eval <*A socket_h> *Socket <cstr> *Key opt @public -> <socket_opt_value+> {
+eval <*A socket_h> *Socket <cstr> *Key opt @public -> <socket_opt_value> {
   Key &(Socket opt_f)
 } ;;
 

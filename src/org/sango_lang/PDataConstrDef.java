@@ -30,7 +30,6 @@ import java.util.List;
 class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   String dcon;
   PDataAttrDef[] attrs;
-  PDataDef dataDef;
 
   PDataConstrDef(Parser.SrcInfo srcInfo, PScope defScope) {
     super(srcInfo, defScope.startDataConstr());
@@ -162,8 +161,6 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
     return builder.create();
   }
 
-  public PDataDef getDataDef() { return this.dataDef; }
-
   public String getDcon() { return this.dcon; }
 
   public int getAttrCount() { return this.attrs.length; }
@@ -178,20 +175,6 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
       }
     }
     return i;
-  }
-
-  void setDataDef(PDataDef dataDef) {
-    this.dataDef = dataDef;
-  }
-
-  // void setDataType(PType type) {
-    // this.dataType = type;
-  // }
-
-  public PTypeSkel getType(PTypeSkel.Bindings bindings) {
-    PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
-    return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
-    // return this.dataType.toSkel().resolveBindings(bindings).instanciate(ic);
   }
 
   public void collectModRefs() throws CompileException {
@@ -210,12 +193,6 @@ class PDataConstrDef extends PDefaultProgObj implements PDataDef.Constr {
   void excludePrivateAcc() throws CompileException {
     for (int i = 0; i < this.attrs.length; i++) {
       this.attrs[i].excludePrivateAcc();
-    }
-  }
-
-  void checkVariance(PTypeSkel.VarianceTab vt) throws CompileException {
-    for (int i = 0; i < this.attrs.length; i++) {
-      this.attrs[i].checkVariance(vt);
     }
   }
 

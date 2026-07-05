@@ -72,11 +72,11 @@ public class RMemMgr {
     this.posInfItem = new RRealItem(this.theEngine, Double.POSITIVE_INFINITY);
     this.negInfItem = new RRealItem(this.theEngine, Double.NEGATIVE_INFINITY);
     this.voidItem = this.getStructItem(
-      RDataConstr.create(Module.MOD_LANG, "void$", 0, "void", 0),
+      RDataConstr.create(Module.MOD_LANG, Module.MOD_LANG, "void$", 0, "void", 0, "void"),
       new RObjItem[0]);
     this.boolItems = new RStructItem[] {
-      this.getStructItem(RDataConstr.create(Module.MOD_LANG, "false$", 0, "bool", 0), new RObjItem[0]),
-      this.getStructItem(RDataConstr.create(Module.MOD_LANG, "true$", 0, "bool", 0), new RObjItem[0])
+      this.getStructItem(RDataConstr.create(Module.MOD_LANG, Module.MOD_LANG, "false$", 0, "bool", 0, "bool"), new RObjItem[0]),
+      this.getStructItem(RDataConstr.create(Module.MOD_LANG, Module.MOD_LANG, "true$", 0, "bool", 0, "bool"), new RObjItem[0])
     };
     this.intIntItems = new RIntItem[INT_INT_CACHE_MAX - INT_INT_CACHE_MIN + 1];
     for (int i = INT_INT_CACHE_MIN; i <= INT_INT_CACHE_MAX; i++) {
@@ -335,8 +335,9 @@ public class RMemMgr {
     RMboxPItem bp = RMboxPItem.create(this.theEngine, b);
     // create box
     RObjItem[] es = this.createMutableExistence(bp, null);  // no invalidator
+    Cstr m = new Cstr("sango.entity.box");
     RStructItem bpe = this.getStructItem(
-      RDataConstr.create(new Cstr("sango.entity.box"), "box_h$", 2, "box_h", 1),
+      RDataConstr.create(m, m, "box_h$", 2, "box_h", 1, "box_h"),
       new RObjItem[] { es[0], es[1] });
     return bpe;
   }
@@ -364,8 +365,9 @@ public class RMemMgr {
     ExistenceItem e = w.get();
     RStructItem box;
     if (e != null) {
+      Cstr m = new Cstr("sango.entity.box");
       box = this.getStructItem(
-        RDataConstr.create(new Cstr("sango.entity.box"), "box_h$", 2, "box_h", 1),
+        RDataConstr.create(m, m, "box_h$", 2, "box_h", 1, "box_h"),
         new RObjItem[] { e, s });
     } else {
       box = null;

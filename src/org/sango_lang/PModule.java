@@ -93,7 +93,6 @@ class PModule implements PModDecl {
   Map<String, Cstr> modTab;  // mod id -> mod name
   List<String> referredModIds;  // except @LANG, @HERE, my mod id
   List<Cstr> referredFarMods;  // except sango.lang
-  // List<Cstr> referredFarMods2;  // refs from foreign definition
   List<PImportStmt> importStmtList;
   List<PDataStmt> dataStmtList;
   List<PExtendStmt> extendStmtList;
@@ -110,7 +109,6 @@ class PModule implements PModDecl {
     this.modTab = new HashMap<String, Cstr>();
     this.referredModIds = new ArrayList<String>();
     this.referredFarMods = new ArrayList<Cstr>();
-    // this.referredFarMods2 = new ArrayList<Cstr>();
     this.importStmtList = new ArrayList<PImportStmt>();
     this.dataStmtList = new ArrayList<PDataStmt>();
     this.extendStmtList = new ArrayList<PExtendStmt>();
@@ -455,39 +453,39 @@ class PModule implements PModDecl {
 
     dat.collectModRefs();
     this.dataStmtList.add(dat);
-    this.theCompiler.defDict.putDataDef(tconKey, dat);
+    this.theCompiler.defDict.putDataOriginDef(tconKey, dat);
   }
 
   void addExtendStmt(PExtendStmt ext) throws CompileException {
     StringBuffer emsg;
 
-    PDefDict.IdKey tconKey = PDefDict.IdKey.create(this.actualName, ext.tcon);
-    Cstr baseModName;
-    if (ext.baseModId == null) {
-      baseModName = Module.MOD_LANG;
-    } else {
-      baseModName = this.resolveModId(ext.baseModId);
-      if (baseModName == null) {
-        emsg = new StringBuffer();
-        emsg.append("Module id \"");
-        emsg.append(ext.baseModId);
-        emsg.append("\" not defined at ");
-        emsg.append(ext.srcInfo);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+    if (ext.defKey == null) {
+      ext.defKey = this.generateId();
     }
-    ext.baseTconKey = PDefDict.IdKey.create(baseModName, ext.baseTcon);
-    boolean b = this.theCompiler.defDict.predefineTconExtend(tconKey, ext.acc);
+    PDefDict.IdKey dk = PDefDict.IdKey.create(this.actualName, ext.defKey);
+    boolean b = this.theCompiler.defDict.predefineDefKeyExtension(dk, ext.acc);
     if (!b) {
       emsg = new StringBuffer();
-      emsg.append("Cannot define type constructor \"");
-      emsg.append(ext.tcon);
+      emsg.append("Cannot define extension def key \"");
+      emsg.append(ext.defKey);
       emsg.append("\" at ");
       emsg.append(ext.srcInfo);
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
+
+    // Cstr baseModName = this.resolveModId(ext.baseModId);
+    // if (baseModName == null) {
+      // emsg = new StringBuffer();
+      // emsg.append("Module id \"");
+      // emsg.append(ext.baseModId);
+      // emsg.append("\" not defined at ");
+      // emsg.append(ext.srcInfo);
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    // ext.baseTconKey = PDefDict.IdKey.create(baseModName, ext.baseTcon);
+
     for (int i = 0; i < ext.constrs.length; i++) {
       PDataConstrDef constr = ext.constrs[i];
       b = this.theCompiler.defDict.predefineDcon(
@@ -505,7 +503,7 @@ class PModule implements PModDecl {
 
     ext.collectModRefs();
     this.extendStmtList.add(ext);
-    this.theCompiler.defDict.putDataDef(tconKey, ext);
+    this.theCompiler.defDict.putDataExtensionDef(dk, ext);  // needed?
   }
 
   void addAliasTypeStmt(PAliasTypeStmt alias) throws CompileException {
@@ -1222,18 +1220,6 @@ class PModule implements PModDecl {
     }
   }
 
-  void checkVariance() throws CompileException {
-    for (int i = 0; i < this.dataStmtList.size(); i++) {
-      this.dataStmtList.get(i).checkVariance();
-    }
-    for (int i = 0; i < this.extendStmtList.size(); i++) {
-      this.extendStmtList.get(i).checkVariance();
-    }
-    for (int i = 0; i < this.featureStmtList.size(); i++) {
-      this.featureStmtList.get(i).checkVariance();
-    }
-  }
-
   void normalizeTypes() throws CompileException {
     for (int i = 0; i < this.dataStmtList.size(); i++) {
       this.dataStmtList.get(i).normalizeTypes();
@@ -1273,7 +1259,7 @@ class PModule implements PModDecl {
     PRetDef.Builder retDefBuilder = PRetDef.Builder.newInstance(si, evalStmtBuilder.getDefScope());
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
-    retTypeBuilder.addItem(PTid.create(si, retScope, MOD_ID_LANG, "cstr", false));
+    retTypeBuilder.addItem(PTid.create(si, retScope, MOD_ID_LANG, "cstr"));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());
@@ -1291,7 +1277,7 @@ class PModule implements PModDecl {
     PScope retScope = retDefBuilder.getScope();
     PType.Builder retTypeBuilder = PType.Builder.newInstance(si, retScope);
     retTypeBuilder.addItem(eval.retDef.type.unresolvedCopy(
-      si, retScope, PType.COPY_EXT_KEEP, PType.COPY_CONCRETE_OFF));
+      si, retScope, PType.COPY_CONCRETE_OFF));
     retDefBuilder.setType(retTypeBuilder.create());
     evalStmtBuilder.setRetDef(retDefBuilder.create());
     this.addEvalStmt(evalStmtBuilder.create());

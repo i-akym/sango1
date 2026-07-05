@@ -23,42 +23,38 @@
 ###########################################################################
 module @beta "sango.util.col" ;;
 
-### combined object
+### faeture
 
-data <*A col> @opaque :=
-  empty?_f: <bool fun>
-  size_f: <int fun>
-  iter_f: <<A iter> fun>
-  col$
-++ a'col_impl -> [ A a'col ] ;;
-
-eval <*D> *Z <D *A col_fs> *Fs combine @public -> <A col> {
-  empty?_f:
-    \\ <bool> { Z Fs do_empty? }
-  size_f:
-    \\ <int> { Z Fs do_size }
-  iter_f:
-    \\ <A iter> { Z Fs do_iter }
-  col$
+eval <*T[ *A a'col ]> *Col empty? @public -> <bool> {
+  Col (Col _feature_a'col) do_empty?
 } ;;
 
-eval a'col_impl -> <<*A col> A col_fs> {
-  empty?_f_: (^empty? value$)
-  size_f: ^size
-  iter_f: ^iter
-  col_fs$
+eval <*T[ *A a'col ]> *Col size @public -> <int> {
+  Col (Col _feature_a'col) do_size
 } ;;
 
-eval <*A col> *Col empty? @public -> <bool> {
-  &(Col empty?_f)
+eval <*T[ *A a'col ]> *Col iter @public -> <A iter> {
+  Col (Col _feature_a'col) do_iter
 } ;;
 
-eval <*A col> *Col size @public -> <int> {
-  &(Col size_f)
+
+### incarnation
+
+data <*T *A col_inc> @protected :=
+  fx: <T>
+  fo: <T A col_fs>
+  col_inc$
+++ inc_as_a'iter -> [ A a'iter ] ;;
+
+eval <*T[ *A a'col ]> *FX incarnate @public -> <T A col_inc> {
+  FX (FX _feature_a'col) col_inc$
 } ;;
 
-eval <*A col> *Col iter @public -> <A iter> {
-  &(Col iter_f)
+eval inc_as_a'iter -> <<*T *A col_inc> <A iter> fun> {
+  \ <*TT *AA col_inc> *I -> <AA iter> {
+    I = *FX *Fo col_inc$,
+    FX Fo do_iter
+  }
 } ;;
 
 

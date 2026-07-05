@@ -63,8 +63,8 @@ class PTypeVarRef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PType.Undet unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-    return PType.Undet.create(PTid.create(srcInfo, scope, null, this.def.name, false));
+  public PType.Undet unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
+    return PType.Undet.create(PTid.create(srcInfo, scope, null, this.def.name));
   }
 
   public void collectModRefs() throws CompileException {}

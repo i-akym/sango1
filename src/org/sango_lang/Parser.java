@@ -46,13 +46,12 @@ abstract class Parser {
   }
 
   void parse3() throws CompileException {
+    this.mod.checkExtension();
     this.mod.setupAliasBody();
   }
 
   void parse4() throws CompileException {
     this.mod.normalizeTypes();
-    this.mod.checkExtension();
-    this.mod.checkVariance();
   }
 
   void parse5() throws CompileException {

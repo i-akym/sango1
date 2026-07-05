@@ -27,10 +27,11 @@ import "sango.tuple" -> tuple ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.set" -> set ;;
 
-data <*A d> :=
+data <*A set> @opaque :=
   ord: <A ord_fs>
   body: <A avl.tree>
-  d$ ;;
+  set$
+++ set_fs -> [ A set.a'set ] ;;
 
 eval <*A ord_fs> *Ord <A> *X locator -> <<A avl.node> <A avl.locate> fun> {
   \ <A avl.node> *N -> <A avl.locate> { 
@@ -52,11 +53,11 @@ eval <*A ord_fs> *Ord <A> *X put_new_locator -> <<A avl.node> <A avl.locate> fun
   }
 } ;;
 
-eval <*A ord_fs> *Ord new_set @public -> <A set.set> {
-  (ord: Ord body: avl.new_tree d$) set_fs set.combine
+eval <*A ord_fs> *Ord new_set @public -> <A set> {
+  ord: Ord body: avl.new_tree set$
 } ;;
 
-eval set_fs -> <<*A d> A set.set_fs> {
+eval set_fs @public -> <<*A set> A set.set_fs> {
   empty?_f: ^empty?
   size_f: ^size
   get_f: ^get
@@ -71,67 +72,67 @@ eval set_fs -> <<*A d> A set.set_fs> {
   set.set_fs$
 } ;;
 
-eval <*A d> *Set_d empty? -> <bool> {
-  Set_d size >> zero?
+eval <*A set> *Set empty? @public -> <bool> {
+  Set size >> zero?
 } ;;
 
-eval <*A d> *Set_d size -> <int> {
-  Set_d = body: *Body *** d$,
+eval <*A set> *Set size @public -> <int> {
+  Set = body: *Body *** set$,
   Body avl.size
 } ;;
 
-eval <*A d> *Set_d <A> *Elem get -> <A maybe> {
-  Set_d = ord: *Ord body: *Body *** d$,
+eval <*A set> *Set <A> *Elem get @public -> <A maybe> {
+  Set = ord: *Ord body: *Body *** set$,
   Body (Ord Elem locator) avl.get >> case {
   ; *E avl.get_done$ -> E value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem contain? -> <bool> {
-  Set_d Elem get >> something?
+eval <*A set> *Set <A> *Elem contain? @public -> <bool> {
+  Set Elem get >> something?
 } ;;
 
-eval <*A d> *Set_d <A> *Elem put -> <<A d> <A maybe> tuple> {
-  Set_d = ord: *Ord body: *Body *** d$,
+eval <*A set> *Set <A> *Elem put @public -> <<A set> <A maybe> tuple> {
+  Set = ord: *Ord body: *Body *** set$,
   Body (Ord Elem locator) Elem avl.put >> case {
-  ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, none$ |)
-  ; *Body' *Replaced avl.put_replace_done$ -> (| body: Body' :: Set_d d$, Replaced value$ |)
+  ; *Body' avl.put_new_done$ -> (| body: Body' :: Set set$, none$ |)
+  ; *Body' *Replaced avl.put_replace_done$ -> (| body: Body' :: Set set$, Replaced value$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem put_new -> <<A d> bool tuple> {
-  Set_d = ord: *Ord body: *Body *** d$,
+eval <*A set> *Set <A> *Elem put_new @public -> <<A set> bool tuple> {
+  Set = ord: *Ord body: *Body *** set$,
   Body (Ord Elem put_new_locator) Elem avl.put >> case {
-  ; *Body' avl.put_new_done$ -> (| body: Body' :: Set_d d$, true$ |)
-  ; ** avl.put_aborted$ -> (| Set_d, false$ |)
+  ; *Body' avl.put_new_done$ -> (| body: Body' :: Set set$, true$ |)
+  ; ** avl.put_aborted$ -> (| Set, false$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem add -> <A d> {
-  Set_d Elem put >> tuple.pair_first
+eval <*A set> *Set <A> *Elem add @public -> <A set> {
+  Set Elem put >> tuple.pair_first
 } ;;
 
-eval <*A d> *Set_d <A> *Elem remove -> <<A d> <A maybe> tuple> {
-  Set_d = ord: *Ord body: *Body *** d$,
+eval <*A set> *Set <A> *Elem remove @public -> <<A set> <A maybe> tuple> {
+  Set = ord: *Ord body: *Body *** set$,
   Body (Ord Elem locator) avl.remove >> case {
-  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Set_d d$, Removed value$ |)
-  ; avl.remove_not_found$ -> (| Set_d, none$ |)
+  ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Set set$, Removed value$ |)
+  ; avl.remove_not_found$ -> (| Set, none$ |)
   }
 } ;;
 
-eval <*A d> *Set_d <A> *Elem delete -> <A d> {
-  Set_d Elem remove >> tuple.pair_first
+eval <*A set> *Set <A> *Elem delete @public -> <A set> {
+  Set Elem remove >> tuple.pair_first
 } ;;
 
-eval <*A d> *Set_d take -> <<A <A d> tuple> maybe> {
-  Set_d = body: *Body *** d$,
+eval <*A set> *Set take @public -> <<A <A set> tuple> maybe> {
+  Set = body: *Body *** set$,
   Body avl.take >> case {
-  ; (| *E, *Body' |) value$ -> (| E, body: Body' :: Set_d d$ |) value$
+  ; (| *E, *Body' |) value$ -> (| E, body: Body' :: Set set$ |) value$
   ; none$ -> none$
   }
 } ;;
 
-eval <*A d> *Set_d clear -> <A d> {
-  body: avl.new_tree :: Set_d d$
+eval <*A set> *Set clear @public -> <A set> {
+  body: avl.new_tree :: Set set$
 } ;;

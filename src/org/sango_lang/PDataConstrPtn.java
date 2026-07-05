@@ -35,7 +35,8 @@ class PDataConstrPtn extends PDefaultExprObj {
   Map<String, PPtnItem> namedAttrDict;
   boolean wildCards;
   PDefDict.EidProps _resolved_dconProps;
-  PDataDef _resolved_dataDef;
+  PDataDef.OriginDef _resolved_dataOriginDef;
+  PDataDef.ExtensionDef _resolved_dataExtensionDef;  // non-null if dcon is defined in extension def
   PExprObj[] sortedAttrs;
 
   private PDataConstrPtn(Parser.SrcInfo srcInfo, PScope outerScope) {
@@ -203,8 +204,8 @@ class PDataConstrPtn extends PDefaultExprObj {
       emsg.append(".");
       throw new CompileException(emsg.toString());
     }
-    PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForPtn(this.scope.theMod.actualName, this._resolved_dconProps.key);
-    this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tconKey);
+    // PDefDict.IdKey tconKey = this.scope.getCompiler().defDict.getTconFromDconForPtn(this.scope.theMod.actualName, this._resolved_dconProps.key);
+    // this._resolved_dataDef = this.scope.getCompiler().defDict.getDataDef(this.scope.theMod.actualName, tconKey);
     this.sortAttrs();
     return this;
   }
@@ -238,8 +239,9 @@ class PDataConstrPtn extends PDefaultExprObj {
 
   private int[] analyzeAttrDst() throws CompileException {
     StringBuffer emsg;
-    // PDataDef dataDef = this.dcon.props.defGetter.getDataDef();
-    PDataDef.Constr constr = this._resolved_dataDef.getConstr(this.dcon.name);
+    PDataDef.Constr constr = this.scope.getCompiler().defDict.getConstrDefFromDcon(
+      this.scope.theMod.actualName, _resolved_dconProps.key);
+    // PDataDef.Constr constr = this._resolved_dataDef.getConstr(this.dcon.name);
     int[] attrDsts = new int[constr.getAttrCount()];
     if (this.posdAttrs.length + this.namedAttrs.length > attrDsts.length) {
       emsg = new StringBuffer();
@@ -301,6 +303,9 @@ class PDataConstrPtn extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
+    this._resolved_dataOriginDef = this.scope.getCompiler().defDict.getDataOriginDefFromDcon(this.scope.theMod.actualName, this._resolved_dconProps.key);
+    this._resolved_dataExtensionDef = this.scope.getCompiler().defDict.getDataExtensionDefFromDcon(this.scope.theMod.actualName, this._resolved_dconProps.key);
+
     this.typeGraphNode = graph.createDataConstrPtnNode(this, this.alreadyDefinedTVarList, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);
@@ -312,9 +317,21 @@ class PDataConstrPtn extends PDefaultExprObj {
   }
 
   public GFlow.Node setupFlow(GFlow flow) {
+    String callbackFunNameKey;
+    if (this._resolved_dataExtensionDef == null) {  // origin def
+      callbackFunNameKey = _resolved_dataOriginDef.getTcon();
+    } else {
+      String dk = this._resolved_dataExtensionDef.getDefKey();
+      callbackFunNameKey = dk.startsWith("@")? null: dk;
+    }
+
     GFlow.SeqNode node = flow.createNodeForDataConstrPtn(
-      this.srcInfo, this._resolved_dconProps.key.modName, this.dcon.name,
-      null, 0);
+      this.srcInfo,
+      this._resolved_dataOriginDef.getModName(),
+      this._resolved_dconProps.key.modName,
+      this.dcon.name,
+      null, 0,
+      callbackFunNameKey);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       node.addChild(this.sortedAttrs[i].setupFlow(flow));
     }

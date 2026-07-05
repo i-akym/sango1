@@ -115,7 +115,7 @@ eval <act.post_h void fun> *Reply shutdown_action_launcher -> <void> {
   }
 } ;;
 
-eval <sal_state> *S <act.msg+> *Msg shutdown_action_launcher_dispatch -> <sal_state> {
+eval <sal_state> *S <act.msg> *Msg shutdown_action_launcher_dispatch -> <sal_state> {
   Msg case {
   ; *P *A add_action_req$ ->
     P add_action_res$ act.send,  # send ack

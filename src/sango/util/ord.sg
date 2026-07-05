@@ -21,40 +21,63 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE       #
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                  #
 ###########################################################################
-module @beta "sango.util.col.feature" ;;
+module @beta "sango.util.ord" ;;
 
-import "sango.util.col" -> col ;;
+### feature functions
 
-### faeture
-
-eval <*T[ *A a'col ]> *FCol empty? @public -> <bool> {
-  FCol (FCol _feature_a'col) col.do_empty?
+eval <*T[ a'ord ]> *X0 <T> *X1 compare @public -> <ordering> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_compare
 } ;;
 
-eval <*T[ *A a'col ]> *FCol size @public -> <int> {
-  FCol (FCol _feature_a'col) col.do_size
+eval <*T[ a'ord ]> *X0 <T> *X1 eq? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_eq?
 } ;;
 
-eval <*T[ *A a'col ]> *FCol iter @public -> <A iter> {
-  FCol (FCol _feature_a'col) col.do_iter
+eval <*T[ a'ord ]> *X0 <T> *X1 lt? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_lt?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 le? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_le?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 gt? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_gt?
+} ;;
+
+eval <*T[ a'ord ]> *X0 <T> *X1 ge? @public -> <bool> {
+  X0 X1 (X0 _feature_a'ord) ordcmp_ge?
+} ;;
+
+eval <*T[ a'ord ]> *X0 hash @public -> <int> {
+  X0 &(X0 _feature_a'ord >> hash_f)
 } ;;
 
 
 ### incarnation
 
-data <*T *A col_inc> @protected :=
+data <*T ord_inc> @protected :=
   fx: <T>
-  fo: <T A col_fs>
-  col_inc$
-++ inc_as_a'iter -> [ A a'iter ] ;;
+  fo: <T ord_fs>
+  ord_inc$
+++ as_a'eq -> [ a'eq ] ;;
 
-eval <*T[ *A a'col ]> *FX incarnate @public -> <T A col_inc> {
-  FX (FX _feature_a'col) col_inc$
+eval <*T[ a'ord ]> *FX incarnate @public -> <T ord_inc> {
+  FX (FX _feature_a'ord) ord_inc$
 } ;;
 
-eval inc_as_a'iter -> <<*T *A col_inc> <A iter> fun> {
-  \ <*TT *AA col_inc> *I -> <AA iter> {
-    I = *FX *Fo col_inc$,
-    FX Fo col.do_iter
-  }
+eval as_a'eq -> <<*T[ a'ord ] ord_inc> eq_fs> {
+  eq?_f:
+    \ <*TT ord_inc> *X0 <TT ord_inc> *X1 -> <bool> {
+      X0 = *Y0 *Fo ord_inc$,
+      X1 = *Y1 ** ord_inc$,
+      Y0 Y1 Fo ordcmp_eq?
+    }
+  ne?_f_: none$
+  hash_f:
+    \ <*TT ord_inc> *X0 -> <int> {
+      X0 = *Y0 *Fo ord_inc$,
+      Y0 &(Fo hash_f)
+    }
+  eq_fs$
 } ;;

@@ -33,9 +33,8 @@ public class MDataDef implements Module.Elem {
   Module.Availability availability;
   Module.Access acc;
   MType.ParamDef[] params;
-  int baseModIndex;  //  = 0 -> org def,  > 0 -> ext def
-  String baseTcon;
   MConstrDef[] constrs;
+  boolean extensible;
   MFeatureImplDef[] featureImpls;
 
   private MDataDef() {}
@@ -77,17 +76,20 @@ public class MDataDef implements Module.Elem {
       this.paramList.add(param);
     }
 
-    void setBaseModIndex(int baseModIndex) {
-      this.dataDef.baseModIndex = baseModIndex;
-    }
+    // void setBaseModIndex(int baseModIndex) {
+      // this.dataDef.baseModIndex = baseModIndex;
+    // }
 
-    void setBaseTcon(String baseTcon) {
-      this.dataDef.baseTcon = baseTcon;
-    }
+    // void setBaseTcon(String baseTcon) {
+      // this.dataDef.baseTcon = baseTcon;
+    // }
 
     void addConstrDef(MConstrDef constrDef) {
-      constrDef.setDataDef(this.dataDef);
       this.constrList.add(constrDef);
+    }
+
+    void setExtensible(boolean b) {
+      this.dataDef.extensible = b;
     }
 
     void addFeatureImplDef(MFeatureImplDef featureImplDef) {
@@ -108,18 +110,21 @@ public class MDataDef implements Module.Elem {
   public Element externalize(Document doc) {
     Element dataDefNode = doc.createElement(Module.TAG_DATA_DEF);
     dataDefNode.setAttribute(Module.ATTR_TCON, this.tcon);
+    if (this.extensible) {
+      dataDefNode.setAttribute(Module.ATTR_EXTENSIBLE, Module.REPR_YES);
+    }
     if (this.availability != Module.AVAILABILITY_GENERAL) {
       dataDefNode.setAttribute(Module.ATTR_AVAILABILITY, Module.reprOfAvailability(this.availability));
     }
     if (this.acc != Module.ACC_PRIVATE) {
       dataDefNode.setAttribute(Module.ATTR_ACC, Module.reprOfAcc(this.acc));
     }
-    if (this.baseModIndex > 0) {
-      dataDefNode.setAttribute(Module.ATTR_BASE_MOD_INDEX, Integer.toString(this.baseModIndex));
-    }
-    if (this.baseTcon != null) {
-      dataDefNode.setAttribute(Module.ATTR_BASE_TCON, this.baseTcon);
-    }
+    // if (this.baseModIndex > 0) {
+      // dataDefNode.setAttribute(Module.ATTR_BASE_MOD_INDEX, Integer.toString(this.baseModIndex));
+    // }
+    // if (this.baseTcon != null) {
+      // dataDefNode.setAttribute(Module.ATTR_BASE_TCON, this.baseTcon);
+    // }
     if (this.params.length > 0) {
       Element paramsNode = doc.createElement(Module.TAG_PARAMS);
       for (int i = 0; i < this.params.length; i++) {
@@ -161,6 +166,19 @@ public class MDataDef implements Module.Elem {
       emsg.append(".");
       throw new FormatException(emsg.toString());
     }
+    if (dd.extensible == this.extensible) {
+      ;
+    } else {
+      emsg = new StringBuffer();
+      emsg.append("Incompatible extensibility - extensible: ");
+      emsg.append(dd.extensible);
+      emsg.append(", referred in: ");
+      emsg.append(modTab.getMyModName().repr());
+      emsg.append(" defined in: ");
+      emsg.append(defModTab.getMyModName().repr());
+      emsg.append(".");
+      throw new FormatException(emsg.toString());
+    }
     if (dd.params == null && this.params == null) {
       ;
     } else if (dd.params != null && this.params != null && dd.params.length == this.params.length) {
@@ -178,7 +196,7 @@ public class MDataDef implements Module.Elem {
     }
     for (int i = 0; i < this.constrs.length; i++) {
       MConstrDef cd = this.constrs[i];
-      cd.checkCompat(modTab, dd, defModTab);
+      cd.checkCompat(modTab, dd.constrs, defModTab);
     }
   }
 }

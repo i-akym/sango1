@@ -30,10 +30,7 @@ import java.util.List;
 interface PType extends PProgObj {
   PType resolve() throws CompileException;
 
-  PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt);
-  static final int COPY_EXT_KEEP = -1;
-  static final int COPY_EXT_OFF = 0;
-  static final int COPY_EXT_ON = 1;
+  PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt);
   static final int COPY_CONCRETE_KEEP = -1;
   static final int COPY_CONCRETE_OFF = 0;
   static final int COPY_CONCRETE_ON = 1;
@@ -248,7 +245,7 @@ interface PType extends PProgObj {
 
   static PType voidType(Parser.SrcInfo srcInfo, PScope scope) {
     Builder builder = Builder.newInstance(srcInfo, scope);
-    builder.addItem(PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, "void", false));
+    builder.addItem(PTid.create(srcInfo, scope, PModule.MOD_ID_LANG, "void"));
     PType v = null;
     try {
       v = builder.create();
@@ -274,73 +271,36 @@ interface PType extends PProgObj {
     return t;
   }
 
-  static DefHeader acceptDefHeader(ParserA.TokenReader reader, PScope scope, boolean acceptsVariance, Option.Set<Parser.QualState> anchorQual) throws IOException, CompileException {
+  static DefHeader acceptDefHeader(ParserA.TokenReader reader, PScope scope, Option.Set<Parser.QualState> anchorQual) throws IOException, CompileException {
     StringBuffer emsg;
-    Parser.SrcInfo si = reader.getCurrentSrcInfo();
     DefHeader dh = null;
-    Module.Variance v = null;
-    Parser.SrcInfo vsi = null;
+    Parser.SrcInfo ssi = null;
     PTypeVarDef p = null;
     List<DefHeaderParam> params = new ArrayList<DefHeaderParam>();
     PTid anc = null;
     int state = 0;
-      // 0: idle
-      // 1: accept variance maybe
-      // 2: accept vardef or anchor
-      // 3: must accept vardef
     int spc = ParserA.SPACE_DO_NOT_CARE;
     while (state >= 0) {
-      if (state == 0 && acceptsVariance) {
-        vsi = reader.getCurrentSrcInfo();
-        state = 1;
-      } else if (state == 0) {
-        v = Module.NO_VARIANCE;
-        vsi = null;
-        state = 2;
-      } else if (state == 1 && ParserA.acceptToken(reader, LToken.PLUS, spc) != null) {
-        v = Module.COVARIANT;
-        spc = ParserA.SPACE_DO_NOT_CARE;
-        state = 3;
-      } else if (state == 1 && ParserA.acceptToken(reader, LToken.MINUS, spc) != null) {
-        v = Module.CONTRAVARIANT;
-        spc = ParserA.SPACE_DO_NOT_CARE;
-        state = 3;
-      } else if (state == 1) {
-        v = Module.INVARIANT;
-        state = 2;
-      } else if (state == 2 && (p = PTypeVarDef.acceptForDefHeader(reader, scope, spc)) != null) {
-        params.add(DefHeaderParam.create((vsi != null)? vsi: p.srcInfo, v, p));
+      Parser.SrcInfo si = reader.getCurrentSrcInfo();
+      if ((p = PTypeVarDef.acceptForDefHeader(reader, scope, spc)) != null) {
+        params.add(DefHeaderParam.create(p.srcInfo, p));
         spc = ParserA.SPACE_NEEDED;
-        state = 0;
-      } else if (state == 2 && (anc = PTid.accept(reader, scope, anchorQual, spc)) != null) {
-        if (anc.ext) {
-          emsg = new StringBuffer();
-          emsg.append("Extension not allowed at ");
-          emsg.append(anc.srcInfo);
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
+        if (ssi == null) {
+          ssi = p.srcInfo;
         }
+        state = 0;
+      } else if ((anc = PTid.accept(reader, scope, anchorQual, spc)) != null) {
         dh = new DefHeader();
-        dh.srcInfo = si;
+        dh.srcInfo = (ssi != null)? ssi: anc.srcInfo;
         dh.params = new DefHeaderParam[params.size()];
         for (int i = 0; i < dh.params.length; i++) {
           dh.params[i] = params.get(i);
         }
         dh.anchor = anc;
         state = -1;
-      } else if (state == 2) {
-        emsg = new StringBuffer();
-        emsg.append("Incomplete specification at ");
-        emsg.append(reader.getCurrentSrcInfo());
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      } else if (state == 3 && (p = PTypeVarDef.acceptForDefHeader(reader, scope, spc)) != null) {
-        params.add(DefHeaderParam.create((vsi != null)? vsi: p.srcInfo, v, p));
-        spc = ParserA.SPACE_NEEDED;
-        state = 0;
       } else {
         emsg = new StringBuffer();
-        emsg.append("Variable missing at ");
+        emsg.append("Incomplete specification at ");
         emsg.append(reader.getCurrentSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
@@ -357,13 +317,11 @@ interface PType extends PProgObj {
 
   static class DefHeaderParam {
     Parser.SrcInfo srcInfo;
-    Module.Variance variance;
     PTypeVarDef varDef;
 
-    static DefHeaderParam create(Parser.SrcInfo srcInfo, Module.Variance variance, PTypeVarDef varDef) {
+    static DefHeaderParam create(Parser.SrcInfo srcInfo, PTypeVarDef varDef) {
       DefHeaderParam p = new DefHeaderParam();
       p.srcInfo = srcInfo;
-      p.variance = variance;
       p.varDef = varDef;
       return p;
     }
@@ -373,7 +331,7 @@ interface PType extends PProgObj {
     }
 
     PDefDict.TparamProps getProps() {
-      return PDefDict.TparamProps.create(this.variance, this.varDef.requiresConcrete);
+      return PDefDict.TparamProps.create();
     }
 
     PTypeVarSlot getVarSlot() {
@@ -442,7 +400,7 @@ interface PType extends PProgObj {
       } else {
         emsg = new StringBuffer();
         emsg.append("Type constructor \"");
-        emsg.append(PTid.repr(this.id.modId, this.id.name, false));
+        emsg.append(PTid.repr(this.id.modId, this.id.name));
         emsg.append("\" not defined at ");
         emsg.append(this.id.srcInfo);
         emsg.append(".");
@@ -463,18 +421,8 @@ interface PType extends PProgObj {
       throw new RuntimeException("Undet#getNormalizedSkel is called.");
     }
 
-    public PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
-      boolean ext;
-      if (extOpt == COPY_EXT_KEEP) {
-        ext = this.id.ext;
-      } else if (extOpt == COPY_EXT_OFF) {
-        ext = false;
-      } else if (extOpt == COPY_EXT_ON) {
-        ext = true;
-      } else {
-        throw new IllegalArgumentException("Unknown extOpt.");
-      }
-      return Undet.create(PTid.create(srcInfo, scope, this.id.modId, this.id.name, ext));
+    public PType unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
+      return Undet.create(PTid.create(srcInfo, scope, this.id.modId, this.id.name));
     }
 
     public String toString() {

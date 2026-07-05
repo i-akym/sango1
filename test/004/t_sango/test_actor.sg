@@ -65,8 +65,8 @@ eval test050 -> <act.actor_state> { act.my_actor_h act.state = run: act.actor_st
 eval test101 -> <act.mbox_h act.post_h tuple> { act.open_mbox } ;;
 eval <act.mbox_h> *B <act.post_h> *P test102 -> <bool> { B (0 act.wait_ms$) act.listen = false$ } ;;
 eval <act.mbox_h> *B <act.post_h> *P test103 -> <bool> { B (100 act.wait_ms$) act.listen = false$ } ;;
-eval <act.mbox_h> *B <act.post_h> *P test104 -> <act.msg+ maybe> { B act.receive = none$ } ;;
-eval <act.mbox_h> *B <act.post_h> *P test105 -> <act.msg+> { P act.signal$ act.send, B act.wait_forever$ act.listen = true$, B act.receive >> value = act.signal$ } ;;
+eval <act.mbox_h> *B <act.post_h> *P test104 -> <act.msg maybe> { B act.receive = none$ } ;;
+eval <act.mbox_h> *B <act.post_h> *P test105 -> <act.msg> { P act.signal$ act.send, B act.wait_forever$ act.listen = true$, B act.receive >> value = act.signal$ } ;;
 eval test106 -> <void> {
   act.open_mbox = (| *B0, *P0 |),
   act.open_mbox = (| *B1, *P1 |),

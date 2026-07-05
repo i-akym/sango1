@@ -253,7 +253,7 @@ eval <bdd maybe> *D_ bd_loop -> <void> {
   }
 } ;;
 
-eval <bdd> *D <act.msg+> *Msg bd_dispatch -> <bdd maybe> {
+eval <bdd> *D <act.msg> *Msg bd_dispatch -> <bdd maybe> {
   Msg case {
   ; *B register_req$ -> (D B bd_register) value$
   ; *R *B lookup_req$ -> (D R B bd_lookup) value$
@@ -378,7 +378,7 @@ eval <bhd maybe> *D_ bh_loop -> <void> {
   }
 } ;;
 
-eval <bhd> *D <act.msg+> *Msg bh_dispatch -> <bhd maybe> {
+eval <bhd> *D <act.msg> *Msg bh_dispatch -> <bhd maybe> {
   Msg case {
   ; *R get_score_req$ -> (D R bh_get_score) value$
   ; *R next_req$ -> (D R bh_next) value$

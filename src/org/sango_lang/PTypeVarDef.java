@@ -67,7 +67,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
     return buf.toString();
   }
 
-  public PTypeVarDef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  public PTypeVarDef unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
     PTypeVarDef v = new PTypeVarDef(srcInfo, scope);
     v.name = this.name;
     switch (concreteOpt) {
@@ -81,7 +81,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       v.requiresConcrete = this.requiresConcrete;
     }
     if (this.features != null) {
-      v.features = this.features.unresolvedCopy(srcInfo, scope, extOpt, concreteOpt);
+      v.features = this.features.unresolvedCopy(srcInfo, scope, concreteOpt);
     }
     return v;
   }

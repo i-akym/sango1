@@ -57,16 +57,10 @@ class PCompiledModule implements PModDecl {
     MDataDef[] mdds = mod.getDataDefs();
     for (int i = 0; i < mdds.length; i++) {
       MDataDef mdd = mdds[i];
-      DataDef dd = cm.convertDataDef(mod, mdd);
+      DataOriginDef dd = cm.convertDataDef(mod, mdd);
       PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, mdd.tcon);
-      if (dd.getBaseTconKey() == null) {
-        if (!theCompiler.defDict.predefineTconData(ik, dd.acc)) {
-          throw new RuntimeException("Unexpected error occurred on prefining " + ik);
-        }
-      } else {
-        if (!theCompiler.defDict.predefineTconExtend(ik, dd.acc)) {
-          throw new RuntimeException("Unexpected error occurred on prefining " + ik);
-        }
+      if (!theCompiler.defDict.predefineTconData(ik, dd.acc)) {
+        throw new RuntimeException("Unexpected error occurred on prefining " + ik);
       }
       int cc = dd.getConstrCount();
       for (int j = 0; j < cc; j++) {
@@ -77,7 +71,27 @@ class PCompiledModule implements PModDecl {
           throw new RuntimeException("Unexpected error occurred on prefining " + dk);
         }
       }
-      theCompiler.defDict.putDataDef(ik, dd);
+      theCompiler.defDict.putDataOriginDef(ik, dd);
+    }
+
+    MDataExtensionDef[] mdxds = mod.getDataExtensionDefs();
+    for (int i = 0; i < mdxds.length; i++) {
+      MDataExtensionDef mdxd = mdxds[i];
+      DataExtensionDef dxd = cm.convertDataExtensionDef(mod, mdxd);
+      PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, mdxd.defKey);
+      if (!theCompiler.defDict.predefineDefKeyExtension(ik, dxd.acc)) {
+        throw new RuntimeException("Unexpected error occurred on prefining " + ik);
+      }
+      int cc = dxd.getConstrCount();
+      for (int j = 0; j < cc; j++) {
+        PDataDef.Constr c = dxd.getConstrAt(j);
+        String dcon = c.getDcon();
+        PDefDict.IdKey dk = PDefDict.IdKey.create(mod.actualName, dcon);
+        if (!theCompiler.defDict.predefineDcon(dk, dxd.acc)) {
+          throw new RuntimeException("Unexpected error occurred on prefining " + dk);
+        }
+      }
+      theCompiler.defDict.putDataExtensionDef(ik, dxd);
     }
 
     MAliasTypeDef[] matds = mod.getAliasTypeDefs();
@@ -133,19 +147,17 @@ class PCompiledModule implements PModDecl {
     return this.foreignMods;
   }
 
-  DataDef convertDataDef(Module mod, MDataDef dataDef) {
-    DataDef dd = new DataDef();
+  DataOriginDef convertDataDef(Module mod, MDataDef dataDef) {
+    DataOriginDef dd = new DataOriginDef();
     dd.availability = dataDef.availability;
     dd.modName = mod.actualName;
-    dd.sigTcon = dataDef.tcon;
+    dd.tcon = dataDef.tcon;
     List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
     if (dataDef.params != null) {
-      dd.paramVariances = new Module.Variance[dataDef.params.length];
-      dd.sigParams = new PTypeVarSkel[dataDef.params.length];
+      dd.params = new PTypeVarSkel[dataDef.params.length];
       for (int i = 0; i < dataDef.params.length; i++) {
-        dd.paramVariances[i] = dataDef.params[i].variance;
         PTypeVarSkel v = (PTypeVarSkel)this.convertType(dataDef.params[i].var, mod, varList /* , unresolvedTypeRefList, unresolvedFeatureList */);
-        dd.sigParams[i] = v;
+        dd.params[i] = v;
       }
     }
     dd.acc = dataDef.acc;
@@ -157,9 +169,10 @@ class PCompiledModule implements PModDecl {
         AttrDef ad = cd.addAttr(mad.name, this.convertType(mad.type, mod, varList /* , unresolvedTypeRefList, unresolvedFeatureList */));
       }
     }
-    if (dataDef.baseModIndex > 0) {
-      dd.baseTconKey = PDefDict.IdKey.create(mod.getModAt(dataDef.baseModIndex), dataDef.baseTcon);
-    }
+    dd.extensible = dataDef.extensible;
+    // if (dataDef.baseModIndex > 0) {
+      // dd.baseTconKey = PDefDict.IdKey.create(mod.getModAt(dataDef.baseModIndex), dataDef.baseTcon);
+    // }
     dd.featureImpls = new FeatureImpl[dataDef.featureImpls.length];
     for (int i = 0; i < dataDef.featureImpls.length; i++) {
       MFeatureImplDef mfi = dataDef.featureImpls[i];
@@ -173,64 +186,60 @@ class PCompiledModule implements PModDecl {
     return dd;
   }
 
-  class DataDef implements PDataDef {
+  class DataOriginDef implements PDataDef.OriginDef {
     Module.Availability availability;
-    Cstr modName;
-    PTypeRefSkel sig;  // lazy setup
-    String sigTcon;
-    Module.Variance[] paramVariances;
-    PTypeVarSkel[] sigParams;
     Module.Access acc;
+    Cstr modName;
+    String tcon;
+    PTypeVarSkel[] params;
     List<String> constrList;
     Map<String, ConstrDef> constrDict;
-    PDefDict.IdKey baseTconKey;
+    boolean extensible;
     PDataDef.FeatureImpl[] featureImpls;
+    PTypeRefSkel sig;  // lazy setup
 
-    DataDef() {
+    DataOriginDef() {
       this.constrList = new ArrayList<String>();
       this.constrDict = new HashMap<String, ConstrDef>();
     }
 
-    public String getFormalTcon() { return this.sigTcon; }
+    public Module.Availability getAvailability() { return this.availability; }
 
-    public PDefDict.IdKey getBaseTconKey() { return this.baseTconKey; }
+    public Module.Access getAcc() { return this.acc; }
+
+    public Cstr getModName() { return this.modName; }
+
+    public String getTcon() { return this.tcon; }
 
     public int getParamCount() {
-      return (this.sigParams == null)? -1: this.sigParams.length;
+      return (this.params == null)? -1: this.params.length;
     }
 
     public PDefDict.TparamProps[] getParamPropss() {
       PDefDict.TparamProps[] tps;
-      if (this.sigParams == null) {
+      if (this.params == null) {
         tps = null;
       } else {
-        tps = new PDefDict.TparamProps[this.sigParams.length];
-        for (int i = 0; i < this.sigParams.length; i++) {
-          tps[i] = PDefDict.TparamProps.create(this.paramVariances[i], this.sigParams[i].requiresConcrete);
+        tps = new PDefDict.TparamProps[this.params.length];
+        for (int i = 0; i < this.params.length; i++) {
+          tps[i] = PDefDict.TparamProps.create();
         }
       }
       return tps;
     }
-
-    // public int getParamCount() { return (this.sigParams != null)? this.sigParams.length: -1 ; }
 
     public PTypeRefSkel getTypeSig() {
       if (this.sig == null) {
         this.sig = PTypeRefSkel.create(
           PCompiledModule.this.theCompiler,
           null,
-          PDefDict.IdKey.create(this.modName, this.sigTcon),
-          false,
-          this.sigParams);
+          PDefDict.IdKey.create(this.modName, this.tcon),
+          this.params);
       }
       return this.sig;
     }
 
-    // public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
-
-    public Module.Availability getAvailability() { return this.availability; }
-
-    public Module.Access getAcc() { return this.acc; }
+    public boolean isExtensible() { return this.extensible; }
 
     public int getConstrCount() { return this.constrDict.size(); }
 
@@ -246,7 +255,98 @@ class PCompiledModule implements PModDecl {
       ConstrDef cd = new ConstrDef(dcon);
       this.constrList.add(dcon);
       this.constrDict.put(dcon, cd);
-      cd.dataDef = this;
+      return cd;
+    }
+  }
+
+  DataExtensionDef convertDataExtensionDef(Module mod, MDataExtensionDef dataExtensionDef) {
+    DataExtensionDef dxd = new DataExtensionDef();
+    dxd.defKey = dataExtensionDef.defKey;
+    dxd.availability = dataExtensionDef.availability;
+    dxd.acc = dataExtensionDef.acc;
+    dxd.modName = mod.actualName;
+    dxd.baseTconKey = PDefDict.IdKey.create(mod.getModAt(dataExtensionDef.baseModIndex), dataExtensionDef.baseTcon);
+    List<PTypeVarSkel> varList = new ArrayList<PTypeVarSkel>();
+    if (dataExtensionDef.params != null) {
+      dxd.params = new PTypeVarSkel[dataExtensionDef.params.length];
+      for (int i = 0; i < dataExtensionDef.params.length; i++) {
+        PTypeVarSkel v = (PTypeVarSkel)this.convertType(dataExtensionDef.params[i].var, mod, varList);
+        dxd.params[i] = v;
+      }
+    }
+    for (int i = 0; i < dataExtensionDef.constrs.length; i++) {
+      MConstrDef mcd = dataExtensionDef.constrs[i];
+      ConstrDef cd = dxd.addConstr(mcd.dcon);
+      for (int j = 0; j < mcd.attrs.length; j++) {
+        MAttrDef mad = mcd.attrs[j];
+        AttrDef ad = cd.addAttr(mad.name, this.convertType(mad.type, mod, varList));
+      }
+    }
+    return dxd;
+  }
+
+  class DataExtensionDef implements PDataDef.ExtensionDef {
+    String defKey;
+    Module.Availability availability;
+    Cstr modName;
+    PTypeVarSkel[] params;
+    Module.Access acc;
+    Cstr baseModName;
+    PDefDict.IdKey baseTconKey;
+    List<String> constrList;
+    Map<String, ConstrDef> constrDict;
+    PTypeRefSkel sig;  // lazy setup
+
+    DataExtensionDef() {
+      this.constrList = new ArrayList<String>();
+      this.constrDict = new HashMap<String, ConstrDef>();
+    }
+
+    public Cstr getModName() { return this.modName; }
+
+    public String getTcon() { return this.baseTconKey.idName; }
+
+    public String getDefKey() { return this.defKey; }
+
+    public Cstr getOriginModName() { return this.baseTconKey.modName; }
+
+    public int getParamCount() { return this.params.length; }
+
+    public PDefDict.TparamProps[] getParamPropss() {
+      PDefDict.TparamProps[] tps;
+      tps = new PDefDict.TparamProps[this.params.length];
+      for (int i = 0; i < this.params.length; i++) {
+        tps[i] = PDefDict.TparamProps.create();
+      }
+      return tps;
+    }
+
+    public PTypeRefSkel getTypeSig() {
+      if (this.sig == null) {
+        this.sig = PTypeRefSkel.create(
+          PCompiledModule.this.theCompiler,
+          null,
+          this.baseTconKey,
+          this.params);
+      }
+      return this.sig;
+    }
+
+    public Module.Availability getAvailability() { return this.availability; }
+
+    public Module.Access getAcc() { return this.acc; }
+
+    public int getConstrCount() { return this.constrDict.size(); }
+
+    public PDataDef.Constr getConstr(String dcon) { return this.constrDict.get(dcon); }
+
+    public PDataDef.Constr getConstrAt(int index) { return this.constrDict.get(this.constrList.get(index)); }
+
+    ConstrDef addConstr(String dcon) {
+      ConstrDef cd = new ConstrDef(dcon);
+      this.constrList.add(dcon);
+      this.constrDict.put(dcon, cd);
+      // cd.dataDef = this;
       return cd;
     }
   }
@@ -254,13 +354,6 @@ class PCompiledModule implements PModDecl {
   AliasTypeDef convertAliasTypeDef(Module mod, MAliasTypeDef aliasTypeDef) {
     AliasTypeDef ad = new AliasTypeDef();
     PDefDict.IdKey ik = PDefDict.IdKey.create(mod.actualName, aliasTypeDef.tcon);
-    // PDefDict.DataDefGetter g = createDataDefGetter(ad);
-    PDefDict.TparamProps[] paramPropss = new PDefDict.TparamProps[aliasTypeDef.paramCount];
-    for (int k = 0; k < paramPropss.length; k++) {
-      paramPropss[k] = PDefDict.TparamProps.create(Module.INVARIANT, false);
-    }
-    // ad.tconProps = PDefDict.TidProps.create(
-      // ik, PDefDict.TID_CAT_TCON_ALIAS, paramPropss, aliasTypeDef.acc, g);
     ad.availability = aliasTypeDef.availability;
     ad.acc = aliasTypeDef.acc;
     ad.tcon = aliasTypeDef.tcon;
@@ -312,7 +405,7 @@ class PCompiledModule implements PModDecl {
   }
 
   class ConstrDef implements PDataDef.Constr {
-    DataDef dataDef;
+    // DataOriginDef dataDef;
     String dcon;
     List<AttrDef> attrList;
 
@@ -321,7 +414,7 @@ class PCompiledModule implements PModDecl {
       this.attrList = new ArrayList<AttrDef>();
     }
 
-    public PDataDef getDataDef() { return this.dataDef; }
+    // public PDataDef getDataDef() { return this.dataDef; }
 
     public String getDcon() { return this.dcon; }
 
@@ -337,10 +430,10 @@ class PCompiledModule implements PModDecl {
       return index;
     }
 
-    public PTypeSkel getType(PTypeSkel.Bindings bindings) {
-      PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
-      return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
-    }
+    // public PTypeSkel getType(PTypeSkel.Bindings bindings) {
+      // PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(bindings);
+      // return this.dataDef.getTypeSig().resolveBindings(bindings).instanciate(ic);
+    // }
 
     AttrDef addAttr(String name, PTypeSkel type) {
       AttrDef ad = new AttrDef();
@@ -385,10 +478,8 @@ class PCompiledModule implements PModDecl {
     fd.nameKey = PDefDict.IdKey.create(mod.actualName, featureDef.fname);
     fd.obj = convertTypeVar(featureDef.obj, mod, varList);
     fd.params = new PTypeVarSkel[featureDef.params.length];
-    fd.paramVariances = new Module.Variance[featureDef.params.length];
     for (int i = 0; i < fd.params.length; i++) {
       fd.params[i] = convertTypeVar(featureDef.params[i].var, mod, varList);
-      fd.paramVariances[i] = featureDef.params[i].variance;
     }
     fd.impl = this.convertTypeRef(featureDef.impl, mod, varList);
     return fd;
@@ -400,7 +491,6 @@ class PCompiledModule implements PModDecl {
     PDefDict.IdKey nameKey;
     PTypeVarSkel obj;
     PTypeVarSkel[] params;
-    Module.Variance[] paramVariances;
     PTypeRefSkel impl;
 
     public Module.Availability getAvailability() { return this.availability; }
@@ -412,22 +502,18 @@ class PCompiledModule implements PModDecl {
     public int getParamCount() { return this.params.length; }
 
     public PDefDict.TparamProps[] getParamPropss() {
-      PDefDict.TparamProps[] pps = new PDefDict.TparamProps[this.paramVariances.length];
+      PDefDict.TparamProps[] pps = new PDefDict.TparamProps[this.params.length];
       for (int i = 0; i < pps.length; i++) {
-        pps[i] = PDefDict.TparamProps.create(this.paramVariances[i], false);
+        pps[i] = PDefDict.TparamProps.create();
       }
       return pps;
     }
 
     public PTypeVarSkel getObjType() { return this.obj; }
 
-    // public PTypeVarSkel[] getParams() { return this.params; }
-
     public PFeatureSkel getFeatureSig() {
       return PFeatureSkel.create(PCompiledModule.this.theCompiler, null, this.nameKey, this.params);
     }
-
-    // public Module.Variance getParamVarianceAt(int pos) { return this.paramVariances[pos]; }
 
     public PTypeRefSkel getImplType() { return this.impl; }
   }
@@ -500,7 +586,6 @@ class PCompiledModule implements PModDecl {
       PCompiledModule.this.theCompiler,
       null,
       ik,
-      tr.ext,
       params);
     return t;
   }

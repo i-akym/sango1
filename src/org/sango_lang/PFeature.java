@@ -45,7 +45,7 @@ public class PFeature extends PDefaultProgObj {
       buf.append(",");
     }
     buf.append("name=");
-    buf.append(PTid.repr(this.fname.modId, this.fname.name, false));
+    buf.append(PTid.repr(this.fname.modId, this.fname.name));
     buf.append(",params=[");
     String sep = "";
     for (int i = 0; i < this.params.length; i++) {
@@ -159,20 +159,12 @@ public class PFeature extends PDefaultProgObj {
     return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_featureProps.key, ps);
   }
 
-  // PFeatureSkel getNormalizedSkel() throws CompileException {
-    // PTypeSkel ps[] = new PTypeSkel[this.params.length];
-    // for (int i = 0; i < ps.length; i++) {
-      // ps[i] = this.params[i].getNormalizedSkel();
-    // }
-    // return PFeatureSkel.create(this.scope.getCompiler(), this.srcInfo, this._resolved_featureProps.key, ps);
-  // }
-
-  PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+  PFeature unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
     Builder builder = Builder.newInstance(srcInfo, scope);
     for (int i = 0; i < this.params.length; i++) {
-      builder.addItem(this.params[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
+      builder.addItem(this.params[i].unresolvedCopy(srcInfo, scope, concreteOpt));
     }
-    builder.addItem(this.fname.copy(srcInfo, scope, extOpt, concreteOpt));
+    builder.addItem(this.fname.copy(srcInfo, scope));
     PFeature f = null;
     try {
       f = builder.create();
@@ -215,33 +207,6 @@ public class PFeature extends PDefaultProgObj {
       }
       return builder.create();
     }
-
-    // static List acceptSig(ParserA.TokenReader reader, PScope scope) throws CompileException, IOException {
-      // StringBuffer emsg;
-      // ParserA.Token t;
-      // if ((t = ParserA.acceptToken(reader, LToken.LBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) { return null; }
-      // ListBuilder builder = ListBuilder.newInstance(t.getSrcInfo(), scope);
-      // PFeature f;
-      // int state = 0;
-      // while (state >= 0) {
-        // if (state == 0 && (f = acceptSigDesc(reader, scope)) != null) {
-          // builder.addFeature(f);
-          // state = 1;
-        // } else if (state == 1 && (ParserA.acceptToken(reader, LToken.COMMA, ParserA.SPACE_DO_NOT_CARE)) != null) {
-          // state = 0;
-        // } else {
-          // state = -1;
-        // }
-      // }
-      // if ((t = ParserA.acceptToken(reader, LToken.RBRACKET, ParserA.SPACE_DO_NOT_CARE)) == null) {
-        // emsg = new StringBuffer();
-        // emsg.append("] missing at ");
-        // emsg.append(reader.getCurrentSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-      // return builder.create();
-    // }
 
     public String toString() {
       StringBuffer buf = new StringBuffer();
@@ -289,18 +254,10 @@ public class PFeature extends PDefaultProgObj {
       return PFeatureSkel.List.create(this.srcInfo, fss);
     }
 
-    // PFeatureSkel.List getNormalizedSkel() throws CompileException {
-      // PFeatureSkel[] fss = new PFeatureSkel[this.features.length];
-      // for (int i = 0; i < fss.length; i++) {
-        // fss[i] = this.features[i].getNormalizedSkel();
-      // }
-      // return PFeatureSkel.List.create(this.srcInfo, fss);
-    // }
-
-    List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int extOpt, int concreteOpt) {
+    List unresolvedCopy(Parser.SrcInfo srcInfo, PScope scope, int concreteOpt) {
       ListBuilder builder = ListBuilder.newInstance(srcInfo, scope);
       for (int i = 0; i < this.features.length; i++) {
-        builder.addFeature(this.features[i].unresolvedCopy(srcInfo, scope, extOpt, concreteOpt));
+        builder.addFeature(this.features[i].unresolvedCopy(srcInfo, scope, concreteOpt));
       }
       List L = null;
       try {
@@ -423,14 +380,6 @@ public class PFeature extends PDefaultProgObj {
     }
 
     List create() throws CompileException {
-      // StringBuffer emsg;
-      // if (this.features.size() == 0) {
-        // emsg = new StringBuffer();
-        // emsg.append("Empty feature list at ");
-        // emsg.append(this.list.getSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
       this.list.features = this.features.toArray(new PFeature[this.features.size()]);
       return this.list;
     }

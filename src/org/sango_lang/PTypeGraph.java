@@ -186,7 +186,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
+        } else if (!this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -256,7 +256,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
+        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -268,7 +268,7 @@ class PTypeGraph {
           emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
-        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
+        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -320,7 +320,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.inNode.type.accept(PTypeSkel.NARROWER, this.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
+        } else if (!this.inNode.type.accept(this.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -367,7 +367,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
           ;
-        } else if (!this.type.require(PTypeSkel.NARROWER, this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
+        } else if (!this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -636,7 +636,7 @@ if (DEBUG > 1) {
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
         PTypeSkel.Bindings bb = this.bindings;  // before looks for debug
-        boolean b = ctr.params[i].accept(PTypeSkel.NARROWER, t, this.bindings);
+        boolean b = ctr.params[i].accept(t, this.bindings);
         if (!b) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
@@ -992,11 +992,15 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.actualName, ep.key);
-      if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
+
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
+      // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.actualName, ep.key);
+      // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
+      PDataDef.Constr constr = PTypeGraph.this.theCompiler.defDict.getConstrDefFromDcon(
+        PTypeGraph.this.theMod.actualName, ep.key);
+      // PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
       if (constr == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       if (constr.getAttrCount() != this.attrNodes.length) {
         emsg = new StringBuffer();
@@ -1023,7 +1027,7 @@ if (DEBUG > 1) {
           /* DEBUG */ System.out.print("bindings: ");
           /* DEBUG */ System.out.println(b);
 }
-        if (!at.accept(PTypeSkel.NARROWER, t, b)) {
+        if (!at.accept(t, b)) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -1047,7 +1051,9 @@ if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
       /* DEBUG */ System.out.println(b);
 }
-      PTypeSkel dt = constr.getType(b);
+      PTypeSkel dt = dataDef.getTypeSig().resolveBindings(b).instanciate(PTypeSkel.InstanciationContext.create(b));
+      // PTypeSkel dt = constr.getType(b);  // original
+
       // sig param does not require concreteness now
       // PTypeRefSkel sig = dataDef.getTypeSig();
       // if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {
@@ -1289,14 +1295,11 @@ if (DEBUG > 1) {
       if (t == null) { return null; }  // HERE: in case of <_>
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
-      if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
+      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
       PTypeSkel.Bindings b = PTypeSkel.Bindings.create(this.givenTVarList);
-      int width = PTypeSkel.WIDER;  // may strengthen check; warning?
-      if (!sig.accept(width, t, b)) {
+      if (!sig.accept(t, b)) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.exprObj.getSrcInfo());
@@ -1367,11 +1370,14 @@ if (DEBUG > 1) {
       if ((b = ((DataConstrPtnNode)this.inNode).getBindings()) == null) { return null; }
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
-      if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
-      if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
+      PDataDef.Constr constr =PTypeGraph.this.theCompiler.defDict.getConstrDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key); 
+      PDataDef.Attr attr = constr.getAttrAt(this.index);
+      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
+      // // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
+      // // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
+      // if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
+      // PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(b);
       return attr.getNormalizedType().resolveBindings(b).instanciate(ic);
     }

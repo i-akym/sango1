@@ -26,9 +26,10 @@ module "sango.util.avltree.queue" ;;
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.queue" -> queue ;;
 
-data <*A d> :=
+data <*A queue> @opaque :=
   body: <A avl.tree>
-  d$ ;;
+  queue$
+++ queue_fs -> [ A queue.a'queue ] ;;
 
 eval <*A avl.node> *Node locate_head -> <A avl.locate> {
   Node avl.left_ >> case {
@@ -41,11 +42,11 @@ eval <*A avl.node> *Node locate_enqueue -> <A avl.locate> {
   ^^ avl.right$
 } ;;
 
-eval new_queue @public -> <*A queue.queue> {
-  (body: avl.new_tree d$) queue_fs queue.combine
+eval new_queue @public -> <*A queue> {
+  body: avl.new_tree queue$
 } ;;
 
-eval queue_fs -> <<*A d> A queue.queue_fs> {
+eval queue_fs -> <<*A queue> A queue.queue_fs> {
   empty?_f: ^empty?
   length_f: ^length
   enqueue_f: ^enqueue
@@ -55,37 +56,37 @@ eval queue_fs -> <<*A d> A queue.queue_fs> {
   queue.queue_fs$
 } ;;
 
-eval <*A d> *Queue_d empty? -> <bool> {
-  Queue_d length >> zero?
+eval <*A queue> *Queue empty? @public -> <bool> {
+  Queue length >> zero?
 } ;;
 
-eval <*A d> *Queue_d length -> <int> {
-  Queue_d = body: *Body *** d$,
+eval <*A queue> *Queue length @public -> <int> {
+  Queue = body: *Body *** queue$,
   Body avl.size
 } ;;
 
-eval <*A d> *Queue_d <A> *Elem enqueue -> <A d> {
-  Queue_d = body: *Body *** d$,
+eval <*A queue> *Queue <A> *Elem enqueue @public -> <A queue> {
+  Queue = body: *Body *** queue$,
   Body ^locate_enqueue Elem avl.put = *Body' avl.put_new_done$,
-  body: Body' :: Queue_d d$
+  body: Body' :: Queue queue$
 } ;;
 
-eval <*A d> *Queue_d head -> <A maybe> {
-  Queue_d = body: *Body *** d$,
+eval <*A queue> *Queue head @public -> <A maybe> {
+  Queue = body: *Body *** queue$,
   Body ^locate_head avl.get >> case {
   ; *E avl.get_done$ -> E value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Queue_d dequeue -> <<A <A d> tuple> maybe> {
-  Queue_d = body: *Body *** d$,
+eval <*A queue> *Queue dequeue @public -> <<A <A queue> tuple> maybe> {
+  Queue = body: *Body *** queue$,
   Body avl.take >> case {
-  ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue_d d$ |) value$
+  ; (| *Head, *Body' |) value$ -> (| Head, body: Body' :: Queue queue$ |) value$
   ; ** -> none$
   }
 } ;;
 
-eval <*A d> *Queue_d clear -> <A d> {
-  body: avl.new_tree d$
+eval <*A queue> *Queue clear @public -> <A queue> {
+  body: avl.new_tree queue$
 } ;;

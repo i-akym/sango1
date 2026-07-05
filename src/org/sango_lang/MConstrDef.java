@@ -29,15 +29,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class MConstrDef {
-  MDataDef theDataDef;
   String dcon;
   MAttrDef [] attrs;
 
   private MConstrDef() {}
-
-  void setDataDef(MDataDef dataDef) {
-    this.theDataDef = dataDef;
-  }
 
   static class Builder {
     MConstrDef constrDef;
@@ -80,12 +75,12 @@ public class MConstrDef {
     return attrDef.externalize(doc);
   }
 
-  void checkCompat(Module.ModTab modTab, MDataDef dd, Module.ModTab defModTab) throws FormatException {
+  void checkCompat(Module.ModTab modTab, MConstrDef[] cds, Module.ModTab defModTab) throws FormatException {
     StringBuffer emsg;
     MConstrDef cd = null;
-    for (int i = 0; cd == null && i < dd.constrs.length; i++) {
-      if (dd.constrs[i].dcon.equals(this.dcon)) {
-        cd = dd.constrs[i];
+    for (int i = 0; cd == null && i < cds.length; i++) {
+      if (cds[i].dcon.equals(this.dcon)) {
+        cd = cds[i];
       }
     }
     if (cd != null) {
