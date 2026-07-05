@@ -25,6 +25,7 @@ module "sango.util.avltree.ralist" ;;
 
 import "sango.util.avltree.base" -> avl ;;
 import "sango.util.ralist" -> ral ;;
+import "sango.tuple" -> tuple ;;
 
 data <*A ralist> @opaque :=
   body: <A avl.tree>
@@ -60,29 +61,33 @@ eval ralist_fs -> <<*A ralist> A ral.ralist_fs> {
   empty?_f: ^empty?
   length_f: ^length
   elem_f: ^elem
-  first_f_: none$
-  last_f_: none$
-  tail_f_: none$
+  first_f_: (^first value$)
+  last_f_: (^last value$)
+  tail_f_: (^tail value$)
   insert_at_f: ^insert_at
-  append_f_: none$
+  append_f_: (^append value$)
   remove_at_f: ^remove_at
-  replace_at_f_: none$
-  take_f_: none$
-  drop_f_: none$
+  replace_at_f_: (^replace_at value$)
+  take_f_: (^take value$)
+  drop_f_: (^drop value$)
   clear_f: ^clear
   ral.ralist_fs$
 } ;;
 
-eval <*A ralist> *Ralist empty? -> <bool> {
+eval <*A ralist> *Ralist empty? @public -> <bool> {
   Ralist length >> zero?
 } ;;
 
-eval <*A ralist> *Ralist length -> <int> {
+eval <*A ralist> *Ralist non_empty? @public -> <bool> {
+  Ralist empty? >> not
+} ;;
+
+eval <*A ralist> *Ralist length @public -> <int> {
   Ralist = body: *Body *** ralist$,
   Body avl.size
 } ;;
 
-eval <*A ralist> *Ralist <int> *Index elem -> <A maybe> {
+eval <*A ralist> *Ralist <int> *Index elem @public -> <A maybe> {
   Ralist = body: *Body *** ralist$,
   Body (Index find_locator) avl.get >> case {
   ; *Y avl.get_done$ -> Y value$
@@ -90,13 +95,32 @@ eval <*A ralist> *Ralist <int> *Index elem -> <A maybe> {
   }
 } ;;
 
-eval <*A ralist> *Ralist <int> *Index <A> *X insert_at -> <A ralist> {
+eval <*A ralist> *Ralist first @public -> <A maybe> {
+  Ralist 0 elem
+} ;;
+
+eval <*A ralist> *Ralist last @public -> <A maybe> {
+  Ralist (Ralist length >> dec) elem
+} ;;
+
+eval <*A ralist> *Ralist tail @public -> <<A ralist> maybe> {
+  if {
+  ; Ralist empty? -> none$
+  ; otherwise -> (Ralist 0 delete_at) value$
+  }
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index <A> *X insert_at @public -> <A ralist> {
   Ralist = body: *Body *** ralist$,
   Body (Index insert_locator) X avl.put = *Body' avl.put_new_done$,
   body: Body' :: Ralist ralist$
 } ;;
 
-eval <*A ralist> *Ralist <int> *Index remove_at -> <<A ralist> <A maybe> tuple> {
+eval <*A ralist> *Ralist <A> *X append @public -> <A ralist> {
+  Ralist (Ralist length) X insert_at
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index remove_at @public -> <<A ralist> <A maybe> tuple> {
   Ralist = body: *Body *** ralist$,
   Body (Index find_locator) avl.remove >> case {
   ; *Body' *Removed avl.remove_done$ -> (| body: Body' :: Ralist ralist$, Removed value$ |)
@@ -104,6 +128,51 @@ eval <*A ralist> *Ralist <int> *Index remove_at -> <<A ralist> <A maybe> tuple> 
   }
 } ;;
 
-eval <*A ralist> *Ralist clear -> <A ralist> {
+eval <*A ralist> *Ralist <int> *Index delete_at @public -> <A ralist> {
+  Ralist Index remove_at >> tuple.pair_first
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index <A> *Elem replace_at @public -> <<A ralist> <A maybe> tuple> {
+  Ralist Index remove_at >> case {
+  ; (| *Ralist', *Removed value$ |) -> (| Ralist' Index Elem insert_at, Removed value$ |)
+  ; (| **, ** |) -> (| Ralist, none$ |)
+  }
+} ;;
+
+eval <*A ralist> *Ralist <int> *Index <A> *Elem update_at @public -> <A ralist> {
+  Ralist Index Elem replace_at >> tuple.pair_first
+} ;;
+
+eval <*A ralist> *Ralist <int> *Count take @public -> <A ralist> {
+  if {
+  ; Count gt0? ->
+  ; otherwise -> bad_arg$ "Negative count." new_exception >> throw
+  },
+  (Count dec) (Ralist clear) &\ <int> *I <A ralist> *L -> <A ralist> {
+    Ralist I elem >> case {
+    ; *X value$ -> (I dec) (L 0 X insert_at) &&
+    ; ** -> L
+    }
+  }
+} ;;
+
+eval <*A ralist> *Ralist <int> *Count drop @public -> <A ralist> {
+  if {
+  ; Count gt0? ->
+  ; otherwise -> bad_arg$ "Negative count." new_exception >> throw
+  },
+  Count (Ralist clear) &\ <int> *C <A ralist> *L -> <A ralist> {
+    Count case {
+    ; 0 -> L
+    ; ** ->
+      L 0 remove_at >> case {
+      ; (| *L', ** value$ |) -> (Count dec) L' &&
+      ; (| **, ** |) -> L
+      }
+    }
+  }
+} ;;
+
+eval <*A ralist> *Ralist clear @public -> <A ralist> {
   body: avl.new_tree ralist$
 } ;;
