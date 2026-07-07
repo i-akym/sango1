@@ -573,10 +573,6 @@ if (PTypeGraph.DEBUG > 1) {
     return isLangType(type, Module.TCON_BOTTOM);
   }
 
-  static boolean willNotReturn(PTypeSkel type) {
-    return isBottom(type);
-  }
-
   static boolean isTuple(PTypeSkel type) {
     return isLangType(type, Module.TCON_TUPLE);
   }
