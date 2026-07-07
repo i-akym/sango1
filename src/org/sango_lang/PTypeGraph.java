@@ -184,7 +184,7 @@ class PTypeGraph {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
         }
-        if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
+        if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
         } else if (!this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
           emsg = new StringBuffer();
@@ -254,7 +254,7 @@ class PTypeGraph {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
         }
-        if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
+        if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
         } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
           emsg = new StringBuffer();
@@ -318,7 +318,7 @@ class PTypeGraph {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
         }
-        if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
+        if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
         } else if (!this.inNode.type.accept(this.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
           emsg = new StringBuffer();
@@ -365,7 +365,7 @@ class PTypeGraph {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking return type...");
         }
-        if (PTypeRefSkel.willNotReturn(this.inNode.type)) {
+        if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
         } else if (!this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
           emsg = new StringBuffer();
@@ -484,7 +484,7 @@ class PTypeGraph {
       for (int i = 0; i < this.paramNodes.length; i++) {
         t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.willNotReturn(t)) { return t; }
+        if (PTypeRefSkel.isBottom(t)) { return t; }
         ts[i] = t;
       }
       t = this.getTypeOf(this.retNode);
@@ -699,7 +699,7 @@ if (DEBUG > 1) {
       PTypeSkel following = this.getTypeOf(this.inNode);
       PTypeSkel t = null;
       if (leading != null) {
-        if (PTypeRefSkel.willNotReturn(leading)) {
+        if (PTypeRefSkel.isBottom(leading)) {
           t = leading;
         } else if (following != null) {
           t = following;
@@ -707,7 +707,7 @@ if (DEBUG > 1) {
           ;  // wait for following
         }
       } else if (following != null) {
-        if (PTypeRefSkel.willNotReturn(following)) {
+        if (PTypeRefSkel.isBottom(following)) {
           t = following;
         } else if (this.leadingTypeNode.dependsOnSelfRet) {
           t = following;
@@ -822,7 +822,7 @@ if (DEBUG > 1) {
       for (int i = 0; i < this.elemNodes.length; i++) {
         t = this.getTypeOf(this.elemNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.willNotReturn(t)) { return t; }
+        if (PTypeRefSkel.isBottom(t)) { return t; }
         ts[i] = t;
       }
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "tuple", ts);
@@ -878,10 +878,10 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel et = this.getTypeOf(this.elemNode);
       if (et == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(et)) { return et; }
+      if (PTypeRefSkel.isBottom(et)) { return et; }
       PTypeSkel tt = this.getTypeOf(this.tailNode);
       if (tt == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(tt)) { return tt; }
+      if (PTypeRefSkel.isBottom(tt)) { return tt; }
       if (!PTypeRefSkel.isList(tt)) {
         emsg = new StringBuffer();
         emsg.append("Type of list tail is invalid at ");
@@ -942,7 +942,7 @@ if (DEBUG > 1) {
       for (int i = 0; i < this.elemNodes.length; i++) {
         PTypeSkel t2 = this.getTypeOf(this.elemNodes[i]);
         if (t2 == null) { return null; }
-        if (PTypeRefSkel.willNotReturn(t2)) { return t2; }
+        if (PTypeRefSkel.isBottom(t2)) { return t2; }
         if (t == null) {  // [0]
           t = t2;
         } else {
@@ -1015,7 +1015,7 @@ if (DEBUG > 1) {
       for (int i = 0; i < constr.getAttrCount(); i++) {
         PTypeSkel t = this.getTypeOf(this.attrNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.willNotReturn(t)) { return t; }
+        if (PTypeRefSkel.isBottom(t)) { return t; }
         PDataDef.Attr a = constr.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
         PTypeSkel.Bindings bb = b;
@@ -1095,7 +1095,7 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(t)) { return t; }
+      if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "tuple")) {
         emsg = new StringBuffer();
         emsg.append("Value is not tuple at ");
@@ -1137,7 +1137,7 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(t)) { return t; }
+      if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[this.index];  // type is guaranteed in in-node
     }
 
@@ -1163,7 +1163,7 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(t)) { return t; }
+      if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "list")) {
         emsg = new StringBuffer();
         emsg.append("Not in list at ");
@@ -1198,7 +1198,7 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(t)) { return t; }
+      if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
     }
  
@@ -1223,7 +1223,7 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(t)) { return t; }
+      if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "string")) {
         emsg = new StringBuffer();
         emsg.append("Value is not string at ");
@@ -1257,7 +1257,7 @@ if (DEBUG > 1) {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNode);
       if (t == null) { return null; }
-      if (PTypeRefSkel.willNotReturn(t)) { return t; }
+      if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
     }
    
