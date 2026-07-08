@@ -2154,9 +2154,9 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.4">B.4. 具象型</h2>
-<p>型パラメタを持っていない型，または，全ての型パラメタが（再帰的に）決定している型を具象型（concrete type）と呼びます。
-  例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
-  一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
+<p>未束縛の型パラメタおよび<code>&lt;&quot;sango.lang&quot;._&gt;</code>を含まない型を具象型（concrete type）と呼びます。
+例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
+一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
 <p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。
 関数，クロージャの返り値に含まれる型変数の宣言にて具象型を指定することはできません。</p>
 <blockquote class="code-sample">コード例<code>
@@ -2432,6 +2432,11 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 <li>【Beta，非互換】<code>&quot;sango.entity.feature&quot;</code>を<code>&quot;sango.entity&quot;</code>に統合</li>
 <li>【Beta，非互換】<code>&quot;sango.unique.feature&quot;</code>を<code>&quot;sango.unique&quot;</code>に統合</li>
 <li>【Deprecated】<code>&quot;sango.lang&quot;._0</code>，<code>_1</code>，<code>_2</code>，<code>_3</code>，<code>_4</code>，<code>_5</code></li>
+</ul>
+
+<p>■　NEXT VERSION</p>
+<ul>
+<li><code>&lt;&quot;sango.lang&quot;._&gt;</code>を含む型は，具象型ではないと変更。</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

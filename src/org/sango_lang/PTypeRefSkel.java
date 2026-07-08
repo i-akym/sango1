@@ -135,9 +135,14 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   public boolean isConcrete() {
-    boolean b = true;
-    for (int i = 0; b & i < this.params.length; i++) {
-      b &= this.params[i].isConcrete();
+    boolean b;
+    if (isBottom(this)) {
+      b =  false;
+    } else {
+      b = true;
+      for (int i = 0; b & i < this.params.length; i++) {
+        b &= this.params[i].isConcrete();
+      }
     }
     return b;
   }
