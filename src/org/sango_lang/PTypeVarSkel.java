@@ -823,15 +823,17 @@ public class PTypeVarSkel implements PTypeSkel {
   }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
-    boolean b = false;
+    boolean b;
     if (this.varSlot == null || varSlot == null) {
       b = false;
-    } else if (this.varSlot == varSlot) {
-      b = true;
-    // } else if (b = this.features.includesVar(varSlot, bindings)) {  // HERE: needed?
-      // ;
     } else if (bindings.isBound(this)) {
       b = bindings.lookup(this).includesVar(varSlot, bindings);
+    } else if (this.varSlot == varSlot) {
+      b = true;
+    } else if (this.features != null) {
+      b = this.features.includesVar(varSlot, bindings) ;
+    } else {
+      b = false;
     }
     return b;
   }
