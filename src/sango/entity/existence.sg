@@ -28,7 +28,7 @@ import "sango.unique" -> uniq ;;
 
 data <existence> @opaque := @native
 ++ entity_fs -> [ ent.a'entity ]
-++ as_a'unique -> [ uniq.a'unique ]  # @beta
+++ unique_f -> [ uniq.a'unique ]  # @beta
 ;;
 
 data <*A ro_slot> @opaque := @native ;;
@@ -65,7 +65,7 @@ eval <existence> *Ex undress -> <existence <existence existence fun> tuple> {
 
 # -- uniqueness functions --
 
-eval @beta as_a'unique -> <existence uniq.u fun> {
+eval @beta unique_f @public -> <existence uniq.u fun> {
   ^uniqueness
 } ;;
 
