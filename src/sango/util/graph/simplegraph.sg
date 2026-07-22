@@ -23,7 +23,7 @@
 ###########################################################################
 module @alpha "sango.util.graph.simplegraph" ;;
 
-### This is a simple implementation of a'graph not an implementation for 'simple graph'.
+### This is a simple implementation of a'graph; not an implementation for 'simple graph'.
 
 import "sango.list" -> list ;;
 import "sango.unique" -> uniq ;;
@@ -39,13 +39,17 @@ import "sango.tuple" -> tuple ;;
 alias type <*A *B vertex_d> := <<<A B graph.edge> set.set> <<A B graph.edge> set.set> tuple> ;;
   # outgoing edges, incoming edges
 
-data <*A *B simple_graph> @opaque :=
+data <*A *B graph> @opaque :=
   vtab: <<A graph.vertex> <A B vertex_d> map.map>
   eset: <<A B graph.edge> set.set>
-  simple_graph$
-++ as_a'graph -> [ A B graph.a'graph ] ;;
+  graph$
+++ graph_fs -> [ A B graph.a'graph ] ;;
 
-eval as_a'graph -> <<*A *B simple_graph> A B graph.graph_fs> {
+eval new_graph @public -> <*A *B graph> {
+  vtab: hmap.new_map eset: sset.new_set graph$
+} ;;
+
+eval graph_fs @public -> <<*A *B graph> A B graph.graph_fs> {
   empty?_f: ^empty?
   vertex_count_f: ^vertex_count
   edge_count_f: ^edge_count
@@ -63,52 +67,52 @@ eval as_a'graph -> <<*A *B simple_graph> A B graph.graph_fs> {
   graph.graph_fs$
 } ;;
 
-eval <*A *B simple_graph> *G empty? -> <bool> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G empty? -> <bool> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vtab map.empty?
 } ;;
 
-eval <*A *B simple_graph> *G vertex_count -> <int> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G vertex_count @public -> <int> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vtab map.size
 } ;;
 
-eval <*A *B simple_graph> *G edge_count -> <int> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G edge_count @public -> <int> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Eset set.size
 } ;;
 
-eval <*A *B simple_graph> *G vertex_iter -> <<A graph.vertex> iter> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G vertex_iter @public -> <<A graph.vertex> iter> {
+  G = vtab: *Vtab eset: *Eset graph$,
   (Vtab map.iter) ^tuple.pair_first iter.add_modifier
 } ;;
 
-eval <*A *B simple_graph> *G edge_iter -> <<A B graph.edge> iter> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G edge_iter @public -> <<A B graph.edge> iter> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Eset set.iter
 } ;;
 
-eval <*A *B simple_graph> *G <A graph.vertex> *V contain_vertex? -> <bool> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A graph.vertex> *V contain_vertex? @public -> <bool> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vtab V map.contain_key?
 } ;;
 
-eval <*A *B simple_graph> *G <A B graph.edge> *E contain_edge? -> <bool> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A B graph.edge> *E contain_edge? @public -> <bool> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Eset E set.contain?
 } ;;
 
-eval <*A *B simple_graph> *G <A graph.vertex> *V add_vertex -> <A B simple_graph> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A graph.vertex> *V add_vertex @public -> <A B graph> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vtab V map.contain_key? >> case {
   ; true$ -> Vtab  # already added
   ; ** -> Vtab V (| sset.new_set, sset.new_set |) map.add
   } = *Vtab',
-  vtab: Vtab' :: G simple_graph$
+  vtab: Vtab' :: G graph$
 } ;;
 
-eval <*A *B simple_graph> *G <A B graph.edge> *E add_edge -> <A B simple_graph> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A B graph.edge> *E add_edge @public -> <A B graph> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Eset E set.contain? >> case {
   ; true$ -> G  # already added
   ; ** ->
@@ -126,29 +130,29 @@ eval <*A *B simple_graph> *G <A B graph.edge> *E add_edge -> <A B simple_graph> 
     ; ** -> bad_arg$ "Unknown end vertex." new_exception >> throw
     } = *Vtab'',
     Eset E set.add = *Eset',
-    vtab: Vtab'' eset: Eset' :: G simple_graph$
+    vtab: Vtab'' eset: Eset' :: G graph$
   }
 } ;;
 
-eval <*A *B simple_graph> *G <A graph.vertex> *V delete_vertex -> <A B simple_graph> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A graph.vertex> *V delete_vertex @public -> <A B graph> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vtab V map.remove >> case {
   ; (| *Vtab', (| **, (| *OEs, *IEs |) |) value$ |) ->
     Eset (OEs set.iter) set.delete_iter = *Eset',
     Eset' (IEs set.iter) set.delete_iter = *Eset'',
-    vtab: Vtab' eset: Eset'' :: G simple_graph$
+    vtab: Vtab' eset: Eset'' :: G graph$
   ; ** -> G
   }
 } ;;
 
-eval <*A *B simple_graph> *G <A B graph.edge> *E delete_edge -> <A B simple_graph> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A B graph.edge> *E delete_edge @public -> <A B graph> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Eset E set.delete = *Eset',
-  eset: Eset' :: G simple_graph$
+  eset: Eset' :: G graph$
 } ;;
 
-eval <*A *B simple_graph> *G <A graph.vertex_sel> *Vsel select_vertices -> <<A graph.vertex> iter> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A graph.vertex_sel> *Vsel select_vertices @public -> <<A graph.vertex> iter> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vsel case {
   ; graph.vertex_sel_any$ ->
     (Vtab map.iter) ^tuple.pair_first iter.add_modifier
@@ -162,8 +166,8 @@ eval <*A *B simple_graph> *G <A graph.vertex_sel> *Vsel select_vertices -> <<A g
   }
 } ;;
 
-eval <*A *B simple_graph> *G <A B graph.edge_sel> *Esel select_edges -> <<A B graph.edge> iter> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G <A B graph.edge_sel> *Esel select_edges @public -> <<A B graph.edge> iter> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Esel case {
   ; graph.edge_sel_any$ ->
     Eset set.iter
@@ -230,9 +234,9 @@ eval <*A *B simple_graph> *G <A B graph.edge_sel> *Esel select_edges -> <<A B gr
   }
 } ;;
 
-eval <*A *B simple_graph> *G clear -> <A B simple_graph> {
-  G = vtab: *Vtab eset: *Eset simple_graph$,
+eval <*A *B graph> *G clear @public -> <A B graph> {
+  G = vtab: *Vtab eset: *Eset graph$,
   Vtab map.clear = *Vtab',
   Eset set.clear = *Eset',
-  vtab: Vtab' eset: Eset' :: G simple_graph$
+  vtab: Vtab' eset: Eset' :: G graph$
 } ;;

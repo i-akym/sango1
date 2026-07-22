@@ -35,7 +35,7 @@ data <*A vertex> @protected :=
   u: <uniq.u>
   assoc: <A>
   vertex$
-++ vertex_as_a'unique -> [ uniq.a'unique ] ;;
+++ vertex_unique_f -> [ uniq.a'unique ] ;;
 
 eval <*A> *Assoc new_vertex @public -> <A vertex> {
   u: uniq.new_unique
@@ -43,7 +43,7 @@ eval <*A> *Assoc new_vertex @public -> <A vertex> {
   vertex$
 } ;;
 
-eval vertex_as_a'unique -> <<*A vertex> uniq.u fun> {
+eval vertex_unique_f @public -> <<*A vertex> uniq.u fun> {
   \ <*AA vertex> *V -> <uniq.u> { V u }
 } ;;
 
@@ -55,7 +55,7 @@ data <*A *B edge> @protected :=
   to: <A vertex>
   assoc: <B>
   edge$
-++ edge_as_a'unique -> [ uniq.a'unique ] ;;
+++ edge_unique_f -> [ uniq.a'unique ] ;;
 
 eval <*A vertex> *From <A vertex> *To <*B> *Assoc new_edge @public -> <A B edge> {
   u: uniq.new_unique
@@ -65,7 +65,7 @@ eval <*A vertex> *From <A vertex> *To <*B> *Assoc new_edge @public -> <A B edge>
   edge$
 } ;;
 
-eval edge_as_a'unique -> <<*A *B edge> uniq.u fun> {
+eval edge_unique_f @public -> <<*A *B edge> uniq.u fun> {
   \ <*AA *BB edge> *E -> <uniq.u> { E u }
 } ;;
 
