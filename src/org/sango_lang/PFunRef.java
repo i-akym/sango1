@@ -146,16 +146,16 @@ class PFunRef extends PDefaultExprObj {
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
     if (this.official != null) {
-      this.typeGraphNode = graph.createFunRefNode(this, this.alreadyDefinedTVarList, this.official);
-    } else if (this.scope.pos == 1) {
+      this.typeGraphNode = graph.createFunRefNode(this, this.givenTVarList, this.official);
+    } else if (this.scope.closure == null) {
       PEid callee = PEid.create(
           this.scope.evalStmt.srcInfo, this.scope,
           PModule.MOD_ID_HERE,
           this.scope.evalStmt.official);
-      this.typeGraphNode = graph.createFunRefNode(this, this.alreadyDefinedTVarList, callee);
+      this.typeGraphNode = graph.createFunRefNode(this, this.givenTVarList, callee);
     } else {
       this.typeGraphNode = graph.createSelfRefNode(
-        this, this.alreadyDefinedTVarList,
+        this, this.givenTVarList,
         (PTypeGraph.ClosureNode)this.scope.closure.typeGraphNode);
     }
     return this.typeGraphNode;

@@ -141,7 +141,7 @@ class PStaticInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createStaticInvNode(this, this.alreadyDefinedTVarList, this.funId, this.params.length);
+    this.typeGraphNode = graph.createStaticInvNode(this, this.givenTVarList, this.funId, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.StaticInvNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }

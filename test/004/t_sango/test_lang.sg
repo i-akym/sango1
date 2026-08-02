@@ -131,6 +131,7 @@ eval test -> <void> {
   test055,
   test055a,
   test056,
+  test057,
   test060,
   test070,
   test070a,
@@ -267,6 +268,7 @@ eval test056 -> <void> {
   ; ** ->
   }
 } ;;
+eval test057 -> <void> { [] = <*A list> *L, [ 3 ; L ] = <int list> *LL, void$ } ;;
 eval test060 -> <void> {
   "abc" case {
   ; *S => S = [| *C0 |] -> assertion_error$ "" new_exception >> throw

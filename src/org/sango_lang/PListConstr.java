@@ -69,7 +69,7 @@ class PListConstr extends PList {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createListNode(this, this.alreadyDefinedTVarList);
+    this.typeGraphNode = graph.createListNode(this, this.givenTVarList);
     ((PTypeGraph.ListNode)this.typeGraphNode).setElemNode(this.elem.setupTypeGraph(graph));
     ((PTypeGraph.ListNode)this.typeGraphNode).setTailNode(this.tail.setupTypeGraph(graph));
     return this.typeGraphNode;

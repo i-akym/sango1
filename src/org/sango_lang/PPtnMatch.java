@@ -250,7 +250,7 @@ class PPtnMatch extends PDefaultExprObj {
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.impose != null) {
       this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).toSkel();
-      this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
+      this.typeGraphNode = graph.createDetNode(this, this.givenTVarList);
       this.ptn.setupTypeGraph(graph).setInNode(this.impose.setupTypeGraph(graph));
     } else {
       this.typeGraphNode = this.ptn.setupTypeGraph(graph);

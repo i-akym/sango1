@@ -119,7 +119,7 @@ class PRetDef extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createRetNode(this, this.alreadyDefinedTVarList);
+    this.typeGraphNode = graph.createRetNode(this, this.givenTVarList);
     return this.typeGraphNode;
   }
 }

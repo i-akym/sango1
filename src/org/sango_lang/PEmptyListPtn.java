@@ -55,7 +55,7 @@ class PEmptyListPtn extends PListPtn {
   public void normalizeTypes() throws CompileException {}
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) {
-    this.typeGraphNode = graph.createListPtnNode(this, this.alreadyDefinedTVarList);
+    this.typeGraphNode = graph.createListPtnNode(this, this.givenTVarList);
     return this.typeGraphNode;
   }
 
