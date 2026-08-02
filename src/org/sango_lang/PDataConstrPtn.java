@@ -306,10 +306,10 @@ class PDataConstrPtn extends PDefaultExprObj {
     this._resolved_dataOriginDef = this.scope.getCompiler().defDict.getDataOriginDefFromDcon(this.scope.theMod.actualName, this._resolved_dconProps.key);
     this._resolved_dataExtensionDef = this.scope.getCompiler().defDict.getDataExtensionDefFromDcon(this.scope.theMod.actualName, this._resolved_dconProps.key);
 
-    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.alreadyDefinedTVarList, this.context, this.dcon);
+    this.typeGraphNode = graph.createDataConstrPtnNode(this, this.givenTVarList, this.context, this.dcon);
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);
-      PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.alreadyDefinedTVarList, this.dcon, i);
+      PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.givenTVarList, this.dcon, i);
       an2.setInNode(this.typeGraphNode);
       an.setInNode(an2);
     }

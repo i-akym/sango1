@@ -83,7 +83,7 @@ class PImpose extends PDefaultExprObj {
         throw new CompileException(emsg.toString());
       }
     }
-    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
+    this.typeGraphNode = graph.createDetNode(this, this.givenTVarList);
     return this.typeGraphNode;
   }
 

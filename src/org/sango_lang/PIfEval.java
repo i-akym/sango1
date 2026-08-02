@@ -145,7 +145,7 @@ class PIfEval extends PDefaultExprObj implements PEval {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createJoinNode(this, this.alreadyDefinedTVarList, this.clauses.length);
+    this.typeGraphNode = graph.createJoinNode(this, this.givenTVarList, this.clauses.length);
     for (int i = 0; i < this.clauses.length; i++) {
       ((PTypeGraph.JoinNode)this.typeGraphNode).setBranchNode(i, this.clauses[i].setupTypeGraph(graph));
     }

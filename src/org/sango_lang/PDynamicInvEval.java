@@ -131,7 +131,7 @@ class PDynamicInvEval extends PDefaultExprObj implements PEval {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDynamicInvNode(this, this.alreadyDefinedTVarList, this.params.length);
+    this.typeGraphNode = graph.createDynamicInvNode(this, this.givenTVarList, this.params.length);
     PTypeGraph.Node[] args = new PTypeGraph.Node[this.params.length];
     for (int i = 0; i < this.params.length; i++) {
       args[i] = this.params[i].setupTypeGraph(graph);

@@ -291,7 +291,7 @@ class PClosure extends PDefaultExprObj {
     }
     this.retDef.normalizeTypes();
     List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
-    checked.addAll(this.alreadyDefinedTVarList);
+    checked.addAll(this.givenTVarList);
     for (int i = 0; i < this.params.length; i++) {
       if (PTypeRefSkel.isBottom(this.params[i]._normalized_typeSkel)) {
         StringBuffer emsg = new StringBuffer();
@@ -315,7 +315,7 @@ class PClosure extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createClosureNode(this, this.alreadyDefinedTVarList, this.params.length);
+    this.typeGraphNode = graph.createClosureNode(this, this.givenTVarList, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }
