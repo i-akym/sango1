@@ -455,9 +455,9 @@ class PExtendStmt extends PDefaultProgObj implements PDataDef.ExtensionDef {
 
     PTypeRefSkel bsigSkel = baseDef.getTypeSig();
     PTypeRefSkel sigSkel = this.getTypeSig();
-    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
+    PTypeSkel.Bindings bx = PTypeSkel.Bindings.create();
     for (int i = 0; i < sigSkel.params.length; i++) {
-      if (!sigSkel.params[i].accept(bsigSkel.params[i], bindings)) {
+      if ((bx = sigSkel.params[i].accept(bsigSkel.params[i], bx)) == null) {
         PTypeVarSkel p = (PTypeVarSkel)sigSkel.params[i];
         emsg = new StringBuffer();
         emsg.append("Type parameter \"");
