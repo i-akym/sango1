@@ -186,7 +186,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
-        } else if (!this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
+        } else if (this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -256,7 +256,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
-        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && !this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
+        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -268,7 +268,7 @@ class PTypeGraph {
           emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
-        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && !this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
+        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -320,7 +320,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
-        } else if (!this.inNode.type.accept(this.type, PTypeSkel.Bindings.create(this.givenTVarList))) {
+        } else if (this.inNode.type.accept(this.type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
@@ -367,7 +367,7 @@ class PTypeGraph {
         }
         if (PTypeRefSkel.isBottom(this.inNode.type)) {
           ;
-        } else if (!this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList))) {
+        } else if (this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Return value type mismatch ");
           emsg.append(" at ");
@@ -631,13 +631,14 @@ if (DEBUG > 1) {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
+      PTypeSkel.Bindings bx = this.bindings;
       for (int i = 0; i < this.paramNodes.length; i++) {
 /* DEBUG */ if (this.paramNodes[i] == null) { System.out.println(this.exprObj); }
         PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
         if (t == null) { return null; }
-        PTypeSkel.Bindings bb = this.bindings;  // before looks for debug
-        boolean b = ctr.params[i].accept(t, this.bindings);
-        if (!b) {
+        // PTypeSkel.Bindings bb = this.bindings;  // before looks for debug
+        bx = ctr.params[i].accept(t, bx);
+        if (bx == null) {
           emsg = new StringBuffer();
           emsg.append("Argument type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -647,12 +648,13 @@ if (DEBUG > 1) {
           emsg.append("\n  parameter def: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i]));
           emsg.append("\n  parameter def in context: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i].resolveBindings(bb)));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(ctr.params[i].resolveBindings(this.bindings)));
           emsg.append("\n  actual argument: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(t));
           throw new CompileException(emsg.toString());
         }
       }
+      this.bindings = bx;
 if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
       /* DEBUG */ System.out.println(this.bindings);
@@ -1011,23 +1013,23 @@ if (DEBUG > 1) {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      PTypeSkel.Bindings b = PTypeSkel.Bindings.create(this.givenTVarList);
+      PTypeSkel.Bindings bx = PTypeSkel.Bindings.create(this.givenTVarList);
       for (int i = 0; i < constr.getAttrCount(); i++) {
         PTypeSkel t = this.getTypeOf(this.attrNodes[i]);
         if (t == null) { return null; }
         if (PTypeRefSkel.isBottom(t)) { return t; }
         PDataDef.Attr a = constr.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
-        PTypeSkel.Bindings bb = b;
 if (DEBUG > 1) {
           /* DEBUG */ System.out.print("attribute def: ");
           /* DEBUG */ System.out.println(at);
           /* DEBUG */ System.out.print("actual attribute: ");
           /* DEBUG */ System.out.println(t);
           /* DEBUG */ System.out.print("bindings: ");
-          /* DEBUG */ System.out.println(b);
+          /* DEBUG */ System.out.println(bx);
 }
-        if (!at.accept(t, b)) {
+        PTypeSkel.Bindings b;
+        if ((b = at.accept(t, bx)) == null) {
           emsg = new StringBuffer();
           emsg.append("Type mismatch at ");
           emsg.append(this.exprObj.getSrcInfo());
@@ -1037,21 +1039,22 @@ if (DEBUG > 1) {
           emsg.append("\n  attribute def: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(at));
           emsg.append("\n  attribute def in context: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bb)));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bx)));
           emsg.append("\n  actual attribute: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(t));
 if (DEBUG > 1) {
           /* DEBUG */ emsg.append("\n  bindings: ");
-          /* DEBUG */ emsg.append(bb);
+          /* DEBUG */ emsg.append(bx);
 }
           throw new CompileException(emsg.toString());
         }
+        bx = b;
       }
 if (DEBUG > 1) {
       /* DEBUG */ System.out.print("type application: ");
-      /* DEBUG */ System.out.println(b);
+      /* DEBUG */ System.out.println(bx);
 }
-      PTypeSkel dt = dataDef.getTypeSig().resolveBindings(b).instanciate(PTypeSkel.InstanciationContext.create(b));
+      PTypeSkel dt = dataDef.getTypeSig().resolveBindings(bx).instanciate(PTypeSkel.InstanciationContext.create(bx));
       // PTypeSkel dt = constr.getType(b);  // original
 
       // sig param does not require concreteness now
@@ -1298,8 +1301,8 @@ if (DEBUG > 1) {
       PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PTypeRefSkel sig = (PTypeRefSkel)dataDef.getTypeSig();
-      PTypeSkel.Bindings b = PTypeSkel.Bindings.create(this.givenTVarList);
-      if (!sig.accept(t, b)) {
+      PTypeSkel.Bindings bx = PTypeSkel.Bindings.create(this.givenTVarList);
+      if ((bx = sig.accept(t, bx)) == null) {
         emsg = new StringBuffer();
         emsg.append("Type mismatch at ");
         emsg.append(this.exprObj.getSrcInfo());
@@ -1333,11 +1336,11 @@ if (DEBUG > 1) {
         emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
         throw new CompileException(emsg.toString());
       }
-      this.bindings = b;
+      this.bindings = bx;
 if (DEBUG > 1) {
 /* DEBUG */ System.out.print(this.exprObj);
 /* DEBUG */ System.out.print(" >>bindings>> ");
-/* DEBUG */ System.out.println(b);
+/* DEBUG */ System.out.println(bx);
 }
       return this.bindings;
     }
