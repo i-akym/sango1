@@ -635,17 +635,18 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
+  public PTypeRefSkel checkNewVar(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
     if (isFun(this)) {
       for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].excludeBareTVarAtRet(si, false, checked);
+        this.params[i].checkNewVar(si, false, checked);
       }
-      this.params[this.params.length - 1].excludeBareTVarAtRet(si, atRet, checked);
+      this.params[this.params.length - 1].checkNewVar(si, atRet, checked);
     } else {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].excludeBareTVarAtRet(si, false, checked);
+        this.params[i].checkNewVar(si, false, checked);
       }
     }
+    return this;
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {

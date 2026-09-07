@@ -1106,7 +1106,7 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
-  public void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
+  public PTypeVarSkel checkNewVar(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
     if (this.varSlot == null) {
       ;
     } else if (checked.contains(this.varSlot)) {
@@ -1128,8 +1128,9 @@ if (PTypeGraph.DEBUG > 1) {
       throw new CompileException(emsg.toString());
     }
     if (this.features != null) {
-      this.features.excludeBareTVarAtRet(si, atRet, checked);
+      this.features.checkNewVar(si, atRet, checked);
     }
+    return this;
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {}
