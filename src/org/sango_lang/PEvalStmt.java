@@ -436,24 +436,13 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
+      this.params[i]._normalized_typeSkel.checkNewVar(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
-    this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef._normalized_typeSkel.checkNewVar(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
     if (this.implExprs != null) {
       this.implExprs.normalizeTypes();
     }
   }
-
-  // public void collectTconProps() throws CompileException {
-    // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-    // if (this.params != null) {
-      // for (int i = 0; i < this.params.length; i++) {
-        // this.params[i].getNormalizedType().collectTconProps(tps);
-      // }
-    // }
-    // this.retDef.getNormalizedType().collectTconProps(tps);
-    // this.scope.addReferredTcons(tps);
-  // }
 
   void setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {

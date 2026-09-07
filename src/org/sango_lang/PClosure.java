@@ -300,9 +300,9 @@ class PClosure extends PDefaultExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
+      this.params[i]._normalized_typeSkel.checkNewVar(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
-    this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef._normalized_typeSkel.checkNewVar(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
     this.implExprs.normalizeTypes();
   }
 

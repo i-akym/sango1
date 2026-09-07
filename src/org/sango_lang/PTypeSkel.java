@@ -70,7 +70,8 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(Bindings bindings) throws CompileException;
 
-  void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException;
+  PTypeSkel checkNewVar(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException;
+  // returns 'this' if passed
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 

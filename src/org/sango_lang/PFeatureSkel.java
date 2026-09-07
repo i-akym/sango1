@@ -145,20 +145,11 @@ public class PFeatureSkel {
     return b;
   }
 
-  void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
+  void checkNewVar(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i].excludeBareTVarAtRet(si, false, checked);  // atRet == false ok?
+      this.params[i].checkNewVar(si, false, checked);  // atRet == false ok?
     }
   }
-
-  // PTypeSkel extractAnyInconcreteVar(/* java.util.List<PTypeVarSlot> givenTVarList */) {
-    // PTypeSkel t = null;
-// // TODO
-    // // for (int i = 0; t == null && i < this.params.length; i++) {
-      // // t = this.params[i].extractAnyInconcreteVar(givenTVarList);
-    // // }
-    // return t;
-  // }
 
   boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
     boolean b = false;
@@ -386,15 +377,6 @@ public class PFeatureSkel {
       return b;
     }
 
-    // PTypeSkel extractAnyInconcreteVar(/* java.util.List<PTypeVarSlot> givenTVarList */) {
-      // PTypeSkel t = null;
-// // TODO
-      // // for (int i = 0; null == null && i < this.features.length; i++) {
-        // // t = this.features[i].extractAnyInconcreteVar(givenTVarList);
-      // // }
-      // return t;
-    // }
-
     boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
       boolean b = false;
       for (int i = 0; !b && i < this.features.length; i++) {
@@ -403,9 +385,9 @@ public class PFeatureSkel {
       return b;
     }
 
-    void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
+    void checkNewVar(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
       for (int i = 0; i < this.features.length; i++) {
-        this.features[i].excludeBareTVarAtRet(si, atRet, checked);
+        this.features[i].checkNewVar(si, atRet, checked);
       }
     }
 
