@@ -160,20 +160,21 @@ public class PTypeRefSkel implements PTypeSkel {
       n = create(this.theCompiler, this.srcInfo, this.tconKey, ps);
     }
 
-    // check occurrence of bottom
-    if (n instanceof PTypeRefSkel) {
-      PTypeRefSkel nn = (PTypeRefSkel)n;
-      int p = isFun(nn)? nn.params.length - 1: nn.params.length;
-      for (int i = 0; i < p; i++) {
-        if (isBottom(nn.params[i])) {
-          StringBuffer emsg = new StringBuffer();
-          emsg.append("\"<_>\" not allowed at ");
-          emsg.append(this.srcInfo);
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      }
-    }
+    // following check is to be performed outside
+    // // check occurrence of bottom
+    // if (n instanceof PTypeRefSkel) {
+      // PTypeRefSkel nn = (PTypeRefSkel)n;
+      // int p = isFun(nn)? nn.params.length - 1: nn.params.length;
+      // for (int i = 0; i < p; i++) {
+        // if (isBottom(nn.params[i])) {
+          // StringBuffer emsg = new StringBuffer();
+          // emsg.append("\"<_>\" not allowed at ");
+          // emsg.append(this.srcInfo);
+          // emsg.append(".");
+          // throw new CompileException(emsg.toString());
+        // }
+      // }
+    // }
     return n;
   }
 
@@ -635,15 +636,41 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public PTypeRefSkel checkNewVar(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
-    if (isFun(this)) {
-      for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].checkNewVar(si, false, checked);
+  public PTypeRefSkel checkFormat(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
+    if (isBottom(this)) {
+      if (!atRet) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("\"<_>\" not allowed at ");
+        emsg.append(si);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
       }
-      this.params[this.params.length - 1].checkNewVar(si, atRet, checked);
+    } else if (isTuple(this)) {
+      if (this.params.length < 2) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Too few parameters for tuple at ");
+        emsg.append(si);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      for (int i = 0; i < this.params.length; i++) {
+        this.params[i].checkFormat(si, false, checked);
+      }
+    } else if (isFun(this)) {
+      if (this.params.length < 1) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append("Too few parameters for fun at ");
+        emsg.append(si);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+      for (int i = 0; i < this.params.length - 1; i++) {
+        this.params[i].checkFormat(si, false, checked);
+      }
+      this.params[this.params.length - 1].checkFormat(si, atRet, checked);
     } else {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkNewVar(si, false, checked);
+        this.params[i].checkFormat(si, false, checked);
       }
     }
     return this;

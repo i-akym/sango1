@@ -1106,7 +1106,7 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
-  public PTypeVarSkel checkNewVar(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
+  public PTypeVarSkel checkFormat(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
     if (this.varSlot == null) {
       ;
     } else if (checked.contains(this.varSlot)) {
@@ -1115,11 +1115,12 @@ if (PTypeGraph.DEBUG > 1) {
       checked.add(this.varSlot);
     } else {
       StringBuffer emsg = new StringBuffer();
-      emsg.append("Bare type var not allowed");
+      emsg.append("Bare type var");
       if (this.name != null) {
-        emsg.append(" to ");
+        emsg.append(" ");
         emsg.append(this.name);
       }
+      emsg.append(" not allowed");
       if (si != null) {
         emsg.append(" at ");
         emsg.append(si);
@@ -1128,7 +1129,7 @@ if (PTypeGraph.DEBUG > 1) {
       throw new CompileException(emsg.toString());
     }
     if (this.features != null) {
-      this.features.checkNewVar(si, atRet, checked);
+      this.features.checkFormat(si, atRet, checked);
     }
     return this;
   }
