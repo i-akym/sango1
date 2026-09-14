@@ -145,9 +145,9 @@ public class PFeatureSkel {
     return b;
   }
 
-  void checkNewVar(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
+  void checkFormat(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
-      this.params[i].checkNewVar(si, false, checked);  // atRet == false ok?
+      this.params[i].checkFormat(si, false, checked);  // atRet == false ok?
     }
   }
 
@@ -385,9 +385,9 @@ public class PFeatureSkel {
       return b;
     }
 
-    void checkNewVar(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
+    void checkFormat(Parser.SrcInfo si, boolean atRet, java.util.List<PTypeVarSlot> checked) throws CompileException {
       for (int i = 0; i < this.features.length; i++) {
-        this.features[i].checkNewVar(si, atRet, checked);
+        this.features[i].checkFormat(si, atRet, checked);
       }
     }
 

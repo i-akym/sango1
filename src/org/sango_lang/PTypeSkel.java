@@ -53,15 +53,11 @@ public interface PTypeSkel {
 
   Bindings require(PTypeSkel type, Bindings bindings) throws CompileException ;
 
-  // // width is
-  // static final int EQUAL = 0;
-  // static final int NARROWER = 1;
-  // static final int WIDER = - NARROWER;
-
   boolean includesVar(PTypeVarSlot varSlot, Bindings bindings);
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
     // foward to following method internally
+
   JoinResult join2(PTypeSkel type, Bindings bindings) throws CompileException;
 
   MType toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, List<PTypeVarSlot> slotList);
@@ -70,8 +66,8 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(Bindings bindings) throws CompileException;
 
-  PTypeSkel checkNewVar(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException;
-  // returns 'this' if passed
+  PTypeSkel checkFormat(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException;
+    // returns 'this' if passed
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 

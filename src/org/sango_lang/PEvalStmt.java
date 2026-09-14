@@ -436,9 +436,9 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.params[i]._normalized_typeSkel.checkNewVar(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
+      this.params[i]._normalized_typeSkel.checkFormat(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
-    this.retDef._normalized_typeSkel.checkNewVar(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef._normalized_typeSkel.checkFormat(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
     if (this.implExprs != null) {
       this.implExprs.normalizeTypes();
     }
