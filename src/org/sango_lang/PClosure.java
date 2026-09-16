@@ -290,8 +290,8 @@ class PClosure extends PDefaultExprObj {
       this.params[i].normalizeTypes();
     }
     this.retDef.normalizeTypes();
-    List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
-    checked.addAll(this.givenTVarList);
+    // List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
+    // checked.addAll(this.givenTVarList);
     for (int i = 0; i < this.params.length; i++) {
       if (PTypeRefSkel.isBottom(this.params[i]._normalized_typeSkel)) {
         StringBuffer emsg = new StringBuffer();
@@ -300,9 +300,9 @@ class PClosure extends PDefaultExprObj {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.params[i]._normalized_typeSkel.checkFormat(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
+      this.params[i]._normalized_typeSkel.checkFormat(this.params[i]._normalized_typeSkel.getSrcInfo(), false /* , checked */ );
     }
-    this.retDef._normalized_typeSkel.checkFormat(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef._normalized_typeSkel.checkFormat(this.retDef._normalized_typeSkel.getSrcInfo(), true /* , checked */ );
     this.implExprs.normalizeTypes();
   }
 

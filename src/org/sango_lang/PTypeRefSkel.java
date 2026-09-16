@@ -636,7 +636,7 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public PTypeRefSkel checkFormat(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
+  public PTypeRefSkel checkFormat(Parser.SrcInfo si, boolean atRet /* , List<PTypeVarSlot> checked */ ) throws CompileException {
     if (isBottom(this)) {
       if (!atRet) {
         StringBuffer emsg = new StringBuffer();
@@ -654,7 +654,7 @@ if (PTypeGraph.DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkFormat(si, false, checked);
+        this.params[i].checkFormat(si, false /* , checked */ );
       }
     } else if (isFun(this)) {
       if (this.params.length < 1) {
@@ -665,12 +665,12 @@ if (PTypeGraph.DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].checkFormat(si, false, checked);
+        this.params[i].checkFormat(si, false /* , checked */ );
       }
-      this.params[this.params.length - 1].checkFormat(si, atRet, checked);
+      this.params[this.params.length - 1].checkFormat(si, atRet /* , checked */ );
     } else {
       for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkFormat(si, false, checked);
+        this.params[i].checkFormat(si, false /* , checked */ );
       }
     }
     return this;
