@@ -1106,32 +1106,38 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
-  public PTypeVarSkel checkFormat(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException {
-    if (this.varSlot == null) {
-      ;
-    } else if (checked.contains(this.varSlot)) {
-      ;
-    } else if (!atRet) {
-      checked.add(this.varSlot);
-    } else {
-      StringBuffer emsg = new StringBuffer();
-      emsg.append("Bare type var");
-      if (this.name != null) {
-        emsg.append(" ");
-        emsg.append(this.name);
-      }
-      emsg.append(" not allowed");
-      if (si != null) {
-        emsg.append(" at ");
-        emsg.append(si);
-      }
-      emsg.append(".");
-      throw new CompileException(emsg.toString());
-    }
+  public PTypeVarSkel checkFormat(Parser.SrcInfo si, boolean atRet /* , List<PTypeVarSlot> checked */ ) throws CompileException {
     if (this.features != null) {
-      this.features.checkFormat(si, atRet, checked);
+      this.features.checkFormat(si, atRet);
     }
     return this;
+
+    // original: check occurrence of bare type var
+    // if (this.varSlot == null) {
+      // ;
+    // } else if (checked.contains(this.varSlot)) {
+      // ;
+    // } else if (!atRet) {
+      // checked.add(this.varSlot);
+    // } else {
+      // StringBuffer emsg = new StringBuffer();
+      // emsg.append("Bare type var");
+      // if (this.name != null) {
+        // emsg.append(" ");
+        // emsg.append(this.name);
+      // }
+      // emsg.append(" not allowed");
+      // if (si != null) {
+        // emsg.append(" at ");
+        // emsg.append(si);
+      // }
+      // emsg.append(".");
+      // throw new CompileException(emsg.toString());
+    // }
+    // if (this.features != null) {
+      // this.features.checkFormat(si, atRet, checked);
+    // }
+    // return this;
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {}
