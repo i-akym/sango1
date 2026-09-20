@@ -247,6 +247,13 @@ class PPtnMatch extends PDefaultExprObj {
     this.ptn.normalizeTypes();
   }
 
+  public PTypeSkel getNormalizedType() {
+    if (this._normalized_typeSkel == null) {
+      this._normalized_typeSkel = (this.impose != null)? this.impose.getNormalizedType(): this.ptn.getNormalizedType();
+    }
+    return this._normalized_typeSkel;
+  }
+
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.impose != null) {
       this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).toSkel();
