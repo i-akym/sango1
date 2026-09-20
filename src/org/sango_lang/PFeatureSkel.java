@@ -145,10 +145,12 @@ public class PFeatureSkel {
     return b;
   }
 
-  void checkFormat(Parser.SrcInfo si, boolean atRet /* , java.util.List<PTypeVarSlot> checked */ ) throws CompileException {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i].checkFormat(si, false /* , checked */ );  // atRet == false ok?
+  String checkFormat() {
+    String e = null;
+    for (int i = 0; e == null && i < this.params.length; i++) {
+      e = this.params[i].checkFormat(false);
     }
+    return e;
   }
 
   boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
@@ -385,10 +387,12 @@ public class PFeatureSkel {
       return b;
     }
 
-    void checkFormat(Parser.SrcInfo si, boolean atRet /* , java.util.List<PTypeVarSlot> checked */ ) throws CompileException {
-      for (int i = 0; i < this.features.length; i++) {
-        this.features[i].checkFormat(si, atRet /* , checked */ );
+    String checkFormat() {
+      String e = null;
+      for (int i = 0; e == null && i < this.features.length; i++) {
+        e = this.features[i].checkFormat();
       }
+      return e;
     }
 
     List resolveBindings(PTypeSkel.Bindings bindings) {
