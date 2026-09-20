@@ -636,44 +636,28 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public PTypeRefSkel checkFormat(Parser.SrcInfo si, boolean atRet /* , List<PTypeVarSlot> checked */ ) throws CompileException {
+  public String checkFormat(boolean atRet) {
+    String e;
     if (isBottom(this)) {
-      if (!atRet) {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("\"<_>\" not allowed at ");
-        emsg.append(si);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
+      e = atRet? null: "\"<_>\" is not allowed";
     } else if (isTuple(this)) {
-      if (this.params.length < 2) {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Too few parameters for tuple at ");
-        emsg.append(si);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
-      }
-      for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkFormat(si, false /* , checked */ );
+      e = (this.params.length > 1)? null: "Too few parameter for tuple";
+      for (int i = 0; e == null && i < this.params.length; i++) {
+        e = this.params[i].checkFormat(false);
       }
     } else if (isFun(this)) {
-      if (this.params.length < 1) {
-        StringBuffer emsg = new StringBuffer();
-        emsg.append("Too few parameters for fun at ");
-        emsg.append(si);
-        emsg.append(".");
-        throw new CompileException(emsg.toString());
+      e = (this.params.length > 0)? null: "Too few parameters for fun";
+      for (int i = 0; e == null && i < this.params.length - 1; i++) {
+        e = this.params[i].checkFormat(false);
       }
-      for (int i = 0; i < this.params.length - 1; i++) {
-        this.params[i].checkFormat(si, false /* , checked */ );
-      }
-      this.params[this.params.length - 1].checkFormat(si, atRet /* , checked */ );
+      e = (e != null)? e: this.params[this.params.length - 1].checkFormat(true);
     } else {
-      for (int i = 0; i < this.params.length; i++) {
-        this.params[i].checkFormat(si, false /* , checked */ );
+      e = null;
+      for (int i = 0; e == null && i < this.params.length; i++) {
+        e = this.params[i].checkFormat(false);
       }
     }
-    return this;
+    return e;
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {

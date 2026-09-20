@@ -66,8 +66,8 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(Bindings bindings) throws CompileException;
 
-  PTypeSkel checkFormat(Parser.SrcInfo si, boolean atRet /* , List<PTypeVarSlot> checked */ ) throws CompileException;
-    // returns 'this' if passed
+  String checkFormat(boolean atRet);
+    // returns reason when invalid
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 
