@@ -60,12 +60,20 @@ class PImpose extends PDefaultExprObj {
 
   public void normalizeTypes() throws CompileException {
     this._normalized_typeSkel = this.type.toSkel().normalize();
+    String e = this._normalized_typeSkel.checkFormat(false);
+    if (e != null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append(e);
+      emsg.append(" at ");
+      emsg.append(this.srcInfo);
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     StringBuffer emsg;
     PTypeSkel t = this.getNormalizedType();
-    // t.checkConstraint(false, new ArrayList<PTypeVarSlot>());
     if (!(t instanceof PTypeRefSkel)) {
       emsg = new StringBuffer();
       emsg.append("Non-concrete imposing at ");

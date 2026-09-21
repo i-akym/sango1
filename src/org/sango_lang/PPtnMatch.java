@@ -245,6 +245,18 @@ class PPtnMatch extends PDefaultExprObj {
       this.impose.normalizeTypes();
     }
     this.ptn.normalizeTypes();
+    PTypeSkel t = this.getNormalizedType();
+    if (t != null) {
+      String e = t.checkFormat(false);
+      if (e != null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append(e);
+        emsg.append(" at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
   }
 
   public PTypeSkel getNormalizedType() {
