@@ -346,11 +346,11 @@ class PTypeGraph {
     RetNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) throws CompileException {
       super(exprObj, givenTVarList);
       this.type = exprObj.getNormalizedType();
+      if (this.type == null) { throw new IllegalArgumentException("Null return type."); }
     }
 
     PTypeSkel infer() throws CompileException {
       throw new RuntimeException("PTypeGraph.RetNode#infer must not be called.");
-      // return this.getTypeOf(this.inNode);  // called only when this.type == null
     }
 
     StringBuffer getTypeReportDesc() {
@@ -360,25 +360,22 @@ class PTypeGraph {
     }
 
     void check() throws CompileException {
+      if (this.inNode == null) { throw new RuntimeException("Null actual return value."); }
+
       StringBuffer emsg;
-      if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
-        if (DEBUG > 1) {
-/* DEBUG */ System.out.println("checking return type...");
-        }
-        if (PTypeRefSkel.isBottom(this.inNode.type)) {
-          ;
-        } else if (this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
-          emsg = new StringBuffer();
-          emsg.append("Return value type mismatch ");
-          emsg.append(" at ");
-          emsg.append(this.exprObj.getSrcInfo());
-          emsg.append(".");
-          emsg.append("\n  defined: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
-          emsg.append("\n  actual: ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
-          throw new CompileException(emsg.toString());
-        }
+      if (PTypeRefSkel.isBottom(this.inNode.type)) {
+        ;
+      } else if (this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
+        emsg = new StringBuffer();
+        emsg.append("Return value type mismatch ");
+        emsg.append(" at ");
+        emsg.append(this.exprObj.getSrcInfo());
+        emsg.append(".");
+        emsg.append("\n  defined: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
+        emsg.append("\n  actual: ");
+        emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+        throw new CompileException(emsg.toString());
       }
     }
   }
