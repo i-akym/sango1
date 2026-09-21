@@ -291,18 +291,16 @@ class PTypeGraph {
 
   class VarRefNode extends Node {
     String name;
-    Node defNode;
 
     VarRefNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, String name, Node defNode) {
       super(exprObj, givenTVarList);
       this.name = name;
       /* DEBUG */ if (defNode == null) { throw new IllegalArgumentException("Def node is null."); }
-      this.defNode = defNode;
-      // this.type = exprObj.getNormalizedType(); 
+      this.inNode = defNode;
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.defNode);
+      return this.getTypeOf(this.inNode);
     }
 
     StringBuffer getTypeReportDesc() {
@@ -310,30 +308,6 @@ class PTypeGraph {
       buf.append("(var ref) ");
       buf.append(this.name);
       return buf;
-    }
-
-    void check() throws CompileException {
-      StringBuffer emsg;
-      if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
-        if (DEBUG > 1) {
-/* DEBUG */ System.out.println("checking binding...");
-        }
-        if (PTypeRefSkel.isBottom(this.inNode.type)) {
-          ;
-        } else if (this.inNode.type.accept(this.type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
-          emsg = new StringBuffer();
-          emsg.append("Cannot cast ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
-          emsg.append(" to ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
-          emsg.append(" *");
-          emsg.append(this.name);
-          emsg.append(" at ");
-          emsg.append(this.exprObj.getSrcInfo());
-          emsg.append(".");
-          throw new CompileException(emsg.toString());
-        }
-      }
     }
   }
 
