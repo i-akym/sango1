@@ -116,18 +116,22 @@ class PTypeGraph {
     PExprObj exprObj;
     List<PTypeVarSlot> givenTVarList;
     PTypeSkel type;
-    Node inNode;
+    Node[] inNodes;  // main inputs
     boolean dependsOnSelfRet;
     
-    Node(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      this.exprObj = exprObj;
+    Node(int inNodeCount, PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
       if (givenTVarList == null) { throw new IllegalArgumentException("Null given tvar list. " + exprObj.toString()); }
+      this.inNodes = new Node[inNodeCount];
+      for (int i = 0; i < inNodeCount; i++) {
+        this.inNodes[i] = null;
+      }
+      this.exprObj = exprObj;
       this.givenTVarList = givenTVarList;
       PTypeGraph.this.nodeList.add(this);
     }
 
-    void setInNode(Node node) {
-      this.inNode = node;
+    void setInNode(int index, Node node) {
+      this.inNodes[index] = node;
     }
 
     PTypeSkel getTypeOf(Node node) {
@@ -140,34 +144,26 @@ class PTypeGraph {
 
     PTypeSkel getFinalizedType() { return this.type; }
 
-    // List<PTypeVarSlot> getGivenTvarList() throws CompileException {
-      // return this.exprObj.getScope().getGivenTVarList();
-    // }
-
     abstract PTypeSkel infer() throws CompileException;
 
     abstract StringBuffer getTypeReportDesc();  // maybe null
 
     void check() throws CompileException {}
-
-    // void collectTconProps(List<PDefDict.TconProps> tps) throws CompileException {
-      // this.type.collectTconProps(tps);
-    // }
-
   }
 
   DetNode createDetNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) throws CompileException {
       DetNode n = new DetNode(exprObj, givenTVarList);
-      // exprObj.setFixedType(exprObj.getNormalizedType());
       return n;
   }
 
   class DetNode extends Node {
+    // inNodes.length == 1
+    // [0] : to be bound (maybe null)
 
     DetNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) throws CompileException {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
       this.type = exprObj.getNormalizedType();
-      /* DEBUG */ if (this.type == null) { throw new IllegalArgumentException("Null type. " + exprObj); }
+      if (this.type == null) { throw new IllegalArgumentException("Null type. " + exprObj); }
     }
 
     PTypeSkel infer() throws CompileException {
@@ -180,16 +176,13 @@ class PTypeGraph {
 
     void check() throws CompileException {
       StringBuffer emsg;
-      if (this.inNode != null) {
-        if (DEBUG > 1) {
-/* DEBUG */ System.out.println("checking binding...");
-        }
-        if (PTypeRefSkel.isBottom(this.inNode.type)) {
+      if (this.inNodes[0] != null) {
+        if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
           ;
-        } else if (this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
+        } else if (this.type.accept(this.inNodes[0].type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
           emsg = new StringBuffer();
-          emsg.append("Cannot bind ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+          emsg.append("Cannot cast ");
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNodes[0].type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" at ");
@@ -207,13 +200,15 @@ class PTypeGraph {
   }
 
   class RefNode extends Node {
+    // inNodes.length == 1
+    // [0] : to be received
 
     RefNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.inNode);
+      return this.getTypeOf(this.inNodes[0]);
     }
 
     StringBuffer getTypeReportDesc() {
@@ -226,18 +221,21 @@ class PTypeGraph {
   }
 
   class VarNode extends Node {
+    // inNodes.length == 1
+    // [0] : to be bound (maybe null)
+
     String name;
     int cat;  // PExprVarDef.CAT_xx
 
     VarNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, String name, int cat) throws CompileException {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
       this.name = name;
       this.cat = cat;
       this.type = exprObj.getNormalizedType(); 
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.inNode);  // called only when this.type == null
+      return this.getTypeOf(this.inNodes[0]);  // called only when this.type == null
     }
 
     StringBuffer getTypeReportDesc() {
@@ -249,17 +247,18 @@ class PTypeGraph {
 
     void check() throws CompileException {
       StringBuffer emsg;
-      if (this.exprObj.getNormalizedType() != null && this.inNode != null) {
+      if (this.exprObj.getNormalizedType() != null && this.inNodes[0] != null) {
 // HERE: needed?
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
         }
-        if (PTypeRefSkel.isBottom(this.inNode.type)) {
+        if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
           ;
-        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM && this.type.accept(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
+        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM
+            && this.type.accept(this.inNodes[0].type, PTypeSkel.Bindings.create(this.inNodes[0].givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNodes[0].type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" for *");
@@ -268,10 +267,11 @@ class PTypeGraph {
           emsg.append(this.exprObj.getSrcInfo());
           emsg.append(".");
           throw new CompileException(emsg.toString());
-        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM && this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
+        } else if (this.cat != PExprVarDef.CAT_FUN_PARAM
+            && this.type.require(this.inNodes[0].type, PTypeSkel.Bindings.create(this.inNodes[0].givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
-          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+          emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNodes[0].type));
           emsg.append(" to ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
           emsg.append(" for *");
@@ -290,17 +290,20 @@ class PTypeGraph {
   }
 
   class VarRefNode extends Node {
+    // inNodes.length == 1
+    // [0] : def
+
     String name;
 
     VarRefNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, String name, Node defNode) {
-      super(exprObj, givenTVarList);
-      this.name = name;
+      super(1, exprObj, givenTVarList);
       /* DEBUG */ if (defNode == null) { throw new IllegalArgumentException("Def node is null."); }
-      this.inNode = defNode;
+      this.name = name;
+      this.setInNode(0, defNode);
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.inNode);
+      return this.getTypeOf(this.inNodes[0]);
     }
 
     StringBuffer getTypeReportDesc() {
@@ -316,9 +319,11 @@ class PTypeGraph {
   }
 
   class RetNode extends Node {
+    // inNodes.length == 1
+    // [0] : return value
 
     RetNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) throws CompileException {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
       this.type = exprObj.getNormalizedType();
       if (this.type == null) { throw new IllegalArgumentException("Null return type."); }
     }
@@ -334,12 +339,12 @@ class PTypeGraph {
     }
 
     void check() throws CompileException {
-      if (this.inNode == null) { throw new RuntimeException("Null actual return value."); }
+      if (this.inNodes[0] == null) { throw new RuntimeException("Null actual return value."); }
 
       StringBuffer emsg;
-      if (PTypeRefSkel.isBottom(this.inNode.type)) {
+      if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
         ;
-      } else if (this.type.require(this.inNode.type, PTypeSkel.Bindings.create(this.inNode.givenTVarList)) == null) {
+      } else if (this.type.require(this.inNodes[0].type, PTypeSkel.Bindings.create(this.inNodes[0].givenTVarList)) == null) {
         emsg = new StringBuffer();
         emsg.append("Return value type mismatch ");
         emsg.append(" at ");
@@ -348,7 +353,7 @@ class PTypeGraph {
         emsg.append("\n  defined: ");
         emsg.append(PTypeSkel.Repr.topLevelRepr(this.type));
         emsg.append("\n  actual: ");
-        emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNodes[0].type));
         throw new CompileException(emsg.toString());
       }
     }
@@ -360,10 +365,12 @@ class PTypeGraph {
   }
 
   class FunRefNode extends Node {
+    // inNodes.length == 0
+
     PEid official;
 
     FunRefNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, PEid official) {
-      super(exprObj, givenTVarList);
+      super(0, exprObj, givenTVarList);
       this.official = official;
     }
 
@@ -406,15 +413,17 @@ class PTypeGraph {
   }
 
   class SelfRefNode extends Node {
+    // inNodes.length == 1
+    // [0] : the closure
 
     SelfRefNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, ClosureNode closureNode) {
-      super(exprObj, givenTVarList);
-      this.inNode = closureNode;
+      super(1, exprObj, givenTVarList);
+      this.inNodes[0] = closureNode;
       this.dependsOnSelfRet = true;
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.inNode);
+      return this.getTypeOf(this.inNodes[0]);
     }
 
     StringBuffer getTypeReportDesc() {
@@ -430,19 +439,17 @@ class PTypeGraph {
   }
 
   class ClosureNode extends Node {
-    Node[] paramNodes;
+    // inNodes.length == parameter count
+    // [i] : parameter
+
     Node retNode;
 
     ClosureNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int paramCount) {
-      super(exprObj, givenTVarList);
-      this.paramNodes = new Node[paramCount];
-      for (int i = 0; i < paramCount; i++) {
-        this.paramNodes[i] = null;
-      }
+      super(paramCount, exprObj, givenTVarList);
     }
 
     void setParamNode(int index, Node node) {
-      this.paramNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     void setRetNode(Node node) {
@@ -450,10 +457,10 @@ class PTypeGraph {
     }
 
     PTypeSkel infer() throws CompileException {
-      PTypeSkel[] ts = new PTypeSkel[this.paramNodes.length + 1];
+      PTypeSkel[] ts = new PTypeSkel[this.inNodes.length + 1];
       PTypeSkel t;
-      for (int i = 0; i < this.paramNodes.length; i++) {
-        t = this.getTypeOf(this.paramNodes[i]);
+      for (int i = 0; i < this.inNodes.length; i++) {
+        t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
         if (PTypeRefSkel.isBottom(t)) { return t; }
         ts[i] = t;
@@ -477,32 +484,30 @@ class PTypeGraph {
   }
 
   class StaticInvNode extends Node {
+    // inNodes.length == parameter count
+    // [i] : parameter
+
     PEid funId;
     Node[] paramNodes;
     PFunDef funDef;
     PTypeSkel.Bindings bindings;
 
     StaticInvNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, PEid funId, int paramCount) {
-      super(exprObj, givenTVarList);
+      super(paramCount, exprObj, givenTVarList);
       this.funId = funId;
-      this.paramNodes = new Node[paramCount];
-      for (int i = 0; i < paramCount; i++) {
-        this.paramNodes[i] = null;
-      }
     }
 
     void setParamNode(int index, Node node) {
-      this.paramNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      // PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.funId);
-      // if (ep == null) { throw new RuntimeException("Unexpected. " + this.funId); }  // checked before
-      PTypeSkel[] pts = new PTypeSkel[this.paramNodes.length];
-      for (int i = 0; i < this.paramNodes.length; i++) {
-        PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
+      PTypeSkel[] pts = new PTypeSkel[this.inNodes.length];
+      for (int i = 0; i < this.inNodes.length; i++) {
+        PTypeSkel t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
+        if (PTypeRefSkel.isBottom(t)) { return t; }
         pts[i] = t;
       }
       PDefDict.FunSelRes sel = PTypeGraph.this.theMod.selectFunDef(this.funId, pts, this.givenTVarList);
@@ -521,10 +526,6 @@ class PTypeGraph {
       }
       this.funDef = sel.funDef;
       this.bindings = sel.bindings;
-      // Cstr modName = this.funDef.getModName();
-      // if (!modName.equals(PTypeGraph.this.theMod.actualName)) {
-        // PTypeGraph.this.theMod.foreignIdResolver.referredFunOfficial(this.funDef);
-      // }
       PTypeSkel rt = sel.funDef.getRetType();
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(this.bindings);
       return rt.resolveBindings(this.bindings).instanciate(ic);
@@ -544,20 +545,18 @@ class PTypeGraph {
   }
 
   class DynamicInvNode extends Node {
-    Node[] paramNodes;
+    // inNodes.length == parameter count
+    // [i] : parameter
+
     Node closureNode;
     PTypeSkel.Bindings bindings;
 
     DynamicInvNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int paramCount) {
-      super(exprObj, givenTVarList);
-      this.paramNodes = new Node[paramCount];
-      for (int i = 0; i < paramCount; i++) {
-        this.paramNodes[i] = null;
-      }
+      super(paramCount, exprObj, givenTVarList);
     }
 
     void setParamNode(int index, Node node) {
-      this.paramNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     void setClosureNode(Node node) {
@@ -569,12 +568,6 @@ class PTypeGraph {
       this.bindings = PTypeSkel.Bindings.create(this.givenTVarList);
       PTypeSkel ct = this.getTypeOf(this.closureNode);
       if (ct == null) { return null; }
-if (DEBUG > 1) {
-      /* DEBUG */ System.out.print("closure type of ");
-      /* DEBUG */ System.out.print(this.exprObj.getSrcInfo());
-      /* DEBUG */ System.out.print(": ");
-      /* DEBUG */ System.out.println(ct);
-}
       if (!(ct instanceof PTypeRefSkel)) {
         emsg = new StringBuffer();
         emsg.append("Invalid closure type ");
@@ -586,7 +579,6 @@ if (DEBUG > 1) {
       }
       PTypeRefSkel ctr = (PTypeRefSkel)ct;
       if (PTypeRefSkel.isFun(ctr)) {
-      // if (ctr.tconProps.key.modName.equals(Module.MOD_LANG) && ctr.tconProps.key.idName.equals("fun")) {
         ;
       } else {
         emsg = new StringBuffer();
@@ -595,7 +587,7 @@ if (DEBUG > 1) {
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      if (this.paramNodes.length != ctr.params.length - 1) {
+      if (this.inNodes.length != ctr.params.length - 1) {
         emsg = new StringBuffer();
         emsg.append("Invalid argument count at ");
         emsg.append(this.closureNode.exprObj.getSrcInfo());
@@ -603,11 +595,10 @@ if (DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       PTypeSkel.Bindings bx = this.bindings;
-      for (int i = 0; i < this.paramNodes.length; i++) {
-/* DEBUG */ if (this.paramNodes[i] == null) { System.out.println(this.exprObj); }
-        PTypeSkel t = this.getTypeOf(this.paramNodes[i]);
+      for (int i = 0; i < this.inNodes.length; i++) {
+        PTypeSkel t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
-        // PTypeSkel.Bindings bb = this.bindings;  // before looks for debug
+        if (PTypeRefSkel.isBottom(t)) { return t; }
         bx = ctr.params[i].accept(t, bx);
         if (bx == null) {
           emsg = new StringBuffer();
@@ -626,10 +617,6 @@ if (DEBUG > 1) {
         }
       }
       this.bindings = bx;
-if (DEBUG > 1) {
-      /* DEBUG */ System.out.print("type application: ");
-      /* DEBUG */ System.out.println(this.bindings);
-}
       PTypeVarSkel iv;
       if ((iv = this.bindings.getAnyInconcreteVar()) != null) {
         emsg = new StringBuffer();
@@ -657,19 +644,25 @@ if (DEBUG > 1) {
   }
 
   class SeqNode extends Node {
-    Node leadingTypeNode;  // inNode is used for following node
+    // inNodes.length == 2
+    // [0] : following
+    // [1] : leading
 
     SeqNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(2, exprObj, givenTVarList);
+    }
+
+    void setFollowingTypeNode(Node node) {
+      this.inNodes[0] = node;
     }
 
     void setLeadingTypeNode(Node node) {
-      this.leadingTypeNode = node;
+      this.inNodes[1] = node;
     }
 
     PTypeSkel infer() throws CompileException {
-      PTypeSkel leading = this.getTypeOf(this.leadingTypeNode);
-      PTypeSkel following = this.getTypeOf(this.inNode);
+      PTypeSkel leading = this.getTypeOf(this.inNodes[1]);
+      PTypeSkel following = this.getTypeOf(this.inNodes[0]);
       PTypeSkel t = null;
       if (leading != null) {
         if (PTypeRefSkel.isBottom(leading)) {
@@ -682,7 +675,7 @@ if (DEBUG > 1) {
       } else if (following != null) {
         if (PTypeRefSkel.isBottom(following)) {
           t = following;
-        } else if (this.leadingTypeNode.dependsOnSelfRet) {
+        } else if (this.inNodes[1].dependsOnSelfRet) {
           t = following;
         } else {
           ;  // wait for leading
@@ -704,18 +697,14 @@ if (DEBUG > 1) {
   }
 
   class JoinNode extends Node {
-    Node[] branchNodes;
+    // inNodes.length == branch count
 
     JoinNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int branchCount) {
-      super(exprObj, givenTVarList);
-      this.branchNodes = new Node[branchCount];
-      for (int i = 0; i < branchCount; i++) {
-        this.branchNodes[i] = null;
-      }
+      super(branchCount, exprObj, givenTVarList);
     }
 
     void setBranchNode(int index, Node node) {
-      this.branchNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     PTypeSkel infer() throws CompileException {
@@ -723,11 +712,11 @@ if (DEBUG > 1) {
       PTypeSkel t;
       List<PTypeSkel> tt = new ArrayList<PTypeSkel>();
       boolean pending = false;
-      for (int i = 0; i < this.branchNodes.length; i++) {
-        t = this.getTypeOf(this.branchNodes[i]);
+      for (int i = 0; i < this.inNodes.length; i++) {
+        t = this.getTypeOf(this.inNodes[i]);
         if (t != null) {
           tt.add(t);
-        } else if (this.branchNodes[i].dependsOnSelfRet) {
+        } else if (this.inNodes[i].dependsOnSelfRet) {
           pending = true;
         } else {
           return null;
@@ -775,25 +764,21 @@ if (DEBUG > 1) {
   }
 
   class TupleNode extends Node {
-    Node[] elemNodes;
+    // inNodes.length == element count
 
     TupleNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int elemCount) {
-      super(exprObj, givenTVarList);
-      this.elemNodes = new Node[elemCount];
-      for (int i = 0; i < elemCount; i++) {
-        this.elemNodes[i] = null;
-      }
+      super(elemCount, exprObj, givenTVarList);
     }
 
     void setElemNode(int index, Node node) {
-      this.elemNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     PTypeSkel infer() throws CompileException {
-      PTypeSkel[] ts = new PTypeSkel[this.elemNodes.length];
+      PTypeSkel[] ts = new PTypeSkel[this.inNodes.length];
       PTypeSkel t;
-      for (int i = 0; i < this.elemNodes.length; i++) {
-        t = this.getTypeOf(this.elemNodes[i]);
+      for (int i = 0; i < this.inNodes.length; i++) {
+        t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
         if (PTypeRefSkel.isBottom(t)) { return t; }
         ts[i] = t;
@@ -811,8 +796,10 @@ if (DEBUG > 1) {
   }
 
   class EmptyListNode extends Node {
+    // inNodes.length == 0
+
     EmptyListNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(0, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
@@ -832,27 +819,28 @@ if (DEBUG > 1) {
   }
 
   class ListNode extends Node {
-    Node elemNode;
-    Node tailNode;
+    // inNodes.length == 2
+    // [0] : elem
+    // [1] : tail
 
     ListNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(2, exprObj, givenTVarList);
     }
 
     void setElemNode(Node node) {
-      this.elemNode = node;
+      this.inNodes[0] = node;
     }
 
     void setTailNode(Node node) {
-      this.tailNode = node;
+      this.inNodes[1] = node;
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel et = this.getTypeOf(this.elemNode);
+      PTypeSkel et = this.getTypeOf(this.inNodes[0]);
       if (et == null) { return null; }
       if (PTypeRefSkel.isBottom(et)) { return et; }
-      PTypeSkel tt = this.getTypeOf(this.tailNode);
+      PTypeSkel tt = this.getTypeOf(this.inNodes[1]);
       if (tt == null) { return null; }
       if (PTypeRefSkel.isBottom(tt)) { return tt; }
       if (!PTypeRefSkel.isList(tt)) {
@@ -860,12 +848,11 @@ if (DEBUG > 1) {
         emsg.append("Type of list tail is invalid at ");
         emsg.append(this.exprObj.getSrcInfo());
         emsg.append(". - ");
-        emsg.append(tt);  // HERE: convert to readable expression
+        emsg.append(PTypeSkel.Repr.topLevelRepr(tt));
         throw new CompileException(emsg.toString());
       }
       PTypeSkel t = et.join(((PTypeRefSkel)tt).params[0], this.givenTVarList);
       if (t == null) {
-// /* DEBUG */ System.out.print("joining "); System.out.print(et); System.out.print(" "); System.out.println(((PTypeRefSkel)tt).params[0]);
         emsg = new StringBuffer();
         emsg.append("Element type is incompatible at ");
         emsg.append(this.exprObj.getSrcInfo());
@@ -892,28 +879,24 @@ if (DEBUG > 1) {
   }
 
   class StringNode extends Node {
-    Node[] elemNodes;
+    // inNodes.length == element count
 
     StringNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int elemCount) {
-      super(exprObj, givenTVarList);
-      this.elemNodes = new Node[elemCount];
-      for (int i = 0; i < elemCount; i++) {
-        this.elemNodes[i] = null;
-      }
+      super(elemCount, exprObj, givenTVarList);
     }
 
     void setElemNode(int index, Node node) {
-      this.elemNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      if (this.elemNodes.length == 0) {
+      if (this.inNodes.length == 0) {
         return this.exprObj.getScope().getEmptyStringType(this.exprObj.getSrcInfo());
       }
       PTypeSkel t = null;
-      for (int i = 0; i < this.elemNodes.length; i++) {
-        PTypeSkel t2 = this.getTypeOf(this.elemNodes[i]);
+      for (int i = 0; i < this.inNodes.length; i++) {
+        PTypeSkel t2 = this.getTypeOf(this.inNodes[i]);
         if (t2 == null) { return null; }
         if (PTypeRefSkel.isBottom(t2)) { return t2; }
         if (t == null) {  // [0]
@@ -945,20 +928,16 @@ if (DEBUG > 1) {
   }
 
   class DataConstrNode extends Node {
-    PEid dcon;
-    Node[] attrNodes;
+    // inNodes.length == attribute count
 
+    PEid dcon;
     DataConstrNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, PEid dcon, int attrCount) {
-      super(exprObj, givenTVarList);
+      super(attrCount, exprObj, givenTVarList);
       this.dcon = dcon;
-      this.attrNodes = new Node[attrCount];
-      for (int i = 0; i < attrCount; i++) {
-        this.attrNodes[i] = null;
-      }
     }
 
     void setAttrNode(int index, Node node) {
-      this.attrNodes[index] = node;
+      this.inNodes[index] = node;
     }
 
     PTypeSkel infer() throws CompileException {
@@ -967,15 +946,11 @@ if (DEBUG > 1) {
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
 
       PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
-      // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForEval(PTypeGraph.this.theMod.actualName, ep.key);
-      // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
       if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PDataDef.Constr constr = PTypeGraph.this.theCompiler.defDict.getConstrDefFromDcon(
         PTypeGraph.this.theMod.actualName, ep.key);
-      // PDataDef.Constr constr = dataDef.getConstr(this.dcon.name);
       if (constr == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      if (constr.getAttrCount() != this.attrNodes.length) {
+      if (constr.getAttrCount() != this.inNodes.length) {
         emsg = new StringBuffer();
         emsg.append("Attribute count mismatch on ");
         emsg.append(this.dcon.name);
@@ -986,19 +961,11 @@ if (DEBUG > 1) {
       }
       PTypeSkel.Bindings bx = PTypeSkel.Bindings.create(this.givenTVarList);
       for (int i = 0; i < constr.getAttrCount(); i++) {
-        PTypeSkel t = this.getTypeOf(this.attrNodes[i]);
+        PTypeSkel t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
         if (PTypeRefSkel.isBottom(t)) { return t; }
         PDataDef.Attr a = constr.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
-if (DEBUG > 1) {
-          /* DEBUG */ System.out.print("attribute def: ");
-          /* DEBUG */ System.out.println(at);
-          /* DEBUG */ System.out.print("actual attribute: ");
-          /* DEBUG */ System.out.println(t);
-          /* DEBUG */ System.out.print("bindings: ");
-          /* DEBUG */ System.out.println(bx);
-}
         PTypeSkel.Bindings b;
         if ((b = at.accept(t, bx)) == null) {
           emsg = new StringBuffer();
@@ -1013,35 +980,11 @@ if (DEBUG > 1) {
           emsg.append(PTypeSkel.Repr.topLevelRepr(at.resolveBindings(bx)));
           emsg.append("\n  actual attribute: ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(t));
-if (DEBUG > 1) {
-          /* DEBUG */ emsg.append("\n  bindings: ");
-          /* DEBUG */ emsg.append(bx);
-}
           throw new CompileException(emsg.toString());
         }
         bx = b;
       }
-if (DEBUG > 1) {
-      /* DEBUG */ System.out.print("type application: ");
-      /* DEBUG */ System.out.println(bx);
-}
       PTypeSkel dt = dataDef.getTypeSig().resolveBindings(bx).instanciate(PTypeSkel.InstanciationContext.create(bx));
-      // PTypeSkel dt = constr.getType(b);  // original
-
-      // sig param does not require concreteness now
-      // PTypeRefSkel sig = dataDef.getTypeSig();
-      // if (sig.extractAnyInconcreteVar(dt /* , b.givenTVarList */) != null) {
-        // emsg = new StringBuffer();
-        // emsg.append("Attempt to construct data including inconcrete type parameter at ");
-        // emsg.append(this.exprObj.getSrcInfo());
-        // emsg.append(".");
-        // emsg.append("\n  required: ");
-        // emsg.append(PTypeSkel.Repr.topLevelRepr(sig));
-        // emsg.append("\n  actual: ");
-        // emsg.append(PTypeSkel.Repr.topLevelRepr(dt));
-        // throw new CompileException(emsg.toString());
-      // }
-
       return dt;
     }
 
@@ -1058,16 +1001,19 @@ if (DEBUG > 1) {
   }
 
   class TuplePtnNode extends Node {
+    // inNodes.length == 1
+    // [0] : supplied value
+
     int elemCount;
 
     TuplePtnNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int elemCount) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
       this.elemCount = elemCount;
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
       if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "tuple")) {
@@ -1100,16 +1046,19 @@ if (DEBUG > 1) {
   }
 
   class TuplePtnElemNode extends Node {
+    // inNodes.length == 1
+    // [0] : receiver
+
     int index;
 
     TuplePtnElemNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, int index) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
       this.index = index;
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
       if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[this.index];  // type is guaranteed in in-node
@@ -1128,14 +1077,16 @@ if (DEBUG > 1) {
   }
 
   class ListPtnNode extends Node {
+    // inNodes.length == 1
+    // [0] : supplied value
 
     ListPtnNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
       if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "list")) {
@@ -1163,14 +1114,16 @@ if (DEBUG > 1) {
   }
 
   class ListPtnElemNode extends Node {
+    // inNodes.length == 1
+    // [0] : receiver
 
     ListPtnElemNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
       if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
@@ -1188,14 +1141,16 @@ if (DEBUG > 1) {
   }
 
   class StringPtnNode extends Node {
+    // inNodes.length == 1
+    // [0] : supplied value
 
     StringPtnNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
       if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "string")) {
@@ -1222,14 +1177,16 @@ if (DEBUG > 1) {
   }
 
   class StringPtnElemNode extends Node {
+    // inNodes.length == 1
+    // [0] : receiver
 
     StringPtnElemNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
       StringBuffer emsg;
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
       if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
@@ -1248,6 +1205,9 @@ if (DEBUG > 1) {
   }
 
   class DataConstrPtnNode extends RefNode {
+    // inNodes.length == 1
+    // [0] : supplied value
+
     int context;  // PPtnMatch.CONTEXT_*
     PEid dcon;
     PTypeSkel.Bindings bindings;
@@ -1265,7 +1225,7 @@ if (DEBUG > 1) {
     PTypeSkel.Bindings getBindings() throws CompileException {
       StringBuffer emsg;
       if (this.bindings != null) { return this.bindings; }
-      PTypeSkel t = this.getTypeOf(this.inNode);
+      PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }  // HERE: in case of <_>
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
@@ -1308,11 +1268,6 @@ if (DEBUG > 1) {
         throw new CompileException(emsg.toString());
       }
       this.bindings = bx;
-if (DEBUG > 1) {
-/* DEBUG */ System.out.print(this.exprObj);
-/* DEBUG */ System.out.print(" >>bindings>> ");
-/* DEBUG */ System.out.println(bx);
-}
       return this.bindings;
     }
 
@@ -1330,28 +1285,25 @@ if (DEBUG > 1) {
   }
 
   class DataConstrPtnAttrNode extends Node {
+    // inNodes.length == 1
+    // [0] : receiver
+
     PEid dcon;
     int index;
 
     DataConstrPtnAttrNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList, PEid dcon, int index) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
       this.dcon = dcon;
       this.index = index;
     }
 
     PTypeSkel infer() throws CompileException {
       PTypeSkel.Bindings b;
-      if ((b = ((DataConstrPtnNode)this.inNode).getBindings()) == null) { return null; }
+      if ((b = ((DataConstrPtnNode)this.inNodes[0]).getBindings()) == null) { return null; }
       PDefDict.EidProps ep = PTypeGraph.this.theMod.resolveAnchor(this.dcon);
       if (ep == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
       PDataDef.Constr constr =PTypeGraph.this.theCompiler.defDict.getConstrDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key); 
       PDataDef.Attr attr = constr.getAttrAt(this.index);
-      // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataOriginDefFromDcon(PTypeGraph.this.theMod.actualName, ep.key);
-      // // PDefDict.IdKey tconKey = PTypeGraph.this.theCompiler.defDict.getTconFromDconForPtn(PTypeGraph.this.theMod.actualName, ep.key);
-      // // if (tconKey == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      // // PDataDef dataDef = PTypeGraph.this.theCompiler.defDict.getDataDef(PTypeGraph.this.theMod.actualName, tconKey);
-      // if (dataDef == null) { throw new RuntimeException("Unexpected. " + this.dcon); }  // checked before
-      // PDataDef.Attr attr = dataDef.getConstr(this.dcon.name).getAttrAt(this.index);
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create(b);
       return attr.getNormalizedType().resolveBindings(b).instanciate(ic);
     }
@@ -1371,13 +1323,15 @@ if (DEBUG > 1) {
   }
 
   class CondNode extends Node {
+    // inNodes.length == 1
+    // [0] : supplied value
 
     CondNode(PExprObj exprObj, List<PTypeVarSlot> givenTVarList) {
-      super(exprObj, givenTVarList);
+      super(1, exprObj, givenTVarList);
     }
 
     PTypeSkel infer() throws CompileException {
-      return this.getTypeOf(this.inNode);
+      return this.getTypeOf(this.inNodes[0]);
     }
 
     StringBuffer getTypeReportDesc() {
@@ -1386,14 +1340,13 @@ if (DEBUG > 1) {
 
     void check() throws CompileException {
       StringBuffer emsg;
-      if (!PTypeRefSkel.isLangType(this.inNode.type, "bool")) {
-// /* DEBUG */ System.out.println("checking binding...");
+      if (!PTypeRefSkel.isLangType(this.inNodes[0].type, "bool")) {
         emsg = new StringBuffer();
         emsg.append("Not <bool> at ");
         emsg.append(this.exprObj.getSrcInfo());
         emsg.append(".");
         emsg.append("\n  actual: ");
-        emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNode.type));
+        emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNodes[0].type));
         throw new CompileException(emsg.toString());
       }
     }

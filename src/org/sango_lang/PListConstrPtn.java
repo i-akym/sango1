@@ -72,10 +72,10 @@ class PListConstrPtn extends PListPtn {
     this.typeGraphNode = graph.createListPtnNode(this, this.givenTVarList);
     PTypeGraph.Node e = this.elem.setupTypeGraph(graph);
     PTypeGraph.ListPtnElemNode en = graph.createListPtnElemNode(this, this.givenTVarList);
-    en.setInNode(this.typeGraphNode);
-    e.setInNode(en);
+    en.setInNode(0, this.typeGraphNode);
+    e.setInNode(0, en);
     PTypeGraph.Node t = this.tail.setupTypeGraph(graph);
-    t.setInNode(this.typeGraphNode);
+    t.setInNode(0, this.typeGraphNode);
     return this.typeGraphNode;
   }
 

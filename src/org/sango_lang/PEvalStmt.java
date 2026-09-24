@@ -455,7 +455,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     if (this.implExprs != null) {
       PTypeGraph.RetNode rn = (PTypeGraph.RetNode)this.retDef.setupTypeGraph(graph);
-      rn.setInNode(this.implExprs.setupTypeGraph(graph));
+      rn.setInNode(0, this.implExprs.setupTypeGraph(graph));
     }
   }
 

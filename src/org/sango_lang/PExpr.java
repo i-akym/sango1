@@ -180,7 +180,7 @@ class PExpr extends PDefaultExprObj implements PEval {
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     this.typeGraphNode = this.eval.setupTypeGraph(graph);
     if (this.ptnMatch != null) {
-      this.ptnMatch.setupTypeGraph(graph).setInNode(this.typeGraphNode);
+      this.ptnMatch.setupTypeGraph(graph).setInNode(0, this.typeGraphNode);
     }
     return this.typeGraphNode;
   }

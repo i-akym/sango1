@@ -310,8 +310,8 @@ class PDataConstrPtn extends PDefaultExprObj {
     for (int i = 0; i < this.sortedAttrs.length; i++) {
       PTypeGraph.Node an = this.sortedAttrs[i].setupTypeGraph(graph);
       PTypeGraph.DataConstrPtnAttrNode an2 = graph.createDataConstrPtnAttrNode(this, this.givenTVarList, this.dcon, i);
-      an2.setInNode(this.typeGraphNode);
-      an.setInNode(an2);
+      an2.setInNode(0, this.typeGraphNode);
+      an.setInNode(0, an2);
     }
     return this.typeGraphNode;
   }
