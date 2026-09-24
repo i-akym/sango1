@@ -150,8 +150,8 @@ class PTuplePtn extends PDefaultExprObj {
     for (int i = 0; i < this.elems.length; i++) {
       PTypeGraph.Node en = this.elems[i].setupTypeGraph(graph);
       PTypeGraph.TuplePtnElemNode en2 = graph.createTuplePtnElemNode(this, this.givenTVarList, i);
-      en2.setInNode(this.typeGraphNode);
-      en.setInNode(en2);
+      en2.setInNode(0, this.typeGraphNode);
+      en.setInNode(0, en2);
     }
     return this.typeGraphNode;
   }

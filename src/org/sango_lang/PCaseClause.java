@@ -269,10 +269,10 @@ class PCaseClause extends PDefaultExprObj {
       this.ptnMatches[i].setupTypeGraph(graph);
     }
     if (this.guard != null) {
-      graph.createCondNode(this.guard, this.guard.givenTVarList).setInNode(this.guard.setupTypeGraph(graph));
+      graph.createCondNode(this.guard, this.guard.givenTVarList).setInNode(0, this.guard.setupTypeGraph(graph));
     }
     this.typeGraphNode = graph.createRefNode(this, this.givenTVarList);
-    this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
+    this.typeGraphNode.setInNode(0, this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }
 

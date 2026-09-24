@@ -324,7 +324,7 @@ class PClosure extends PDefaultExprObj {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }
     PTypeGraph.Node rn = this.retDef.setupTypeGraph(graph);
-    rn.setInNode(this.implExprs.setupTypeGraph(graph));
+    rn.setInNode(0, this.implExprs.setupTypeGraph(graph));
     ((PTypeGraph.ClosureNode)this.typeGraphNode).setRetNode(rn);
     return this.typeGraphNode;
   }
@@ -334,7 +334,7 @@ class PClosure extends PDefaultExprObj {
       throw new IllegalArgumentException("Count of args is not guaranteed to be equal to that of params.");
     }
     for (int i = 0; i < args.length; i++) {
-      this.params[i].getTypeGraphNode().setInNode(args[i]);
+      this.params[i].getTypeGraphNode().setInNode(0, args[i]);
     }
   }
 

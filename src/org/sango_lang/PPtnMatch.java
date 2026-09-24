@@ -270,7 +270,7 @@ class PPtnMatch extends PDefaultExprObj {
     if (this.impose != null) {
       this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).toSkel();
       this.typeGraphNode = graph.createDetNode(this, this.givenTVarList);
-      this.ptn.setupTypeGraph(graph).setInNode(this.impose.setupTypeGraph(graph));
+      this.ptn.setupTypeGraph(graph).setInNode(0, this.impose.setupTypeGraph(graph));
     } else {
       this.typeGraphNode = this.ptn.setupTypeGraph(graph);
     }
@@ -278,7 +278,7 @@ class PPtnMatch extends PDefaultExprObj {
   }
 
   void setTypeGraphInNode(PTypeGraph.Node node) {
-    this.typeGraphNode.setInNode(node);
+    this.typeGraphNode.setInNode(0, node);
   }
 
   public GFlow.Node setupFlow(GFlow flow) {

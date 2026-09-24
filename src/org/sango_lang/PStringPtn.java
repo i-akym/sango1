@@ -168,9 +168,9 @@ class PStringPtn extends PDefaultExprObj {
       this.typeGraphNode = graph.createStringPtnNode(this, this.givenTVarList);
     }
     PTypeGraph.StringPtnElemNode n = graph.createStringPtnElemNode(this, this.givenTVarList);
-    n.setInNode(this.typeGraphNode);
+    n.setInNode(0, this.typeGraphNode);
     for (int i = 0; i < this.elems.length; i++) {
-      this.elems[i].setupTypeGraph(graph).setInNode(n);
+      this.elems[i].setupTypeGraph(graph).setInNode(0, n);
     }
     return this.typeGraphNode;
   }

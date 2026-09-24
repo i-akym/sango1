@@ -189,9 +189,9 @@ class PIfClause extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    graph.createCondNode(this.guard, this.guard.givenTVarList).setInNode(this.guard.setupTypeGraph(graph));  // null guard needed??
+    graph.createCondNode(this.guard, this.guard.givenTVarList).setInNode(0, this.guard.setupTypeGraph(graph));  // null guard needed??
     this.typeGraphNode = graph.createRefNode(this, this.givenTVarList);
-    this.typeGraphNode.setInNode(this.action.setupTypeGraph(graph));
+    this.typeGraphNode.setInNode(0, this.action.setupTypeGraph(graph));
     return this.typeGraphNode;
   }
 
