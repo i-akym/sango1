@@ -365,7 +365,7 @@ public class PTypeVarSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      bx = bx.bind(this, type);
+      // bx = bx.bind(this, type);  DO NOT DO THIS
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
@@ -693,7 +693,7 @@ public class PTypeVarSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Free A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      bx = bx.bind(this, type);
+      // bx = bx.bind(this, type);  DO NOT DO THIS
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Free C "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
