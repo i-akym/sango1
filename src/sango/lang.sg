@@ -91,6 +91,7 @@ data <exc_desc> @public :=
 | <arith_failure> arith_failure$
 | sys_error$
 | <exc_desc> thru$
+| NYI$  # not yet implemented
 | ... ;;
 
 data <runtime_failure> @public :=
@@ -756,6 +757,11 @@ eval <exception> *E catchable @public -> <exception> {
 } ;;
 
 # miscellaneous functions
+
+eval @beta <cstr> *Msg _NYI_ @public -> <*A> @native ;;
+  # Means "not yet implemented".
+  # Use it instead of "not yet implemented" code in order to pass compilation.
+  # If actually executed, it throws NYI$ exception with Msg.
 
 eval @limited <*A> *X expose @public -> <_?_> @native ;;
 
