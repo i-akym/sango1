@@ -134,14 +134,9 @@ public class PTypeRefSkel implements PTypeSkel {
   }
 
   public boolean isConcrete() {
-    boolean b;
-    if (isBottom(this)) {
-      b =  false;
-    } else {
-      b = true;
-      for (int i = 0; b & i < this.params.length; i++) {
-        b &= this.params[i].isConcrete();
-      }
+    boolean b = true;
+    for (int i = 0; b && i < this.params.length; i++) {
+      b = this.params[i].isConcrete();
     }
     return b;
   }
@@ -228,12 +223,12 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptBottom 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      bx = this.acceptGenericVar((PTypeVarSkel)type, bx);
+      bx = null;
     } else if (cat == PTypeSkel.CAT_ANVAR) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptBottom 5 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      bx = this.acceptGenericAnonym((PTypeVarSkel)type, bx);
+      bx = null;
     } else {
       throw new RuntimeException("Unexspected type. " + type.toString());
     }
@@ -247,7 +242,7 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptSome 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      ; // ok
+      bx = null;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptSome 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
@@ -376,7 +371,12 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireBottom 4 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      bx = this.requireGenericVar((PTypeVarSkel)type, bx);
+      bx = null;
+    } else if (cat == PTypeSkel.CAT_ANVAR) {
+/* DEBUG */ if (PTypeGraph.DEBUG > 1) {
+  System.out.print("PTypeRefSkel#requireBottom 5 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
+}
+      bx = null;
     } else {
       throw new RuntimeException("Unexspected type. " + type.toString());
     }
@@ -390,7 +390,7 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireSome 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      ;  // ok
+      bx = null;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireSome 3 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);

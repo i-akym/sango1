@@ -52,7 +52,6 @@ SangoのインストールやSangoプログラムの実行に関して，Windows
   <a href="#3.5">3.5. タプル <code>&lt;～ tuple&gt;</code></a>
   <a href="#3.6">3.6. リスト <code>&lt;A list&gt;</code></a>
   <a href="#3.7">3.7. ストリング <code>&lt;A string&gt;</code></a>
-  <a href="#3.8">3.8. 文脈外 <code>&lt;_?_&gt;</code></a>
 <a href="#4">4. 新しい型を定義する</a>
     <a href="#4.a">例：論理型</a>
     <a href="#4.b">例：X-Y座標値</a>
@@ -422,12 +421,6 @@ Loading &quot;sango.io.stdio&quot; = /opt/sango/lib/sango/io/stdio.sgm ...</samp
 <blockquote class="note">*1：別名の<code>&lt;cstr&gt;</code>のほうが単純で短いので，通常は別名を使います。</blockquote>
 <blockquote class="note">*2：単引用符は文字列の中でエスケープ表現しません。二重引用符は文字リテラルの中でエスケープ表現しません。</blockquote>
 <blockquote class="note">*3：「<code>\</code>」に空白あるいは改行が続く場合，次に二重引用符が出現するまで，空白および改行を無視します。それまでにこれら以外の文字が出現するとエラーになります。</blockquote>
-
-<p class="toc-ref"><a href="#toc">［目次］</a></p>
-<h2 id="3.8">3.8. 文脈外 <code>&lt;_?_&gt;</code></h2>
-<p>Sangoプログラム内では，複数のプログラム文脈（スレッド＝アクタ）が並行して実行されます。
-  プログラム文脈外のオブジェクトを扱う場合，この型にすることがあります。
-  オブジェクト自身が持つ型情報とパターンマッチすることで型を復元することができます。</p>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h1 id="4">4. 新しい型を定義する</h1>
@@ -2154,11 +2147,10 @@ eval &lt;format_method&gt; *Method &lt;formatter&gt; *Formatter
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>
 <h2 id="B.4">B.4. 具象型</h2>
-<p>未束縛の型パラメタおよび<code>&lt;&quot;sango.lang&quot;._&gt;</code>を含まない型を具象型（concrete type）と呼びます。
+<p>未束縛の型パラメタを含まない型を具象型（concrete type）と呼びます。
 例えば，<code>3 value$</code> の型は<code>&lt;int maybe&gt;</code>，<code>[ 3 value$, none$ ]</code> の型は<code>&lt;&lt;int maybe&gt; list&gt;</code>であり，これらの型は具象型です。
 一方，<code>none$</code> の型は<code>&lt;A maybe&gt;</code>，<code>[]</code> の型は<code>&lt;A list&gt;</code>（<code>A</code>は未束縛）であり，これらの型は具象型ではありません。</p>
-<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。
-関数，クロージャの返り値に含まれる型変数の宣言にて具象型を指定することはできません。</p>
+<p>関数のパラメタとして具象型を要求することがあります。このような場合，該当する型パラメタの宣言において <code>A!</code> のように，型パラメタ名の後に<code>!</code>を指定します。</p>
 <blockquote class="code-sample">コード例<code>
 module &quot;sango.entity.box&quot; ;;
 eval &lt;*A!&gt; *X &lt;&lt;void fun&gt; maybe&gt; *Invalidator_ create_box @public -&gt; &lt;A box_h&gt; ...</code></blockquote>
@@ -2436,9 +2428,9 @@ eval @deprecated &lt;t&gt; *X f @public -&gt; ... ;;</code></blockquote>
 
 <p>■　NEXT VERSION</p>
 <ul>
-<li><code>&lt;&quot;sango.lang&quot;._&gt;</code>を含む型は，具象型ではないと変更。</li>
 <li><code>&quot;sango.tuple&quot;</code>でのスペル間違いを修正（forth → fourth）</li>
 <li>【Beta】<code>&quot;sango.lang&quot;._NYI_</code>を追加</li>
+<li>【非互換】<code>&lt;&quot;sango.lang&quot;._&gt;</code>型を，キャストできない（型パラメタに束縛されない）よう変更</li>
 </ul>
 
 <p class="toc-ref"><a href="#toc">［目次］</a></p>

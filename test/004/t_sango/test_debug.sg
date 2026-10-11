@@ -34,11 +34,11 @@ eval test -> <void> {
   test107a,
   test200,
   test201,
-  void$
+  "Normally finished." stdio.print_and_newline
 } ;;
 
 eval exc001 -> <exception> { e001_exc$ "Test exception occurred." new_exception } ;;
-eval exc002 -> <_> { exc001 >> throw } ;;
+eval exc002 -> <void> { if { true$ -> exc001 >> throw ; otherwise -> void$ } } ;;
 eval test001 -> <bool> { debug.check_assertion? } ;;
 eval test002 -> <void> { ^exc002 try = *E exc$, "Exception info ----" stdio.print_and_newline, E stdio.cstdout debug.dump_to } ;;
 eval test101 -> <void> { 101 debug.repr = "{\"sango.lang\".int|101}", void$ } ;;

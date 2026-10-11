@@ -136,7 +136,6 @@ eval test -> <void> {
   test070,
   test070a,
   test080,
-  test081,
   test082,
   test082a,
   test083,
@@ -242,7 +241,7 @@ eval test037 -> <_?_ list> { [ -37, -39 ] expose = *R, R = <_?_ list> == *L, L }
 eval test037a -> <_?_ list> { [] expose = *R, R = <_?_ list> == *L, L } ;;
 eval test037b -> <int> { (| -37, -39 |) expose = *R, R case { <_?_ _?_ _?_ tuple> == *T3 -> 3 ; <_?_ _?_ tuple> == *T2 -> 2 ; ** -> 0 } = 2 } ;;
 eval test037c -> <_?_ string> { "test string" expose = *R, R = <_?_ string> == *S, S } ;;
-eval test038 -> <int result> { \\ <int> { test_exc$ "test exception" new_exception >> throw } try = ** exc$ } ;;
+eval test038 -> <int result> { \\ <int> { 3 0 quot } try = ** exc$ } ;;
 eval test039 -> <*A A fun> { ^itself itself } ;;
 eval test040 -> <d001> { 40 'd' d001$ } ;;
 eval test041 -> <d001> { d001_2: 'd' d001_1:40 d001$ } ;;
@@ -282,14 +281,8 @@ eval test060 -> <void> {
 eval test070 -> <<*A list> list> { [ [], [], [] ] } ;;
 eval test070a -> <<*A list> list> { [] = *L, [ L, L, L ] } ;;
 eval test080 -> <void result> {
-  \\ <void> { intentional$ "" new_exception >> thru >> throw }
+  \\ <void> { if { true$ -> intentional$ "" new_exception >> thru >> throw ; otherwise -> void$ }}
   catch_all_try = ((intentional$ thru$) *** exception$) exc$
-} ;;
-eval test081 -> <void result> {
-  \\ <void> {
-    \\ <void> { intentional$ "" new_exception >> thru >> throw } try,
-    void$
-  } catch_all_try = ((intentional$ thru$) *** exception$) exc$
 } ;;
 eval test082 -> <exception> { intentional$ "" new_exception >> thru = desc: (intentional$ thru$) *** exception$ } ;;
 eval test082a -> <exception> { intentional$ "" new_exception >> thru >> thru = desc: (intentional$ thru$) *** exception$ } ;;

@@ -29,8 +29,7 @@ module "sango.lang" ;;
 
 data @limited <_?_> @opaque := @native ;;  # exposed (out of program context)
 
-data <_> @opaque := @native ;;  # bottom (= narrowest) type,
-                                # which also means 'will not return' when specified at function's return value
+data <_> @opaque := @native ;; # means 'never return' when specified as function's return value type
 
 # void type
 
