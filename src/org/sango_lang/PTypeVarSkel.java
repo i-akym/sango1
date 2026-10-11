@@ -182,7 +182,7 @@ public class PTypeVarSkel implements PTypeSkel {
     PTypeSkel.Bindings bx = bindings;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
-      ;  // ok
+      bx = null;
     } else if (cat == PTypeSkel.CAT_SOME) {
       PTypeRefSkel tr = (PTypeRefSkel)type;
       bx = this.accept1AnonymSome(tr, bx);
@@ -365,7 +365,7 @@ public class PTypeVarSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free 1 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      // bx = bx.bind(this, type);  DO NOT DO THIS
+      bx = null;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#accept1Free 2 "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
@@ -523,7 +523,7 @@ public class PTypeVarSkel implements PTypeSkel {
     PTypeSkel.Bindings bx = bindings;
     int cat = type.getCat();
     if (cat == PTypeSkel.CAT_BOTTOM) {
-      ;  // ok
+      bx = null;
     } else if (cat == PTypeSkel.CAT_SOME) {
       PTypeRefSkel tr = (PTypeRefSkel)type;
       bx = this.require1AnonymSome(tr, bx);
@@ -693,7 +693,7 @@ public class PTypeVarSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Free A "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);
 }
-      // bx = bx.bind(this, type);  DO NOT DO THIS
+      bx = null;
     } else if (cat == PTypeSkel.CAT_SOME) {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeVarSkel#require1Free C "); System.out.print(this); System.out.print(" "); System.out.print(type); System.out.print(" "); System.out.println(bx);

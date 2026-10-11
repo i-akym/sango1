@@ -124,7 +124,7 @@ eval test401a -> <void> {
   void$
 } ;;
 eval test402 -> <void> {
-  \\ <void> { intentional$ "" new_exception >> throw } act.spawn_actor >> act.actor_h = *A,
+  \\ <void> { if { true$ -> intentional$ "" new_exception >> throw ; otherwise -> void$ } } act.spawn_actor >> act.actor_h = *A,
   act.open_mbox = (| *B, *P |),
   A P act.start_monitoring,
   B act.wait_forever$ act.listen,
@@ -140,7 +140,7 @@ eval test402 -> <void> {
   void$
 } ;;
 eval test402a -> <void> {
-  \\ <void> { intentional$ "" new_exception >> throw } act.spawn_actor >> act.actor_h = *A,
+  \\ <void> { if { true$ -> intentional$ "" new_exception >> throw ; otherwise -> void$ } } act.spawn_actor >> act.actor_h = *A,
   act.open_mbox = (| *B, *P |),
   A act.start,
   A act.wait_forever$ act.join,

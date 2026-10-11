@@ -177,9 +177,9 @@ class PTypeGraph {
     void check() throws CompileException {
       StringBuffer emsg;
       if (this.inNodes[0] != null) {
-        if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
+        /* if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
           ;
-        } else if (this.type.accept(this.inNodes[0].type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
+        } else */ if (this.type.accept(this.inNodes[0].type, PTypeSkel.Bindings.create(this.givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot cast ");
           emsg.append(PTypeSkel.Repr.topLevelRepr(this.inNodes[0].type));
@@ -252,9 +252,9 @@ class PTypeGraph {
         if (DEBUG > 1) {
 /* DEBUG */ System.out.println("checking binding...");
         }
-        if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
+        /* if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
           ;
-        } else if (this.cat == PExprVarDef.CAT_FUN_PARAM
+        } else */ if (this.cat == PExprVarDef.CAT_FUN_PARAM
             && this.type.accept(this.inNodes[0].type, PTypeSkel.Bindings.create(this.inNodes[0].givenTVarList)) == null) {
           emsg = new StringBuffer();
           emsg.append("Cannot bind ");
@@ -342,9 +342,9 @@ class PTypeGraph {
       if (this.inNodes[0] == null) { throw new RuntimeException("Null actual return value."); }
 
       StringBuffer emsg;
-      if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
+      /* if (PTypeRefSkel.isBottom(this.inNodes[0].type)) {
         ;
-      } else if (this.type.require(this.inNodes[0].type, PTypeSkel.Bindings.create(this.inNodes[0].givenTVarList)) == null) {
+      } else */ if (this.type.require(this.inNodes[0].type, PTypeSkel.Bindings.create(this.inNodes[0].givenTVarList)) == null) {
         emsg = new StringBuffer();
         emsg.append("Return value type mismatch ");
         emsg.append(" at ");
@@ -462,7 +462,7 @@ class PTypeGraph {
       for (int i = 0; i < this.inNodes.length; i++) {
         t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.isBottom(t)) { return t; }
+        // if (PTypeRefSkel.isBottom(t)) { return t; }
         ts[i] = t;
       }
       t = this.getTypeOf(this.retNode);
@@ -507,7 +507,7 @@ class PTypeGraph {
       for (int i = 0; i < this.inNodes.length; i++) {
         PTypeSkel t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.isBottom(t)) { return t; }
+        // if (PTypeRefSkel.isBottom(t)) { return t; }
         pts[i] = t;
       }
       PDefDict.FunSelRes sel = PTypeGraph.this.theMod.selectFunDef(this.funId, pts, this.givenTVarList);
@@ -598,7 +598,7 @@ class PTypeGraph {
       for (int i = 0; i < this.inNodes.length; i++) {
         PTypeSkel t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.isBottom(t)) { return t; }
+        // if (PTypeRefSkel.isBottom(t)) { return t; }
         bx = ctr.params[i].accept(t, bx);
         if (bx == null) {
           emsg = new StringBuffer();
@@ -780,7 +780,7 @@ class PTypeGraph {
       for (int i = 0; i < this.inNodes.length; i++) {
         t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.isBottom(t)) { return t; }
+        // if (PTypeRefSkel.isBottom(t)) { return t; }
         ts[i] = t;
       }
       return this.exprObj.getScope().getLangDefinedTypeSkel(this.exprObj.getSrcInfo(), "tuple", ts);
@@ -839,10 +839,10 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel et = this.getTypeOf(this.inNodes[0]);
       if (et == null) { return null; }
-      if (PTypeRefSkel.isBottom(et)) { return et; }
+      // if (PTypeRefSkel.isBottom(et)) { return et; }
       PTypeSkel tt = this.getTypeOf(this.inNodes[1]);
       if (tt == null) { return null; }
-      if (PTypeRefSkel.isBottom(tt)) { return tt; }
+      // if (PTypeRefSkel.isBottom(tt)) { return tt; }
       if (!PTypeRefSkel.isList(tt)) {
         emsg = new StringBuffer();
         emsg.append("Type of list tail is invalid at ");
@@ -898,7 +898,7 @@ class PTypeGraph {
       for (int i = 0; i < this.inNodes.length; i++) {
         PTypeSkel t2 = this.getTypeOf(this.inNodes[i]);
         if (t2 == null) { return null; }
-        if (PTypeRefSkel.isBottom(t2)) { return t2; }
+        // if (PTypeRefSkel.isBottom(t2)) { return t2; }
         if (t == null) {  // [0]
           t = t2;
         } else {
@@ -963,7 +963,7 @@ class PTypeGraph {
       for (int i = 0; i < constr.getAttrCount(); i++) {
         PTypeSkel t = this.getTypeOf(this.inNodes[i]);
         if (t == null) { return null; }
-        if (PTypeRefSkel.isBottom(t)) { return t; }
+        // if (PTypeRefSkel.isBottom(t)) { return t; }
         PDataDef.Attr a = constr.getAttrAt(i);
         PTypeSkel at = a.getNormalizedType();
         PTypeSkel.Bindings b;
@@ -1015,7 +1015,7 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
-      if (PTypeRefSkel.isBottom(t)) { return t; }
+      // if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "tuple")) {
         emsg = new StringBuffer();
         emsg.append("Value is not tuple at ");
@@ -1060,7 +1060,7 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
-      if (PTypeRefSkel.isBottom(t)) { return t; }
+      // if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[this.index];  // type is guaranteed in in-node
     }
 
@@ -1088,7 +1088,7 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
-      if (PTypeRefSkel.isBottom(t)) { return t; }
+      // if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "list")) {
         emsg = new StringBuffer();
         emsg.append("Not in list at ");
@@ -1125,7 +1125,7 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
-      if (PTypeRefSkel.isBottom(t)) { return t; }
+      // if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
     }
  
@@ -1152,7 +1152,7 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
-      if (PTypeRefSkel.isBottom(t)) { return t; }
+      // if (PTypeRefSkel.isBottom(t)) { return t; }
       if (!PTypeRefSkel.isLangType(t, "string")) {
         emsg = new StringBuffer();
         emsg.append("Value is not string at ");
@@ -1188,7 +1188,7 @@ class PTypeGraph {
       StringBuffer emsg;
       PTypeSkel t = this.getTypeOf(this.inNodes[0]);
       if (t == null) { return null; }
-      if (PTypeRefSkel.isBottom(t)) { return t; }
+      // if (PTypeRefSkel.isBottom(t)) { return t; }
       return ((PTypeRefSkel)t).params[0];  // type is guaranteed in in-node
     }
    

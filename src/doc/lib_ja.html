@@ -751,13 +751,13 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p>【Beta】イテレータを取得できることを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A a'col ] @public -&gt; &lt;T A col_fs&gt; ;;</code></td></tr></table>
-<p>【Beta】コレクションであることを表します。</p>
+<p>コレクションであることを表します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.10"><code>sango.lang</code> - その他</h2>
 
-<table border width="100%"><tr><td class="def"><code>eval @beta &lt;cstr&gt; *Msg _NYI_ @public -&gt; &lt;*A&gt; ;;</code></td></tr></table>
-<p>「NYI」は「Not Yet Implemented」を表しています。
+<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Msg _NYI_ @public -&gt; &lt;*A&gt; ;;</code></td></tr></table>
+<p>【Beta】「NYI」は「Not Yet Implemented」を表しています。
 この関数は，関数の一部が実装されていなくても，そのモジュールのコンパイルを試みるために使用します。
 未実装のコードの部分にこの関数を書くことによって，コンパイルのチェックを走らせることができるようになります。
 この関数は，実際に実行されると<code>Msg</code>のメッセージを伴った<code>NYI$</code>例外が発生します。
