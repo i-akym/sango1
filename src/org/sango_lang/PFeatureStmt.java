@@ -278,17 +278,27 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
       this.paramSkels[i] = (PTypeVarSkel)this.params[i].getTypeSkel();
     }
 
-    // following check will be done for variance's compatibility
-    // PTypeSkelBindings bindings = PTypeSkelBindings.create();  // dummy
-    // for (int i = 0; i < this.params.length; i++) {
-      // if (!this.impl.toSkel().includesVar(this.params[i].varDef._resolved_varSlot, bindings)) {
-        // emsg = new StringBuffer();
-        // emsg.append("Insufficient variable references in feature implementation type at ");
-        // emsg.append(this.impl.getSrcInfo());
-        // emsg.append(".");
-        // throw new CompileException(emsg.toString());
-      // }
-    // }
+    PTypeSkel implSkel = this.impl.toSkel();
+    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();  // dummy
+    if (!implSkel.includesVar(this.objSkel.varSlot, bindings)) {
+      emsg = new StringBuffer();
+      emsg.append("Object type not used in implementation at ");
+      emsg.append(this.impl.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
+    for (int i = 0; i < this.params.length; i++) {
+      if (!implSkel.includesVar(this.params[i].varDef._resolved_varSlot, bindings)) {
+        emsg = new StringBuffer();
+        emsg.append("Parameter *");
+        emsg.append(this.params[i].varDef.name);
+        emsg.append(" not used in implementation at ");
+        emsg.append(this.impl.getSrcInfo());
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+
     return this;
   }
 
