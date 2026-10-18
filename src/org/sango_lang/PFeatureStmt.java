@@ -338,6 +338,15 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
 
   void normalizeTypes() throws CompileException {
     this._normalized_implSkel = (PTypeRefSkel)this.impl.toSkel().normalize();
+    String e = this._normalized_implSkel.checkFormat(false);
+    if (e != null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append(e);
+      emsg.append(" at ");
+      emsg.append(this.impl.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
   }
 
   List<PAliasTypeStmt> generateAliases(PModule mod) throws CompileException {
