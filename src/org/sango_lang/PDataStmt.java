@@ -151,6 +151,13 @@ class PDataStmt extends PDefaultProgObj implements PDataDef.OriginDef {
 
     PDataStmt create() throws CompileException {
       StringBuffer emsg;
+      if (this.dat.extensible && this.featureImplList.size() > 0) {
+        emsg = new StringBuffer();
+        emsg.append("Cannot declare feature implementation on extensible type at ");
+        emsg.append(this.dat.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
       this.dat.tparams = this.paramList.toArray(new PType.DefHeaderParam[this.paramList.size()]);
       this.dat.tcon = this.tcon.name;
       PType.Builder tb = PType.Builder.newInstance(this.dat.srcInfo, this.getDefScope());
