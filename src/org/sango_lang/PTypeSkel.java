@@ -49,19 +49,15 @@ public interface PTypeSkel {
 
   PTypeSkel instanciate(InstanciationContext context);
 
-  boolean accept(PTypeSkel type, Bindings bindings) throws CompileException ;
+  Bindings accept(PTypeSkel type, Bindings bindings) throws CompileException ;
 
-  boolean require(PTypeSkel type, Bindings bindings) throws CompileException ;
-
-  // // width is
-  // static final int EQUAL = 0;
-  // static final int NARROWER = 1;
-  // static final int WIDER = - NARROWER;
+  Bindings require(PTypeSkel type, Bindings bindings) throws CompileException ;
 
   boolean includesVar(PTypeVarSlot varSlot, Bindings bindings);
 
   PTypeSkel join(PTypeSkel type, List<PTypeVarSlot> givenTVarList) throws CompileException;
     // foward to following method internally
+
   JoinResult join2(PTypeSkel type, Bindings bindings) throws CompileException;
 
   MType toMType(PModule mod, Module.Builder modBuilder, boolean inReferredDef, List<PTypeVarSlot> slotList);
@@ -70,27 +66,12 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(Bindings bindings) throws CompileException;
 
-  void excludeBareTVarAtRet(Parser.SrcInfo si, boolean atRet, List<PTypeVarSlot> checked) throws CompileException;
+  String checkFormat(boolean atRet);
+    // returns reason when invalid
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 
   Repr repr();
-
-  // static int calcWidth(int widthContext, Module.Variance variance) {
-    // int w;
-    // if (widthContext == EQUAL) {
-      // w = EQUAL;
-    // } else if (variance == Module.INVARIANT) {
-      // w = EQUAL;
-    // } else if (variance == Module.COVARIANT) {
-      // w = widthContext;
-    // } else if (variance == Module.CONTRAVARIANT) {
-      // w = - widthContext;
-    // } else {
-      // throw new RuntimeException("Width calculation error.");
-    // }
-    // return w;
-  // }
 
   static public class Bindings {
     Map<PTypeVarSlot, PTypeSkel> bindingDict;
@@ -111,7 +92,7 @@ public interface PTypeSkel {
       return b;
     }
 
-    Bindings copy() {  // shallow copy
+    private Bindings copy() {  // shallow copy
       Bindings b = new Bindings();
       b.bindingDict = new HashMap<PTypeVarSlot, PTypeSkel>();
       b.bindingDict.putAll(this.bindingDict);
@@ -135,17 +116,19 @@ public interface PTypeSkel {
       return this.bindingDict.containsKey(var.varSlot);
     }
 
-    void bind(PTypeVarSkel var, PTypeSkel typeSkel) {
+    Bindings bind(PTypeVarSkel var, PTypeSkel typeSkel) {
       if (var.varSlot == null) {
         throw new IllegalArgumentException("No slot. " + " " + var.toString());
       }
       if (this.isBound(var) || this.isGivenTVar(var)) {
         throw new IllegalArgumentException("Cannot bind. " + var.toString() + " " + this.toString());
       }
-      this.bindingDict.put(var.varSlot, typeSkel);
+      Bindings b = this.copy();
+      b.bindingDict.put(var.varSlot, typeSkel);
       if (var.requiresConcrete) {
-        this.addConcreteVar(var);
+        b.addConcreteVar(var);
       }
+      return b;
     }
 
     PTypeSkel lookup(PTypeVarSkel var) {
@@ -193,6 +176,20 @@ public interface PTypeSkel {
       }
       return this.givenTVarList.contains(var.varSlot);
     }
+  }
+
+  public static class CastResult {
+    PTypeSkel casted;
+    Bindings bindings;
+
+    public static CastResult create(PTypeSkel casted, Bindings bindings) {
+      CastResult r = new CastResult();
+      r.casted = casted;
+      r.bindings = bindings;
+      return r;
+    }
+
+    private CastResult() {}
   }
 
   public static class JoinResult {

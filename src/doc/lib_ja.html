@@ -19,7 +19,7 @@ kbd {
   vertical-align : super }
 -->
 </style>
-<title>Sango 1.9.0　ライブラリ解説</title>
+<title>Sango 1.9.1　ライブラリ解説</title>
 </head>
 
 <body>
@@ -377,12 +377,13 @@ eval &lt;*D *A col_fs&gt; *Fs col_fs_empty?_f | empty?_f @public -&gt; &lt;D boo
 <table border width="100%"><tr><td class="def"><code>data &lt;exc_desc&gt; @public :=
 | assertion_error$ | intentional$ | unsupported$ | security_error$
 | bad_arg$ | bad_status$ | &lt;runtime_failure&gt; runtime_failure$
-| &lt;arith_failure&gt; arith_failure$ | sys_error$ | &lt;exc_desc&gt; thru$ | ... ;;</code></td></tr></table>
+| &lt;arith_failure&gt; arith_failure$ | sys_error$ | &lt;exc_desc&gt; thru$ | NYI$ | ... ;;</code></td></tr></table>
 <p>例外理由を表します。
 データ構築子名が理由を示しています。独自の例外理由を定義する場合には，この定義を拡張します。</p>
 <p><code>intentional$</code>は，プログラマが何らかの理由で処理を中断させるときに使用できます。
 <code>sys_error$</code>は，Sangoランタイムの内部エラーを示します。
-<code>thru$</code>は，アクタを速やかに終了すべき例外を示し，<code>try</code>で捕捉されません。</p>
+<code>thru$</code>は，アクタを速やかに終了すべき例外を示し，<code>try</code>で捕捉されません。
+<code>NYI$</code>は，<code>_NYI_</code>関数の実行により発生します。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;runtime_failure&gt; @public := incompat$ | no_case$ | no_elem$ ;;</code></td></tr></table>
 <p>Sangoランタイムが検出した例外を表します。
@@ -750,10 +751,17 @@ eval &lt;real&gt; *R real_ge0? | ge0? @public -&gt; &lt;bool&gt; ;;</code></td><
 <p>【Beta】イテレータを取得できることを表します。</p>
 
 <table border width="100%"><tr><td class="def"><code>feature &lt;*T&gt; [ *A a'col ] @public -&gt; &lt;T A col_fs&gt; ;;</code></td></tr></table>
-<p>【Beta】コレクションであることを表します。</p>
+<p>コレクションであることを表します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.lang.10"><code>sango.lang</code> - その他</h2>
+
+<table border width="100%"><tr><td class="def"><code>eval &lt;cstr&gt; *Msg _NYI_ @public -&gt; &lt;*A&gt; ;;</code></td></tr></table>
+<p>【Beta】「NYI」は「Not Yet Implemented」を表しています。
+この関数は，関数の一部が実装されていなくても，そのモジュールのコンパイルを試みるために使用します。
+未実装のコードの部分にこの関数を書くことによって，コンパイルのチェックを走らせることができるようになります。
+この関数は，実際に実行されると<code>Msg</code>のメッセージを伴った<code>NYI$</code>例外が発生します。
+<code>Msg</code>は，コード中のコメントとしても役立てることができます。</p>
 
 <table border width="100%"><tr><td class="def"><code>eval &lt;*A list&gt; *Xs list_length | length @public -&gt; &lt;int&gt; ;;</code></td></tr></table>
 <p>リストの要素の個数を返します。</p>
@@ -2942,18 +2950,18 @@ eval &lt;*A *B *C tuple&gt; *X triple_third @public -&gt; &lt;C&gt; ;;
 eval &lt;*A *B *C *D tuple&gt; *X quadruple_frist @public -&gt; &lt;A&gt; ;;
 eval &lt;*A *B *C *D tuple&gt; *X quadruple_second @public -&gt; &lt;B&gt; ;;
 eval &lt;*A *B *C *D tuple&gt; *X quadruple_third @public -&gt; &lt;C&gt; ;;
-eval &lt;*A *B *C *D tuple&gt; *X quadruple_forth @public -&gt; &lt;D&gt; ;;
+eval &lt;*A *B *C *D tuple&gt; *X quadruple_fourth @public -&gt; &lt;D&gt; ;;
 eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_frist @public -&gt; &lt;A&gt; ;;
 eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_second @public -&gt; &lt;B&gt; ;;
 eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_third @public -&gt; &lt;C&gt; ;;
-eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_forth @public -&gt; &lt;D&gt; ;;
+eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fourth @public -&gt; &lt;D&gt; ;;
 eval &lt;*A *B *C *D *E tuple&gt; *X quintuple_fifth @public -&gt; &lt;E&gt; ;;</code></td></tr></table>
 <p>タプルの要素を返します。</p>
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h1 id="sango.unique"><code>sango.unique</code> 【Beta】</h1>
 
-<p>プログラム内で唯一となるオブジェクトを供給します。</p>
+<p>オブジェクトの唯一性を扱います。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;u&gt; @opaque ;;</code></td></tr></table>
 <p>プログラム内で唯一となるオブジェクトを表します。
@@ -3191,13 +3199,6 @@ eval &lt;*A set&gt; *Set clear @public -&gt; &lt;A set&gt; ;;</code></td></tr></
 
 <p class="toc-ref"><a href="#toc">[目次]</a></p>
 <h2 id="sango.util.bag.3"><code>sango.util.bag</code> - 実装者向け情報</h2>
-
-<p>バッグは，実装のための内部データと機能関数群からなります。
-内部データは，自由に定義することができます。</p>
-
-<table border width="100%"><tr><td class="def"><code>eval &lt;*D&gt; *Z &lt;D *A bag_fs&gt; *Fs combine @public -&gt; &lt;A bag&gt; ;;</code></td></tr></table>
-<p>バッグを生成します。
-<code>Z</code>が内部データです。</p>
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*D *A bag_fs&gt; @public :=
   empty?_f: &lt;D bool fun&gt;

@@ -69,13 +69,13 @@ class PListConstrPtn extends PListPtn {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createListPtnNode(this, this.alreadyDefinedTVarList);
+    this.typeGraphNode = graph.createListPtnNode(this, this.givenTVarList);
     PTypeGraph.Node e = this.elem.setupTypeGraph(graph);
-    PTypeGraph.ListPtnElemNode en = graph.createListPtnElemNode(this, this.alreadyDefinedTVarList);
-    en.setInNode(this.typeGraphNode);
-    e.setInNode(en);
+    PTypeGraph.ListPtnElemNode en = graph.createListPtnElemNode(this, this.givenTVarList);
+    en.setInNode(0, this.typeGraphNode);
+    e.setInNode(0, en);
     PTypeGraph.Node t = this.tail.setupTypeGraph(graph);
-    t.setInNode(this.typeGraphNode);
+    t.setInNode(0, this.typeGraphNode);
     return this.typeGraphNode;
   }
 

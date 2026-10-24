@@ -303,6 +303,10 @@
     helper.setException(e);
   }
 
+  public void sni__NYI_(RNativeImplHelper helper, RClosureItem self, RObjItem msg) {
+    helper.setException(createNYIException(helper, helper.arrayItemToCstr((RArrayItem)msg), null));
+  }
+
   public void sni_expose(RNativeImplHelper helper, RClosureItem self, RObjItem x) {
     helper.setReturnValue(x); 
   }
@@ -384,6 +388,12 @@
     RDataConstr dcArithFail = helper.getDataConstr(Module.MOD_LANG, "arith_failure$");
     RObjItem oArithFail = helper.getStructItem(dcArithFail, new RObjItem[] { cause });
     return helper.createException(oArithFail, msg, org);
+  }
+
+  public static RObjItem createNYIException(RNativeImplHelper helper, Cstr msg, RObjItem org) {
+    RDataConstr edc = helper.getDataConstr(Module.MOD_LANG, "NYI$");
+    RObjItem ed = helper.getStructItem(edc, new RObjItem[0]);
+    return helper.createException(ed, msg, org);
   }
 
   public static RObjItem createSysErrorException(RNativeImplHelper helper, Cstr msg, RObjItem org) {

@@ -423,37 +423,31 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
   }
 
   void normalizeTypes() throws CompileException {
+    String e;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].normalizeTypes();
-    }
-    this.retDef.normalizeTypes();
-    List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
-    for (int i = 0; i < this.params.length; i++) {
-      if (PTypeRefSkel.isBottom(this.params[i]._normalized_typeSkel)) {
+      if ((e = this.params[i]._normalized_typeSkel.checkFormat(false)) != null) {
         StringBuffer emsg = new StringBuffer();
-        emsg.append("\"<_>\" not allowed at ");
+        emsg.append(e);
+        emsg.append(" at ");
         emsg.append(this.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
-    this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef.normalizeTypes();
+    if ((e = this.retDef._normalized_typeSkel.checkFormat(true)) != null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append(e);
+      emsg.append(" at ");
+      emsg.append(this.retDef.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     if (this.implExprs != null) {
       this.implExprs.normalizeTypes();
     }
   }
-
-  // public void collectTconProps() throws CompileException {
-    // List<PDefDict.TconProps> tps = new ArrayList<PDefDict.TconProps>();
-    // if (this.params != null) {
-      // for (int i = 0; i < this.params.length; i++) {
-        // this.params[i].getNormalizedType().collectTconProps(tps);
-      // }
-    // }
-    // this.retDef.getNormalizedType().collectTconProps(tps);
-    // this.scope.addReferredTcons(tps);
-  // }
 
   void setupTypeGraph(PTypeGraph graph) throws CompileException {
     for (int i = 0; i < this.params.length; i++) {
@@ -461,7 +455,7 @@ class PEvalStmt extends PDefaultProgObj implements PFunDef {
     }
     if (this.implExprs != null) {
       PTypeGraph.RetNode rn = (PTypeGraph.RetNode)this.retDef.setupTypeGraph(graph);
-      rn.setInNode(this.implExprs.setupTypeGraph(graph));
+      rn.setInNode(0, this.implExprs.setupTypeGraph(graph));
     }
   }
 

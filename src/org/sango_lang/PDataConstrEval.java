@@ -492,7 +492,7 @@ class PDataConstrEval extends PDefaultExprObj implements PEval {
     if (this.bdUsing != null) {
       this.bdUsing.setupTypeGraph(graph);
     }
-    this.typeGraphNode = graph.createDataConstrNode(this, this.alreadyDefinedTVarList, this.dcon, this.bdAttrs.length);
+    this.typeGraphNode = graph.createDataConstrNode(this, this.givenTVarList, this.dcon, this.bdAttrs.length);
     for (int i = 0; i < this.bdAttrs.length; i++) {
       PTypeGraph.Node an = this.bdAttrs[i].setupTypeGraph(graph);
       // HERE: add constraint to attr

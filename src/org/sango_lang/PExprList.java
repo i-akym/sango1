@@ -150,19 +150,19 @@ abstract class PExprList extends PDefaultExprObj {
     }
 
     public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-      this.typeGraphNode = graph.createRefNode(this, this.alreadyDefinedTVarList);
+      this.typeGraphNode = graph.createRefNode(this, this.givenTVarList);
       PTypeGraph.Node n = null;
       for (int i = 0; i < this.exprs.length; i++) {
         if (n == null) {
           n = this.exprs[i].setupTypeGraph(graph);
         } else {
-          PTypeGraph.SeqNode s = graph.createSeqNode(this.exprs[i], this.exprs[i].alreadyDefinedTVarList);
+          PTypeGraph.SeqNode s = graph.createSeqNode(this.exprs[i], this.exprs[i].givenTVarList);
           s.setLeadingTypeNode(n);
-          s.setInNode(this.exprs[i].setupTypeGraph(graph));
+          s.setFollowingTypeNode(this.exprs[i].setupTypeGraph(graph));
           n = s;
         }
       }
-      this.typeGraphNode.setInNode(n);
+      this.typeGraphNode.setInNode(0, n);
       return this.typeGraphNode;
     }
 

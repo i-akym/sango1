@@ -55,10 +55,8 @@ class PScope {
   Map<String, PExprVarDef> evarDict;
   Map<String, PTypeVarDef> outerTVarDict;
   Map<String, PExprVarDef> outerEVarDict;
-  // List<PTypeVarSlot> anonymTVarList;
   List<PTypeVarSlot> envTVarList;  // null when created
   List<PExprVarSlot> envEVarList;  // null when created
-  // List<PTypeVarSlot> givenTVarList;  // null when created
 
   private PScope(PModule theMod) {
     this.theMod = theMod;
@@ -67,7 +65,6 @@ class PScope {
     this.evarDict = new HashMap<String, PExprVarDef>();
     this.outerTVarDict = new HashMap<String, PTypeVarDef>();
     this.outerEVarDict = new HashMap<String, PExprVarDef>();
-    // this.anonymTVarList = new ArrayList<PTypeVarSlot>();
   }
 
   static PScope create(PModule theMod) {
@@ -110,7 +107,7 @@ class PScope {
   private PScope createInnerScope() {
     PScope s = new PScope(this.theMod);
     s.parent = this;
-    s.pos = this.pos;
+    s.pos = this.pos + 1;
     s.evalStmt = this.evalStmt;
     s.closure = this.closure;
     return s;
@@ -454,33 +451,44 @@ class PScope {
     return v;
   }
 
-  List<PTypeVarSlot> getDefinedTVarList() {
+  List<PTypeVarSlot> getGivenTVarList() {
     if (this.copyFrom != null) {
       throw new IllegalStateException("Not copied yet.");
     }
     List<PTypeVarSlot> vs = new ArrayList<PTypeVarSlot>();
-    this.collectDefinedTVars(vs);
+    this.doGetGivenTVarList(vs);
     return vs;
   }
 
-  private void collectDefinedTVars(List<PTypeVarSlot> vs) {
+  private void doGetGivenTVarList(List<PTypeVarSlot> vs) {
     if (this.parent != null) {
-      this.parent.collectDefinedTVars(vs);
+      this.parent.doGetGivenTVarList(vs);
     }
+    if (this.isForHeadOfFunOrClosure()) {
+      this.collectDefinedTVars(vs);
+    }
+  }
+
+  private boolean isForHeadOfFunOrClosure() {
+    boolean b;
+    if (this.pos == POS_FUN_BASE) {
+      b = true;
+    } else if (this.parent == null) {
+      b = false;
+    } else if (this.closure != this.parent.closure) {
+      b = true;
+    } else {
+      b = false;
+    }
+    return b;
+  }
+
+  private void collectDefinedTVars(List<PTypeVarSlot> vs) {
     Iterator<PTypeVarDef> vi = this.tvarDict.values().iterator();
     while (vi.hasNext()) {
       vs.add(vi.next()._resolved_varSlot);
     }
   }
-
-  // List<PTypeVarSlot> getEnvTVarList() {
-    // if (this.copyFrom != null) {
-      // throw new IllegalStateException("Not copied yet.");
-    // }
-    // return this.inParallel?
-      // this.parent.getEnvTVarList():  // temporal impl - forward simply
-      // this.envTVarList;
-  // }
 
   List<PExprVarSlot> getEnvEVarList() {
     if (this.copyFrom != null) {

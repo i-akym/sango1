@@ -245,13 +245,32 @@ class PPtnMatch extends PDefaultExprObj {
       this.impose.normalizeTypes();
     }
     this.ptn.normalizeTypes();
+    PTypeSkel t = this.getNormalizedType();
+    if (t != null) {
+      String e = t.checkFormat(false);
+      if (e != null) {
+        StringBuffer emsg = new StringBuffer();
+        emsg.append(e);
+        emsg.append(" at ");
+        emsg.append(this.srcInfo);
+        emsg.append(".");
+        throw new CompileException(emsg.toString());
+      }
+    }
+  }
+
+  public PTypeSkel getNormalizedType() {
+    if (this._normalized_typeSkel == null) {
+      this._normalized_typeSkel = (this.impose != null)? this.impose.getNormalizedType(): this.ptn.getNormalizedType();
+    }
+    return this._normalized_typeSkel;
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
     if (this.impose != null) {
       this._normalized_typeSkel = this.scope.getLangPrimitiveType(this.impose.srcInfo, Module.TCON_EXPOSED).toSkel();
-      this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
-      this.ptn.setupTypeGraph(graph).setInNode(this.impose.setupTypeGraph(graph));
+      this.typeGraphNode = graph.createDetNode(this, this.givenTVarList);
+      this.ptn.setupTypeGraph(graph).setInNode(0, this.impose.setupTypeGraph(graph));
     } else {
       this.typeGraphNode = this.ptn.setupTypeGraph(graph);
     }
@@ -259,7 +278,7 @@ class PPtnMatch extends PDefaultExprObj {
   }
 
   void setTypeGraphInNode(PTypeGraph.Node node) {
-    this.typeGraphNode.setInNode(node);
+    this.typeGraphNode.setInNode(0, node);
   }
 
   public GFlow.Node setupFlow(GFlow flow) {

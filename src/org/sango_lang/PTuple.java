@@ -108,7 +108,7 @@ class PTuple extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createTupleNode(this, this.alreadyDefinedTVarList, this.elems.exprs.length);
+    this.typeGraphNode = graph.createTupleNode(this, this.givenTVarList, this.elems.exprs.length);
     for (int i = 0; i < this.elems.exprs.length; i++) {
       ((PTypeGraph.TupleNode)this.typeGraphNode).setElemNode(i, this.elems.exprs[i].setupTypeGraph(graph));
     }

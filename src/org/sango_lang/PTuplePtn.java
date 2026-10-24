@@ -146,12 +146,12 @@ class PTuplePtn extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createTuplePtnNode(this, this.alreadyDefinedTVarList, this.elems.length);
+    this.typeGraphNode = graph.createTuplePtnNode(this, this.givenTVarList, this.elems.length);
     for (int i = 0; i < this.elems.length; i++) {
       PTypeGraph.Node en = this.elems[i].setupTypeGraph(graph);
-      PTypeGraph.TuplePtnElemNode en2 = graph.createTuplePtnElemNode(this, this.alreadyDefinedTVarList, i);
-      en2.setInNode(this.typeGraphNode);
-      en.setInNode(en2);
+      PTypeGraph.TuplePtnElemNode en2 = graph.createTuplePtnElemNode(this, this.givenTVarList, i);
+      en2.setInNode(0, this.typeGraphNode);
+      en.setInNode(0, en2);
     }
     return this.typeGraphNode;
   }

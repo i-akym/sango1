@@ -31,10 +31,10 @@ eval <*A *B *C tuple> *X triple_third @public -> <C> { X = (| **, **, *X2 |), X2
 eval <*A *B *C *D tuple> *X quadruple_frist @public -> <A> { X = (| *X0, **, **, ** |), X0 } ;;
 eval <*A *B *C *D tuple> *X quadruple_second @public -> <B> { X = (| **, *X1, **, ** |), X1 } ;;
 eval <*A *B *C *D tuple> *X quadruple_third @public -> <C> { X = (| **, **, *X2, ** |), X2 } ;;
-eval <*A *B *C *D tuple> *X quadruple_forth @public -> <D> { X = (| **, **, **, *X3 |), X3 } ;;
+eval <*A *B *C *D tuple> *X quadruple_fourth @public -> <D> { X = (| **, **, **, *X3 |), X3 } ;;
 eval <*A *B *C *D *E tuple> *X quintuple_frist @public -> <A> { X = (| *X0, **, **, **, ** |), X0 } ;;
 eval <*A *B *C *D *E tuple> *X quintuple_second @public -> <B> { X = (| **, *X1, **, **, ** |), X1 } ;;
 eval <*A *B *C *D *E tuple> *X quintuple_third @public -> <C> { X = (| **, **, *X2, **, ** |), X2 } ;;
-eval <*A *B *C *D *E tuple> *X quintuple_forth @public -> <D> { X = (| **, **, **, *X3, ** |), X3 } ;;
+eval <*A *B *C *D *E tuple> *X quintuple_fourth @public -> <D> { X = (| **, **, **, *X3, ** |), X3 } ;;
 eval <*A *B *C *D *E tuple> *X quintuple_fifth @public -> <E> { X = (| **, **, **, **, *X4 |), X4 } ;;
 

@@ -171,7 +171,7 @@ class PExprVarDef extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createVarNode(this, this.alreadyDefinedTVarList, this.name, this.cat);
+    this.typeGraphNode = graph.createVarNode(this, this.givenTVarList, this.name, this.cat);
     return this.typeGraphNode;
   }
 

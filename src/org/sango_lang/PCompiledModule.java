@@ -395,11 +395,11 @@ class PCompiledModule implements PModDecl {
         throw new IllegalArgumentException("Length of unaliasing params mismatch.");
       }
       PTypeSkel.InstanciationContext ic = PTypeSkel.InstanciationContext.create();
-      PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create();
+      PTypeSkel.Bindings bx = PTypeSkel.Bindings.create();
       for (int i = 0; i < params.length; i++) {
-        bindings.bind((PTypeVarSkel)this.tparams[i].instanciate(ic), params[i]);
+        bx = bx.bind((PTypeVarSkel)this.tparams[i].instanciate(ic), params[i]);
       }
-      PTypeSkel u = this.body.instanciate(ic).resolveBindings(bindings);
+      PTypeSkel u = this.body.instanciate(ic).resolveBindings(bx);
       return u.normalize();
     }
   }

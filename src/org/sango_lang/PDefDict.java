@@ -678,15 +678,14 @@ class PDefDict {
     // PFunDef#getParamTypes maybe throw CompileException current implementation...
     PTypeSkel[] pts = def.getParamTypes();
     if (pts.length != paramTypes.length) { return null; }
-    PTypeSkel.Bindings bindings = PTypeSkel.Bindings.create(givenTVarList);
-    boolean b = true;
-    for (int i = 0; b && i < pts.length; i++) {
-      b = pts[i].accept( paramTypes[i], bindings);
+    PTypeSkel.Bindings bx = PTypeSkel.Bindings.create(givenTVarList);
+    for (int i = 0; bx != null && i < pts.length; i++) {
+      bx = pts[i].accept( paramTypes[i], bx);
     }
-    if (b) {
-      b = bindings.getAnyInconcreteVar() == null;
-    }
-   return b? bindings: null;
+    // if (bx != null) {
+      // b = bindings.getAnyInconcreteVar() == null;
+    // }
+   return (bx != null && bx.getAnyInconcreteVar() == null)? bx: null;
   }
 
   void addReferredForeignTcon(Cstr referrer, IdKey tid) throws CompileException {

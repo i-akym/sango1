@@ -95,7 +95,7 @@ class PChar extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createDetNode(this, this.alreadyDefinedTVarList);
+    this.typeGraphNode = graph.createDetNode(this, this.givenTVarList);
     return this.typeGraphNode;
   }
 

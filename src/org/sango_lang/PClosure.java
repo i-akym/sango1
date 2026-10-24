@@ -286,23 +286,27 @@ class PClosure extends PDefaultExprObj {
   }
 
   public void normalizeTypes() throws CompileException {
+    String e;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].normalizeTypes();
-    }
-    this.retDef.normalizeTypes();
-    List<PTypeVarSlot> checked = new ArrayList<PTypeVarSlot>();
-    checked.addAll(this.alreadyDefinedTVarList);
-    for (int i = 0; i < this.params.length; i++) {
-      if (PTypeRefSkel.isBottom(this.params[i]._normalized_typeSkel)) {
+      if ((e = this.params[i]._normalized_typeSkel.checkFormat(false)) != null) {
         StringBuffer emsg = new StringBuffer();
-        emsg.append("\"<_>\" not allowed at ");
+        emsg.append(e);
+        emsg.append(" at ");
         emsg.append(this.params[i].getSrcInfo());
         emsg.append(".");
         throw new CompileException(emsg.toString());
       }
-      this.params[i]._normalized_typeSkel.excludeBareTVarAtRet(this.params[i]._normalized_typeSkel.getSrcInfo(), false, checked);
     }
-    this.retDef._normalized_typeSkel.excludeBareTVarAtRet(this.retDef._normalized_typeSkel.getSrcInfo(), true, checked);
+    this.retDef.normalizeTypes();
+    if ((e = this.retDef._normalized_typeSkel.checkFormat(true)) != null) {
+      StringBuffer emsg = new StringBuffer();
+      emsg.append(e);
+      emsg.append(" at ");
+      emsg.append(this.retDef.getSrcInfo());
+      emsg.append(".");
+      throw new CompileException(emsg.toString());
+    }
     this.implExprs.normalizeTypes();
   }
 
@@ -315,12 +319,12 @@ class PClosure extends PDefaultExprObj {
   }
 
   public PTypeGraph.Node setupTypeGraph(PTypeGraph graph) throws CompileException {
-    this.typeGraphNode = graph.createClosureNode(this, this.alreadyDefinedTVarList, this.params.length);
+    this.typeGraphNode = graph.createClosureNode(this, this.givenTVarList, this.params.length);
     for (int i = 0; i < this.params.length; i++) {
       ((PTypeGraph.ClosureNode)this.typeGraphNode).setParamNode(i, this.params[i].setupTypeGraph(graph));
     }
     PTypeGraph.Node rn = this.retDef.setupTypeGraph(graph);
-    rn.setInNode(this.implExprs.setupTypeGraph(graph));
+    rn.setInNode(0, this.implExprs.setupTypeGraph(graph));
     ((PTypeGraph.ClosureNode)this.typeGraphNode).setRetNode(rn);
     return this.typeGraphNode;
   }
@@ -330,7 +334,7 @@ class PClosure extends PDefaultExprObj {
       throw new IllegalArgumentException("Count of args is not guaranteed to be equal to that of params.");
     }
     for (int i = 0; i < args.length; i++) {
-      this.params[i].getTypeGraphNode().setInNode(args[i]);
+      this.params[i].getTypeGraphNode().setInNode(0, args[i]);
     }
   }
 

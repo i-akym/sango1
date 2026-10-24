@@ -239,9 +239,9 @@ data @alpha <*A ord_string> @public :=
   str: <A string>
   ord_fs: <A ord_fs>
   ord_string$
-++ ord_string_as_a'ord -> [ a'ord ] ;;
+++ ord_string_ord_fs -> [ a'ord ] ;;
 
-eval ord_string_as_a'ord -> <<*A ord_string> ord_fs> {
+eval ord_string_ord_fs -> <<*A ord_string> ord_fs> {
   compare_f:
     \ <*AA ord_string> *S0 <AA ord_string> *S1 -> <ordering> {
       S0 = *X0 *Fs ord_string$,
