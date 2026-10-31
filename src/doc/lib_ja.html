@@ -331,12 +331,12 @@ eval &lt;*D *A col_fs&gt; *Fs col_fs_empty?_f | empty?_f @public -&gt; &lt;D boo
 
 <table border width="100%"><tr><td class="def"><code>data &lt;*A dummy&gt; @public :=
 | &lt;A&gt; dummy_obj$
-| &lt;A void fun&gt; dummy_fun$ ;;</code></td></tr></table></code></td></tr></table>
+| &lt;A fun&gt; dummy_fun$ ;;</code></td></tr></table></code></td></tr></table>
 <p>【Beta】型情報を渡すためのダミーのオブジェクトを表します。
-  Sangoの関数呼び出しにはオブジェクトを渡しますが，具象型を要求するコンテナオブジェクトの生成時など，型情報だけが必要なことがあります。
-  そのような場合にこの型を使用します。</p>
-<p><code>dummy_fun$</code>の場合，<code>T</code>を渡したい型として，<code>ignore</code>を使用して次のように書くことができます。</p>
-<blockquote class="code-sample"><code>&amp;\\ &lt;T dummy&gt; { ^ignore dummy_fun$ }</code></blockquote>
+Sangoの関数呼び出しにはオブジェクトを渡しますが，具象型を要求するコンテナオブジェクトの生成時など，型情報だけが必要なことがあります。
+そのような場合にこの型を使用します。</p>
+<p><code>dummy_fun$</code>の場合，<code>T</code>を渡したい型として，<code>_NYI_</code>を使用して次のように書くことができます。</p>
+<blockquote class="code-sample"><code>\\ &lt;T&gt; { "dummy fun impl" _NYI_ } dummy_fun$</code></blockquote>
 
 <table border width="100%"><tr><td class="def"><code>eval max_byte @public -&gt; &lt;byte&gt; ;;</code></td></tr></table></code></td></tr></table>
 <p>バイトの最大値（255）を返します。</p>
