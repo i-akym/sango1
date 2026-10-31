@@ -214,7 +214,7 @@ alias type <*A iter_res> @public := <<A <A iter> tuple> maybe> ;;
 
 data @beta <*A dummy> @public :=
 | <A> dummy_obj$
-| <A void fun> dummy_fun$ ;;
+| <A fun> dummy_fun$ ;;
 
 
 # -- features --
