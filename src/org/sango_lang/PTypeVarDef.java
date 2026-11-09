@@ -162,7 +162,7 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
 // /* DEBUG */ System.out.print("VARDEF "); System.out.print(this); System.out.println(this.scope);
     StringBuffer emsg;
     if (this._resolved_varSlot != null) { return this; }
-    if (!this.scope.canDefineTVar(this)) {  // successful if name == null
+    if (!this.scope.canDefineTVar(this)) {  // also successful in case name == null
       emsg = new StringBuffer();
       emsg.append("Cannot define variable at ");
       emsg.append(this.srcInfo);
@@ -170,10 +170,18 @@ class PTypeVarDef extends PDefaultTypedObj implements PType {
       emsg.append(this.name);
       throw new CompileException(emsg.toString());
     }
-    this.scope.defineTVar(this);
     if (this.features != null) {
       this.features = this.features.resolve();
+      if (!this.scope.canDefineTVar(this)) {  // recheck
+        emsg = new StringBuffer();
+        emsg.append("Cannot define variable at ");
+        emsg.append(this.srcInfo);
+        emsg.append(". - ");
+        emsg.append(this.name);
+        throw new CompileException(emsg.toString());
+      }
     }
+    this.scope.defineTVar(this);
     return this;
   }
 
