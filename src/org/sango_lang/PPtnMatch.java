@@ -247,7 +247,7 @@ class PPtnMatch extends PDefaultExprObj {
     this.ptn.normalizeTypes();
     PTypeSkel t = this.getNormalizedType();
     if (t != null) {
-      String e = t.checkFormat(false);
+      String e = t.checkFormat(PTypeSkel.Pos.create());
       if (e != null) {
         StringBuffer emsg = new StringBuffer();
         emsg.append(e);

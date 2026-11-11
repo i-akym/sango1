@@ -289,7 +289,7 @@ class PClosure extends PDefaultExprObj {
     String e;
     for (int i = 0; i < this.params.length; i++) {
       this.params[i].normalizeTypes();
-      if ((e = this.params[i]._normalized_typeSkel.checkFormat(false)) != null) {
+      if ((e = this.params[i]._normalized_typeSkel.checkFormat(PTypeSkel.Pos.create())) != null) {
         StringBuffer emsg = new StringBuffer();
         emsg.append(e);
         emsg.append(" at ");
@@ -299,7 +299,7 @@ class PClosure extends PDefaultExprObj {
       }
     }
     this.retDef.normalizeTypes();
-    if ((e = this.retDef._normalized_typeSkel.checkFormat(true)) != null) {
+    if ((e = this.retDef._normalized_typeSkel.checkFormat(PTypeSkel.Pos.create().setAtRet(true))) != null) {
       StringBuffer emsg = new StringBuffer();
       emsg.append(e);
       emsg.append(" at ");

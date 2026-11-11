@@ -636,25 +636,25 @@ if (PTypeGraph.DEBUG > 1) {
     return tr;
   }
 
-  public String checkFormat(boolean atRet) {
+  public String checkFormat(PTypeSkel.Pos pos) {
     String e;
     if (isBottom(this)) {
-      e = atRet? null: "\"<_>\" is not allowed";
+      e = pos.isAtRet()? null: "\"<_>\" is not allowed";
     } else if (isTuple(this)) {
       e = (this.params.length > 1)? null: "Too few parameter for tuple";
       for (int i = 0; e == null && i < this.params.length; i++) {
-        e = this.params[i].checkFormat(false);
+        e = this.params[i].checkFormat(pos.setAtRet(false));
       }
     } else if (isFun(this)) {
       e = (this.params.length > 0)? null: "Too few parameters for fun";
       for (int i = 0; e == null && i < this.params.length - 1; i++) {
-        e = this.params[i].checkFormat(false);
+        e = this.params[i].checkFormat(pos.setAtRet(false));
       }
-      e = (e != null)? e: this.params[this.params.length - 1].checkFormat(true);
+      e = (e != null)? e: this.params[this.params.length - 1].checkFormat(pos.setAtRet(true));
     } else {
       e = null;
       for (int i = 0; e == null && i < this.params.length; i++) {
-        e = this.params[i].checkFormat(false);
+        e = this.params[i].checkFormat(pos.setAtRet(false));
       }
     }
     return e;

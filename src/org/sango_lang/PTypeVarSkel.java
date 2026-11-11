@@ -1106,8 +1106,16 @@ if (PTypeGraph.DEBUG > 1) {
     return ((t = bindings.lookup(this)) != null)? t: this;
   }
 
-  public String checkFormat(boolean atRet) {
-    return (this.features == null)? null: this.features.checkFormat();
+  public String checkFormat(PTypeSkel.Pos pos) {
+    String e;
+    if (pos.isUnderFeaturedVar(this.varSlot)) {
+      e = "Type var " + ((this.name != null)? this.name: "?") + " appears in featured type var";
+    } else if (this.features == null) {
+      e = null;
+    } else {
+      e = this.features.checkFormat(pos.enterFeaturedVar(this.varSlot));
+    }
+    return e;
   }
 
   public void collectTconKeys(Set<PDefDict.IdKey> keys) {}
