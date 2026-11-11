@@ -145,10 +145,10 @@ public class PFeatureSkel {
     return b;
   }
 
-  String checkFormat() {
+  String checkFormat(PTypeSkel.Pos pos) {
     String e = null;
     for (int i = 0; e == null && i < this.params.length; i++) {
-      e = this.params[i].checkFormat(false);
+      e = this.params[i].checkFormat(pos.setAtRet(false));
     }
     return e;
   }
@@ -387,10 +387,10 @@ public class PFeatureSkel {
       return b;
     }
 
-    String checkFormat() {
+    String checkFormat(PTypeSkel.Pos pos) {
       String e = null;
       for (int i = 0; e == null && i < this.features.length; i++) {
-        e = this.features[i].checkFormat();
+        e = this.features[i].checkFormat(pos);
       }
       return e;
     }

@@ -319,7 +319,7 @@ class PFeatureStmt extends PDefaultProgObj implements PFeatureDef {
     StringBuffer emsg;
 
     this._normalized_implSkel = (PTypeRefSkel)this.impl.toSkel().normalize();
-    String e = this._normalized_implSkel.checkFormat(false);
+    String e = this._normalized_implSkel.checkFormat(PTypeSkel.Pos.create());
     if (e != null) {
       emsg = new StringBuffer();
       emsg.append(e);

@@ -60,7 +60,7 @@ class PImpose extends PDefaultExprObj {
 
   public void normalizeTypes() throws CompileException {
     this._normalized_typeSkel = this.type.toSkel().normalize();
-    String e = this._normalized_typeSkel.checkFormat(false);
+    String e = this._normalized_typeSkel.checkFormat(PTypeSkel.Pos.create());
     if (e != null) {
       StringBuffer emsg = new StringBuffer();
       emsg.append(e);

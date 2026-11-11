@@ -66,12 +66,71 @@ public interface PTypeSkel {
 
   PTypeSkel unalias(Bindings bindings) throws CompileException;
 
-  String checkFormat(boolean atRet);
+  String checkFormat(Pos pos);
     // returns reason when invalid
 
   void collectTconKeys(Set<PDefDict.IdKey> keys);
 
   Repr repr();
+
+  static class Pos {
+    Pos parent;
+    boolean atRet;
+    PTypeVarSlot featureVar;
+
+    private Pos() {}
+
+    private Pos copy() {
+      Pos p = new Pos();
+      p.atRet = this.atRet;
+      p.featureVar = this.featureVar;
+      return p;
+    }
+
+    static Pos create() {
+      Pos p = new Pos();
+      return p;
+    }
+
+    boolean isAtRet() { return this.atRet; }
+
+    Pos setAtRet(boolean b) {
+      Pos p;
+      if (b == this.atRet) {
+        p = this;
+      } else {
+        p = this.copy();
+        p.atRet = b;
+      }
+      return p;
+    }
+
+    boolean isUnderFeaturedVar(PTypeVarSlot v) {
+      boolean b;
+      if (v == null) {
+        b = false;
+      } else if (v == this.featureVar) {
+        b = true;
+      } else if (this.parent == null) {
+        b = false;
+      } else {
+        b = this.parent.isUnderFeaturedVar(v);
+      }
+      return b;
+    }
+
+    Pos enterFeaturedVar(PTypeVarSlot v) {
+      Pos p;
+      if (v == null) {
+        p = this;
+      } else {
+        p = this.copy();
+        p.parent = this;
+        p.featureVar = v;
+      }
+      return p;
+    }
+  }
 
   static public class Bindings {
     Map<PTypeVarSlot, PTypeSkel> bindingDict;
