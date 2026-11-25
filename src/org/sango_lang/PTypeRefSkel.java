@@ -318,11 +318,11 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericVar 4 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bx);
 }
-      PTypeRefSkel o = this.openForVar(tv.requiresConcrete);
-      bx = bx.bind(tv, o);
-      bx = this.accept(o, bx);
-      // bx = this.castVarToMe(tv, bx);
-      // bx = this.accept(tv, bx);
+      PTypeSkel.CastResult cr = tv.castToSome(this, bx);
+      bx = this.accept(cr.casted, cr.bindings);
+      // PTypeRefSkel o = this.openForVar(tv.requiresConcrete);
+      // bx = bx.bind(tv, o);
+      // bx = this.accept(o, bx);
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericVar 5 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bx);
@@ -341,11 +341,11 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericAnonym 1 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bx);
 }
-      PTypeRefSkel o = this.openForVar(tv.requiresConcrete);
-      bx = bx.bind(tv, o);
-      bx = this.accept(o, bx);
-      // bx = this.castVarToMe(tv, bx);
-      // bx = this.accept(tv, bx);
+      PTypeSkel.CastResult cr = tv.castToSome(this, bx);
+      bx = this.accept(cr.casted, cr.bindings);
+      // PTypeRefSkel o = this.openForVar(tv.requiresConcrete);
+      // bx = bx.bind(tv, o);
+      // bx = this.accept(o, bx);
     } else {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#acceptGenericAnonym 2 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bx);
@@ -469,32 +469,14 @@ public class PTypeRefSkel implements PTypeSkel {
 /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
   System.out.print("PTypeRefSkel#requireGenericVar 5 "); System.out.print(this); System.out.print(" "); System.out.print(tv); System.out.print(" "); System.out.println(bx);
 }
-      PTypeRefSkel o = this.openForVar(tv.requiresConcrete);
-      bx = bx.bind(tv, o);
-      bx = this.require(o, bx);
-      // bx = this.castVarToMe(tv, bx);
-      // bx = this.require(tv, bx);
+      PTypeSkel.CastResult cr = tv.castToSome(this, bx);
+      bx = this.require(cr.casted, cr.bindings);
+      // PTypeRefSkel o = this.openForVar(tv.requiresConcrete);
+      // bx = bx.bind(tv, o);
+      // bx = this.require(o, bx);
     }
     return bx;
   }
-
-   // PTypeSkel.Bindings castVarToMe(PTypeVarSkel var, PTypeSkel.Bindings bindings) {
-// /* DEBUG */ if (PTypeGraph.DEBUG > 1) {
-  // System.out.print("PTypeRefSkel#castVarToMe "); System.out.print(this); System.out.print(" "); System.out.print(var); System.out.print(" "); System.out.println(bindings);
-// }
-    // PTypeRefSkel t = new PTypeRefSkel();
-    // t.theCompiler = this.theCompiler;
-    // t.srcInfo = this.srcInfo;
-    // t.tconKey = this.tconKey;
-    // t.params = new PTypeSkel[this.params.length];
-    // for (int i = 0; i < t.params.length; i++) {
-      // PTypeVarSkel v;
-        // PTypeVarSlot s = PTypeVarSlot.create();
-        // v = PTypeVarSkel.create(this.theCompiler, this.srcInfo, null, s, var.requiresConcrete, null);
-      // t.params[i] = v;
-    // }
-    // return bindings.bind(var, t);
-  // }
 
   public boolean includesVar(PTypeVarSlot varSlot, PTypeSkel.Bindings bindings) {
     boolean b = false;
